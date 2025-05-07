@@ -36,15 +36,13 @@ import base64
 
 sio = socketio.Client()
 
-try:
-    if ENV_MODE == 'dev':
-        sio.connect('http://localhost:3000')
-    else:
-        sio.connect('https://queensacademy.id')
-
-    print("🔌 Terkoneksi ke WebSocket server.")
-except Exception as e:
-    print(f"❌ Gagal konek WebSocket: {e}")
+if ENV_MODE == 'dev':
+    sio.connect('http://localhost:3000')
+else:
+    try:
+        sio.connect('https://queensacademy.id/socket.io')
+    except Exception as e:
+        print(f"🟡 WebSocket prod belum tersedia: {e}")
 
 
 # -------------------------- SOCKET.IO LISTENER --------------------------
@@ -155,7 +153,10 @@ GOOGLE_CREDENTIALS_FILE = "credentials.json"
 GDRIVE_FOLDER_ID = os.getenv('GDRIVE_FOLDER_ID')
 PROMO_VOICE_FOLDER_NAME = "PROMO_VOICE_FILES"
 
-pygame.mixer.init()
+try:
+    pygame.mixer.init()
+except Exception as e:
+    print(f"⚠️ Audio device tidak tersedia (server mode): {e}")
 
 # -------------------------- GLOBALS --------------------------
 _cached_credentials = None
