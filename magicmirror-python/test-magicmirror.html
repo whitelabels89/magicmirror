@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Test Magic Mirror API</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      background-color: #f2f2f2;
+    }
+    .card {
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      max-width: 600px;
+      margin: auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    input[type="file"] {
+      margin-bottom: 1rem;
+    }
+    #response {
+      white-space: pre-wrap;
+      margin-top: 1rem;
+      background: #eee;
+      padding: 1rem;
+      border-radius: 8px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>🔮 Test Magic Mirror API</h2>
+    <input type="file" id="photoInput" accept="image/*" />
+    <button onclick="sendToAPI()">Kirim ke Magic Mirror</button>
+    <div id="response"></div>
+  </div>
+
+  <script>
+    async function sendToAPI() {
+      const fileInput = document.getElementById('photoInput');
+      const responseBox = document.getElementById('response');
+
+      if (!fileInput.files.length) {
+        alert('Pilih foto dulu ya!');
+        return;
+      }
+
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+      reader.onload = async function () {
+        const base64Data = reader.result.split(',')[1]; // buang data:image/jpeg;base64,
+        responseBox.innerText = 'Mengirim foto ke server...';
+
+        try {
+          const res = await fetch('https://qc-magicmirror-api.onrender.com/run', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ photo: base64Data })
+          });
+
+          const data = await res.json();
+          responseBox.innerText = JSON.stringify(data, null, 2);
+        } catch (err) {
+          responseBox.innerText = '❌ Gagal kirim: ' + err.message;
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  </script>
+</body>
+</html>
