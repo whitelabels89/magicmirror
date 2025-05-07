@@ -1,0 +1,8 @@
+# Python
+*.env
+credentials.json
+
+# Node.js
+node_modules/
+package-lock.json
+yarn.lock

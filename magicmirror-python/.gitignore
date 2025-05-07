@@ -1,0 +1,17 @@
+# API key & credentials
+.env
+config.json
+credentials.json
+
+# Folder runtime
+captured_faces/
+generated_faces/
+VOICE_AI_FILES/
+promo_voice_files/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# VS Code settings (opsional)
+.vscode/
