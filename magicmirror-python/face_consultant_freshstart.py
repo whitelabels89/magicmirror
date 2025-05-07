@@ -572,156 +572,161 @@ def analyze_face():
 # -------------------------- MAIN LOOP --------------------------
 
 if __name__ == "__main__":
-    cv2.namedWindow("QC Magic Mirror")
-    # Mouse callback: gunakan handler yang support klik virtual face (Replicate)
-    cv2.setMouseCallback("QC Magic Mirror", handle_face_click)
+    if ENV_MODE == 'dev':
+        print("🧪 Mode dev aktif: Menyalakan kamera dan GUI realtime.")
 
-    while True:
-        success, frame = cap.read()
-        if not success:
-            break
-        frame = frame  # Keep default orientation (no flip)
-        rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        results = face_mesh.process(rgb)
-        shape = frame.shape
-        h, w, _ = frame.shape
-        display = frame.copy()
-        # --- Clean UI overlays ---
-        # Face landmarks & info
-        face_shape_val, skin_tone_val = None, None
-        if results.multi_face_landmarks:
-            for landmarks in results.multi_face_landmarks:
-                def get_point(landmarks, index, shape):
-                    h, w, _ = shape
-                    lm = landmarks[index]
-                    return int(lm.x * w), int(lm.y * h)
-                def euclidean(p1, p2):
-                    return math.hypot(p1[0] - p2[0], p1[1] - p2[1])
-                def get_skin_tone_color(frame, point):
-                    x, y = point
-                    h, w = frame.shape[:2]
-                    x = min(max(0, x), w-1)
-                    y = min(max(0, y), h-1)
-                    b, g, r = frame[y, x]
-                    if r > g and r > b:
-                        return "Warm"
-                    elif b > r and b > g:
-                        return "Cool"
-                    else:
-                        return "Neutral"
-                def get_face_shape(ratio_w_h, jaw_ratio, forehead_ratio):
-                    if ratio_w_h < 0.85:
-                        return "Oblong"
-                    elif 0.85 <= ratio_w_h <= 0.95:
-                        if jaw_ratio < 0.8:
-                            return "Heart"
-                        else:
-                            return "Oval"
-                    elif 0.95 < ratio_w_h <= 1.05:
-                        if jaw_ratio > 0.95:
-                            return "Square"
-                        else:
-                            return "Round"
-                    else:
-                        return "Wide"
-                chin = get_point(landmarks.landmark, 152, shape)
-                forehead = get_point(landmarks.landmark, 10, shape)
-                left_cheek = get_point(landmarks.landmark, 234, shape)
-                right_cheek = get_point(landmarks.landmark, 454, shape)
-                jaw_width = euclidean(left_cheek, right_cheek)
-                height = euclidean(forehead, chin)
-                forehead_width = euclidean(get_point(landmarks.landmark, 127, shape), get_point(landmarks.landmark, 356, shape))
-                ratio_w_h = jaw_width / height
-                jaw_ratio = jaw_width / jaw_width
-                forehead_ratio = forehead_width / jaw_width
-                face_shape_val = get_face_shape(ratio_w_h, jaw_ratio, forehead_ratio)
-                skin_tone_val = get_skin_tone_color(frame, left_cheek)
-                face_shape = face_shape_val
-                skin_tone = skin_tone_val
-        # --- Modernized top-right panel for face shape & skin tone ---
-        panel_margin = 34
-        panel_w = 290
-        panel_h = 88
-        panel_x = w - panel_w - panel_margin
-        panel_y = panel_margin
-        # Draw semi-transparent black panel with rounded corners
-        panel_overlay = display.copy()
-        pradius = 26
-        # Rectangle + circles for rounded effect
-        cv2.rectangle(panel_overlay, (panel_x+pradius, panel_y), (panel_x+panel_w-pradius, panel_y+panel_h), (18,18,18), -1)
-        cv2.rectangle(panel_overlay, (panel_x, panel_y+pradius), (panel_x+panel_w, panel_y+panel_h-pradius), (18,18,18), -1)
-        cv2.circle(panel_overlay, (panel_x+pradius, panel_y+pradius), pradius, (18,18,18), -1)
-        cv2.circle(panel_overlay, (panel_x+panel_w-pradius, panel_y+pradius), pradius, (18,18,18), -1)
-        cv2.circle(panel_overlay, (panel_x+pradius, panel_y+panel_h-pradius), pradius, (18,18,18), -1)
-        cv2.circle(panel_overlay, (panel_x+panel_w-pradius, panel_y+panel_h-pradius), pradius, (18,18,18), -1)
-        # Blend for shadow/smooth
-        display = cv2.addWeighted(panel_overlay, 0.7, display, 0.3, 0)
-        # --- Face shape & skin tone text, modern font, warm white, clean spacing
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        shape_text = f"Face Shape: {face_shape if face_shape else '-'}"
-        skin_text = f"Skin Tone: {skin_tone if skin_tone else '-'}"
-        font_scale = 0.93
-        font_color = (252, 240, 230)
-        font_color2 = (245, 220, 210)
-        font_thick = 2
-        shape_org = (panel_x+30, panel_y+36)
-        skin_org = (panel_x+30, panel_y+70)
-        # Shadow
-        cv2.putText(display, shape_text, (shape_org[0]+2, shape_org[1]+2), font, font_scale, (0,0,0), 4, cv2.LINE_AA)
-        cv2.putText(display, skin_text, (skin_org[0]+2, skin_org[1]+2), font, font_scale, (0,0,0), 4, cv2.LINE_AA)
-        cv2.putText(display, shape_text, shape_org, font, font_scale, font_color, font_thick, cv2.LINE_AA)
-        cv2.putText(display, skin_text, skin_org, font, font_scale, font_color2, font_thick, cv2.LINE_AA)
-        # --- Status message & text queue ---
-        # Reserve margin above gallery for status/text
-        gallery_y_start = int(h * 0.60)
-        status_y = gallery_y_start - 60
-        # Draw semi-transparent margin background for status/text
-        margin_overlay = display.copy()
-        margin_h = 62
-        margin_y = status_y - 34
-        margin_y = max(0, margin_y)
-        cv2.rectangle(margin_overlay, (0, margin_y), (w, margin_y+margin_h), (18,18,18), -1)
-        display = cv2.addWeighted(margin_overlay, 0.38, display, 0.62, 0)
-        # Status message
-        status_font = cv2.FONT_HERSHEY_SIMPLEX
-        status_scale = 0.68
-        status_color = (120, 255, 120)
-        status_shadow = (0,0,0)
-        status_x = 36
-        status_y2 = margin_y + 40
-        cv2.putText(display, status_msg, (status_x+2, status_y2+2), status_font, status_scale, status_shadow, 3, cv2.LINE_AA)
-        cv2.putText(display, status_msg, (status_x, status_y2), status_font, status_scale, status_color, 2, cv2.LINE_AA)
-        # Text queue (current phrase), centered above status
-        if text_queue:
-            current_text = text_queue[-1]
-            text_size = cv2.getTextSize(current_text[:100], status_font, 0.60, 1)[0]
-            text_x = (w - text_size[0]) // 2
-            text_y = margin_y + 20
-            cv2.putText(display, current_text[:100], (text_x+2, text_y+2), status_font, 0.60, (0,0,0), 2, cv2.LINE_AA)
-            cv2.putText(display, current_text[:100], (text_x, text_y), status_font, 0.60, (252,240,230), 1, cv2.LINE_AA)
-            key = cv2.waitKey(1)
-        # Inject Magic Mirror full render
-        # Geser tombol pilihan style/color ke bawah agar tidak menutupi info shape/skin tone dan text
-        # Face shape: y=30, skin tone: y=60, so place buttons at y=90 (orig), tapi shift ke y=110 for more space
-        display = render_full_magic_mirror(
-            display,
-            qr_overlay=True,
-            style_button_y_offset=110
-        )
-        # --- Virtual Face Gallery (modernized gallery layout, improved margin) ---
-        if generated_faces:
-            try:
-                gallery_margin = 140  # sedikit lebih besar jarak dari bawah
-                # Render with enhanced modern layout
-                display = render_generated_faces(display, generated_faces, bottom_margin=gallery_margin)
-            except Exception as e:
-                print(f"⚠️ Error render generated faces: {e}")
-        # --- QR code promo overlay ---
-        display = render_qr_with_timer(display)
-        cv2.imshow("QC Magic Mirror", display)
+        cv2.namedWindow("QC Magic Mirror")
+        # Mouse callback: gunakan handler yang support klik virtual face (Replicate)
+        cv2.setMouseCallback("QC Magic Mirror", handle_face_click)
 
-    cap.release()
-    cv2.destroyAllWindows()
+        while True:
+            success, frame = cap.read()
+            if not success:
+                break
+            frame = frame  # Keep default orientation (no flip)
+            rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            results = face_mesh.process(rgb)
+            shape = frame.shape
+            h, w, _ = frame.shape
+            display = frame.copy()
+            # --- Clean UI overlays ---
+            # Face landmarks & info
+            face_shape_val, skin_tone_val = None, None
+            if results.multi_face_landmarks:
+                for landmarks in results.multi_face_landmarks:
+                    def get_point(landmarks, index, shape):
+                        h, w, _ = shape
+                        lm = landmarks[index]
+                        return int(lm.x * w), int(lm.y * h)
+                    def euclidean(p1, p2):
+                        return math.hypot(p1[0] - p2[0], p1[1] - p2[1])
+                    def get_skin_tone_color(frame, point):
+                        x, y = point
+                        h, w = frame.shape[:2]
+                        x = min(max(0, x), w-1)
+                        y = min(max(0, y), h-1)
+                        b, g, r = frame[y, x]
+                        if r > g and r > b:
+                            return "Warm"
+                        elif b > r and b > g:
+                            return "Cool"
+                        else:
+                            return "Neutral"
+                    def get_face_shape(ratio_w_h, jaw_ratio, forehead_ratio):
+                        if ratio_w_h < 0.85:
+                            return "Oblong"
+                        elif 0.85 <= ratio_w_h <= 0.95:
+                            if jaw_ratio < 0.8:
+                                return "Heart"
+                            else:
+                                return "Oval"
+                        elif 0.95 < ratio_w_h <= 1.05:
+                            if jaw_ratio > 0.95:
+                                return "Square"
+                            else:
+                                return "Round"
+                        else:
+                            return "Wide"
+                    chin = get_point(landmarks.landmark, 152, shape)
+                    forehead = get_point(landmarks.landmark, 10, shape)
+                    left_cheek = get_point(landmarks.landmark, 234, shape)
+                    right_cheek = get_point(landmarks.landmark, 454, shape)
+                    jaw_width = euclidean(left_cheek, right_cheek)
+                    height = euclidean(forehead, chin)
+                    forehead_width = euclidean(get_point(landmarks.landmark, 127, shape), get_point(landmarks.landmark, 356, shape))
+                    ratio_w_h = jaw_width / height
+                    jaw_ratio = jaw_width / jaw_width
+                    forehead_ratio = forehead_width / jaw_width
+                    face_shape_val = get_face_shape(ratio_w_h, jaw_ratio, forehead_ratio)
+                    skin_tone_val = get_skin_tone_color(frame, left_cheek)
+                    face_shape = face_shape_val
+                    skin_tone = skin_tone_val
+            # --- Modernized top-right panel for face shape & skin tone ---
+            panel_margin = 34
+            panel_w = 290
+            panel_h = 88
+            panel_x = w - panel_w - panel_margin
+            panel_y = panel_margin
+            # Draw semi-transparent black panel with rounded corners
+            panel_overlay = display.copy()
+            pradius = 26
+            # Rectangle + circles for rounded effect
+            cv2.rectangle(panel_overlay, (panel_x+pradius, panel_y), (panel_x+panel_w-pradius, panel_y+panel_h), (18,18,18), -1)
+            cv2.rectangle(panel_overlay, (panel_x, panel_y+pradius), (panel_x+panel_w, panel_y+panel_h-pradius), (18,18,18), -1)
+            cv2.circle(panel_overlay, (panel_x+pradius, panel_y+pradius), pradius, (18,18,18), -1)
+            cv2.circle(panel_overlay, (panel_x+panel_w-pradius, panel_y+pradius), pradius, (18,18,18), -1)
+            cv2.circle(panel_overlay, (panel_x+pradius, panel_y+panel_h-pradius), pradius, (18,18,18), -1)
+            cv2.circle(panel_overlay, (panel_x+panel_w-pradius, panel_y+panel_h-pradius), pradius, (18,18,18), -1)
+            # Blend for shadow/smooth
+            display = cv2.addWeighted(panel_overlay, 0.7, display, 0.3, 0)
+            # --- Face shape & skin tone text, modern font, warm white, clean spacing
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            shape_text = f"Face Shape: {face_shape if face_shape else '-'}"
+            skin_text = f"Skin Tone: {skin_tone if skin_tone else '-'}"
+            font_scale = 0.93
+            font_color = (252, 240, 230)
+            font_color2 = (245, 220, 210)
+            font_thick = 2
+            shape_org = (panel_x+30, panel_y+36)
+            skin_org = (panel_x+30, panel_y+70)
+            # Shadow
+            cv2.putText(display, shape_text, (shape_org[0]+2, shape_org[1]+2), font, font_scale, (0,0,0), 4, cv2.LINE_AA)
+            cv2.putText(display, skin_text, (skin_org[0]+2, skin_org[1]+2), font, font_scale, (0,0,0), 4, cv2.LINE_AA)
+            cv2.putText(display, shape_text, shape_org, font, font_scale, font_color, font_thick, cv2.LINE_AA)
+            cv2.putText(display, skin_text, skin_org, font, font_scale, font_color2, font_thick, cv2.LINE_AA)
+            # --- Status message & text queue ---
+            # Reserve margin above gallery for status/text
+            gallery_y_start = int(h * 0.60)
+            status_y = gallery_y_start - 60
+            # Draw semi-transparent margin background for status/text
+            margin_overlay = display.copy()
+            margin_h = 62
+            margin_y = status_y - 34
+            margin_y = max(0, margin_y)
+            cv2.rectangle(margin_overlay, (0, margin_y), (w, margin_y+margin_h), (18,18,18), -1)
+            display = cv2.addWeighted(margin_overlay, 0.38, display, 0.62, 0)
+            # Status message
+            status_font = cv2.FONT_HERSHEY_SIMPLEX
+            status_scale = 0.68
+            status_color = (120, 255, 120)
+            status_shadow = (0,0,0)
+            status_x = 36
+            status_y2 = margin_y + 40
+            cv2.putText(display, status_msg, (status_x+2, status_y2+2), status_font, status_scale, status_shadow, 3, cv2.LINE_AA)
+            cv2.putText(display, status_msg, (status_x, status_y2), status_font, status_scale, status_color, 2, cv2.LINE_AA)
+            # Text queue (current phrase), centered above status
+            if text_queue:
+                current_text = text_queue[-1]
+                text_size = cv2.getTextSize(current_text[:100], status_font, 0.60, 1)[0]
+                text_x = (w - text_size[0]) // 2
+                text_y = margin_y + 20
+                cv2.putText(display, current_text[:100], (text_x+2, text_y+2), status_font, 0.60, (0,0,0), 2, cv2.LINE_AA)
+                cv2.putText(display, current_text[:100], (text_x, text_y), status_font, 0.60, (252,240,230), 1, cv2.LINE_AA)
+                key = cv2.waitKey(1)
+            # Inject Magic Mirror full render
+            # Geser tombol pilihan style/color ke bawah agar tidak menutupi info shape/skin tone dan text
+            # Face shape: y=30, skin tone: y=60, so place buttons at y=90 (orig), tapi shift ke y=110 for more space
+            display = render_full_magic_mirror(
+                display,
+                qr_overlay=True,
+                style_button_y_offset=110
+            )
+            # --- Virtual Face Gallery (modernized gallery layout, improved margin) ---
+            if generated_faces:
+                try:
+                    gallery_margin = 140  # sedikit lebih besar jarak dari bawah
+                    # Render with enhanced modern layout
+                    display = render_generated_faces(display, generated_faces, bottom_margin=gallery_margin)
+                except Exception as e:
+                    print(f"⚠️ Error render generated faces: {e}")
+            # --- QR code promo overlay ---
+            display = render_qr_with_timer(display)
+            cv2.imshow("QC Magic Mirror", display)
+
+        cap.release()
+        cv2.destroyAllWindows()
+    else:
+        print("🚫 Mode server: kamera real-time dan GUI dinonaktifkan. Gunakan API /run.")
 
 # ------------------ Cleanup ------------------
 # ------------------ API run function ------------------
