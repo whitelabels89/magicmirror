@@ -13,4 +13,6 @@ COPY . .
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-CMD ["gunicorn", "app:app"]
+RUN chmod +x start.sh
+
+CMD ["bash", "start.sh"]
