@@ -1,0 +1,123 @@
+<style>
+.footer a {
+  background: none !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  color: #ccc !important;
+  text-decoration: none;
+  padding: 0;
+  display: inline-block;
+}
+.footer a:hover {
+  color: #fff !important;
+}
+.footer h3 {
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  color: #fff !important;
+  text-align: left !important;
+  margin-bottom: 0.5rem !important;
+  font-family: 'Helvetica Neue', sans-serif !important;
+}
+.footer p {
+  font-size: 0.9rem !important;
+  font-weight: 400 !important;
+  color: #ccc !important;
+  text-align: left !important;
+  margin: 0.2rem 0 !important;
+  font-family: 'Helvetica Neue', sans-serif !important;
+}
+.footer-columns {
+  display: flex !important;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+}
+.footer-columns .footer-column {
+  flex: 1 1 20%;
+  max-width: 200px;
+}
+.footer-copyright {
+  width: 100%;
+  text-align: center;
+  margin-top: 30px;
+  font-size: 1rem; /* ✅ Diperbesar dari 0.8rem */
+  color: #ccc;
+  background: #222; /* ✅ Samain dengan warna background footer */
+  padding: 20px 10px;
+  box-sizing: border-box;
+}
+
+
+@media (max-width: 768px) {
+  .footer {
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    padding: 20px !important;
+    gap: 4% !important;
+    row-gap: 10px !important;
+  }
+  .footer > div.footer-column {
+    width: 45% !important;
+    margin-bottom: 20px !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    display: inline-block !important;
+    vertical-align: top !important;
+  }
+  .footer h3, .footer p {
+    text-align: left !important;
+    width: 100% !important;
+    font-size: 1rem !important;
+  }
+  .footer-container .footer-columns {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .footer-columns {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+}
+
+</style>
+<div class="footer-container">
+  <footer id="footer" class="footer" style="background: #222; padding: 40px 20px; font-size: 0.9rem; margin-top: 40px;">
+    <div class="footer-columns">
+      <div class="footer-column">
+          <h3>Company</h3>
+          <p>About Us</p>
+          <p>Products</p>
+          <p>Blog</p>
+      </div>
+      <div class="footer-column">
+          <h3>Support</h3>
+          <p>Help Center</p>
+          <p>Terms & Conditions</p>
+          <p>Privacy Policy</p>
+      </div>
+      <div class="footer-column">
+          <h3>Connect with Us</h3>
+          <p>Instagram</p>
+          <p>WhatsApp</p>
+      </div>
+      <div class="footer-column">
+        <h3>Queen Care Group</h3>
+        <p><a href="https://www.instagram.com/queens.coding.id?igsh=bDR1YzhrZWlxenBz" target="_blank">Queen's Academy iCoding'</a></p>
+        <p><a href="https://www.instagram.com/queen.care.id?igsh=MnAzdmxqOGxqNDBx" target="_blank">Queen Care</a></p>
+        <p><a href="https://www.instagram.com/lashley.eyelash.id?igsh=ZWFvNTBrNnptNmNy" target="_blank">Lashley</a></p>
+        <p><a href="https://www.instagram.com/cutex.nail.id/profilecard/?igsh=bWx3NnJoZThmY2R6" target="_blank">Cutex</a></p>
+        <p><a href="https://www.instagram.com/petite.tattoo.id?igsh=bnpkcWlyNW92d3h2" target="_blank">Petite Tattoo</a></p>
+      </div>
+      </div>
+  
+    <div class="footer-copyright">
+      © 2025 Queen's Academy • Semua Hak Dilindungi
+    </div>
+  </footer>
+</div>

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Queen's Academy - iCoding</title>
+  <link href="https://fonts.googleapis.com/css2?family=Forum&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    .footer-container * {
+      font-family: 'Poppins', sans-serif !important;
+      color: #fff !important;
+      text-align: left !important;
+    }
+
+    @media (max-width: 768px) {
+      .footer-columns {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 1rem !important;
+      }
+    }
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: #f2f6f7;
+      color: #333;
+    }
+    header {
+      background: #0d2d2b;
+      color: #ffe58a;
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    header .logo {
+      font-size: 1.6rem;
+      font-weight: bold;
+    }
+    header nav a:hover {
+      color: #ffdd57;
+    }
+    header nav a {
+      scroll-behavior: smooth;
+    }
+    .hero {
+      background: linear-gradient(145deg, #0d2d2b, #20403e);
+      color: white;
+      text-align: center;
+      padding: 80px 20px;
+    }
+    .hero h1 {
+      font-size: 2.8rem;
+      margin-bottom: 16px;
+    }
+    .hero p {
+      font-size: 1.2rem;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .content {
+      padding: 60px 20px;
+      max-width: 1000px;
+      margin: auto;
+    }
+    .section {
+      margin-bottom: 60px;
+    }
+    .section h2 {
+      color: #0d2d2b;
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+    .cta {
+      text-align: center;
+      margin-top: 40px;
+    }
+    .cta a {
+      background: #00b4d8;
+      color: white;
+      padding: 14px 28px;
+      font-size: 1.1rem;
+      border-radius: 30px;
+      text-decoration: none;
+      transition: background 0.3s ease;
+    }
+    .cta a:hover {
+      background: #0096c7;
+    }
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .hero {
+        padding: 80px 16px !important;
+        background-size: cover;
+      }
+      .hero h1 {
+        font-size: 2rem !important;
+      }
+      .hero p {
+        font-size: 1rem !important;
+      }
+      .cta a {
+        padding: 12px 24px;
+        font-size: 1rem;
+      }
+      .content {
+        padding: 40px 16px;
+      }
+      .section h2 {
+        font-size: 1.5rem;
+      }
+      .section p {
+        font-size: 1rem;
+      }
+    }
+    .hero-overlay {
+      background: rgba(0, 0, 0, 0.5);
+      padding: 30px 40px;
+      max-width: 960px;
+      margin: auto;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      text-align: left;
+      width: auto;
+    }
+    @media (max-width: 768px) {
+      .hero-overlay {
+        padding: 24px 20px;
+        border-radius: 12px;
+      }
+      .hero-overlay h1 {
+        font-size: 1.6rem !important;
+      }
+      .hero-overlay p {
+        font-size: 1rem !important;
+        line-height: 1.5;
+      }
+      .hero-overlay a {
+        font-size: 1rem;
+        padding: 10px 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="navbar"></div>
+  <script>
+    fetch('navbar.html')
+      .then(res => res.text())
+      .then(data => {
+        document.getElementById('navbar').innerHTML = data;
+      })
+      .then(() => {
+        const toggleBtn = document.querySelector('.navbar-toggle');
+        const menu = document.querySelector('.navbar-menu');
+        if (toggleBtn && menu) {
+          toggleBtn.addEventListener('click', () => {
+            menu.classList.toggle('show');
+          });
+        }
+      });
+  </script>
+  <script>
+    function bindDropdowns() {
+      const toggle = document.getElementById('dropdownToggle');
+      const menu = document.getElementById('dropdownMenu');
+      const toggle2 = document.getElementById('dropdownToggleEcourse');
+      const menu2 = document.getElementById('dropdownMenuEcourse');
+
+      if (toggle && menu && !toggle.dataset.bound) {
+        toggle.dataset.bound = true;
+        toggle.addEventListener('click', function (e) {
+          e.preventDefault();
+          menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+        });
+        document.addEventListener('click', function (e) {
+          if (!toggle.contains(e.target) && !menu.contains(e.target)) {
+            menu.style.display = 'none';
+          }
+        });
+      }
+
+      if (toggle2 && menu2 && !toggle2.dataset.bound) {
+        toggle2.dataset.bound = true;
+        toggle2.addEventListener('click', function (e) {
+          e.preventDefault();
+          menu2.style.display = (menu2.style.display === 'block') ? 'none' : 'block';
+        });
+        document.addEventListener('click', function (e) {
+          if (!toggle2.contains(e.target) && !menu2.contains(e.target)) {
+            menu2.style.display = 'none';
+          }
+        });
+      }
+    }
+    let tries = 0;
+    const dropdownInterval = setInterval(() => {
+      const found = document.getElementById('dropdownToggle') && document.getElementById('dropdownToggleEcourse');
+      if (found || tries > 20) {
+        clearInterval(dropdownInterval);
+        bindDropdowns();
+      }
+      tries++;
+    }, 200);
+  </script>
+  <div class="background-animation">
+    <div class="blob"></div>
+    <div class="blob"></div>
+  </div>
+  <section class="hero" style="position: relative; background: url('./hero_illustration.png') no-repeat center center / cover; color: white; text-align: center; padding: 100px 16px;">
+    <div class="hero-overlay">
+      <h1 style="font-size: 2.8rem; font-family: 'Forum', cursive; margin-bottom: 20px; color: #ffd700;">Temukan Potensi Terbaik Anak Anda Bersama Queen's Academy</h1>
+      <p style="font-size: 1.1rem; line-height: 1.6; color: #e0e0e0; max-width: 100%; margin: 0 0 16px 0;">Masa golden age pada anak umumnya didefinisikan sebagai periode antara usia 0 hingga 5 tahun. Namun, beberapa ahli juga menyebutkan masa golden age hingga usia 8 tahun. Selama masa ini, terjadi pertumbuhan dan perkembangan otak yang sangat pesat, mencapai sekitar 80%.</p>
+      <p style="font-size: 1.1rem; line-height: 1.6; color: #e0e0e0; max-width: 100%; margin: 0 0 16px 0;">Bangun kreatifitas, kemampuan pemecahan masalah, logical thinking dan rasa percaya diri anak di periode Golden Age dengan Metode yang interaktif dan menyenangkan bagi anak generasi alpha dan beta untuk mengeksplorasi kreativitas digital.</p>
+      <div style="margin-top: 24px;">
+        <a href="#form" style="display: inline-block; background: #00b4d8; color: white; padding: 12px 28px; font-size: 1.1rem; border-radius: 30px; text-decoration: none; font-weight: bold;">Free Trial Sekarang</a>
+      </div>
+    </div>
+  </section>
+  <div class="content">
+    <div class="section">
+      <h2>Queen's Academy</h2>
+      <p>Queen's Academy adalah platform edukasi anak-anak usia 4-16 tahun, yang berfokus pada pembelajaran AI, coding, dan teknologi kreatif. Kami percaya bahwa setiap anak punya potensi untuk menjadi inovator hebat bila diberikan alat dan bimbingan yang tepat sejak dini.</p>
+    </div>
+    <div class="cta">
+      <a href="/">Kembali ke Magic Mirror</a>
+    </div>
+  </div>
+  <div id="footer-placeholder"></div>
+  <script>
+    fetch('/footer.html')
+      .then(res => res.text())
+      .then(data => {
+        document.getElementById('footer-placeholder').innerHTML = data;
+      });
+  </script>
+</body>
+</html>

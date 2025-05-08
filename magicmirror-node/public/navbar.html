@@ -1,0 +1,155 @@
+<div class="navbar-container">
+<style>
+  .navbar-container {
+    width: 100%;
+    margin: 0;
+  }
+
+  .navbar-header {
+    background: #0d2d2b;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: white;
+    font-family: 'Poppins', sans-serif;
+    flex-wrap: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  }
+
+  .navbar-title {
+    font-family: 'Forum', cursive;
+    font-size: clamp(1.4rem, 5vw, 2rem);
+    font-weight: bold;
+    color: #ffe58a;
+  }
+
+  .navbar-menu {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    font-size: 1rem;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+  }
+
+  .navbar-menu a,
+  .navbar-menu button {
+    padding: 10px 16px;
+    font-size: 1rem;
+    border-radius: 8px;
+    background-color: #f25ca2;
+    color: white;
+    border: none;
+    box-sizing: border-box;
+    text-align: center;
+  }
+
+  .navbar-menu a:hover,
+  .navbar-menu button:hover {
+    background-color: #d94c91;
+  }
+
+  .navbar-toggle {
+    display: none;
+    font-size: 1.5rem;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+  }
+
+  @media (max-width: 768px) {
+    .navbar-toggle {
+      display: block;
+    }
+
+    .navbar-header {
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+
+    .navbar-menu {
+      display: none;
+      flex-direction: column;
+      width: 100%;
+      margin-top: 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .navbar-menu.show {
+      display: flex;
+    }
+
+    .navbar-menu a,
+    .navbar-menu button {
+      width: auto;
+      font-size: 0.9rem;
+      padding: 6px 10px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .navbar-container {
+      padding: 0 0px;
+    }
+
+    .navbar-header {
+      padding: 16px 16px;
+    }
+  }
+</style>
+<header class="navbar-header">
+  <div class="navbar-title">Queen's Academy</div>
+  <button class="navbar-toggle" id="navbarToggle">&#9776;</button>
+  <nav class="navbar-menu" id="navbarMenu">
+    <a href="/home2.html" style="color: white; text-decoration: none;">Home</a>
+    <a href="/magicmirror.html" style="color: white; text-decoration: none;">Magic Mirror</a>
+    <div style="position: relative;">
+      <button id="dropdownToggle" style="background: none; border: none; color: white; font: inherit; cursor: pointer; text-decoration: none;">Course ▾</button>
+      <div id="dropdownMenu" style="display: none; position: absolute; background-color: #0d2d2b; min-width: 160px; box-shadow: 0px 8px 16px rgba(0,0,0,0.2); z-index: 9999;">
+        <a href="/icoding.html" style="color: #fff; padding: 12px 16px; text-decoration: none; display: block;">iCoding Class</a>
+        <a href="https://ischool.queensacademy.id/" target="_blank" style="color: #fff; padding: 12px 16px; text-decoration: none; display: block;">AI Class</a>
+      </div>
+    </div>
+    <div style="position: relative;">
+      <button id="dropdownToggleEcourse" style="background: none; border: none; color: white; font: inherit; cursor: pointer; text-decoration: none;">e-Course ▾</button>
+      <div id="dropdownMenuEcourse" style="display: none; position: absolute; background-color: #0d2d2b; min-width: 180px; box-shadow: 0px 8px 16px rgba(0,0,0,0.2); z-index: 9999;">
+        <a href="https://e2.queensacademy.id/" target="_blank" style="color: #fff; padding: 12px 16px; text-decoration: none; display: block;">Prompt Engineer</a>
+        <a href="https://e1.queensacademy.id/" target="_blank" style="color: #fff; padding: 12px 16px; text-decoration: none; display: block;">Prompt Content Creator - Like A Pro</a>
+      </div>
+    </div>
+    <a href="#footer" style="color: white; text-decoration: none;">Kontak</a>
+  </nav>
+</header>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const toggleE = document.getElementById('dropdownToggleEcourse');
+  const menuE = document.getElementById('dropdownMenuEcourse');
+  if (toggleE && menuE) {
+    toggleE.addEventListener('click', function (e) {
+      e.preventDefault();
+      menuE.style.display = (menuE.style.display === 'block') ? 'none' : 'block';
+    });
+    document.addEventListener('click', function (e) {
+      if (!toggleE.contains(e.target) && !menuE.contains(e.target)) {
+        menuE.style.display = 'none';
+      }
+    });
+  }
+});
+const navbarToggle = document.getElementById('navbarToggle');
+const navbarMenu = document.getElementById('navbarMenu');
+if (navbarToggle && navbarMenu) {
+  navbarToggle.addEventListener('click', () => {
+    navbarMenu.classList.toggle('show');
+  });
+}
+</script>

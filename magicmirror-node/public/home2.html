@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Queen's Academy - Explore</title>
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Forum&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+  <style>
+    /* Swiper navigation button custom color for testimonial swiper */
+    .swiper-button-next,
+    .swiper-button-prev {
+      color: #ffe58e;
+      transition: color 0.3s ease;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 2;
+      position: absolute;
+    }
+
+    .testimonial-swiper {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    .testimonial-swiper .swiper-button-prev {
+      left: 10px;
+      top: calc(50% - 225px); /* align with blockquote text */
+    }
+
+    .testimonial-swiper .swiper-button-next {
+      right: 10px;
+      top: calc(50% - 225px); /* align with blockquote text */
+    }
+    /* Responsive: Testimonial swiper navigation buttons */
+    @media (max-width: 768px) {
+      .testimonial-swiper .swiper-button-next,
+      .testimonial-swiper .swiper-button-prev {
+        top: 13%;
+        transform: translateY(-50%);
+        font-size: 16px;
+        width: 32px;
+        height: 32px;
+        /* Make sure they are inside container, not outside */
+        right: 8px;
+        left: auto;
+      }
+      .testimonial-swiper .swiper-button-prev {
+        left: 8px;
+        right: auto;
+      }
+      .testimonial-swiper .swiper-button-next {
+        right: 8px;
+        left: auto;
+      }
+    }
+
+    .swiper-button-next:hover,
+    .swiper-button-prev:hover {
+      color: #ffe58e;
+    }
+    .navbar-menu.open {
+        display: flex;
+    }
+    .swipe-hint {
+      width: 100px;      /* ✅ Kalau pakai gambar/ikon */
+      height: 80px;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-30%, -50%);
+      z-index: 9999;
+      pointer-events: none;
+    }
+
+    .swipe-animation {
+      width: 60px;
+      opacity: 0.8;
+      animation: swipeLeftRight 2.5s ease-in-out infinite;
+    }
+
+    @keyframes swipeLeftRight {
+      0% { transform: translateX(0); opacity: 0.3; }
+      25% { transform: translateX(-20px); opacity: 0.9; }
+      50% { transform: translateX(0); opacity: 0.3; }
+      75% { transform: translateX(20px); opacity: 0.9; }
+      100% { transform: translateX(0); opacity: 0.3; }
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: #0d2d2b;
+      font-family: 'Poppins', 'Segoe UI', 'Forum', Tahoma, Geneva, Verdana, sans-serif;
+      overflow-x: hidden;
+      color: #ffe58e;
+    }
+    
+    .swiper {
+      width: 100vw;
+      height: 100vh;
+      perspective: 1800px;
+      transform-style: preserve-3d;
+      rotate: 0deg;
+      
+    }
+    .swiper-slide {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      /* background: rgb(244, 126, 126); */
+      margin: 0 0px;
+      border-radius: 16px; /* bentuk lengkungan sudut */
+      padding: 20px; /* jarak isi dalam kartu */ 
+      max-width: 300px; /* lebar maksimum kartu */
+      /* box-shadow: 0 4px 20px rgba(0,0,0,0.1); */
+      width: 100%;
+      
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      /*background-color: rgba(34, 50, 47, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.1); */
+      backdrop-filter: blur(5px);
+      border-radius: 16px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.5s ease;
+    }
+
+    /* Testimonial Swiper: only show visible slides, centered */
+    .testimonial-swiper .swiper-slide {
+      visibility: hidden;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      margin: 0 auto;
+      height: auto;
+    }
+    .testimonial-swiper .swiper-slide.swiper-slide-visible {
+      visibility: visible;
+    }
+    .testimonial-swiper .swiper-slide.swiper-slide-active {
+      opacity: 1;
+    }
+    .testimonial-slide {
+      width: 100%;
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 0.5rem 1rem;
+      box-sizing: border-box;
+      padding-left: 1rem;
+      padding-right: 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 0px solid rgba(255, 229, 142, 0.15);
+      border-radius: 12px;
+      box-shadow: 0 6px 30px rgba(0,0,0,0.25);
+      text-align: center;
+      max-height: 180px;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      height: auto;
+    }
+    .testimonial-slide blockquote,
+    .testimonial-slide p {
+      margin: 0;
+      font-size: 1rem;
+      line-height: 1.4;
+      font-style: italic;
+    }
+    .testimonial-slide blockquote::before,
+    .testimonial-slide blockquote::after {
+      content: '"';
+      font-size: 1.2rem;
+      color: #ffe58e;
+      position: relative;
+    }
+    .section-testimoni {
+      position: relative;
+      background: radial-gradient(circle, rgba(255,229,142,0.12), transparent);
+      backdrop-filter: blur(5px);
+      padding-top: 1rem;
+      padding-bottom: 1rem;
+      height: auto;
+      max-height: 360px;  /* batas maksimal */
+    }
+    
+    .section-testimoni h2 {
+      width: 100%;
+      text-align: center;
+      margin: 0 auto 1rem auto;
+      font-size: 2rem;
+      display: block;
+    }
+
+    
+    .swiper-slide:hover {
+      /* transform: scale(1.05) rotateZ(-1deg); */
+      /* box-shadow: 0 8px 30px rgba(255, 97, 166, 0.3); */
+    }
+    .card-image {
+      width: 100%;
+      height: 180px;
+      background-color: transparent;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      background-size: cover;
+      background-position: center;
+    }
+    h3 {
+      margin: 0 0 10px;
+      font-size: 1.4rem;
+    }
+    p {
+      font-size: 1rem;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    a {
+      padding: 10px 16px;
+      background-color: #B37C6A;
+      color: #ffe58e;
+      text-decoration: none;
+      border-radius: 8px;
+    }
+    .swiper-slide a:hover {
+      background-color: #A36A5A;
+    }
+    .swiper-slide.swiper-slide-active,
+    .swiper-slide.swiper-slide-next,
+    .swiper-slide.swiper-slide-prev {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+
+    .section-about h2 {
+    width: 100%;
+    text-align: center;
+    margin: 0 auto 1rem auto;
+    font-size: 2rem;
+    display: block;
+    }
+    .section-about {
+      position: relative;
+      font-family: 'Forum', serif;
+      background: radial-gradient(circle, rgba(255,229,142,0.12), transparent);
+      color: #ffe58e;
+      padding: 1rem 2rem;
+      line-height: 1.8;
+      overflow: hidden;
+    }
+
+    .about-content {
+      position: relative;
+      z-index: 1;
+    }
+    .about-content p {
+      position: relative;
+      padding-left: 1.5rem;
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: fadeInUp 0.6s ease forwards;
+    }
+    .about-content p:nth-child(2) {
+      animation-delay: 0.3s;
+    }
+    .about-content p:nth-child(3) {
+      animation-delay: 0.6s;
+    }
+    .about-content p::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.25rem;
+      width: 4px;
+      height: 90%;
+      background-color: #ffe58e;
+      border-radius: 2px;
+    }
+
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 768px) {
+        .section-about h2 {
+        text-align: center;
+        }
+    }
+  
+
+    .background-animation {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
+      overflow: hidden;
+    }
+
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(150px);
+      opacity: 0.4;
+      animation: moveBlobs 20s ease-in-out infinite alternate;
+    }
+
+    .blob:nth-child(1) {
+      width: 500px;
+      height: 500px;
+      background: rgba(255, 255, 255, 0.1);
+      top: 20%;
+      left: 10%;
+    }
+
+    .blob:nth-child(2) {
+      width: 400px;
+      height: 400px;
+      background: rgba(0, 252, 235, 0.052) ;
+      top: 60%;
+      left: 60%;
+    }
+
+    @keyframes moveBlobs {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(-50px, -30px) scale(1.2); }
+    }
+
+    @keyframes cardBounce {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05) rotateZ(-1deg); }
+      100% { transform: scale(1); }
+    }
+
+    h3, p, a {
+      color: #ffe58e;
+    }
+    
+    /* === Global Reset === */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background-color: #0d2d2b;
+      overflow-x: hidden;
+      color: #fff;
+    }
+
+    /* === Background Blob Animation === */
+    .blob {
+      position: fixed;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle at center, #ff61a6, #f35588);
+      filter: blur(200px);
+      opacity: 0.5;
+      animation: blobFloat 20s ease-in-out infinite;
+      z-index: 0;
+    }
+
+    .blob:nth-child(2) {
+      left: auto;
+      right: 10%;
+      top: 60%;
+      background: radial-gradient(circle at center, #7bdff2, #3a8fd8);
+      animation-delay: 10s;
+    }
+
+    @keyframes blobFloat {
+      0%, 100% {
+        transform: translate(0, 0);
+      }
+      50% {
+        transform: translate(100px, -100px);
+      }
+    }
+
+    /* === Swiper Container === */
+    .swiper {
+      width: 100%;
+      height: 100vh;
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* === About, Testimoni, CTA Sections === */
+    .section-about,
+    .section-testimoni,
+    .section-cta {
+      margin: 0 auto;
+      background-color: #0d2d2b;
+      color: #ffe58e;
+    }
+
+    .section-about h2,
+    .section-testimoni h2,
+    .section-cta h2 {
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    .about-content,
+    .testimoni-wrapper {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .cta-form {
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+      align-items: center;
+    }
+
+    .cta-form input,
+    .cta-form select {
+      padding: 12px;
+      border-radius: 6px;
+      border: none;
+      width: 100%;
+      max-width: 500px;
+      box-sizing: border-box;
+      font-size: 1rem;
+    }
+
+    .cta-form button {
+      padding: 12px;
+      background-color: #ffe58e;
+      color: #0d2d2b;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      max-width: 200px;
+    }
+
+    .cta-form button:hover {
+      opacity: 0.9;
+    }
+
+    /* === Card Swiper Slide (Card) === */
+    .card-swiper .swiper-slide {
+      background: none;               /* Hapus background abu */
+      border-radius: 12;               /* Hapus lengkungan sudut */
+      padding: 0;                     /* Hapus ruang dalam */
+      box-shadow: none;              /* Hapus bayangan */
+      max-width: unset;              /* Bebaskan lebar */
+      min-height: unset;             /* Bebaskan tinggi */
+      margin-top: 100px;
+      height: 350px;                 /* Sesuaikan dengan .card-image */
+      padding-bottom: 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      transition: transform 0.8s cubic-bezier(0.25, 0.1, 0.25, 1), opacity 0.6s ease;
+    }
+
+    .card-swiper .swiper-slide.swiper-slide-active {
+      box-shadow: 0 12px 40px rgba(150, 255, 3, 0.5), 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-swiper .swiper-slide h3 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .card-swiper .swiper-slide p {
+      font-size: 1rem;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    /* === Swiper 3D Creative Effect === */
+    .swiper-3d .swiper-slide-shadow-left,
+    .swiper-3d .swiper-slide-shadow-right {
+      background-image: none;
+    }
+
+    .swiper-pagination {
+      position: absolute;
+      bottom: 10px;
+      left: 0;
+      right: 0;
+      margin: 0 auto;
+      text-align: center;
+      z-index: 10;
+    }
+
+    .swiper-pagination-bullet {
+      width: 12px;
+      height: 12px;
+      background: #fff;
+      opacity: 0.4;
+      margin: 0 6px;
+      border-radius: 50%;
+    }
+
+    .swiper-pagination-bullet-active {
+      opacity: 1;
+      background: #ff61a6;
+    }
+
+    /* === Responsive Adjustments === */
+    @media (max-width: 768px) {
+      .card-swiper .swiper-slide {
+        padding: 1.5rem;
+        min-height: 350px;
+      }
+      .card-swiper .swiper-slide h3 {
+        font-size: 1.3rem;
+      }
+      .card-swiper .swiper-slide p {
+        font-size: 0.95rem;
+      }
+
+      .section-testimoni h2,
+      .section-cta h2 {
+        text-align: center;
+      }
+      .about-content,
+      .testimoni-wrapper,
+      .cta-form {
+        padding: 1rem;
+        text-align: center;
+        align-items: center;
+      }
+    }
+
+    .section-cta {
+      padding-bottom: 6rem;
+    }
+
+    .section-testimoni {
+      margin-bottom: 5rem;
+    }
+  </style>
+</head>
+<body>
+    <div id="navbar"></div>
+    <script>
+        fetch('navbar.html')
+          .then(res => res.text())
+          .then(data => {
+            document.getElementById('navbar').innerHTML = data;
+          })
+          .then(() => {
+            const toggleBtn = document.querySelector('.navbar-toggle');
+            const menu = document.querySelector('.navbar-menu');
+            if (toggleBtn && menu) {
+              toggleBtn.addEventListener('click', () => {
+                menu.classList.toggle('show');
+              });
+            }
+          });
+    </script>
+    <script>
+    function bindDropdowns() {
+      const toggle = document.getElementById('dropdownToggle');
+      const menu = document.getElementById('dropdownMenu');
+      const toggle2 = document.getElementById('dropdownToggleEcourse');
+      const menu2 = document.getElementById('dropdownMenuEcourse');
+
+      if (toggle && menu && !toggle.dataset.bound) {
+        toggle.dataset.bound = true;
+        toggle.addEventListener('click', function (e) {
+          e.preventDefault();
+          menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+        });
+        document.addEventListener('click', function (e) {
+          if (!toggle.contains(e.target) && !menu.contains(e.target)) {
+            menu.style.display = 'none';
+          }
+        });
+      }
+
+      if (toggle2 && menu2 && !toggle2.dataset.bound) {
+        toggle2.dataset.bound = true;
+        toggle2.addEventListener('click', function (e) {
+          e.preventDefault();
+          menu2.style.display = (menu2.style.display === 'block') ? 'none' : 'block';
+        });
+        document.addEventListener('click', function (e) {
+          if (!toggle2.contains(e.target) && !menu2.contains(e.target)) {
+            menu2.style.display = 'none';
+          }
+        });
+      }
+    }
+
+    // Try to bind dropdowns every 200ms until successful
+    let tries = 0;
+    const dropdownInterval = setInterval(() => {
+      const found = document.getElementById('dropdownToggle') && document.getElementById('dropdownToggleEcourse');
+      if (found || tries > 20) {
+        clearInterval(dropdownInterval);
+        bindDropdowns();
+      }
+      tries++;
+    }, 200);
+    </script>
+
+  <div class="background-animation">
+    <div class="blob"></div>
+    <div class="blob"></div>
+  </div>
+
+  
+
+  
+
+  <div class="swiper card-swiper">
+    <div class="swiper-wrapper">
+      <div class="swiper-slide">
+        <div class="card-image" style="background-image: url('stylist.jpg');"></div>
+        <h3>Stylist</h3>
+        <p>Pelajari gaya rambut & tren terbaru</p>
+        <a href="#cta">Pelajari</a>
+      </div>
+      <div class="swiper-slide">
+        <div class="card-image" style="background-image: url('coding-anak.jpg');"></div>
+        <h3>AI & Coding Class</h3>
+        <p>Kelas fun & interaktif mulai usia 4+</p>
+        <a href="#cta">Pelajari</a>
+      </div>
+      <div class="swiper-slide">
+        <div class="card-image" style="background-image: url('tattoo.jpg');"></div>
+        <h3>Tattoo Artist</h3>
+        <p>Kreativitasmu jadi profesi</p>
+        <a href="#cta">Pelajari</a>
+      </div>
+      <div class="swiper-slide">
+        <div class="card-image" style="background-image: url('nailart.jpg');"></div>
+        <h3>Nail Artist</h3>
+        <p>Kreativitasmu jadi profesi</p>
+        <a href="#cta">Pelajari</a>
+      </div>
+      <div class="swiper-slide">
+        <div class="card-image" style="background-image: url('eyelashart.jpg');"></div>
+        <h3>Eyelash Technician</h3>
+        <p>Kreativitasmu jadi profesi</p>
+        <a href="#cta">Pelajari</a>
+      </div>
+    </div>
+    <div class="swipe-hint">
+        <img src="swipe-cursor.png" alt="Swipe Hint" class="swipe-animation" />
+      </div>
+  </div>
+
+
+  <section id="about" class="section-about">
+    <h2>Queen's Academy</h2>
+    <div class="about-content">
+      <p>
+        Queen’s Academy adalah pusat edukasi masa depan yang menjadi rumah bagi pembelajaran non-konvensional—dari keahlian kecantikan seperti stylist, nailist, dan eyelash technician, hingga teknologi seperti AI dan coding untuk anak-anak maupun dewasa. 
+      </p>
+      <p>
+        Sebagai bagian dari Queen Care Group, kami hadir untuk menjembatani kebutuhan belajar yang tidak dijangkau oleh sistem sekolah pada umumnya. Di sinilah tempat tumbuhnya keahlian masa depan.
+      </p>
+      <p>
+        Bergabunglah dalam ekosistem edukatif yang menggabungkan dunia kecantikan, seni, teknologi, dan kreativitas dalam satu Mini World interaktif.
+      </p>
+    </div>
+  </section>
+
+  
+  <section id="testimoni" class="section-testimoni">
+    <h2>Testimonial</h2>
+    <div class="swiper-pagination"></div>
+    <div class="swiper testimonial-swiper">
+      <div class="swiper-wrapper">
+        <div class="swiper-slide testimonial-slide">
+          <blockquote>Kelas stylist di sini beda!<br />Aku langsung kerja setelah lulus.</blockquote>
+          <p>— Ayu, Lulusan Stylist</p>
+        </div>
+        <div class="swiper-slide testimonial-slide">
+          <blockquote>Anakku jadi semangat coding!<br />Sekarang bikin game sendiri.</blockquote>
+          <p>— Bunda Rina, Orang Tua Murid</p>
+        </div>
+        <div class="swiper-slide testimonial-slide">
+          <blockquote>Queen’s Academy ngajarin hal yang langsung bisa saya terapkan buat penghasilan.</blockquote>
+          <p>— Rio, Alumni Tattoo</p>
+        </div>
+        <div class="swiper-slide testimonial-slide">
+          <blockquote>Awalnya ragu ikut kelas AI, tapi ternyata pengajarnya sabar dan aku jadi ngerti logika coding!</blockquote>
+          <p>— Luthfi, Mahasiswa</p>
+        </div>
+        <div class="swiper-slide testimonial-slide">
+          <blockquote>Jadwal belajarnya fleksibel, aku bisa tetap kerja sambil belajar jadi nailist. Sekarang udah mulai ambil client sendiri.</blockquote>
+          <p>— Mita, Pegawai Kantoran</p>
+        </div>
+        <div class="swiper-slide testimonial-slide">
+          <blockquote>Tempat belajarnya nyaman, dan aku suka cara mereka menggabungkan seni dan teknologi. Inspirasinya dapet banget!</blockquote>
+          <p>— Jovan, Lulusan Eyelash Class</p>
+        </div>
+      </div>
+      <div class="swiper-button-prev"></div>
+      <div class="swiper-button-next"></div>
+    </div>
+  </section>
+
+
+
+
+  <section id="cta" class="section-cta">
+    <h2>Ikuti Kelas Gratis</h2>
+    <form class="cta-form" action="https://wa.me/6281234567890" method="get" target="_blank">
+      <label for="nama">Nama:</label>
+      <input type="text" id="nama" name="text" placeholder="Nama lengkap kamu" required />
+
+      <label for="umur">Umur:</label>
+      <input type="number" id="umur" name="text" placeholder="Umur kamu" required />
+
+      <label for="kelas">Minat Kelas:</label>
+      <select id="kelas" name="text" required>
+        <option value="">Pilih kelas...</option>
+        <option value="Stylist">Stylist</option>
+        <option value="Nailist">Nailist</option>
+        <option value="Eyelash">Eyelash Technician</option>
+        <option value="Tattoo">Tattoo Artist</option>
+        <option value="Coding Anak">Coding Anak</option>
+        <option value="AI & Coding Dewasa">AI & Coding Dewasa</option>
+      </select>
+
+      <button type="submit">Gabung Sekarang</button>
+    </form>
+  </section>
+
+</div>
+  <!-- Swiper script is now loaded at the top of <head> -->
+    <script>
+    const cardSwiper = new Swiper('.card-swiper', {
+      effect: 'creative',
+      grabCursor: true,
+      centeredSlides: true,
+      initialSlide: 1,
+      slidesPerView: 'auto',
+      loop: true,
+      creativeEffect: {
+        prev: {
+          shadow: false,
+          translate: ['-120%', 0, -500],
+          rotate: [0, 0, -45],
+        },
+        next: {
+          shadow: false,
+          translate: ['120%', 0, -500],
+          rotate: [0, 0, 45],
+        },
+      },
+      breakpoints: {
+        480: {
+          slidesPerView: 1.1
+        },
+        768: {
+          slidesPerView: 1.5
+        },
+        1024: {
+          slidesPerView: 2.2
+        }
+      }
+    });
+    let hasSwiped = false;
+    const hint = document.querySelector('.swipe-hint');
+
+    cardSwiper.on('touchMove', () => {
+      if (!hasSwiped && hint) {
+        hint.style.transition = 'opacity 0.5s ease';
+        hint.style.opacity = '0';
+        setTimeout(() => {
+          hint.style.display = 'none';
+        }, 500);
+        hasSwiped = true;
+      }
+    });
+    </script>
+    <style>
+    
+    
+    @media (max-width: 768px) {
+      .testimonial-slide {
+        margin-left: auto;
+        margin-right: auto;
+        width: 100%;
+        max-width: 90%;
+        padding: 1rem 1rem;
+        box-sizing: border-box;
+      }
+      .testimonial-slide blockquote {
+        font-size: 0.9rem;
+        line-height: 1;
+      }
+      .testimonial-slide p {
+        font-size: 0.9rem;
+      }
+      .section-testimoni {
+      position: relative;
+      background: linear-gradient(to right, rgba(13,45,43,0.95), rgba(20,20,20,0.95));
+      border-top: 1px solid rgba(255, 229, 142, 0.1);
+      backdrop-filter: blur(5px);
+      padding-top: 1rem;
+      padding-bottom: 1rem;
+      height: 250px;
+      }
+      .section-testimoni h2 {
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 480px) {
+        .testimonial-slide {
+          margin-left: auto;
+          margin-right: auto;
+          max-width: 100%;
+          padding: 1rem 0.8rem;
+          max-height: 150px;
+        }
+    }
+    </style>
+  
+</div>
+  <!-- Swiper script is now loaded at the top of <head> -->
+  <script>
+    const testimonialSwiper = new Swiper('.testimonial-swiper', {
+      slidesPerView: 1,
+      spaceBetween: 0,
+      loop: true,
+      loopedSlides: 3,
+      watchSlidesProgress: true,
+      watchSlidesVisibility: true,
+      autoplay: {
+        delay: 3000,
+        disableOnInteraction: false,
+        pauseOnMouseEnter: false,
+      },
+      navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
+      },
+      pagination: {
+        el: '.swiper-pagination',
+        clickable: true,
+      },
+    });
+  </script>
+  <div id="footer-placeholder"></div>
+  <script>
+    fetch('/footer.html')
+      .then(res => res.text())
+      .then(data => document.getElementById('footer-placeholder').innerHTML = data);
+  </script>
+</body>
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+    const bubble = document.getElementById('chat-bubble');
+    bubble.style.visibility = 'hidden';
+    setTimeout(() => {
+        bubble.style.visibility = 'visible';
+        bubble.style.opacity = '1';
+    }, 1000);
+});
+</script>
+</html>
+
