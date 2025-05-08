@@ -1,216 +1,566 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QC Face Consultant</title>
-    <link href="https://fonts.googleapis.com/css2?family=Forum&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <style>
-        
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Queen's Academy - Explore</title>
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Forum&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+  <style>
+    /* Swiper navigation button custom color for testimonial swiper */
+    .swiper-button-next,
+    .swiper-button-prev {
+      color: #ffe58e;
+      transition: color 0.3s ease;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 2;
+      position: absolute;
+    }
 
-        .navbar-menu.open {
-            display: flex;
-        }
-        body {
-            margin: 0;
-            background: #1e3d3a;
-            font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow-y: auto;
-            color: #333;
-        }
+    .testimonial-swiper {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
 
-        #container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding-top: 30px;
-        }
+    .testimonial-swiper .swiper-button-prev {
+      left: 10px;
+      top: calc(50% - 225px); /* align with blockquote text */
+    }
 
-        h1 {
-            color: #00b4d8;
-            margin-bottom: 20px;
-        }
+    .testimonial-swiper .swiper-button-next {
+      right: 10px;
+      top: calc(50% - 225px); /* align with blockquote text */
+    }
+    /* Responsive: Testimonial swiper navigation buttons */
+    @media (max-width: 768px) {
+      .testimonial-swiper .swiper-button-next,
+      .testimonial-swiper .swiper-button-prev {
+        top: 13%;
+        transform: translateY(-50%);
+        font-size: 16px;
+        width: 32px;
+        height: 32px;
+        /* Make sure they are inside container, not outside */
+        right: 8px;
+        left: auto;
+      }
+      .testimonial-swiper .swiper-button-prev {
+        left: 8px;
+        right: auto;
+      }
+      .testimonial-swiper .swiper-button-next {
+        right: 8px;
+        left: auto;
+      }
+    }
 
-        #status {
-            margin-bottom: 20px;
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #06d6a0;
-            text-shadow: 0 0 6px #06d6a080;
-        }
+    .swiper-button-next:hover,
+    .swiper-button-prev:hover {
+      color: #ffe58e;
+    }
+    .navbar-menu.open {
+        display: flex;
+    }
+    .swipe-hint {
+      width: 100px;      /* ✅ Kalau pakai gambar/ikon */
+      height: 80px;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-30%, -50%);
+      z-index: 9999;
+      pointer-events: none;
+    }
 
-        #photo {
-            width: 280px;
-            height: auto;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            background: #fff;
-            padding: 10px;
-        }
+    .swipe-animation {
+      width: 60px;
+      opacity: 0.8;
+      animation: swipeLeftRight 2.5s ease-in-out infinite;
+    }
 
-        #recommendation {
-            max-width: 85%;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 20px;
-            border-radius: 15px;
-            margin-top: 20px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            color: #333;
-            display: none;
-        }
+    @keyframes swipeLeftRight {
+      0% { transform: translateX(0); opacity: 0.3; }
+      25% { transform: translateX(-20px); opacity: 0.9; }
+      50% { transform: translateX(0); opacity: 0.3; }
+      75% { transform: translateX(20px); opacity: 0.9; }
+      100% { transform: translateX(0); opacity: 0.3; }
+    }
 
-        #recommendation h2 {
-            color: #ff6b6b;
-            margin-bottom: 10px;
-        }
+    body {
+      margin: 0;
+      padding: 0;
+      background: #0d2d2b;
+      font-family: 'Poppins', 'Segoe UI', 'Forum', Tahoma, Geneva, Verdana, sans-serif;
+      overflow-x: hidden;
+      color: #ffe58e;
+    }
+    
+    .swiper {
+      width: 100vw;
+      height: 100vh;
+      perspective: 1800px;
+      transform-style: preserve-3d;
+      rotate: 0deg;
+      
+    }
+    .swiper-slide {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      /* background: rgb(244, 126, 126); */
+      margin: 0 0px;
+      border-radius: 16px; /* bentuk lengkungan sudut */
+      padding: 20px; /* jarak isi dalam kartu */ 
+      max-width: 300px; /* lebar maksimum kartu */
+      /* box-shadow: 0 4px 20px rgba(0,0,0,0.1); */
+      width: 100%;
+      
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      /*background-color: rgba(34, 50, 47, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.1); */
+      backdrop-filter: blur(5px);
+      border-radius: 16px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.5s ease;
+    }
 
-        #capture-button {
-            background: linear-gradient(to right, #00b4d8, #0077b6);
-            color: white;
-            border: none;
-            padding: 16px 36px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 8px 20px rgba(0, 119, 182, 0.4);
-            transition: all 0.3s ease;
-        }
+    /* Testimonial Swiper: only show visible slides, centered */
+    .testimonial-swiper .swiper-slide {
+      visibility: hidden;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      margin: 0 auto;
+      height: auto;
+    }
+    .testimonial-swiper .swiper-slide.swiper-slide-visible {
+      visibility: visible;
+    }
+    .testimonial-swiper .swiper-slide.swiper-slide-active {
+      opacity: 1;
+    }
+    .testimonial-slide {
+      width: 100%;
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 0.5rem 1rem;
+      box-sizing: border-box;
+      padding-left: 1rem;
+      padding-right: 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 0px solid rgba(255, 229, 142, 0.15);
+      border-radius: 12px;
+      box-shadow: 0 6px 30px rgba(0,0,0,0.25);
+      text-align: center;
+      max-height: 180px;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      height: auto;
+    }
+    .testimonial-slide blockquote,
+    .testimonial-slide p {
+      margin: 0;
+      font-size: 1rem;
+      line-height: 1.4;
+      font-style: italic;
+    }
+    .testimonial-slide blockquote::before,
+    .testimonial-slide blockquote::after {
+      content: '"';
+      font-size: 1.2rem;
+      color: #ffe58e;
+      position: relative;
+    }
+    .section-testimoni {
+      position: relative;
+      background: radial-gradient(circle, rgba(255,229,142,0.12), transparent);
+      backdrop-filter: blur(5px);
+      padding-top: 1rem;
+      padding-bottom: 1rem;
+      height: auto;
+      max-height: 360px;  /* batas maksimal */
+    }
+    
+    .section-testimoni h2 {
+      width: 100%;
+      text-align: center;
+      margin: 0 auto 1rem auto;
+      font-size: 2rem;
+      display: block;
+    }
 
-        #capture-button:hover {
-            background: #0096c7;
-            box-shadow: 0 10px 25px rgba(0, 119, 182, 0.5);
-            transform: translateY(-3px);
-        }
+    
+    .swiper-slide:hover {
+      /* transform: scale(1.05) rotateZ(-1deg); */
+      /* box-shadow: 0 8px 30px rgba(255, 97, 166, 0.3); */
+    }
+    .card-image {
+      width: 100%;
+      height: 180px;
+      background-color: transparent;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      background-size: cover;
+      background-position: center;
+    }
+    h3 {
+      margin: 0 0 10px;
+      font-size: 1.4rem;
+    }
+    p {
+      font-size: 1rem;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    a {
+      padding: 10px 16px;
+      background-color: #B37C6A;
+      color: #ffe58e;
+      text-decoration: none;
+      border-radius: 8px;
+    }
+    .swiper-slide a:hover {
+      background-color: #A36A5A;
+    }
+    .swiper-slide.swiper-slide-active,
+    .swiper-slide.swiper-slide-next,
+    .swiper-slide.swiper-slide-prev {
+      opacity: 1;
+      transform: translateY(0);
+    }
 
-        #gallery {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-top: 30px;
-            margin-bottom: 40px;
-            gap: 15px;
-        }
 
-        #gallery img {
-            width: 120px;
-            height: auto;
-            border-radius: 12px;
-            background: #ffffffcc;
-            padding: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-            transition: transform 0.3s ease;
-        }
+    .section-about h2 {
+    width: 100%;
+    text-align: center;
+    margin: 0 auto 1rem auto;
+    font-size: 2rem;
+    display: block;
+    }
+    .section-about {
+      position: relative;
+      font-family: 'Forum', serif;
+      background: radial-gradient(circle, rgba(255,229,142,0.12), transparent);
+      color: #ffe58e;
+      padding: 1rem 2rem;
+      line-height: 1.8;
+      overflow: hidden;
+    }
 
-        #gallery img:hover {
-            transform: scale(1.05);
-        }
-        .loading {
-            border: 8px solid #f3f3f3;
-            border-top: 8px solid #00ff99;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 2s linear infinite;
-            margin-top: 20px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .fade-in {
-            animation: fadeIn 1s ease forwards;
-        }
+    .about-content {
+      position: relative;
+      z-index: 1;
+    }
+    .about-content p {
+      position: relative;
+      padding-left: 1.5rem;
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: fadeInUp 0.6s ease forwards;
+    }
+    .about-content p:nth-child(2) {
+      animation-delay: 0.3s;
+    }
+    .about-content p:nth-child(3) {
+      animation-delay: 0.6s;
+    }
+    .about-content p::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.25rem;
+      width: 4px;
+      height: 90%;
+      background-color: #ffe58e;
+      border-radius: 2px;
+    }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
 
-        .fade-in-stagger {
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeInStagger 0.6s ease-out forwards;
+    @media (max-width: 768px) {
+        .section-about h2 {
+        text-align: center;
         }
+    }
+  
 
-        @keyframes fadeInStagger {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+    .background-animation {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
+      overflow: hidden;
+    }
 
-        @media (max-width: 768px) {
-            #photo {
-                width: 90%;
-            }
-            #gallery img {
-                width: 90px;
-                margin: 8px;
-            }
-            #capture-button {
-                padding: 14px 28px;
-                font-size: 1.1rem;
-            }
-        }
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(150px);
+      opacity: 0.4;
+      animation: moveBlobs 20s ease-in-out infinite alternate;
+    }
 
-        .gallery-card {
-            background: #ffffffcc;
-            padding: 10px;
-            margin: 8px;
-            border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
+    .blob:nth-child(1) {
+      width: 500px;
+      height: 500px;
+      background: rgba(255, 255, 255, 0.1);
+      top: 20%;
+      left: 10%;
+    }
 
-        .gallery-card:hover {
-            transform: scale(1.08);
-            box-shadow: 0 8px 25px rgba(0, 180, 216, 0.6);
-            background: #f0faff;
-        }
+    .blob:nth-child(2) {
+      width: 400px;
+      height: 400px;
+      background: rgba(0, 252, 235, 0.052) ;
+      top: 60%;
+      left: 60%;
+    }
 
-        .gallery-card img {
-            width: 120px;
-            height: auto;
-            border-radius: 12px;
-            display: block;
-            transition: transform 0.3s ease;
-        }
+    @keyframes moveBlobs {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(-50px, -30px) scale(1.2); }
+    }
 
-        @media (max-width: 480px) {
-            body {
-                font-size: 14px;
-            }
-            #status {
-                font-size: 1rem;
-            }
-            #capture-button {
-                width: 80%;
-                font-size: 1rem;
-                padding: 14px;
-            }
-            #gallery {
-                gap: 8px;
-            }
-        }
+    @keyframes cardBounce {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05) rotateZ(-1deg); }
+      100% { transform: scale(1); }
+    }
 
-        header nav a:hover {
-            color: #ffdd57;
-        }
+    h3, p, a {
+      color: #ffe58e;
+    }
+    
+    /* === Global Reset === */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        header {
-            position: sticky;
-            top: 0;
-            z-index: 999;
-        }
+    html, body {
+      width: 100%;
+      height: 100%;
+      background-color: #0d2d2b;
+      overflow-x: hidden;
+      color: #fff;
+    }
 
-        header nav a {
-            scroll-behavior: smooth;
-        }
-    </style>
+    /* === Background Blob Animation === */
+    .blob {
+      position: fixed;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle at center, #ff61a6, #f35588);
+      filter: blur(200px);
+      opacity: 0.5;
+      animation: blobFloat 20s ease-in-out infinite;
+      z-index: 0;
+    }
+
+    .blob:nth-child(2) {
+      left: auto;
+      right: 10%;
+      top: 60%;
+      background: radial-gradient(circle at center, #7bdff2, #3a8fd8);
+      animation-delay: 10s;
+    }
+
+    @keyframes blobFloat {
+      0%, 100% {
+        transform: translate(0, 0);
+      }
+      50% {
+        transform: translate(100px, -100px);
+      }
+    }
+
+    /* === Swiper Container === */
+    .swiper {
+      width: 100%;
+      height: 100vh;
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* === About, Testimoni, CTA Sections === */
+    .section-about,
+    .section-testimoni,
+    .section-cta {
+      margin: 0 auto;
+      background-color: #0d2d2b;
+      color: #ffe58e;
+    }
+
+    .section-about h2,
+    .section-testimoni h2,
+    .section-cta h2 {
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    .about-content,
+    .testimoni-wrapper {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .cta-form {
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+      align-items: center;
+    }
+
+    .cta-form input,
+    .cta-form select {
+      padding: 12px;
+      border-radius: 6px;
+      border: none;
+      width: 100%;
+      max-width: 500px;
+      box-sizing: border-box;
+      font-size: 1rem;
+    }
+
+    .cta-form button {
+      padding: 12px;
+      background-color: #ffe58e;
+      color: #0d2d2b;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      max-width: 200px;
+    }
+
+    .cta-form button:hover {
+      opacity: 0.9;
+    }
+
+    /* === Card Swiper Slide (Card) === */
+    .card-swiper .swiper-slide {
+      background: none;               /* Hapus background abu */
+      border-radius: 12;               /* Hapus lengkungan sudut */
+      padding: 0;                     /* Hapus ruang dalam */
+      box-shadow: none;              /* Hapus bayangan */
+      max-width: unset;              /* Bebaskan lebar */
+      min-height: unset;             /* Bebaskan tinggi */
+      margin-top: 100px;
+      height: 350px;                 /* Sesuaikan dengan .card-image */
+      padding-bottom: 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      transition: transform 0.8s cubic-bezier(0.25, 0.1, 0.25, 1), opacity 0.6s ease;
+    }
+
+    .card-swiper .swiper-slide.swiper-slide-active {
+      box-shadow: 0 12px 40px rgba(150, 255, 3, 0.5), 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-swiper .swiper-slide h3 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .card-swiper .swiper-slide p {
+      font-size: 1rem;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    /* === Swiper 3D Creative Effect === */
+    .swiper-3d .swiper-slide-shadow-left,
+    .swiper-3d .swiper-slide-shadow-right {
+      background-image: none;
+    }
+
+    .swiper-pagination {
+      position: absolute;
+      bottom: 10px;
+      left: 0;
+      right: 0;
+      margin: 0 auto;
+      text-align: center;
+      z-index: 10;
+    }
+
+    .swiper-pagination-bullet {
+      width: 12px;
+      height: 12px;
+      background: #fff;
+      opacity: 0.4;
+      margin: 0 6px;
+      border-radius: 50%;
+    }
+
+    .swiper-pagination-bullet-active {
+      opacity: 1;
+      background: #ff61a6;
+    }
+
+    /* === Responsive Adjustments === */
+    @media (max-width: 768px) {
+      .card-swiper .swiper-slide {
+        padding: 1.5rem;
+        min-height: 350px;
+      }
+      .card-swiper .swiper-slide h3 {
+        font-size: 1.3rem;
+      }
+      .card-swiper .swiper-slide p {
+        font-size: 0.95rem;
+      }
+
+      .section-testimoni h2,
+      .section-cta h2 {
+        text-align: center;
+      }
+      .about-content,
+      .testimoni-wrapper,
+      .cta-form {
+        padding: 1rem;
+        text-align: center;
+        align-items: center;
+      }
+    }
+
+    .section-cta {
+      padding-bottom: 6rem;
+    }
+
+    .section-testimoni {
+      margin-bottom: 5rem;
+    }
+  </style>
 </head>
 <body>
     <div id="navbar"></div>
@@ -275,221 +625,256 @@
       tries++;
     }, 200);
     </script>
-    <section id="greetings" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px 40px 20px; background: #1e3d3a; text-align: center;">
-        <div style="background: #243f3d; border-radius: 30px; padding: 50px 30px; max-width: 1000px; width: 90%; box-shadow: 0 8px 24px rgba(0,0,0,0.2); display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 40px; flex-wrap: wrap;">
-            <div style="flex: 1; min-width: 280px; text-align: left;">
-                <h1 style="font-size: 3rem; color: #ffd700; margin-bottom: 20px; font-family: 'Forum', cursive;">Your Personal AI Beauty Stylist Awaits</h1>
-                <p style="max-width: 680px; font-size: 1.2rem; color: #e0e0e0; line-height: 1.6;">Temui Stylist Pribadimu hari ini! QC Magic Mirror menghadirkan konsultasi kecantikan berbasis AI yang personal, ramah, dan dirancang khusus untuk menemukan gaya terbaikmu. Dapatkan pengalaman premium seolah memiliki konsultan kecantikan pribadi di tiap kunjunganmu.</p>
-            </div>
-            <div style="display: flex; flex-direction: column; align-items: center;">
-                <img src="/eve_stylist.png" alt="Eve AI Stylist" style="width: 140px; margin-bottom: 20px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
-                <div id="chat-bubble" style="background: #ffffffcc; color: #333; padding: 10px 18px; border-radius: 20px; margin-bottom: 20px; font-size: 1rem; max-width: 320px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); opacity: 0; visibility: hidden; transition: opacity 1s ease;">
-                    Hello! Welcome to your personal beauty journey with QC Magic Mirror ✨
-                </div>
-            </div>
-        </div>
-    </section>
-    <div id="container">
-        <div id="camera-wrapper" style="position: relative; width: 380px; max-width: 90%; margin-bottom: 24px; border-radius: 20px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.3); background: #ffffff;">
-            <img id="camera-placeholder" src="/magic_mirror.png" style="width: 100%; display: block;">
-            <video id="camera-preview" autoplay playsinline muted style="width: 100%; display: none;"></video>
-        </div>
-        <button id="toggle-camera-button" style="margin-top: 10px; background: linear-gradient(to right, #00b4d8, #0077b6); color: white; border: none; padding: 10px 24px; font-size: 1rem; border-radius: 30px; cursor: pointer; box-shadow: 0 6px 18px rgba(0, 119, 182, 0.4);">Turn On Magic Mirror</button>
-        <h1>QC MAGIC MIRROR</h1>
-        <button id="capture-button" style="margin-top: 20px;">
-            Click to Analyze
-        </button>
-        <div id="status">Waiting Analyze...</div>
-        <div id="waiting-replicate" style="display:none; font-size: 1rem; color: #ffdd57; margin-top: 10px;">
-          ✨ Sedang memproses visualisasi gaya rambut AI... Harap tunggu hasilnya tampil di bawah.
-        </div>
-        <div id="loading" class="loading" style="display: none;"></div>
-        <img id="photo" src="" style="display:none; max-width: 300px; margin-top: 20px;" />
-        <div id="recommendation" style="display:none;">
-            <h2>Rekomendasi Gaya Rambut</h2>
-            <p id="rec-content"></p>
-        </div>
-        <div id="gallery" style="display: flex; flex-wrap: wrap; justify-content: center; margin-top: 20px;"></div>
+
+  <div class="background-animation">
+    <div class="blob"></div>
+    <div class="blob"></div>
+  </div>
+
+  
+
+  
+
+  <div class="swiper card-swiper">
+    <div class="swiper-wrapper">
+      <div class="swiper-slide">
+        <div class="card-image" style="background-image: url('stylist.jpg');"></div>
+        <h3>Stylist</h3>
+        <p>Pelajari gaya rambut & tren terbaru</p>
+        <a href="#cta">Pelajari</a>
+      </div>
+      <div class="swiper-slide">
+        <div class="card-image" style="background-image: url('coding-anak.jpg');"></div>
+        <h3>AI & Coding Class</h3>
+        <p>Kelas fun & interaktif mulai usia 4+</p>
+        <a href="#cta">Pelajari</a>
+      </div>
+      <div class="swiper-slide">
+        <div class="card-image" style="background-image: url('tattoo.jpg');"></div>
+        <h3>Tattoo Artist</h3>
+        <p>Kreativitasmu jadi profesi</p>
+        <a href="#cta">Pelajari</a>
+      </div>
+      <div class="swiper-slide">
+        <div class="card-image" style="background-image: url('nailart.jpg');"></div>
+        <h3>Nail Artist</h3>
+        <p>Kreativitasmu jadi profesi</p>
+        <a href="#cta">Pelajari</a>
+      </div>
+      <div class="swiper-slide">
+        <div class="card-image" style="background-image: url('eyelashart.jpg');"></div>
+        <h3>Eyelash Technician</h3>
+        <p>Kreativitasmu jadi profesi</p>
+        <a href="#cta">Pelajari</a>
+      </div>
     </div>
-    <div id="footer-placeholder"></div>
-    <script>
-      fetch('/footer.html')
-        .then(res => res.text())
-        .then(data => document.getElementById('footer-placeholder').innerHTML = data);
-    </script>
+    <div class="swipe-hint">
+        <img src="swipe-cursor.png" alt="Swipe Hint" class="swipe-animation" />
+      </div>
+  </div>
 
-    <div id="lightbox" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter: blur(8px); justify-content:center; align-items:center; z-index:9999;">
-        <img id="lightbox-img" src="" style="max-width:90%; max-height:90%; border-radius:12px;">
+
+  <section id="about" class="section-about">
+    <h2>Queen's Academy</h2>
+    <div class="about-content">
+      <p>
+        Queen’s Academy adalah pusat edukasi masa depan yang menjadi rumah bagi pembelajaran non-konvensional—dari keahlian kecantikan seperti stylist, nailist, dan eyelash technician, hingga teknologi seperti AI dan coding untuk anak-anak maupun dewasa. 
+      </p>
+      <p>
+        Sebagai bagian dari Queen Care Group, kami hadir untuk menjembatani kebutuhan belajar yang tidak dijangkau oleh sistem sekolah pada umumnya. Di sinilah tempat tumbuhnya keahlian masa depan.
+      </p>
+      <p>
+        Bergabunglah dalam ekosistem edukatif yang menggabungkan dunia kecantikan, seni, teknologi, dan kreativitas dalam satu Mini World interaktif.
+      </p>
     </div>
+  </section>
 
+  
+  <section id="testimoni" class="section-testimoni">
+    <h2>Testimonial</h2>
+    <div class="swiper-pagination"></div>
+    <div class="swiper testimonial-swiper">
+      <div class="swiper-wrapper">
+        <div class="swiper-slide testimonial-slide">
+          <blockquote>Kelas stylist di sini beda!<br />Aku langsung kerja setelah lulus.</blockquote>
+          <p>— Ayu, Lulusan Stylist</p>
+        </div>
+        <div class="swiper-slide testimonial-slide">
+          <blockquote>Anakku jadi semangat coding!<br />Sekarang bikin game sendiri.</blockquote>
+          <p>— Bunda Rina, Orang Tua Murid</p>
+        </div>
+        <div class="swiper-slide testimonial-slide">
+          <blockquote>Queen’s Academy ngajarin hal yang langsung bisa saya terapkan buat penghasilan.</blockquote>
+          <p>— Rio, Alumni Tattoo</p>
+        </div>
+        <div class="swiper-slide testimonial-slide">
+          <blockquote>Awalnya ragu ikut kelas AI, tapi ternyata pengajarnya sabar dan aku jadi ngerti logika coding!</blockquote>
+          <p>— Luthfi, Mahasiswa</p>
+        </div>
+        <div class="swiper-slide testimonial-slide">
+          <blockquote>Jadwal belajarnya fleksibel, aku bisa tetap kerja sambil belajar jadi nailist. Sekarang udah mulai ambil client sendiri.</blockquote>
+          <p>— Mita, Pegawai Kantoran</p>
+        </div>
+        <div class="swiper-slide testimonial-slide">
+          <blockquote>Tempat belajarnya nyaman, dan aku suka cara mereka menggabungkan seni dan teknologi. Inspirasinya dapet banget!</blockquote>
+          <p>— Jovan, Lulusan Eyelash Class</p>
+        </div>
+      </div>
+      <div class="swiper-button-prev"></div>
+      <div class="swiper-button-next"></div>
+    </div>
+  </section>
+
+
+
+
+  <section id="cta" class="section-cta">
+    <h2>Ikuti Kelas Gratis</h2>
+    <form class="cta-form" action="https://wa.me/6281234567890" method="get" target="_blank">
+      <label for="nama">Nama:</label>
+      <input type="text" id="nama" name="text" placeholder="Nama lengkap kamu" required />
+
+      <label for="umur">Umur:</label>
+      <input type="number" id="umur" name="text" placeholder="Umur kamu" required />
+
+      <label for="kelas">Minat Kelas:</label>
+      <select id="kelas" name="text" required>
+        <option value="">Pilih kelas...</option>
+        <option value="Stylist">Stylist</option>
+        <option value="Nailist">Nailist</option>
+        <option value="Eyelash">Eyelash Technician</option>
+        <option value="Tattoo">Tattoo Artist</option>
+        <option value="Coding Anak">Coding Anak</option>
+        <option value="AI & Coding Dewasa">AI & Coding Dewasa</option>
+      </select>
+
+      <button type="submit">Gabung Sekarang</button>
+    </form>
+  </section>
+
+</div>
+  <!-- Swiper script is now loaded at the top of <head> -->
     <script>
-    window.addEventListener('DOMContentLoaded', () => {
-        const video = document.getElementById('camera-preview');
-        const placeholder = document.getElementById('camera-placeholder');
-        const toggleBtn = document.getElementById('toggle-camera-button');
-        let stream = null;
-
-        function startCamera() {
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
-                .then(function(s) {
-                    stream = s;
-                    const video = document.getElementById('camera-preview');
-                    const placeholder = document.getElementById('camera-placeholder');
-                    video.srcObject = stream;
-                    video.style.display = 'block';
-                    placeholder.style.display = 'none';
-                    toggleBtn.innerText = "Turn Off Magic Mirror";
-                    updateCaptureButton();
-                })
-                .catch(function(error) {
-                    console.error('🚫 Tidak bisa mengakses kamera:', error.name, error.message);
-                    alert('⚠️ Kamera tidak dapat diakses. Pastikan kamu memberi izin di browser.');
-                });
-            }
+    const cardSwiper = new Swiper('.card-swiper', {
+      effect: 'creative',
+      grabCursor: true,
+      centeredSlides: true,
+      initialSlide: 1,
+      slidesPerView: 'auto',
+      loop: true,
+      creativeEffect: {
+        prev: {
+          shadow: false,
+          translate: ['-120%', 0, -500],
+          rotate: [0, 0, -45],
+        },
+        next: {
+          shadow: false,
+          translate: ['120%', 0, -500],
+          rotate: [0, 0, 45],
+        },
+      },
+      breakpoints: {
+        480: {
+          slidesPerView: 1.1
+        },
+        768: {
+          slidesPerView: 1.5
+        },
+        1024: {
+          slidesPerView: 2.2
         }
+      }
+    });
+    let hasSwiped = false;
+    const hint = document.querySelector('.swipe-hint');
 
-        function stopCamera() {
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-                stream = null;
-            }
-            const video = document.getElementById('camera-preview');
-            const placeholder = document.getElementById('camera-placeholder');
-            video.style.display = 'none';
-            placeholder.style.display = 'block';
-            toggleBtn.innerText = "Turn On Magic Mirror";
-            updateCaptureButton();
-        }
-
-        // Set initial button text to "Turn On Camera" (redundant if set in HTML, but ensures correct state)
-        toggleBtn.innerText = "Turn On Magic Mirror";
-
-        toggleBtn.addEventListener('click', () => {
-            if (stream) {
-                stopCamera();
-            } else {
-                startCamera();
-            }
-        });
-
-        // Camera will NOT start automatically on page load.
-        // startCamera(); // Removed to prevent auto-start
-        updateCaptureButton();
+    cardSwiper.on('touchMove', () => {
+      if (!hasSwiped && hint) {
+        hint.style.transition = 'opacity 0.5s ease';
+        hint.style.opacity = '0';
+        setTimeout(() => {
+          hint.style.display = 'none';
+        }, 500);
+        hasSwiped = true;
+      }
     });
     </script>
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-        const socket = io('https://qc-magicmirror-api.onrender.com');
-        let connected = false;
-        // stream will be set by camera script, but for safety, we check window.stream too
-        function getStream() {
-            return typeof stream !== 'undefined' ? stream : window.stream;
+    <style>
+    
+    
+    @media (max-width: 768px) {
+      .testimonial-slide {
+        margin-left: auto;
+        margin-right: auto;
+        width: 100%;
+        max-width: 90%;
+        padding: 1rem 1rem;
+        box-sizing: border-box;
+      }
+      .testimonial-slide blockquote {
+        font-size: 0.9rem;
+        line-height: 1;
+      }
+      .testimonial-slide p {
+        font-size: 0.9rem;
+      }
+      .section-testimoni {
+      position: relative;
+      background: linear-gradient(to right, rgba(13,45,43,0.95), rgba(20,20,20,0.95));
+      border-top: 1px solid rgba(255, 229, 142, 0.1);
+      backdrop-filter: blur(5px);
+      padding-top: 1rem;
+      padding-bottom: 1rem;
+      height: 250px;
+      }
+      .section-testimoni h2 {
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 480px) {
+        .testimonial-slide {
+          margin-left: auto;
+          margin-right: auto;
+          max-width: 100%;
+          padding: 1rem 0.8rem;
+          max-height: 150px;
         }
-        const captureBtn = document.getElementById('capture-button');
-        function setStatus(msg, color) {
-            const status = document.getElementById('status');
-            status.innerText = msg;
-            if (color) status.style.color = color;
-            else status.style.color = '#00ff99';
-        }
-        function updateCaptureButton() {
-            if (connected) {
-                captureBtn.disabled = false;
-                captureBtn.style.opacity = '1';
-                captureBtn.style.cursor = 'pointer';
-            } else {
-                captureBtn.disabled = true;
-                captureBtn.style.opacity = '0.5';
-                captureBtn.style.cursor = 'not-allowed';
-            }
-        }
-        document.getElementById('capture-button').addEventListener('click', () => {
-            if (!connected) {
-                alert('⚠️ Koneksi ke server belum aktif.');
-                return;
-            }
-
-            const video = document.getElementById('camera-preview');
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth || 640;
-            canvas.height = video.videoHeight || 480;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-            const base64Photo = canvas.toDataURL('image/jpeg');
-            const photoData = base64Photo.replace(/^data:image\/jpeg;base64,/, '');
-
-            console.log('📸 Process Analyze...');
-            socket.emit('user_photo', { photo: photoData });
-
-            setStatus('Process Analyze...', '#fff700');
-        });
-        socket.on('connect', () => {
-            connected = true;
-            setStatus('Standby, Turn on Magic Mirror', '#00ff99');
-            document.getElementById('loading').style.display = 'none';
-            updateCaptureButton();
-        });
-        socket.on('ai_result', (data) => {
-            console.log('🧠 Rekomendasi AI diterima.');
-            const recommendation = document.getElementById('recommendation');
-            const recContent = document.getElementById('rec-content');
-            recContent.innerText = data.recommendationText || data.recommendation;
-            recommendation.style.display = 'block';
-            recommendation.classList.add('fade-in');
-            document.getElementById('loading').style.display = 'none';
-            setStatus('✅ Recommendation', '#00ff99');
-            document.getElementById('waiting-replicate').style.display = 'block';
-        });
-        socket.on('generated_faces', (data) => {
-            console.log('🖼️ Generated faces diterima.');
-            const gallery = document.getElementById('gallery');
-            gallery.innerHTML = ''; // Clear previous gallery
-
-            document.getElementById('waiting-replicate').style.display = 'none';
-
-            if (data.faces && data.faces.length > 0) {
-                data.faces.forEach((url, index) => {
-                    const card = document.createElement('div');
-                    card.className = 'gallery-card fade-in-stagger';
-                    card.style.animationDelay = `${index * 0.2}s`;
-                    const img = document.createElement('img');
-                    img.src = url.startsWith('/') ? url : `/generated_faces/${url}`;
-                    card.appendChild(img);
-                    gallery.appendChild(card);
-                });
-            }
-            document.getElementById('loading').style.display = 'none'; // Hide loading when gallery ready
-            // 🔵 Tambahan: Auto-scroll ke gallery
-            setTimeout(() => {
-                gallery.scrollIntoView({ behavior: 'smooth' });
-            }, 300);
-        });
-
-        // Lightbox for gallery images
-        document.getElementById('gallery').addEventListener('click', (e) => {
-            if (e.target.tagName === 'IMG') {
-                document.getElementById('lightbox-img').src = e.target.src;
-                document.getElementById('lightbox').style.display = 'flex';
-            }
-        });
-
-        document.getElementById('lightbox').addEventListener('click', () => {
-            document.getElementById('lightbox').style.display = 'none';
-        });
-        socket.on('disconnect', () => {
-            connected = false;
-            setStatus('⚡ Koneksi terputus. Klik Turn On Magic Mirror lagi jika diperlukan.', 'red');
-            document.getElementById('loading').style.display = 'none';
-            updateCaptureButton();
-        });
-
-        // When camera toggled, update the button too
-        document.getElementById('toggle-camera-button').addEventListener('click', () => {
-            setTimeout(updateCaptureButton, 500); // slight delay to ensure stream state updated
-        });
-    </script>
+    }
+    </style>
+  
+</div>
+  <!-- Swiper script is now loaded at the top of <head> -->
+  <script>
+    const testimonialSwiper = new Swiper('.testimonial-swiper', {
+      slidesPerView: 1,
+      spaceBetween: 0,
+      loop: true,
+      loopedSlides: 3,
+      watchSlidesProgress: true,
+      watchSlidesVisibility: true,
+      autoplay: {
+        delay: 3000,
+        disableOnInteraction: false,
+        pauseOnMouseEnter: false,
+      },
+      navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
+      },
+      pagination: {
+        el: '.swiper-pagination',
+        clickable: true,
+      },
+    });
+  </script>
+  <div id="footer-placeholder"></div>
+  <script>
+    fetch('/footer.html')
+      .then(res => res.text())
+      .then(data => document.getElementById('footer-placeholder').innerHTML = data);
+  </script>
 </body>
 <script>
 window.addEventListener('DOMContentLoaded', () => {
@@ -502,3 +887,4 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 </html>
+
