@@ -510,6 +510,14 @@ def analyze_face():
         print("✨ Menyiapkan generate virtual face... Harap tunggu beberapa detik.")
         if latest_captured_face_path and os.path.exists(latest_captured_face_path):
             print("🚀 Generate Virtual Face with Replicate API...")
+
+            # ✅ Upload captured face
+            try:
+                upload_file(latest_captured_face_path, 'image/jpeg', drive_service)
+                print(f"☁️ Uploaded captured face: {latest_captured_face_path}")
+            except Exception as e:
+                print(f"⚠️ Gagal upload captured face: {e}")
+
             try:
                 generated_faces = generate_virtual_face_replicate(
                     face_shape,
@@ -521,7 +529,7 @@ def analyze_face():
                 print(f"⚠️ Error call Replicate: {e}")
                 generated_faces = []
                 status_msg = "❌ Gagal generate wajah."
-            # Send generated faces to WebSocket
+
             if generated_faces:
                 try:
                     sio.emit('generated_faces', {'faces': generated_faces})
@@ -529,10 +537,16 @@ def analyze_face():
                     print("✅ Hasil virtual face telah dikirim ke web.")
                 except Exception as e:
                     print(f"⚠️ Gagal kirim generated faces ke web: {e}")
-        else:
-            print("❌ Foto subject reference tidak valid atau tidak ditemukan.")
-    except Exception as e:
-        print(f"⚠️ Gagal generate virtual face Replicate: {e}")
+
+                # ✅ Upload generated faces
+                for face_path in generated_faces:
+                    if os.path.exists(face_path):
+                        try:
+                            upload_file(face_path, 'image/jpeg', drive_service)
+                            print(f"☁️ Uploaded generated face: {face_path}")
+                        except Exception as e:
+                            print(f"⚠️ Gagal upload generated face: {e}")
+
 
     # Load Data Promo
     promo_data = get_latest_customer_by_slot(slot, cabang, credentials)
@@ -731,7 +745,7 @@ if __name__ == "__main__":
 # ------------------ Cleanup ------------------
 # ------------------ API run function ------------------
 def run(photo_base64):
-    global latest_captured_face_path, analysis_started
+    global latest_captured_face_path, analysis_started, face_shape, skin_tone, recommendation
     ensure_folder("captured_faces")
     capture_filename = os.path.join("captured_faces", f"from_api_{int(time.time())}.jpg")
     with open(capture_filename, "wb") as f:
