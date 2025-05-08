@@ -35,15 +35,16 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
     import base64
 
     try:
-        with open(latest_photo_path, "rb") as image_file:
-
-            for idx, prompt in enumerate(prompts):
+        for idx, prompt in enumerate(prompts):
+            with open(latest_photo_path, "rb") as image_file:
                 retry_count = 0
                 max_retries = 3
                 while retry_count < max_retries:
                     try:
                         print(f"⏳ Sending request to Replicate... attempt {retry_count + 1}")
+                        print(f"📝 Prompt {idx}: {prompt}")
                         output = replicate.run(
+                            print(f"🎯 Output dari Replicate (prompt {idx}): {output}")
                             "minimax/image-01",
                             input={
                                 "prompt": prompt,
