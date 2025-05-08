@@ -761,6 +761,9 @@ def run(photo_base64):
         f.write(base64.b64decode(photo_base64))
     latest_captured_face_path = capture_filename
 
+    print(f"✅ Foto dari API disimpan di: {latest_captured_face_path}")
+    print(f"📏 Ukuran file: {os.path.getsize(latest_captured_face_path)} bytes")
+
     # 🔍 Tambahan analisis landmark langsung dari file foto
     try:
         img = cv2.imread(capture_filename)
@@ -824,13 +827,20 @@ def run(photo_base64):
     except Exception as e:
         print(f"⚠️ Gagal baca landmark dari file foto di run(): {e}")
 
+    print(f"📂 latest_captured_face_path = {latest_captured_face_path}")
+    print(f"📂 exists = {os.path.exists(latest_captured_face_path)}")
+
     analysis_started = True
     analyze_face()
+
+    print(f"🖼️ generated_faces: {generated_faces if generated_faces else 'None generated.'}")
+
     return {
         "status": "done",
         "face_shape": face_shape,
         "skin_tone": skin_tone,
         "recommendation": recommendation
+        "faces": generated_faces
     }
 
 # No changes required: file is already fully updated and synchronized with the expected Magic Mirror Build System V2 behavior.
