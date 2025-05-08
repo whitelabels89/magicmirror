@@ -6,11 +6,11 @@ const path = require('path');
 
 const PORT = process.env.PORT || 3000;
 
-// Serve static files
+// Serve static files from /public
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.json({ limit: '10mb' })); // Ini supaya semua post json bisa kebaca
+app.use(express.json({ limit: '10mb' })); // untuk terima JSON besar (seperti foto)
 
-// Endpoint untuk menerima foto user
+// Endpoint: menerima foto base64 dari alat
 app.post('/upload_photo', (req, res) => {
     const { photoBase64 } = req.body;
     if (photoBase64) {
@@ -22,7 +22,7 @@ app.post('/upload_photo', (req, res) => {
     }
 });
 
-// Endpoint untuk menerima hasil AI stylist
+// Endpoint: menerima hasil AI recommendation dari alat
 app.post('/upload_ai_result', (req, res) => {
     const { recommendationText } = req.body;
     if (recommendationText) {
@@ -34,18 +34,17 @@ app.post('/upload_ai_result', (req, res) => {
     }
 });
 
-// WebSocket Events
+// WebSocket logic
 io.on('connection', (socket) => {
     console.log('✅ User connected via WebSocket');
 
     socket.on('user_photo', (data) => {
-        console.log('📷 Foto user diterima dari browser, meneruskan ke Python server...');
-        socket.broadcast.emit('user_photo', data); // broadcast ke semua selain pengirim
+        console.log('📷 Foto user diterima dari browser, broadcast ke Python server...');
+        socket.broadcast.emit('user_photo', data);
     });
 
     socket.on('send_ai_result', (data) => {
-        console.log('🧠 Hasil AI Stylist dikirim dari Python.');
-        // Karena data dari Python final format { recommendation: "text" }
+        console.log('🧠 Hasil AI Stylist dari Python, broadcast ke semua client...');
         io.emit('ai_result', { recommendationText: data.recommendation });
     });
 
@@ -64,16 +63,17 @@ io.on('connection', (socket) => {
     });
 });
 
-// Default route
+// Default route ke index.html
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/index.html'));
 });
 
-// 404 fallback
+// Fallback 404
 app.use((req, res) => {
     res.status(404).send('404 Not Found');
 });
 
+// Start server
 http.listen(PORT, () => {
     console.log(`🚀 Server jalan di http://localhost:${PORT}`);
 });
