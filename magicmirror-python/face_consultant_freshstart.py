@@ -760,6 +760,70 @@ def run(photo_base64):
     with open(capture_filename, "wb") as f:
         f.write(base64.b64decode(photo_base64))
     latest_captured_face_path = capture_filename
+
+    # 🔍 Tambahan analisis landmark langsung dari file foto
+    try:
+        img = cv2.imread(capture_filename)
+        rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        results = face_mesh.process(rgb_img)
+
+        if results.multi_face_landmarks:
+            for landmarks in results.multi_face_landmarks:
+                def get_point(lms, idx, shape):
+                    h, w, _ = shape
+                    lm = lms[idx]
+                    return int(lm.x * w), int(lm.y * h)
+                def euclidean(p1, p2):
+                    return math.hypot(p1[0] - p2[0], p1[1] - p2[1])
+                def get_skin_tone_color(img, pt):
+                    x, y = pt
+                    h, w = img.shape[:2]
+                    x = min(max(0, x), w-1)
+                    y = min(max(0, y), h-1)
+                    b, g, r = img[y, x]
+                    if r > g and r > b:
+                        return "Warm"
+                    elif b > r and b > g:
+                        return "Cool"
+                    else:
+                        return "Neutral"
+                def get_face_shape(ratio_w_h, jaw_ratio, forehead_ratio):
+                    if ratio_w_h < 0.85:
+                        return "Oblong"
+                    elif 0.85 <= ratio_w_h <= 0.95:
+                        if jaw_ratio < 0.8:
+                            return "Heart"
+                        else:
+                            return "Oval"
+                    elif 0.95 < ratio_w_h <= 1.05:
+                        if jaw_ratio > 0.95:
+                            return "Square"
+                        else:
+                            return "Round"
+                    else:
+                        return "Wide"
+
+                shape = img.shape
+                chin = get_point(landmarks.landmark, 152, shape)
+                forehead = get_point(landmarks.landmark, 10, shape)
+                left_cheek = get_point(landmarks.landmark, 234, shape)
+                right_cheek = get_point(landmarks.landmark, 454, shape)
+                jaw_width = euclidean(left_cheek, right_cheek)
+                height = euclidean(forehead, chin)
+                forehead_width = euclidean(get_point(landmarks.landmark, 127, shape), get_point(landmarks.landmark, 356, shape))
+                ratio_w_h = jaw_width / height
+                jaw_ratio = jaw_width / jaw_width
+                forehead_ratio = forehead_width / jaw_width
+
+                face_shape = get_face_shape(ratio_w_h, jaw_ratio, forehead_ratio)
+                skin_tone = get_skin_tone_color(img, left_cheek)
+                print(f"📸 Deteksi dari run berhasil: {face_shape=} {skin_tone=}")
+                break
+        else:
+            print("❌ Tidak ada wajah terdeteksi di gambar dari run().")
+    except Exception as e:
+        print(f"⚠️ Gagal baca landmark dari file foto di run(): {e}")
+
     analysis_started = True
     analyze_face()
     return {
