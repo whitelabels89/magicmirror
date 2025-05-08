@@ -546,6 +546,9 @@ def analyze_face():
                             print(f"☁️ Uploaded generated face: {face_path}")
                         except Exception as e:
                             print(f"⚠️ Gagal upload generated face: {e}")
+    # ✅ Tambahkan except ini sebagai penutup blok try besar
+    except Exception as e:
+        print(f"⚠️ Gagal generate virtual face Replicate: {e}")
 
 
     # Load Data Promo
@@ -564,6 +567,7 @@ def analyze_face():
 
     deskripsi_promo = get_promo_description_by_kode(kode_promo, credentials)
     promo_text = f"Kak, ini kesempatan langka buat kamu. Promo spesial *{promo}* dengan kode *{kode_promo}*: {deskripsi_promo} berlaku hanya 60 detik. Scan QR sebelum terlambat!"
+
 
     # Voice Promo
     ensure_folder("promo_voice_files")
