@@ -549,12 +549,17 @@ def analyze_face():
 
 
     # Load Data Promo
-    promo_data = get_latest_customer_by_slot(slot, cabang, credentials)
-    if promo_data:
-        kode_promo = promo_data["kode"]
-        qr_link = promo_data["link"]
-        promo = promo_data.get("promo", "Promo Eksklusif")
-    else:
+    
+    try:
+        promo_data = get_latest_customer_by_slot(slot, cabang, credentials)
+        if promo_data:
+            kode_promo = promo_data["kode"]
+            qr_link = promo_data["link"]
+            promo = promo_data.get("promo", "Promo Eksklusif")
+        else:
+            kode_promo, qr_link, promo = "PROMO", "https://example.com", "Promo Eksklusif"
+    except Exception as e:
+        print(f"⚠️ Gagal ambil data promo customer: {e}")
         kode_promo, qr_link, promo = "PROMO", "https://example.com", "Promo Eksklusif"
 
     deskripsi_promo = get_promo_description_by_kode(kode_promo, credentials)
