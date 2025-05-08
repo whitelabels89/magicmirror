@@ -754,11 +754,22 @@ if __name__ == "__main__":
 # ------------------ Cleanup ------------------
 # ------------------ API run function ------------------
 def run(photo_base64):
-    global latest_captured_face_path, analysis_started, face_shape, skin_tone, recommendation
+    global latest_captured_face_path, analysis_started, face_shape, skin_tone, recommendation, generated_faces
+
+    # ✅ Validasi base64 input sebelum decode
+    try:
+        decoded = base64.b64decode(photo_base64)
+    except Exception as e:
+        print(f"❌ Foto yang dikirim bukan base64 valid: {e}")
+        return {
+            "status": "error",
+            "error": "Invalid base64 image."
+        }
+
     ensure_folder("captured_faces")
     capture_filename = os.path.join("captured_faces", f"from_api_{int(time.time())}.jpg")
     with open(capture_filename, "wb") as f:
-        f.write(base64.b64decode(photo_base64))
+        f.write(decoded)
     latest_captured_face_path = capture_filename
 
     print(f"✅ Foto dari API disimpan di: {latest_captured_face_path}")
@@ -820,6 +831,8 @@ def run(photo_base64):
 
                 face_shape = get_face_shape(ratio_w_h, jaw_ratio, forehead_ratio)
                 skin_tone = get_skin_tone_color(img, left_cheek)
+                globals()["face_shape"] = face_shape
+                globals()["skin_tone"] = skin_tone
                 print(f"📸 Deteksi dari run berhasil: {face_shape=} {skin_tone=}")
                 break
         else:
@@ -835,12 +848,18 @@ def run(photo_base64):
 
     print(f"🖼️ generated_faces: {generated_faces if generated_faces else 'None generated.'}")
 
-    return {
+    result = {
         "status": "done",
-        "face_shape": face_shape,
-        "skin_tone": skin_tone,
-        "recommendation": recommendation,
-        "faces": generated_faces
+        "face_shape": face_shape if face_shape else "-",
+        "skin_tone": skin_tone if skin_tone else "-",
+        "recommendation": recommendation
     }
+
+    if generated_faces:
+        result["faces"] = generated_faces
+    else:
+        result["error"] = "No faces generated."
+
+    return result
 
 # No changes required: file is already fully updated and synchronized with the expected Magic Mirror Build System V2 behavior.
