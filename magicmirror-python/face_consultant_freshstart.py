@@ -839,7 +839,7 @@ def run(photo_base64):
         "status": "done",
         "face_shape": face_shape,
         "skin_tone": skin_tone,
-        "recommendation": recommendation
+        "recommendation": recommendation,
         "faces": generated_faces
     }
 
