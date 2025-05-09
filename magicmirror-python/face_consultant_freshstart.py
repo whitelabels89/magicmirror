@@ -476,14 +476,18 @@ def analyze_face():
     audio_filename = os.path.join("VOICE_AI_FILES", f"{file_prefix}.mp3")
     try:
         generate_voice_elevenlabs(recommendation, audio_filename)
-        # Check audio file exists and size > 10KB
         if audio_filename and os.path.exists(audio_filename) and os.path.getsize(audio_filename) >= 10 * 1024:
             faster_audio = os.path.join("VOICE_AI_FILES", f"fast_{file_prefix}.mp3")
-            os.system(f"ffmpeg -y -i \"{audio_filename}\" -filter:a 'atempo=1.15' -vn \"{faster_audio}\"")
-            if os.path.exists(audio_filename):
-                os.remove(audio_filename)
-            if os.path.exists(faster_audio):
-                os.rename(faster_audio, audio_filename)
+            try:
+                os.system(f"ffmpeg -y -i \"{audio_filename}\" -filter:a 'atempo=1.15' -vn \"{faster_audio}\"")
+                  if os.path.exists(audio_filename):
+                    os.remove(audio_filename)
+                if os.path.exists(faster_audio):
+                    os.rename(faster_audio, audio_filename)
+                print("✅ Audio stylist berhasil diproses dengan ffmpeg.")
+            except Exception as ffmpeg_error:
+                print(f"⚠️ Gagal proses ffmpeg: {ffmpeg_error}")
+
             play_audio_and_type(audio_filename, recommendation)
             upload_file(audio_filename, 'audio/mpeg', drive_service)
         else:
