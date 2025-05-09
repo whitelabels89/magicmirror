@@ -7,8 +7,8 @@ WORKDIR /app
 
 COPY . .
 
-# ✅ Tambahkan dependency penting untuk OpenCV
-RUN apt-get update && apt-get install -y libgl1 libglib2.0-0
+# ✅ Tambahkan dependency penting untuk OpenCV dan audio processing
+RUN apt-get update && apt-get install -y libgl1 libglib2.0-0 ffmpeg
 
 RUN pip install --no-cache-dir -r requirements.txt
 
