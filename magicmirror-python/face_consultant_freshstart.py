@@ -480,7 +480,7 @@ def analyze_face():
             faster_audio = os.path.join("VOICE_AI_FILES", f"fast_{file_prefix}.mp3")
             try:
                 os.system(f"ffmpeg -y -i \"{audio_filename}\" -filter:a 'atempo=1.15' -vn \"{faster_audio}\"")
-                  if os.path.exists(audio_filename):
+                if os.path.exists(audio_filename):
                     os.remove(audio_filename)
                 if os.path.exists(faster_audio):
                     os.rename(faster_audio, audio_filename)
