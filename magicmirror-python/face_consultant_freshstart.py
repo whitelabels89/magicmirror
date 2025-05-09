@@ -185,7 +185,7 @@ def send_result_to_web(photo_path, ai_text):
         with open(photo_path, "rb") as img_file:
             img_base64 = base64.b64encode(img_file.read()).decode('utf-8')
         sio.emit('user_photo', {'photo': img_base64})
-        sio.emit('ai_result', {'recommendation': ai_text})
+        sio.emit('send_ai_result', {'recommendation': ai_text})
         print("📤 Foto & rekomendasi AI berhasil dikirim ke WebSocket server.")
     except Exception as e:
         print(f"⚠️ Error kirim data ke web: {e}")
