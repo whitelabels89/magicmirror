@@ -21,7 +21,6 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
         raise EnvironmentError("❌ Export token dulu: export REPLICATE_API_TOKEN='token_lo'")
 
     print("🚀 Mengirim foto & prompt ke Replicate (Minimax Image 01)...")
-    print(f"📂 File foto: {latest_photo_path} | Exists: {os.path.exists(latest_photo_path)}")
 
     prompts = [
         f"{prompt}, front view, ultra-realistic, soft lighting, same person" if prompt else f"Ultra-realistic portrait, {face_shape} face shape, {skin_tone} skin tone, recommended hairstyle and color, full head visible, no cropping, sharp details, studio lighting, Canon EOS 5D, high-resolution, natural expression, SAME FACE as subject reference",
@@ -60,9 +59,6 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
                             api_token=replicate_api_token
                         )
                         print(f"🎯 Output dari Replicate (prompt {idx}): {output}")
-                        if not output or not isinstance(output, list):
-                            print("⚠️ Output kosong atau bukan list. Skip prompt ini.")
-                            break
                         print("✅ Replicate respond OK!")
                         break
                     except Exception as e:
@@ -75,7 +71,6 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
 
                 timestamp = int(time.time())
                 for i, img_url in enumerate(output):
-                    print(f"⬇️ Downloading: {img_url}")
                     filename = f"{output_folder}/face_{timestamp}_{idx}_{i}.jpg"
                     try:
                         response = requests.get(img_url)
@@ -86,17 +81,15 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
                             os.makedirs(public_folder, exist_ok=True)
                             public_path = os.path.join(public_folder, os.path.basename(filename))
                             shutil.copy(filename, public_path)
-                            print(f"📁 Saved: {public_path}")
                             saved_files.append(f"/generated_faces/{os.path.basename(filename)}")
                         else:
-                            print(f"⚠️ Gagal download gambar dari {img_url} - Status: {response.status_code}")
+                            print(f"⚠️ Gagal download gambar dari {img_url}")
                     except Exception as e:
                         print(f"⚠️ Error downloading face image: {str(e)}")
     except Exception as e:
         print(f"🔥 Critical error saat generate virtual face: {e}")
         return []
 
-    print(f"🧾 Total saved files: {len(saved_files)}")
     return saved_files
 
 # ------------------ Render Generated Faces ------------------
@@ -110,21 +103,24 @@ def render_generated_faces(display_frame, generated_faces, bottom_margin=140):
     frame_h, frame_w = display_frame.shape[:2]
 
     # Konfigurasi tampilan
-    preview_h = 260
-    preview_y_start = frame_h - preview_h - bottom_margin
-    preview_width = 180
-    spacing = 30
+    preview_h = 260  # Tinggi total area preview
+    preview_y_start = frame_h - preview_h - bottom_margin  # Posisi Y mulai
+    preview_width = 180  # Lebar setiap wajah
+    spacing = 30  # Jarak antar wajah
     background_opacity = 0.8
 
+    # Hitung posisi horizontal
     num_faces = len(generated_faces)
     total_width = num_faces * preview_width + (num_faces - 1) * spacing
-    x_start = (frame_w - total_width) // 2
+    x_start = (frame_w - total_width) // 2  # Posisi X mulai
 
+    # Background semi-transparan dan glossy
     cv2.rectangle(overlay, (0, preview_y_start), (frame_w, frame_h), (15, 30, 30), -1)
     display_frame = cv2.addWeighted(overlay, background_opacity, display_frame, 1 - background_opacity, 0)
 
     for idx, face_info in enumerate(generated_faces):
         if isinstance(face_info, str):
+            # Dummy/testing mode: skip rendering in OpenCV
             continue
         if not isinstance(face_info, dict) or "filename" not in face_info:
             print(f"⚠️ Invalid face_info at index {idx}, skipping...")
@@ -141,24 +137,40 @@ def render_generated_faces(display_frame, generated_faces, bottom_margin=140):
             continue
 
         try:
+            # Hitung posisi
             x = x_start + idx * (preview_width + spacing)
-            y = preview_y_start + 10
+            y = preview_y_start + 10  # Margin atas 10px
+
+            # Hitung ukuran slot
             slot_height = preview_h - 20
             slot_width = preview_width
+
+            # Resize face image supaya match slot
             face_img_resized = cv2.resize(face_img, (slot_width, slot_height))
-            glow_color = (230, 255, 245)
-            thickness = 4
+
+            # --- Patch: Glow effect ---
+            glow_color = (230, 255, 245)  # soft glow color
+            thickness = 4  # thinner and softer glow
             center_x = x + slot_width // 2
             center_y = y + slot_height // 2
-            radius = max(slot_width, slot_height) // 2 + 10
+            radius = max(slot_width, slot_height) // 2 + 10  # slightly larger radius
+
+            # Draw glow circle on overlay (soft glow)
             cv2.circle(display_frame, (center_x, center_y), radius, glow_color, thickness)
+            # --- End Patch ---
+
+            # Validasi area sebelum assign
             if (y + slot_height <= frame_h) and (x + slot_width <= frame_w):
                 display_frame[y:y+slot_height, x:x+slot_width] = face_img_resized
+            else:
+                print(f"⚠️ Ukuran slot gambar melebihi batas frame, skip render.")
+
         except Exception as e:
             print(f"⚠️ Gagal render wajah {idx}: {str(e)}")
             continue
 
     return display_frame
 
+# ------------------ Dummy Handle Face Click ------------------
 def handle_face_click(event, x, y, flags, param):
     pass

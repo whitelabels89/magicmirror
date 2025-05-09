@@ -9,6 +9,11 @@ import os
 load_dotenv()
 ENV_MODE = os.getenv('ENV_MODE', 'dev')  # default ke dev
 
+# ✅ Buat folder lokal saat startup (jika belum ada)
+os.makedirs("captured_faces", exist_ok=True)
+os.makedirs("generated_faces", exist_ok=True)
+os.makedirs(os.path.join("public", "generated_faces"), exist_ok=True)
+
 import sys
 import cv2
 import math
