@@ -1,4 +1,4 @@
 #!/bin/bash
 
-echo "🧠 Menjalankan Face Consultant Magic Mirror..."
-exec python app.py
+echo "🧠 Menjalankan QC Magic Mirror API..."
+exec gunicorn app:app --bind 0.0.0.0:$PORT --timeout 300

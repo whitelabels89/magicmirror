@@ -15,3 +15,5 @@ __pycache__/
 
 # VS Code settings (opsional)
 .vscode/
+
+.DS_Store
