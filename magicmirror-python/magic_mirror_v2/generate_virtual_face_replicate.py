@@ -44,7 +44,6 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
                         print(f"⏳ Sending request to Replicate... attempt {retry_count + 1}")
                         print(f"📝 Prompt {idx}: {prompt}")
                         output = replicate.run(
-                            print(f"🎯 Output dari Replicate (prompt {idx}): {output}")
                             "minimax/image-01",
                             input={
                                 "prompt": prompt,
@@ -59,6 +58,7 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
                             },
                             api_token=replicate_api_token
                         )
+                        print(f"🎯 Output dari Replicate (prompt {idx}): {output}")
                         print("✅ Replicate respond OK!")
                         break
                     except Exception as e:
