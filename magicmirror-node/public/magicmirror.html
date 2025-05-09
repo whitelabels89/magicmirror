@@ -405,11 +405,6 @@
             }
         }
         document.getElementById('capture-button').addEventListener('click', () => {
-            if (!connected) {
-                alert('⚠️ Koneksi ke server belum aktif.');
-                return;
-            }
-
             const video = document.getElementById('camera-preview');
             const canvas = document.createElement('canvas');
             canvas.width = video.videoWidth || 640;
@@ -417,14 +412,60 @@
             const ctx = canvas.getContext('2d');
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            const base64Photo = canvas.toDataURL('image/jpeg');
-            const photoData = base64Photo.replace(/^data:image\/jpeg;base64,/, '');
+            const base64Photo = canvas.toDataURL('image/jpeg').replace(/^data:image\/jpeg;base64,/, '');
 
-            console.log('📸 Process Analyze...');
-            socket.emit('user_photo', { photo: photoData });
+            setStatus('🔍 Menganalisis wajah...', '#fff700');
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('recommendation').style.display = 'none';
+            document.getElementById('gallery').innerHTML = '';
+            document.getElementById('waiting-replicate').style.display = 'none';
 
-            setStatus('Process Analyze...', '#fff700');
+            fetch('https://qc-magicmirror-api.onrender.com/run', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ photo: base64Photo })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('✅ Respon AI:', data);
+
+                if (data.status === 'done') {
+                    document.getElementById('rec-content').innerText = data.recommendation || 'Tidak ada rekomendasi.';
+                    document.getElementById('recommendation').style.display = 'block';
+                    setStatus('✅ Rekomendasi siap!', '#00ff99');
+
+                    if (data.faces && data.faces.length > 0) {
+                        const gallery = document.getElementById('gallery');
+                        data.faces.forEach((url, index) => {
+                            const card = document.createElement('div');
+                            card.className = 'gallery-card fade-in-stagger';
+                            card.style.animationDelay = `${index * 0.2}s`;
+                            const img = document.createElement('img');
+                            img.src = url.startsWith('/') ? url : `/generated_faces/${url}`;
+                            card.appendChild(img);
+                            gallery.appendChild(card);
+                        });
+                        setTimeout(() => {
+                            gallery.scrollIntoView({ behavior: 'smooth' });
+                        }, 300);
+                    }
+
+                    document.getElementById('waiting-replicate').style.display = 'block';
+                } else {
+                    setStatus('⚠️ Gagal: ' + (data.error || 'Tidak terdeteksi wajah.'), 'orange');
+                }
+            })
+            .catch(err => {
+                console.error('❌ Error fetch:', err);
+                setStatus('❌ Gagal mengirim ke server.', 'red');
+            })
+            .finally(() => {
+                document.getElementById('loading').style.display = 'none';
+            });
         });
+
         socket.on('connect', () => {
             connected = true;
             setStatus('Standby, Turn on Magic Mirror', '#00ff99');
