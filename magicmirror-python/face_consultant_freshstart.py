@@ -40,7 +40,7 @@ if ENV_MODE == 'dev':
     sio.connect('http://localhost:3000')
 else:
     try:
-        sio.connect('https://qc-magicmirror-api.onrender.com')
+        sio.connect('https://qc-magicmirror-api.onrender.com', transports=['websocket'])
     except Exception as e:
         print(f"🟡 WebSocket prod belum tersedia: {e}")
 
