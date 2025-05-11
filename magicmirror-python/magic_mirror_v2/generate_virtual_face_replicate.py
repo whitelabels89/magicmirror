@@ -1,4 +1,3 @@
-from magic_mirror_v2.main import upload_file
 import replicate
 import os
 from dotenv import load_dotenv
@@ -12,7 +11,7 @@ import cv2
 TEST_MODE = False
 
 # ------------------ Generate Virtual Face with Minimax ------------------
-def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, prompt=None, photo_url=None, drive_service=None):
+def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, prompt=None, photo_url=None):
     if not photo_url:
         raise ValueError("❌ photo_url not provided.")
     """
@@ -41,8 +40,7 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
     output_folder = "generated_faces"
     os.makedirs(output_folder, exist_ok=True)
 
-    if not photo_url:
-        photo_url = os.getenv("LAST_CAPTURED_PHOTO_URL", "")
+    photo_url = os.getenv("LAST_CAPTURED_PHOTO_URL", "")
     if not photo_url:
         raise ValueError("❌ photo_url is not available or not set. Pastikan URL hasil upload tersedia.")
 
@@ -98,12 +96,6 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
                                     
                                     saved_files.append(f"/generated_faces/{os.path.basename(filename)}")
                                     print(f"✅ Saved generated face: {filename}")
-                                    if drive_service:
-                                        try:
-                                            drive_link = upload_file(filename, 'image/jpeg', drive_service)
-                                            print(f"☁️ Uploaded to Drive: {drive_link}")
-                                        except Exception as e:
-                                            print(f"⚠️ Gagal upload ke Google Drive: {e}")
                                 else:
                                     print(f"⚠️ Gagal download gambar (HTTP {response.status_code}) dari {img_url}")
                             except Exception as download_error:

@@ -48,7 +48,7 @@ try:
         sio.connect('https://queensacademy.id')
     print("✅ Connected to WebSocket server")
 except Exception as e:
-    print(f"⚠️ WebSocket connection failed: {e}")
+    print(f"⚠️ WebSocket conection failed: {e}")
 
 # -------------------------- SOCKET.IO LISTENER --------------------------
 # Accept photo upload from browser and trigger analysis
