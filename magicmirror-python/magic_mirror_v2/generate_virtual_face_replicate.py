@@ -176,4 +176,24 @@ def render_generated_faces(display_frame, generated_faces, bottom_margin=140):
             face_img_resized = cv2.resize(face_img, (slot_width, slot_height))
 
             # Glow effect
-            glow_color = (230, 255
+            glow_color = (230, 255, 245)
+            thickness = 4
+            center_x = x + slot_width // 2
+            center_y = y + slot_height // 2
+            radius = max(slot_width, slot_height) // 2 + 10
+            cv2.circle(display_frame, (center_x, center_y), radius, glow_color, thickness)
+
+            # Pastikan tidak melebihi frame
+            if (y + slot_height <= frame_h) and (x + slot_width <= frame_w):
+                display_frame[y:y+slot_height, x:x+slot_width] = face_img_resized
+
+        except Exception as e:
+            print(f"⚠️ Gagal render wajah {idx}: {str(e)}")
+            continue
+
+    return display_frame
+
+# ------------------ Dummy Handle Face Click ------------------
+def handle_face_click(event, x, y, flags, param):
+    """Handle face click events"""
+    pass
