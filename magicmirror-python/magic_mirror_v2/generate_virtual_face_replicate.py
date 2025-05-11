@@ -1,3 +1,6 @@
+
+TEST_MODE = False
+
 import replicate
 import os
 from dotenv import load_dotenv
