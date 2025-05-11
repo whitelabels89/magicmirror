@@ -496,9 +496,9 @@ def analyze_face():
                     os.remove(audio_filename)
                 if os.path.exists(faster_audio):
                     os.rename(faster_audio, audio_filename)
-        print("✅ Audio stylist berhasil diproses dengan ffmpeg.", flush=True)
+                print("✅ Audio stylist berhasil diproses dengan ffmpeg.", flush=True)
             except Exception as ffmpeg_error:
-            print(f"⚠️ Gagal proses ffmpeg: {ffmpeg_error}", flush=True)
+                print(f"⚠️ Gagal proses ffmpeg: {ffmpeg_error}", flush=True)
 
             play_audio_and_type(audio_filename, recommendation)
             upload_file(audio_filename, 'audio/mpeg', drive_service)
