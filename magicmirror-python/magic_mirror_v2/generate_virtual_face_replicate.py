@@ -11,7 +11,9 @@ import cv2
 TEST_MODE = False
 
 # ------------------ Generate Virtual Face with Minimax ------------------
-def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, prompt=None):
+def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, prompt=None, photo_url=None):
+    if not photo_url:
+        raise ValueError("❌ photo_url not provided.")
     """
     Generate virtual face using Replicate API (Minimax Image 01 model)
     Returns list of generated image URLs
