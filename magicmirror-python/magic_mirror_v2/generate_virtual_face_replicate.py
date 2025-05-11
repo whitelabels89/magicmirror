@@ -3,6 +3,9 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+from googleapiclient.discovery import build
+from google.oauth2 import service_account
+
 replicate = Client(api_token=os.getenv("REPLICATE_API_TOKEN"))
 
 import time
@@ -13,7 +16,7 @@ import shutil
 TEST_MODE = False
 
 # ------------------ Generate Virtual Face with Minimax ------------------
-def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, prompt=None):
+def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, prompt=None, drive_service=None):
     if TEST_MODE:
         print("🛠️ [TEST MODE] Skip generate Replicate, pakai sample.jpg dummy faces.")
         sample_url = "/generated_faces/sample.jpg"
@@ -24,6 +27,16 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
         raise EnvironmentError("❌ Export token dulu: export REPLICATE_API_TOKEN='token_lo'")
 
     print("🚀 Mengirim foto & prompt ke Replicate (Minimax Image 01)...")
+
+    # 🔁 Ambil drive_file_id berdasarkan nama file
+    file_name = os.path.basename(latest_photo_path)
+    results = drive_service.files().list(q=f"name='{file_name}'", spaces='drive', fields='files(id, name)').execute()
+    items = results.get('files', [])
+    if not items:
+        print(f"❌ File {file_name} tidak ditemukan di Google Drive.")
+        return []
+    drive_file_id = items[0]['id']
+    subject_reference_url = f"https://drive.google.com/uc?id={drive_file_id}"
 
     prompts = [
         f"{prompt}, front view, ultra-realistic, soft lighting, same person" if prompt else f"Ultra-realistic portrait, {face_shape} face shape, {skin_tone} skin tone, recommended hairstyle and color, full head visible, no cropping, sharp details, studio lighting, Canon EOS 5D, high-resolution, natural expression, SAME FACE as subject reference",
@@ -51,7 +64,7 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
                             input={
                                 "prompt": prompt,
                                 "aspect_ratio": "3:4",
-                                "subject_reference": image_file,
+                                "subject_reference": subject_reference_url,
                                 "subject_prompt": "same person, identical facial features, ultra realistic, full head visible, high resolution",
                                 "negative_prompt": "bad anatomy, deformed, cartoon, anime, blurry, cropped head, watermark, text, extra fingers, bad quality",
                                 "width": 1024,

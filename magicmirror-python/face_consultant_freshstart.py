@@ -269,7 +269,14 @@ def ensure_folder(folder_name):
 def upload_file(file_path, mime_type, drive_service, folder_id=None):
     metadata = {'name': os.path.basename(file_path), 'parents': [folder_id or GDRIVE_FOLDER_ID]}
     media = MediaFileUpload(file_path, mimetype=mime_type)
-    drive_service.files().create(body=metadata, media_body=media, fields='id').execute()
+    file = drive_service.files().create(body=metadata, media_body=media, fields='id').execute()
+    file_id = file.get("id")
+    # Make file publicly accessible
+    drive_service.permissions().create(
+        fileId=file_id,
+        body={'role': 'reader', 'type': 'anyone'},
+    ).execute()
+    return f"https://drive.google.com/uc?id={file_id}"
 
 def split_text_phrases(text):
     import re
@@ -519,8 +526,8 @@ def analyze_face():
 
             # ✅ Upload captured face
             try:
-                upload_file(latest_captured_face_path, 'image/jpeg', drive_service)
-                print(f"☁️ Uploaded captured face: {latest_captured_face_path}")
+                photo_url = upload_file(latest_captured_face_path, 'image/jpeg', drive_service)
+                print(f"☁️ Uploaded captured face: {photo_url}")
             except Exception as e:
                 print(f"⚠️ Gagal upload captured face: {e}")
 
@@ -528,7 +535,7 @@ def analyze_face():
                 generated_faces = generate_virtual_face_replicate(
                     face_shape,
                     skin_tone,
-                    latest_captured_face_path,
+                    photo_url,
                     prompt=prompt
                 )
             except Exception as e:
