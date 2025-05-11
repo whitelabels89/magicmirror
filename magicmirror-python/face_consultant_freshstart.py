@@ -9,11 +9,6 @@ import os
 load_dotenv()
 ENV_MODE = os.getenv('ENV_MODE', 'dev')  # default ke dev
 
-# ✅ Buat folder lokal saat startup (jika belum ada)
-os.makedirs("captured_faces", exist_ok=True)
-os.makedirs("generated_faces", exist_ok=True)
-os.makedirs(os.path.join("public", "generated_faces"), exist_ok=True)
-
 import sys
 import cv2
 import math
@@ -41,10 +36,15 @@ import base64
 
 sio = socketio.Client()
 
-if ENV_MODE == 'dev':
-    sio.connect('http://localhost:3000')
-else:
-    sio.connect('https://queensacademy.id')
+try:
+    if ENV_MODE == 'dev':
+        sio.connect('http://localhost:3000')
+    else:
+        sio.connect('https://queensacademy.id')
+
+    print("🔌 Terkoneksi ke WebSocket server.")
+except Exception as e:
+    print(f"❌ Gagal konek WebSocket: {e}")
 
 
 # -------------------------- SOCKET.IO LISTENER --------------------------
@@ -155,10 +155,7 @@ GOOGLE_CREDENTIALS_FILE = "credentials.json"
 GDRIVE_FOLDER_ID = os.getenv('GDRIVE_FOLDER_ID')
 PROMO_VOICE_FOLDER_NAME = "PROMO_VOICE_FILES"
 
-try:
-    pygame.mixer.init()
-except Exception as e:
-    print(f"⚠️ Audio device tidak tersedia (server mode): {e}")
+pygame.mixer.init()
 
 # -------------------------- GLOBALS --------------------------
 _cached_credentials = None
@@ -269,14 +266,7 @@ def ensure_folder(folder_name):
 def upload_file(file_path, mime_type, drive_service, folder_id=None):
     metadata = {'name': os.path.basename(file_path), 'parents': [folder_id or GDRIVE_FOLDER_ID]}
     media = MediaFileUpload(file_path, mimetype=mime_type)
-    file = drive_service.files().create(body=metadata, media_body=media, fields='id').execute()
-    file_id = file.get("id")
-    # Make file publicly accessible
-    drive_service.permissions().create(
-        fileId=file_id,
-        body={'role': 'reader', 'type': 'anyone'},
-    ).execute()
-    return f"https://drive.google.com/uc?id={file_id}"
+    drive_service.files().create(body=metadata, media_body=media, fields='id').execute()
 
 def split_text_phrases(text):
     import re
@@ -485,18 +475,14 @@ def analyze_face():
     audio_filename = os.path.join("VOICE_AI_FILES", f"{file_prefix}.mp3")
     try:
         generate_voice_elevenlabs(recommendation, audio_filename)
+        # Check audio file exists and size > 10KB
         if audio_filename and os.path.exists(audio_filename) and os.path.getsize(audio_filename) >= 10 * 1024:
             faster_audio = os.path.join("VOICE_AI_FILES", f"fast_{file_prefix}.mp3")
-            try:
-                os.system(f"ffmpeg -y -i \"{audio_filename}\" -filter:a 'atempo=1.15' -vn \"{faster_audio}\"")
-                if os.path.exists(audio_filename):
-                    os.remove(audio_filename)
-                if os.path.exists(faster_audio):
-                    os.rename(faster_audio, audio_filename)
-                print("✅ Audio stylist berhasil diproses dengan ffmpeg.")
-            except Exception as ffmpeg_error:
-                print(f"⚠️ Gagal proses ffmpeg: {ffmpeg_error}")
-
+            os.system(f"ffmpeg -y -i \"{audio_filename}\" -filter:a 'atempo=1.15' -vn \"{faster_audio}\"")
+            if os.path.exists(audio_filename):
+                os.remove(audio_filename)
+            if os.path.exists(faster_audio):
+                os.rename(faster_audio, audio_filename)
             play_audio_and_type(audio_filename, recommendation)
             upload_file(audio_filename, 'audio/mpeg', drive_service)
         else:
@@ -523,14 +509,6 @@ def analyze_face():
         print("✨ Menyiapkan generate virtual face... Harap tunggu beberapa detik.")
         if latest_captured_face_path and os.path.exists(latest_captured_face_path):
             print("🚀 Generate Virtual Face with Replicate API...")
-
-            # ✅ Upload captured face
-            try:
-                photo_url = upload_file(latest_captured_face_path, 'image/jpeg', drive_service)
-                print(f"☁️ Uploaded captured face: {photo_url}")
-            except Exception as e:
-                print(f"⚠️ Gagal upload captured face: {e}")
-
             try:
                 generated_faces = generate_virtual_face_replicate(
                     face_shape,
@@ -542,7 +520,7 @@ def analyze_face():
                 print(f"⚠️ Error call Replicate: {e}")
                 generated_faces = []
                 status_msg = "❌ Gagal generate wajah."
-
+            # Send generated faces to WebSocket
             if generated_faces:
                 try:
                     sio.emit('generated_faces', {'faces': generated_faces})
@@ -550,37 +528,22 @@ def analyze_face():
                     print("✅ Hasil virtual face telah dikirim ke web.")
                 except Exception as e:
                     print(f"⚠️ Gagal kirim generated faces ke web: {e}")
-
-                # ✅ Upload generated faces
-                for face_path in generated_faces:
-                    if os.path.exists(face_path):
-                        try:
-                            upload_file(face_path, 'image/jpeg', drive_service)
-                            print(f"☁️ Uploaded generated face: {face_path}")
-                        except Exception as e:
-                            print(f"⚠️ Gagal upload generated face: {e}")
-    # ✅ Tambahkan except ini sebagai penutup blok try besar
+        else:
+            print("❌ Foto subject reference tidak valid atau tidak ditemukan.")
     except Exception as e:
         print(f"⚠️ Gagal generate virtual face Replicate: {e}")
 
-
     # Load Data Promo
-    
-    try:
-        promo_data = get_latest_customer_by_slot(slot, cabang, credentials)
-        if promo_data:
-            kode_promo = promo_data["kode"]
-            qr_link = promo_data["link"]
-            promo = promo_data.get("promo", "Promo Eksklusif")
-        else:
-            kode_promo, qr_link, promo = "PROMO", "https://example.com", "Promo Eksklusif"
-    except Exception as e:
-        print(f"⚠️ Gagal ambil data promo customer: {e}")
+    promo_data = get_latest_customer_by_slot(slot, cabang, credentials)
+    if promo_data:
+        kode_promo = promo_data["kode"]
+        qr_link = promo_data["link"]
+        promo = promo_data.get("promo", "Promo Eksklusif")
+    else:
         kode_promo, qr_link, promo = "PROMO", "https://example.com", "Promo Eksklusif"
 
     deskripsi_promo = get_promo_description_by_kode(kode_promo, credentials)
     promo_text = f"Kak, ini kesempatan langka buat kamu. Promo spesial *{promo}* dengan kode *{kode_promo}*: {deskripsi_promo} berlaku hanya 60 detik. Scan QR sebelum terlambat!"
-
 
     # Voice Promo
     ensure_folder("promo_voice_files")
@@ -600,289 +563,162 @@ def analyze_face():
         os.remove(text_filename)
     # (Do not remove promo_audio, keep for cache)
 
-    # 🚨 PATCH: Emit dummy faces if none generated to trigger frontend gallery
-    if not generated_faces and sio.connected:
-        sio.emit('generated_faces', {
-            'faces': [
-                "/generated_faces/sample.jpg",
-                "/generated_faces/sample.jpg",
-                "/generated_faces/sample.jpg"
-            ]
-        })
-        print("🧪 Dummy generated_faces berhasil dikirim ke frontend.")
     analyze_done = False
     analysis_started = False
     status_msg = "✅ Selesai! Tekan [q] untuk keluar."
 
 # -------------------------- MAIN LOOP --------------------------
 # -------------------------- MAIN LOOP --------------------------
+cv2.namedWindow("QC Magic Mirror")
+# Mouse callback: gunakan handler yang support klik virtual face (Replicate)
+cv2.setMouseCallback("QC Magic Mirror", handle_face_click)
 
-if __name__ == "__main__":
-    if ENV_MODE == 'dev':
-        print("🧪 Mode dev aktif: Menyalakan kamera dan GUI realtime.")
-
-        cv2.namedWindow("QC Magic Mirror")
-        # Mouse callback: gunakan handler yang support klik virtual face (Replicate)
-        cv2.setMouseCallback("QC Magic Mirror", handle_face_click)
-
-        while True:
-            success, frame = cap.read()
-            if not success:
-                break
-            frame = frame  # Keep default orientation (no flip)
-            rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            results = face_mesh.process(rgb)
-            shape = frame.shape
-            h, w, _ = frame.shape
-            display = frame.copy()
-            # --- Clean UI overlays ---
-            # Face landmarks & info
-            face_shape_val, skin_tone_val = None, None
-            if results.multi_face_landmarks:
-                for landmarks in results.multi_face_landmarks:
-                    def get_point(landmarks, index, shape):
-                        h, w, _ = shape
-                        lm = landmarks[index]
-                        return int(lm.x * w), int(lm.y * h)
-                    def euclidean(p1, p2):
-                        return math.hypot(p1[0] - p2[0], p1[1] - p2[1])
-                    def get_skin_tone_color(frame, point):
-                        x, y = point
-                        h, w = frame.shape[:2]
-                        x = min(max(0, x), w-1)
-                        y = min(max(0, y), h-1)
-                        b, g, r = frame[y, x]
-                        if r > g and r > b:
-                            return "Warm"
-                        elif b > r and b > g:
-                            return "Cool"
-                        else:
-                            return "Neutral"
-                    def get_face_shape(ratio_w_h, jaw_ratio, forehead_ratio):
-                        if ratio_w_h < 0.85:
-                            return "Oblong"
-                        elif 0.85 <= ratio_w_h <= 0.95:
-                            if jaw_ratio < 0.8:
-                                return "Heart"
-                            else:
-                                return "Oval"
-                        elif 0.95 < ratio_w_h <= 1.05:
-                            if jaw_ratio > 0.95:
-                                return "Square"
-                            else:
-                                return "Round"
-                        else:
-                            return "Wide"
-                    chin = get_point(landmarks.landmark, 152, shape)
-                    forehead = get_point(landmarks.landmark, 10, shape)
-                    left_cheek = get_point(landmarks.landmark, 234, shape)
-                    right_cheek = get_point(landmarks.landmark, 454, shape)
-                    jaw_width = euclidean(left_cheek, right_cheek)
-                    height = euclidean(forehead, chin)
-                    forehead_width = euclidean(get_point(landmarks.landmark, 127, shape), get_point(landmarks.landmark, 356, shape))
-                    ratio_w_h = jaw_width / height
-                    jaw_ratio = jaw_width / jaw_width
-                    forehead_ratio = forehead_width / jaw_width
-                    face_shape_val = get_face_shape(ratio_w_h, jaw_ratio, forehead_ratio)
-                    skin_tone_val = get_skin_tone_color(frame, left_cheek)
-                    face_shape = face_shape_val
-                    skin_tone = skin_tone_val
-            # --- Modernized top-right panel for face shape & skin tone ---
-            panel_margin = 34
-            panel_w = 290
-            panel_h = 88
-            panel_x = w - panel_w - panel_margin
-            panel_y = panel_margin
-            # Draw semi-transparent black panel with rounded corners
-            panel_overlay = display.copy()
-            pradius = 26
-            # Rectangle + circles for rounded effect
-            cv2.rectangle(panel_overlay, (panel_x+pradius, panel_y), (panel_x+panel_w-pradius, panel_y+panel_h), (18,18,18), -1)
-            cv2.rectangle(panel_overlay, (panel_x, panel_y+pradius), (panel_x+panel_w, panel_y+panel_h-pradius), (18,18,18), -1)
-            cv2.circle(panel_overlay, (panel_x+pradius, panel_y+pradius), pradius, (18,18,18), -1)
-            cv2.circle(panel_overlay, (panel_x+panel_w-pradius, panel_y+pradius), pradius, (18,18,18), -1)
-            cv2.circle(panel_overlay, (panel_x+pradius, panel_y+panel_h-pradius), pradius, (18,18,18), -1)
-            cv2.circle(panel_overlay, (panel_x+panel_w-pradius, panel_y+panel_h-pradius), pradius, (18,18,18), -1)
-            # Blend for shadow/smooth
-            display = cv2.addWeighted(panel_overlay, 0.7, display, 0.3, 0)
-            # --- Face shape & skin tone text, modern font, warm white, clean spacing
-            font = cv2.FONT_HERSHEY_SIMPLEX
-            shape_text = f"Face Shape: {face_shape if face_shape else '-'}"
-            skin_text = f"Skin Tone: {skin_tone if skin_tone else '-'}"
-            font_scale = 0.93
-            font_color = (252, 240, 230)
-            font_color2 = (245, 220, 210)
-            font_thick = 2
-            shape_org = (panel_x+30, panel_y+36)
-            skin_org = (panel_x+30, panel_y+70)
-            # Shadow
-            cv2.putText(display, shape_text, (shape_org[0]+2, shape_org[1]+2), font, font_scale, (0,0,0), 4, cv2.LINE_AA)
-            cv2.putText(display, skin_text, (skin_org[0]+2, skin_org[1]+2), font, font_scale, (0,0,0), 4, cv2.LINE_AA)
-            cv2.putText(display, shape_text, shape_org, font, font_scale, font_color, font_thick, cv2.LINE_AA)
-            cv2.putText(display, skin_text, skin_org, font, font_scale, font_color2, font_thick, cv2.LINE_AA)
-            # --- Status message & text queue ---
-            # Reserve margin above gallery for status/text
-            gallery_y_start = int(h * 0.60)
-            status_y = gallery_y_start - 60
-            # Draw semi-transparent margin background for status/text
-            margin_overlay = display.copy()
-            margin_h = 62
-            margin_y = status_y - 34
-            margin_y = max(0, margin_y)
-            cv2.rectangle(margin_overlay, (0, margin_y), (w, margin_y+margin_h), (18,18,18), -1)
-            display = cv2.addWeighted(margin_overlay, 0.38, display, 0.62, 0)
-            # Status message
-            status_font = cv2.FONT_HERSHEY_SIMPLEX
-            status_scale = 0.68
-            status_color = (120, 255, 120)
-            status_shadow = (0,0,0)
-            status_x = 36
-            status_y2 = margin_y + 40
-            cv2.putText(display, status_msg, (status_x+2, status_y2+2), status_font, status_scale, status_shadow, 3, cv2.LINE_AA)
-            cv2.putText(display, status_msg, (status_x, status_y2), status_font, status_scale, status_color, 2, cv2.LINE_AA)
-            # Text queue (current phrase), centered above status
-            if text_queue:
-                current_text = text_queue[-1]
-                text_size = cv2.getTextSize(current_text[:100], status_font, 0.60, 1)[0]
-                text_x = (w - text_size[0]) // 2
-                text_y = margin_y + 20
-                cv2.putText(display, current_text[:100], (text_x+2, text_y+2), status_font, 0.60, (0,0,0), 2, cv2.LINE_AA)
-                cv2.putText(display, current_text[:100], (text_x, text_y), status_font, 0.60, (252,240,230), 1, cv2.LINE_AA)
-                key = cv2.waitKey(1)
-            # Inject Magic Mirror full render
-            # Geser tombol pilihan style/color ke bawah agar tidak menutupi info shape/skin tone dan text
-            # Face shape: y=30, skin tone: y=60, so place buttons at y=90 (orig), tapi shift ke y=110 for more space
-            display = render_full_magic_mirror(
-                display,
-                qr_overlay=True,
-                style_button_y_offset=110
-            )
-            # --- Virtual Face Gallery (modernized gallery layout, improved margin) ---
-            if generated_faces:
-                try:
-                    gallery_margin = 140  # sedikit lebih besar jarak dari bawah
-                    # Render with enhanced modern layout
-                    display = render_generated_faces(display, generated_faces, bottom_margin=gallery_margin)
-                except Exception as e:
-                    print(f"⚠️ Error render generated faces: {e}")
-            # --- QR code promo overlay ---
-            display = render_qr_with_timer(display)
-            cv2.imshow("QC Magic Mirror", display)
-
-        cap.release()
-        cv2.destroyAllWindows()
-    else:
-        print("🚫 Mode server: kamera real-time dan GUI dinonaktifkan. Gunakan API /run.")
+while True:
+    success, frame = cap.read()
+    if not success:
+        break
+    frame = frame  # Keep default orientation (no flip)
+    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    results = face_mesh.process(rgb)
+    shape = frame.shape
+    h, w, _ = frame.shape
+    display = frame.copy()
+    # --- Clean UI overlays ---
+    # Face landmarks & info
+    face_shape_val, skin_tone_val = None, None
+    if results.multi_face_landmarks:
+        for landmarks in results.multi_face_landmarks:
+            def get_point(landmarks, index, shape):
+                h, w, _ = shape
+                lm = landmarks[index]
+                return int(lm.x * w), int(lm.y * h)
+            def euclidean(p1, p2):
+                return math.hypot(p1[0] - p2[0], p1[1] - p2[1])
+            def get_skin_tone_color(frame, point):
+                x, y = point
+                h, w = frame.shape[:2]
+                x = min(max(0, x), w-1)
+                y = min(max(0, y), h-1)
+                b, g, r = frame[y, x]
+                if r > g and r > b:
+                    return "Warm"
+                elif b > r and b > g:
+                    return "Cool"
+                else:
+                    return "Neutral"
+            def get_face_shape(ratio_w_h, jaw_ratio, forehead_ratio):
+                if ratio_w_h < 0.85:
+                    return "Oblong"
+                elif 0.85 <= ratio_w_h <= 0.95:
+                    if jaw_ratio < 0.8:
+                        return "Heart"
+                    else:
+                        return "Oval"
+                elif 0.95 < ratio_w_h <= 1.05:
+                    if jaw_ratio > 0.95:
+                        return "Square"
+                    else:
+                        return "Round"
+                else:
+                    return "Wide"
+            chin = get_point(landmarks.landmark, 152, shape)
+            forehead = get_point(landmarks.landmark, 10, shape)
+            left_cheek = get_point(landmarks.landmark, 234, shape)
+            right_cheek = get_point(landmarks.landmark, 454, shape)
+            jaw_width = euclidean(left_cheek, right_cheek)
+            height = euclidean(forehead, chin)
+            forehead_width = euclidean(get_point(landmarks.landmark, 127, shape), get_point(landmarks.landmark, 356, shape))
+            ratio_w_h = jaw_width / height
+            jaw_ratio = jaw_width / jaw_width
+            forehead_ratio = forehead_width / jaw_width
+            face_shape_val = get_face_shape(ratio_w_h, jaw_ratio, forehead_ratio)
+            skin_tone_val = get_skin_tone_color(frame, left_cheek)
+            face_shape = face_shape_val
+            skin_tone = skin_tone_val
+    # --- Modernized top-right panel for face shape & skin tone ---
+    panel_margin = 34
+    panel_w = 290
+    panel_h = 88
+    panel_x = w - panel_w - panel_margin
+    panel_y = panel_margin
+    # Draw semi-transparent black panel with rounded corners
+    panel_overlay = display.copy()
+    pradius = 26
+    # Rectangle + circles for rounded effect
+    cv2.rectangle(panel_overlay, (panel_x+pradius, panel_y), (panel_x+panel_w-pradius, panel_y+panel_h), (18,18,18), -1)
+    cv2.rectangle(panel_overlay, (panel_x, panel_y+pradius), (panel_x+panel_w, panel_y+panel_h-pradius), (18,18,18), -1)
+    cv2.circle(panel_overlay, (panel_x+pradius, panel_y+pradius), pradius, (18,18,18), -1)
+    cv2.circle(panel_overlay, (panel_x+panel_w-pradius, panel_y+pradius), pradius, (18,18,18), -1)
+    cv2.circle(panel_overlay, (panel_x+pradius, panel_y+panel_h-pradius), pradius, (18,18,18), -1)
+    cv2.circle(panel_overlay, (panel_x+panel_w-pradius, panel_y+panel_h-pradius), pradius, (18,18,18), -1)
+    # Blend for shadow/smooth
+    display = cv2.addWeighted(panel_overlay, 0.7, display, 0.3, 0)
+    # --- Face shape & skin tone text, modern font, warm white, clean spacing
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    shape_text = f"Face Shape: {face_shape if face_shape else '-'}"
+    skin_text = f"Skin Tone: {skin_tone if skin_tone else '-'}"
+    font_scale = 0.93
+    font_color = (252, 240, 230)
+    font_color2 = (245, 220, 210)
+    font_thick = 2
+    shape_org = (panel_x+30, panel_y+36)
+    skin_org = (panel_x+30, panel_y+70)
+    # Shadow
+    cv2.putText(display, shape_text, (shape_org[0]+2, shape_org[1]+2), font, font_scale, (0,0,0), 4, cv2.LINE_AA)
+    cv2.putText(display, skin_text, (skin_org[0]+2, skin_org[1]+2), font, font_scale, (0,0,0), 4, cv2.LINE_AA)
+    cv2.putText(display, shape_text, shape_org, font, font_scale, font_color, font_thick, cv2.LINE_AA)
+    cv2.putText(display, skin_text, skin_org, font, font_scale, font_color2, font_thick, cv2.LINE_AA)
+    # --- Status message & text queue ---
+    # Reserve margin above gallery for status/text
+    gallery_y_start = int(h * 0.60)
+    status_y = gallery_y_start - 60
+    # Draw semi-transparent margin background for status/text
+    margin_overlay = display.copy()
+    margin_h = 62
+    margin_y = status_y - 34
+    margin_y = max(0, margin_y)
+    cv2.rectangle(margin_overlay, (0, margin_y), (w, margin_y+margin_h), (18,18,18), -1)
+    display = cv2.addWeighted(margin_overlay, 0.38, display, 0.62, 0)
+    # Status message
+    status_font = cv2.FONT_HERSHEY_SIMPLEX
+    status_scale = 0.68
+    status_color = (120, 255, 120)
+    status_shadow = (0,0,0)
+    status_x = 36
+    status_y2 = margin_y + 40
+    cv2.putText(display, status_msg, (status_x+2, status_y2+2), status_font, status_scale, status_shadow, 3, cv2.LINE_AA)
+    cv2.putText(display, status_msg, (status_x, status_y2), status_font, status_scale, status_color, 2, cv2.LINE_AA)
+    # Text queue (current phrase), centered above status
+    if text_queue:
+        current_text = text_queue[-1]
+        text_size = cv2.getTextSize(current_text[:100], status_font, 0.60, 1)[0]
+        text_x = (w - text_size[0]) // 2
+        text_y = margin_y + 20
+        cv2.putText(display, current_text[:100], (text_x+2, text_y+2), status_font, 0.60, (0,0,0), 2, cv2.LINE_AA)
+        cv2.putText(display, current_text[:100], (text_x, text_y), status_font, 0.60, (252,240,230), 1, cv2.LINE_AA)
+        key = cv2.waitKey(1)
+    # Inject Magic Mirror full render
+    # Geser tombol pilihan style/color ke bawah agar tidak menutupi info shape/skin tone dan text
+    # Face shape: y=30, skin tone: y=60, so place buttons at y=90 (orig), tapi shift ke y=110 for more space
+    display = render_full_magic_mirror(
+        display,
+        qr_overlay=True,
+        style_button_y_offset=110
+    )
+    # --- Virtual Face Gallery (modernized gallery layout, improved margin) ---
+    if generated_faces:
+        try:
+            gallery_margin = 140  # sedikit lebih besar jarak dari bawah
+            # Render with enhanced modern layout
+            display = render_generated_faces(display, generated_faces, bottom_margin=gallery_margin)
+        except Exception as e:
+            print(f"⚠️ Error render generated faces: {e}")
+    # --- QR code promo overlay ---
+    display = render_qr_with_timer(display)
+    cv2.imshow("QC Magic Mirror", display)
 
 # ------------------ Cleanup ------------------
-# ------------------ API run function ------------------
-def run(photo_base64):
-    global latest_captured_face_path, analysis_started, face_shape, skin_tone, recommendation, generated_faces
-
-    # ✅ Validasi base64 input sebelum decode
-    try:
-        decoded = base64.b64decode(photo_base64)
-    except Exception as e:
-        print(f"❌ Foto yang dikirim bukan base64 valid: {e}")
-        return {
-            "status": "error",
-            "error": "Invalid base64 image."
-        }
-
-    ensure_folder("captured_faces")
-    capture_filename = os.path.join("captured_faces", f"from_api_{int(time.time())}.jpg")
-    with open(capture_filename, "wb") as f:
-        f.write(decoded)
-    latest_captured_face_path = capture_filename
-
-    print(f"✅ Foto dari API disimpan di: {latest_captured_face_path}")
-    print(f"📏 Ukuran file: {os.path.getsize(latest_captured_face_path)} bytes")
-
-    # 🔍 Tambahan analisis landmark langsung dari file foto
-    try:
-        img = cv2.imread(capture_filename)
-        rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        results = face_mesh.process(rgb_img)
-
-        if results.multi_face_landmarks:
-            for landmarks in results.multi_face_landmarks:
-                def get_point(lms, idx, shape):
-                    h, w, _ = shape
-                    lm = lms[idx]
-                    return int(lm.x * w), int(lm.y * h)
-                def euclidean(p1, p2):
-                    return math.hypot(p1[0] - p2[0], p1[1] - p2[1])
-                def get_skin_tone_color(img, pt):
-                    x, y = pt
-                    h, w = img.shape[:2]
-                    x = min(max(0, x), w-1)
-                    y = min(max(0, y), h-1)
-                    b, g, r = img[y, x]
-                    if r > g and r > b:
-                        return "Warm"
-                    elif b > r and b > g:
-                        return "Cool"
-                    else:
-                        return "Neutral"
-                def get_face_shape(ratio_w_h, jaw_ratio, forehead_ratio):
-                    if ratio_w_h < 0.85:
-                        return "Oblong"
-                    elif 0.85 <= ratio_w_h <= 0.95:
-                        if jaw_ratio < 0.8:
-                            return "Heart"
-                        else:
-                            return "Oval"
-                    elif 0.95 < ratio_w_h <= 1.05:
-                        if jaw_ratio > 0.95:
-                            return "Square"
-                        else:
-                            return "Round"
-                    else:
-                        return "Wide"
-
-                shape = img.shape
-                chin = get_point(landmarks.landmark, 152, shape)
-                forehead = get_point(landmarks.landmark, 10, shape)
-                left_cheek = get_point(landmarks.landmark, 234, shape)
-                right_cheek = get_point(landmarks.landmark, 454, shape)
-                jaw_width = euclidean(left_cheek, right_cheek)
-                height = euclidean(forehead, chin)
-                forehead_width = euclidean(get_point(landmarks.landmark, 127, shape), get_point(landmarks.landmark, 356, shape))
-                ratio_w_h = jaw_width / height
-                jaw_ratio = jaw_width / jaw_width
-                forehead_ratio = forehead_width / jaw_width
-
-                face_shape = get_face_shape(ratio_w_h, jaw_ratio, forehead_ratio)
-                skin_tone = get_skin_tone_color(img, left_cheek)
-                globals()["face_shape"] = face_shape
-                globals()["skin_tone"] = skin_tone
-                print(f"📸 Deteksi dari run berhasil: {face_shape=} {skin_tone=}")
-                break
-        else:
-            print("❌ Tidak ada wajah terdeteksi di gambar dari run().")
-    except Exception as e:
-        print(f"⚠️ Gagal baca landmark dari file foto di run(): {e}")
-
-    print(f"📂 latest_captured_face_path = {latest_captured_face_path}")
-    print(f"📂 exists = {os.path.exists(latest_captured_face_path)}")
-
-    analysis_started = True
-    analyze_face()
-
-    print(f"🖼️ generated_faces: {generated_faces if generated_faces else 'None generated.'}")
-
-    result = {
-        "status": "done",
-        "face_shape": face_shape if face_shape else "-",
-        "skin_tone": skin_tone if skin_tone else "-",
-        "recommendation": recommendation
-    }
-
-    if generated_faces:
-        result["faces"] = generated_faces
-    else:
-        result["error"] = "No faces generated."
-
-    return result
+cap.release()
+cv2.destroyAllWindows()
 
 # No changes required: file is already fully updated and synchronized with the expected Magic Mirror Build System V2 behavior.
