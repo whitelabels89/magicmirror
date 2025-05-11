@@ -536,7 +536,8 @@ def analyze_face():
                     face_shape,
                     skin_tone,
                     photo_url,
-                    prompt=prompt
+                    prompt=prompt,
+                    drive_service=drive_service
                 )
             except Exception as e:
                 print(f"⚠️ Error call Replicate: {e}")

@@ -36,6 +36,7 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
         print(f"❌ File {file_name} tidak ditemukan di Google Drive.")
         return []
     drive_file_id = items[0]['id']
+    drive_service.permissions().create(fileId=drive_file_id, body={"role": "reader", "type": "anyone"}).execute()
     subject_reference_url = f"https://drive.google.com/uc?id={drive_file_id}"
 
     prompts = [
@@ -52,55 +53,75 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
 
     try:
         for idx, prompt in enumerate(prompts):
-            with open(latest_photo_path, "rb") as image_file:
-                retry_count = 0
-                max_retries = 3
-                while retry_count < max_retries:
-                    try:
-                        print(f"⏳ Sending request to Replicate... attempt {retry_count + 1}")
-                        print(f"📝 Prompt {idx}: {prompt}")
-                        output = replicate.run(
-                            "minimax/image-01",
-                            input={
-                                "prompt": prompt,
-                                "aspect_ratio": "3:4",
-                                "subject_reference": subject_reference_url,
-                                "subject_prompt": "same person, identical facial features, ultra realistic, full head visible, high resolution",
-                                "negative_prompt": "bad anatomy, deformed, cartoon, anime, blurry, cropped head, watermark, text, extra fingers, bad quality",
-                                "width": 1024,
-                                "height": 1024,
-                                "guidance_scale": 9.0,
-                                "num_inference_steps": 40
-                            }
-                        )
-                        print(f"🎯 Output dari Replicate (prompt {idx}): {output}")
-                        print("✅ Replicate respond OK!")
-                        break
-                    except Exception as e:
-                        retry_count += 1
-                        print(f"⚠️ Error Replicate attempt {retry_count}: {str(e)}")
-                        time.sleep(2)
-                else:
-                    print("❌ Replicate failed after retries. Skipping...")
-                    continue
+            retry_count = 0
+            max_retries = 3
+            while retry_count < max_retries:
+                try:
+                    print(f"⏳ Sending request to Replicate... attempt {retry_count + 1}")
+                    print(f"📝 Prompt {idx}: {prompt}")
+                    output = replicate.run(
+                        "minimax/image-01",
+                        input={
+                            "prompt": prompt,
+                            "aspect_ratio": "3:4",
+                            "subject_reference": subject_reference_url,
+                            "subject_prompt": "same person, identical facial features, ultra realistic, full head visible, high resolution",
+                            "negative_prompt": "bad anatomy, deformed, cartoon, anime, blurry, cropped head, watermark, text, extra fingers, bad quality",
+                            "width": 1024,
+                            "height": 1024,
+                            "guidance_scale": 9.0,
+                            "num_inference_steps": 40
+                        }
+                    )
+                    print(f"🎯 Output dari Replicate (prompt {idx}): {output}")
+                    print("✅ Replicate respond OK!")
+                    break
+                except Exception as e:
+                    retry_count += 1
+                    print(f"⚠️ Error Replicate attempt {retry_count}: {str(e)}")
+                    time.sleep(2)
+            else:
+                print("❌ Replicate failed after retries. Skipping...")
+                continue
 
-                timestamp = int(time.time())
-                for i, img_url in enumerate(output):
-                    filename = f"{output_folder}/face_{timestamp}_{idx}_{i}.jpg"
-                    try:
-                        response = requests.get(img_url)
-                        if response.status_code == 200:
-                            with open(filename, "wb") as f:
-                                f.write(response.content)
-                            public_folder = os.path.join("public", "generated_faces")
-                            os.makedirs(public_folder, exist_ok=True)
-                            public_path = os.path.join(public_folder, os.path.basename(filename))
-                            shutil.copy(filename, public_path)
-                            saved_files.append(f"/generated_faces/{os.path.basename(filename)}")
-                        else:
-                            print(f"⚠️ Gagal download gambar dari {img_url}")
-                    except Exception as e:
-                        print(f"⚠️ Error downloading face image: {str(e)}")
+            timestamp = int(time.time())
+            for i, img_url in enumerate(output):
+                filename = f"{output_folder}/face_{timestamp}_{idx}_{i}.jpg"
+                try:
+                    response = requests.get(img_url)
+                    if response.status_code == 200:
+                        with open(filename, "wb") as f:
+                            f.write(response.content)
+                        public_folder = os.path.join("public", "generated_faces")
+                        os.makedirs(public_folder, exist_ok=True)
+                        public_path = os.path.join(public_folder, os.path.basename(filename))
+                        shutil.copy(filename, public_path)
+                        saved_files.append(f"/generated_faces/{os.path.basename(filename)}")
+                        # Upload to Google Drive and replace path with Drive sharable link
+                        if drive_service:
+                            from googleapiclient.http import MediaFileUpload
+                            from googleapiclient.errors import HttpError
+                            try:
+                                file_metadata = {'name': os.path.basename(filename)}
+                                media = MediaFileUpload(filename, mimetype='image/jpeg')
+                                uploaded = drive_service.files().create(
+                                    body=file_metadata,
+                                    media_body=media,
+                                    fields='id'
+                                ).execute()
+                                drive_service.permissions().create(
+                                    fileId=uploaded['id'],
+                                    body={"role": "reader", "type": "anyone"}
+                                ).execute()
+                                drive_url = f"https://drive.google.com/uc?id={uploaded['id']}"
+                                saved_files[-1] = drive_url  # replace local path with Drive URL
+                                print(f"☁️ Uploaded to Google Drive: {drive_url}")
+                            except HttpError as err:
+                                print(f"❌ Failed to upload to Google Drive: {err}")
+                    else:
+                        print(f"⚠️ Gagal download gambar dari {img_url}")
+                except Exception as e:
+                    print(f"⚠️ Error downloading face image: {str(e)}")
     except Exception as e:
         print(f"🔥 Critical error saat generate virtual face: {e}")
         return []
