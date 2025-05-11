@@ -486,12 +486,13 @@
         socket.on('generated_faces', (data) => {
             console.log('🖼️ Generated faces diterima.');
             const gallery = document.getElementById('gallery');
-            gallery.innerHTML = ''; // Clear previous gallery
-
             document.getElementById('waiting-replicate').style.display = 'none';
 
-            if (data.faces && data.faces.length > 0) {
-                data.faces.forEach((url, index) => {
+            const validFaces = (data.faces || []).filter(url => url && url.trim() !== '');
+
+            if (validFaces.length > 0) {
+                gallery.innerHTML = ''; // Clear previous only if valid images
+                validFaces.forEach((url, index) => {
                     const card = document.createElement('div');
                     card.className = 'gallery-card fade-in-stagger';
                     card.style.animationDelay = `${index * 0.2}s`;
@@ -500,12 +501,14 @@
                     card.appendChild(img);
                     gallery.appendChild(card);
                 });
+                setTimeout(() => {
+                    gallery.scrollIntoView({ behavior: 'smooth' });
+                }, 300);
+            } else {
+                console.warn('⚠️ Tidak ada image valid yang diterima.');
             }
-            document.getElementById('loading').style.display = 'none'; // Hide loading when gallery ready
-            // 🔵 Tambahan: Auto-scroll ke gallery
-            setTimeout(() => {
-                gallery.scrollIntoView({ behavior: 'smooth' });
-            }, 300);
+
+            document.getElementById('loading').style.display = 'none'; // Hide loading indicator
         });
 
         // Lightbox for gallery images
