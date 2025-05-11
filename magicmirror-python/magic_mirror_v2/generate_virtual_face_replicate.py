@@ -1,4 +1,5 @@
 import replicate
+replicate = replicate.Client(api_token=os.getenv("REPLICATE_API_TOKEN"))
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -55,8 +56,7 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
                                 "height": 1024,
                                 "guidance_scale": 9.0,
                                 "num_inference_steps": 40
-                            },
-                            api_token=replicate_api_token
+                            }
                         )
                         print(f"🎯 Output dari Replicate (prompt {idx}): {output}")
                         print("✅ Replicate respond OK!")

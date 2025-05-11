@@ -44,7 +44,7 @@ sio = socketio.Client()
 if ENV_MODE == 'dev':
     sio.connect('http://localhost:3000')
 else:
-    print("🟡 WebSocket nonaktif di mode prod.")
+    sio.connect('https://queensacademy.id')
 
 
 # -------------------------- SOCKET.IO LISTENER --------------------------
