@@ -601,6 +601,16 @@ def analyze_face():
         os.remove(text_filename)
     # (Do not remove promo_audio, keep for cache)
 
+    # 🚨 PATCH: Emit dummy faces if none generated to trigger frontend gallery
+    if not generated_faces and sio.connected:
+        sio.emit('generated_faces', {
+            'faces': [
+                "/generated_faces/sample.jpg",
+                "/generated_faces/sample.jpg",
+                "/generated_faces/sample.jpg"
+            ]
+        })
+        print("🧪 Dummy generated_faces berhasil dikirim ke frontend.")
     analyze_done = False
     analysis_started = False
     status_msg = "✅ Selesai! Tekan [q] untuk keluar."
