@@ -94,7 +94,7 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
         print(f"🔥 Critical error saat generate virtual face: {e}")
         return []
 
-    return [{"filename": path} for path in saved_files]
+    return saved_files
 
 # ------------------ Render Generated Faces ------------------
 import cv2
