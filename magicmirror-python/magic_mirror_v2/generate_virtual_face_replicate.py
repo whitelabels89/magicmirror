@@ -58,7 +58,7 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
                             input={
                                 "prompt": current_prompt,
                                 "aspect_ratio": "3:4",
-                                "subject_reference": image_file,  # Using file object directly
+                                "subject_reference": requests.get("https://drive.google.com/uc?id=" + os.path.splitext(os.path.basename(latest_photo_path))[0], stream=True).raw,
                                 "subject_prompt": "same person, identical facial features, ultra realistic, full head visible, high resolution",
                                 "negative_prompt": "bad anatomy, deformed, cartoon, anime, blurry, cropped head, watermark, text, extra fingers, bad quality",
                                 "width": 1024,
