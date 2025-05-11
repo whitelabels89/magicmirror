@@ -3,9 +3,6 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-from googleapiclient.discovery import build
-from google.oauth2 import service_account
-
 replicate = Client(api_token=os.getenv("REPLICATE_API_TOKEN"))
 
 import time
@@ -16,7 +13,7 @@ import shutil
 TEST_MODE = False
 
 # ------------------ Generate Virtual Face with Minimax ------------------
-def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, prompt=None, drive_service=None):
+def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, prompt=None):
     if TEST_MODE:
         print("🛠️ [TEST MODE] Skip generate Replicate, pakai sample.jpg dummy faces.")
         sample_url = "/generated_faces/sample.jpg"
@@ -28,16 +25,8 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
 
     print("🚀 Mengirim foto & prompt ke Replicate (Minimax Image 01)...")
 
-    # 🔁 Ambil drive_file_id berdasarkan nama file
-    file_name = os.path.basename(latest_photo_path)
-    results = drive_service.files().list(q=f"name='{file_name}'", spaces='drive', fields='files(id, name)').execute()
-    items = results.get('files', [])
-    if not items:
-        print(f"❌ File {file_name} tidak ditemukan di Google Drive.")
-        return []
-    drive_file_id = items[0]['id']
-    drive_service.permissions().create(fileId=drive_file_id, body={"role": "reader", "type": "anyone"}).execute()
-    subject_reference_url = f"https://drive.google.com/uc?id={drive_file_id}"
+    with open(latest_photo_path, "rb") as image_file:
+        subject_reference = image_file.read()
 
     prompts = [
         f"{prompt}, front view, ultra-realistic, soft lighting, same person" if prompt else f"Ultra-realistic portrait, {face_shape} face shape, {skin_tone} skin tone, recommended hairstyle and color, full head visible, no cropping, sharp details, studio lighting, Canon EOS 5D, high-resolution, natural expression, SAME FACE as subject reference",
@@ -64,7 +53,7 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
                         input={
                             "prompt": prompt,
                             "aspect_ratio": "3:4",
-                            "subject_reference": subject_reference_url,
+                            "subject_reference": subject_reference,
                             "subject_prompt": "same person, identical facial features, ultra realistic, full head visible, high resolution",
                             "negative_prompt": "bad anatomy, deformed, cartoon, anime, blurry, cropped head, watermark, text, extra fingers, bad quality",
                             "width": 1024,
@@ -97,27 +86,6 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
                         public_path = os.path.join(public_folder, os.path.basename(filename))
                         shutil.copy(filename, public_path)
                         saved_files.append(f"/generated_faces/{os.path.basename(filename)}")
-                        # Upload to Google Drive and replace path with Drive sharable link
-                        if drive_service:
-                            from googleapiclient.http import MediaFileUpload
-                            from googleapiclient.errors import HttpError
-                            try:
-                                file_metadata = {'name': os.path.basename(filename)}
-                                media = MediaFileUpload(filename, mimetype='image/jpeg')
-                                uploaded = drive_service.files().create(
-                                    body=file_metadata,
-                                    media_body=media,
-                                    fields='id'
-                                ).execute()
-                                drive_service.permissions().create(
-                                    fileId=uploaded['id'],
-                                    body={"role": "reader", "type": "anyone"}
-                                ).execute()
-                                drive_url = f"https://drive.google.com/uc?id={uploaded['id']}"
-                                saved_files[-1] = drive_url  # replace local path with Drive URL
-                                print(f"☁️ Uploaded to Google Drive: {drive_url}")
-                            except HttpError as err:
-                                print(f"❌ Failed to upload to Google Drive: {err}")
                     else:
                         print(f"⚠️ Gagal download gambar dari {img_url}")
                 except Exception as e:

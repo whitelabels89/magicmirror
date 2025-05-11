@@ -535,9 +535,8 @@ def analyze_face():
                 generated_faces = generate_virtual_face_replicate(
                     face_shape,
                     skin_tone,
-                    photo_url,
-                    prompt=prompt,
-                    drive_service=drive_service
+                    latest_captured_face_path,
+                    prompt=prompt
                 )
             except Exception as e:
                 print(f"⚠️ Error call Replicate: {e}")
