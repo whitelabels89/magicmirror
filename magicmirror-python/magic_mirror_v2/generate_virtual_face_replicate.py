@@ -13,14 +13,26 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from google.oauth2 import service_account
 
-def upload_file(file_path, mime_type, folder_id, drive_service):
-    file_metadata = {
-        'name': os.path.basename(file_path),
-        'parents': [folder_id]
-    }
+drive_service = None
+GDRIVE_FOLDER_ID = os.getenv('GDRIVE_FOLDER_ID')
+
+def get_credentials():
+    return service_account.Credentials.from_service_account_file(
+        "credentials.json",
+        scopes=["https://www.googleapis.com/auth/drive"]
+    )
+
+def upload_file(file_path, mime_type, drive_service, folder_id=None):
+    metadata = {'name': os.path.basename(file_path), 'parents': [folder_id or GDRIVE_FOLDER_ID]}
     media = MediaFileUpload(file_path, mimetype=mime_type)
-    file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
-    print(f"📤 Uploaded to Google Drive with ID: {file.get('id')}")
+    file = drive_service.files().create(body=metadata, media_body=media, fields='id').execute()
+    file_id = file.get("id")
+    drive_service.permissions().create(
+        fileId=file_id,
+        body={'role': 'reader', 'type': 'anyone'},
+    ).execute()
+    print(f"📤 Uploaded to Google Drive with ID: {file_id}")
+    return f"https://drive.google.com/uc?id={file_id}"
 
 # ------------------ Generate Virtual Face with Minimax ------------------
 def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, prompt=None, photo_url=None, drive_service=None, folder_id=None):
@@ -99,19 +111,26 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
                                 if response.status_code == 200:
                                     with open(filename, "wb") as f:
                                         f.write(response.content)
-                                    
+
                                     # Copy to public folder
                                     public_folder = os.path.join("public", "generated_faces")
                                     os.makedirs(public_folder, exist_ok=True)
                                     public_path = os.path.join(public_folder, os.path.basename(filename))
                                     shutil.copy(filename, public_path)
 
+                                    # Ensure drive_service is initialized
+                                    global drive_service
+                                    if drive_service is None:
+                                        credentials = get_credentials()
+                                        drive_service = build('drive', 'v3', credentials=credentials)
+
                                     mime_type = "image/jpeg"
                                     try:
-                                        upload_file(public_path, mime_type, folder_id, drive_service)
-                                    except Exception as drive_error:
-                                        print(f"⚠️ Gagal upload hasil generate ke Drive: {str(drive_error)}")
-                                    
+                                        link = upload_file(public_path, mime_type, drive_service)
+                                        print(f"☁️ Uploaded generated face: {link}", flush=True)
+                                    except Exception as ex:
+                                        print(f"⚠️ Gagal upload generated face: {ex}", flush=True)
+
                                     saved_files.append(f"/generated_faces/{os.path.basename(filename)}")
                                     print(f"✅ Saved generated face: {filename}")
                                 else:
