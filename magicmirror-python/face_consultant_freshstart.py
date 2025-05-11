@@ -541,8 +541,7 @@ def analyze_face():
                     skin_tone,
                     latest_captured_face_path,
                     prompt=prompt,
-                    photo_url=photo_url,
-                    drive_service=drive_service
+                    photo_url=photo_url
                 )
             except Exception as e:
                 print(f"⚠️ Error call Replicate: {e}", flush=True)
