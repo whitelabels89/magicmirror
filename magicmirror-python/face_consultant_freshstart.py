@@ -445,7 +445,7 @@ def analyze_face():
     config = load_config()
     slot = config.get("slot", "UNKNOWN")
     cabang = config.get("cabang", "UNKNOWN")
-    print(f"📟 Mirror aktif untuk SLOT: {slot} | CABANG: {cabang}")
+    print(f"📟 Mirror aktif untuk SLOT: {slot} | CABANG: {cabang}", flush=True)
 
     credentials = get_credentials()
     if drive_service is None:
@@ -455,7 +455,7 @@ def analyze_face():
 
     # Step 1: GPT prompt to get hair style + color
     status_msg = "⌛ Menganalisa dari AI Stylist..."
-    print("🧠 AI Stylist sedang memproses rekomendasi... Harap tunggu hasil virtual face muncul setelah ini.")
+    print("🧠 AI Stylist sedang memproses rekomendasi... Harap tunggu hasil virtual face muncul setelah ini.", flush=True)
     response = openai.ChatCompletion.create(
         model="gpt-4",
         messages=[
@@ -496,17 +496,17 @@ def analyze_face():
                     os.remove(audio_filename)
                 if os.path.exists(faster_audio):
                     os.rename(faster_audio, audio_filename)
-                print("✅ Audio stylist berhasil diproses dengan ffmpeg.")
+        print("✅ Audio stylist berhasil diproses dengan ffmpeg.", flush=True)
             except Exception as ffmpeg_error:
-                print(f"⚠️ Gagal proses ffmpeg: {ffmpeg_error}")
+            print(f"⚠️ Gagal proses ffmpeg: {ffmpeg_error}", flush=True)
 
             play_audio_and_type(audio_filename, recommendation)
             upload_file(audio_filename, 'audio/mpeg', drive_service)
         else:
-            print(f"⚠️ Audio stylist corrupt, skip suara stylist. ({audio_filename})")
+            print(f"⚠️ Audio stylist corrupt, skip suara stylist. ({audio_filename})", flush=True)
             audio_filename = None
     except Exception as e:
-        print(f"⚠️ Gagal generate suara stylist: {e}")
+        print(f"⚠️ Gagal generate suara stylist: {e}", flush=True)
         audio_filename = None
     # PATCH 3: Handle Audio Stylist Error
     if not audio_filename or not os.path.exists(audio_filename) or os.path.getsize(audio_filename) < 10 * 1024:
@@ -523,17 +523,17 @@ def analyze_face():
     try:
         # Validasi: Pastikan latest_captured_face_path tersedia dan file valid
         # Tambahan notifikasi sebelum generate virtual face
-        print("✨ Menyiapkan generate virtual face... Harap tunggu beberapa detik.")
+        print("✨ Menyiapkan generate virtual face... Harap tunggu beberapa detik.", flush=True)
         if latest_captured_face_path and os.path.exists(latest_captured_face_path):
-            print("🚀 Generate Virtual Face with Replicate API...")
+            print("🚀 Generate Virtual Face with Replicate API...", flush=True)
 
             # ✅ Upload captured face
             try:
                 photo_url = upload_file(latest_captured_face_path, 'image/jpeg', drive_service)
                 os.environ["LAST_CAPTURED_PHOTO_URL"] = photo_url
-                print(f"☁️ Uploaded captured face: {photo_url}")
+                print(f"☁️ Uploaded captured face: {photo_url}", flush=True)
             except Exception as e:
-                print(f"⚠️ Gagal upload captured face: {e}")
+                print(f"⚠️ Gagal upload captured face: {e}", flush=True)
 
             try:
                 generated_faces = generate_virtual_face_replicate(
@@ -541,10 +541,11 @@ def analyze_face():
                     skin_tone,
                     latest_captured_face_path,
                     prompt=prompt,
-                    photo_url=photo_url
+                    photo_url=photo_url,
+                    drive_service=drive_service
                 )
             except Exception as e:
-                print(f"⚠️ Error call Replicate: {e}")
+                print(f"⚠️ Error call Replicate: {e}", flush=True)
                 generated_faces = []
                 status_msg = "❌ Gagal generate wajah."
 
@@ -552,24 +553,31 @@ def analyze_face():
                 try:
                     if sio.connected:
                         sio.emit('generated_faces', {'faces': generated_faces})
-                        print(f"📸 {len(generated_faces)} virtual faces dikirim ke web.")
-                        print("✅ Hasil virtual face telah dikirim ke web.")
+                        print(f"📸 {len(generated_faces)} virtual faces dikirim ke web.", flush=True)
+                        print("✅ Hasil virtual face telah dikirim ke web.", flush=True)
                     else:
                         raise Exception("WebSocket not connected")
                 except Exception as e:
-                    print(f"⚠️ Gagal kirim generated faces ke web: {e}")
-                    print("☁️ Fallback: Upload semua wajah ke Google Drive.")
+                        print(f"⚠️ Gagal kirim generated faces ke web: {e}", flush=True)
+                        print("☁️ Fallback: Upload semua wajah ke Google Drive.", flush=True)
 
                 # ✅ Upload semua hasil generated_faces ke Google Drive
                 drive_links = []
                 for face_path in generated_faces:
+                    # ✅ Tunggu hingga file benar-benar ada (maksimal 5 detik)
+                    for i in range(5):
+                        if os.path.exists(face_path):
+                            break
+                        time.sleep(1)
                     if os.path.exists(face_path):
                         try:
                             link = upload_file(face_path, 'image/jpeg', drive_service)
                             drive_links.append(link)
-                            print(f"☁️ Uploaded generated face: {link}")
+                            print(f"☁️ Uploaded generated face: {link}", flush=True)
                         except Exception as ex:
-                            print(f"⚠️ Gagal upload generated face: {ex}")
+                            print(f"⚠️ Gagal upload generated face: {ex}", flush=True)
+                    else:
+                        print(f"⚠️ File tidak ditemukan untuk upload: {face_path}", flush=True)
 
                 # ✅ Simpan daftar link ke file JSON (untuk arsip dan dashboard)
                 if drive_links:
@@ -578,21 +586,21 @@ def analyze_face():
                         json.dump({"faces": drive_links}, jf)
                     try:
                         upload_file(json_path, 'application/json', drive_service)
-                        print(f"📂 Link JSON uploaded: {json_path}")
+                        print(f"📂 Link JSON uploaded: {json_path}", flush=True)
                         os.remove(json_path)
                     except Exception as jerr:
-                        print(f"⚠️ Gagal upload file JSON ke Drive: {jerr}")
+                        print(f"⚠️ Gagal upload file JSON ke Drive: {jerr}", flush=True)
 
                 # 🔁 Emit ulang ke frontend jika koneksi WebSocket sudah tersedia kembali
                 try:
                     if sio.connected and drive_links:
                         sio.emit('generated_faces', {'faces': drive_links})
-                        print("🔁 Re-emitted generated_faces to frontend from Drive links.")
+                        print("🔁 Re-emitted generated_faces to frontend from Drive links.", flush=True)
                 except Exception as e:
-                    print(f"⚠️ Gagal emit ulang generated_faces dari Drive: {e}")
+                    print(f"⚠️ Gagal emit ulang generated_faces dari Drive: {e}", flush=True)
     # ✅ Tambahkan except ini sebagai penutup blok try besar
     except Exception as e:
-        print(f"⚠️ Gagal generate virtual face Replicate: {e}")
+        print(f"⚠️ Gagal generate virtual face Replicate: {e}", flush=True)
 
 
     # Load Data Promo
@@ -606,7 +614,7 @@ def analyze_face():
         else:
             kode_promo, qr_link, promo = "PROMO", "https://example.com", "Promo Eksklusif"
     except Exception as e:
-        print(f"⚠️ Gagal ambil data promo customer: {e}")
+        print(f"⚠️ Gagal ambil data promo customer: {e}", flush=True)
         kode_promo, qr_link, promo = "PROMO", "https://example.com", "Promo Eksklusif"
 
     deskripsi_promo = get_promo_description_by_kode(kode_promo, credentials)
@@ -620,7 +628,7 @@ def analyze_face():
         try:
             generate_voice_elevenlabs(promo_text, promo_audio)
         except Exception as e:
-            print(f"⚠️ Gagal generate suara promo: {e}")
+            print(f"⚠️ Gagal generate suara promo: {e}", flush=True)
             promo_audio = None
     show_qr_and_offer(qr_link, promo_text, promo_audio)
 
@@ -640,7 +648,7 @@ def analyze_face():
                 "/generated_faces/sample.jpg"
             ]
         })
-        print("🧪 Dummy generated_faces berhasil dikirim ke frontend.")
+        print("🧪 Dummy generated_faces berhasil dikirim ke frontend.", flush=True)
     analyze_done = False
     analysis_started = False
     status_msg = "✅ Selesai! Tekan [q] untuk keluar."
@@ -826,8 +834,8 @@ def run(photo_base64):
         f.write(decoded)
     latest_captured_face_path = capture_filename
 
-    print(f"✅ Foto dari API disimpan di: {latest_captured_face_path}")
-    print(f"📏 Ukuran file: {os.path.getsize(latest_captured_face_path)} bytes")
+    print(f"✅ Foto dari API disimpan di: {latest_captured_face_path}", flush=True)
+    print(f"📏 Ukuran file: {os.path.getsize(latest_captured_face_path)} bytes", flush=True)
 
     # 🔍 Tambahan analisis landmark langsung dari file foto
     try:
@@ -887,20 +895,20 @@ def run(photo_base64):
                 skin_tone = get_skin_tone_color(img, left_cheek)
                 globals()["face_shape"] = face_shape
                 globals()["skin_tone"] = skin_tone
-                print(f"📸 Deteksi dari run berhasil: {face_shape=} {skin_tone=}")
+                print(f"📸 Deteksi dari run berhasil: {face_shape=} {skin_tone=}", flush=True)
                 break
         else:
-            print("❌ Tidak ada wajah terdeteksi di gambar dari run().")
+            print("❌ Tidak ada wajah terdeteksi di gambar dari run().", flush=True)
     except Exception as e:
-        print(f"⚠️ Gagal baca landmark dari file foto di run(): {e}")
+        print(f"⚠️ Gagal baca landmark dari file foto di run(): {e}", flush=True)
 
-    print(f"📂 latest_captured_face_path = {latest_captured_face_path}")
-    print(f"📂 exists = {os.path.exists(latest_captured_face_path)}")
+    print(f"📂 latest_captured_face_path = {latest_captured_face_path}", flush=True)
+    print(f"📂 exists = {os.path.exists(latest_captured_face_path)}", flush=True)
 
     analysis_started = True
     analyze_face()
 
-    print(f"🖼️ generated_faces: {generated_faces if generated_faces else 'None generated.'}")
+    print(f"🖼️ generated_faces: {generated_faces if generated_faces else 'None generated.'}", flush=True)
 
     result = {
         "status": "done",
