@@ -560,28 +560,36 @@ def analyze_face():
                     print(f"⚠️ Gagal kirim generated faces ke web: {e}")
                     print("☁️ Fallback: Upload semua wajah ke Google Drive.")
 
-                    # ✅ Upload semua wajah ke Google Drive sebagai fallback
-                    drive_links = []
-                    for face_path in generated_faces:
-                        if os.path.exists(face_path):
-                            try:
-                                link = upload_file(face_path, 'image/jpeg', drive_service)
-                                drive_links.append(link)
-                                print(f"☁️ Uploaded generated face: {link}")
-                            except Exception as ex:
-                                print(f"⚠️ Gagal upload generated face: {ex}")
-
-                    # ✅ Simpan daftar link ke file JSON
-                    if drive_links:
-                        json_path = f"generated_faces_links_{int(time.time())}.json"
-                        with open(json_path, "w") as jf:
-                            json.dump({"faces": drive_links}, jf)
+                # ✅ Upload semua hasil generated_faces ke Google Drive
+                drive_links = []
+                for face_path in generated_faces:
+                    if os.path.exists(face_path):
                         try:
-                            upload_file(json_path, 'application/json', drive_service)
-                            print(f"📂 Link JSON uploaded: {json_path}")
-                            os.remove(json_path)
-                        except Exception as jerr:
-                            print(f"⚠️ Gagal upload file JSON ke Drive: {jerr}")
+                            link = upload_file(face_path, 'image/jpeg', drive_service)
+                            drive_links.append(link)
+                            print(f"☁️ Uploaded generated face: {link}")
+                        except Exception as ex:
+                            print(f"⚠️ Gagal upload generated face: {ex}")
+
+                # ✅ Simpan daftar link ke file JSON (untuk arsip dan dashboard)
+                if drive_links:
+                    json_path = f"generated_faces_links_{int(time.time())}.json"
+                    with open(json_path, "w") as jf:
+                        json.dump({"faces": drive_links}, jf)
+                    try:
+                        upload_file(json_path, 'application/json', drive_service)
+                        print(f"📂 Link JSON uploaded: {json_path}")
+                        os.remove(json_path)
+                    except Exception as jerr:
+                        print(f"⚠️ Gagal upload file JSON ke Drive: {jerr}")
+
+                # 🔁 Emit ulang ke frontend jika koneksi WebSocket sudah tersedia kembali
+                try:
+                    if sio.connected and drive_links:
+                        sio.emit('generated_faces', {'faces': drive_links})
+                        print("🔁 Re-emitted generated_faces to frontend from Drive links.")
+                except Exception as e:
+                    print(f"⚠️ Gagal emit ulang generated_faces dari Drive: {e}")
     # ✅ Tambahkan except ini sebagai penutup blok try besar
     except Exception as e:
         print(f"⚠️ Gagal generate virtual face Replicate: {e}")
