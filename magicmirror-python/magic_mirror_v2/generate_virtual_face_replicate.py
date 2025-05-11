@@ -109,12 +109,16 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
                                 if response.status_code == 200:
                                     with open(filename, "wb") as f:
                                         f.write(response.content)
+                                        time.sleep(0.5)
+                                        while not os.path.exists(filename):
+                                            time.sleep(0.1)
 
                                     # Copy to public folder
                                     public_folder = os.path.join("public", "generated_faces")
                                     os.makedirs(public_folder, exist_ok=True)
                                     public_path = os.path.join(public_folder, os.path.basename(filename))
                                     shutil.copy(filename, public_path)
+                                    print(f"📂 Copy to public folder: {public_path}")
 
                                     # Ensure drive_service is initialized
                                     global drive_service
