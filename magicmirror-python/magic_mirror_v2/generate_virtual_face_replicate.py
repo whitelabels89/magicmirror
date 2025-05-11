@@ -199,7 +199,7 @@ def render_generated_faces(display_frame, generated_faces, bottom_margin=140):
 
     return display_frame
 
-# ------------------ Dummy Handle Face Click ------------------
+# ------------------ Dummy Handle Face Click -------------------
 def handle_face_click(event, x, y, flags, param):
     """Handle face click events"""
     pass
