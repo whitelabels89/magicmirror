@@ -38,6 +38,10 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
     output_folder = "generated_faces"
     os.makedirs(output_folder, exist_ok=True)
 
+    photo_url = os.getenv("LAST_CAPTURED_PHOTO_URL", "")
+    if not photo_url:
+        raise ValueError("❌ photo_url is not available or not set. Pastikan URL hasil upload tersedia.")
+
     try:
         with open(latest_photo_path, "rb") as image_file:
             for idx, current_prompt in enumerate(prompts):
@@ -58,7 +62,7 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
                             input={
                                 "prompt": current_prompt,
                                 "aspect_ratio": "3:4",
-                                "subject_reference": requests.get("https://drive.google.com/uc?id=" + os.path.splitext(os.path.basename(latest_photo_path))[0], stream=True).raw,
+                                "subject_reference": photo_url,
                                 "subject_prompt": "same person, identical facial features, ultra realistic, full head visible, high resolution",
                                 "negative_prompt": "bad anatomy, deformed, cartoon, anime, blurry, cropped head, watermark, text, extra fingers, bad quality",
                                 "width": 1024,
