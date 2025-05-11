@@ -35,7 +35,7 @@ def upload_file(file_path, mime_type, drive_service, folder_id=None):
     return f"https://drive.google.com/uc?id={file_id}"
 
 # ------------------ Generate Virtual Face with Minimax ------------------
-def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, prompt=None, photo_url=None, drive_service=None, folder_id=None):
+def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, prompt=None, photo_url=None):
     if not photo_url:
         raise ValueError("❌ photo_url not provided.")
     """
