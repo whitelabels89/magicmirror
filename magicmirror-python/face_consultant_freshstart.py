@@ -530,6 +530,7 @@ def analyze_face():
             # ✅ Upload captured face
             try:
                 photo_url = upload_file(latest_captured_face_path, 'image/jpeg', drive_service)
+                os.environ["LAST_CAPTURED_PHOTO_URL"] = photo_url
                 print(f"☁️ Uploaded captured face: {photo_url}")
             except Exception as e:
                 print(f"⚠️ Gagal upload captured face: {e}")
