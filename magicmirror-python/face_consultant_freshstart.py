@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
+USE_ELEVENLABS = os.getenv('USE_ELEVENLABS', 'false').lower() == 'true'
 ENV_MODE = os.getenv('ENV_MODE', 'dev')  # default ke dev
 
 # ✅ Buat folder lokal saat startup (jika belum ada)
@@ -487,8 +488,11 @@ def analyze_face():
     # Step 3: Generate replicate faces with GPT prompt
     audio_filename = os.path.join("VOICE_AI_FILES", f"{file_prefix}.mp3")
     try:
-        generate_voice_elevenlabs(recommendation, audio_filename)
-        if audio_filename and os.path.exists(audio_filename) and os.path.getsize(audio_filename) >= 10 * 1024:
+        if USE_ELEVENLABS:
+            generate_voice_elevenlabs(recommendation, audio_filename)
+        else:
+            print("🔇 ElevenLabs dimatikan (USE_ELEVENLABS=false), lewati pembuatan suara stylist.")
+        if USE_ELEVENLABS and audio_filename and os.path.exists(audio_filename) and os.path.getsize(audio_filename) >= 10 * 1024:
             faster_audio = os.path.join("VOICE_AI_FILES", f"fast_{file_prefix}.mp3")
             try:
                 os.system(f"ffmpeg -y -i \"{audio_filename}\" -filter:a 'atempo=1.15' -vn \"{faster_audio}\"")
@@ -502,7 +506,7 @@ def analyze_face():
 
             play_audio_and_type(audio_filename, recommendation)
             upload_file(audio_filename, 'audio/mpeg', drive_service)
-        else:
+        elif USE_ELEVENLABS:
             print(f"⚠️ Audio stylist corrupt, skip suara stylist. ({audio_filename})", flush=True)
             audio_filename = None
     except Exception as e:
