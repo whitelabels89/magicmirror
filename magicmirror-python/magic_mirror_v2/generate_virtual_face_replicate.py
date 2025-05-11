@@ -59,8 +59,8 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
                         # Reset file pointer to beginning
                         image_file.seek(0)
                         
-                        output = replicate.run(
-                            "minimax/image-01",
+                        prediction = replicate.predictions.create(
+                            version="minimax/image-01",
                             input={
                                 "prompt": current_prompt,
                                 "aspect_ratio": "3:4",
@@ -72,8 +72,20 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
                                 "guidance_scale": 9.0,
                                 "num_inference_steps": 40
                             },
-                            api_token=replicate_api_token  # Explicitly passing token
+                            api_token=replicate_api_token
                         )
+
+                        print("⏳ Waiting for prediction to complete...")
+                        for i in range(30):
+                            prediction = replicate.predictions.get(prediction.id, api_token=replicate_api_token)
+                            if prediction.status == "succeeded":
+                                output = prediction.output
+                                break
+                            elif prediction.status in ["failed", "canceled"]:
+                                raise Exception("❌ Replicate prediction failed.")
+                            time.sleep(3)
+                        else:
+                            raise TimeoutError("❌ Timed out waiting for Replicate result.")
                         
                         print(f"🎯 Output dari Replicate (prompt {idx}): {output}")
                         success = True
@@ -85,6 +97,10 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
                             try:
                                 response = requests.get(img_url, timeout=10)
                                 if response.status_code == 200:
+                                    if len(response.content) < 10240:  # kurang dari 10KB dianggap gagal
+                                        print(f"⚠️ Gagal: gambar terlalu kecil atau kosong dari {img_url}")
+                                        continue
+
                                     with open(filename, "wb") as f:
                                         f.write(response.content)
                                     
@@ -93,6 +109,14 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
                                     os.makedirs(public_folder, exist_ok=True)
                                     public_path = os.path.join(public_folder, os.path.basename(filename))
                                     shutil.copy(filename, public_path)
+                                    
+                                    # Upload ke Google Drive
+                                    try:
+                                        from magic_mirror_v2.gdrive_utils import upload_file_to_drive
+                                        gdrive_link = upload_file_to_drive(filename, folder_name="generated_faces_backup")
+                                        print(f"☁️ Uploaded to Google Drive: {gdrive_link}")
+                                    except Exception as upload_error:
+                                        print(f"⚠️ Gagal upload ke Google Drive: {str(upload_error)}")
                                     
                                     saved_files.append(f"/generated_faces/{os.path.basename(filename)}")
                                     print(f"✅ Saved generated face: {filename}")
