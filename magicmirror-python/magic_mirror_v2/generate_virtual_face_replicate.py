@@ -6,41 +6,21 @@ import time
 import requests
 import shutil
 import cv2
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
+from google.oauth2 import service_account
 
-
-# 🛠️ Testing mode aktif: pakai sample.jpg dummy faces
-TEST_MODE = False
-
-def upload_file_to_drive_via_requests(file_path, folder_name, metadata=None):
-    """
-    Upload file ke Google Drive via Google Apps Script Web App
-    """
-    try:
-        import mimetypes
-        drive_webapp_url = os.getenv("DRIVE_WEBAPP_URL")
-        if not drive_webapp_url:
-            raise ValueError("❌ DRIVE_WEBAPP_URL tidak ditemukan di .env")
-
-        filename = os.path.basename(file_path)
-        mime_type, _ = mimetypes.guess_type(file_path)
-
-        with open(file_path, 'rb') as f:
-            files = {'file': (filename, f, mime_type)}
-            data = {'folder': folder_name}
-            if metadata:
-                data.update(metadata)
-
-            response = requests.post(drive_webapp_url, files=files, data=data)
-            if response.status_code == 200:
-                return response.text
-            else:
-                raise RuntimeError(f"⚠️ Upload failed with status code {response.status_code}: {response.text}")
-    except Exception as e:
-        print(f"❌ Error upload_file_to_drive_via_requests: {str(e)}")
-        raise e
+def upload_file(file_path, mime_type, folder_id, drive_service):
+    file_metadata = {
+        'name': os.path.basename(file_path),
+        'parents': [folder_id]
+    }
+    media = MediaFileUpload(file_path, mimetype=mime_type)
+    file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+    print(f"📤 Uploaded to Google Drive with ID: {file.get('id')}")
 
 # ------------------ Generate Virtual Face with Minimax ------------------
-def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, prompt=None, photo_url=None):
+def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, prompt=None, photo_url=None, drive_service=None, folder_id=None):
     if not photo_url:
         raise ValueError("❌ photo_url not provided.")
     """
@@ -123,25 +103,9 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
                                     public_path = os.path.join(public_folder, os.path.basename(filename))
                                     shutil.copy(filename, public_path)
 
+                                    mime_type = "image/jpeg"
                                     try:
-                                        from googleapiclient.discovery import build
-                                        from googleapiclient.http import MediaFileUpload
-                                        from google.oauth2 import service_account
-
-                                        SCOPES = ['https://www.googleapis.com/auth/drive']
-                                        SERVICE_ACCOUNT_FILE = 'credentials.json'
-
-                                        credentials = service_account.Credentials.from_service_account_file(
-                                            SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-                                        drive_service = build('drive', 'v3', credentials=credentials)
-
-                                        def upload_file(filename, mime_type, drive_service):
-                                            file_metadata = {'name': os.path.basename(filename)}
-                                            media = MediaFileUpload(filename, mimetype=mime_type)
-                                            file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
-                                            print(f"📤 Uploaded to Google Drive with ID: {file.get('id')}")
-
-                                        upload_file(public_path, 'image/jpeg', drive_service)
+                                        upload_file(public_path, mime_type, folder_id, drive_service)
                                     except Exception as drive_error:
                                         print(f"⚠️ Gagal upload hasil generate ke Drive: {str(drive_error)}")
                                     
