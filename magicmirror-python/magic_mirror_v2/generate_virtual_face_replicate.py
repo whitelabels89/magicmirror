@@ -1,4 +1,3 @@
-
 TEST_MODE = False
 
 import replicate
@@ -50,6 +49,8 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
     replicate_api_token = os.getenv('REPLICATE_API_TOKEN')
     if not replicate_api_token:
         raise EnvironmentError("❌ REPLICATE_API_TOKEN not found in environment variables")
+    else:
+        print("✅ REPLICATE_API_TOKEN ditemukan di env.", flush=True)
 
     print("🚀 Mengirim foto & prompt ke Replicate (Minimax Image 01)...")
 
@@ -80,6 +81,8 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
                         
                         # Reset file pointer to beginning
                         image_file.seek(0)
+
+                        print(f"📦 replicate_api_token: {replicate_api_token[:6]}...")  # Masked for debug
                         
                         output = replicate.run(
                             "minimax/image-01",
