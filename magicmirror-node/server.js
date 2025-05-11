@@ -34,6 +34,18 @@ app.post('/upload_ai_result', (req, res) => {
     }
 });
 
+// Endpoint: fallback push generated_faces dari Python jika WebSocket gagal
+app.post('/push_faces_to_frontend', (req, res) => {
+    const { faces, face_shape, skin_tone } = req.body;
+    if (faces && faces.length > 0) {
+        console.log(`🖼️ [Fallback] ${faces.length} generated faces diterima dari Python.`);
+        io.emit('generated_faces', { faces, face_shape, skin_tone });
+        res.status(200).send({ success: true });
+    } else {
+        res.status(400).send({ error: 'No faces received.' });
+    }
+});
+
 // WebSocket logic
 io.on('connection', (socket) => {
     console.log('✅ User connected via WebSocket');
