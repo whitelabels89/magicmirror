@@ -124,17 +124,24 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
                                     shutil.copy(filename, public_path)
 
                                     try:
-                                        # Upload ke Google Drive via Web App (metode yang sama seperti di freshstart.py)
-                                        drive_upload_result = upload_file_to_drive_via_requests(
-                                            file_path=public_path,
-                                            folder_name="generated_faces",
-                                            metadata={
-                                                "face_shape": face_shape,
-                                                "skin_tone": skin_tone,
-                                                "source": "replicate"
-                                            }
-                                        )
-                                        print(f"📤 Uploaded to Google Drive: {drive_upload_result}")
+                                        from googleapiclient.discovery import build
+                                        from googleapiclient.http import MediaFileUpload
+                                        from google.oauth2 import service_account
+
+                                        SCOPES = ['https://www.googleapis.com/auth/drive']
+                                        SERVICE_ACCOUNT_FILE = 'credentials.json'
+
+                                        credentials = service_account.Credentials.from_service_account_file(
+                                            SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+                                        drive_service = build('drive', 'v3', credentials=credentials)
+
+                                        def upload_file(filename, mime_type, drive_service):
+                                            file_metadata = {'name': os.path.basename(filename)}
+                                            media = MediaFileUpload(filename, mimetype=mime_type)
+                                            file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+                                            print(f"📤 Uploaded to Google Drive with ID: {file.get('id')}")
+
+                                        upload_file(public_path, 'image/jpeg', drive_service)
                                     except Exception as drive_error:
                                         print(f"⚠️ Gagal upload hasil generate ke Drive: {str(drive_error)}")
                                     
