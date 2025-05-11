@@ -7,8 +7,37 @@ import requests
 import shutil
 import cv2
 
+
 # 🛠️ Testing mode aktif: pakai sample.jpg dummy faces
 TEST_MODE = False
+
+def upload_file_to_drive_via_requests(file_path, folder_name, metadata=None):
+    """
+    Upload file ke Google Drive via Google Apps Script Web App
+    """
+    try:
+        import mimetypes
+        drive_webapp_url = os.getenv("DRIVE_WEBAPP_URL")
+        if not drive_webapp_url:
+            raise ValueError("❌ DRIVE_WEBAPP_URL tidak ditemukan di .env")
+
+        filename = os.path.basename(file_path)
+        mime_type, _ = mimetypes.guess_type(file_path)
+
+        with open(file_path, 'rb') as f:
+            files = {'file': (filename, f, mime_type)}
+            data = {'folder': folder_name}
+            if metadata:
+                data.update(metadata)
+
+            response = requests.post(drive_webapp_url, files=files, data=data)
+            if response.status_code == 200:
+                return response.text
+            else:
+                raise RuntimeError(f"⚠️ Upload failed with status code {response.status_code}: {response.text}")
+    except Exception as e:
+        print(f"❌ Error upload_file_to_drive_via_requests: {str(e)}")
+        raise e
 
 # ------------------ Generate Virtual Face with Minimax ------------------
 def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, prompt=None, photo_url=None):
@@ -93,6 +122,21 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
                                     os.makedirs(public_folder, exist_ok=True)
                                     public_path = os.path.join(public_folder, os.path.basename(filename))
                                     shutil.copy(filename, public_path)
+
+                                    try:
+                                        # Upload ke Google Drive via Web App (metode yang sama seperti di freshstart.py)
+                                        drive_upload_result = upload_file_to_drive_via_requests(
+                                            file_path=public_path,
+                                            folder_name="generated_faces",
+                                            metadata={
+                                                "face_shape": face_shape,
+                                                "skin_tone": skin_tone,
+                                                "source": "replicate"
+                                            }
+                                        )
+                                        print(f"📤 Uploaded to Google Drive: {drive_upload_result}")
+                                    except Exception as drive_error:
+                                        print(f"⚠️ Gagal upload hasil generate ke Drive: {str(drive_error)}")
                                     
                                     saved_files.append(f"/generated_faces/{os.path.basename(filename)}")
                                     print(f"✅ Saved generated face: {filename}")
