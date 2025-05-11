@@ -37,7 +37,7 @@ def upload_file(file_path, mime_type, drive_service, folder_id=None):
 # ------------------ Generate Virtual Face with Minimax ------------------
 def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, prompt=None, photo_url=None):
     if not photo_url:
-        raise ValueError("❌ photo_url not provided.")
+        raise ValueError("❌ photo_url is not provided to function. Pastikan parameter `photo_url` dikirim.")
     """
     Generate virtual face using Replicate API (Minimax Image 01 model)
     Returns list of generated image URLs
@@ -64,9 +64,7 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
     output_folder = "generated_faces"
     os.makedirs(output_folder, exist_ok=True)
 
-    photo_url = os.getenv("LAST_CAPTURED_PHOTO_URL", "")
-    if not photo_url:
-        raise ValueError("❌ photo_url is not available or not set. Pastikan URL hasil upload tersedia.")
+    # Removed fallback to environment variable for photo_url.
 
     try:
         with open(latest_photo_path, "rb") as image_file:
