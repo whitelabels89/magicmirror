@@ -42,7 +42,7 @@ import base64
 sio = socketio.Client()
 
 try:
-    if os.getenv('ENV_MODE', 'prod') == 'dev':
+    if os.getenv('ENV_MODE') == 'dev':
         sio.connect('http://localhost:3000')
     else:
         sio.connect('https://queensacademy.id')
