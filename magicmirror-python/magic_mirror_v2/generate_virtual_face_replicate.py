@@ -1,8 +1,10 @@
-import replicate
-replicate = replicate.Client(api_token=os.getenv("REPLICATE_API_TOKEN"))
+from replicate import Client
 import os
 from dotenv import load_dotenv
 load_dotenv()
+
+replicate = Client(api_token=os.getenv("REPLICATE_API_TOKEN"))
+
 import time
 import requests
 import shutil
