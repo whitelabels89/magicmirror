@@ -14,7 +14,7 @@ def index():
 def run_face_consultant():
     try:
         data = request.get_json()
-        photo = data.get('photo')  # base64 image
+        photo = data.get('photo')  # base64 imageeeee
         result = face_consultant_freshstart.run(photo)
         return jsonify(result)
     except Exception as e:
