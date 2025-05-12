@@ -125,7 +125,7 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
 
                                     mime_type = "image/jpeg"
                                     try:
-                                        link = upload_file(public_path, mime_type, drive_service)
+                                        link = upload_file(filename, mime_type, drive_service)
                                         print(f"☁️ Uploaded generated face: {link}", flush=True)
                                     except Exception as ex:
                                         print(f"⚠️ Gagal upload generated face: {ex}", flush=True)
