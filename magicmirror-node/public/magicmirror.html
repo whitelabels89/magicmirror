@@ -505,7 +505,13 @@
                     gallery.scrollIntoView({ behavior: 'smooth' });
                 }, 300);
             } else {
-                console.warn('⚠️ Tidak ada image valid yang diterima.');
+                // Fallback: Tampilkan preview gabungan
+                const card = document.createElement('div');
+                card.className = 'gallery-card fade-in-stagger';
+                const img = document.createElement('img');
+                img.src = '/public/generated_faces/preview_combined.jpg';
+                card.appendChild(img);
+                gallery.appendChild(card);
             }
 
             document.getElementById('loading').style.display = 'none'; // Hide loading indicator
