@@ -4,7 +4,8 @@ config.json
 credentials.json
 
 # Folder runtime
-captured_faces/
+captured_faces/*
+captured_faces/.gitkeep
 generated_faces/*
 !generated_faces/.gitkeep
 VOICE_AI_FILES/
