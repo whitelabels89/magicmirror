@@ -491,27 +491,19 @@
             const validFaces = (data.faces || []).filter(url => url && url.trim() !== '');
 
             if (validFaces.length > 0) {
-                gallery.innerHTML = ''; // Clear previous only if valid images
+                gallery.innerHTML = '';
                 validFaces.forEach((url, index) => {
                     const card = document.createElement('div');
                     card.className = 'gallery-card fade-in-stagger';
                     card.style.animationDelay = `${index * 0.2}s`;
                     const img = document.createElement('img');
-                    img.src = url.startsWith('/') || url.startsWith('http') ? url : `/${url}`;
+                    img.src = url;
                     card.appendChild(img);
                     gallery.appendChild(card);
                 });
                 setTimeout(() => {
                     gallery.scrollIntoView({ behavior: 'smooth' });
                 }, 300);
-            } else {
-                // Fallback: Tampilkan preview gabungan
-                const card = document.createElement('div');
-                card.className = 'gallery-card fade-in-stagger';
-                const img = document.createElement('img');
-                img.src = '/public/generated_faces/preview_combined.jpg';
-                card.appendChild(img);
-                gallery.appendChild(card);
             }
 
             document.getElementById('loading').style.display = 'none'; // Hide loading indicator
