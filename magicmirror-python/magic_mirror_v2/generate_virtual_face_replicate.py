@@ -1,9 +1,8 @@
-os.makedirs(os.path.join("public", "generated_faces"), exist_ok=True)
-# ------------------ Import Required Libraries ------------------
 TEST_MODE = False
 
 import replicate
 import os
+os.makedirs(os.path.join("public", "generated_faces"), exist_ok=True)
 from dotenv import load_dotenv
 load_dotenv()
 import time
