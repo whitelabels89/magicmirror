@@ -649,8 +649,8 @@ def analyze_face():
     if not generated_faces and sio.connected:
         sio.emit('generated_faces', {
             'faces': [],
-            'status': 'pending'  # ⬅️ Tambahan status
-            'message': 'Sedang menunggu hasil generate dari AI stylist...'
+            'status': 'pending',  # ⬅️ Tambahan status
+            'message': 'Sedang menunggu hasil generate dari AI stylist...',
             'start_timestamp': int(time.time())
         })
         print("🧪 No faces generated, emit pending status.", flush=True)
