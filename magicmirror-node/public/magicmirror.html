@@ -504,7 +504,7 @@
 
             // ⏳ Kalau status pending & belum ada hasil: tampilkan countdown
             if (data.status === 'pending' && validFaces.length === 0 && data.start_timestamp) {
-                const countdownTarget = data.start_timestamp + 40;
+                const countdownTarget = data.start_timestamp + 120;
                 waitingEl.style.display = 'block';
 
                 const interval = setInterval(() => {
