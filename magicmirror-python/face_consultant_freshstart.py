@@ -651,7 +651,7 @@ def analyze_face():
                 'faces': [],
                 'status': 'pending',
                 'message': 'Sedang menunggu hasil generate dari AI stylist...',
-                'start_timestamp': int(time.time())
+                'start_timestamp': int(time.time()),
                 'session_id': session_id
             })
             print("🧪 No faces generated, emit pending status.", flush=True)
@@ -661,7 +661,7 @@ def analyze_face():
     analysis_started = False
     status_msg = "✅ Selesai! Tekan [q] untuk keluar."
 
-# -------------------------- MAIN LOOP --------------------------
+# -------------------------- MAIN LOOOOP --------------------------
 # -------------------------- MAIN LOOP --------------------------
 
 if __name__ == "__main__":
