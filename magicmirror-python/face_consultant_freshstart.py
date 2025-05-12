@@ -644,7 +644,6 @@ def analyze_face():
         os.remove(text_filename)
     # (Do not remove promo_audio, keep for cache)
 
-    import time
     # 🚨 PATCH: Emit dummy faces if none generated to trigger frontend gallery
     if not generated_faces and sio.connected:
         sio.emit('generated_faces', {
