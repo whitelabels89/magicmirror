@@ -165,8 +165,29 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
         print(f"🔥 Critical error saat generate virtual face: {type(e).__name__} - {str(e)}")
         return []
 
+    # --- Generate preview_combined.jpg for display ---
+    try:
+        import numpy as np
+        display_frame = np.zeros((720, 1280, 3), dtype=np.uint8)
+        preview_frame = render_generated_faces(display_frame, saved_files)
+        combined_path = "public/generated_faces/preview_combined.jpg"
+        cv2.imwrite(combined_path, preview_frame)
+        print(f"✅ Preview frame disimpan: {combined_path}", flush=True)
+
+        # Optional upload to Drive
+        if drive_service:
+            try:
+                link = upload_file(combined_path, "image/jpeg", drive_service)
+                print(f"☁️ Uploaded combined preview: {link}", flush=True)
+            except Exception as ex:
+                print(f"⚠️ Gagal upload preview_combined.jpg: {ex}", flush=True)
+
+    except Exception as render_ex:
+        print(f"⚠️ Gagal membuat preview combined: {render_ex}", flush=True)
+
     return saved_files
 
+import numpy as np
 # ------------------ Render Generated Faces ------------------
 def render_generated_faces(display_frame, generated_faces, bottom_margin=140):
     """
