@@ -647,13 +647,13 @@ def analyze_face():
     import time
     # 🚨 PATCH: Emit dummy faces if none generated to trigger frontend gallery
     if not generated_faces and sio.connected:
-    sio.emit('generated_faces', {
-        'faces': [],
-        'status': 'pending'  # ⬅️ Tambahan status
-        'message': 'Sedang menunggu hasil generate dari AI stylist...'
-        'start_timestamp': int(time.time())
-    })
-    print("🧪 No faces generated, emit pending status.", flush=True)
+        sio.emit('generated_faces', {
+            'faces': [],
+            'status': 'pending'  # ⬅️ Tambahan status
+            'message': 'Sedang menunggu hasil generate dari AI stylist...'
+            'start_timestamp': int(time.time())
+        })
+        print("🧪 No faces generated, emit pending status.", flush=True)
     analyze_done = False
     analysis_started = False
     status_msg = "✅ Selesai! Tekan [q] untuk keluar."
