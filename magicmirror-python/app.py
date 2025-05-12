@@ -23,7 +23,7 @@ def run_face_consultant():
 # ✅ Serve generated faces statically from backend folder
 @app.route('/generated_faces/<path:filename>')
 def serve_generated_face(filename):
-    return send_from_directory('generated_faces', filename)
+    return send_from_directory(os.path.join(app.static_folder, 'generated_faces'), filename)
 
 
 

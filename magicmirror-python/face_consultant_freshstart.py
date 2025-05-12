@@ -561,8 +561,8 @@ def analyze_face():
                     else:
                         raise Exception("WebSocket not connected")
                 except Exception as e:
-                        print(f"⚠️ Gagal kirim generated faces ke web: {e}", flush=True)
-                        print("☁️ Fallback: Upload semua wajah ke Google Drive.", flush=True)
+                    print(f"⚠️ Gagal kirim generated faces ke web: {e}", flush=True)
+                    print("☁️ Fallback: Upload semua wajah ke Google Drive.", flush=True)
 
                 # ✅ Upload semua hasil generated_faces ke Google Drive
                 drive_links = []
@@ -598,6 +598,8 @@ def analyze_face():
                 try:
                     if sio.connected and drive_links:
                         sio.emit('generated_faces', {'faces': drive_links})
+                        # PATCH: Set global generated_faces to drive_links after emitting
+                        globals()["generated_faces"] = drive_links
                         print("🔁 Re-emitted generated_faces to frontend from Drive links.", flush=True)
                 except Exception as e:
                     print(f"⚠️ Gagal emit ulang generated_faces dari Drive: {e}", flush=True)
@@ -920,8 +922,10 @@ def run(photo_base64):
         "recommendation": recommendation
     }
 
-    if generated_faces:
-        result["faces"] = generated_faces
+    # Always use global generated_faces (which may be updated with Drive links)
+    faces_to_return = globals().get("generated_faces", [])
+    if faces_to_return:
+        result["faces"] = faces_to_return
     else:
         result["error"] = "No faces generated."
 
