@@ -67,6 +67,7 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
     os.makedirs(output_folder, exist_ok=True)
 
     # Removed fallback to environment variable for photo_url.
+    drive_links = []
 
     try:
         with open(latest_photo_path, "rb") as image_file:
@@ -127,6 +128,7 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
                                     mime_type = "image/jpeg"
                                     try:
                                         link = upload_file(filename, mime_type, drive_service)
+                                        drive_links.append(link)
                                         print(f"☁️ Uploaded generated face: {link}", flush=True)
                                     except Exception as ex:
                                         print(f"⚠️ Gagal upload generated face: {ex}", flush=True)
@@ -180,8 +182,9 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
     except Exception as render_ex:
         print(f"⚠️ Gagal membuat preview combined: {render_ex}", flush=True)
 
-    web_friendly_files = [f"/generated_faces/{os.path.basename(f)}" for f in saved_files]
-    return web_friendly_files
+    # ✅ Langsung return link Google Drive
+    return drive_links
+
 
 import numpy as np
 # ------------------ Render Generated Faces ------------------
