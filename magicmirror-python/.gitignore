@@ -5,7 +5,7 @@ credentials.json
 
 # Folder runtime
 captured_faces/
-generated_faces/
+generated_faces/*
 !generated_faces/.gitkeep
 VOICE_AI_FILES/
 promo_voice_files/
