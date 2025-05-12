@@ -21,9 +21,10 @@ def run_face_consultant():
         return jsonify({"error": str(e)}), 500
 
 # ✅ Serve generated faces statically from backend folder
-@app.route('/public/generated_faces/<path:filename>')
+@app.route('/generated_faces/<path:filename>')
 def serve_generated_face(filename):
     return send_from_directory('generated_faces', filename)
+
 
 
 if __name__ == '__main__':

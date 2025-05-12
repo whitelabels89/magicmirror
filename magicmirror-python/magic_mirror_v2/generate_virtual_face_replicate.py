@@ -1,3 +1,5 @@
+os.makedirs(os.path.join("public", "generated_faces"), exist_ok=True)
+# ------------------ Import Required Libraries ------------------
 TEST_MODE = False
 
 import replicate
@@ -62,7 +64,7 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
     ]
 
     saved_files = []
-    output_folder = "generated_faces"
+    output_folder = os.path.join("public", "generated_faces")
     os.makedirs(output_folder, exist_ok=True)
 
     # Removed fallback to environment variable for photo_url.
@@ -130,7 +132,7 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
                                     except Exception as ex:
                                         print(f"⚠️ Gagal upload generated face: {ex}", flush=True)
 
-                                    saved_files.append(f"/generated_faces/{os.path.basename(filename)}")
+                                    saved_files.append(os.path.join("public", "generated_faces", os.path.basename(filename)))
                                     print(f"✅ Saved generated face: {filename}")
                                 else:
                                     print(f"⚠️ Gagal download gambar (HTTP {response.status_code}) dari {img_url}")
@@ -164,7 +166,7 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
         import numpy as np
         display_frame = np.zeros((720, 1280, 3), dtype=np.uint8)
         preview_frame = render_generated_faces(display_frame, saved_files)
-        combined_path = "generated_faces/preview_combined.jpg"
+        combined_path = os.path.join("public", "generated_faces", "preview_combined.jpg")
         cv2.imwrite(combined_path, preview_frame)
         print(f"✅ Preview frame disimpan: {combined_path}", flush=True)
 
