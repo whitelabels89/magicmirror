@@ -486,10 +486,43 @@
         socket.on('generated_faces', (data) => {
             console.log('🖼️ Generated faces diterima.');
             const gallery = document.getElementById('gallery');
-            document.getElementById('waiting-replicate').style.display = 'none';
+            const statusEl = document.getElementById('status');
+            const loadingEl = document.getElementById('loading');
+            const waitingEl = document.getElementById('waiting-replicate');
+
+            // Bersihkan loading awal
+            loadingEl.style.display = 'none';
+            waitingEl.style.display = 'none';
 
             const validFaces = (data.faces || []).filter(url => url && url.trim() !== '');
 
+            // ✅ Tampilkan pesan status dari backend
+            if (data.message) {
+                statusEl.innerText = data.message;
+                statusEl.style.color = '#ffdd57';
+            }
+
+            // ⏳ Kalau status pending & belum ada hasil: tampilkan countdown
+            if (data.status === 'pending' && validFaces.length === 0 && data.start_timestamp) {
+                const countdownTarget = data.start_timestamp + 40;
+                waitingEl.style.display = 'block';
+
+                const interval = setInterval(() => {
+                    const now = Math.floor(Date.now() / 1000);
+                    const remaining = countdownTarget - now;
+                    if (remaining <= 0) {
+                        waitingEl.innerText = "⏳ Hampir selesai... harap tunggu.";
+                        clearInterval(interval);
+                    } else {
+                        waitingEl.innerText = `✨ Visualisasi akan tampil dalam ${remaining} detik...`;
+                    }
+                }, 1000);
+
+                // Tampilkan loading spinner
+                loadingEl.style.display = 'block';
+            }
+
+            // 🎨 Kalau ada hasil wajah, tampilkan ke galeri
             if (validFaces.length > 0) {
                 gallery.innerHTML = '';
                 validFaces.forEach((url, index) => {
@@ -504,10 +537,11 @@
                 setTimeout(() => {
                     gallery.scrollIntoView({ behavior: 'smooth' });
                 }, 300);
+                loadingEl.style.display = 'none';
+                waitingEl.style.display = 'block'; // boleh tampilkan caption "hasil berhasil diterima"
             }
-
-            document.getElementById('loading').style.display = 'none'; // Hide loading indicator
         });
+
 
         // Lightbox for gallery images
         document.getElementById('gallery').addEventListener('click', (e) => {
