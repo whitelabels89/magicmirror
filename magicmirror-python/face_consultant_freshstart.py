@@ -597,7 +597,7 @@ def analyze_face():
                 # 🔁 Emit ulang ke frontend jika koneksi WebSocket sudah tersedia kembali
                 try:
                     if sio.connected and drive_links:
-                        sio.emit('generated_faces', {'faces': drive_links})
+                        sio.emit('generated_faces', {'faces': drive_links,'session_id': session_id})
                         # PATCH: Set global generated_faces to drive_links after emitting
                         globals()["generated_faces"] = drive_links
                         print("🔁 Re-emitted generated_faces to frontend from Drive links.", flush=True)
@@ -646,13 +646,17 @@ def analyze_face():
 
     # 🚨 PATCH: Emit dummy faces if none generated to trigger frontend gallery
     if not generated_faces and sio.connected:
-        sio.emit('generated_faces', {
-            'faces': [],
-            'status': 'pending',  # ⬅️ Tambahan status
-            'message': 'Sedang menunggu hasil generate dari AI stylist...',
-            'start_timestamp': int(time.time())
-        })
-        print("🧪 No faces generated, emit pending status.", flush=True)
+        try:
+            sio.emit('generated_faces', {
+                'faces': [],
+                'status': 'pending',
+                'message': 'Sedang menunggu hasil generate dari AI stylist...',
+                'start_timestamp': int(time.time())
+                'session_id': session_id
+            })
+            print("🧪 No faces generated, emit pending status.", flush=True)
+        except Exception as e:
+            print(f"⚠️ Gagal emit pending status: {e}", flush=True)
     analyze_done = False
     analysis_started = False
     status_msg = "✅ Selesai! Tekan [q] untuk keluar."
@@ -819,7 +823,7 @@ if __name__ == "__main__":
 
 # ------------------ Cleanup ------------------
 # ------------------ API run function ------------------
-def run(photo_base64):
+def run(photo_base64, session_id=None):
     global latest_captured_face_path, analysis_started, face_shape, skin_tone, recommendation, generated_faces
 
     # ✅ Validasi base64 input sebelum decode

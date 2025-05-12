@@ -15,7 +15,8 @@ def run_face_consultant():
     try:
         data = request.get_json()
         photo = data.get('photo')  # base64 image
-        result = face_consultant_freshstart.run(photo)
+        session_id = data.get('session_id')  # get session_id from frontend
+        result = face_consultant_freshstart.run(photo, session_id=session_id)
         return jsonify(result)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
