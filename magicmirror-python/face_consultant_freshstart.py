@@ -34,7 +34,8 @@ from googleapiclient.http import MediaFileUpload
 # --- Magic Mirror UI Overlay ---
 from magic_mirror_v2.generate_virtual_face import render_full_magic_mirror, handle_mouse_click
 # Import lengkap untuk virtual face gallery & klik (Replicate)
-from magic_mirror_v2.generate_virtual_face_replicate import generate_virtual_face_replicate, render_generated_faces, handle_face_click
+from magic_mirror_v2.generate_virtual_face_replicate import generate_virtual_face_replicate
+from magic_mirror_v2.generate_virtual_face import render_generated_faces, handle_mouse_click as handle_face_click
 
 # -------------------------- SOCKET.IO CLIENT --------------------------
 import socketio

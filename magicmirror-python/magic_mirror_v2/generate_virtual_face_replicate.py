@@ -138,7 +138,7 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
                 if not success:
                     print(f"❌ Gagal setelah {max_retries} percobaan untuk prompt {idx}")
     except Exception as e:
-        print(f"🔥 Critical error saat generate virtual face: {type(e).__name__} - {str(e)}")
+        print(f"🔥 Critiical error saat generate virtual face: {type(e).__name__} - {str(e)}")
         return []
 
     return saved_files
