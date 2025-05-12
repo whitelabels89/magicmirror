@@ -115,14 +115,7 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
                                         time.sleep(0.5)
                                         while not os.path.exists(filename):
                                             time.sleep(0.1)
-
-                                    # Copy to public folder
-                                    output_folder = "generated_faces"
-                                    os.makedirs(output_folder, exist_ok=True)
-                                    public_path = os.path.join(output_folder, os.path.basename(filename))
-                                    shutil.copy(filename, public_path)
-                                    print(f"📂 Copy to accessible folder: {public_path}")
-
+                                    print(f"📂 File sudah disimpan: {filename}")
 
                                     # Ensure drive_service is initialized
                                     global drive_service
@@ -137,7 +130,7 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
                                     except Exception as ex:
                                         print(f"⚠️ Gagal upload generated face: {ex}", flush=True)
 
-                                    saved_files.append(os.path.join("generated_faces", os.path.basename(filename)))
+                                    saved_files.append(f"/generated_faces/{os.path.basename(filename)}")
                                     print(f"✅ Saved generated face: {filename}")
                                 else:
                                     print(f"⚠️ Gagal download gambar (HTTP {response.status_code}) dari {img_url}")
