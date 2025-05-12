@@ -136,7 +136,7 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
                                     except Exception as ex:
                                         print(f"⚠️ Gagal upload generated face: {ex}", flush=True)
 
-                                    saved_files.append(f"/public/generated_faces/{os.path.basename(filename)}")
+                                    saved_files.append(os.path.join("generated_faces", os.path.basename(filename)))
                                     print(f"✅ Saved generated face: {filename}")
                                 else:
                                     print(f"⚠️ Gagal download gambar (HTTP {response.status_code}) dari {img_url}")
@@ -223,7 +223,7 @@ def render_generated_faces(display_frame, generated_faces, bottom_margin=140):
         try:
             # Extract filename from URL
             filename = os.path.basename(face_url)
-            full_path = os.path.join("public", "generated_faces", filename)
+            full_path = os.path.join("generated_faces", os.path.basename(face_url))
             
             if not os.path.exists(full_path):
                 print(f"⚠️ File tidak ditemukan: {full_path}")
