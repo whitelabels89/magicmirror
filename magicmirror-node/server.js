@@ -50,6 +50,11 @@ app.post('/push_faces_to_frontend', (req, res) => {
 io.on('connection', (socket) => {
     console.log('✅ User connected via WebSocket');
 
+    socket.on('join', ({ session_id }) => {
+        socket.join(session_id);
+        console.log(`👥 User bergabung ke session: ${session_id}`);
+    });
+
     socket.on('user_photo', (data) => {
         console.log('📷 Foto user diterima dari browser, broadcast ke Python server...');
         socket.broadcast.emit('user_photo', data);
@@ -61,8 +66,10 @@ io.on('connection', (socket) => {
     });
 
     socket.on('generated_faces', (data) => {
-        console.log(`🖼️ ${data.faces.length} generated faces diterima dari Python.`);
-        io.emit('generated_faces', data);
+        console.log(`🖼️ ${data.faces?.length || 0} generated faces diterima dari Python untuk sesi ${data.session_id}`);
+        if (data.session_id) {
+            io.to(data.session_id).emit('generated_faces', data);
+        }
     });
 
     socket.on('request_capture', () => {

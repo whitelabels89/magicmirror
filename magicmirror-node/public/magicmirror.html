@@ -380,6 +380,7 @@
     </script>
     <script src="/socket.io/socket.io.js"></script>
     <script>
+        const sessionId = `${Date.now()}_${Math.floor(Math.random() * 100000)}`;
         const socket = io('https://queensacademy.id');
         let connected = false;
         // stream will be set by camera script, but for safety, we check window.stream too
@@ -471,6 +472,8 @@
             setStatus('Standby, Turn on Magic Mirror', '#00ff99');
             document.getElementById('loading').style.display = 'none';
             updateCaptureButton();
+            socket.emit('join', { session_id: sessionId });
+            console.log("🔐 Session ID dikirim ke server:", sessionId);
         });
         socket.on('ai_result', (data) => {
             console.log('🧠 Rekomendasi AI diterima.');
@@ -484,6 +487,7 @@
             document.getElementById('waiting-replicate').style.display = 'block';
         });
         socket.on('generated_faces', (data) => {
+            if (data.session_id && data.session_id !== sessionId) return; // ⛔ Abaikan jika bukan untuk sesi ini
             console.log('🖼️ Generated faces diterima.');
             const gallery = document.getElementById('gallery');
             const statusEl = document.getElementById('status');
