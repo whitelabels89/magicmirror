@@ -136,7 +136,7 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
                                     except Exception as ex:
                                         print(f"⚠️ Gagal upload generated face: {ex}", flush=True)
 
-                                    saved_files.append(f"/generated_faces/{os.path.basename(filename)}")
+                                    saved_files.append(f"public/generated_faces/{os.path.basename(filename)}")
                                     print(f"✅ Saved generated face: {filename}")
                                 else:
                                     print(f"⚠️ Gagal download gambar (HTTP {response.status_code}) dari {img_url}")
@@ -185,7 +185,8 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
     except Exception as render_ex:
         print(f"⚠️ Gagal membuat preview combined: {render_ex}", flush=True)
 
-    return saved_files
+    web_friendly_files = [f"/generated_faces/{os.path.basename(f)}" for f in saved_files]
+    return web_friendly_files
 
 import numpy as np
 # ------------------ Render Generated Faces ------------------
