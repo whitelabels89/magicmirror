@@ -479,7 +479,7 @@ def analyze_face():
             color = match_color.group(3).strip()
         return style, color
     hairstyle, haircolor = extract_style_color(recommendation)
-    prompt = f"portrait of a woman, {hairstyle}, {haircolor} hair, studio lighting, 4k, elegant, soft background"
+    prompt = f"ultrarealistic portrait, {hairstyle}, {haircolor} hair, studio lighting, 4k, elegant, soft background"
 
     # Step 2: Emit photo and GPT result to Web
     if latest_captured_face_path and recommendation:

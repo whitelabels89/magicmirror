@@ -117,11 +117,12 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
                                             time.sleep(0.1)
 
                                     # Copy to public folder
-                                    public_folder = os.path.join("public", "generated_faces")
-                                    os.makedirs(public_folder, exist_ok=True)
-                                    public_path = os.path.join(public_folder, os.path.basename(filename))
+                                    output_folder = "generated_faces"
+                                    os.makedirs(output_folder, exist_ok=True)
+                                    public_path = os.path.join(output_folder, os.path.basename(filename))
                                     shutil.copy(filename, public_path)
-                                    print(f"📂 Copy to public folder: {public_path}")
+                                    print(f"📂 Copy to accessible folder: {public_path}")
+
 
                                     # Ensure drive_service is initialized
                                     global drive_service
@@ -170,7 +171,7 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
         import numpy as np
         display_frame = np.zeros((720, 1280, 3), dtype=np.uint8)
         preview_frame = render_generated_faces(display_frame, saved_files)
-        combined_path = "public/generated_faces/preview_combined.jpg"
+        combined_path = "generated_faces/preview_combined.jpg"
         cv2.imwrite(combined_path, preview_frame)
         print(f"✅ Preview frame disimpan: {combined_path}", flush=True)
 
