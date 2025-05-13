@@ -300,15 +300,15 @@
             Click to Analyze
         </button>
         <div id="status">Waiting Analyze...</div>
-        <div id="waiting-replicate" style="display:none; font-size: 1rem; color: #ffdd57; margin-top: 10px;">
-          ✨ Sedang memproses visualisasi gaya rambut AI... Harap tunggu hasilnya tampil di bawah.
-        </div>
-        <div id="loading" class="loading" style="display: none;"></div>
         <img id="photo" src="" style="display:none; max-width: 300px; margin-top: 20px;" />
         <div id="recommendation" style="display:none;">
             <h2>Rekomendasi Gaya Rambut</h2>
             <p id="rec-content"></p>
         </div>
+        <div id="waiting-replicate" style="display:none; font-size: 1rem; color: #ffdd57; margin-top: 10px;">
+          ✨ Sedang memproses visualisasi gaya rambut AI... Harap tunggu hasilnya tampil di bawah.
+        </div>
+        <div id="loading" class="loading" style="display: none;"></div>
         <div id="gallery" style="display: flex; flex-wrap: wrap; justify-content: center; margin-top: 20px;"></div>
     </div>
     <div id="footer-placeholder"></div>
@@ -417,6 +417,7 @@
 
             setStatus('🔍 Menganalisis wajah...', '#fff700');
             document.getElementById('loading').style.display = 'block';
+            // ✅ Spinner awal rekomendasi tetap dipertahankan
             document.getElementById('recommendation').style.display = 'none';
             document.getElementById('gallery').innerHTML = '';
             document.getElementById('waiting-replicate').style.display = 'none';
@@ -452,7 +453,7 @@
                             gallery.scrollIntoView({ behavior: 'smooth' });
                         }, 300);
                     }
-
+                    // ⬇️ Pindahkan waiting-replicate di sini, setelah recommendation tampil
                     document.getElementById('waiting-replicate').style.display = 'block';
                 } else {
                     setStatus('⚠️ Gagal: ' + (data.error || 'Tidak terdeteksi wajah.'), 'orange');
@@ -489,6 +490,7 @@
 socket.on('generated_faces', (data) => {
     if (data.session_id && data.session_id !== sessionId) return; // ⛔ Abaikan jika bukan untuk sesi ini
     console.log('🖼️ Generated faces diterima.');
+    console.log("⏳ start_timestamp:", data.start_timestamp);
     const gallery = document.getElementById('gallery');
     const statusEl = document.getElementById('status');
     const loadingEl = document.getElementById('loading');
@@ -502,8 +504,8 @@ socket.on('generated_faces', (data) => {
         statusEl.style.color = '#ffdd57';
     }
 
-    // ⏳ Kalau status pending & belum ada hasil: tampilkan countdown
-    if (data.status === 'pending' && validFaces.length === 0 && data.start_timestamp) {
+    // ⏳ Countdown dan spinner hanya saat status === 'pending'
+    if (data.status === 'pending' && data.start_timestamp && validFaces.length === 0) {
         const countdownTarget = data.start_timestamp + 120;
         waitingEl.style.display = 'block';
 
@@ -523,7 +525,7 @@ socket.on('generated_faces', (data) => {
         updateCountdown();
         interval = setInterval(updateCountdown, 1000);
 
-        // Tampilkan loading spinner
+        // ✅ Spinner awal rekomendasi tetap dipertahankan
         loadingEl.style.display = 'block';
         // Do NOT hide loadingEl or waitingEl here; only after countdown ends or faces shown
     }
