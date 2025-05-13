@@ -93,10 +93,40 @@
     <p>
       Ingin menguasai cara bertanya yang benar ke AI? eBook ini akan membimbingmu membuat prompt yang powerful, efektif, dan sesuai kebutuhanmu. Cocok untuk content creator, marketer, pemula, hingga profesional.
     </p>
-    <div class="price">Harga: Rp49.999</div>
-    <a href="https://api.queensacademy.id/create-transaction" class="buy-btn">Beli Sekarang</a>
+    <div class="price">Harga: Rp15.000</div>
+  
+    <form id="checkout-form" style="margin-top: 30px;">
+      <input type="text" name="nama" placeholder="Nama Lengkap" required style="width:100%;padding:12px;margin-bottom:12px;border-radius:8px;border:none;font-size:1rem;" />
+      <input type="email" name="email" placeholder="Email" required style="width:100%;padding:12px;margin-bottom:12px;border-radius:8px;border:none;font-size:1rem;" />
+      <input type="tel" name="whatsapp" placeholder="Nomor WhatsApp" required style="width:100%;padding:12px;margin-bottom:12px;border-radius:8px;border:none;font-size:1rem;" />
+      <button type="submit" class="buy-btn">Beli Sekarang</button>
+    </form>
+  
+    <div id="pay-result" style="margin-top:30px;"></div>
   </div>
-
+  
+  <script>
+  document.getElementById('checkout-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const body = Object.fromEntries(formData.entries());
+  
+    const res = await fetch('https://queensacademy.id/create-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+  
+    const result = await res.json();
+    if (result.success) {
+      document.getElementById('pay-result').innerHTML = `
+        <p>✅ Transaksi berhasil dibuat. Silakan scan QR di bawah ini untuk membayar:</p>
+        <iframe src="${result.pay_url}" width="100%" height="460" frameborder="0" style="border-radius:12px;"></iframe>`;
+    } else {
+      document.getElementById('pay-result').innerHTML = `<p style="color:orange;">❌ Gagal: ${result.message}</p>`;
+    }
+  });
+  </script>
   <div id="footer-placeholder"></div>
   <script>
     fetch('/footer.html')
