@@ -119,9 +119,8 @@
   
     const result = await res.json();
     if (result.success) {
-      document.getElementById('pay-result').innerHTML = `
-        <p>✅ Transaksi berhasil dibuat. Silakan scan QR di bawah ini untuk membayar:</p>
-        <iframe src="${result.pay_url}" width="100%" height="460" frameborder="0" style="border-radius:12px;"></iframe>`;
+      window.location.href = result.pay_url;
+      return;
     } else {
       document.getElementById('pay-result').innerHTML = `<p style="color:orange;">❌ Gagal: ${result.message}</p>`;
     }
