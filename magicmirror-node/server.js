@@ -93,6 +93,11 @@ app.post("/create-checkout", async (req, res) => {
     }
 });
 
+// Menangani GET ke /api-callback agar tidak error 404 saat dibuka manual
+app.get("/api-callback", (req, res) => {
+    res.status(200).send("✅ Endpoint Tripay callback aktif. Harap gunakan metode POST untuk pengiriman data.");
+});
+
 // Endpoint: Tripay payment callback
 app.post("/api-callback", async (req, res) => {
     const data = req.body;
