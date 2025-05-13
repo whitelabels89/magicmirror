@@ -48,7 +48,7 @@ app.post('/push_faces_to_frontend', (req, res) => {
     }
 });
 
-// Endpoint: create-checkout untuk Tripay payment
+// Endpoint: create-checkout untuk Tripaaay payment
 app.post("/create-checkout", async (req, res) => {
     const { nama, email, whatsapp } = req.body;
 
