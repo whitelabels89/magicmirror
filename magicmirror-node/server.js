@@ -5,15 +5,8 @@ const app = express();
 const http = require('http').createServer(app);
 const io = require('socket.io')(http, { cors: { origin: "*" } });
 const path = require('path');
-const { createProxyMiddleware } = require('http-proxy-middleware');
 
 const PORT = process.env.PORT || 3000;
-
-// Proxy ke backend tripay-checkout agar route ini bisa diakses dari queensacademy.id
-app.use('/create-checkout', createProxyMiddleware({
-    target: 'https://tripay-checkout.onrender.com',
-    changeOrigin: true
-}));
 
 // Serve static files from /public
 app.use(express.static(path.join(__dirname, 'public')));
@@ -52,6 +45,51 @@ app.post('/push_faces_to_frontend', (req, res) => {
         res.status(200).send({ success: true });
     } else {
         res.status(400).send({ error: 'No faces received.' });
+    }
+});
+
+// Endpoint: create-checkout untuk Tripaaay payment
+app.post("/create-checkout", async (req, res) => {
+    const { nama, email, whatsapp } = req.body;
+
+    if (!nama || !email || !whatsapp) {
+        return res.status(400).json({ success: false, message: "Semua field wajib diisi" });
+    }
+
+    try {
+        const response = await axios.post(
+            "https://tripay.co.id/api/transaction/create",
+            {
+                method: "QRIS",
+                merchant_ref: "QCEB1-" + Date.now(),
+                amount: 15000,
+                customer_name: nama,
+                customer_email: email,
+                customer_phone: whatsapp,
+                order_items: [
+                    {
+                        sku: "QCEB1",
+                        name: "QCEB1 Master Prompt",
+                        price: 15000,
+                        quantity: 1,
+                    },
+                ],
+                callback_url: "https://queensacademy.id/api-callback",
+                return_url: "https://queensacademy.id/ebook-checkout.html"
+            },
+            {
+                headers: {
+                    Authorization: "Bearer " + process.env.TRIPAY_API_KEY,
+                },
+            }
+        );
+
+        return res.json({ success: true, pay_url: response.data.data.checkout_url });
+
+    } catch (err) {
+        const detail = err.response?.data || err.message;
+        console.error("❌ Tripay Error:", detail);
+        return res.status(500).json({ success: false, message: "Gagal membuat transaksi", detail });
     }
 });
 
