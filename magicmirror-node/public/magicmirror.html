@@ -302,11 +302,13 @@
         <div id="status">Waiting Analyze...</div>
         <img id="photo" src="" style="display:none; max-width: 300px; margin-top: 20px;" />
         <div id="recommendation" style="display:none;">
+            <div id="countdown-timer" style="font-size: 1rem; color: #ffdd57; margin-top: 12px;"></div>
+            <div id="visual-loading" class="loading" style="display: none;"></div>
             <h2>Rekomendasi Gaya Rambut</h2>
             <p id="rec-content"></p>
         </div>
         <div id="waiting-replicate" style="display:none; font-size: 1rem; color: #ffdd57; margin-top: 10px;">
-          ✨ Sedang memproses visualisasi gaya rambut AI... Harap tunggu hasilnya tampil di bawah.
+          ✨ Sedang memproses visualisasi gaya rambut AI... Harap tunggu hasilnya tampil di bawah, Estimasi 2 menit.
         </div>
         <div id="loading" class="loading" style="display: none;"></div>
         <div id="gallery" style="display: flex; flex-wrap: wrap; justify-content: center; margin-top: 20px;"></div>
@@ -422,6 +424,8 @@
             document.getElementById('gallery').innerHTML = '';
             document.getElementById('waiting-replicate').style.display = 'none';
 
+            const startTimestamp = Math.floor(Date.now() / 1000);
+            console.log("📤 Mengirim foto ke backend... start_timestamp:", startTimestamp);
             fetch('https://qc-magicmirror-api.onrender.com/run', {
                 method: 'POST',
                 headers: {
@@ -432,6 +436,9 @@
             .then(response => response.json())
             .then(data => {
                 console.log('✅ Respon AI:', data);
+                if (data.status === 'pending') {
+                    console.log("🕒 Status pending diterima. start_timestamp:", data.start_timestamp || 'N/A');
+                }
 
                 if (data.status === 'done') {
                     document.getElementById('rec-content').innerText = data.recommendation || 'Tidak ada rekomendasi.';
@@ -508,6 +515,7 @@ socket.on('generated_faces', (data) => {
     if (data.status === 'pending' && data.start_timestamp && validFaces.length === 0) {
         const countdownTarget = data.start_timestamp + 120;
         waitingEl.style.display = 'block';
+        document.getElementById('visual-loading').style.display = 'block';
 
         let interval = null;
         const updateCountdown = () => {
@@ -516,10 +524,12 @@ socket.on('generated_faces', (data) => {
             if (remaining <= 0) {
                 waitingEl.innerText = "⏳ Hampir selesai... harap tunggu.";
                 loadingEl.style.display = 'none';
+                document.getElementById('visual-loading').style.display = 'none';
+                document.getElementById('countdown-timer').innerText = '';
                 // Do not hide waitingEl yet, let it display the message
                 clearInterval(interval);
             } else {
-                waitingEl.innerText = `✨ Visualisasi akan tampil dalam ${remaining} detik...`;
+                document.getElementById('countdown-timer').innerText = `✨ Visualisasi akan tampil dalam ${remaining} detik...`;
             }
         };
         updateCountdown();
@@ -547,6 +557,8 @@ socket.on('generated_faces', (data) => {
         }, 300);
         loadingEl.style.display = 'none';
         waitingEl.style.display = 'none';
+        document.getElementById('visual-loading').style.display = 'none';
+        document.getElementById('countdown-timer').innerText = '';
     }
 });
 
