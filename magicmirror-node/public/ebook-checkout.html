@@ -87,6 +87,88 @@
         document.getElementById('navbar').innerHTML = data;
       });
   </script>
+  <script>
+    function bindDropdowns() {
+      const toggle = document.getElementById('dropdownToggle');
+      const menu = document.getElementById('dropdownMenu');
+      const toggle2 = document.getElementById('dropdownToggleEcourse');
+      const menu2 = document.getElementById('dropdownMenuEcourse');
+
+      if (toggle && menu && !toggle.dataset.bound) {
+        toggle.dataset.bound = true;
+        toggle.addEventListener('click', function (e) {
+          e.preventDefault();
+          menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+        });
+        document.addEventListener('click', function (e) {
+          if (!toggle.contains(e.target) && !menu.contains(e.target)) {
+            menu.style.display = 'none';
+          }
+        });
+      }
+
+      if (toggle2 && menu2 && !toggle2.dataset.bound) {
+        toggle2.dataset.bound = true;
+        toggle2.addEventListener('click', function (e) {
+          e.preventDefault();
+          menu2.style.display = (menu2.style.display === 'block') ? 'none' : 'block';
+        });
+        document.addEventListener('click', function (e) {
+          if (!toggle2.contains(e.target) && !menu2.contains(e.target)) {
+            menu2.style.display = 'none';
+          }
+        });
+      }
+    }
+
+    // Coba bind dropdowns setiap 200ms hingga elemen ditemukan
+    let tries = 0;
+    const dropdownInterval = setInterval(() => {
+      const found = document.getElementById('dropdownToggle') && document.getElementById('dropdownToggleEcourse');
+      if (found || tries > 20) {
+        clearInterval(dropdownInterval);
+        bindDropdowns();
+      }
+      tries++;
+    }, 200);
+  </script>
+  <script>
+  function bindDropdowns() {
+    const toggle = document.getElementById('dropdownToggle');
+    const menu = document.getElementById('dropdownMenu');
+    const toggle2 = document.getElementById('dropdownToggleEcourse');
+    const menu2 = document.getElementById('dropdownMenuEcourse');
+
+    if (toggle && menu && !toggle.dataset.bound) {
+      toggle.dataset.bound = true;
+      toggle.addEventListener('click', function (e) {
+        e.preventDefault();
+        menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+      });
+      document.addEventListener('click', function (e) {
+        if (!toggle.contains(e.target) && !menu.contains(e.target)) {
+          menu.style.display = 'none';
+        }
+      });
+    }
+
+    if (toggle2 && menu2 && !toggle2.dataset.bound) {
+      toggle2.dataset.bound = true;
+      toggle2.addEventListener('click', function (e) {
+        e.preventDefault();
+        menu2.style.display = (menu2.style.display === 'block') ? 'none' : 'block';
+      });
+      document.addEventListener('click', function (e) {
+        if (!toggle2.contains(e.target) && !menu2.contains(e.target)) {
+          menu2.style.display = 'none';
+        }
+      });
+    }
+  }
+
+  // Bind dropdowns after navbar is loaded
+  setTimeout(bindDropdowns, 300);
+</script>
 
   <div class="container">
     <h1>Beli eBook: Master Prompt AI</h1>
