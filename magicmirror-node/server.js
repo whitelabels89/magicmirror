@@ -70,13 +70,7 @@ io.on('connection', (socket) => {
     socket.on('generated_faces', (data) => {
         console.log(`🖼️ ${data.faces?.length || 0} generated faces diterima dari Python untuk sesi ${data.session_id}`);
         if (data.session_id) {
-            const payload = {
-                ...data,
-                status: data.status || 'done',
-                message: data.message || '',
-                start_timestamp: data.start_timestamp || Math.floor(Date.now() / 1000)
-            };
-            io.to(data.session_id).emit('generated_faces', payload);
+            io.to(data.session_id).emit('generated_faces', data);
         }
     });
 
