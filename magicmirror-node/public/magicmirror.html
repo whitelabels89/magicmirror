@@ -336,11 +336,6 @@
 
     <script>
     window.addEventListener('DOMContentLoaded', () => {
-        const video = document.getElementById('camera-preview');
-        if (!video || video.videoWidth === 0) {
-            alert("❌ Gagal: Kamera belum aktif. Silakan klik Turn On Magic Mirror terlebih dahulu.");
-            return;
-        }
         const placeholder = document.getElementById('camera-placeholder');
         const toggleBtn = document.getElementById('toggle-camera-button');
         let stream = null;
