@@ -515,16 +515,17 @@ def generate_voice_elevenlabs(text, output_filename):
 
 # -------------------------- ANALYSIS MAIN FUNCTION --------------------------
 def analyze_face(session_id):
-    if session_id not in session_states:
-        print(f"⚠️ Session {session_id} belum ada. Coba tunggu 0.3 detik untuk sync...")
-        time.sleep(0.3)
+    ensure_session_exists(session_id)
+# -------------------------- UTILITIES --------------------------
 
+# Utility function to ensure session exists
+def ensure_session_exists(session_id, visitor_name="-", visitor_wa="-"):
     if session_id not in session_states:
-        print(f"🛠️ PATCH: Session baru dibuat di analyze_face() untuk session_id: {session_id}")
+        print(f"🛠️ PATCH: Session baru dibuat untuk session_id: {session_id}")
         session_states[session_id] = {
             "visitor_info": {
-                "name": "-",
-                "wa": "-",
+                "name": visitor_name,
+                "wa": visitor_wa,
                 "session_id": session_id
             },
             "face_shape": None,
@@ -536,6 +537,7 @@ def analyze_face(session_id):
         }
     else:
         print(f"✅ Session {session_id} sudah tersedia. Tidak perlu patch ulang.")
+
 
     visitor = session_states[session_id].get("visitor_info", {})
     if not visitor.get("name") or not visitor.get("wa"):
