@@ -414,6 +414,11 @@
       color: #ffe58e;
     }
 
+    .section-cta {
+      position: relative;
+      z-index: 10;
+    }
+
     .section-about h2,
     .section-testimoni h2,
     .section-cta h2 {
@@ -436,6 +441,15 @@
       flex-direction: column;
       gap: 1.2rem;
       align-items: center;
+      position: relative;
+      z-index: 20;
+    }
+
+    .cta-form input,
+    .cta-form select,
+    .cta-form button {
+      position: relative;
+      z-index: 30;
     }
 
     .cta-form input,
