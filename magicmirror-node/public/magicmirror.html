@@ -407,9 +407,10 @@
             else status.style.color = '#00ff99';
         }
         function updateCaptureButton() {
-            // Hanya aktif jika sudah connect DAN form user info sudah diisi/hilang
             const userInfoForm = document.getElementById('user-info-form');
-            if (connected && (!userInfoForm || userInfoForm.style.display === 'none')) {
+            const name = localStorage.getItem('visitor_name');
+            const wa = localStorage.getItem('visitor_wa');
+            if (connected && name && wa && (!userInfoForm || userInfoForm.style.display === 'none')) {
                 captureBtn.disabled = false;
                 captureBtn.style.opacity = '1';
                 captureBtn.style.cursor = 'pointer';
@@ -420,6 +421,9 @@
             }
         }
         document.getElementById('capture-button').addEventListener('click', () => {
+            console.log("📦 Mengirim foto dengan sessionId:", sessionId);
+            console.log("📦 visitor_name:", localStorage.getItem('visitor_name'));
+            console.log("📦 visitor_wa:", localStorage.getItem('visitor_wa'));
             const video = document.getElementById('camera-preview');
             const canvas = document.createElement('canvas');
             canvas.width = video.videoWidth || 640;
@@ -438,9 +442,9 @@
 
             const startTimestamp = Math.floor(Date.now() / 1000);
             console.log("📤 Mengirim foto ke backend... start_timestamp:", startTimestamp);
-            if (!sessionId) {
-                alert("Gagal: Session ID tidak ditemukan. Silakan refresh halaman.");
-                setStatus("❌ Gagal: No session ID available.", "red");
+            if (!sessionId || !localStorage.getItem('visitor_name') || !localStorage.getItem('visitor_wa')) {
+                alert("Gagal: Data belum lengkap. Silakan isi nama dan WA terlebih dahulu.");
+                setStatus("❌ Gagal: Data pengunjung tidak lengkap.", "red");
                 return;
             }
             fetch('https://qc-magicmirror-api.onrender.com/run', {
@@ -631,10 +635,18 @@ socket.on('generated_faces', (data) => {
                 alert("Nama dan Nomor WhatsApp wajib diisi.");
                 return;
             }
+            if (!sessionId || !connected) {
+                alert("Koneksi ke server belum siap. Silakan tunggu sebentar dan coba lagi.");
+                return;
+            }
+
+            console.log("✅ Data form disubmit:", name, wa); // Tambahkan log ini
 
             // Simpan info ke localStorage untuk keperluan lain jika dibutuhkan
             localStorage.setItem('visitor_name', name);
             localStorage.setItem('visitor_wa', wa);
+
+            console.log("📨 Kirim ke backend:", sessionId, name, wa);
 
             // Kirim ke backend via socket
             socket.emit("user_info", {
@@ -645,7 +657,7 @@ socket.on('generated_faces', (data) => {
 
             // Sembunyikan form, aktifkan tombol
             document.getElementById('user-info-form').style.display = 'none';
-            setStatus("✅ Data diterima. Siap analisa!", '#00ff99');
+            setStatus("✅ Siap analisa!", '#00ff99');
             updateCaptureButton();
             showPopupMessage();
         }
