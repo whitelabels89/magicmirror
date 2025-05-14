@@ -448,7 +448,12 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ photo: base64Photo, session_id: sessionId })
+                body: JSON.stringify({
+                    photo: base64Photo,
+                    session_id: sessionId,
+                    visitor_name: localStorage.getItem('visitor_name') || '',
+                    visitor_wa: localStorage.getItem('visitor_wa') || ''
+                })
             })
             .then(response => response.json())
             .then(data => {
