@@ -337,6 +337,10 @@
     <script>
     window.addEventListener('DOMContentLoaded', () => {
         const video = document.getElementById('camera-preview');
+        if (!video || video.videoWidth === 0) {
+            alert("❌ Gagal: Kamera belum aktif. Silakan klik Turn On Magic Mirror terlebih dahulu.");
+            return;
+        }
         const placeholder = document.getElementById('camera-placeholder');
         const toggleBtn = document.getElementById('toggle-camera-button');
         let stream = null;
@@ -446,6 +450,14 @@ document.getElementById('capture-button').addEventListener('click', () => {
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     const base64Photo = canvas.toDataURL('image/jpeg').replace(/^data:image\/jpeg;base64,/, '');
+
+    // --- Validasi tambahan base64Photo ---
+    if (!base64Photo || base64Photo.length < 100) {
+        alert("❌ Gagal: Foto tidak valid. Coba ambil ulang.");
+        setStatus("❌ Foto gagal diproses. Silakan ulangi.", "red");
+        document.getElementById('loading').style.display = 'none';
+        return;
+    }
 
     setStatus('🔍 Menganalisis wajah...', '#fff700');
     document.getElementById('loading').style.display = 'block';
@@ -677,23 +689,7 @@ socket.on('generated_faces', (data) => {
                 updateCaptureButton();
             }, 500); // Delay untuk memastikan localStorage sudah siap
             showPopupMessage();
-            // Backup trigger ke endpoint /run supaya backend langsung catat visitor info
-            fetch('https://qc-magicmirror-api.onrender.com/run', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    photo: '', // kosong karena ini hanya ping awal
-                    session_id: sessionId,
-                    visitor_name: name,
-                    visitor_wa: wa
-                })
-            }).then(res => res.json()).then(r => {
-                console.log("🟢 Backup trigger /run success:", r);
-            }).catch(err => {
-                console.warn("⚠️ Backup trigger /run error:", err);
-            });
+            
             console.log("📦 Session ID at submit:", sessionId);
         }
 
