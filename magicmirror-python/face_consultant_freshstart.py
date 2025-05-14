@@ -910,7 +910,7 @@ if __name__ == "__main__":
 
 # ------------------ Cleanup ------------------
 # ------------------ API run function ------------------
-def run(photo_base64, session_id=None):
+def run(photo_base64, session_id=None, visitor_name=None, visitor_wa=None):
     global latest_captured_face_path, analysis_started, face_shape, skin_tone, recommendation, generated_faces
 
     # ✅ Validasi base64 input sebelum decode
@@ -1000,11 +1000,31 @@ def run(photo_base64, session_id=None):
     print(f"📂 latest_captured_face_path = {latest_captured_face_path}", flush=True)
     print(f"📂 exists = {os.path.exists(latest_captured_face_path)}", flush=True)
 
-    # ✅ Tambahkan patch ini:
+    # ✅ PATCH: Simpan session_id ke global
     if session_id:
         globals()["session_id"] = session_id
+
+    # ✅ PATCH: Simpan info pengunjung dari API ke session_states
+    if session_id and visitor_name and visitor_wa:
+        session_states[session_id] = {
+            "visitor_info": {
+                "name": visitor_name,
+                "wa": visitor_wa,
+                "session_id": session_id
+            },
+            "face_shape": None,
+            "skin_tone": None,
+            "latest_captured_face_path": None,
+            "recommendation": None,
+            "generated_faces": [],
+            "created_at": time.time()
+        }
+        print(f"📲 Visitor Info from API: {visitor_name}, {visitor_wa}", flush=True)
     else:
-        # PATCH fallback jika session_id tidak dikirim (misal API langsung)
+        print("⚠️ Tidak ada visitor_name / visitor_wa dikirim dari API.", flush=True)
+
+    # PATCH fallback jika session_id tidak dikirim (misal API langsung)
+    if not session_id:
         try:
             if "session_id" not in globals() or not globals()["session_id"]:
                 session_id = list(session_states.keys())[-1]  # Ambil session terakhir aktif
