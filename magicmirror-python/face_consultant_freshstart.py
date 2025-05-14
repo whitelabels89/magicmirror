@@ -516,7 +516,30 @@ def generate_voice_elevenlabs(text, output_filename):
 # -------------------------- ANALYSIS MAIN FUNCTION --------------------------
 def analyze_face(session_id):
     if session_id not in session_states:
-        print(f"❌ session_id {session_id} tidak ditemukan.")
+        print(f"⚠️ Session {session_id} belum ada. Coba tunggu 0.3 detik untuk sync...")
+        time.sleep(0.3)
+
+    if session_id not in session_states:
+        print(f"🛠️ PATCH: Session baru dibuat di analyze_face() untuk session_id: {session_id}")
+        session_states[session_id] = {
+            "visitor_info": {
+                "name": "-",
+                "wa": "-",
+                "session_id": session_id
+            },
+            "face_shape": None,
+            "skin_tone": None,
+            "latest_captured_face_path": None,
+            "recommendation": None,
+            "generated_faces": [],
+            "created_at": time.time()
+        }
+    else:
+        print(f"✅ Session {session_id} sudah tersedia. Tidak perlu patch ulang.")
+
+    visitor = session_states[session_id].get("visitor_info", {})
+    if not visitor.get("name") or not visitor.get("wa"):
+        print("❌ Tidak bisa lanjut analyze: Data pengunjung tidak lengkap.")
         return
 
     global drive_service, analyze_done, analysis_started, status_msg
@@ -550,6 +573,8 @@ def analyze_face(session_id):
     )
     recommendation = response.choices[0].message['content']
     session_states[session_id]["recommendation"] = recommendation
+    if sio.connected:
+        sio.emit('ai_result', {'recommendation': recommendation, 'session_id': session_id})
 
     # Extract style + color
     import re
