@@ -479,7 +479,7 @@ def analyze_face():
             color = match_color.group(3).strip()
         return style, color
     hairstyle, haircolor = extract_style_color(recommendation)
-    prompt = f"ultrarealistic portrait, {hairstyle}, {haircolor} hair, studio lighting, 4k, elegant, soft background"
+    prompt = f"ultrarealistic portrait of a human with {haircolor} hair styled in a {hairstyle}, studio lighting, elegant look, high resolution"
 
     # Step 2: Emit photo and GPT result to Web
     if latest_captured_face_path and recommendation:
@@ -645,6 +645,7 @@ def analyze_face():
     # (Do not remove promo_audio, keep for cache)
 
     # 🚨 PATCH: Emit dummy faces if none generated to trigger frontend gallery
+    session_id = globals().get("session_id", "unknown-session")
     if not generated_faces and sio.connected:
         try:
             sio.emit('generated_faces', {
@@ -912,6 +913,11 @@ def run(photo_base64, session_id=None):
 
     print(f"📂 latest_captured_face_path = {latest_captured_face_path}", flush=True)
     print(f"📂 exists = {os.path.exists(latest_captured_face_path)}", flush=True)
+
+    # ✅ Tambahkan patch ini:
+    if session_id:
+        globals()["session_id"] = session_id
+
 
     analysis_started = True
     analyze_face()
