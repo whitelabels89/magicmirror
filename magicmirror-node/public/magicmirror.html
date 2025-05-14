@@ -310,8 +310,6 @@
           ⚠️ Maaf, saat ini fitur visualisasi AI sedang terkena batas limit karena tingginya traffic visitor. Silakan coba kembali dalam beberapa menit. 🙏
         </div>
         <div id="recommendation" style="display:none;">
-            <div id="countdown-timer" style="font-size: 1rem; color: #ffdd57; margin-top: 12px;"></div>
-            <div id="visual-loading" class="loading" style="display: none;"></div>
             <h2>Rekomendasi Gaya Rambut</h2>
             <p id="rec-content"></p>
         </div>
@@ -514,15 +512,27 @@ socket.on('generated_faces', (data) => {
 
     const validFaces = (data.faces || []).filter(url => url && url.trim() !== '');
 
+    // PATCH: Reset error and gallery when pending and first time
+    if (data.status === 'pending' && data.start_timestamp && validFaces.length === 0) {
+        // Reset error and gallery
+        document.getElementById('replicate-error-msg').style.display = 'none';
+        document.getElementById('gallery').innerHTML = '';
+    }
+
     // ✅ Tampilkan pesan status dari backend
     if (data.message) {
         statusEl.innerText = data.message;
         statusEl.style.color = '#ffdd57';
     }
 
-    // ⏳ Countdown dan spinner hanya saat status === 'pending'
+    // PATCH: show waiting box above gallery/recommendation only if pending
     if (data.status === 'pending' && data.start_timestamp && validFaces.length === 0) {
+        // Show only the generate-waiting-box, hide others
         document.getElementById('generate-waiting-box').style.display = 'block';
+        // Hide gallery and recommendation (they will show after faces ready)
+        document.getElementById('gallery').style.display = 'none';
+        document.getElementById('recommendation').style.display = 'none';
+
         const countdownTarget = data.start_timestamp + 120;
         waitingEl.style.display = 'block';
         document.getElementById('visual-loading').style.display = 'block';
@@ -536,7 +546,6 @@ socket.on('generated_faces', (data) => {
                 loadingEl.style.display = 'none';
                 document.getElementById('visual-loading').style.display = 'none';
                 document.getElementById('countdown-timer').innerText = '';
-                // Do not hide waitingEl yet, let it display the message
                 clearInterval(interval);
             } else {
                 document.getElementById('countdown-timer').innerText = `✨ Visualisasi akan tampil dalam ${remaining} detik...`;
@@ -544,10 +553,11 @@ socket.on('generated_faces', (data) => {
         };
         updateCountdown();
         interval = setInterval(updateCountdown, 1000);
-
-        // ✅ Spinner awal rekomendasi tetap dipertahankan
         loadingEl.style.display = 'block';
-        // Do NOT hide loadingEl or waitingEl here; only after countdown ends or faces shown
+    } else {
+        // Not pending: always hide waiting box
+        document.getElementById('generate-waiting-box').style.display = 'none';
+        document.getElementById('gallery').style.display = 'flex';
     }
 
     // 🎨 Kalau ada hasil wajah, tampilkan ke galeri
@@ -571,12 +581,22 @@ socket.on('generated_faces', (data) => {
         document.getElementById('countdown-timer').innerText = '';
         document.getElementById('generate-waiting-box').style.display = 'none';
         document.getElementById('replicate-error-msg').style.display = 'none';
+        // Show gallery and recommendation after faces ready
+        document.getElementById('gallery').style.display = 'flex';
+        document.getElementById('recommendation').style.display = 'block';
     }
 
     // Error/limit handling
     if (data.status === 'error' || (data.message && data.message.toLowerCase().includes('limit'))) {
         document.getElementById('replicate-error-msg').style.display = 'block';
         document.getElementById('generate-waiting-box').style.display = 'none';
+        // PATCH: hide all loading/countdown
+        document.getElementById('waiting-replicate').style.display = 'none';
+        document.getElementById('visual-loading').style.display = 'none';
+        document.getElementById('countdown-timer').innerText = '';
+        // Also show gallery (empty or not) and hide recommendation
+        document.getElementById('gallery').style.display = 'flex';
+        document.getElementById('recommendation').style.display = 'none';
     }
 });
 
