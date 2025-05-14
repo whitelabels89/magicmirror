@@ -431,7 +431,9 @@ document.getElementById('capture-button').addEventListener('click', () => {
     // --- Tambahan validasi data pengunjung sebelum ambil foto ---
     const visitor_name = localStorage.getItem('visitor_name');
     const visitor_wa = localStorage.getItem('visitor_wa');
-    if (!sessionId || !visitor_name || !visitor_wa) {
+
+    // ✅ Cek ulang validasi nama/wa sebelum lanjut
+    if (!sessionId || !visitor_name || !visitor_wa || visitor_name.trim() === '' || visitor_wa.trim() === '') {
         alert("❌ Gagal: Data pengunjung tidak lengkap. Silakan isi nama dan WhatsApp terlebih dahulu.");
         setStatus("❌ Data belum lengkap.", "red");
         return;
@@ -671,7 +673,9 @@ socket.on('generated_faces', (data) => {
             // Sembunyikan form, aktifkan tombol
             document.getElementById('user-info-form').style.display = 'none';
             setStatus("✅ Siap analisa!", '#00ff99');
-            updateCaptureButton();
+            setTimeout(() => {
+                updateCaptureButton();
+            }, 500); // Delay untuk memastikan localStorage sudah siap
             showPopupMessage();
             // Backup trigger ke endpoint /run supaya backend langsung catat visitor info
             fetch('https://qc-magicmirror-api.onrender.com/run', {
