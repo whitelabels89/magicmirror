@@ -521,6 +521,7 @@ document.getElementById('capture-button').addEventListener('click', () => {
             updateCaptureButton();
             socket.emit('join', { session_id: sessionId });
             console.log("🔐 Session ID dikirim ke server:", sessionId);
+            console.log("📦 session_id at connect:", sessionId);
         });
         socket.on('ai_result', (data) => {
             console.log('🧠 Rekomendasi AI diterima.');
@@ -657,6 +658,9 @@ socket.on('generated_faces', (data) => {
 
             console.log("📨 Kirim ke backend:", sessionId, name, wa);
 
+            // Log sessionId before emitting
+            console.log("📦 Session ID final (submitVisitorInfo):", sessionId);
+
             // Kirim ke backend via socket
             socket.emit("user_info", {
                 name: name,
@@ -670,7 +674,6 @@ socket.on('generated_faces', (data) => {
             updateCaptureButton();
             showPopupMessage();
             console.log("📦 Session ID at submit:", sessionId);
-            console.log("📌 Session ID final (submitVisitorInfo):", sessionId);
         }
 
 </script>
