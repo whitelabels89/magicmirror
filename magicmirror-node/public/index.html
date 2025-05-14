@@ -747,7 +747,7 @@
   <!-- Updated Section CTA Formmm -->
 <section id="cta" class="section-cta">
   <h2>Ikuti Kelas Gratis</h2>
-  <form class="cta-form" action="https://script.google.com/macros/s/AKfycbx08glZ9QHc6XFVQCh8bJyq6w0jEIY8f1pMMJk5JmA-N9x6smbjmFGBW4NS0_YWIUq6/exec" method="POST">
+  <form class="cta-form" onsubmit="handleFormSubmit(event)" action="https://script.google.com/macros/s/AKfycbx08glZ9QHc6XFVQCh8bJyq6w0jEIY8f1pMMJk5JmA-N9x6smbjmFGBW4NS0_YWIUq6/exec" method="POST">
     <label for="nama">Nama:</label>
     <input type="text" id="nama" name="nama" placeholder="Nama lengkap kamu" required />
 
@@ -901,6 +901,34 @@
       .then(res => res.text())
       .then(data => document.getElementById('footer-placeholder').innerHTML = data);
   </script>
+  
+  <!-- Popup Notifikasi -->
+  <div id="popup-notif" style="display: none; position: fixed; top: 30%; left: 50%; transform: translateX(-50%); background: #0d2d2b; color: #ffe58e; padding: 20px; border-radius: 12px; z-index: 9999; text-align: center;">
+    <p>✅ Terima kasih sudah mendaftar! Tim kami akan segera follow up kamu.</p>
+    <button onclick="window.location.href='/magicmirror.html'" style="margin-top: 10px; padding: 10px 20px; border: none; background-color: #ffe58e; color: #0d2d2b; font-weight: bold; border-radius: 8px; cursor: pointer;">Lanjut ke Magic Mirror</button>
+  </div>
+
+<!-- Script -->
+<script>
+  function handleFormSubmit(event) {
+    event.preventDefault();
+    const form = event.target;
+
+    fetch(form.action, {
+      method: 'POST',
+      body: new FormData(form)
+    }).then(response => {
+      if (response.ok) {
+        document.getElementById('popup-notif').style.display = 'block';
+        form.reset();
+      } else {
+        alert('Terjadi kesalahan. Coba lagi nanti.');
+      }
+    }).catch(error => {
+      alert('Terjadi kesalahan. Silakan periksa koneksi internet.');
+    });
+  }
+</script>
 </body>
 <script>
 window.addEventListener('DOMContentLoaded', () => {
