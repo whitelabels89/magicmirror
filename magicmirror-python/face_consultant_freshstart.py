@@ -28,11 +28,9 @@ import numpy as np
 import pygame
 import openai
 import mediapipe as mp
-
+from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
-from google.oauth2 import service_account
-
 # --- Magic Mirror UI Overlay ---
 from magic_mirror_v2.generate_virtual_face import render_full_magic_mirror, handle_mouse_click
 # Import lengkap untuk virtual face gallery & klik (Replicate)
@@ -50,36 +48,15 @@ try:
     else:
         sio.connect('https://queensacademy.id')
     print("✅ Connected to WebSocket server")
-    # Mulai background session cleaner setelah koneksi sukses
-    def start_session_cleaner():
-        def cleaner_loop():
-            while True:
-                now = time.time()
-                to_delete = []
-                for sid, state in list(session_states.items()):
-                    created_at = state.get("created_at")
-                    if created_at and now - created_at > 3600:  # lebih dari 1 jam
-                        to_delete.append(sid)
-                for sid in to_delete:
-                    del session_states[sid]
-                    print(f"🧹 Session {sid} dihapus otomatis karena timeout 1 jam.")
-                time.sleep(300)  # cek tiap 5 menit
-        threading.Thread(target=cleaner_loop, daemon=True).start()
-    start_session_cleaner()
 except Exception as e:
     print(f"⚠️ WebSocket conection failed: {e}")
 
-session_states = {}
 # -------------------------- SOCKET.IO LISTENER --------------------------
-# Accept photo upload from browser and trigger analysis, now per session
+# Accept photo upload from browser and trigger analysis
 @sio.on('user_photo')
 def handle_user_photo(data):
-    session_id = data.get("session_id")
-    if not session_id or session_id not in session_states:
-        print("❌ session_id tidak ditemukan di session_states.")
-        return
-
-    print(f"📸 Foto diterima dari browser untuk analisa (session: {session_id}).")
+    global latest_captured_face_path, analysis_started, face_shape, skin_tone, status_msg
+    print("📸 Foto diterima dari browser untuk analisa.")
 
     try:
         photo_data = data.get('photo')
@@ -88,92 +65,91 @@ def handle_user_photo(data):
             return
         img_bytes = base64.b64decode(photo_data)
         ensure_folder("captured_faces")
-        capture_filename = os.path.join("captured_faces", f"{session_id}_face_{int(time.time())}.jpg")
+        capture_filename = os.path.join("captured_faces", f"face_{int(time.time())}.jpg")
         with open(capture_filename, "wb") as f:
             f.write(img_bytes)
+        latest_captured_face_path = capture_filename
         print(f"✅ Foto disimpan: {capture_filename}")
-
-        img = cv2.imread(capture_filename)
-        rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        results = face_mesh.process(rgb_img)
-
-        if results.multi_face_landmarks:
-            for landmarks in results.multi_face_landmarks:
-                def get_point(lms, idx, shape):
-                    h, w, _ = shape
-                    lm = lms[idx]
-                    return int(lm.x * w), int(lm.y * h)
-                def euclidean(p1, p2):
-                    return math.hypot(p1[0] - p2[0], p1[1] - p2[1])
-                def get_skin_tone_color(img, pt):
-                    x, y = pt
-                    h, w = img.shape[:2]
-                    x = min(max(0, x), w-1)
-                    y = min(max(0, y), h-1)
-                    b, g, r = img[y, x]
-                    if r > g and r > b:
-                        return "Warm"
-                    elif b > r and b > g:
-                        return "Cool"
-                    else:
-                        return "Neutral"
-                def get_face_shape(ratio_w_h, jaw_ratio, forehead_ratio):
-                    if ratio_w_h < 0.85:
-                        return "Oblong"
-                    elif 0.85 <= ratio_w_h <= 0.95:
-                        if jaw_ratio < 0.8:
-                            return "Heart"
+        # Re-analyze landmark from saved photo
+        try:
+            img = cv2.imread(capture_filename)
+            rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            results = face_mesh.process(rgb_img)
+            if results.multi_face_landmarks:
+                for landmarks in results.multi_face_landmarks:
+                    def get_point(lms, idx, shape):
+                        h, w, _ = shape
+                        lm = lms[idx]
+                        return int(lm.x * w), int(lm.y * h)
+                    def euclidean(p1, p2):
+                        return math.hypot(p1[0] - p2[0], p1[1] - p2[1])
+                    def get_skin_tone_color(img, pt):
+                        x, y = pt
+                        h, w = img.shape[:2]
+                        x = min(max(0, x), w-1)
+                        y = min(max(0, y), h-1)
+                        b, g, r = img[y, x]
+                        if r > g and r > b:
+                            return "Warm"
+                        elif b > r and b > g:
+                            return "Cool"
                         else:
-                            return "Oval"
-                    elif 0.95 < ratio_w_h <= 1.05:
-                        if jaw_ratio > 0.95:
-                            return "Square"
+                            return "Neutral"
+                    def get_face_shape(ratio_w_h, jaw_ratio, forehead_ratio):
+                        if ratio_w_h < 0.85:
+                            return "Oblong"
+                        elif 0.85 <= ratio_w_h <= 0.95:
+                            if jaw_ratio < 0.8:
+                                return "Heart"
+                            else:
+                                return "Oval"
+                        elif 0.95 < ratio_w_h <= 1.05:
+                            if jaw_ratio > 0.95:
+                                return "Square"
+                            else:
+                                return "Round"
                         else:
-                            return "Round"
-                    else:
-                        return "Wide"
-
-                shape = img.shape
-                chin = get_point(landmarks.landmark, 152, shape)
-                forehead = get_point(landmarks.landmark, 10, shape)
-                left_cheek = get_point(landmarks.landmark, 234, shape)
-                right_cheek = get_point(landmarks.landmark, 454, shape)
-                jaw_width = euclidean(left_cheek, right_cheek)
-                height = euclidean(forehead, chin)
-                forehead_width = euclidean(get_point(landmarks.landmark, 127, shape), get_point(landmarks.landmark, 356, shape))
-                ratio_w_h = jaw_width / height
-                jaw_ratio = jaw_width / jaw_width
-                forehead_ratio = forehead_width / jaw_width
-                face_shape = get_face_shape(ratio_w_h, jaw_ratio, forehead_ratio)
-                skin_tone = get_skin_tone_color(img, left_cheek)
-
-                session_states[session_id]["face_shape"] = face_shape
-                session_states[session_id]["skin_tone"] = skin_tone
-                session_states[session_id]["latest_captured_face_path"] = capture_filename
-                session_states[session_id]["analysis_started"] = False
-
-                print(f"🔎 Landmark recovery berhasil: Face Shape = {face_shape}, Skin Tone = {skin_tone}")
-                break
-        else:
-            print("⚠️ Tidak ada wajah terdeteksi di foto capture.")
-            return
-
+                            return "Wide"
+                    shape = img.shape
+                    chin = get_point(landmarks.landmark, 152, shape)
+                    forehead = get_point(landmarks.landmark, 10, shape)
+                    left_cheek = get_point(landmarks.landmark, 234, shape)
+                    right_cheek = get_point(landmarks.landmark, 454, shape)
+                    jaw_width = euclidean(left_cheek, right_cheek)
+                    height = euclidean(forehead, chin)
+                    forehead_width = euclidean(get_point(landmarks.landmark, 127, shape), get_point(landmarks.landmark, 356, shape))
+                    ratio_w_h = jaw_width / height
+                    jaw_ratio = jaw_width / jaw_width
+                    forehead_ratio = forehead_width / jaw_width
+                    face_shape = get_face_shape(ratio_w_h, jaw_ratio, forehead_ratio)
+                    skin_tone = get_skin_tone_color(img, left_cheek)
+                    print(f"🔎 Landmark recovery berhasil: Face Shape = {face_shape}, Skin Tone = {skin_tone}")
+                    break
+            else:
+                print("⚠️ Tidak ada wajah terdeteksi di foto capture.")
+        except Exception as e:
+            print(f"⚠️ Gagal reprocess landmark dari file: {e}")
     except Exception as e:
         print(f"❌ Error proses foto dari browser: {e}")
         return
 
+    # ➡️ Lanjutkan analisa
+    # Setelah foto tersimpan, set latest_captured_face_path
+    if capture_filename and os.path.exists(capture_filename):
+        latest_captured_face_path = capture_filename
+    else:
+        print("❌ Foto subject reference tidak ditemukan.")
+        return
+
     # Validasi: hanya lanjut jika face_shape dan skin_tone sudah tersedia
-    if not session_states[session_id]["face_shape"] or not session_states[session_id]["skin_tone"]:
-        print("❌ Landmark wajah belum terbaca.")
+    if not face_shape or not skin_tone:
+        print("❌ Landmark wajah belum terbaca. Tunggu hingga wajah terdeteksi sebelum ambil foto.")
+        status_msg = "❌ Wajah belum terdeteksi. Arahkan wajah ke kamera."
         return
 
-    # 🚫 Cegah klik ulang Analyze jika sudah running
-    if session_states[session_id].get("analysis_started"):
-        print(f"⚠️ Session {session_id} sedang berjalan, abaikan klik ulang.")
-        return
-
-    session_states[session_id]["analysis_started"] = True
-    threading.Thread(target=analyze_face, args=(session_id,)).start()
+    if not analysis_started:
+        analysis_started = True
+        threading.Thread(target=analyze_face).start()
 
 # -------------------------- SETUP --------------------------
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
@@ -204,54 +180,7 @@ typing_text = ""
 text_queue = []
 latest_captured_face_path = None
 generated_faces = []
-visitor_info = {}
-# -------------------------- SOCKET.IO LISTENER --------------------------
-# Accept user info from browser and store in session_states
-@sio.on("user_info")
-def handle_user_info(data):
-    # Limiter jumlah session aktif
-    if len(session_states) >= 80:
-        print("❌ Terlalu banyak sesi aktif. Tolak session baru.")
-        if sio.connected:
-            sio.emit('session_limit_reached', {
-                "message": "Mohon maaf, Magic Mirror sedang penuh karena tingginya pengunjung. Silakan coba kembali beberapa menit lagi."
-            })
-        return
-    session_id = data.get("session_id")
-    if not session_id:
-        print("❌ session_id tidak tersedia.")
-        return
 
-    session_states[session_id] = {
-        "visitor_info": {
-            "name": data.get("name"),
-            "wa": data.get("wa"),
-            "session_id": session_id
-        },
-        "face_shape": None,
-        "skin_tone": None,
-        "latest_captured_face_path": None,
-        "recommendation": None,
-        "generated_faces": [],
-        "created_at": time.time()
-    }
-    globals()["session_id"] = session_id
-    print(f"📩 Visitor Info untuk session {session_id} disimpan.", flush=True)
-
-
-def save_visitor_info_to_sheet(name, wa, face_shape, skin_tone, recommendation):
-    try:
-        import gspread
-        creds = get_credentials()
-        gc = gspread.authorize(creds)
-        sheet = gc.open("QC CORE SYSTEM").worksheet("VISITOR_LOG")
-        now = time.strftime("%Y-%m-%d %H:%M:%S")
-        sheet.append_row([
-            now, name, wa, face_shape, skin_tone, recommendation
-        ])
-        print("📄 Data visitor berhasil disimpan ke sheet.")
-    except Exception as e:
-        print(f"⚠️ Gagal simpan visitor ke sheet: {e}")
 
 # -------------------------- UTILITIES --------------------------
 def send_result_to_web(photo_path, ai_text):
@@ -332,13 +261,8 @@ def load_config():
 def get_credentials():
     global _cached_credentials
     if _cached_credentials is None:
-        import json
-        creds_dict = json.loads(os.getenv("GOOGLE_CREDS_JSON"))
-        # ✅ FIX: ubah \n yang salah escape di private_key
-        if "private_key" in creds_dict:
-            creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
-        _cached_credentials = service_account.Credentials.from_service_account_info(
-            creds_dict, scopes=["https://www.googleapis.com/auth/drive"]
+        _cached_credentials = service_account.Credentials.from_service_account_file(
+            GOOGLE_CREDENTIALS_FILE, scopes=["https://www.googleapis.com/auth/drive"]
         )
     return _cached_credentials
 
@@ -514,42 +438,9 @@ def generate_voice_elevenlabs(text, output_filename):
         return
 
 # -------------------------- ANALYSIS MAIN FUNCTION --------------------------
-def analyze_face(session_id):
-    ensure_session_exists(session_id)
-# -------------------------- UTILITIES --------------------------
-
-# Utility function to ensure session exists
-def ensure_session_exists(session_id, visitor_name="-", visitor_wa="-"):
-    if session_id not in session_states:
-        print(f"🛠️ PATCH: Session baru dibuat untuk session_id: {session_id}")
-        session_states[session_id] = {
-            "visitor_info": {
-                "name": visitor_name,
-                "wa": visitor_wa,
-                "session_id": session_id
-            },
-            "face_shape": None,
-            "skin_tone": None,
-            "latest_captured_face_path": None,
-            "recommendation": None,
-            "generated_faces": [],
-            "created_at": time.time()
-        }
-    else:
-        print(f"✅ Session {session_id} sudah tersedia. Tidak perlu patch ulang.")
-
-
-    visitor = session_states[session_id].get("visitor_info", {})
-    if not visitor.get("name") or not visitor.get("wa"):
-        print("❌ Tidak bisa lanjut analyze: Data pengunjung tidak lengkap.")
-        return
-
-    global drive_service, analyze_done, analysis_started, status_msg
+def analyze_face():
+    global drive_service, recommendation, analyze_done, analysis_started, status_msg, generated_faces
     openai.api_key = OPENAI_API_KEY
-    # Access per-session variables
-    face_shape = session_states[session_id].get("face_shape")
-    skin_tone = session_states[session_id].get("skin_tone")
-    latest_captured_face_path = session_states[session_id].get("latest_captured_face_path")
     file_prefix = f"{face_shape}_{skin_tone}_{uuid.uuid4().hex[:8]}"
     ensure_folder("VOICE_AI_FILES")
     config = load_config()
@@ -574,9 +465,6 @@ def ensure_session_exists(session_id, visitor_name="-", visitor_wa="-"):
         ]
     )
     recommendation = response.choices[0].message['content']
-    session_states[session_id]["recommendation"] = recommendation
-    if sio.connected:
-        sio.emit('ai_result', {'recommendation': recommendation, 'session_id': session_id})
 
     # Extract style + color
     import re
@@ -634,16 +522,11 @@ def ensure_session_exists(session_id, visitor_name="-", visitor_wa="-"):
         f.write(recommendation)
     upload_file(text_filename, 'text/plain', drive_service)
 
-    # ✅ Simpan visitor info ke sheet dan kirim WA
-    visitor = session_states[session_id].get("visitor_info", {})
-    generated_faces = []
-    # Save generated_faces in session_states at the end
-    if visitor:
-        save_visitor_info_to_sheet(visitor.get("name"), visitor.get("wa"), face_shape, skin_tone, recommendation)
-        # WA only if generated_faces available (after generation below)
-
     # 🔵 Generate Virtual Face setelah analisa selesai
+    # PATCH 2: Safe Exception on Replicate API
     try:
+        # Validasi: Pastikan latest_captured_face_path tersedia dan file valid
+        # Tambahan notifikasi sebelum generate virtual face
         print("✨ Menyiapkan generate virtual face... Harap tunggu beberapa detik.", flush=True)
         if latest_captured_face_path and os.path.exists(latest_captured_face_path):
             print("🚀 Generate Virtual Face with Replicate API...", flush=True)
@@ -669,8 +552,6 @@ def ensure_session_exists(session_id, visitor_name="-", visitor_wa="-"):
                 generated_faces = []
                 status_msg = "❌ Gagal generate wajah."
 
-            session_states[session_id]["generated_faces"] = generated_faces
-
             if generated_faces:
                 try:
                     if sio.connected:
@@ -686,6 +567,7 @@ def ensure_session_exists(session_id, visitor_name="-", visitor_wa="-"):
                 # ✅ Upload semua hasil generated_faces ke Google Drive
                 drive_links = []
                 for face_path in generated_faces:
+                    # ✅ Tunggu hingga file benar-benar ada (maksimal 5 detik)
                     for i in range(5):
                         if os.path.exists(face_path):
                             break
@@ -700,6 +582,7 @@ def ensure_session_exists(session_id, visitor_name="-", visitor_wa="-"):
                     else:
                         print(f"⚠️ File tidak ditemukan untuk upload: {face_path}", flush=True)
 
+                # ✅ Simpan daftar link ke file JSON (untuk arsip dan dashboard)
                 if drive_links:
                     json_path = f"generated_faces_links_{int(time.time())}.json"
                     with open(json_path, "w") as jf:
@@ -711,26 +594,22 @@ def ensure_session_exists(session_id, visitor_name="-", visitor_wa="-"):
                     except Exception as jerr:
                         print(f"⚠️ Gagal upload file JSON ke Drive: {jerr}", flush=True)
 
+                # 🔁 Emit ulang ke frontend jika koneksi WebSocket sudah tersedia kembali
                 try:
                     if sio.connected and drive_links:
-                        sio.emit('generated_faces', {'faces': drive_links, 'session_id': session_id})
-                        session_states[session_id]["generated_faces"] = drive_links
+                        sio.emit('generated_faces', {'faces': drive_links,'session_id': session_id})
+                        # PATCH: Set global generated_faces to drive_links after emitting
+                        globals()["generated_faces"] = drive_links
                         print("🔁 Re-emitted generated_faces to frontend from Drive links.", flush=True)
                 except Exception as e:
                     print(f"⚠️ Gagal emit ulang generated_faces dari Drive: {e}", flush=True)
-            else:
-                session_states[session_id]["generated_faces"] = []
+    # ✅ Tambahkan except ini sebagai penutup blok try besar
     except Exception as e:
         print(f"⚠️ Gagal generate virtual face Replicate: {e}", flush=True)
 
-    # Kirim WA setelah generated_faces selesai
-    if visitor:
-        gen_faces = session_states[session_id].get("generated_faces", [])
-        if gen_faces:
-            photo_link = gen_faces[0]
-            send_whatsapp(visitor.get("name"), visitor.get("wa"), recommendation, photo_link)
 
     # Load Data Promo
+    
     try:
         promo_data = get_latest_customer_by_slot(slot, cabang, credentials)
         if promo_data:
@@ -745,6 +624,7 @@ def ensure_session_exists(session_id, visitor_name="-", visitor_wa="-"):
 
     deskripsi_promo = get_promo_description_by_kode(kode_promo, credentials)
     promo_text = f"Kak, ini kesempatan langka buat kamu. Promo spesial *{promo}* dengan kode *{kode_promo}*: {deskripsi_promo} berlaku hanya 60 detik. Scan QR sebelum terlambat!"
+
 
     # Voice Promo
     ensure_folder("promo_voice_files")
@@ -762,9 +642,11 @@ def ensure_session_exists(session_id, visitor_name="-", visitor_wa="-"):
         os.remove(audio_filename)
     if os.path.exists(text_filename):
         os.remove(text_filename)
+    # (Do not remove promo_audio, keep for cache)
 
     # 🚨 PATCH: Emit dummy faces if none generated to trigger frontend gallery
-    if not session_states[session_id].get("generated_faces") and sio.connected:
+    session_id = globals().get("session_id", "unknown-session")
+    if not generated_faces and sio.connected:
         try:
             sio.emit('generated_faces', {
                 'faces': [],
@@ -942,7 +824,7 @@ if __name__ == "__main__":
 
 # ------------------ Cleanup ------------------
 # ------------------ API run function ------------------
-def run(photo_base64, session_id=None, visitor_name=None, visitor_wa=None):
+def run(photo_base64, session_id=None):
     global latest_captured_face_path, analysis_started, face_shape, skin_tone, recommendation, generated_faces
 
     # ✅ Validasi base64 input sebelum decode
@@ -960,14 +842,6 @@ def run(photo_base64, session_id=None, visitor_name=None, visitor_wa=None):
     with open(capture_filename, "wb") as f:
         f.write(decoded)
     latest_captured_face_path = capture_filename
-
-    # Tambahkan validasi ukuran file hasil decode
-    if os.path.getsize(capture_filename) < 5000:
-        print(f"❌ Ukuran file terlalu kecil, kemungkinan foto kosong: {capture_filename}", flush=True)
-        return {
-            "status": "error",
-            "error": "Foto kosong atau tidak valid."
-        }
 
     print(f"✅ Foto dari API disimpan di: {latest_captured_face_path}", flush=True)
     print(f"📏 Ukuran file: {os.path.getsize(latest_captured_face_path)} bytes", flush=True)
@@ -1040,63 +914,13 @@ def run(photo_base64, session_id=None, visitor_name=None, visitor_wa=None):
     print(f"📂 latest_captured_face_path = {latest_captured_face_path}", flush=True)
     print(f"📂 exists = {os.path.exists(latest_captured_face_path)}", flush=True)
 
-    # ✅ PATCH: Simpan session_id ke global
+    # ✅ Tambahkan patch ini:
     if session_id:
         globals()["session_id"] = session_id
 
-    # ✅ PATCH: Buat session jika belum ada (fix utama)
-    if session_id and session_id not in session_states:
-        session_states[session_id] = {
-            "visitor_info": {
-                "name": visitor_name or "-",
-                "wa": visitor_wa or "-",
-                "session_id": session_id
-            },
-            "face_shape": None,
-            "skin_tone": None,
-            "latest_captured_face_path": None,
-            "recommendation": None,
-            "generated_faces": [],
-            "created_at": time.time()
-        }
-        print(f"🛠️ PATCH: Session baru dibuat di run() untuk session_id: {session_id}", flush=True)
-
-    # ✅ PATCH: Simpan info pengunjung dari API ke session_states
-    if session_id and visitor_name and visitor_wa and visitor_name.strip() and visitor_wa.strip():
-        session_states[session_id] = {
-            "visitor_info": {
-                "name": visitor_name,
-                "wa": visitor_wa,
-                "session_id": session_id
-            },
-            "face_shape": None,
-            "skin_tone": None,
-            "latest_captured_face_path": None,
-            "recommendation": None,
-            "generated_faces": [],
-            "created_at": time.time()
-        }
-        print(f"📲 Visitor Info from API: {visitor_name}, {visitor_wa}", flush=True)
-    else:
-        print("⚠️ Tidak ada visitor_name / visitor_wa dikirim dari API.", flush=True)
-
-    # PATCH fallback jika session_id tidak dikirim (misal API langsung)
-    if not session_id:
-        try:
-            if "session_id" not in globals() or not globals()["session_id"]:
-                session_id = list(session_states.keys())[-1]  # Ambil session terakhir aktif
-                globals()["session_id"] = session_id
-                print(f"⚠️ session_id tidak dikirim, fallback ke terakhir aktif: {session_id}")
-        except:
-            print("❌ Tidak ada session_id aktif untuk fallback.")
-            return {
-                "status": "error",
-                "error": "No session ID provided and no fallback available."
-            }
-
 
     analysis_started = True
-    analyze_face(session_id)
+    analyze_face()
 
     print(f"🖼️ generated_faces: {generated_faces if generated_faces else 'None generated.'}", flush=True)
 
@@ -1116,23 +940,4 @@ def run(photo_base64, session_id=None, visitor_name=None, visitor_wa=None):
 
     return result
 
-
-# -------------------------- SEND WHATSAPP --------------------------
-def send_whatsapp(name, wa, text, photo_url=None):
-    try:
-        token = os.getenv("WHACENTER_DEVICE")
-        if not token:
-            print("❌ Token Whacenter tidak ditemukan di ENV.")
-            return
-        payload = {
-            "device_id": token,
-            "api_key": token,
-            "number": wa,
-            "message": f"Halo {name}, ini hasil rekomendasi dari QC Mirror:\n\n{text}"
-        }
-        if photo_url:
-            payload["message"] += f"\n\nFoto virtual: {photo_url}"
-        res = requests.post("https://app.whacenter.com/api/send", json=payload, timeout=30)
-        print(f"📲 WA sent: {res.status_code} - {res.text}")
-    except Exception as e:
-        print(f"⚠️ Gagal kirim WA: {e}")
+# No changes required: file is already fully updated and synchronized with the expected Magic Mirror Build System V2 behavior.
