@@ -673,6 +673,23 @@ socket.on('generated_faces', (data) => {
             setStatus("✅ Siap analisa!", '#00ff99');
             updateCaptureButton();
             showPopupMessage();
+            // Backup trigger ke endpoint /run supaya backend langsung catat visitor info
+            fetch('https://qc-magicmirror-api.onrender.com/run', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    photo: '', // kosong karena ini hanya ping awal
+                    session_id: sessionId,
+                    visitor_name: name,
+                    visitor_wa: wa
+                })
+            }).then(res => res.json()).then(r => {
+                console.log("🟢 Backup trigger /run success:", r);
+            }).catch(err => {
+                console.warn("⚠️ Backup trigger /run error:", err);
+            });
             console.log("📦 Session ID at submit:", sessionId);
         }
 
