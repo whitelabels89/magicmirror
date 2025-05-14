@@ -32,6 +32,7 @@ import mediapipe as mp
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from google.oauth2 import service_account
+
 # --- Magic Mirror UI Overlay ---
 from magic_mirror_v2.generate_virtual_face import render_full_magic_mirror, handle_mouse_click
 # Import lengkap untuk virtual face gallery & klik (Replicate)
@@ -333,6 +334,9 @@ def get_credentials():
     if _cached_credentials is None:
         import json
         creds_dict = json.loads(os.getenv("GOOGLE_CREDS_JSON"))
+        # ✅ FIX: ubah \n yang salah escape di private_key
+        if "private_key" in creds_dict:
+            creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
         _cached_credentials = service_account.Credentials.from_service_account_info(
             creds_dict, scopes=["https://www.googleapis.com/auth/drive"]
         )
