@@ -438,7 +438,7 @@ def generate_voice_elevenlabs(text, output_filename):
         return
 
 # -------------------------- ANALYSIS MAIN FUNCTION --------------------------
-def analyze_face():
+def analyze_face(session_id=None):
     global drive_service, recommendation, analyze_done, analysis_started, status_msg, generated_faces
     openai.api_key = OPENAI_API_KEY
     file_prefix = f"{face_shape}_{skin_tone}_{uuid.uuid4().hex[:8]}"
@@ -645,7 +645,8 @@ def analyze_face():
     # (Do not remove promo_audio, keep for cache)
 
     # 🚨 PATCH: Emit dummy faces if none generated to trigger frontend gallery
-    session_id = globals().get("session_id", "unknown-session")
+    if not session_id:
+        session_id = "unknown-session"
     if not generated_faces and sio.connected:
         try:
             sio.emit('generated_faces', {
@@ -920,7 +921,7 @@ def run(photo_base64, session_id=None):
 
 
     analysis_started = True
-    analyze_face()
+    analyze_face(session_id=session_id)
 
     print(f"🖼️ generated_faces: {generated_faces if generated_faces else 'None generated.'}", flush=True)
 
