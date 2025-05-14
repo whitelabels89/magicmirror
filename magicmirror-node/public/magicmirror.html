@@ -289,6 +289,14 @@
             </div>
         </div>
     </section>
+    <div id="user-info-form" style="margin-top: 30px; background: #ffffffcc; padding: 20px; border-radius: 15px; max-width: 400px; text-align: left;">
+        <h2 style="color: #333;">Isi Data Sebelum Analisa</h2>
+        <label for="visitor-name">Nama:</label>
+        <input type="text" id="visitor-name" style="width: 100%; padding: 8px; margin-bottom: 12px; border-radius: 6px; border: 1px solid #ccc;"><br>
+        <label for="visitor-wa">Nomor WhatsApp:</label>
+        <input type="text" id="visitor-wa" placeholder="628xxxx" style="width: 100%; padding: 8px; margin-bottom: 12px; border-radius: 6px; border: 1px solid #ccc;"><br>
+        <button onclick="submitVisitorInfo()" style="background: #00b4d8; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold;">Lanjutkan</button>
+    </div>
     <div id="container">
         <div id="camera-wrapper" style="position: relative; width: 380px; max-width: 90%; margin-bottom: 24px; border-radius: 20px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.3); background: #ffffff;">
             <img id="camera-placeholder" src="/magic_mirror.png" style="width: 100%; display: block;">
@@ -397,7 +405,9 @@
             else status.style.color = '#00ff99';
         }
         function updateCaptureButton() {
-            if (connected) {
+            // Hanya aktif jika sudah connect DAN form user info sudah diisi/hilang
+            const userInfoForm = document.getElementById('user-info-form');
+            if (connected && (!userInfoForm || userInfoForm.style.display === 'none')) {
                 captureBtn.disabled = false;
                 captureBtn.style.opacity = '1';
                 captureBtn.style.cursor = 'pointer';
@@ -477,7 +487,13 @@
 
         socket.on('connect', () => {
             connected = true;
-            setStatus('Standby, Turn on Magic Mirror', '#00ff99');
+            // Jika form user info masih ada, status tetap minta isi data
+            const userInfoForm = document.getElementById('user-info-form');
+            if (userInfoForm && userInfoForm.style.display !== 'none') {
+                setStatus("🔒 Isi nama dan WhatsApp terlebih dahulu", '#ffdd57');
+            } else {
+                setStatus('Standby, Turn on Magic Mirror', '#00ff99');
+            }
             document.getElementById('loading').style.display = 'none';
             updateCaptureButton();
             socket.emit('join', { session_id: sessionId });
@@ -574,6 +590,14 @@ socket.on('generated_faces', (data) => {
         document.getElementById('lightbox').addEventListener('click', () => {
             document.getElementById('lightbox').style.display = 'none';
         });
+        socket.on('session_limit_reached', (data) => {
+            alert(data.message || "Sistem sedang penuh. Coba lagi sebentar lagi.");
+            setStatus("🚫 Sistem sedang penuh. Coba beberapa saat lagi.", "orange");
+            document.getElementById('user-info-form').style.display = 'block';
+            document.getElementById('capture-button').disabled = true;
+            document.getElementById('capture-button').style.opacity = '0.5';
+            document.getElementById('capture-button').style.cursor = 'not-allowed';
+        });
         socket.on('disconnect', () => {
             connected = false;
             setStatus('⚡ Koneksi terputus. Klik Turn On Magic Mirror lagi jika diperlukan.', 'red');
@@ -585,7 +609,56 @@ socket.on('generated_faces', (data) => {
         document.getElementById('toggle-camera-button').addEventListener('click', () => {
             setTimeout(updateCaptureButton, 500); // slight delay to ensure stream state updated
         });
+
+        // --- Visitor Info Logic ---
+        function submitVisitorInfo() {
+            const name = document.getElementById('visitor-name').value.trim();
+            const wa = document.getElementById('visitor-wa').value.trim();
+
+            if (!name || !wa) {
+                alert("Nama dan Nomor WhatsApp wajib diisi.");
+                return;
+            }
+
+            // Simpan info ke localStorage untuk keperluan lain jika dibutuhkan
+            localStorage.setItem('visitor_name', name);
+            localStorage.setItem('visitor_wa', wa);
+
+            // Kirim ke backend via socket
+            socket.emit("user_info", {
+                name: name,
+                wa: wa,
+                session_id: sessionId
+            });
+
+            // Sembunyikan form, aktifkan tombol
+            document.getElementById('user-info-form').style.display = 'none';
+            setStatus("✅ Data diterima. Siap analisa!", '#00ff99');
+            updateCaptureButton();
+            showPopupMessage();
+        }
+
+</script>
+<script>
+function showPopupMessage() {
+    const popup = document.getElementById('popup-message');
+    popup.style.display = 'block';
+    setTimeout(() => {
+        popup.style.display = 'none';
+    }, 5000);
+}
+</script>
+<script>
+// Cegah user klik analyze sebelum isi data
+window.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('capture-button').disabled = true;
+    document.getElementById('capture-button').style.opacity = '0.5';
+    document.getElementById('status').innerText = "🔒 Isi nama dan WhatsApp terlebih dahulu";
+});
     </script>
+    <div id="popup-message" style="display: none; position: fixed; top: 20px; right: 20px; background-color: #00b4d8; color: white; padding: 12px 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 9999; font-weight: 600;">
+      Data berhasil disimpan. Klik tombol di bawah untuk mulai analisa!
+    </div>
 </body>
 <script>
 window.addEventListener('DOMContentLoaded', () => {
