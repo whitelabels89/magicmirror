@@ -289,13 +289,15 @@
             </div>
         </div>
     </section>
-    <div id="user-info-form" style="margin-top: 30px; background: #ffffffcc; padding: 20px; border-radius: 15px; max-width: 400px; text-align: left;">
-        <h2 style="color: #333;">Isi Data Sebelum Analisa</h2>
-        <label for="visitor-name">Nama:</label>
-        <input type="text" id="visitor-name" style="width: 100%; padding: 8px; margin-bottom: 12px; border-radius: 6px; border: 1px solid #ccc;"><br>
-        <label for="visitor-wa">Nomor WhatsApp:</label>
-        <input type="text" id="visitor-wa" placeholder="628xxxx" style="width: 100%; padding: 8px; margin-bottom: 12px; border-radius: 6px; border: 1px solid #ccc;"><br>
-        <button onclick="submitVisitorInfo()" style="background: #00b4d8; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold;">Lanjutkan</button>
+    <div id="form-section" style="display: flex; justify-content: center; align-items: center; min-height: 100vh;">
+        <div id="user-info-form" style="background: #ffffffcc; padding: 20px; border-radius: 15px; max-width: 400px; text-align: left;">
+            <h2 style="color: #333;">Isi Data Sebelum Analisa</h2>
+            <label for="visitor-name">Nama:</label>
+            <input type="text" id="visitor-name" style="width: 100%; padding: 8px; margin-bottom: 12px; border-radius: 6px; border: 1px solid #ccc;"><br>
+            <label for="visitor-wa">Nomor WhatsApp:</label>
+            <input type="text" id="visitor-wa" placeholder="628xxxx" style="width: 100%; padding: 8px; margin-bottom: 12px; border-radius: 6px; border: 1px solid #ccc;"><br>
+            <button onclick="submitVisitorInfo()" style="background: #00b4d8; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold;">Lanjutkan</button>
+        </div>
     </div>
     <div id="container">
         <div id="camera-wrapper" style="position: relative; width: 380px; max-width: 90%; margin-bottom: 24px; border-radius: 20px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.3); background: #ffffff;">
@@ -436,12 +438,17 @@
 
             const startTimestamp = Math.floor(Date.now() / 1000);
             console.log("📤 Mengirim foto ke backend... start_timestamp:", startTimestamp);
+            if (!sessionId) {
+                alert("Gagal: Session ID tidak ditemukan. Silakan refresh halaman.");
+                setStatus("❌ Gagal: No session ID available.", "red");
+                return;
+            }
             fetch('https://qc-magicmirror-api.onrender.com/run', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ photo: base64Photo })
+                body: JSON.stringify({ photo: base64Photo, session_id: sessionId })
             })
             .then(response => response.json())
             .then(data => {
