@@ -645,6 +645,8 @@ socket.on('generated_faces', (data) => {
             // Simpan info ke localStorage untuk keperluan lain jika dibutuhkan
             localStorage.setItem('visitor_name', name);
             localStorage.setItem('visitor_wa', wa);
+            console.log("📦 visitor_name saved:", localStorage.getItem('visitor_name'));
+            console.log("📦 visitor_wa saved:", localStorage.getItem('visitor_wa'));
 
             console.log("📨 Kirim ke backend:", sessionId, name, wa);
 
@@ -660,6 +662,7 @@ socket.on('generated_faces', (data) => {
             setStatus("✅ Siap analisa!", '#00ff99');
             updateCaptureButton();
             showPopupMessage();
+            console.log("📦 Session ID at submit:", sessionId);
         }
 
 </script>
