@@ -644,10 +644,10 @@ def analyze_face(session_id=None):
         os.remove(text_filename)
     # (Do not remove promo_audio, keep for cache)
 
-    # 🚨 PATCH: Emit pending saat mulai, dan emit error hanya jika gagal total
+    # 🚨 PATCH: Emit dummy faces if none generated to trigger frontend gallery
     if not session_id:
         session_id = "unknown-session"
-    if sio.connected:
+    if not generated_faces and sio.connected:
         try:
             sio.emit('generated_faces', {
                 'faces': [],
@@ -656,20 +656,9 @@ def analyze_face(session_id=None):
                 'start_timestamp': int(time.time()),
                 'session_id': session_id
             })
-            print("🕒 Emit pending status untuk countdown.", flush=True)
+            print("🧪 No faces generated, emit pending status.", flush=True)
         except Exception as e:
             print(f"⚠️ Gagal emit pending status: {e}", flush=True)
-    if not generated_faces and sio.connected:
-        try:
-            sio.emit('generated_faces', {
-                'faces': [],
-                'status': 'error',
-                'message': 'limit',
-                'session_id': session_id
-            })
-            print("❌ Emit error status karena gagal generate.", flush=True)
-        except Exception as e:
-            print(f"⚠️ Gagal emit error status: {e}", flush=True)
     analyze_done = False
     analysis_started = False
     status_msg = "✅ Selesai! Tekan [q] untuk keluar."
