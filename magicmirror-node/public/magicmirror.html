@@ -392,7 +392,9 @@
     </script>
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        const sessionId = `${Date.now()}_${Math.floor(Math.random() * 100000)}`;
+        const storedSession = localStorage.getItem("session_id");
+        const sessionId = storedSession || `${Date.now()}_${Math.floor(Math.random() * 100000)}`;
+        localStorage.setItem("session_id", sessionId);
         const socket = io('https://queensacademy.id');
         let connected = false;
         // stream will be set by camera script, but for safety, we check window.stream too
