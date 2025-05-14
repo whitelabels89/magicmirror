@@ -392,9 +392,14 @@
     </script>
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        const storedSession = localStorage.getItem("session_id");
-        const sessionId = storedSession || `${Date.now()}_${Math.floor(Math.random() * 100000)}`;
-        localStorage.setItem("session_id", sessionId);
+        let sessionId = localStorage.getItem("session_id");
+        if (!sessionId) {
+            sessionId = `${Date.now()}_${Math.floor(Math.random() * 100000)}`;
+            localStorage.setItem("session_id", sessionId);
+            console.log("📌 session_id baru dibuat:", sessionId);
+        } else {
+            console.log("🔄 session_id dari storage:", sessionId);
+        }
         const socket = io('https://queensacademy.id');
         let connected = false;
         // stream will be set by camera script, but for safety, we check window.stream too
@@ -665,6 +670,7 @@ socket.on('generated_faces', (data) => {
             updateCaptureButton();
             showPopupMessage();
             console.log("📦 Session ID at submit:", sessionId);
+            console.log("📌 Session ID final (submitVisitorInfo):", sessionId);
         }
 
 </script>
