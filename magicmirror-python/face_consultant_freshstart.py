@@ -1054,7 +1054,7 @@ def run(photo_base64, session_id=None, visitor_name=None, visitor_wa=None):
         print(f"🛠️ PATCH: Session baru dibuat di run() untuk session_id: {session_id}", flush=True)
 
     # ✅ PATCH: Simpan info pengunjung dari API ke session_states
-    if session_id and visitor_name and visitor_wa:
+    if session_id and visitor_name and visitor_wa and visitor_name.strip() and visitor_wa.strip():
         session_states[session_id] = {
             "visitor_info": {
                 "name": visitor_name,
