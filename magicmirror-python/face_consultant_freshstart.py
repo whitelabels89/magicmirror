@@ -31,6 +31,7 @@ import mediapipe as mp
 
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
+from google.oauth2 import service_account
 # --- Magic Mirror UI Overlay ---
 from magic_mirror_v2.generate_virtual_face import render_full_magic_mirror, handle_mouse_click
 # Import lengkap untuk virtual face gallery & klik (Replicate)
