@@ -484,6 +484,19 @@ def analyze_face(session_id=None):
     # Step 2: Emit photo and GPT result to Web
     if latest_captured_face_path and recommendation:
         send_result_to_web(latest_captured_face_path, recommendation)
+        # Emit pending status immediately after sending result to web
+        if sio.connected:
+            try:
+                sio.emit('generated_faces', {
+                    'faces': [],
+                    'status': 'pending',
+                    'message': 'Sedang menunggu hasil generate dari AI stylist...',
+                    'start_timestamp': int(time.time()),
+                    'session_id': session_id or "unknown-session"
+                })
+                print("🕒 Emit pending status lebih awal untuk countdown.", flush=True)
+            except Exception as e:
+                print(f"⚠️ Gagal emit pending lebih awal: {e}", flush=True)
 
     # Step 3: Generate replicate faces with GPT prompt
     audio_filename = os.path.join("VOICE_AI_FILES", f"{file_prefix}.mp3")
@@ -566,6 +579,7 @@ def analyze_face(session_id=None):
 
                 # ✅ Upload semua hasil generated_faces ke Google Drive
                 drive_links = []
+                generated_faces = []  # Reset path lokal sebelum disubstitusi dengan link Drive
                 for face_path in generated_faces:
                     # ✅ Tunggu hingga file benar-benar ada (maksimal 5 detik)
                     for i in range(5):
@@ -577,6 +591,7 @@ def analyze_face(session_id=None):
                             link = upload_file(face_path, 'image/jpeg', drive_service)
                             drive_links.append(link)
                             print(f"☁️ Uploaded generated face: {link}", flush=True)
+                            generated_faces.append(link)  # Gantikan path lokal dengan link Drive
                         except Exception as ex:
                             print(f"⚠️ Gagal upload generated face: {ex}", flush=True)
                     else:
@@ -644,21 +659,9 @@ def analyze_face(session_id=None):
         os.remove(text_filename)
     # (Do not remove promo_audio, keep for cache)
 
-    # 🚨 PATCH: Emit pending saat mulai, dan emit error hanya jika gagal total
+    # 🚨 PATCH: Emit error only if failed to generate faces
     if not session_id:
         session_id = "unknown-session"
-    if sio.connected:
-        try:
-            sio.emit('generated_faces', {
-                'faces': [],
-                'status': 'pending',
-                'message': 'Sedang menunggu hasil generate dari AI stylist...',
-                'start_timestamp': int(time.time()),
-                'session_id': session_id
-            })
-            print("🕒 Emit pending status untuk countdown.", flush=True)
-        except Exception as e:
-            print(f"⚠️ Gagal emit pending status: {e}", flush=True)
     if not generated_faces and sio.connected:
         try:
             sio.emit('generated_faces', {
