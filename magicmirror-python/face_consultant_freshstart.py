@@ -1004,6 +1004,23 @@ def run(photo_base64, session_id=None, visitor_name=None, visitor_wa=None):
     if session_id:
         globals()["session_id"] = session_id
 
+    # ✅ PATCH: Buat session jika belum ada (fix utama)
+    if session_id and session_id not in session_states:
+        session_states[session_id] = {
+            "visitor_info": {
+                "name": visitor_name or "-",
+                "wa": visitor_wa or "-",
+                "session_id": session_id
+            },
+            "face_shape": None,
+            "skin_tone": None,
+            "latest_captured_face_path": None,
+            "recommendation": None,
+            "generated_faces": [],
+            "created_at": time.time()
+        }
+        print(f"🛠️ PATCH: Session baru dibuat di run() untuk session_id: {session_id}", flush=True)
+
     # ✅ PATCH: Simpan info pengunjung dari API ke session_states
     if session_id and visitor_name and visitor_wa:
         session_states[session_id] = {
