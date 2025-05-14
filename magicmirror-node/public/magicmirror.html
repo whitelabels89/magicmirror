@@ -301,6 +301,14 @@
         </button>
         <div id="status">Waiting Analyze...</div>
         <img id="photo" src="" style="display:none; max-width: 300px; margin-top: 20px;" />
+        <!-- Added waiting box and error msg here -->
+        <div id="generate-waiting-box" style="display: none; text-align: center; margin-top: 16px;">
+            <div id="loading" class="loading" style="margin: auto;"></div>
+            <div id="countdown-timer" style="font-size: 1rem; color: #ffdd57; margin-top: 12px;"></div>
+        </div>
+        <div id="replicate-error-msg" style="display: none; color: #ff6b6b; margin-top: 20px; font-weight: 600; text-align: center;">
+          ⚠️ Maaf, saat ini fitur visualisasi AI sedang terkena batas limit karena tingginya traffic visitor. Silakan coba kembali dalam beberapa menit. 🙏
+        </div>
         <div id="recommendation" style="display:none;">
             <div id="countdown-timer" style="font-size: 1rem; color: #ffdd57; margin-top: 12px;"></div>
             <div id="visual-loading" class="loading" style="display: none;"></div>
@@ -469,6 +477,7 @@
             .catch(err => {
                 console.error('❌ Error fetch:', err);
                 setStatus('❌ Gagal mengirim ke server.', 'red');
+                document.getElementById('replicate-error-msg').style.display = 'block';
             })
             .finally(() => {
                 document.getElementById('loading').style.display = 'none';
@@ -513,6 +522,7 @@ socket.on('generated_faces', (data) => {
 
     // ⏳ Countdown dan spinner hanya saat status === 'pending'
     if (data.status === 'pending' && data.start_timestamp && validFaces.length === 0) {
+        document.getElementById('generate-waiting-box').style.display = 'block';
         const countdownTarget = data.start_timestamp + 120;
         waitingEl.style.display = 'block';
         document.getElementById('visual-loading').style.display = 'block';
@@ -559,6 +569,14 @@ socket.on('generated_faces', (data) => {
         waitingEl.style.display = 'none';
         document.getElementById('visual-loading').style.display = 'none';
         document.getElementById('countdown-timer').innerText = '';
+        document.getElementById('generate-waiting-box').style.display = 'none';
+        document.getElementById('replicate-error-msg').style.display = 'none';
+    }
+
+    // Error/limit handling
+    if (data.status === 'error' || (data.message && data.message.toLowerCase().includes('limit'))) {
+        document.getElementById('replicate-error-msg').style.display = 'block';
+        document.getElementById('generate-waiting-box').style.display = 'none';
     }
 });
 
