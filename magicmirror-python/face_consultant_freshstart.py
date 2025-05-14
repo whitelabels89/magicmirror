@@ -961,6 +961,14 @@ def run(photo_base64, session_id=None, visitor_name=None, visitor_wa=None):
         f.write(decoded)
     latest_captured_face_path = capture_filename
 
+    # Tambahkan validasi ukuran file hasil decode
+    if os.path.getsize(capture_filename) < 5000:
+        print(f"❌ Ukuran file terlalu kecil, kemungkinan foto kosong: {capture_filename}", flush=True)
+        return {
+            "status": "error",
+            "error": "Foto kosong atau tidak valid."
+        }
+
     print(f"✅ Foto dari API disimpan di: {latest_captured_face_path}", flush=True)
     print(f"📏 Ukuran file: {os.path.getsize(latest_captured_face_path)} bytes", flush=True)
 
