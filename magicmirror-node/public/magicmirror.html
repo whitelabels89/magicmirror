@@ -289,16 +289,6 @@
             </div>
         </div>
     </section>
-    <div id="form-section" style="display: flex; justify-content: center; align-items: center; min-height: 100vh;">
-        <div id="user-info-form" style="background: #ffffffcc; padding: 20px; border-radius: 15px; max-width: 400px; text-align: left;">
-            <h2 style="color: #333;">Isi Data Sebelum Analisa</h2>
-            <label for="visitor-name">Nama:</label>
-            <input type="text" id="visitor-name" style="width: 100%; padding: 8px; margin-bottom: 12px; border-radius: 6px; border: 1px solid #ccc;"><br>
-            <label for="visitor-wa">Nomor WhatsApp:</label>
-            <input type="text" id="visitor-wa" placeholder="628xxxx" style="width: 100%; padding: 8px; margin-bottom: 12px; border-radius: 6px; border: 1px solid #ccc;"><br>
-            <button onclick="submitVisitorInfo()" style="background: #00b4d8; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold;">Lanjutkan</button>
-        </div>
-    </div>
     <div id="container">
         <div id="camera-wrapper" style="position: relative; width: 380px; max-width: 90%; margin-bottom: 24px; border-radius: 20px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.3); background: #ffffff;">
             <img id="camera-placeholder" src="/magic_mirror.png" style="width: 100%; display: block;">
@@ -336,6 +326,7 @@
 
     <script>
     window.addEventListener('DOMContentLoaded', () => {
+        const video = document.getElementById('camera-preview');
         const placeholder = document.getElementById('camera-placeholder');
         const toggleBtn = document.getElementById('toggle-camera-button');
         let stream = null;
@@ -391,14 +382,7 @@
     </script>
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        let sessionId = localStorage.getItem("session_id");
-        if (!sessionId) {
-            sessionId = `${Date.now()}_${Math.floor(Math.random() * 100000)}`;
-            localStorage.setItem("session_id", sessionId);
-            console.log("📌 session_id baru dibuat:", sessionId);
-        } else {
-            console.log("🔄 session_id dari storage:", sessionId);
-        }
+        const sessionId = `${Date.now()}_${Math.floor(Math.random() * 100000)}`;
         const socket = io('https://queensacademy.id');
         let connected = false;
         // stream will be set by camera script, but for safety, we check window.stream too
@@ -413,10 +397,7 @@
             else status.style.color = '#00ff99';
         }
         function updateCaptureButton() {
-            const userInfoForm = document.getElementById('user-info-form');
-            const name = localStorage.getItem('visitor_name');
-            const wa = localStorage.getItem('visitor_wa');
-            if (connected && name && wa && (!userInfoForm || userInfoForm.style.display === 'none')) {
+            if (connected) {
                 captureBtn.disabled = false;
                 captureBtn.style.opacity = '1';
                 captureBtn.style.cursor = 'pointer';
@@ -426,111 +407,81 @@
                 captureBtn.style.cursor = 'not-allowed';
             }
         }
-document.getElementById('capture-button').addEventListener('click', () => {
-    // --- Tambahan validasi data pengunjung sebelum ambil foto ---
-    const visitor_name = localStorage.getItem('visitor_name');
-    const visitor_wa = localStorage.getItem('visitor_wa');
+        document.getElementById('capture-button').addEventListener('click', () => {
+            const video = document.getElementById('camera-preview');
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // ✅ Cek ulang validasi nama/wa sebelum lanjut
-    if (!sessionId || !visitor_name || !visitor_wa || visitor_name.trim() === '' || visitor_wa.trim() === '') {
-        alert("❌ Gagal: Data pengunjung tidak lengkap. Silakan isi nama dan WhatsApp terlebih dahulu.");
-        setStatus("❌ Data belum lengkap.", "red");
-        return;
-    }
-    const video = document.getElementById('camera-preview');
-    const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth || 640;
-    canvas.height = video.videoHeight || 480;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const base64Photo = canvas.toDataURL('image/jpeg').replace(/^data:image\/jpeg;base64,/, '');
 
-    const base64Photo = canvas.toDataURL('image/jpeg').replace(/^data:image\/jpeg;base64,/, '');
+            setStatus('🔍 Menganalisis wajah...', '#fff700');
+            document.getElementById('loading').style.display = 'block';
+            // ✅ Spinner awal rekomendasi tetap dipertahankan
+            document.getElementById('recommendation').style.display = 'none';
+            document.getElementById('gallery').innerHTML = '';
+            document.getElementById('waiting-replicate').style.display = 'none';
 
-    // --- Validasi tambahan base64Photo ---
-    if (!base64Photo || base64Photo.length < 100) {
-        alert("❌ Gagal: Foto tidak valid. Coba ambil ulang.");
-        setStatus("❌ Foto gagal diproses. Silakan ulangi.", "red");
-        document.getElementById('loading').style.display = 'none';
-        return;
-    }
+            const startTimestamp = Math.floor(Date.now() / 1000);
+            console.log("📤 Mengirim foto ke backend... start_timestamp:", startTimestamp);
+            fetch('https://qc-magicmirror-api.onrender.com/run', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ photo: base64Photo })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('✅ Respon AI:', data);
+                if (data.status === 'pending') {
+                    console.log("🕒 Status pending diterima. start_timestamp:", data.start_timestamp || 'N/A');
+                }
 
-    setStatus('🔍 Menganalisis wajah...', '#fff700');
-    document.getElementById('loading').style.display = 'block';
-    // ✅ Spinner awal rekomendasi tetap dipertahankan
-    document.getElementById('recommendation').style.display = 'none';
-    document.getElementById('gallery').innerHTML = '';
-    document.getElementById('waiting-replicate').style.display = 'none';
+                if (data.status === 'done') {
+                    document.getElementById('rec-content').innerText = data.recommendation || 'Tidak ada rekomendasi.';
+                    document.getElementById('recommendation').style.display = 'block';
+                    setStatus('✅ Rekomendasi siap!', '#00ff99');
 
-    const startTimestamp = Math.floor(Date.now() / 1000);
-    console.log("📤 Mengirim foto ke backend... start_timestamp:", startTimestamp);
-    fetch('https://qc-magicmirror-api.onrender.com/run', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            photo: base64Photo,
-            session_id: sessionId,
-            visitor_name: visitor_name,
-            visitor_wa: visitor_wa
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('✅ Respon AI:', data);
-        if (data.status === 'pending') {
-            console.log("🕒 Status pending diterima. start_timestamp:", data.start_timestamp || 'N/A');
-        }
-
-        if (data.status === 'done') {
-            document.getElementById('rec-content').innerText = data.recommendation || 'Tidak ada rekomendasi.';
-            document.getElementById('recommendation').style.display = 'block';
-            setStatus('✅ Rekomendasi siap!', '#00ff99');
-
-            if (data.faces && data.faces.length > 0) {
-                const gallery = document.getElementById('gallery');
-                data.faces.forEach((url, index) => {
-                    const card = document.createElement('div');
-                    card.className = 'gallery-card fade-in-stagger';
-                    card.style.animationDelay = `${index * 0.2}s`;
-                    const img = document.createElement('img');
-                    img.src = url.startsWith('http') ? url : `https://qc-magicmirror-api.onrender.com${url}`;
-                    card.appendChild(img);
-                    gallery.appendChild(card);
-                });
-                setTimeout(() => {
-                    gallery.scrollIntoView({ behavior: 'smooth' });
-                }, 300);
-            }
-            // ⬇️ Pindahkan waiting-replicate di sini, setelah recommendation tampil
-            document.getElementById('waiting-replicate').style.display = 'block';
-        } else {
-            setStatus('⚠️ Gagal: ' + (data.error || 'Tidak terdeteksi wajah.'), 'orange');
-        }
-    })
-    .catch(err => {
-        console.error('❌ Error fetch:', err);
-        setStatus('❌ Gagal mengirim ke server.', 'red');
-    })
-    .finally(() => {
-        document.getElementById('loading').style.display = 'none';
-    });
-});
+                    if (data.faces && data.faces.length > 0) {
+                        const gallery = document.getElementById('gallery');
+                        data.faces.forEach((url, index) => {
+                            const card = document.createElement('div');
+                            card.className = 'gallery-card fade-in-stagger';
+                            card.style.animationDelay = `${index * 0.2}s`;
+                            const img = document.createElement('img');
+                            img.src = url.startsWith('http') ? url : `https://qc-magicmirror-api.onrender.com${url}`;
+                            card.appendChild(img);
+                            gallery.appendChild(card);
+                        });
+                        setTimeout(() => {
+                            gallery.scrollIntoView({ behavior: 'smooth' });
+                        }, 300);
+                    }
+                    // ⬇️ Pindahkan waiting-replicate di sini, setelah recommendation tampil
+                    document.getElementById('waiting-replicate').style.display = 'block';
+                } else {
+                    setStatus('⚠️ Gagal: ' + (data.error || 'Tidak terdeteksi wajah.'), 'orange');
+                }
+            })
+            .catch(err => {
+                console.error('❌ Error fetch:', err);
+                setStatus('❌ Gagal mengirim ke server.', 'red');
+            })
+            .finally(() => {
+                document.getElementById('loading').style.display = 'none';
+            });
+        });
 
         socket.on('connect', () => {
             connected = true;
-            // Jika form user info masih ada, status tetap minta isi data
-            const userInfoForm = document.getElementById('user-info-form');
-            if (userInfoForm && userInfoForm.style.display !== 'none') {
-                setStatus("🔒 Isi nama dan WhatsApp terlebih dahulu", '#ffdd57');
-            } else {
-                setStatus('Standby, Turn on Magic Mirror', '#00ff99');
-            }
+            setStatus('Standby, Turn on Magic Mirror', '#00ff99');
             document.getElementById('loading').style.display = 'none';
             updateCaptureButton();
             socket.emit('join', { session_id: sessionId });
             console.log("🔐 Session ID dikirim ke server:", sessionId);
-            console.log("📦 session_id at connect:", sessionId);
         });
         socket.on('ai_result', (data) => {
             console.log('🧠 Rekomendasi AI diterima.');
@@ -623,14 +574,6 @@ socket.on('generated_faces', (data) => {
         document.getElementById('lightbox').addEventListener('click', () => {
             document.getElementById('lightbox').style.display = 'none';
         });
-        socket.on('session_limit_reached', (data) => {
-            alert(data.message || "Sistem sedang penuh. Coba lagi sebentar lagi.");
-            setStatus("🚫 Sistem sedang penuh. Coba beberapa saat lagi.", "orange");
-            document.getElementById('user-info-form').style.display = 'block';
-            document.getElementById('capture-button').disabled = true;
-            document.getElementById('capture-button').style.opacity = '0.5';
-            document.getElementById('capture-button').style.cursor = 'not-allowed';
-        });
         socket.on('disconnect', () => {
             connected = false;
             setStatus('⚡ Koneksi terputus. Klik Turn On Magic Mirror lagi jika diperlukan.', 'red');
@@ -642,73 +585,7 @@ socket.on('generated_faces', (data) => {
         document.getElementById('toggle-camera-button').addEventListener('click', () => {
             setTimeout(updateCaptureButton, 500); // slight delay to ensure stream state updated
         });
-
-        // --- Visitor Info Logic ---
-        function submitVisitorInfo() {
-            const name = document.getElementById('visitor-name').value.trim();
-            const wa = document.getElementById('visitor-wa').value.trim();
-
-            if (!name || !wa) {
-                alert("Nama dan Nomor WhatsApp wajib diisi.");
-                return;
-            }
-            if (!sessionId || !connected) {
-                alert("Koneksi ke server belum siap. Silakan tunggu sebentar dan coba lagi.");
-                return;
-            }
-
-            console.log("✅ Data form disubmit:", name, wa); // Tambahkan log ini
-
-            // Simpan info ke localStorage untuk keperluan lain jika dibutuhkan
-            localStorage.setItem('visitor_name', name);
-            localStorage.setItem('visitor_wa', wa);
-            console.log("📦 visitor_name saved:", localStorage.getItem('visitor_name'));
-            console.log("📦 visitor_wa saved:", localStorage.getItem('visitor_wa'));
-
-            console.log("📨 Kirim ke backend:", sessionId, name, wa);
-
-            // Log sessionId before emitting
-            console.log("📦 Session ID final (submitVisitorInfo):", sessionId);
-
-            // Kirim ke backend via socket
-            socket.emit("user_info", {
-                name: name,
-                wa: wa,
-                session_id: sessionId
-            });
-
-            // Sembunyikan form, aktifkan tombol
-            document.getElementById('user-info-form').style.display = 'none';
-            setStatus("✅ Siap analisa!", '#00ff99');
-            setTimeout(() => {
-                updateCaptureButton();
-            }, 500); // Delay untuk memastikan localStorage sudah siap
-            showPopupMessage();
-            
-            console.log("📦 Session ID at submit:", sessionId);
-        }
-
-</script>
-<script>
-function showPopupMessage() {
-    const popup = document.getElementById('popup-message');
-    popup.style.display = 'block';
-    setTimeout(() => {
-        popup.style.display = 'none';
-    }, 5000);
-}
-</script>
-<script>
-// Cegah user klik analyze sebelum isi data
-window.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('capture-button').disabled = true;
-    document.getElementById('capture-button').style.opacity = '0.5';
-    document.getElementById('status').innerText = "🔒 Isi nama dan WhatsApp terlebih dahulu";
-});
     </script>
-    <div id="popup-message" style="display: none; position: fixed; top: 20px; right: 20px; background-color: #00b4d8; color: white; padding: 12px 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 9999; font-weight: 600;">
-      Data berhasil disimpan. Klik tombol di bawah untuk mulai analisa!
-    </div>
 </body>
 <script>
 window.addEventListener('DOMContentLoaded', () => {
