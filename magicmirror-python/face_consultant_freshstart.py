@@ -467,20 +467,26 @@ def analyze_face(session_id=None):
     )
     recommendation = response.choices[0].message['content']
 
-    # Extract style + color
-    import re
-    def extract_style_color(text):
-        style = "recommended hairstyle"
-        color = "recommended hair color"
-        match_style = re.search(r"(potongan rambut|hairstyle)\s*(yang )?([a-zA-Z\s]+)", text, re.IGNORECASE)
-        match_color = re.search(r"(warna rambut|hair color)\s*(yang )?([a-zA-Z\s]+)", text, re.IGNORECASE)
-        if match_style:
-            style = match_style.group(3).strip()
-        if match_color:
-            color = match_color.group(3).strip()
-        return style, color
-    hairstyle, haircolor = extract_style_color(recommendation)
-    prompt = f"ultrarealistic portrait of a human with {haircolor} hair styled in a {hairstyle}, studio lighting, elegant look, high resolution"
+    # 🔎 Ambil ringkasan warna & gaya rambut dari hasil GPT
+    summary_response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": "Extract only the hair style and hair color from this text. Return as JSON with keys: 'hairstyle' and 'haircolor'."},
+            {"role": "user", "content": recommendation}
+        ]
+    )
+
+    try:
+        summary_json = json.loads(summary_response.choices[0].message['content'])
+        hairstyle = summary_json.get("hairstyle", "modern style")
+        haircolor = summary_json.get("haircolor", "natural brown")
+    except Exception as e:
+        print(f"⚠️ Gagal parsing summary JSON: {e}")
+        hairstyle = "modern style"
+        haircolor = "natural brown"
+
+    prompt = f"ultrarealistic portrait, {hairstyle} hairstyle, {haircolor} hair, studio lighting, elegant look, high resolution"
+    print(f"🎯 Prompt singkat untuk Replicate: {prompt}", flush=True)
 
     # Step 2: Emit photo and GPT result to Web
     if latest_captured_face_path and recommendation:
