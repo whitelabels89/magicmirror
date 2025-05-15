@@ -149,7 +149,8 @@ def handle_user_photo(data):
 
     if not analysis_started:
         analysis_started = True
-        threading.Thread(target=analyze_face).start()
+        session_id = data.get('session_id', f"sid_{int(time.time())}")
+        threading.Thread(target=analyze_face, args=(session_id,)).start()
 
 # -------------------------- SETUP --------------------------
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
