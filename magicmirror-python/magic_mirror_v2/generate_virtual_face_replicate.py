@@ -57,9 +57,9 @@ def generate_virtual_face_replicate(face_shape, skin_tone, latest_photo_path, pr
 
     # Prepare prompts
     prompts = [
-        f"{prompt}, front view, ultra-realistic, soft lighting, same person" if prompt else f"Ultra-realistic portrait, {face_shape} face shape, {skin_tone} skin tone, recommended hairstyle and color, full head visible, no cropping, sharp details, studio lighting, Canon EOS 5D, high-resolution, natural expression, SAME FACE as subject reference",
-        f"{prompt}, side profile view, ultra-realistic, cinematic lighting, same person" if prompt else f"Side profile photo, {face_shape} face shape, {skin_tone} skin tone, full hairstyle visible, ultra-realistic, cinematic lighting, 8k, natural human appearance, identical face",
-        f"{prompt}, three-quarter angle, high-definition, soft background, same person" if prompt else f"Three-quarter angle, {face_shape} face shape, {skin_tone} skin tone, full head visible, detailed hair texture, ultra high-definition, cinematic soft light, SAME FACE as reference"
+        f"{prompt}, front view, soft lighting, same person",
+        f"{prompt}, side profile view, cinematic lighting, same person",
+        f"{prompt}, three-quarter angle, soft background, same person"
     ]
 
     saved_files = []
