@@ -2,38 +2,47 @@ const urlParams = new URLSearchParams(window.location.search);
 const cid = urlParams.get("cid");
 
 // Event listener for upload form
-document.getElementById("uploadForm").addEventListener("submit", function (e) {
+document.getElementById("uploadForm").addEventListener("submit", async function (e) {
   e.preventDefault();
 
   const file = document.getElementById("fileInput").files[0];
   const title = document.getElementById("titleInput").value;
+  const cid = new URLSearchParams(window.location.search).get("cid");
 
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("title", title);
-  formData.append("cid", cid);
+  if (!file || !title || !cid) {
+    document.getElementById("uploadStatus").textContent = "❌ Lengkapi semua kolom!";
+    return;
+  }
 
-  const xhr = new XMLHttpRequest();
-  xhr.open("POST", "https://script.google.com/macros/s/AKfycbw5WV6yxFX6nnVsNoXeJYrQ4PqqF9R51jV8v6KCb3om_4cILIm8v0dr_D0YsPC0BuBkAA/exec", true);
+  const reader = new FileReader();
+  reader.onloadend = async function () {
+    const base64Data = reader.result.split(",")[1];
 
-  xhr.onload = function () {
-    if (xhr.status === 200) {
-      try {
-        const response = JSON.parse(xhr.responseText);
-        document.getElementById("uploadStatus").textContent = response.message;
-      } catch (err) {
-        document.getElementById("uploadStatus").textContent = "❌ Gagal parsing respons server.";
-      }
-    } else {
-      document.getElementById("uploadStatus").textContent = "❌ Gagal upload (status " + xhr.status + ")";
+    const payload = {
+      cid,
+      title,
+      filename: file.name,
+      mimeType: file.type,
+      base64: base64Data,
+    };
+
+    try {
+      const res = await fetch("https://script.google.com/macros/s/AKfycbw5WV6yxFX6nnVsNoXeJYrQ4PqqF9R51jV8v6KCb3om_4cILIm8v0dr_D0YsPC0BuBkAA/exec", {
+        method: "POST",
+        body: JSON.stringify(payload),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const result = await res.json();
+      document.getElementById("uploadStatus").textContent = result.message || "✅ Berhasil upload!";
+    } catch (err) {
+      document.getElementById("uploadStatus").textContent = "❌ Gagal upload: " + err;
     }
   };
 
-  xhr.onerror = function () {
-    document.getElementById("uploadStatus").textContent = "❌ Gagal upload (network error)";
-  };
-
-  xhr.send(formData);
+  reader.readAsDataURL(file);
 });
 
 if (!cid) {
