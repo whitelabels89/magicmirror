@@ -4,7 +4,7 @@ const cid = urlParams.get("cid");
 if (!cid) {
   document.getElementById("loading").innerText = "❌ CID tidak ditemukan di URL.";
 } else {
-  fetch(`https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec?cid=${cid}`)
+  fetch(`https://script.google.com/macros/s/AKfycbxgh2jsIubO3G-oZgI3Kvkbje6Londv10JxmcXU8drfRYkG28TFcHsOCKZeFq16Azak0g/exec?cid=${cid}`)
     .then(res => res.json())
     .then(data => {
       document.getElementById("loading").style.display = "none";
