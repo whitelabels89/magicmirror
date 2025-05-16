@@ -1,0 +1,65 @@
+/* === Base Theme: Queen’s Academy === */
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #fdfcf9;
+    color: #2d2d2d;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 30px;
+    background-color: #ffffff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    margin-top: 40px;
+    border-radius: 10px;
+  }
+  
+  h1 {
+    color: #22543d;
+    font-size: 28px;
+    margin-bottom: 10px;
+  }
+  
+  h2 {
+    font-size: 24px;
+    color: #2f855a;
+    margin-top: 20px;
+    margin-bottom: 5px;
+  }
+  
+  h3 {
+    font-size: 20px;
+    color: #4a5568;
+    margin-top: 25px;
+    margin-bottom: 10px;
+  }
+  
+  p, li {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  
+  a {
+    color: #2b6cb0;
+    text-decoration: none;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+  
+  #badgeList img {
+    margin: 5px;
+    border-radius: 8px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.2);
+  }
+  
+  #galeri img {
+    margin: 5px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    box-shadow: 0 0 4px rgba(0,0,0,0.1);
+  }
+  
