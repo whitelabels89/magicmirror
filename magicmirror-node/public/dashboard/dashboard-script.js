@@ -1,6 +1,11 @@
 function getDriveImageUrlFromRaw(rawUrl) {
-  const match = rawUrl.match(/\/file\/d\/([a-zA-Z0-9_-]+)\//);
-  return match ? `https://drive.google.com/uc?export=view&id=${match[1]}` : rawUrl;
+  try {
+    const idMatch = rawUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    return idMatch ? `https://drive.google.com/uc?export=view&id=${idMatch[1]}` : rawUrl;
+  } catch (err) {
+    console.warn("⚠️ Gagal parsing link:", rawUrl, err);
+    return rawUrl;
+  }
 }
 
 const urlParams = new URLSearchParams(window.location.search);
