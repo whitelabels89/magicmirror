@@ -27,7 +27,7 @@ document.getElementById("uploadForm").addEventListener("submit", async function 
     };
 
     try {
-      const res = await fetch("https://script.google.com/macros/s/AKfycbyA-0FblnAMqRiDC6wEj-KF6rUxTbNBavxmN-JJ8Fn8/exec", {
+      const res = await fetch("https://script.google.com/macros/s/AKfycbx5cPx2YQzYLbjMzFJPwIEr_bMsm4VGB8OA-04p33hnuXK61Mm36U04W3IrihbsIDukhw/exec", {
         method: "POST",
         body: JSON.stringify(payload),
         headers: {
@@ -48,7 +48,7 @@ document.getElementById("uploadForm").addEventListener("submit", async function 
 if (!cid) {
   document.getElementById("loading").innerText = "❌ CID tidak ditemukan di URL.";
 } else {
-  fetch(`https://script.google.com/macros/s/AKfycbyA-0FblnAMqRiDC6wEj-KF6rUxTbNBavxmN-JJ8Fn8/exec?cid=${cid}`)
+  fetch(`https://script.google.com/macros/s/AKfycbx5cPx2YQzYLbjMzFJPwIEr_bMsm4VGB8OA-04p33hnuXK61Mm36U04W3IrihbsIDukhw/exec?cid=${cid}`)
     .then(res => res.json())
     .then(data => {
       document.getElementById("loading").style.display = "none";
