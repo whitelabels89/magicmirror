@@ -31,7 +31,7 @@ document.getElementById("uploadForm").addEventListener("submit", async function 
         method: "POST",
         body: JSON.stringify(payload),
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "text/plain"
         },
       });
 
