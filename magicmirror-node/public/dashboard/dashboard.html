@@ -159,6 +159,10 @@
         <p id="usiaAnak"></p>
         <div id="sertifikatContainer"></div>
       </div>
+      <div class="dashboard-card">
+        <h3>📋 Kesimpulan</h3>
+        <p id="kesimpulanAI" style="white-space: pre-wrap;"></p>
+      </div>
 
       <div class="dashboard-card">
         <h3>🎯 Tipe Bakat & Kepribadian</h3>
@@ -225,6 +229,9 @@
 
           document.getElementById("tipeBakat").innerText = `🧠 ${data.tipe_bakat || "-"}`;
           document.getElementById("tipeKepribadian").innerText = `🙂 ${data.tipe_kepribadian || "-"}`;
+
+          // Display kesimpulan (summary) below name and usia
+          document.getElementById("kesimpulanAI").innerText = data.kesimpulan || "-";
 
           const badgeDiv = document.getElementById("badgeList");
           badgeDiv.innerHTML = "";
