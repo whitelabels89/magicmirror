@@ -3,165 +3,83 @@
 <head>
   <meta charset="UTF-8">
   <title>Dashboard Anak - Queen’s Academy</title>
-  <link rel="stylesheet" href="/dashboard/dashboard-style.css">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/css2?family=Forum&display=swap" rel="stylesheet">
   <style>
     body {
       background-color: #0d2d2b;
-      font-family: 'Poppins', 'Segoe UI', 'Forum', sans-serif;
       color: #ffe58e;
+      font-family: 'Forum', sans-serif;
       margin: 0;
-      padding: 0;
-      overflow-x: hidden;
-    }
-    a {
-      color: #ffe58e;
+      padding: 2rem;
     }
     .container {
-      background-color: rgba(255, 255, 255, 0.05);
-      box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      padding: 20px;
       max-width: 900px;
-      margin: 40px auto;
-    }
-    #galeri img {
-      margin: 5px;
-      border-radius: 6px;
-      border: 1px solid #ffe58e;
-      box-shadow: 0 0 6px rgba(255, 229, 142, 0.2);
-      max-width: 200px;
-      height: auto;
-    }
-    h1, h2, h3 {
-      color: #ffe58e;
-    }
-    .background-animation {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      z-index: -1;
-      overflow: hidden;
-    }
-    .blob {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(150px);
-      opacity: 0.4;
-      animation: moveBlobs 20s ease-in-out infinite alternate;
-    }
-    .blob:nth-child(1) {
-      width: 500px;
-      height: 500px;
-      background: rgba(255, 255, 255, 0.1);
-      top: 20%;
-      left: 10%;
-    }
-    .blob:nth-child(2) {
-      width: 400px;
-      height: 400px;
-      background: rgba(0, 252, 235, 0.052);
-      top: 60%;
-      left: 60%;
-    }
-    @keyframes moveBlobs {
-      0% { transform: translate(0, 0) scale(1); }
-      100% { transform: translate(-50px, -30px) scale(1.2); }
+      margin: auto;
+      background-color: rgba(255,255,255,0.05);
+      padding: 2rem;
+      border-radius: 12px;
     }
     .dashboard-card {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 229, 142, 0.15);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,229,142,0.15);
       border-radius: 16px;
       padding: 1rem;
       margin-bottom: 1.5rem;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
     }
-    #badgeList {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-    .badge-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      max-width: 80px;
-    }
-    .badge-item img {
-      width: 60px;
+    h1, h2, h3 { color: #ffe58e; }
+    #badgeList, #galeri { display: flex; flex-wrap: wrap; gap: 12px; }
+    .badge-item img, #galeri img {
+      width: 100px;
       border-radius: 8px;
       box-shadow: 0 0 6px rgba(255,255,255,0.2);
     }
     .badge-item span {
+      display: block;
       font-size: 0.75rem;
+      text-align: center;
       margin-top: 4px;
-      color: #ffe58e;
     }
-    #evaluasiAI p {
-      font-size: 0.95rem;
-      margin-bottom: 0.8rem;
-      line-height: 1.6;
-    }
-    #uploadForm {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      background-color: rgba(255, 255, 255, 0.02);
-      padding: 1rem;
-      border-radius: 12px;
-    }
-    #uploadForm input[type="file"],
-    #uploadForm input[type="text"] {
-      padding: 12px;
+    iframe { border: none; border-radius: 12px; }
+    #uploadForm input, #uploadForm button {
+      padding: 10px;
       border-radius: 8px;
-      border: 1px solid rgba(255, 229, 142, 0.3);
+      margin-bottom: 10px;
+    }
+    #uploadForm input {
+      width: 100%;
       background-color: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255, 229, 142, 0.3);
       color: #ffe58e;
-      font-size: 1rem;
     }
     #uploadForm button {
-      padding: 12px 24px;
       background-color: #ffe58e;
       color: #0d2d2b;
       font-weight: bold;
-      border: none;
-      border-radius: 8px;
       cursor: pointer;
-      font-size: 1rem;
-      transition: background-color 0.3s ease;
-    }
-    #uploadForm button:hover {
-      background-color: #ffcc00;
+      border: none;
     }
   </style>
 </head>
-<body style="font-family: 'Forum', sans-serif; background: #0d2d2b; color: #ffe58e; padding: 2rem;">
-  <div class="background-animation">
-    <div class="blob"></div>
-    <div class="blob"></div>
-  </div>
+<body>
   <div class="container">
     <h1>Dashboard Anak – Queen’s Academy</h1>
     <div id="loading">🔄 Memuat data anak...</div>
     <div id="dashboard" style="display:none;">
       <div class="dashboard-card">
-        <h3>🧠 Evaluasi Psikotest dari AI</h3>
-        <div id="evaluasiAI">
-          <p>🔄 Memuat evaluasi...</p>
-        </div>
-      </div>
-      <div class="dashboard-card">
         <h2 id="namaAnak"></h2>
         <p id="usiaAnak"></p>
         <div id="sertifikatContainer"></div>
       </div>
+
       <div class="dashboard-card">
         <h3>📋 Kesimpulan</h3>
         <p id="kesimpulanAI" style="white-space: pre-wrap;"></p>
+      </div>
+
+      <div class="dashboard-card">
+        <h3>🧠 Evaluasi Psikotest dari AI</h3>
+        <div id="evaluasiAI"></div>
       </div>
 
       <div class="dashboard-card">
@@ -177,7 +95,7 @@
 
       <div class="dashboard-card">
         <h3>📚 Rekomendasi Kelas</h3>
-        <ul id="rekomKelas" style="list-style: disc; padding-left: 20px;"></ul>
+        <ul id="rekomKelas" style="padding-left: 1.5rem;"></ul>
       </div>
 
       <div class="dashboard-card">
@@ -188,12 +106,10 @@
       <div class="dashboard-card">
         <h3>📝 Upload Karya Anak</h3>
         <form id="uploadForm">
-          <div style="display:flex; flex-wrap: wrap; gap: 0.75rem; align-items: center;">
-            <input type="file" name="file" id="fileInput" accept="image/*" required style="flex: 1; min-width: 180px;" />
-            <input type="text" name="title" id="titleInput" placeholder="Judul karya" required style="flex: 2; min-width: 200px;" />
-            <button type="submit" style="flex: none; padding: 10px 20px;">Upload Karya</button>
-          </div>
-          <div id="uploadStatus" style="margin-top: 10px;"></div>
+          <input type="file" id="fileInput" accept="image/*" required>
+          <input type="text" id="titleInput" placeholder="Judul karya" required>
+          <button type="submit">Upload Karya</button>
+          <div id="uploadStatus"></div>
         </form>
       </div>
     </div>
@@ -203,93 +119,37 @@
     const urlParams = new URLSearchParams(window.location.search);
     const cid = urlParams.get("cid");
 
+    const API_URL = "https://script.google.com/macros/s/AKfycbx5cPx2YQzYLbjMzFJPwIEr_bMsm4VGB8OA-04p33hnuXK61Mm36U04W3IrihbsIDukhw/exec";
+
+    function getDriveImageUrlFromRaw(rawUrl) {
+      const match = rawUrl.match(/\/file\/d\/([a-zA-Z0-9_-]+)\//);
+      return match ? `https://drive.google.com/uc?export=view&id=${match[1]}` : rawUrl;
+    }
+
     if (!cid) {
       document.getElementById("loading").innerText = "❌ CID tidak ditemukan di URL.";
     } else {
-      fetch(`https://script.google.com/macros/s/AKfycbx5cPx2YQzYLbjMzFJPwIEr_bMsm4VGB8OA-04p33hnuXK61Mm36U04W3IrihbsIDukhw/exec?cid=${cid}`)
+      fetch(`${API_URL}?cid=${cid}`)
         .then(res => res.json())
         .then(data => {
           document.getElementById("loading").style.display = "none";
           document.getElementById("dashboard").style.display = "block";
-          document.getElementById("namaAnak").innerText = data.nama || "";
+
+          document.getElementById("namaAnak").innerText = data.nama || "-";
           document.getElementById("usiaAnak").innerText = `Usia: ${data.usia || "-"}`;
+          document.getElementById("kesimpulanAI").innerText = data.kesimpulan || "-";
+          document.getElementById("tipeBakat").innerText = `🧠 ${data.tipe_bakat || "-"}`;
+          document.getElementById("tipeKepribadian").innerText = `🙂 ${data.tipe_kepribadian || "-"}`;
 
           const sertifikatEl = document.getElementById("sertifikatContainer");
           if (data.sertifikat && data.sertifikat.includes("drive.google.com")) {
             sertifikatEl.innerHTML = `
-              <div style="text-align:center;">
-                <iframe src="${data.sertifikat.replace('/view', '/preview')}"
-                        width="100%" height="480"
-                        style="border:none; border-radius:12px;"
-                        allow="autoplay"></iframe>
-              </div>`;
+              <iframe src="${data.sertifikat.replace("/view", "/preview")}" width="100%" height="480"></iframe>`;
           } else {
-            sertifikatEl.innerHTML = '<p style="text-align:center;">Tautan sertifikat tidak valid.</p>';
-          }
-
-          document.getElementById("tipeBakat").innerText = `🧠 ${data.tipe_bakat || "-"}`;
-          document.getElementById("tipeKepribadian").innerText = `🙂 ${data.tipe_kepribadian || "-"}`;
-
-          // Display kesimpulan (summary) below name and usia
-          document.getElementById("kesimpulanAI").innerText = data.kesimpulan || "-";
-
-          const badgeDiv = document.getElementById("badgeList");
-          badgeDiv.innerHTML = "";
-          if (data.badges && data.badges.length > 0) {
-            data.badges.forEach(b => {
-              const div = document.createElement("div");
-              div.classList.add("badge-item");
-              div.innerHTML = `<img src="${b.url}" alt="${b.nama}"/><span>${b.nama}</span>`;
-              badgeDiv.appendChild(div);
-            });
-          } else {
-            badgeDiv.innerHTML = "<p>Tidak ada badge ditemukan.</p>";
-          }
-
-          const rekomList = document.getElementById("rekomKelas");
-          rekomList.innerHTML = "";
-          if (data.rekomendasi && data.rekomendasi.length > 0) {
-            data.rekomendasi.forEach(r => {
-              const li = document.createElement("li");
-              li.innerText = r;
-              rekomList.appendChild(li);
-            });
-          } else {
-            rekomList.innerHTML = "<li>Tidak ada rekomendasi kelas.</li>";
-          }
-
-          const galeri = document.getElementById("galeri");
-          galeri.innerHTML = "";
-          if (data.karya && data.karya.length > 0) {
-            data.karya.forEach(k => {
-              if (k.url && k.url.includes("http")) {
-                const wrapper = document.createElement("div");
-                wrapper.style.display = "inline-block";
-                wrapper.style.margin = "10px";
-                wrapper.style.textAlign = "center";
-
-                const img = document.createElement("img");
-                img.src = k.url;
-                img.alt = k.judul || "Karya anak";
-                img.style.maxWidth = "200px";
-                img.style.borderRadius = "8px";
-
-                const caption = document.createElement("p");
-                caption.innerText = k.judul || "";
-                caption.style.fontSize = "0.9rem";
-                caption.style.marginTop = "0.5rem";
-
-                wrapper.appendChild(img);
-                wrapper.appendChild(caption);
-                galeri.appendChild(wrapper);
-              }
-            });
-          } else {
-            galeri.innerHTML = "<p>Belum ada karya yang diunggah.</p>";
+            sertifikatEl.innerHTML = "<p>Tautan sertifikat tidak valid.</p>";
           }
 
           const evaluasiEl = document.getElementById("evaluasiAI");
-          evaluasiEl.innerHTML = "";
           if (data.evaluasi && data.evaluasi.length > 0) {
             data.evaluasi.forEach(e => {
               const p = document.createElement("p");
@@ -299,76 +159,72 @@
           } else {
             evaluasiEl.innerHTML = "<p>Tidak ada evaluasi ditemukan.</p>";
           }
-        })
-        .catch(err => {
-          document.getElementById("loading").innerText = "❌ Gagal memuat data.";
-          console.error(err);
+
+          const badgeEl = document.getElementById("badgeList");
+          if (data.badges && data.badges.length > 0) {
+            data.badges.forEach(b => {
+              const item = document.createElement("div");
+              item.classList.add("badge-item");
+              item.innerHTML = `<img src="${b.url}"><span>${b.nama}</span>`;
+              badgeEl.appendChild(item);
+            });
+          } else {
+            badgeEl.innerHTML = "<p>Tidak ada badge ditemukan.</p>";
+          }
+
+          const kelasEl = document.getElementById("rekomKelas");
+          if (data.rekomendasi && data.rekomendasi.length > 0) {
+            data.rekomendasi.forEach(r => {
+              const li = document.createElement("li");
+              li.innerText = r;
+              kelasEl.appendChild(li);
+            });
+          } else {
+            kelasEl.innerHTML = "<li>Tidak ada rekomendasi kelas.</li>";
+          }
+
+          const galeri = document.getElementById("galeri");
+          if (data.karya && data.karya.length > 0) {
+            data.karya.forEach(k => {
+              const img = document.createElement("img");
+              img.src = getDriveImageUrlFromRaw(k.url);
+              img.alt = k.judul;
+              galeri.appendChild(img);
+            });
+          } else {
+            galeri.innerHTML = "<p>Belum ada karya diunggah.</p>";
+          }
         });
     }
+
+    document.getElementById("uploadForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const file = document.getElementById("fileInput").files[0];
+      const title = document.getElementById("titleInput").value;
+      const status = document.getElementById("uploadStatus");
+
+      if (!file || !title || !cid) {
+        status.innerText = "❌ Lengkapi semua kolom!";
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = async function () {
+        const base64 = reader.result.split(",")[1];
+        const payload = { cid, title, filename: file.name, mimeType: file.type, base64 };
+
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await res.json();
+        status.innerText = result.message || "✅ Berhasil upload!";
+        if (result.message.includes("✅")) location.reload();
+      };
+      reader.readAsDataURL(file);
+    });
   </script>
-  <style>
-    .dashboard-section {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid rgba(255, 229, 142, 0.1);
-      border-radius: 16px;
-      padding: 2rem;
-      margin-bottom: 2rem;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
-    }
-
-    .dashboard-section h3 {
-      font-size: 1.5rem;
-      margin-bottom: 1rem;
-      color: #ffe58e;
-    }
-
-    .dashboard-section p,
-    .dashboard-section a,
-    .dashboard-section li {
-      font-size: 1rem;
-      line-height: 1.6;
-      color: #fff;
-    }
-
-    #badgeList img,
-    #galeri img {
-      width: 120px;
-      border-radius: 12px;
-      margin: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    }
-
-    #uploadForm {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      background-color: rgba(255, 255, 255, 0.02);
-      padding: 1rem;
-      border-radius: 12px;
-    }
-    #uploadForm input[type="file"],
-    #uploadForm input[type="text"] {
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid rgba(255, 229, 142, 0.3);
-      background-color: rgba(255,255,255,0.06);
-      color: #ffe58e;
-      font-size: 1rem;
-    }
-    #uploadForm button {
-      padding: 12px 24px;
-      background-color: #ffe58e;
-      color: #0d2d2b;
-      font-weight: bold;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 1rem;
-      transition: background-color 0.3s ease;
-    }
-    #uploadForm button:hover {
-      background-color: #ffcc00;
-    }
-  </style>
 </body>
 </html>
