@@ -178,10 +178,12 @@
       <div class="dashboard-card">
         <h3>📝 Upload Karya Anak</h3>
         <form id="uploadForm">
-          <input type="file" name="file" id="fileInput" accept="image/*" required />
-          <input type="text" name="title" id="titleInput" placeholder="Judul karya" required />
-          <button type="submit">Upload Karya</button>
-          <div id="uploadStatus"></div>
+          <div style="display:flex; flex-wrap: wrap; gap: 0.75rem; align-items: center;">
+            <input type="file" name="file" id="fileInput" accept="image/*" required style="flex: 1; min-width: 180px;" />
+            <input type="text" name="title" id="titleInput" placeholder="Judul karya" required style="flex: 2; min-width: 200px;" />
+            <button type="submit" style="flex: none; padding: 10px 20px;">Upload Karya</button>
+          </div>
+          <div id="uploadStatus" style="margin-top: 10px;"></div>
         </form>
       </div>
     </div>
@@ -245,10 +247,27 @@
           galeri.innerHTML = "";
           if (data.karya && data.karya.length > 0) {
             data.karya.forEach(k => {
-              const img = document.createElement("img");
-              img.src = k.url;
-              img.alt = k.judul;
-              galeri.appendChild(img);
+              if (k.url && k.url.includes("http")) {
+                const wrapper = document.createElement("div");
+                wrapper.style.display = "inline-block";
+                wrapper.style.margin = "10px";
+                wrapper.style.textAlign = "center";
+
+                const img = document.createElement("img");
+                img.src = k.url;
+                img.alt = k.judul || "Karya anak";
+                img.style.maxWidth = "200px";
+                img.style.borderRadius = "8px";
+
+                const caption = document.createElement("p");
+                caption.innerText = k.judul || "";
+                caption.style.fontSize = "0.9rem";
+                caption.style.marginTop = "0.5rem";
+
+                wrapper.appendChild(img);
+                wrapper.appendChild(caption);
+                galeri.appendChild(wrapper);
+              }
             });
           } else {
             galeri.innerHTML = "<p>Belum ada karya yang diunggah.</p>";
