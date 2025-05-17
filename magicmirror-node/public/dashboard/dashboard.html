@@ -108,13 +108,13 @@
     }
   </style>
 </head>
-<body>
+<body style="font-family: 'Forum', sans-serif; background: #0d2d2b; color: #ffe58e; padding: 2rem;">
   <div class="background-animation">
     <div class="blob"></div>
     <div class="blob"></div>
   </div>
   <div class="container">
-    <h1>📊 Dashboard Anak – Queen’s Academy</h1>
+    <h1>Dashboard Anak – Queen’s Academy</h1>
     <div id="loading">🔄 Memuat data anak...</div>
     <div id="dashboard" style="display:none;">
       <div class="dashboard-card">
@@ -162,6 +162,44 @@
     </div>
   </div>
 
-  <script src="/dashboard/dashboard-script.js"></script>
+</script>
+  <style>
+    .dashboard-section {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 229, 142, 0.1);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+    }
+
+    .dashboard-section h3 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: #ffe58e;
+    }
+
+    .dashboard-section p,
+    .dashboard-section a,
+    .dashboard-section li {
+      font-size: 1rem;
+      line-height: 1.6;
+      color: #fff;
+    }
+
+    #badgeList img,
+    #galeri img {
+      width: 120px;
+      border-radius: 12px;
+      margin: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    #uploadForm {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+  </style>
 </body>
 </html>
