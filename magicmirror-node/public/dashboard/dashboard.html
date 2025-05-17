@@ -4,8 +4,78 @@
   <meta charset="UTF-8">
   <title>Dashboard Anak - Queen’s Academy</title>
   <link rel="stylesheet" href="/dashboard/dashboard-style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Forum&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #0d2d2b;
+      font-family: 'Poppins', 'Segoe UI', 'Forum', sans-serif;
+      color: #ffe58e;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+    a {
+      color: #ffe58e;
+    }
+    .container {
+      background-color: rgba(255, 255, 255, 0.05);
+      box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 900px;
+      margin: 40px auto;
+    }
+    #galeri img {
+      margin: 5px;
+      border-radius: 6px;
+      border: 1px solid #ffe58e;
+      box-shadow: 0 0 6px rgba(255, 229, 142, 0.2);
+    }
+    h1, h2, h3 {
+      color: #ffe58e;
+    }
+    .background-animation {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
+      overflow: hidden;
+    }
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(150px);
+      opacity: 0.4;
+      animation: moveBlobs 20s ease-in-out infinite alternate;
+    }
+    .blob:nth-child(1) {
+      width: 500px;
+      height: 500px;
+      background: rgba(255, 255, 255, 0.1);
+      top: 20%;
+      left: 10%;
+    }
+    .blob:nth-child(2) {
+      width: 400px;
+      height: 400px;
+      background: rgba(0, 252, 235, 0.052);
+      top: 60%;
+      left: 60%;
+    }
+    @keyframes moveBlobs {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(-50px, -30px) scale(1.2); }
+    }
+  </style>
 </head>
 <body>
+  <div class="background-animation">
+    <div class="blob"></div>
+    <div class="blob"></div>
+  </div>
   <div class="container">
     <h1>📊 Dashboard Anak – Queen’s Academy</h1>
     <div id="loading">🔄 Memuat data anak...</div>
