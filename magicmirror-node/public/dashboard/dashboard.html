@@ -118,12 +118,16 @@
   <script>
     const urlParams = new URLSearchParams(window.location.search);
     const cid = urlParams.get("cid");
-
     const API_URL = "https://script.google.com/macros/s/AKfycbx5cPx2YQzYLbjMzFJPwIEr_bMsm4VGB8OA-04p33hnuXK61Mm36U04W3IrihbsIDukhw/exec";
 
     function getDriveImageUrlFromRaw(rawUrl) {
-      const match = rawUrl.match(/\/file\/d\/([a-zA-Z0-9_-]+)\//);
-      return match ? `https://drive.google.com/uc?export=view&id=${match[1]}` : rawUrl;
+      try {
+        const idMatch = rawUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+        return idMatch ? `https://drive.google.com/uc?export=view&id=${idMatch[1]}` : rawUrl;
+      } catch (err) {
+        console.warn("⚠️ Gagal parsing link:", rawUrl, err);
+        return rawUrl;
+      }
     }
 
     if (!cid) {
@@ -186,14 +190,35 @@
           const galeri = document.getElementById("galeri");
           if (data.karya && data.karya.length > 0) {
             data.karya.forEach(k => {
-              const img = document.createElement("img");
-              img.src = getDriveImageUrlFromRaw(k.url);
-              img.alt = k.judul;
-              galeri.appendChild(img);
+              if (k.url) {
+                const wrapper = document.createElement("div");
+                wrapper.style.display = "inline-block";
+                wrapper.style.margin = "10px";
+                wrapper.style.textAlign = "center";
+
+                const img = document.createElement("img");
+                img.src = getDriveImageUrlFromRaw(k.url);
+                img.alt = k.judul || "Karya Anak";
+                img.style.maxWidth = "200px";
+                img.style.borderRadius = "8px";
+
+                const caption = document.createElement("p");
+                caption.innerText = k.judul || "";
+                caption.style.fontSize = "0.9rem";
+                caption.style.marginTop = "0.5rem";
+
+                wrapper.appendChild(img);
+                wrapper.appendChild(caption);
+                galeri.appendChild(wrapper);
+              }
             });
           } else {
             galeri.innerHTML = "<p>Belum ada karya diunggah.</p>";
           }
+        })
+        .catch(err => {
+          document.getElementById("loading").innerText = "❌ Gagal memuat data.";
+          console.error(err);
         });
     }
 
@@ -213,15 +238,19 @@
         const base64 = reader.result.split(",")[1];
         const payload = { cid, title, filename: file.name, mimeType: file.type, base64 };
 
-        const res = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain" },
-          body: JSON.stringify(payload)
-        });
+        try {
+          const res = await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify(payload)
+          });
 
-        const result = await res.json();
-        status.innerText = result.message || "✅ Berhasil upload!";
-        if (result.message.includes("✅")) location.reload();
+          const result = await res.json();
+          status.innerText = result.message || "✅ Berhasil upload!";
+          if (result.message.includes("✅")) location.reload();
+        } catch (err) {
+          status.innerText = "❌ Gagal upload: " + err;
+        }
       };
       reader.readAsDataURL(file);
     });
