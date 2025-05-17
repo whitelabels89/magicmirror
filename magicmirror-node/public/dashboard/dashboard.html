@@ -26,6 +26,7 @@
       border-radius: 16px;
       padding: 1rem;
       margin-bottom: 1.5rem;
+      overflow: hidden;
     }
     h1, h2, h3 { color: #ffe58e; }
     #badgeList, #galeri { display: flex; flex-wrap: wrap; gap: 12px; }
@@ -41,13 +42,22 @@
       margin-top: 4px;
     }
     iframe { border: none; border-radius: 12px; }
+    #uploadForm {
+      max-width: 100%;
+    }
+    #uploadForm input[type="file"],
+    #uploadForm input[type="text"],
+    #uploadForm button {
+      box-sizing: border-box;
+      width: 100%;
+      max-width: 100%;
+    }
     #uploadForm input, #uploadForm button {
       padding: 10px;
       border-radius: 8px;
       margin-bottom: 10px;
     }
     #uploadForm input {
-      width: 100%;
       background-color: rgba(255,255,255,0.06);
       border: 1px solid rgba(255, 229, 142, 0.3);
       color: #ffe58e;
@@ -122,10 +132,11 @@
 
     function getDriveImageUrlFromRaw(rawUrl) {
       try {
-        const idMatch = rawUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
-        return idMatch ? `https://drive.google.com/uc?export=view&id=${idMatch[1]}` : rawUrl;
+        const idMatch = rawUrl.match(/\/d\/([a-zA-Z0-9_-]+)|id=([a-zA-Z0-9_-]+)/);
+        const fileId = idMatch ? (idMatch[1] || idMatch[2]) : null;
+        return fileId ? `https://drive.google.com/uc?export=view&id=${fileId}` : rawUrl;
       } catch (err) {
-        console.warn("⚠️ Gagal parsing link:", rawUrl, err);
+        console.warn("⚠️ Gagal parsing link gambar:", rawUrl, err);
         return rawUrl;
       }
     }
