@@ -208,10 +208,18 @@
                 wrapper.style.textAlign = "center";
 
                 const img = document.createElement("img");
-                img.src = getDriveImageUrlFromRaw(k.url);
+                const imgLink = getDriveImageUrlFromRaw(k.url);
+                img.src = imgLink;
                 img.alt = k.judul || "Karya Anak";
-                img.style.maxWidth = "200px";
+                img.style.display = "block";
+                img.style.width = "auto";
+                img.style.maxWidth = "100%";
+                img.style.maxHeight = "300px";
+                img.style.objectFit = "contain";
                 img.style.borderRadius = "8px";
+                img.onerror = () => {
+                  img.src = "https://via.placeholder.com/200x150?text=Image+Error";
+                };
 
                 const caption = document.createElement("p");
                 caption.innerText = k.judul || "";
