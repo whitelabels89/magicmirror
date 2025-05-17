@@ -37,6 +37,22 @@ document.getElementById("uploadForm").addEventListener("submit", async function 
 
       const result = await res.json();
       document.getElementById("uploadStatus").textContent = result.message || "✅ Berhasil upload!";
+
+      if (result.message && result.message.includes("✅")) {
+        const newImg = document.createElement("img");
+        newImg.src = "https://drive.google.com/uc?export=view&id=" + extractFileIdFromUrl(result.message);
+        newImg.style.width = "150px";
+        newImg.style.margin = "10px";
+        document.getElementById("galeri").appendChild(newImg);
+
+        document.getElementById("fileInput").value = "";
+        document.getElementById("titleInput").value = "";
+      }
+
+      function extractFileIdFromUrl(msg) {
+        const match = msg.match(/https:\/\/drive\.google\.com\/file\/d\/([^/]+)/);
+        return match ? match[1] : "";
+      }
     } catch (err) {
       document.getElementById("uploadStatus").textContent = "❌ Gagal upload: " + err;
     }

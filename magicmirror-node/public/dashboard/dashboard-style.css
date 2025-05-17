@@ -1,3 +1,23 @@
+body {
+  background-color: #0d2d2b;
+  color: #ffe58e;
+  font-family: 'Poppins', 'Segoe UI', 'Forum', sans-serif;
+}
+
+a {
+  color: #ffe58e;
+}
+
+.container {
+  background-color: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+}
+
+h1, h2, h3 {
+  color: #ffe58e;
+}
+
 /* === Base Theme: Queen’s Academy === */
 body {
     font-family: 'Segoe UI', sans-serif;
@@ -59,7 +79,7 @@ body {
   #galeri img {
     margin: 5px;
     border-radius: 6px;
-    border: 1px solid #ccc;
-    box-shadow: 0 0 4px rgba(0,0,0,0.1);
+    border: 1px solid #ffe58e;
+    box-shadow: 0 0 6px rgba(255, 229, 142, 0.2);
   }
   
