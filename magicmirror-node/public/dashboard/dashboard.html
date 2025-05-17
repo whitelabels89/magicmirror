@@ -106,6 +106,31 @@
       margin-bottom: 0.8rem;
       line-height: 1.6;
     }
+    #uploadForm {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    #uploadForm input[type="file"],
+    #uploadForm input[type="text"] {
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+      background-color: rgba(255,255,255,0.05);
+      color: #ffe58e;
+    }
+    #uploadForm button {
+      padding: 12px;
+      background-color: #ffe58e;
+      color: #0d2d2b;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    #uploadForm button:hover {
+      background-color: #ffcc00;
+    }
   </style>
 </head>
 <body style="font-family: 'Forum', sans-serif; background: #0d2d2b; color: #ffe58e; padding: 2rem;">
@@ -126,7 +151,7 @@
       <div class="dashboard-card">
         <h2 id="namaAnak"></h2>
         <p id="usiaAnak"></p>
-        <p><a id="sertifikatLink" href="#" target="_blank">📄 Lihat Sertifikat</a></p>
+        <div id="sertifikatContainer"></div>
       </div>
 
       <div class="dashboard-card">
@@ -174,27 +199,60 @@
         .then(data => {
           document.getElementById("loading").style.display = "none";
           document.getElementById("dashboard").style.display = "block";
-          document.getElementById("namaAnak").innerText = data.nama;
-          document.getElementById("usiaAnak").innerText = `Usia: ${data.usia}`;
-          document.getElementById("sertifikatLink").href = data.sertifikat;
+          document.getElementById("namaAnak").innerText = data.nama || "";
+          document.getElementById("usiaAnak").innerText = `Usia: ${data.usia || "-"}`;
 
-          document.getElementById("tipeBakat").innerText = `🧠 ${data.tipe_bakat}`;
-          document.getElementById("tipeKepribadian").innerText = `🙂 ${data.tipe_kepribadian}`;
+          const sertifikatEl = document.getElementById("sertifikatContainer");
+          if (data.sertifikat && data.sertifikat.includes("drive.google.com")) {
+            sertifikatEl.innerHTML = `
+              <iframe src="${data.sertifikat.replace('/view', '/preview')}" 
+                      width="100%" height="480" 
+                      style="border:none; border-radius:12px;"
+                      allow="autoplay"></iframe>`;
+          } else {
+            sertifikatEl.innerHTML = '<p>Tautan sertifikat tidak valid.</p>';
+          }
+
+          document.getElementById("tipeBakat").innerText = `🧠 ${data.tipe_bakat || "-"}`;
+          document.getElementById("tipeKepribadian").innerText = `🙂 ${data.tipe_kepribadian || "-"}`;
+
+          const badgeDiv = document.getElementById("badgeList");
+          badgeDiv.innerHTML = "";
+          if (data.badges && data.badges.length > 0) {
+            data.badges.forEach(b => {
+              const div = document.createElement("div");
+              div.classList.add("badge-item");
+              div.innerHTML = `<img src="${b.url}" alt="${b.nama}"/><span>${b.nama}</span>`;
+              badgeDiv.appendChild(div);
+            });
+          } else {
+            badgeDiv.innerHTML = "<p>Tidak ada badge ditemukan.</p>";
+          }
 
           const rekomList = document.getElementById("rekomKelas");
-          data.rekomendasi.forEach(r => {
-            const li = document.createElement("li");
-            li.innerText = r;
-            rekomList.appendChild(li);
-          });
+          rekomList.innerHTML = "";
+          if (data.rekomendasi && data.rekomendasi.length > 0) {
+            data.rekomendasi.forEach(r => {
+              const li = document.createElement("li");
+              li.innerText = r;
+              rekomList.appendChild(li);
+            });
+          } else {
+            rekomList.innerHTML = "<li>Tidak ada rekomendasi kelas.</li>";
+          }
 
           const galeri = document.getElementById("galeri");
-          data.karya.forEach(k => {
-            const img = document.createElement("img");
-            img.src = k.url;
-            img.alt = k.judul;
-            galeri.appendChild(img);
-          });
+          galeri.innerHTML = "";
+          if (data.karya && data.karya.length > 0) {
+            data.karya.forEach(k => {
+              const img = document.createElement("img");
+              img.src = k.url;
+              img.alt = k.judul;
+              galeri.appendChild(img);
+            });
+          } else {
+            galeri.innerHTML = "<p>Belum ada karya yang diunggah.</p>";
+          }
 
           const evaluasiEl = document.getElementById("evaluasiAI");
           evaluasiEl.innerHTML = "";
