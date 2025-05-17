@@ -162,7 +162,58 @@
     </div>
   </div>
 
-</script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const cid = urlParams.get("cid");
+
+    if (!cid) {
+      document.getElementById("loading").innerText = "❌ CID tidak ditemukan di URL.";
+    } else {
+      fetch(`https://script.google.com/macros/s/AKfycbx5cPx2YQzYLbjMzFJPwIEr_bMsm4VGB8OA-04p33hnuXK61Mm36U04W3IrihbsIDukhw/exec?cid=${cid}`)
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById("loading").style.display = "none";
+          document.getElementById("dashboard").style.display = "block";
+          document.getElementById("namaAnak").innerText = data.nama;
+          document.getElementById("usiaAnak").innerText = `Usia: ${data.usia}`;
+          document.getElementById("sertifikatLink").href = data.sertifikat;
+
+          document.getElementById("tipeBakat").innerText = `🧠 ${data.tipe_bakat}`;
+          document.getElementById("tipeKepribadian").innerText = `🙂 ${data.tipe_kepribadian}`;
+
+          const rekomList = document.getElementById("rekomKelas");
+          data.rekomendasi.forEach(r => {
+            const li = document.createElement("li");
+            li.innerText = r;
+            rekomList.appendChild(li);
+          });
+
+          const galeri = document.getElementById("galeri");
+          data.karya.forEach(k => {
+            const img = document.createElement("img");
+            img.src = k.url;
+            img.alt = k.judul;
+            galeri.appendChild(img);
+          });
+
+          const evaluasiEl = document.getElementById("evaluasiAI");
+          evaluasiEl.innerHTML = "";
+          if (data.evaluasi && data.evaluasi.length > 0) {
+            data.evaluasi.forEach(e => {
+              const p = document.createElement("p");
+              p.innerText = `${e.komponen}: ${e.analisis}`;
+              evaluasiEl.appendChild(p);
+            });
+          } else {
+            evaluasiEl.innerHTML = "<p>Tidak ada evaluasi ditemukan.</p>";
+          }
+        })
+        .catch(err => {
+          document.getElementById("loading").innerText = "❌ Gagal memuat data.";
+          console.error(err);
+        });
+    }
+  </script>
   <style>
     .dashboard-section {
       background: rgba(255, 255, 255, 0.02);
