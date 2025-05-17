@@ -78,6 +78,21 @@ if (!cid) {
       document.getElementById("usiaAnak").innerText = `Usia: ${data.usia} tahun`;
       document.getElementById("sertifikatLink").href = data.sertifikat;
 
+      // Tambahkan evaluasi
+      const evaluasiList = document.getElementById("evaluasiList");
+      if (evaluasiList) {
+        // Bersihkan isi sebelumnya jika ada
+        evaluasiList.innerHTML = "";
+        if (data.evaluasi && data.evaluasi.length > 0) {
+          data.evaluasi.forEach(ev => {
+            const div = document.createElement("div");
+            div.className = "evaluasi-item";
+            div.innerHTML = `<strong>${ev.komponen}:</strong> ${ev.analisis}`;
+            evaluasiList.appendChild(div);
+          });
+        }
+      }
+
       document.getElementById("tipeBakat").innerText = `🧠 ${data.tipe_bakat}`;
       document.getElementById("tipeKepribadian").innerText = `🙂 ${data.tipe_kepribadian}`;
 
@@ -100,14 +115,14 @@ if (!cid) {
       });
 
       const galeri = document.getElementById("galeri");
-      data.karya.forEach(url => {
+      data.karya.forEach(item => {
         const img = document.createElement("img");
-        img.src = getDriveImageUrlFromRaw(url);
+        img.src = getDriveImageUrlFromRaw(item.url);
         img.style.width = "150px";
         img.style.margin = "10px";
         img.style.border = "1px solid #ffe58e";
         img.style.borderRadius = "6px";
-        img.alt = "Karya anak";
+        img.alt = item.judul || "Karya anak";
         galeri.appendChild(img);
       });
     })
