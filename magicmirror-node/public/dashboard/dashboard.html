@@ -199,15 +199,6 @@
           }
 
           const galeri = document.getElementById("galeri");
-          // ✅ Inject gambar manual untuk test tampilan galeri
-          const testImg = document.createElement("img");
-          testImg.src = "https://drive.google.com/uc?export=view&id=1L7S35GY3qyxSbWCfr9G58krZboZK40lR";
-          testImg.alt = "Test Manual";
-          testImg.style.width = "200px";
-          testImg.style.border = "2px solid lime";
-          testImg.style.margin = "10px";
-          testImg.style.borderRadius = "8px";
-          galeri.appendChild(testImg);
           if (data.karya && data.karya.length > 0) {
             data.karya.forEach(k => {
               if (k && k.url && typeof k.url === "string" && k.url.includes("drive.google.com")) {
