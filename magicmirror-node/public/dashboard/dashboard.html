@@ -69,6 +69,36 @@
       0% { transform: translate(0, 0) scale(1); }
       100% { transform: translate(-50px, -30px) scale(1.2); }
     }
+    .dashboard-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 229, 142, 0.15);
+      border-radius: 16px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    }
+    #badgeList {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .badge-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      max-width: 80px;
+    }
+    .badge-item img {
+      width: 60px;
+      border-radius: 8px;
+      box-shadow: 0 0 6px rgba(255,255,255,0.2);
+    }
+    .badge-item span {
+      font-size: 0.75rem;
+      margin-top: 4px;
+      color: #ffe58e;
+    }
   </style>
 </head>
 <body>
@@ -80,34 +110,34 @@
     <h1>📊 Dashboard Anak – Queen’s Academy</h1>
     <div id="loading">🔄 Memuat data anak...</div>
     <div id="dashboard" style="display:none;">
-      <section>
+      <div class="dashboard-card">
         <h2 id="namaAnak"></h2>
         <p id="usiaAnak"></p>
         <p><a id="sertifikatLink" href="#" target="_blank">📄 Lihat Sertifikat</a></p>
-      </section>
+      </div>
 
-      <section>
+      <div class="dashboard-card">
         <h3>🎯 Tipe Bakat & Kepribadian</h3>
         <p id="tipeBakat">🧠 -</p>
         <p id="tipeKepribadian">🙂 -</p>
-      </section>
+      </div>
 
-      <section>
+      <div class="dashboard-card">
         <h3>🏅 Badge</h3>
         <div id="badgeList"></div>
-      </section>
+      </div>
 
-      <section>
+      <div class="dashboard-card">
         <h3>📚 Rekomendasi Kelas</h3>
         <ul id="rekomKelas"></ul>
-      </section>
+      </div>
 
-      <section>
+      <div class="dashboard-card">
         <h3>🎨 Galeri Karya Anak</h3>
         <div id="galeri"></div>
-      </section>
+      </div>
 
-      <section>
+      <div class="dashboard-card">
         <h3>📝 Upload Karya Anak</h3>
         <form id="uploadForm">
           <input type="file" name="file" id="fileInput" accept="image/*" required />
@@ -115,7 +145,7 @@
           <button type="submit">Upload Karya</button>
           <div id="uploadStatus"></div>
         </form>
-      </section>
+      </div>
     </div>
   </div>
 

@@ -1,3 +1,7 @@
+function getDriveImageUrlFromRaw(rawUrl) {
+  const match = rawUrl.match(/\/file\/d\/([a-zA-Z0-9_-]+)\//);
+  return match ? `https://drive.google.com/uc?export=view&id=${match[1]}` : rawUrl;
+}
 const urlParams = new URLSearchParams(window.location.search);
 const cid = urlParams.get("cid");
 
@@ -98,9 +102,12 @@ if (!cid) {
       const galeri = document.getElementById("galeri");
       data.karya.forEach(url => {
         const img = document.createElement("img");
-        img.src = url;
+        img.src = getDriveImageUrlFromRaw(url);
         img.style.width = "150px";
         img.style.margin = "10px";
+        img.style.border = "1px solid #ffe58e";
+        img.style.borderRadius = "6px";
+        img.alt = "Karya anak";
         galeri.appendChild(img);
       });
     })
