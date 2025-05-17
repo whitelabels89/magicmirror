@@ -1,14 +1,25 @@
+/* === Queen’s Academy Dashboard Theme === */
 body {
   background-color: #0d2d2b;
   color: #ffe58e;
   font-family: 'Poppins', 'Segoe UI', 'Forum', sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
 }
 
 a {
   color: #ffe58e;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
 }
 
 .container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 30px;
   background-color: rgba(255, 255, 255, 0.05);
   box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
   border-radius: 12px;
@@ -16,70 +27,95 @@ a {
 
 h1, h2, h3 {
   color: #ffe58e;
+  margin-bottom: 1rem;
 }
 
-/* === Base Theme: Queen’s Academy === */
-body {
-    font-family: 'Segoe UI', sans-serif;
-    background-color: #fdfcf9;
-    color: #2d2d2d;
-    margin: 0;
-    padding: 0;
-  }
-  
-  .container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 30px;
-    background-color: #ffffff;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    margin-top: 40px;
-    border-radius: 10px;
-  }
-  
-  h1 {
-    color: #22543d;
-    font-size: 28px;
-    margin-bottom: 10px;
-  }
-  
-  h2 {
-    font-size: 24px;
-    color: #2f855a;
-    margin-top: 20px;
-    margin-bottom: 5px;
-  }
-  
-  h3 {
-    font-size: 20px;
-    color: #4a5568;
-    margin-top: 25px;
-    margin-bottom: 10px;
-  }
-  
-  p, li {
-    font-size: 16px;
-    line-height: 1.6;
-  }
-  
-  a {
-    color: #2b6cb0;
-    text-decoration: none;
-  }
-  a:hover {
-    text-decoration: underline;
-  }
-  
-  #badgeList img {
-    margin: 5px;
-    border-radius: 8px;
-    box-shadow: 0 0 5px rgba(0,0,0,0.2);
-  }
-  
-  #galeri img {
-    margin: 5px;
-    border-radius: 6px;
-    border: 1px solid #ffe58e;
-    box-shadow: 0 0 6px rgba(255, 229, 142, 0.2);
-  }
-  
+h1 {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+}
+h2 {
+  font-size: 1.5rem;
+  margin-top: 2rem;
+}
+h3 {
+  font-size: 1.2rem;
+  margin-top: 1.5rem;
+}
+
+p, li {
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+section {
+  margin-bottom: 2rem;
+}
+
+#badgeList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+#badgeList img {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 0 5px rgba(0,0,0,0.2);
+}
+
+#galeri {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+}
+#galeri img {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid #ffe58e;
+  box-shadow: 0 0 6px rgba(255, 229, 142, 0.2);
+}
+
+#uploadForm {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+#uploadForm input[type="file"],
+#uploadForm input[type="text"] {
+  padding: 8px;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.95rem;
+  max-width: 250px;
+  flex: 1;
+}
+
+#uploadForm button {
+  padding: 8px 16px;
+  background-color: #ffe58e;
+  color: #0d2d2b;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+#uploadForm button:hover {
+  background-color: #fcd34d;
+}
+
+#uploadStatus {
+  margin-top: 10px;
+  font-size: 0.95rem;
+}
+
+#loading {
+  text-align: center;
+  font-size: 1.2rem;
+  padding: 2rem;
+}

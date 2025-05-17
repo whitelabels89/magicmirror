@@ -80,29 +80,42 @@
     <h1>📊 Dashboard Anak – Queen’s Academy</h1>
     <div id="loading">🔄 Memuat data anak...</div>
     <div id="dashboard" style="display:none;">
-      <h2 id="namaAnak"></h2>
-      <p id="usiaAnak"></p>
-      <a id="sertifikatLink" href="#" target="_blank">📄 Lihat Sertifikat</a>
+      <section>
+        <h2 id="namaAnak"></h2>
+        <p id="usiaAnak"></p>
+        <p><a id="sertifikatLink" href="#" target="_blank">📄 Lihat Sertifikat</a></p>
+      </section>
 
-      <h3>🎯 Tipe Bakat & Kepribadian</h3>
-      <p id="tipeBakat"></p>
-      <p id="tipeKepribadian"></p>
+      <section>
+        <h3>🎯 Tipe Bakat & Kepribadian</h3>
+        <p id="tipeBakat">🧠 -</p>
+        <p id="tipeKepribadian">🙂 -</p>
+      </section>
 
-      <h3>🏅 Badge</h3>
-      <div id="badgeList"></div>
+      <section>
+        <h3>🏅 Badge</h3>
+        <div id="badgeList"></div>
+      </section>
 
-      <h3>📚 Rekomendasi Kelas</h3>
-      <ul id="rekomKelas"></ul>
+      <section>
+        <h3>📚 Rekomendasi Kelas</h3>
+        <ul id="rekomKelas"></ul>
+      </section>
 
-      <h3>🎨 Galeri Karya Anak</h3>
-      <div id="galeri"></div>
-      <h3>📝 Upload Karya Anak</h3>
-      <form id="uploadForm">
-        <input type="file" name="file" id="fileInput" accept="image/*" required />
-        <input type="text" name="title" id="titleInput" placeholder="Judul karya" required />
-        <button type="submit">Upload Karya</button>
-        <div id="uploadStatus"></div>
-      </form>
+      <section>
+        <h3>🎨 Galeri Karya Anak</h3>
+        <div id="galeri"></div>
+      </section>
+
+      <section>
+        <h3>📝 Upload Karya Anak</h3>
+        <form id="uploadForm">
+          <input type="file" name="file" id="fileInput" accept="image/*" required />
+          <input type="text" name="title" id="titleInput" placeholder="Judul karya" required />
+          <button type="submit">Upload Karya</button>
+          <div id="uploadStatus"></div>
+        </form>
+      </section>
     </div>
   </div>
 

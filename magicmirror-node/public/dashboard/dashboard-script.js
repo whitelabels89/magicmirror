@@ -50,7 +50,7 @@ document.getElementById("uploadForm").addEventListener("submit", async function 
       }
 
       function extractFileIdFromUrl(msg) {
-        const match = msg.match(/https:\/\/drive\.google\.com\/file\/d\/([^/]+)/);
+        const match = msg.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
         return match ? match[1] : "";
       }
     } catch (err) {
