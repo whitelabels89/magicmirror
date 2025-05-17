@@ -201,7 +201,8 @@
           const galeri = document.getElementById("galeri");
           if (data.karya && data.karya.length > 0) {
             data.karya.forEach(k => {
-              if (k.url) {
+              if (k && k.url && typeof k.url === "string" && k.url.includes("drive.google.com")) {
+                console.log("✅ Karya valid:", k.url);
                 const wrapper = document.createElement("div");
                 wrapper.style.display = "inline-block";
                 wrapper.style.margin = "10px";
@@ -229,6 +230,8 @@
                 wrapper.appendChild(img);
                 wrapper.appendChild(caption);
                 galeri.appendChild(wrapper);
+              } else {
+                console.warn("⚠️ Karya dilewati, tidak valid:", k);
               }
             });
           } else {
