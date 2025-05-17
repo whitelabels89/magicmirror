@@ -31,6 +31,8 @@
       border-radius: 6px;
       border: 1px solid #ffe58e;
       box-shadow: 0 0 6px rgba(255, 229, 142, 0.2);
+      max-width: 200px;
+      height: auto;
     }
     h1, h2, h3 {
       color: #ffe58e;
@@ -99,6 +101,11 @@
       margin-top: 4px;
       color: #ffe58e;
     }
+    #evaluasiAI p {
+      font-size: 0.95rem;
+      margin-bottom: 0.8rem;
+      line-height: 1.6;
+    }
   </style>
 </head>
 <body>
@@ -110,6 +117,12 @@
     <h1>📊 Dashboard Anak – Queen’s Academy</h1>
     <div id="loading">🔄 Memuat data anak...</div>
     <div id="dashboard" style="display:none;">
+      <div class="dashboard-card">
+        <h3>🧠 Evaluasi Psikotest dari AI</h3>
+        <div id="evaluasiAI">
+          <p>🔄 Memuat evaluasi...</p>
+        </div>
+      </div>
       <div class="dashboard-card">
         <h2 id="namaAnak"></h2>
         <p id="usiaAnak"></p>
@@ -129,7 +142,7 @@
 
       <div class="dashboard-card">
         <h3>📚 Rekomendasi Kelas</h3>
-        <ul id="rekomKelas"></ul>
+        <ul id="rekomKelas" style="list-style: disc; padding-left: 20px;"></ul>
       </div>
 
       <div class="dashboard-card">
