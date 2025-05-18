@@ -221,8 +221,12 @@
                 img.style.border = "1px solid #ffe58e";
                 img.style.borderRadius = "8px";
                 img.onerror = () => {
-                  img.src = "https://via.placeholder.com/200x150?text=Image+Not+Found";
+                  console.warn("❌ Gagal load gambar:", img.src);
+                  img.src = "https://dummyimage.com/200x150/cccccc/333333&text=Image+Not+Found";
                   img.alt = "Image not found";
+                };
+                img.onload = () => {
+                  console.log("✅ Gambar berhasil dimuat:", img.src);
                 };
 
                 const caption = document.createElement("p");
