@@ -285,4 +285,56 @@
     });
   </script>
 </body>
+
+<script type="module">
+  import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-storage.js";
+
+  const storage = window.firebaseStorage;
+
+  const uploadForm = document.getElementById("uploadForm");
+  const fileInput = document.getElementById("fileInput");
+  const titleInput = document.getElementById("titleInput");
+  const uploadStatus = document.getElementById("uploadStatus");
+
+  uploadForm.addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const file = fileInput.files[0];
+    const title = titleInput.value;
+    const cid = new URLSearchParams(window.location.search).get("cid");
+
+    if (!file || !title || !cid) {
+      uploadStatus.innerText = "❌ Lengkapi semua data!";
+      return;
+    }
+
+    uploadStatus.innerText = "⏳ Mengunggah ke Firebase...";
+
+    try {
+      // Path folder di Firebase: /karya/CID/nama_file
+      const storageRef = ref(storage, `karya/${cid}/${Date.now()}_${file.name}`);
+      await uploadBytes(storageRef, file);
+
+      const downloadURL = await getDownloadURL(storageRef);
+      console.log("✅ Link gambar:", downloadURL);
+
+      uploadStatus.innerText = "📤 Menyimpan ke Google Sheets...";
+
+      // Kirim data ke Apps Script
+      const res = await fetch("https://script.google.com/macros/s/AKfycbx5cPx2YQzYLbjMzFJPwIEr_bMsm4VGB8OA-04p33hnuXK61Mm36U04W3IrihbsIDukhw/exec", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cid, title, url: downloadURL })
+      });
+
+      const result = await res.json();
+      uploadStatus.innerText = result.message || "✅ Berhasil!";
+      location.reload();
+    } catch (err) {
+      console.error("❌ Upload error:", err);
+      uploadStatus.innerText = "❌ Gagal upload: " + err.message;
+    }
+  });
+</script>
+
 </html>
