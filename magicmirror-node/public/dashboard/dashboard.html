@@ -202,24 +202,27 @@
           if (data.karya && data.karya.length > 0) {
             data.karya.forEach(k => {
               if (k && k.url && typeof k.url === "string" && k.url.includes("drive.google.com")) {
-                console.log("✅ Karya valid:", k.url);
+                const imgLink = getDriveImageUrlFromRaw(k.url);
+                console.log("✅ Final img link:", imgLink);
+
                 const wrapper = document.createElement("div");
                 wrapper.style.display = "inline-block";
                 wrapper.style.margin = "10px";
                 wrapper.style.textAlign = "center";
+                wrapper.style.maxWidth = "200px";
 
                 const img = document.createElement("img");
-                const imgLink = getDriveImageUrlFromRaw(k.url);
                 img.src = imgLink;
                 img.alt = k.judul || "Karya Anak";
                 img.style.display = "block";
-                img.style.width = "auto";
-                img.style.maxWidth = "100%";
-                img.style.maxHeight = "300px";
+                img.style.width = "100%";
+                img.style.maxHeight = "200px";
                 img.style.objectFit = "contain";
+                img.style.border = "1px solid #ffe58e";
                 img.style.borderRadius = "8px";
                 img.onerror = () => {
-                  img.src = "https://via.placeholder.com/200x150?text=Image+Error";
+                  img.src = "https://via.placeholder.com/200x150?text=Image+Not+Found";
+                  img.alt = "Image not found";
                 };
 
                 const caption = document.createElement("p");
@@ -231,7 +234,7 @@
                 wrapper.appendChild(caption);
                 galeri.appendChild(wrapper);
               } else {
-                console.warn("⚠️ Karya dilewati, tidak valid:", k);
+                console.warn("⚠️ Invalid karya item:", k);
               }
             });
           } else {
