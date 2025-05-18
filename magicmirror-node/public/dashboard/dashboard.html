@@ -144,7 +144,7 @@
     if (!cid) {
       document.getElementById("loading").innerText = "❌ CID tidak ditemukan di URL.";
     } else {
-      fetch(`${API_URL}?cid=${cid}`)
+      fetch(`${API_URL}?cid=${cid}`, { cache: "no-store" })
         .then(res => res.json())
         .then(data => {
           document.getElementById("loading").style.display = "none";
