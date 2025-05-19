@@ -700,6 +700,12 @@
       if (section) section.scrollIntoView({ behavior: "smooth" });
     }
 
+    // Fungsi scrollToUpload tetap aktif
+    function scrollToUpload() {
+      const form = document.getElementById("uploadForm");
+      if (form) form.scrollIntoView({ behavior: "smooth" });
+    }
+
     function toggleProfessional() {
       const content = document.getElementById("professionalContent");
       if (content.style.display === "none" || content.style.display === "") {
@@ -719,8 +725,8 @@
     </button>
     <div id="uploadButtonWrapper">
       <div id="uploadTooltip">klik untuk upload karya anak</div>
-      <button onclick="scrollToUpload()">
-        <img src="https://img.icons8.com/ios-filled/24/ffffff/plus-math.png" alt="Upload" />
+      <button onclick="scrollToUpload()" style="background: none; border: none; padding: 0; margin: 0;">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/plus-math.png" alt="Upload" style="width: 48px; height: 48px;" />
       </button>
     </div>
     <button onclick="goReels()">
@@ -754,6 +760,25 @@
     </div>
   </div>
   <script>
+    // Tambahkan uploadForm ke dalam dashboard sebelum </div> dashboard
+    document.addEventListener("DOMContentLoaded", function() {
+      var dashboard = document.getElementById("dashboard");
+      if (dashboard && !document.getElementById("uploadForm")) {
+        var uploadCard = document.createElement("div");
+        uploadCard.className = "dashboard-card";
+        uploadCard.id = "uploadCard";
+        uploadCard.innerHTML = `
+          <h3>📝 Upload Karya Anak</h3>
+          <form id="uploadForm">
+            <input type="file" id="fileInput" accept="image/*" required>
+            <input type="text" id="titleInput" placeholder="Judul karya" required>
+            <button type="submit">Upload Karya</button>
+            <div id="uploadStatus"></div>
+          </form>
+        `;
+        dashboard.appendChild(uploadCard);
+      }
+    });
     // Pindahkan dashboard-card Badge ke dalam profileHeader setelah #profileButtons
     document.addEventListener("DOMContentLoaded", function() {
       // Temukan elemen dashboard-card dengan judul 🏅 Badge
@@ -775,6 +800,7 @@
       }
     });
   </script>
+  
 </body>
   <div id="karyaModal" class="modal-overlay" style="display:none;">
     <div class="modal-content">
@@ -794,3 +820,4 @@
 </html>
 
   
+    
