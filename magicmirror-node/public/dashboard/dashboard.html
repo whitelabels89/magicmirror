@@ -28,6 +28,55 @@
       margin-bottom: 1.5rem;
       overflow: hidden;
     }
+    #profileHeader {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    #profileHeader img {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #ffe58e;
+    }
+    #profileName {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-top: 0.5rem;
+    }
+    #profileStats {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 0.5rem;
+    }
+    #profileStats div {
+      font-size: 0.9rem;
+    }
+    #profileButtons {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 1rem;
+    }
+    #profileButtons button {
+      flex: 1;
+      margin: 0 5px;
+      padding: 8px 0;
+      border-radius: 10px;
+      border: 1px solid #ffe58e;
+      background: transparent;
+      color: #ffe58e;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    #profileNote {
+      background-color: rgba(255,255,255,0.05);
+      padding: 0.5rem;
+      font-size: 0.85rem;
+      margin-top: 1rem;
+      border-radius: 8px;
+      text-align: center;
+      color: #ccc;
+    }
     #galeri {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -146,6 +195,20 @@
     <h1>Dashboard Anak – Queen’s Academy</h1>
     <div id="loading">🔄 Memuat data anak...</div>
     <div id="dashboard" style="display:none;">
+      <div id="profileHeader">
+        <img src="https://placehold.co/80x80" alt="Foto Anak" />
+        <div id="profileName">Nama Anak</div>
+        <div id="profileStats">
+          <div><strong id="totalPosts">0</strong><br>Posts</div>
+          <div><strong>–</strong><br>Followers</div>
+          <div><strong>–</strong><br>Following</div>
+        </div>
+        <div id="profileButtons">
+          <button>Edit Profile</button>
+          <button>Share Profile</button>
+        </div>
+        <div id="profileNote">Professional dashboard</div>
+      </div>
       <div class="dashboard-card">
         <h2 id="namaAnak"></h2>
         <p id="usiaAnak"></p>
@@ -221,6 +284,8 @@
           document.getElementById("dashboard").style.display = "block";
 
           document.getElementById("namaAnak").innerText = data.nama || "-";
+          document.getElementById("profileName").innerText = data.nama || "-";
+          document.getElementById("totalPosts").innerText = data.karya ? data.karya.length : 0;
           document.getElementById("usiaAnak").innerText = `Usia: ${data.usia || "-"}`;
           document.getElementById("kesimpulanAI").innerText = data.kesimpulan || "-";
           document.getElementById("tipeBakat").innerText = `🧠 ${data.tipe_bakat || "-"}`;
@@ -347,64 +412,67 @@
           } else {
             galeri.innerHTML = "<p>Belum ada karya diunggah.</p>";
           }
-  // MODAL FULLSCREEN KARYA
-  let currentModalKarya = null;
-
-  function openModal(karya) {
-    currentModalKarya = karya;
-    const modal = document.getElementById("karyaModal");
-    const container = document.getElementById("modalMedia");
-    container.innerHTML = "";
-
-    let media;
-    if (karya.url.match(/\.(jpg|jpeg|png|gif)$/i)) {
-      media = document.createElement("img");
-      media.src = karya.url;
-    } else if (karya.url.match(/\.(mp4|webm)$/i)) {
-      media = document.createElement("video");
-      media.src = karya.url;
-      media.controls = true;
-    } else if (karya.url.match(/\.pdf$/i)) {
-      media = document.createElement("iframe");
-      media.src = karya.url;
-    } else {
-      media = document.createElement("a");
-      media.href = karya.url;
-      media.innerText = "Lihat Karya";
-      media.target = "_blank";
-    }
-
-    container.appendChild(media);
-    modal.style.display = "flex";
-  }
-
-  function closeModal() {
-    document.getElementById("karyaModal").style.display = "none";
-  }
-
-  function modalLike() {
-    alert("❤️ Karya disukai!");
-  }
-  function modalComment() {
-    const comment = prompt("Tulis komentar:");
-    if (comment) alert("💬 Komentar disimpan: " + comment);
-  }
-  function modalShare() {
-    navigator.clipboard.writeText(currentModalKarya.url).then(() => {
-      alert("📤 Link karya disalin ke clipboard!");
-    });
-  }
-  function modalDelete() {
-    if (confirm("Yakin ingin menghapus karya ini?")) {
-      hapusKarya(currentModalKarya.id);
-      closeModal();
-    }
-  }
         })
         .catch(err => {
           document.getElementById("loading").innerText = "❌ Gagal memuat data.";
           console.error(err);
         });
+
+    // MODAL FULLSCREEN KARYA (dipindahkan ke global)
+    let currentModalKarya = null;
+
+    function openModal(karya) {
+      currentModalKarya = karya;
+      const modal = document.getElementById("karyaModal");
+      const container = document.getElementById("modalMedia");
+      container.innerHTML = "";
+
+      let media;
+      if (karya.url.match(/\.(jpg|jpeg|png|gif)$/i)) {
+        media = document.createElement("img");
+        media.src = karya.url;
+      } else if (karya.url.match(/\.(mp4|webm)$/i)) {
+        media = document.createElement("video");
+        media.src = karya.url;
+        media.controls = true;
+      } else if (karya.url.match(/\.pdf$/i)) {
+        media = document.createElement("iframe");
+        media.src = karya.url;
+      } else {
+        media = document.createElement("a");
+        media.href = karya.url;
+        media.innerText = "Lihat Karya";
+        media.target = "_blank";
+      }
+
+      container.appendChild(media);
+      modal.style.display = "flex";
+    }
+
+    function closeModal() {
+      document.getElementById("karyaModal").style.display = "none";
+    }
+
+    function modalLike() {
+      alert("❤️ Karya disukai!");
+    }
+    function modalComment() {
+      const comment = prompt("Tulis komentar:");
+      if (comment) alert("💬 Komentar disimpan: " + comment);
+    }
+    function modalShare() {
+      if (currentModalKarya && currentModalKarya.url) {
+        navigator.clipboard.writeText(currentModalKarya.url).then(() => {
+          alert("📤 Link karya disalin ke clipboard!");
+        });
+      }
+    }
+    function modalDelete() {
+      if (currentModalKarya && confirm("Yakin ingin menghapus karya ini?")) {
+        hapusKarya(currentModalKarya.id);
+        closeModal();
+      }
+    }
     }
 
     // PATCHED UPLOAD SCRIPT MULAI DI SINI
