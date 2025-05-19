@@ -336,11 +336,11 @@
       }
     });
     // Fungsi hapusKarya dipanggil dari tombol hapus karya
-    async function hapusKarya(timestamp) {
-      console.log("🧨 Kirim hapus:", { cid, timestamp });
+    async function hapusKarya(id_karya) {
+      console.log("🧨 Kirim hapus:", { cid, id_karya });
 
-      if (!cid || !timestamp) {
-        alert("❌ CID atau Timestamp kosong. Gagal menghapus.");
+      if (!cid || !id_karya) {
+        alert("❌ CID atau ID_KARYA kosong. Gagal menghapus.");
         return;
       }
 
@@ -348,7 +348,7 @@
         const res = await fetch("https://firebase-upload-backend.onrender.com/hapus-karya", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ cid, timestamp }),
+          body: JSON.stringify({ cid, id_karya }),
         });
 
         const result = await res.json();
@@ -364,6 +364,7 @@
         alert("⚠️ Terjadi error saat menghapus.");
       }
     }
+
   </script>
 </body>
 </html>
