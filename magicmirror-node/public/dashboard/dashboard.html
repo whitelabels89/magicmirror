@@ -153,12 +153,17 @@
     }
     h1, h2, h3 { color: #ffe58e; }
     #badgeList { display: flex; flex-wrap: wrap; gap: 12px; }
-    .badge-item img, #galeri img {
-      width: 55px;
-      height: 55px;
+    .badge-item img {
+      width: 30px;
+      height: 30px;
       object-fit: cover;
       border-radius: 16px;
       box-shadow: 0 0 6px rgba(255,255,255,0.2);
+    }
+    #galeri img {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1/1;
     }
     .badge-item span {
       display: block;
