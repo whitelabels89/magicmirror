@@ -158,8 +158,7 @@
 
           const sertifikatEl = document.getElementById("sertifikatContainer");
           if (data.sertifikat && data.sertifikat.includes("drive.google.com")) {
-            sertifikatEl.innerHTML = `
-              <iframe src="${data.sertifikat.replace("/view", "/preview")}" width="100%" height="480"></iframe>`;
+            sertifikatEl.innerHTML = `<iframe src="${data.sertifikat.replace("/view", "/preview")}" width="100%" height="480"></iframe>`;
           } else {
             sertifikatEl.innerHTML = "<p>Tautan sertifikat tidak valid.</p>";
           }
@@ -251,60 +250,39 @@
         });
     }
 
-  </script>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-storage.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyAy70WBTa9zWkFi49WhXLGnJYRbLVb6n8A",
-      authDomain: "socmed-karya-anak.firebaseapp.com",
-      projectId: "socmed-karya-anak",
-      storageBucket: "socmed-karya-anak.appspot.com",
-      messagingSenderId: "903463596001",
-      appId: "1:903463596001:web:9f994ac58fc6b7d6e6eca0"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const storage = getStorage(app, "gs://socmed-karya-anak.appspot.com");
-
-    const uploadForm = document.getElementById("uploadForm");
+    // PATCHED UPLOAD SCRIPT MULAI DI SINI
     const fileInput = document.getElementById("fileInput");
     const titleInput = document.getElementById("titleInput");
     const uploadStatus = document.getElementById("uploadStatus");
 
-    uploadForm.addEventListener("submit", async function (e) {
+    document.getElementById("uploadForm").addEventListener("submit", async function (e) {
       e.preventDefault();
 
       const file = fileInput.files[0];
       const title = titleInput.value;
-      const cid = new URLSearchParams(window.location.search).get("cid");
 
       if (!file || !title || !cid) {
         uploadStatus.innerText = "❌ Lengkapi semua data!";
         return;
       }
 
-      uploadStatus.innerText = "⏳ Mengunggah ke Firebase...";
+      uploadStatus.innerText = "⏳ Mengunggah ke server...";
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("cid", cid);
+      formData.append("title", title);
 
       try {
-        const filePath = `karya/${cid}/${Date.now()}_${file.name}`;
-        const storageRef = ref(storage, filePath);
-        await uploadBytes(storageRef, file);
-        const downloadURL = await getDownloadURL(storageRef);
-
-        console.log("✅ Link gambar:", downloadURL);
-        uploadStatus.innerText = "📤 Menyimpan ke Google Sheets...";
-
-        const res = await fetch("https://script.google.com/macros/s/AKfycbx5cPx2YQzYLbjMzFJPwIEr_bMsm4VGB8OA-04p33hnuXK61Mm36U04W3IrihbsIDukhw/exec", {
+        const res = await fetch("https://firebase-upload-backend.onrender.com/upload", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ cid, title, url: downloadURL })
+          body: formData
         });
 
         const result = await res.json();
+        console.log("✅ Response:", result);
         uploadStatus.innerText = result.message || "✅ Berhasil!";
-        location.reload();
+        if (result.url) location.reload();
       } catch (err) {
         console.error("❌ Upload error:", err);
         uploadStatus.innerText = "❌ Gagal upload: " + err.message;
