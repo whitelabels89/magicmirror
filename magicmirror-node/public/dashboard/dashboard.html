@@ -180,16 +180,31 @@
           }
 
           const badgeEl = document.getElementById("badgeList");
-          if (data.badges && data.badges.length > 0) {
-            data.badges.forEach(b => {
-              const item = document.createElement("div");
-              item.classList.add("badge-item");
-              item.innerHTML = `<img src="${b.url}"><span>${b.nama}</span>`;
-              badgeEl.appendChild(item);
-            });
+          if (data.tipe_bakat && typeof data.tipe_bakat === "string") {
+            const badgeMap = {
+              "Imajinatif": "badge_imajinatif.png",
+              "Logika": "badge_logika.png",
+              "Verbal": "badge_verbal.png",
+              "Sosial": "badge_sosial.png",
+              "Multi": "badge_multitalenta.png"
+            };
+
+            const badgeEl = document.getElementById("badgeList");
+            Object.keys(badgeMap).forEach(kata => {
+              if (data.tipe_bakat.includes(kata)) {
+                const wrapper = document.createElement("div");
+                wrapper.classList.add("badge-item");
+                wrapper.innerHTML = `
+                  <img src="/badges/${badgeMap[kata]}" alt="${kata}">
+                  <span>${kata}</span>
+                `;
+                badgeEl.appendChild(wrapper);
+              }
+            }); 
           } else {
-            badgeEl.innerHTML = "<p>Tidak ada badge ditemukan.</p>";
+            badgeEl.innerHTML = "<p>Belum ada badge yang cocok.</p>";
           }
+
 
           const kelasEl = document.getElementById("rekomKelas");
           if (data.rekomendasi && data.rekomendasi.length > 0) {
