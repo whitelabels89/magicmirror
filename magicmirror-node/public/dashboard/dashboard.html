@@ -275,18 +275,22 @@
                 btnDelete.style.color = "#0d2d2b";
                 btnDelete.onclick = async () => {
                   if (!confirm("Yakin ingin menghapus karya ini?")) return;
+                  console.log("🧨 Kirim hapus:", { cid, timestamp: k.timestamp });
+
                   try {
                     const res = await fetch("https://firebase-upload-backend.onrender.com/hapus-karya", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ cid, timestamp: k.timestamp }),
                     });
+
                     const result = await res.json();
                     if (result.success) {
                       alert("✔️ Karya berhasil dihapus.");
                       location.reload();
                     } else {
                       alert("❌ Gagal menghapus karya.");
+                      console.log("🛑 Backend message:", result.message || result.error);
                     }
                   } catch (err) {
                     console.error("❌ Error hapus:", err);
