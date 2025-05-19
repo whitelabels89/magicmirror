@@ -67,6 +67,17 @@
       font-weight: bold;
       cursor: pointer;
     }
+    #profileNote button {
+      flex: 1;
+      margin: 0 5px;
+      padding: 8px 0;
+      border-radius: 10px;
+      border: 1px solid #ffe58e;
+      background: transparent;
+      color: #ffe58e;
+      font-weight: bold;
+      cursor: pointer;
+    }
     #profileNote {
       background-color: rgba(255,255,255,0.05);
       padding: 0.5rem;
@@ -312,17 +323,13 @@
         <p id="tipeKepribadian">🙂 -</p>
       </div>
 
-      <div class="dashboard-card">
-        <h3>🏅 Badge</h3>
-        <div id="badgeList"></div>
-      </div>
 
       <div class="dashboard-card">
         <h3>📚 Rekomendasi Kelas</h3>
         <ul id="rekomKelas" style="padding-left: 1.5rem;"></ul>
       </div>
 
-      <div class="dashboard-card">
+      <div class="dashboard-card" id="galeriKaryaCard">
         <h3>🎨 Galeri Karya Anak</h3>
         <div id="galeri"></div>
       </div>
@@ -804,6 +811,18 @@
         if (profileHeader && profileButtons) {
           // Sisipkan setelah #profileButtons
           profileHeader.insertBefore(badgeCard, profileButtons.nextSibling);
+        }
+      }
+
+      // Pindahkan dashboard-card Galeri Karya Anak setelah #profileNote (berisi tombol Tampilkan / Sembunyikan Dashboard dan ID professionalContent)
+      var galeriCard = document.getElementById('galeriKaryaCard');
+      var profileNote = document.getElementById('profileNote');
+      if (galeriCard && profileNote && profileNote.parentNode) {
+        // Sisipkan setelah #profileNote
+        if (profileNote.nextSibling) {
+          profileNote.parentNode.insertBefore(galeriCard, profileNote.nextSibling);
+        } else {
+          profileNote.parentNode.appendChild(galeriCard);
         }
       }
     });
