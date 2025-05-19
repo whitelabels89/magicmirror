@@ -157,11 +157,16 @@
           document.getElementById("tipeKepribadian").innerText = `🙂 ${data.tipe_kepribadian || "-"}`;
 
           const sertifikatEl = document.getElementById("sertifikatContainer");
-          if (data.sertifikat && data.sertifikat.includes("drive.google.com")) {
-            sertifikatEl.innerHTML = `<iframe src="${data.sertifikat.replace("/view", "/preview")}" width="100%" height="480"></iframe>`;
+          if (
+            data.sertifikat &&
+            typeof data.sertifikat === "string" &&
+            data.sertifikat.includes("drive.google.com/view")
+          ) {
+            sertifikatEl.innerHTML = `<iframe src="${data.sertifikat.replace("/view", "/preview")}" width="100%" height="480" loading="lazy" allowfullscreen></iframe>`;
           } else {
-            sertifikatEl.innerHTML = "<p>Tautan sertifikat tidak valid.</p>";
+            sertifikatEl.innerHTML = "<p>Sertifikat belum tersedia atau tautan salah.</p>";
           }
+
 
           const evaluasiEl = document.getElementById("evaluasiAI");
           if (data.evaluasi && data.evaluasi.length > 0) {
@@ -200,8 +205,10 @@
           const galeri = document.getElementById("galeri");
           if (data.karya && data.karya.length > 0) {
             data.karya.forEach(k => {
-              if (k && k.url && typeof k.url === "string" && k.url.includes("drive.google.com")) {
-                const imgLink = getDriveImageUrlFromRaw(k.url);
+              if (k && k.url && typeof k.url === "string") {
+                const imgLink = k.url;
+
+
                 console.log("✅ Final img link:", imgLink);
 
                 const wrapper = document.createElement("div");
