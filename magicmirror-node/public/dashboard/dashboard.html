@@ -33,6 +33,57 @@
       grid-template-columns: repeat(3, 1fr);
       gap: 8px;
     }
+    /* MODAL FULLSCREEN KARYA */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.85);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+    }
+    .modal-content {
+      position: relative;
+      background-color: #0d2d2b;
+      padding: 1rem;
+      border-radius: 12px;
+      max-width: 90%;
+      max-height: 90%;
+      text-align: center;
+    }
+    .modal-content img, .modal-content video, .modal-content iframe {
+      max-width: 100%;
+      max-height: 60vh;
+      margin-bottom: 1rem;
+    }
+    .modal-actions {
+      display: flex;
+      justify-content: space-around;
+      gap: 10px;
+      margin-top: 1rem;
+    }
+    .modal-actions button {
+      flex: 1;
+      padding: 0.5rem;
+      border-radius: 8px;
+      border: none;
+      background-color: #ffe58e;
+      color: #0d2d2b;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .modal-close {
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      font-size: 1.5rem;
+      color: #fff;
+      cursor: pointer;
+    }
     .karya-card {
       background-color: transparent;
       border: none;
@@ -236,7 +287,7 @@
             kelasEl.innerHTML = "<li>Tidak ada rekomendasi kelas.</li>";
           }
 
-          // PATCHED GALLERY WITH PREVIEW + DELETE
+          // PATCHED GALLERY WITH PREVIEW + DELETE + MODAL
           const galeri = document.getElementById("galeri");
           if (data.karya && data.karya.length > 0) {
             galeri.innerHTML = ""; // Bersihkan isi awal
@@ -282,29 +333,12 @@
                   previewElement.target = "_blank";
                 }
 
-                const caption = document.createElement("p");
-                caption.innerText = k.judul || "Tanpa Judul";
-                caption.style.fontSize = "0.9rem";
-                caption.style.marginTop = "0.5rem";
+                // Modal open on click
+                wrapper.onclick = () => openModal(k);
 
-                const btnDelete = document.createElement("button");
-                btnDelete.innerText = "🗑️ Hapus";
-                btnDelete.style.marginTop = "8px";
-                btnDelete.style.padding = "6px 10px";
-                btnDelete.style.border = "none";
-                btnDelete.style.borderRadius = "6px";
-                btnDelete.style.cursor = "pointer";
-                btnDelete.style.backgroundColor = "#ffe58e";
-                btnDelete.style.color = "#0d2d2b";
-                btnDelete.onclick = () => {
-                  if (confirm("Yakin ingin menghapus karya ini?")) {
-                    hapusKarya(k.id); // bukan lagi k.timestamp
-                  }
-                };
-
-                wrapper.appendChild(previewElement);
                 // wrapper.appendChild(caption);
                 // wrapper.appendChild(btnDelete);
+                wrapper.appendChild(previewElement);
                 galeri.appendChild(wrapper);
               } else {
                 console.warn("⚠️ Invalid karya item:", k);
@@ -313,6 +347,59 @@
           } else {
             galeri.innerHTML = "<p>Belum ada karya diunggah.</p>";
           }
+  // MODAL FULLSCREEN KARYA
+  let currentModalKarya = null;
+
+  function openModal(karya) {
+    currentModalKarya = karya;
+    const modal = document.getElementById("karyaModal");
+    const container = document.getElementById("modalMedia");
+    container.innerHTML = "";
+
+    let media;
+    if (karya.url.match(/\.(jpg|jpeg|png|gif)$/i)) {
+      media = document.createElement("img");
+      media.src = karya.url;
+    } else if (karya.url.match(/\.(mp4|webm)$/i)) {
+      media = document.createElement("video");
+      media.src = karya.url;
+      media.controls = true;
+    } else if (karya.url.match(/\.pdf$/i)) {
+      media = document.createElement("iframe");
+      media.src = karya.url;
+    } else {
+      media = document.createElement("a");
+      media.href = karya.url;
+      media.innerText = "Lihat Karya";
+      media.target = "_blank";
+    }
+
+    container.appendChild(media);
+    modal.style.display = "flex";
+  }
+
+  function closeModal() {
+    document.getElementById("karyaModal").style.display = "none";
+  }
+
+  function modalLike() {
+    alert("❤️ Karya disukai!");
+  }
+  function modalComment() {
+    const comment = prompt("Tulis komentar:");
+    if (comment) alert("💬 Komentar disimpan: " + comment);
+  }
+  function modalShare() {
+    navigator.clipboard.writeText(currentModalKarya.url).then(() => {
+      alert("📤 Link karya disalin ke clipboard!");
+    });
+  }
+  function modalDelete() {
+    if (confirm("Yakin ingin menghapus karya ini?")) {
+      hapusKarya(currentModalKarya.id);
+      closeModal();
+    }
+  }
         })
         .catch(err => {
           document.getElementById("loading").innerText = "❌ Gagal memuat data.";
@@ -390,4 +477,16 @@
 
   </script>
 </body>
+  <div id="karyaModal" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-close" onclick="closeModal()">×</div>
+      <div id="modalMedia"></div>
+      <div class="modal-actions">
+        <button onclick="modalLike()">❤️</button>
+        <button onclick="modalComment()">💬</button>
+        <button onclick="modalShare()">📤</button>
+        <button onclick="modalDelete()">🗑️</button>
+      </div>
+    </div>
+  </div>
 </html>
