@@ -217,46 +217,86 @@
             kelasEl.innerHTML = "<li>Tidak ada rekomendasi kelas.</li>";
           }
 
+          // PATCHED GALLERY WITH PREVIEW + DELETE
           const galeri = document.getElementById("galeri");
           if (data.karya && data.karya.length > 0) {
+            galeri.innerHTML = ""; // Bersihkan isi awal
+
             data.karya.forEach(k => {
               if (k && k.url && typeof k.url === "string") {
-                const imgLink = k.url;
-
-
-                console.log("✅ Final img link:", imgLink);
-
                 const wrapper = document.createElement("div");
-                wrapper.style.display = "inline-block";
+                wrapper.className = "karya-card";
+                wrapper.style.border = "1px solid #ffe58e";
+                wrapper.style.padding = "10px";
+                wrapper.style.borderRadius = "10px";
                 wrapper.style.margin = "10px";
+                wrapper.style.maxWidth = "250px";
+                wrapper.style.backgroundColor = "rgba(255,255,255,0.04)";
                 wrapper.style.textAlign = "center";
-                wrapper.style.maxWidth = "200px";
 
-                const img = document.createElement("img");
-                img.src = imgLink;
-                img.alt = k.judul || "Karya Anak";
-                img.style.display = "block";
-                img.style.width = "100%";
-                img.style.maxHeight = "200px";
-                img.style.objectFit = "contain";
-                img.style.border = "1px solid #ffe58e";
-                img.style.borderRadius = "8px";
-                img.onerror = () => {
-                  console.warn("❌ Gagal load gambar:", img.src);
-                  img.src = "https://dummyimage.com/200x150/cccccc/333333&text=Image+Not+Found";
-                  img.alt = "Image not found";
-                };
-                img.onload = () => {
-                  console.log("✅ Gambar berhasil dimuat:", img.src);
-                };
+                let previewElement;
+                if (k.url.match(/\.(jpg|jpeg|png|gif)$/i)) {
+                  previewElement = document.createElement("img");
+                  previewElement.src = k.url;
+                  previewElement.style.width = "100%";
+                  previewElement.style.borderRadius = "6px";
+                } else if (k.url.match(/\.(mp4|webm)$/i)) {
+                  previewElement = document.createElement("video");
+                  previewElement.controls = true;
+                  previewElement.style.width = "100%";
+                  const source = document.createElement("source");
+                  source.src = k.url;
+                  previewElement.appendChild(source);
+                } else if (k.url.match(/\.pdf$/i)) {
+                  previewElement = document.createElement("iframe");
+                  previewElement.src = k.url;
+                  previewElement.style.width = "100%";
+                  previewElement.style.height = "150px";
+                } else {
+                  previewElement = document.createElement("a");
+                  previewElement.href = k.url;
+                  previewElement.innerText = "Lihat Karya";
+                  previewElement.target = "_blank";
+                }
 
                 const caption = document.createElement("p");
-                caption.innerText = k.judul || "";
+                caption.innerText = k.judul || "Tanpa Judul";
                 caption.style.fontSize = "0.9rem";
                 caption.style.marginTop = "0.5rem";
 
-                wrapper.appendChild(img);
+                const btnDelete = document.createElement("button");
+                btnDelete.innerText = "🗑️ Hapus";
+                btnDelete.style.marginTop = "8px";
+                btnDelete.style.padding = "6px 10px";
+                btnDelete.style.border = "none";
+                btnDelete.style.borderRadius = "6px";
+                btnDelete.style.cursor = "pointer";
+                btnDelete.style.backgroundColor = "#ffe58e";
+                btnDelete.style.color = "#0d2d2b";
+                btnDelete.onclick = async () => {
+                  if (!confirm("Yakin ingin menghapus karya ini?")) return;
+                  try {
+                    const res = await fetch("https://firebase-upload-backend.onrender.com/hapus-karya", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ cid, timestamp: k.timestamp }),
+                    });
+                    const result = await res.json();
+                    if (result.success) {
+                      alert("✔️ Karya berhasil dihapus.");
+                      location.reload();
+                    } else {
+                      alert("❌ Gagal menghapus karya.");
+                    }
+                  } catch (err) {
+                    console.error("❌ Error hapus:", err);
+                    alert("⚠️ Terjadi error saat menghapus.");
+                  }
+                };
+
+                wrapper.appendChild(previewElement);
                 wrapper.appendChild(caption);
+                wrapper.appendChild(btnDelete);
                 galeri.appendChild(wrapper);
               } else {
                 console.warn("⚠️ Invalid karya item:", k);
