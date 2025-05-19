@@ -28,6 +28,25 @@
       margin-bottom: 1.5rem;
       overflow: hidden;
     }
+    #galeri {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .karya-card {
+      background-color: transparent;
+      border: none;
+      padding: 0;
+      margin: 0;
+      border-radius: 0;
+    }
+    .karya-card img {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1/1;
+      object-fit: cover;
+      border-radius: 0;
+    }
     h1, h2, h3 { color: #ffe58e; }
     #badgeList, #galeri { display: flex; flex-wrap: wrap; gap: 12px; }
     .badge-item img, #galeri img {
@@ -226,24 +245,28 @@
               if (k && k.url && typeof k.url === "string") {
                 const wrapper = document.createElement("div");
                 wrapper.className = "karya-card";
-                wrapper.style.border = "1px solid #ffe58e";
-                wrapper.style.padding = "10px";
-                wrapper.style.borderRadius = "10px";
-                wrapper.style.margin = "10px";
-                wrapper.style.maxWidth = "250px";
-                wrapper.style.backgroundColor = "rgba(255,255,255,0.04)";
-                wrapper.style.textAlign = "center";
+                wrapper.style.border = "none";
+                wrapper.style.padding = "0";
+                wrapper.style.margin = "0";
+                wrapper.style.maxWidth = "100%";
+                wrapper.style.backgroundColor = "transparent";
+                wrapper.style.textAlign = "left";
 
                 let previewElement;
                 if (k.url.match(/\.(jpg|jpeg|png|gif)$/i)) {
                   previewElement = document.createElement("img");
                   previewElement.src = k.url;
                   previewElement.style.width = "100%";
-                  previewElement.style.borderRadius = "6px";
+                  previewElement.style.height = "100%";
+                  previewElement.style.objectFit = "cover";
+                  previewElement.style.aspectRatio = "1 / 1";
                 } else if (k.url.match(/\.(mp4|webm)$/i)) {
                   previewElement = document.createElement("video");
                   previewElement.controls = true;
                   previewElement.style.width = "100%";
+                  previewElement.style.height = "100%";
+                  previewElement.style.objectFit = "cover";
+                  previewElement.style.aspectRatio = "1 / 1";
                   const source = document.createElement("source");
                   source.src = k.url;
                   previewElement.appendChild(source);
@@ -280,8 +303,8 @@
                 };
 
                 wrapper.appendChild(previewElement);
-                wrapper.appendChild(caption);
-                wrapper.appendChild(btnDelete);
+                // wrapper.appendChild(caption);
+                // wrapper.appendChild(btnDelete);
                 galeri.appendChild(wrapper);
               } else {
                 console.warn("⚠️ Invalid karya item:", k);
