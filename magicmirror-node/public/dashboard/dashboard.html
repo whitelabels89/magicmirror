@@ -275,7 +275,7 @@
                 btnDelete.style.color = "#0d2d2b";
                 btnDelete.onclick = () => {
                   if (confirm("Yakin ingin menghapus karya ini?")) {
-                    hapusKarya(k.timestamp);
+                    hapusKarya(k.id); // bukan lagi k.timestamp
                   }
                 };
 
