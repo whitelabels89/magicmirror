@@ -794,36 +794,27 @@
     </div>
   </div>
   <script>
-    // Pindahkan dashboard-card Badge ke dalam profileHeader setelah #profileButtons
     document.addEventListener("DOMContentLoaded", function() {
-      // Temukan elemen dashboard-card dengan judul 🏅 Badge
-      var dashboardCards = document.querySelectorAll('.dashboard-card');
-      var badgeCard = null;
+      // Pindahkan Badge Card
+      const dashboardCards = document.querySelectorAll('.dashboard-card');
+      let badgeCard = null;
       dashboardCards.forEach(function(card) {
-        var h3 = card.querySelector('h3');
-        if (h3 && h3.textContent.trim().includes('🏅 Badge')) {
+        const h3 = card.querySelector('h3');
+        if (h3 && h3.textContent.trim().includes('🏅')) {
           badgeCard = card;
         }
       });
+
       if (badgeCard) {
-        var profileHeader = document.getElementById('profileHeader');
-        var profileButtons = document.getElementById('profileButtons');
-        if (profileHeader && profileButtons) {
-          // Sisipkan setelah #profileButtons
-          profileHeader.insertBefore(badgeCard, profileButtons.nextSibling);
-        }
+        const profileButtons = document.getElementById("profileButtons");
+        profileButtons.parentNode.insertBefore(badgeCard, profileButtons.nextSibling);
       }
 
-      // Pindahkan dashboard-card Galeri Karya Anak setelah #profileNote (berisi tombol Tampilkan / Sembunyikan Dashboard dan ID professionalContent)
-      var galeriCard = document.getElementById('galeriKaryaCard');
-      var profileNote = document.getElementById('profileNote');
-      if (galeriCard && profileNote && profileNote.parentNode) {
-        // Sisipkan setelah #profileNote
-        if (profileNote.nextSibling) {
-          profileNote.parentNode.insertBefore(galeriCard, profileNote.nextSibling);
-        } else {
-          profileNote.parentNode.appendChild(galeriCard);
-        }
+      // Pindahkan Galeri Karya Card setelah profileNote
+      const galeriCard = document.getElementById("galeriKaryaCard");
+      const profileNote = document.getElementById("profileNote");
+      if (galeriCard && profileNote) {
+        profileNote.parentNode.insertBefore(galeriCard, profileNote.nextSibling);
       }
     });
   </script>
