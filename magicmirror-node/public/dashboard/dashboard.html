@@ -371,7 +371,6 @@
           const base64Image = e.target.result;
           document.querySelector("#profileHeader img").src = base64Image;
 
-          // Simpan ke Google Sheets (next: backend support)
           fetch("https://script.google.com/macros/s/AKfycbx5cPx2YQzYLbjMzFJPwIEr_bMsm4VGB8OA-04p33hnuXK61Mm36U04W3IrihbsIDukhw/exec", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
