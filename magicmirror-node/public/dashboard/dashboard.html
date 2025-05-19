@@ -273,28 +273,9 @@
                 btnDelete.style.cursor = "pointer";
                 btnDelete.style.backgroundColor = "#ffe58e";
                 btnDelete.style.color = "#0d2d2b";
-                btnDelete.onclick = async () => {
-                  if (!confirm("Yakin ingin menghapus karya ini?")) return;
-                  console.log("🧨 Kirim hapus:", { cid, timestamp: k.timestamp });
-
-                  try {
-                    const res = await fetch("https://firebase-upload-backend.onrender.com/hapus-karya", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ cid, timestamp: k.timestamp }),
-                    });
-
-                    const result = await res.json();
-                    if (result.success) {
-                      alert("✔️ Karya berhasil dihapus.");
-                      location.reload();
-                    } else {
-                      alert("❌ Gagal menghapus karya.");
-                      console.log("🛑 Backend message:", result.message || result.error);
-                    }
-                  } catch (err) {
-                    console.error("❌ Error hapus:", err);
-                    alert("⚠️ Terjadi error saat menghapus.");
+                btnDelete.onclick = () => {
+                  if (confirm("Yakin ingin menghapus karya ini?")) {
+                    hapusKarya(k.timestamp);
                   }
                 };
 
@@ -354,6 +335,35 @@
         uploadStatus.innerText = "❌ Gagal upload: " + err.message;
       }
     });
+    // Fungsi hapusKarya dipanggil dari tombol hapus karya
+    async function hapusKarya(timestamp) {
+      console.log("🧨 Kirim hapus:", { cid, timestamp });
+
+      if (!cid || !timestamp) {
+        alert("❌ CID atau Timestamp kosong. Gagal menghapus.");
+        return;
+      }
+
+      try {
+        const res = await fetch("https://firebase-upload-backend.onrender.com/hapus-karya", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ cid, timestamp }),
+        });
+
+        const result = await res.json();
+        if (result.success) {
+          alert("✔️ Karya berhasil dihapus.");
+          location.reload();
+        } else {
+          alert("❌ Gagal menghapus karya.");
+          console.log("🛑 Backend message:", result.message || result.error);
+        }
+      } catch (err) {
+        console.error("❌ Error hapus:", err);
+        alert("⚠️ Terjadi error saat menghapus.");
+      }
+    }
   </script>
 </body>
 </html>
