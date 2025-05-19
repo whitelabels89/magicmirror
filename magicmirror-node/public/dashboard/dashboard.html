@@ -30,6 +30,7 @@
     #profileHeader {
       text-align: center;
       margin-bottom: 1.5rem;
+      margin-top: 16px;
     }
     #profileHeader img {
       width: 80px;
@@ -278,7 +279,10 @@
 </head>
 <body>
   <div class="container">
-    <div id="loading">🔄 loading...</div>
+    <div id="loading">
+      <div class="spinner"></div>
+      <p>⏳ Mengunduh kecerdasan luar biasa anak Anda...</p>
+    </div>
     <div id="dashboard" style="display:none;">
       <div id="profileHeader">
         <img src="https://placehold.co/80x80" alt="Foto Anak" />
@@ -293,7 +297,7 @@
           <button onclick="openShareModal()">Share Profile</button>
         </div>
         <div id="profileNote">
-          <button onclick="toggleProfessional()">👨‍🏫 Tampilkan / Sembunyikan Dashboard</button>
+          <button onclick="toggleProfessional()" style="flex: 1; margin: 0 5px; padding: 8px 0; border-radius: 10px; border: 1px solid #ffe58e; background: transparent; color: #ffe58e; font-weight: bold; cursor: pointer;">👨‍🏫 Tampilkan / Sembunyikan Dashboard</button>
           <div id="professionalContent">
             <h2 id="namaAnak"></h2>
             <p id="usiaAnak"></p>
@@ -833,3 +837,22 @@ function scrollToUpload() {
 </html>
 
   
+    #loading {
+      text-align: center;
+      padding: 2rem;
+      font-size: 1rem;
+      color: #ffe58e;
+    }
+    .spinner {
+      margin: 0 auto 1rem;
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(255,229,142,0.3);
+      border-top: 4px solid #ffe58e;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
