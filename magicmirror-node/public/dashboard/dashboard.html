@@ -76,6 +76,10 @@
       text-align: center;
       color: #ccc;
     }
+    #professionalContent {
+      display: none;
+      transition: all 0.3s ease;
+    }
     #galeri {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -149,8 +153,10 @@
     h1, h2, h3 { color: #ffe58e; }
     #badgeList { display: flex; flex-wrap: wrap; gap: 12px; }
     .badge-item img, #galeri img {
-      width: 100px;
-      border-radius: 8px;
+      width: 70px;
+      height: 70px;
+      object-fit: cover;
+      border-radius: 50%;
       box-shadow: 0 0 6px rgba(255,255,255,0.2);
     }
     .badge-item span {
@@ -158,6 +164,7 @@
       font-size: 0.75rem;
       text-align: center;
       margin-top: 4px;
+      text-align: center;
     }
     iframe { border: none; border-radius: 12px; }
     #uploadForm {
@@ -271,8 +278,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>Dashboard Anak – Queen’s Academy</h1>
-    <div id="loading">🔄 Memuat data anak...</div>
+    <div id="loading">🔄 loading...</div>
     <div id="dashboard" style="display:none;">
       <div id="profileHeader">
         <img src="https://placehold.co/80x80" alt="Foto Anak" />
@@ -287,14 +293,16 @@
           <button onclick="openShareModal()">Share Profile</button>
         </div>
         <div id="profileNote">
-          <strong>Professional dashboard</strong>
-          <h2 id="namaAnak"></h2>
-          <p id="usiaAnak"></p>
-          <div id="sertifikatContainer"></div>
-          <h4>📋 Kesimpulan</h4>
-          <p id="kesimpulanAI" style="white-space: pre-wrap;"></p>
-          <h4>🧠 Evaluasi AI</h4>
-          <div id="evaluasiAI"></div>
+          <button onclick="toggleProfessional()">👨‍🏫 Tampilkan / Sembunyikan Dashboard</button>
+          <div id="professionalContent">
+            <h2 id="namaAnak"></h2>
+            <p id="usiaAnak"></p>
+            <div id="sertifikatContainer"></div>
+            <h4>📋 Kesimpulan</h4>
+            <p id="kesimpulanAI" style="white-space: pre-wrap;"></p>
+            <h4>🧠 Evaluasi AI</h4>
+            <div id="evaluasiAI"></div>
+          </div>
         </div>
       </div>
 
@@ -728,6 +736,14 @@
       if (section) section.scrollIntoView({ behavior: "smooth" });
     }
 
+    function toggleProfessional() {
+      const content = document.getElementById("professionalContent");
+      if (content.style.display === "none" || content.style.display === "") {
+        content.style.display = "block";
+      } else {
+        content.style.display = "none";
+      }
+    }
   </script>
   <!-- Bottom Navigation Bar -->
   <div id="bottomNavBar">
@@ -770,6 +786,28 @@
       </div>
     </div>
   </div>
+  <script>
+    // Pindahkan dashboard-card Badge ke dalam profileHeader setelah #profileButtons
+    document.addEventListener("DOMContentLoaded", function() {
+      // Temukan elemen dashboard-card dengan judul 🏅 Badge
+      var dashboardCards = document.querySelectorAll('.dashboard-card');
+      var badgeCard = null;
+      dashboardCards.forEach(function(card) {
+        var h3 = card.querySelector('h3');
+        if (h3 && h3.textContent.trim().includes('🏅 Badge')) {
+          badgeCard = card;
+        }
+      });
+      if (badgeCard) {
+        var profileHeader = document.getElementById('profileHeader');
+        var profileButtons = document.getElementById('profileButtons');
+        if (profileHeader && profileButtons) {
+          // Sisipkan setelah #profileButtons
+          profileHeader.insertBefore(badgeCard, profileButtons.nextSibling);
+        }
+      }
+    });
+  </script>
 </body>
   <div id="karyaModal" class="modal-overlay" style="display:none;">
     <div class="modal-content">
