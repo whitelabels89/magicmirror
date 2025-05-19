@@ -371,7 +371,7 @@
           const base64Image = e.target.result;
           document.querySelector("#profileHeader img").src = base64Image;
 
-          fetch("https://script.google.com/macros/s/AKfycbx5cPx2YQzYLbjMzFJPwIEr_bMsm4VGB8OA-04p33hnuXK61Mm36U04W3IrihbsIDukhw/exec", {
+          fetch("https://firebase-upload-backend.onrender.com/update-profil", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
