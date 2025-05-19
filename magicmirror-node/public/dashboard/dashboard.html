@@ -167,32 +167,43 @@
       text-align: center;
     }
     iframe { border: none; border-radius: 12px; }
-    #uploadForm {
-      max-width: 100%;
-    }
-    #uploadForm input[type="file"],
-    #uploadForm input[type="text"],
-    #uploadForm button {
-      box-sizing: border-box;
-      width: 100%;
-      max-width: 100%;
-    }
-    #uploadForm input, #uploadForm button {
+    /* Highlighted upload button styles for bottom navbar */
+    #uploadButtonWrapper {
+      position: absolute;
+      top: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #0d2d2b;
+      border-radius: 50%;
       padding: 10px;
-      border-radius: 8px;
-      margin-bottom: 10px;
+      border: 3px solid #ffe58e;
+      box-shadow: 0 0 6px rgba(255,229,142,0.3);
     }
-    #uploadForm input {
-      background-color: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255, 229, 142, 0.3);
-      color: #ffe58e;
+    #bottomNavBar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background-color: #0d2d2b;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 8px 0;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      z-index: 1001;
+      overflow: visible;
     }
-    #uploadForm button {
+    #uploadTooltip {
+      position: absolute;
+      top: -35px;
+      left: 50%;
+      transform: translateX(-50%);
       background-color: #ffe58e;
       color: #0d2d2b;
-      font-weight: bold;
-      cursor: pointer;
-      border: none;
+      padding: 4px 8px;
+      font-size: 0.75rem;
+      border-radius: 6px;
+      white-space: nowrap;
     }
     /* Bottom Nav Bar */
     /* Edit Profile Modal */
@@ -327,15 +338,6 @@
         <div id="galeri"></div>
       </div>
 
-      <div class="dashboard-card">
-        <h3>📝 Upload Karya Anak</h3>
-        <form id="uploadForm">
-          <input type="file" id="fileInput" accept="image/*" required>
-          <input type="text" id="titleInput" placeholder="Judul karya" required>
-          <button type="submit">Upload Karya</button>
-          <div id="uploadStatus"></div>
-        </form>
-      </div>
     </div>
   </div>
 
@@ -653,44 +655,6 @@
     }
     }
 
-    // PATCHED UPLOAD SCRIPT MULAI DI SINI
-    const fileInput = document.getElementById("fileInput");
-    const titleInput = document.getElementById("titleInput");
-    const uploadStatus = document.getElementById("uploadStatus");
-
-    document.getElementById("uploadForm").addEventListener("submit", async function (e) {
-      e.preventDefault();
-
-      const file = fileInput.files[0];
-      const title = titleInput.value;
-
-      if (!file || !title || !cid) {
-        uploadStatus.innerText = "❌ Lengkapi semua data!";
-        return;
-      }
-
-      uploadStatus.innerText = "⏳ Mengunggah ke server...";
-
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("cid", cid);
-      formData.append("title", title);
-
-      try {
-        const res = await fetch("https://firebase-upload-backend.onrender.com/upload", {
-          method: "POST",
-          body: formData
-        });
-
-        const result = await res.json();
-        console.log("✅ Response:", result);
-        uploadStatus.innerText = result.message || "✅ Berhasil!";
-        if (result.url) location.reload();
-      } catch (err) {
-        console.error("❌ Upload error:", err);
-        uploadStatus.innerText = "❌ Gagal upload: " + err.message;
-      }
-    });
     // Fungsi hapusKarya dipanggil dari tombol hapus karya
     async function hapusKarya(id_karya) {
       console.log("🧨 Kirim hapus:", { cid, id_karya });
@@ -753,9 +717,12 @@
     <button onclick="goSearch()">
       <img src="https://img.icons8.com/ios-filled/24/ffffff/search--v1.png" alt="Search" />
     </button>
-    <button onclick="scrollToUpload()">
-      <img src="https://img.icons8.com/ios-filled/24/ffffff/plus-math.png" alt="Upload" />
-    </button>
+    <div id="uploadButtonWrapper">
+      <div id="uploadTooltip">klik untuk upload karya anak</div>
+      <button onclick="scrollToUpload()">
+        <img src="https://img.icons8.com/ios-filled/24/ffffff/plus-math.png" alt="Upload" />
+      </button>
+    </div>
     <button onclick="goReels()">
       <img src="https://img.icons8.com/ios-filled/24/ffffff/cinema-.png" alt="Reels" />
     </button>
@@ -823,13 +790,7 @@
   </div>
 </html>
 
-<script>
-// Scroll to Upload Karya Anak
-function scrollToUpload() {
-  const form = document.getElementById("uploadForm");
-  if (form) form.scrollIntoView({ behavior: "smooth" });
-}
-</script>
+</html>
 </html>
 
   
