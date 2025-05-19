@@ -355,7 +355,7 @@
     function simpanProfil() {
       const nama = document.getElementById("editNama").value.trim();
       const usia = document.getElementById("editUsia").value.trim();
-      const foto = document.getElementById("editFoto").value.trim();
+      const fotoFile = document.getElementById("editFotoFile").files[0];
 
       if (nama) {
         document.getElementById("profileName").innerText = nama;
@@ -364,8 +364,38 @@
       if (usia) {
         document.getElementById("usiaAnak").innerText = "Usia: " + usia;
       }
-      if (foto) {
-        document.querySelector("#profileHeader img").src = foto;
+
+      if (fotoFile) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const base64Image = e.target.result;
+          document.querySelector("#profileHeader img").src = base64Image;
+
+          // Simpan ke Google Sheets (next: backend support)
+          fetch("https://script.google.com/macros/s/AKfycbx5cPx2YQzYLbjMzFJPwIEr_bMsm4VGB8OA-04p33hnuXK61Mm36U04W3IrihbsIDukhw/exec", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "updateProfile",
+              cid,
+              nama,
+              usia,
+              foto: base64Image
+            })
+          });
+        };
+        reader.readAsDataURL(fotoFile);
+      } else {
+        fetch("https://script.google.com/macros/s/AKfycbx5cPx2YQzYLbjMzFJPwIEr_bMsm4VGB8OA-04p33hnuXK61Mm36U04W3IrihbsIDukhw/exec", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "updateProfile",
+            cid,
+            nama,
+            usia
+          })
+        });
       }
 
       document.getElementById("editProfileModal").style.display = "none";
@@ -694,7 +724,7 @@
       <h3>Edit Profil Anak</h3>
       <input type="text" id="editNama" placeholder="Nama Anak" />
       <input type="text" id="editUsia" placeholder="Usia Anak" />
-      <input type="text" id="editFoto" placeholder="Link Foto Profil" />
+      <input type="file" id="editFotoFile" accept="image/*" />
       <button onclick="simpanProfil()">Simpan</button>
     </div>
   </div>
