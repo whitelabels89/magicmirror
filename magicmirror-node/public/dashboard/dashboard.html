@@ -2,7 +2,6 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Queen’s Academy</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/css2?family=Forum&display=swap" rel="stylesheet">
   <style>
@@ -287,22 +286,16 @@
           <button>Edit Profile</button>
           <button onclick="openShareModal()">Share Profile</button>
         </div>
-        <div id="profileNote">Professional dashboard</div>
-      </div>
-      <div class="dashboard-card">
-        <h2 id="namaAnak"></h2>
-        <p id="usiaAnak"></p>
-        <div id="sertifikatContainer"></div>
-      </div>
-
-      <div class="dashboard-card">
-        <h3>📋 Kesimpulan</h3>
-        <p id="kesimpulanAI" style="white-space: pre-wrap;"></p>
-      </div>
-
-      <div class="dashboard-card">
-        <h3>🧠 Evaluasi Psikotest dari AI</h3>
-        <div id="evaluasiAI"></div>
+        <div id="profileNote">
+          <strong>Professional dashboard</strong>
+          <h2 id="namaAnak"></h2>
+          <p id="usiaAnak"></p>
+          <div id="sertifikatContainer"></div>
+          <h4>📋 Kesimpulan</h4>
+          <p id="kesimpulanAI" style="white-space: pre-wrap;"></p>
+          <h4>🧠 Evaluasi AI</h4>
+          <div id="evaluasiAI"></div>
+        </div>
       </div>
 
       <div class="dashboard-card">
@@ -367,21 +360,27 @@
 
       if (fotoFile) {
         const reader = new FileReader();
-        reader.onload = function (e) {
+        reader.onload = async function (e) {
           const base64Image = e.target.result;
           document.querySelector("#profileHeader img").src = base64Image;
 
-          fetch("https://firebase-upload-backend.onrender.com/update-profil", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              action: "updateProfile",
-              cid,
-              nama,
-              usia,
-              foto: base64Image
-            })
-          });
+          try {
+            const response = await fetch("https://firebase-upload-backend.onrender.com/update-profil", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                action: "updateProfile",
+                cid,
+                nama,
+                usia,
+                foto: base64Image
+              })
+            });
+            const result = await response.json();
+            console.log("📸 Profil updated:", result);
+          } catch (err) {
+            console.error("❌ Error updating profile:", err);
+          }
         };
         reader.readAsDataURL(fotoFile);
       } else {
