@@ -825,6 +825,8 @@
       const contentEl = document.getElementById("kelasModalContent");
 
       if (!kelas) {
+        // Tambahkan pushState untuk daftar kelas
+        history.pushState({ modal: 'kelasList' }, '', '#kelas');
         titleEl.innerText = "📚 Pilih Kelas";
         contentEl.innerHTML = "";
         Object.keys(katalogKelas).forEach(k => {
@@ -838,22 +840,75 @@
         return;
       }
 
+      // Tambahkan pushState untuk detail kelas
+      history.pushState({ modal: 'kelasDetail', kelas }, '', '#kelas');
+
       const info = katalogKelas[kelas];
       if (!info) return;
 
       titleEl.innerText = `📚 ${kelas}`;
       contentEl.innerHTML = `
+        <button onclick="openKelasOptions()" style="margin-bottom: 0.5rem; background:none; border:none; color:#ffe58e; font-weight:bold; cursor:pointer;">⬅️ Kembali</button>
         <p><strong>Usia:</strong> ${info.usia}</p>
         <p><strong>Deskripsi:</strong><br>${info.deskripsi}</p>
+        <form id="modalUploadForm" style="margin-top: 1rem;">
+          <input type="file" id="modalFileInput" accept="image/*" required>
+          <input type="text" id="modalTitleInput" value="${kelas}" required>
+          <button type="submit">📤 Upload Karya</button>
+          <div id="modalUploadStatus"></div>
+        </form>
       `;
 
-      document.getElementById("titleInput").value = kelas;
+      // Optional: set the main upload form's title to kelas for convenience
+      if (document.getElementById("titleInput")) {
+        document.getElementById("titleInput").value = kelas;
+      }
       modal.style.display = "flex";
+
+      // Add upload handler for the modal form
+      document.getElementById("modalUploadForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const file = document.getElementById("modalFileInput").files[0];
+        const title = document.getElementById("modalTitleInput").value;
+        const status = document.getElementById("modalUploadStatus");
+
+        if (!file || !title || !cid) {
+          status.innerText = "❌ Lengkapi semua data!";
+          return;
+        }
+
+        status.innerText = "⏳ Mengunggah ke server...";
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("cid", cid);
+        formData.append("title", title);
+
+        try {
+          const res = await fetch("https://firebase-upload-backend.onrender.com/upload", {
+            method: "POST",
+            body: formData
+          });
+          const result = await res.json();
+          status.innerText = result.message || "✅ Berhasil!";
+          if (result.url) location.reload();
+        } catch (err) {
+          console.error("❌ Upload error:", err);
+          status.innerText = "❌ Gagal upload: " + err.message;
+        }
+      });
     }
 
     function closeKelasModal() {
       document.getElementById("kelasModal").style.display = "none";
     }
+    // Handler popstate untuk navigasi modal kelas
+    window.onpopstate = function(event) {
+      if (event.state && event.state.modal === 'kelasList') {
+        openKelasOptions(); // kembali ke daftar kelas
+      } else {
+        closeKelasModal(); // tutup modal jika tidak ada state
+      }
+    };
 
     function openWhatsAppDetail() {
       const adminWA = "6282125896546";
