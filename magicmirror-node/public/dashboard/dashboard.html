@@ -51,6 +51,7 @@
       background-color: rgba(255,255,255,0.05);
       padding: 0;
       border-radius: 12px;
+      overflow-x: visible;
     }
     .dashboard-card {
       background: rgba(255,255,255,0.04);
@@ -58,7 +59,7 @@
       border-radius: 16px;
       padding: 1rem;
       margin-bottom: 1.5rem;
-      overflow: hidden;
+      overflow: visible;
     }
     #profileHeader {
       text-align: center;
@@ -100,7 +101,8 @@
     }
     #profileStats div:nth-child(3) {
       text-align: center;
-      margin-right: -5px;
+      margin-right: 0;
+      margin-left: -2px;
     }
     #profileButtons {
       display: flex;
@@ -210,7 +212,8 @@
       padding-left: 12px;
       padding-right: 12px;
       scroll-padding-left: 12px;
-      /* scroll-padding-right is not needed for edge-to-edge scroll on left */
+      scroll-padding-right: 12px;
+      -webkit-overflow-scrolling: touch;
     }
     .badge-item {
       flex: 0 0 auto;
