@@ -162,6 +162,10 @@
       padding: 4px 0;
       box-sizing: border-box;
     }
+    #galeriCard {
+      margin-top: 0.5rem;
+    }
+    
     /* MODAL FULLSCREEN KARYA */
     .modal-overlay {
       position: fixed;
@@ -458,7 +462,7 @@
         <div id="badgeList"></div>
       </div>
 
-      <div class="dashboard-card">
+      <div class="dashboard-card" id="galeriCard">
         <h3>🎨 Galeri Karya Anak</h3>
         <div id="galeri"></div>
       </div>
@@ -580,8 +584,8 @@
           document.getElementById("totalPosts").innerText = data.karya ? data.karya.length : 0;
           document.getElementById("usiaAnak").innerText = `Usia: ${data.usia || "-"}`;
           document.getElementById("kesimpulanAI").innerText = data.kesimpulan || "-";
-          document.getElementById("tipeBakat").innerText = `🧠 ${data.tipe_bakat || "-"}`;
-          document.getElementById("tipeKepribadian").innerText = `🙂 ${data.tipe_kepribadian || "-"}`;
+          document.getElementById("tipeBakat").innerText = `Talent: ${data.tipe_bakat || "-"}`;
+          document.getElementById("tipeKepribadian").innerText = `Personality: ${data.tipe_kepribadian || "-"}`;
 
           const sertifikatEl = document.getElementById("sertifikatContainer");
           if (
@@ -985,3 +989,4 @@ function scrollToUpload() {
   
     
     
+  
