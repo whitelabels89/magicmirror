@@ -46,6 +46,7 @@
       color: #4b3d2a;
     }
     .theme-queens #galeri {
+      background-color: #fff;
       border: 1px solid #ffe58e;
     }
     .theme-queens #galeri img {
@@ -156,7 +157,7 @@
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 2px;
-      background-color: #1a1a1a;
+      background-color: #0d2d2b;
       border: 1px solid rgba(255,255,255,0.1);
     }
     /* MODAL FULLSCREEN KARYA */
@@ -395,6 +396,19 @@
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
+    }
+
+    @keyframes heartBeat {
+      0% { transform: scale(0.8) translate(-50%, -50%); opacity: 0; }
+      25% { transform: scale(1.2) translate(-50%, -50%); opacity: 1; }
+      50% { transform: scale(1) translate(-50%, -50%); opacity: 0.8; }
+      75% { transform: scale(1.2) translate(-50%, -50%); opacity: 1; }
+      100% { transform: scale(0.8) translate(-50%, -50%); opacity: 0; }
+    }
+
+    #heartOverlay.show {
+      display: block;
+      animation: heartBeat 1s ease-in-out;
     }
   </style>
 </head>
@@ -650,14 +664,14 @@
                   previewElement.style.width = "100%";
                   previewElement.style.height = "100%";
                   previewElement.style.objectFit = "cover";
-                  previewElement.style.aspectRatio = "1 / 1";
+                  previewElement.style.aspectRatio = "4 / 5";
                 } else if (k.url.match(/\.(mp4|webm)$/i)) {
                   previewElement = document.createElement("video");
                   previewElement.controls = true;
                   previewElement.style.width = "100%";
                   previewElement.style.height = "100%";
                   previewElement.style.objectFit = "cover";
-                  previewElement.style.aspectRatio = "1 / 1";
+                  previewElement.style.aspectRatio = "4 / 5";
                   const source = document.createElement("source");
                   source.src = k.url;
                   previewElement.appendChild(source);
@@ -746,7 +760,7 @@
     }
 
     function shareWhatsApp() {
-      const text = `Lihat profil anakku di sini 👇\n${window.location.href}`;
+      const text = `Lihat profil anakku di sini\n${window.location.href}`;
       const waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
       window.open(waUrl, "_blank");
     }
@@ -756,7 +770,11 @@
     }
 
     function modalLike() {
-      alert("❤️ Karya disukai!");
+      const heart = document.getElementById("heartOverlay");
+      heart.classList.add("show");
+      setTimeout(() => {
+        heart.classList.remove("show");
+      }, 1000);
     }
     function modalComment() {
       const comment = prompt("Tulis komentar:");
@@ -943,6 +961,9 @@
       }
     });
   </script>
+  <div id="heartOverlay" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:1000; pointer-events:none;">
+    <img src="https://img.icons8.com/emoji/96/red-heart.png" alt="Love" style="width: 96px; height: 96px; opacity: 0.8;" />
+  </div>
 </body>
   <div id="karyaModal" class="modal-overlay" style="display:none;">
     <div class="modal-content">
