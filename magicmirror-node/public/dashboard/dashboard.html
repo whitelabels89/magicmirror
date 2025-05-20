@@ -156,9 +156,9 @@
     #galeri {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 2px;
+      gap: 1px;
       background-color: #0d2d2b;
-      border: 1px solid rgba(255,255,255,0.1);
+      border: none;
     }
     /* MODAL FULLSCREEN KARYA */
     .modal-overlay {
@@ -254,8 +254,9 @@
       height: auto;
       aspect-ratio: 4 / 5;
       object-fit: cover;
-      border: 1px solid rgba(255,255,255,0.08);
       display: block;
+      border: none;
+      border-radius: 0;
     }
     .badge-item span {
       display: block;
@@ -428,13 +429,13 @@
           <div><strong>2</strong><br>Following</div>
         </div>
         <div id="profileBio" style="margin-top: 0.5rem; font-size: 0.85rem; line-height: 1.4;">
-          <p id="tipeBakat">🧠 -</p>
-          <p id="tipeKepribadian">🙂 -</p>
+          <p id="tipeBakat">talent: -</p>
+          <p id="tipeKepribadian">personality: -</p>
         </div>
         <div id="profileButtons">
           <button>Edit Profile</button>
           <button onclick="openShareModal()">Share Profile</button>
-          <button onclick="toggleTheme()">🎨 Switch Theme</button>
+          <button onclick="toggleTheme()">Switch Theme</button>
         </div>
         <div id="profileNote">
           <button onclick="toggleProfessional()" style="flex: 1; margin: 0 5px; padding: 8px 12px; border-radius: 10px; border: 1px solid #ffe58e; background: transparent; color: #ffe58e; font-weight: bold; cursor: pointer;">Show / Hide Dashboard</button>
@@ -451,7 +452,7 @@
       </div>
 
       <div class="dashboard-card" id="badgeCard">
-        <h3>🏅 Badge</h3>
+        <h3 style="margin: 0.5rem 0;">🏅 Badge</h3>
         <div id="badgeList"></div>
       </div>
 
@@ -940,23 +941,14 @@
     </div>
   </div>
   <script>
-    // Pindahkan dashboard-card Badge ke dalam profileHeader setelah #profileButtons
+    // Temukan elemen .dashboard-card dengan id badgeCard dan ubah <h3> menjadi versi dengan style margin
     document.addEventListener("DOMContentLoaded", function() {
-      // Temukan elemen dashboard-card dengan judul 🏅 Badge
-      var dashboardCards = document.querySelectorAll('.dashboard-card');
-      var badgeCard = null;
-      dashboardCards.forEach(function(card) {
-        var h3 = card.querySelector('h3');
-        if (h3 && h3.textContent.trim().includes('🏅 Badge')) {
-          badgeCard = card;
-        }
-      });
+      var badgeCard = document.getElementById('badgeCard');
       if (badgeCard) {
-        var profileHeader = document.getElementById('profileHeader');
-        var profileNote = document.getElementById('profileNote');
-        if (profileHeader && profileNote) {
-          // Sisipkan setelah #profileNote
-          profileHeader.insertBefore(badgeCard, profileNote.nextSibling);
+        var h3 = badgeCard.querySelector('h3');
+        if (h3 && (h3.textContent.trim() === "🏅 Badge" || h3.textContent.trim().includes("🏅 Badge"))) {
+          // Ganti dengan versi style langsung
+          h3.outerHTML = '<h3 style="margin: 0.5rem 0;">🏅 Badge</h3>';
         }
       }
     });
