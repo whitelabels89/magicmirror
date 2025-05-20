@@ -5,6 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/css2?family=Forum&display=swap" rel="stylesheet">
   <style>
+    /* Hilangkan efek biru saat klik/touch pada tombol dan input */
+    button:focus,
+    input:focus {
+      outline: none;
+      box-shadow: none;
+    }
+    button,
+    input {
+      -webkit-tap-highlight-color: transparent;
+    }
     body {
       font-family: 'Forum', sans-serif;
       margin: 0;
@@ -202,13 +212,35 @@
     }
     .modal-actions button {
       flex: 1;
-      padding: 0.5rem;
-      border-radius: 8px;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: bold;
       border: none;
       background-color: #ffe58e;
       color: #0d2d2b;
-      font-weight: bold;
       cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .modal-actions button:hover {
+      background-color: #ffda75;
+    }
+    .kelas-option {
+      background-color: rgba(255, 255, 255, 0.06);
+      color: #ffe58e;
+      border: 1px solid rgba(255, 229, 142, 0.3);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      width: 100%;
+      display: block;
+    }
+    .kelas-option:hover {
+      background-color: rgba(255, 229, 142, 0.15);
     }
     .modal-close {
       position: absolute;
@@ -798,9 +830,7 @@
         Object.keys(katalogKelas).forEach(k => {
           const btn = document.createElement("button");
           btn.innerText = k;
-          btn.style.display = "block";
-          btn.style.marginBottom = "8px";
-          btn.style.width = "100%";
+          btn.className = "kelas-option";
           btn.onclick = () => openKelasOptions(k);
           contentEl.appendChild(btn);
         });
