@@ -559,6 +559,15 @@
     const urlParams = new URLSearchParams(window.location.search);
     const cid = urlParams.get("cid");
     const API_URL = "https://script.google.com/macros/s/AKfycbx5cPx2YQzYLbjMzFJPwIEr_bMsm4VGB8OA-04p33hnuXK61Mm36U04W3IrihbsIDukhw/exec";
+    // Objek katalogKelas
+    const katalogKelas = {
+      "Craft & Coding": {
+        usia: "4–6 tahun",
+        deskripsi: "Latih motorik & imajinasi anak dengan coding lewat kerajinan digital & fisik.",
+        link: "https://wa.me/6282211778676?text=Halo%20Admin%20Queen's%20Academy,%20saya%20ingin%20tanya%20detail%20tentang%20kelas%20Craft%20&%20Coding."
+      }
+      // Tambahkan kelas lain di sini sesuai kebutuhan
+    };
 
     function getDriveImageUrlFromRaw(rawUrl) {
       try {
@@ -646,12 +655,40 @@
           if (data.rekomendasi && data.rekomendasi.length > 0) {
             data.rekomendasi.forEach(r => {
               const li = document.createElement("li");
-              li.innerText = r;
+              li.innerHTML = `${r} <button onclick="openKelasOptions('${r}')" style="margin-left: 6px; font-size: 0.9rem;">➕</button>`;
               kelasEl.appendChild(li);
             });
           } else {
             kelasEl.innerHTML = "<li>Tidak ada rekomendasi kelas.</li>";
           }
+    // Fungsi untuk tombol ➕ pada rekomendasi kelas
+    function openKelasOptions(kelas) {
+      const modal = document.getElementById("kelasModal");
+      const titleEl = document.getElementById("kelasModalTitle");
+      const contentEl = document.getElementById("kelasModalContent");
+
+      const info = katalogKelas[kelas];
+      if (!info) return;
+
+      titleEl.innerText = `📚 ${kelas}`;
+      contentEl.innerHTML = `
+        <p><strong>Usia:</strong> ${info.usia}</p>
+        <p><strong>Deskripsi:</strong><br>${info.deskripsi}</p>
+      `;
+  
+      document.getElementById("titleInput").value = kelas;
+      modal.style.display = "flex";
+    }
+
+    function closeKelasModal() {
+      document.getElementById("kelasModal").style.display = "none";
+    }
+
+    function openWhatsAppDetail() {
+      const adminWA = "6282211778676";
+      const message = encodeURIComponent("Halo Admin Queen's Academy, saya ingin tanya detail tentang kelas ini.");
+      window.open(`https://wa.me/${adminWA}?text=${message}`, "_blank");
+    }
 
           // PATCHED GALLERY WITH PREVIEW + DELETE + MODAL
           const galeri = document.getElementById("galeri");
@@ -968,6 +1005,7 @@
     <img src="https://img.icons8.com/emoji/96/red-heart.png" alt="Love" style="width: 96px; height: 96px; opacity: 0.8;" />
   </div>
 </body>
+</body>
   <div id="karyaModal" class="modal-overlay" style="display:none;">
     <div class="modal-content">
       <div class="modal-close" onclick="closeModal()">×</div>
@@ -980,6 +1018,18 @@
       </div>
     </div>
   </div>
+  <div id="kelasModal" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-close" onclick="closeKelasModal()">×</div>
+      <h3 id="kelasModalTitle">📚 Kelas</h3>
+      <div id="kelasModalContent" style="text-align:left; font-size: 0.85rem;"></div>
+      <div class="modal-actions">
+        <button onclick="scrollToUpload()">📤 Upload Karya</button>
+        <button onclick="openWhatsAppDetail()">📱 Tanya Admin</button>
+      </div>
+    </div>
+  </div>
+</html>
 </html>
 
 <script>
