@@ -634,7 +634,15 @@
               "Multi": "badge_multitalenta.png"
             };
 
-            const badgeEl = document.getElementById("badgeList");
+            // Tambahkan badge manual "New" sebelum loop badgeMap
+            const tambahBadge = document.createElement("div");
+            tambahBadge.classList.add("badge-item");
+            tambahBadge.innerHTML = `
+              <img src="https://img.icons8.com/ios-filled/50/ffffff/plus-math.png" style="background:#ffe58e; padding:12px; border-radius:50%;" onclick="openKelasOptions('Craft & Coding')" />
+              <span>New</span>
+            `;
+            badgeEl.appendChild(tambahBadge);
+
             Object.keys(badgeMap).forEach(kata => {
               if (data.tipe_bakat.includes(kata)) {
                 const wrapper = document.createElement("div");
@@ -661,34 +669,6 @@
           } else {
             kelasEl.innerHTML = "<li>Tidak ada rekomendasi kelas.</li>";
           }
-    // Fungsi untuk tombol ➕ pada rekomendasi kelas
-    function openKelasOptions(kelas) {
-      const modal = document.getElementById("kelasModal");
-      const titleEl = document.getElementById("kelasModalTitle");
-      const contentEl = document.getElementById("kelasModalContent");
-
-      const info = katalogKelas[kelas];
-      if (!info) return;
-
-      titleEl.innerText = `📚 ${kelas}`;
-      contentEl.innerHTML = `
-        <p><strong>Usia:</strong> ${info.usia}</p>
-        <p><strong>Deskripsi:</strong><br>${info.deskripsi}</p>
-      `;
-  
-      document.getElementById("titleInput").value = kelas;
-      modal.style.display = "flex";
-    }
-
-    function closeKelasModal() {
-      document.getElementById("kelasModal").style.display = "none";
-    }
-
-    function openWhatsAppDetail() {
-      const adminWA = "6282211778676";
-      const message = encodeURIComponent("Halo Admin Queen's Academy, saya ingin tanya detail tentang kelas ini.");
-      window.open(`https://wa.me/${adminWA}?text=${message}`, "_blank");
-    }
 
           // PATCHED GALLERY WITH PREVIEW + DELETE + MODAL
           const galeri = document.getElementById("galeri");
@@ -785,6 +765,35 @@
 
       container.appendChild(media);
       modal.style.display = "flex";
+    }
+
+    // Fungsi untuk tombol ➕ pada rekomendasi kelas - DIPINDAHKAN KE GLOBAL
+    function openKelasOptions(kelas) {
+      const modal = document.getElementById("kelasModal");
+      const titleEl = document.getElementById("kelasModalTitle");
+      const contentEl = document.getElementById("kelasModalContent");
+
+      const info = katalogKelas[kelas];
+      if (!info) return;
+
+      titleEl.innerText = `📚 ${kelas}`;
+      contentEl.innerHTML = `
+        <p><strong>Usia:</strong> ${info.usia}</p>
+        <p><strong>Deskripsi:</strong><br>${info.deskripsi}</p>
+      `;
+
+      document.getElementById("titleInput").value = kelas;
+      modal.style.display = "flex";
+    }
+
+    function closeKelasModal() {
+      document.getElementById("kelasModal").style.display = "none";
+    }
+
+    function openWhatsAppDetail() {
+      const adminWA = "6282211778676";
+      const message = encodeURIComponent("Halo Admin Queen's Academy, saya ingin tanya detail tentang kelas ini.");
+      window.open(`https://wa.me/${adminWA}?text=${message}`, "_blank");
     }
 
       // Share Profile Modal Functions
@@ -955,7 +964,11 @@
     <button onclick="goSearch()">
       <img src="https://img.icons8.com/ios-filled/24/ffffff/search--v1.png" alt="Search" />
     </button>
-    <button onclick="scrollToUpload()">
+    <!--
+      Default: open modal kelas "Craft & Coding". 
+      Untuk versi dinamis, ganti parameternya sesuai kebutuhan.
+    -->
+    <button onclick="openKelasOptions('Craft & Coding')">
       <img src="https://img.icons8.com/ios-filled/24/ffffff/plus-math.png" alt="Upload" />
     </button>
     <button onclick="goReels()">
