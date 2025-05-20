@@ -75,6 +75,16 @@
       padding-top: 6px;
     }
     #profileHeader img {
+    /* Reduce spacing between lines in #profileBio */
+    #profileBio p {
+      margin: 2px 0;
+      line-height: 1.2;
+    }
+    /* Reduce vertical padding for the badge card */
+    #badgeCard {
+      padding-top: 0.5rem;
+      padding-bottom: 0.5rem;
+    }
       width: 80px;
       height: 80px;
       border-radius: 50%;
@@ -425,7 +435,7 @@
         </div>
       </div>
 
-      <div class="dashboard-card">
+      <div class="dashboard-card" id="badgeCard">
         <h3>🏅 Badge</h3>
         <div id="badgeList"></div>
       </div>
