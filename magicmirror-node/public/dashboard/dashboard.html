@@ -6,11 +6,34 @@
   <link href="https://fonts.googleapis.com/css2?family=Forum&display=swap" rel="stylesheet">
   <style>
     body {
-      background-color: #0d2d2b;
-      color: #ffe58e;
       font-family: 'Forum', sans-serif;
       margin: 0;
       padding: 4px;
+    }
+    body.theme-default {
+      background-color: #0d2d2b;
+      color: #ffe58e;
+    }
+    body.theme-queens {
+      background: linear-gradient(135deg, #f6f3e8, #e8e2d0);
+      color: #4b3d2a;
+    }
+    .theme-queens .dashboard-card {
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid #d5c9a4;
+    }
+    .theme-queens #profileButtons button,
+    .theme-queens #profileNote button {
+      background-color: #f6f3e8;
+      color: #4b3d2a;
+      border: 1px solid #d5c9a4;
+    }
+    .theme-queens .modal-content {
+      background-color: #fffdf6;
+      color: #4b3d2a;
+    }
+    .theme-queens .badge-item span {
+      color: #4b3d2a;
     }
     .container {
       max-width: 100%;
@@ -315,7 +338,7 @@
     }
   </style>
 </head>
-<body>
+<body class="theme-default">
   <div class="container">
     <div id="loading">
       <div class="spinner"></div>
@@ -333,6 +356,7 @@
         <div id="profileButtons">
           <button>Edit Profile</button>
           <button onclick="openShareModal()">Share Profile</button>
+          <button onclick="toggleTheme()">🎨 Ganti Tema</button>
         </div>
         <div id="profileNote">
           <button onclick="toggleProfessional()" style="flex: 1; margin: 0 5px; padding: 8px 0; border-radius: 10px; border: 1px solid #ffe58e; background: transparent; color: #ffe58e; font-weight: bold; cursor: pointer;">Show / Hide Dashboard</button>
@@ -784,6 +808,17 @@
         content.style.display = "block";
       } else {
         content.style.display = "none";
+      }
+    }
+    // Theme Switcher
+    function toggleTheme() {
+      const body = document.body;
+      if (body.classList.contains("theme-queens")) {
+        body.classList.remove("theme-queens");
+        body.classList.add("theme-default");
+      } else {
+        body.classList.remove("theme-default");
+        body.classList.add("theme-queens");
       }
     }
   </script>
