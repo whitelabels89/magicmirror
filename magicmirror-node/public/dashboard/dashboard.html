@@ -87,10 +87,11 @@
       margin: 2px 0;
       line-height: 1.2;
     }
-    /* Tambahkan padding untuk memberi ruang antara badge dan batas luar #badgeCard */
+    /* Reduce vertical padding for the badge card and set smaller margin-bottom */
     #badgeCard {
       padding: 0.75rem 0;
       margin-bottom: 0.5rem;
+      overflow: visible;
     }
     
     #profileName {
@@ -161,14 +162,10 @@
       border: none;
       padding: 0;
       box-sizing: border-box;
-      /* Ensure no overflow from children */
-      overflow: hidden;
     }
     #galeriCard {
       margin-top: 0.5rem;
-      padding: 0.5rem;
-      overflow: hidden;
-      border-radius: 16px;
+      padding-bottom: 1rem;
     }
 
     /* MODAL FULLSCREEN KARYA */
@@ -248,11 +245,10 @@
       scroll-padding-right: 12px;
       -webkit-overflow-scrolling: touch;
     }
-    /* Tambahkan padding bawah pada .badge-item untuk memberi ruang antara gambar dan batas bawah */
     .badge-item {
       flex: 0 0 auto;
       text-align: center;
-      padding-bottom: 8px;
+      overflow: visible;
     }
     .badge-item img {
       width: 100px;
