@@ -728,7 +728,7 @@
           if (data.rekomendasi && data.rekomendasi.length > 0) {
             data.rekomendasi.forEach(r => {
               const li = document.createElement("li");
-              li.innerHTML = `${r} <button onclick="openKelasOptions('${r}')" style="margin-left: 6px; font-size: 0.9rem;">➕</button>`;
+              li.innerText = r;
               kelasEl.appendChild(li);
             });
           } else {
@@ -856,7 +856,7 @@
         uploadBtn.className = "kelas-option";
         uploadBtn.onclick = () => {
           contentEl.innerHTML = `
-            <button onclick="openKelasOptions()" style="margin-bottom: 0.5rem; background:none; border:none; color:#ffe58e; font-weight:bold; cursor:pointer;">⬅️ Kembali</button>
+            <button onclick="openKelasOptions()" style="position:absolute; top:8px; left:12px; background:none; border:none; color:#ffe58e; font-weight:bold; font-size:1.2rem; cursor:pointer; z-index:1000;">⬅️</button>
             <form id="modalUploadForm" style="margin-top: 1rem;">
               <input type="file" id="modalFileInput" accept="image/*" required>
               <input type="text" id="modalTitleInput" placeholder="Judul Karya" required>
@@ -909,7 +909,7 @@
 
       titleEl.innerText = `📚 ${kelas}`;
       contentEl.innerHTML = `
-        <button onclick="openKelasOptions()" style="margin-bottom: 0.5rem; background:none; border:none; color:#ffe58e; font-weight:bold; cursor:pointer;">⬅️ Kembali</button>
+        <button onclick="openKelasOptions()" style="position:absolute; top:8px; left:12px; background:none; border:none; color:#ffe58e; font-weight:bold; font-size:1.2rem; cursor:pointer; z-index:1000;">⬅️</button>
         <p><strong>Usia:</strong> ${info.usia}</p>
         <p><strong>Deskripsi:</strong><br>${info.deskripsi}</p>
       `;
@@ -927,10 +927,10 @@
 
     // Handler popstate untuk navigasi modal kelas
     window.onpopstate = function(event) {
-      if (event.state && event.state.modal === 'kelasList') {
+      if (event.state && event.state.modal === 'kelasDetail') {
         openKelasOptions(); // kembali ke daftar kelas
       } else {
-        closeKelasModal(); // tutup modal jika tidak ada state
+        closeKelasModal(); // tutup modal sepenuhnya
       }
     };
 
@@ -1185,9 +1185,9 @@
     <div class="modal-content">
       <div class="modal-close" onclick="closeKelasModal()">×</div>
       <h3 id="kelasModalTitle">📚 Kelas</h3>
-      <div id="kelasModalContent" style="text-align:left; font-size: 0.85rem;"></div>
+      <div id="kelasModalContent" style="text-align:left; font-size: 0.85rem; padding-top: 2rem;"></div>
       <div class="modal-actions">
-        <button onclick="scrollToUpload()">📤 Upload Karya</button>
+        <button onclick="closeKelasModal()">❌ Tutup Menu</button>
         <button onclick="openWhatsAppDetail()">📱 Free Trial</button>
       </div>
     </div>
