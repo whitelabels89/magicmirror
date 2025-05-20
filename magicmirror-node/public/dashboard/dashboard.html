@@ -35,6 +35,13 @@
     .theme-queens .badge-item span {
       color: #4b3d2a;
     }
+    .theme-queens .dashboard-card p,
+    .theme-queens .dashboard-card li,
+    .theme-queens .dashboard-card ul,
+    .theme-queens .dashboard-card h3,
+    .theme-queens .dashboard-card h4 {
+      color: #4b3d2a;
+    }
     .container {
       max-width: 100%;
       margin: auto;
@@ -70,10 +77,14 @@
     #profileStats {
       display: flex;
       justify-content: space-around;
+      align-items: center;
+      flex-direction: column;
       margin-top: 0.5rem;
+      gap: 4px;
     }
     #profileStats div {
       font-size: 0.9rem;
+      text-align: center;
     }
     #profileButtons {
       display: flex;
@@ -342,7 +353,7 @@
   <div class="container">
     <div id="loading">
       <div class="spinner"></div>
-      <p>⏳ Mengunduh kecerdasan luar biasa anak Anda...</p>
+      <p>Mengunduh kecerdasan luar biasa anak Anda ⏳</p>
     </div>
     <div id="dashboard" style="display:none;">
       <div id="profileHeader">
@@ -356,10 +367,10 @@
         <div id="profileButtons">
           <button>Edit Profile</button>
           <button onclick="openShareModal()">Share Profile</button>
-          <button onclick="toggleTheme()">🎨 Ganti Tema</button>
+          <button onclick="toggleTheme()">🎨 Switch Theme</button>
         </div>
         <div id="profileNote">
-          <button onclick="toggleProfessional()" style="flex: 1; margin: 0 5px; padding: 8px 0; border-radius: 10px; border: 1px solid #ffe58e; background: transparent; color: #ffe58e; font-weight: bold; cursor: pointer;">Show / Hide Dashboard</button>
+          <button onclick="toggleProfessional()" style="flex: 1; margin: 0 5px; padding: 8px 12px; border-radius: 10px; border: 1px solid #ffe58e; background: transparent; color: #ffe58e; font-weight: bold; cursor: pointer;">Show / Hide Dashboard</button>
           <div id="professionalContent">
             <h2 id="namaAnak"></h2>
             <p id="usiaAnak"></p>
