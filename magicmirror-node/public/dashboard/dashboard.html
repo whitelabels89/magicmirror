@@ -464,7 +464,7 @@
     </div>
     <div id="dashboard" style="display:none;">
       <div id="profileHeader">
-        <img src="https://placehold.co/80x80" alt="Foto Anak" />
+        <img id="profilePhoto" src="https://placehold.co/80x80" alt="Foto Anak" onclick="previewProfilePhoto()" />
         <div id="profileName">Nama Anak</div>
         <div id="profileStats">
           <div><strong id="totalPosts">0</strong><br>Posts</div>
@@ -588,8 +588,22 @@
 
       document.getElementById("editProfileModal").style.display = "none";
     }
+
+    function previewProfilePhoto() {
+      const img = document.getElementById("profilePhoto").src;
+      document.getElementById("profilePreviewImg").src = img;
+      document.getElementById("profilePhotoModal").style.display = "flex";
+    }
+
+    function closeProfilePhotoModal() {
+      document.getElementById("profilePhotoModal").style.display = "none";
+    }
+
     const urlParams = new URLSearchParams(window.location.search);
     const cid = urlParams.get("cid");
+    if (cid && history.state === null) {
+      history.replaceState({ modal: null }, '', location.href);
+    }
     const API_URL = "https://script.google.com/macros/s/AKfycbx5cPx2YQzYLbjMzFJPwIEr_bMsm4VGB8OA-04p33hnuXK61Mm36U04W3IrihbsIDukhw/exec";
     // Objek katalogKelas
     const katalogKelas = {
@@ -689,7 +703,7 @@
             const tambahBadge = document.createElement("div");
             tambahBadge.classList.add("badge-item");
             tambahBadge.innerHTML = `
-              <img src="https://img.icons8.com/ios-filled/50/ffe58e/plus-math.png" style="background: rgba(255,255,255,0.06); padding:10px; width: 60px; height: 60px; border-radius: 50%; object-fit: contain; cursor: pointer;" onclick="openKelasOptions()" />
+              <img src="https://img.icons8.com/ios-filled/50/ffe58e/plus-math.png" tabindex="-1" style="background: rgba(255,255,255,0.06); padding:10px; width: 60px; height: 60px; border-radius: 50%; object-fit: contain; cursor: pointer;" onclick="openKelasOptions()" />
               <span>New</span>
             `;
             badgeEl.appendChild(tambahBadge);
@@ -836,6 +850,53 @@
           btn.onclick = () => openKelasOptions(k);
           contentEl.appendChild(btn);
         });
+        // Tambahkan tombol Upload Karya di bawah daftar kelas
+        const uploadBtn = document.createElement("button");
+        uploadBtn.innerText = "📤 Upload Karya";
+        uploadBtn.className = "kelas-option";
+        uploadBtn.onclick = () => {
+          contentEl.innerHTML = `
+            <button onclick="openKelasOptions()" style="margin-bottom: 0.5rem; background:none; border:none; color:#ffe58e; font-weight:bold; cursor:pointer;">⬅️ Kembali</button>
+            <form id="modalUploadForm" style="margin-top: 1rem;">
+              <input type="file" id="modalFileInput" accept="image/*" required>
+              <input type="text" id="modalTitleInput" placeholder="Judul Karya" required>
+              <button type="submit">📤 Upload</button>
+              <div id="modalUploadStatus"></div>
+            </form>
+          `;
+
+          document.getElementById("modalUploadForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const file = document.getElementById("modalFileInput").files[0];
+            const title = document.getElementById("modalTitleInput").value;
+            const status = document.getElementById("modalUploadStatus");
+
+            if (!file || !title || !cid) {
+              status.innerText = "❌ Lengkapi semua data!";
+              return;
+            }
+
+            status.innerText = "⏳ Mengunggah ke server...";
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("cid", cid);
+            formData.append("title", title);
+
+            try {
+              const res = await fetch("https://firebase-upload-backend.onrender.com/upload", {
+                method: "POST",
+                body: formData
+              });
+              const result = await res.json();
+              status.innerText = result.message || "✅ Berhasil!";
+              if (result.url) location.reload();
+            } catch (err) {
+              console.error("❌ Upload error:", err);
+              status.innerText = "❌ Gagal upload: " + err.message;
+            }
+          });
+        };
+        contentEl.appendChild(uploadBtn);
         modal.style.display = "flex";
         return;
       }
@@ -851,12 +912,6 @@
         <button onclick="openKelasOptions()" style="margin-bottom: 0.5rem; background:none; border:none; color:#ffe58e; font-weight:bold; cursor:pointer;">⬅️ Kembali</button>
         <p><strong>Usia:</strong> ${info.usia}</p>
         <p><strong>Deskripsi:</strong><br>${info.deskripsi}</p>
-        <form id="modalUploadForm" style="margin-top: 1rem;">
-          <input type="file" id="modalFileInput" accept="image/*" required>
-          <input type="text" id="modalTitleInput" value="${kelas}" required>
-          <button type="submit">📤 Upload Karya</button>
-          <div id="modalUploadStatus"></div>
-        </form>
       `;
 
       // Optional: set the main upload form's title to kelas for convenience
@@ -864,43 +919,12 @@
         document.getElementById("titleInput").value = kelas;
       }
       modal.style.display = "flex";
-
-      // Add upload handler for the modal form
-      document.getElementById("modalUploadForm").addEventListener("submit", async function (e) {
-        e.preventDefault();
-        const file = document.getElementById("modalFileInput").files[0];
-        const title = document.getElementById("modalTitleInput").value;
-        const status = document.getElementById("modalUploadStatus");
-
-        if (!file || !title || !cid) {
-          status.innerText = "❌ Lengkapi semua data!";
-          return;
-        }
-
-        status.innerText = "⏳ Mengunggah ke server...";
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("cid", cid);
-        formData.append("title", title);
-
-        try {
-          const res = await fetch("https://firebase-upload-backend.onrender.com/upload", {
-            method: "POST",
-            body: formData
-          });
-          const result = await res.json();
-          status.innerText = result.message || "✅ Berhasil!";
-          if (result.url) location.reload();
-        } catch (err) {
-          console.error("❌ Upload error:", err);
-          status.innerText = "❌ Gagal upload: " + err.message;
-        }
-      });
     }
 
     function closeKelasModal() {
       document.getElementById("kelasModal").style.display = "none";
     }
+
     // Handler popstate untuk navigasi modal kelas
     window.onpopstate = function(event) {
       if (event.state && event.state.modal === 'kelasList') {
@@ -1088,7 +1112,7 @@
       Default: open modal kelas "Craft & Coding". 
       Untuk versi dinamis, ganti parameternya sesuai kebutuhan.
     -->
-    <button onclick="openKelasOptions('Craft & Coding')">
+    <button onclick="openKelasOptions()">
       <img src="https://img.icons8.com/ios-filled/24/ffffff/plus-math.png" alt="Upload" />
     </button>
     <button onclick="goReels()">
@@ -1151,6 +1175,12 @@
       </div>
     </div>
   </div>
+  <div id="profilePhotoModal" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-close" onclick="closeProfilePhotoModal()">×</div>
+      <img id="profilePreviewImg" src="" alt="Preview Foto Profil" style="max-width: 100%; border-radius: 12px;" />
+    </div>
+  </div>
   <div id="kelasModal" class="modal-overlay" style="display:none;">
     <div class="modal-content">
       <div class="modal-close" onclick="closeKelasModal()">×</div>
@@ -1158,14 +1188,14 @@
       <div id="kelasModalContent" style="text-align:left; font-size: 0.85rem;"></div>
       <div class="modal-actions">
         <button onclick="scrollToUpload()">📤 Upload Karya</button>
-        <button onclick="openWhatsAppDetail()">📱 Tanya Admin</button>
+        <button onclick="openWhatsAppDetail()">📱 Free Trial</button>
       </div>
     </div>
   </div>
 </html>
 </html>
 
-<script>
+  <script>
 // Scroll to Upload Karya Anak
 function scrollToUpload() {
   const form = document.getElementById("uploadForm");
@@ -1178,3 +1208,4 @@ function scrollToUpload() {
     
     
   
+    
