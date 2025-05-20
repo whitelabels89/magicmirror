@@ -682,7 +682,7 @@
           if (data.rekomendasi && data.rekomendasi.length > 0) {
             data.rekomendasi.forEach(r => {
               const li = document.createElement("li");
-              li.innerHTML = `${r} <button onclick="openKelasOptions()" style="margin-left: 6px; font-size: 0.9rem;">➕</button>`;
+              li.innerHTML = `${r} <button onclick="openKelasOptions('${r}')" style="margin-left: 6px; font-size: 0.9rem;">➕</button>`;
               kelasEl.appendChild(li);
             });
           } else {
@@ -1003,7 +1003,7 @@
       Default: open modal kelas "Craft & Coding". 
       Untuk versi dinamis, ganti parameternya sesuai kebutuhan.
     -->
-    <button onclick="openKelasOptions()">
+    <button onclick="openKelasOptions('Craft & Coding')">
       <img src="https://img.icons8.com/ios-filled/24/ffffff/plus-math.png" alt="Upload" />
     </button>
     <button onclick="goReels()">
