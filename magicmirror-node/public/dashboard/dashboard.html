@@ -564,9 +564,28 @@
       "Craft & Coding": {
         usia: "4–6 tahun",
         deskripsi: "Latih motorik & imajinasi anak dengan coding lewat kerajinan digital & fisik.",
-        link: "https://wa.me/6282211778676?text=Halo%20Admin%20Queen's%20Academy,%20saya%20ingin%20tanya%20detail%20tentang%20kelas%20Craft%20&%20Coding."
+        link: "https://wa.me/6282125896546?text=Halo%20Admin%20Queen's%20Academy,%20saya%20ingin%20tanya%20detail%20tentang%20kelas%20Craft%20&%20Coding."
+      },
+      "Digital Literacy Foundations": {
+        usia: "4–6 tahun",
+        deskripsi: "Pengenalan komputer dan teknologi untuk anak usia dini.",
+        link: "https://wa.me/6282125896546?text=Halo%20Admin%20Queen's%20Academy,%20saya%20ingin%20tanya%20detail%20tentang%20kelas%20Digital%20Literacy%20Foundations."
+      },
+      "Digital Creativity": {
+        usia: "4–6 tahun",
+        deskripsi: "Eksplorasi karya digital untuk menyalurkan ide kreatif anak.",
+        link: "https://wa.me/6282125896546?text=Halo%20Admin%20Queen's%20Academy,%20saya%20ingin%20tanya%20detail%20tentang%20kelas%20Digital%20Creativity."
+      },
+      "Robotics Junior": {
+        usia: "7–9 tahun",
+        deskripsi: "Dasar-dasar robotika dan pemrograman untuk anak SD.",
+        link: "https://wa.me/6282125896546?text=Halo%20Admin%20Queen's%20Academy,%20saya%20ingin%20tanya%20detail%20tentang%20kelas%20Robotics%20Junior."
+      },
+      "Game Coding Kids": {
+        usia: "7–12 tahun",
+        deskripsi: "Belajar membuat game sederhana dengan pemrograman visual.",
+        link: "https://wa.me/6282125896546?text=Halo%20Admin%20Queen's%20Academy,%20saya%20ingin%20tanya%20detail%20tentang%20kelas%20Game%20Coding%20Kids."
       }
-      // Tambahkan kelas lain di sini sesuai kebutuhan
     };
 
     function getDriveImageUrlFromRaw(rawUrl) {
@@ -638,7 +657,7 @@
             const tambahBadge = document.createElement("div");
             tambahBadge.classList.add("badge-item");
             tambahBadge.innerHTML = `
-              <img src="https://img.icons8.com/ios-filled/50/ffffff/plus-math.png" style="background:#ffe58e; padding:12px; border-radius:50%;" onclick="openKelasOptions('Craft & Coding')" />
+              <img src="https://img.icons8.com/ios-filled/50/ffe58e/plus-math.png" style="background: rgba(255,255,255,0.06); padding:10px; width: 60px; height: 60px; border-radius: 50%; object-fit: contain; cursor: pointer;" onclick="openKelasOptions('Craft & Coding')" />
               <span>New</span>
             `;
             badgeEl.appendChild(tambahBadge);
@@ -768,10 +787,26 @@
     }
 
     // Fungsi untuk tombol ➕ pada rekomendasi kelas - DIPINDAHKAN KE GLOBAL
-    function openKelasOptions(kelas) {
+    function openKelasOptions(kelas = null) {
       const modal = document.getElementById("kelasModal");
       const titleEl = document.getElementById("kelasModalTitle");
       const contentEl = document.getElementById("kelasModalContent");
+
+      if (!kelas) {
+        titleEl.innerText = "📚 Pilih Kelas";
+        contentEl.innerHTML = "";
+        Object.keys(katalogKelas).forEach(k => {
+          const btn = document.createElement("button");
+          btn.innerText = k;
+          btn.style.display = "block";
+          btn.style.marginBottom = "8px";
+          btn.style.width = "100%";
+          btn.onclick = () => openKelasOptions(k);
+          contentEl.appendChild(btn);
+        });
+        modal.style.display = "flex";
+        return;
+      }
 
       const info = katalogKelas[kelas];
       if (!info) return;
@@ -791,7 +826,7 @@
     }
 
     function openWhatsAppDetail() {
-      const adminWA = "6282211778676";
+      const adminWA = "6282125896546";
       const message = encodeURIComponent("Halo Admin Queen's Academy, saya ingin tanya detail tentang kelas ini.");
       window.open(`https://wa.me/${adminWA}?text=${message}`, "_blank");
     }
