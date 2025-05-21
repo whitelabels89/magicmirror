@@ -801,7 +801,7 @@
           data = res;
           // Tampilkan daftar akun yang diikuti (following)
           if (isOwner || !isOwner) {
-            fetch(`https://firebase-upload-backend.onrender.com/proxy-following?cid=${cid}`)
+            fetch(`https://firebase-upload-backend.onrender.com/proxy-following?cid=${cid}&action=getfollowing`)
               .then(r => r.json())
               .then(followingData => {
                 const followingList = document.getElementById("followingList");
@@ -854,17 +854,17 @@ async function updateFollowing(targetCid, isFollow = true) {
     const currentCid = localStorage.getItem("cid_login");
     if (!currentCid) return alert("Session habis.");
 
-    const res = await fetch(`https://firebase-upload-backend.onrender.com/proxy-following?cid=all`);
+    const res = await fetch(`https://firebase-upload-backend.onrender.com/proxy-following?cid=all&action=getfollowing`);
     const all = await res.json();
     let followList = all.map(u => u.cid);
 
     if (isFollow && !followList.includes(targetCid)) followList.push(targetCid);
     if (!isFollow) followList = followList.filter(c => c !== targetCid);
 
-    await fetch(`https://script.google.com/macros/s/AKfycbyGoRJN_Sq3zgIhvkHh3NjlmBng7dOPgX_g4SnVCaZH8irWCrTJt6ZRCaXtaHRZTr52/exec`, {
+    await fetch(`https://firebase-upload-backend.onrender.com/update-following`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cid: currentCid, following: followList })
+      body: JSON.stringify({ cid: currentCid, followingList: followList })
     });
 
     alert(isFollow ? "✅ Diikuti" : "❌ Dihapus dari daftar");
@@ -877,7 +877,7 @@ async function updateFollowing(targetCid, isFollow = true) {
           // Eksplorasi akun lain
           // Ambil daftar following global agar bisa digunakan di Explore
           let followList = [];
-          fetch(`https://firebase-upload-backend.onrender.com/proxy-following?cid=${cid}`)
+          fetch(`https://firebase-upload-backend.onrender.com/proxy-following?cid=${cid}&action=getfollowing`)
             .then(r => r.json())
             .then(followingData => {
               if (Array.isArray(followingData)) {
@@ -885,7 +885,7 @@ async function updateFollowing(targetCid, isFollow = true) {
               }
             })
             .finally(() => {
-              fetch("https://firebase-upload-backend.onrender.com/proxy-following?cid=all")
+              fetch("https://firebase-upload-backend.onrender.com/proxy-following?cid=all&action=getfollowing")
                 .then(r => r.json())
                 .then(allUsers => {
                   const explore = document.getElementById("exploreList");
