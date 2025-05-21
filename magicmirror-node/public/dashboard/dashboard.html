@@ -803,9 +803,9 @@
           document.getElementById("profileName").innerText = data.nama || "-";
           if (data.foto && typeof data.foto === "string") {
             document.querySelector("#profileHeader img").src = data.foto;
-            if (isOwner && data.foto && typeof data.foto === "string") {
-              document.querySelector("#bottomNavBar button:last-child img").src = data.foto;
-            }
+          }
+          if (isOwner && data.foto && typeof data.foto === "string") {
+            document.querySelector("#bottomNavBar button:last-child img").src = data.foto;
           }
           document.getElementById("totalPosts").innerText = data.karya ? data.karya.length : 0;
           document.getElementById("usiaAnak").innerText = `Usia: ${data.usia || "-"}`;
