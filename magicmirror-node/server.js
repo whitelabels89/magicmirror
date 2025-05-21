@@ -1,3 +1,24 @@
+const axios = require('axios');
+require('dotenv').config();
+const express = require('express');
+const app = express();
+const http = require('http').createServer(app);
+const io = require('socket.io')(http, { cors: { origin: "*" } });
+const path = require('path');
+const admin = require('firebase-admin');
+
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.applicationDefault(),
+  });
+}
+
+const PORT = process.env.PORT || 3000;
+
+// Serve static files from /public
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json({ limit: '10mb' })); // untuk terima JSON besar (seperti foto)
+
 // Endpoint: Sinkronisasi data Form Responses 1 ke PROFILE_ANAK berdasarkan CID
 app.get("/sync-profile-anak", async (req, res) => {
   const { google } = require("googleapis");
@@ -161,93 +182,6 @@ app.post("/ganti-password", async (req, res) => {
   }
 });
 
-// Fungsi untuk update password user di Google Sheet PROFILE_ANAK
-async function updateCustomerPassword(username, newPassword, setMigrated = false) {
-  const { google } = require('googleapis');
-  const auth = new google.auth.GoogleAuth({
-    scopes: ['https://www.googleapis.com/auth/spreadsheets']
-  });
-
-  const client = await auth.getClient();
-  const sheets = google.sheets({ version: 'v4', auth: client });
-
-  const spreadsheetId = process.env.SPREADSHEET_ID;
-  const sheetName = "PROFILE_ANAK";
-
-  // Ambil data sheet (termasuk header)
-  const getResponse = await sheets.spreadsheets.values.get({
-    spreadsheetId,
-    range: `${sheetName}!A1:Z`,
-  });
-
-  const rows = getResponse.data.values;
-  if (!rows || rows.length === 0) {
-    throw new Error("Sheet kosong.");
-  }
-  // Cari kolom whatsapp, password, dan migrated dari baris header
-  const header = rows[0];
-  const whatsappCol = header.findIndex(col => col.toLowerCase() === "whatsapp");
-  const passwordCol = header.findIndex(col => col.toLowerCase() === "password");
-  const migratedCol = header.findIndex(col => col.toLowerCase() === "migrated");
-
-  if (whatsappCol === -1 || passwordCol === -1) {
-    throw new Error("Kolom whatsapp atau password tidak ditemukan.");
-  }
-
-  // Cari baris user (mulai dari rows[1])
-  const rowIndex = rows.findIndex((row, idx) =>
-    idx > 0 && (row[whatsappCol] || "").replace(/\s+/g, '') === username
-  );
-
-  if (rowIndex === -1) throw new Error("User tidak ditemukan di sheet.");
-
-  // Update kolom password
-  const updateRequests = [{
-    range: `${sheetName}!${String.fromCharCode(65 + passwordCol)}${rowIndex + 1}`,
-    values: [[newPassword]]
-  }];
-
-  // Jika setMigrated true dan kolom migrated ada, update juga kolom migrated ke TRUE
-  if (setMigrated && migratedCol !== -1) {
-    updateRequests.push({
-      range: `${sheetName}!${String.fromCharCode(65 + migratedCol)}${rowIndex + 1}`,
-      values: [["TRUE"]]
-    });
-  }
-
-  // Lakukan batch update
-  for (const req of updateRequests) {
-    await sheets.spreadsheets.values.update({
-      spreadsheetId,
-      range: req.range,
-      valueInputOption: "RAW",
-      requestBody: {
-        values: req.values
-      }
-    });
-  }
-}
-const axios = require('axios');
-require('dotenv').config();
-const express = require('express');
-const app = express();
-const http = require('http').createServer(app);
-const io = require('socket.io')(http, { cors: { origin: "*" } });
-const path = require('path');
-const admin = require('firebase-admin');
-
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.applicationDefault(),
-  });
-}
-
-const PORT = process.env.PORT || 3000;
-
-// Serve static files from /public
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.json({ limit: '10mb' })); // untuk terima JSON besar (seperti foto)
-
 // Endpoint: menerima foto base64 dari alat
 app.post('/upload_photo', (req, res) => {
     const { photoBase64 } = req.body;
@@ -330,11 +264,6 @@ app.use((req, res) => {
     res.status(404).send('404 Not Found');
 });
 
-// Start server
-http.listen(PORT, () => {
-    console.log(`🚀 Server jalan di http://localhost:${PORT}`);
-});
-
 app.get("/login", async (req, res) => {
   const { username, password } = req.query;
 
@@ -368,3 +297,76 @@ app.get("/login", async (req, res) => {
     return res.json({ success: false });
   }
 });
+
+// Start server
+http.listen(PORT, () => {
+    console.log(`🚀 Server jalan di http://localhost:${PORT}`);
+});
+
+
+// Fungsi untuk update password user di Google Sheet PROFILE_ANAK
+async function updateCustomerPassword(username, newPassword, setMigrated = false) {
+  const { google } = require('googleapis');
+  const auth = new google.auth.GoogleAuth({
+    scopes: ['https://www.googleapis.com/auth/spreadsheets']
+  });
+
+  const client = await auth.getClient();
+  const sheets = google.sheets({ version: 'v4', auth: client });
+
+  const spreadsheetId = process.env.SPREADSHEET_ID;
+  const sheetName = "PROFILE_ANAK";
+
+  // Ambil data sheet (termasuk header)
+  const getResponse = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: `${sheetName}!A1:Z`,
+  });
+
+  const rows = getResponse.data.values;
+  if (!rows || rows.length === 0) {
+    throw new Error("Sheet kosong.");
+  }
+  // Cari kolom whatsapp, password, dan migrated dari baris header
+  const header = rows[0];
+  const whatsappCol = header.findIndex(col => col.toLowerCase() === "whatsapp");
+  const passwordCol = header.findIndex(col => col.toLowerCase() === "password");
+  const migratedCol = header.findIndex(col => col.toLowerCase() === "migrated");
+
+  if (whatsappCol === -1 || passwordCol === -1) {
+    throw new Error("Kolom whatsapp atau password tidak ditemukan.");
+  }
+
+  // Cari baris user (mulai dari rows[1])
+  const rowIndex = rows.findIndex((row, idx) =>
+    idx > 0 && (row[whatsappCol] || "").replace(/\s+/g, '') === username
+  );
+
+  if (rowIndex === -1) throw new Error("User tidak ditemukan di sheet.");
+
+  // Update kolom password
+  const updateRequests = [{
+    range: `${sheetName}!${String.fromCharCode(65 + passwordCol)}${rowIndex + 1}`,
+    values: [[newPassword]]
+  }];
+
+  // Jika setMigrated true dan kolom migrated ada, update juga kolom migrated ke TRUE
+  if (setMigrated && migratedCol !== -1) {
+    updateRequests.push({
+      range: `${sheetName}!${String.fromCharCode(65 + migratedCol)}${rowIndex + 1}`,
+      values: [["TRUE"]]
+    });
+  }
+
+  // Lakukan batch update
+  for (const req of updateRequests) {
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: req.range,
+      valueInputOption: "RAW",
+      requestBody: {
+        values: req.values
+      }
+    });
+  }
+}
