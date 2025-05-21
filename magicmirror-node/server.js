@@ -1,3 +1,17 @@
+const axios = require('axios');
+require('dotenv').config();
+const express = require('express');
+const app = express();
+const http = require('http').createServer(app);
+const io = require('socket.io')(http, { cors: { origin: "*" } });
+const path = require('path');
+
+const PORT = process.env.PORT || 3000;
+
+// Serve static files from /public
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json({ limit: '10mb' })); // untuk terima JSON besar (seperti foto)
+
 // Endpoint: Sinkronisasi data Form Responses 1 ke PROFILE_ANAK berdasarkan CID
 app.get("/sync-profile-anak", async (req, res) => {
   const { google } = require("googleapis");
@@ -124,6 +138,24 @@ app.post("/ganti-password", async (req, res) => {
   }
 });
 
+// Endpoint login user
+app.get("/login", async (req, res) => {
+    const { username, password } = req.query;
+  
+    // Fetch data dari Google Sheet PROFILE_ANAK
+    const sheetData = await getProfileAnakData(); // Fungsi ini ambil data sheet
+    const user = sheetData.find(row =>
+      row.whatsapp.replace(/\s+/g, '') === username &&
+      password === "cerdas123"
+    );
+  
+    if (user) {
+      res.json({ success: true, cid: user.cid });
+    } else {
+      res.json({ success: false });
+    }
+  });
+
 // Fungsi untuk update password user di Google Sheet PROFILE_ANAK
 async function updateCustomerPassword(username, newPassword) {
   const { google } = require('googleapis');
@@ -175,19 +207,34 @@ async function updateCustomerPassword(username, newPassword) {
     }
   });
 }
-const axios = require('axios');
-require('dotenv').config();
-const express = require('express');
-const app = express();
-const http = require('http').createServer(app);
-const io = require('socket.io')(http, { cors: { origin: "*" } });
-const path = require('path');
 
-const PORT = process.env.PORT || 3000;
+async function getProfileAnakData() {
+  const { google } = require("googleapis");
+  const auth = new google.auth.GoogleAuth({
+    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+  });
 
-// Serve static files from /public
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.json({ limit: '10mb' })); // untuk terima JSON besar (seperti foto)
+  const client = await auth.getClient();
+  const sheets = google.sheets({ version: "v4", auth: client });
+  const spreadsheetId = process.env.SPREADSHEET_ID;
+
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: "PROFILE_ANAK!A1:Z",
+  });
+
+  const rows = response.data.values;
+  if (!rows || rows.length === 0) return [];
+
+  const headers = rows[0];
+  return rows.slice(1).map(row => {
+    const rowObj = {};
+    headers.forEach((header, i) => {
+      rowObj[header.trim().toLowerCase()] = (row[i] || "").trim();
+    });
+    return rowObj;
+  });
+}
 
 // Endpoint: menerima foto base64 dari alat
 app.post('/upload_photo', (req, res) => {
@@ -275,20 +322,3 @@ app.use((req, res) => {
 http.listen(PORT, () => {
     console.log(`🚀 Server jalan di http://localhost:${PORT}`);
 });
-
-app.get("/login", async (req, res) => {
-    const { username, password } = req.query;
-  
-    // Fetch data dari Google Sheet PROFILE_ANAK
-    const sheetData = await getProfileAnakData(); // Fungsi ini ambil data sheet
-    const user = sheetData.find(row =>
-      row.whatsapp.replace(/\s+/g, '') === username &&
-      password === "cerdas123"
-    );
-  
-    if (user) {
-      res.json({ success: true, cid: user.cid });
-    } else {
-      res.json({ success: false });
-    }
-  });
