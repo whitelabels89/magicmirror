@@ -600,6 +600,11 @@
         <div id="badgeList"></div>
       </div>
 
+      <div class="dashboard-card" id="followingCard">
+        <h3>👥 Mengikuti</h3>
+        <div id="followingList"></div>
+      </div>
+
       <div class="dashboard-card" id="galeriCard">
         <h3>🎨 Galeri Karya Anak</h3>
         <div id="galeri"></div>
@@ -791,6 +796,33 @@
         .then(res => res.json())
         .then(res => {
           data = res;
+          // Tampilkan daftar akun yang diikuti (following)
+          if (isOwner) {
+            fetch(`https://firebase-upload-backend.onrender.com/get-following?cid=${cid}`)
+              .then(r => r.json())
+              .then(followingData => {
+                const followingList = document.getElementById("followingList");
+                if (followingData && followingData.length > 0) {
+                  followingData.forEach(user => {
+                    const div = document.createElement("div");
+                    div.style.marginBottom = "8px";
+                    div.innerHTML = `
+                      <a href="/dashboard/dashboard.html?cid=${user.cid}" style="display:flex;align-items:center;text-decoration:none;color:inherit;">
+                        <img src="${user.foto}" style="width:40px;height:40px;border-radius:50%;margin-right:8px;object-fit:cover;">
+                        <span>${user.nama}</span>
+                      </a>
+                    `;
+                    followingList.appendChild(div);
+                  });
+                } else {
+                  followingList.innerText = "Belum mengikuti akun lain.";
+                }
+              })
+              .catch(err => {
+                console.error("❌ Gagal memuat daftar following:", err);
+                document.getElementById("followingList").innerText = "❌ Gagal memuat data.";
+              });
+          }
           document.getElementById("loading").style.display = "none";
           document.getElementById("dashboard").style.display = "block";
           if (!isOwner) {
