@@ -49,13 +49,13 @@
 
         if (result.success && !result.migrated) {
           localStorage.setItem("cid", result.cid);
-          window.location.href = `/dashboard/dashboard.html?cid=${result.cid}`;
+          window.location.href = `/dashboard/dashboard.html`;
         } else if (result.success && result.migrated) {
           const email = `${username.replace(/\D/g, '')}@queensacademy.id`;
           firebase.auth().signInWithEmailAndPassword(email, password)
             .then(() => {
               localStorage.setItem("cid", result.cid);
-              window.location.href = `/dashboard/dashboard.html?cid=${result.cid}`;
+              window.location.href = `/dashboard/dashboard.html`;
             })
             .catch((error) => {
               console.error("Firebase login error:", error.message);
