@@ -479,9 +479,14 @@
           <button>Edit Profile</button>
           <button onclick="openShareModal()">Share Profile</button>
           <button onclick="toggleTheme()">Switch Theme</button>
+          <button onclick="logout()">Logout</button>
+          <button onclick="openChangePassword()">Ganti Password</button>
         </div>
         <div id="profileNote">
           <button onclick="toggleProfessional()" style="flex: 1; margin: 0 5px; padding: 8px 12px; border-radius: 10px; border: 1px solid #ffe58e; background: transparent; color: #ffe58e; font-weight: bold; cursor: pointer;">Show / Hide Dashboard</button>
+          <div style="margin-top: 8px; color: #ffe58e; font-size: 0.92em;">
+            Logout hanya menghapus session lokal. Untuk akses berikutnya, Anda perlu login kembali.
+          </div>
           <div id="professionalContent">
             <h2 id="namaAnak"></h2>
             <p id="usiaAnak"></p>
@@ -521,6 +526,16 @@
     </div>
   </div>
 
+  <!-- Validasi login: redirect ke login jika tidak ada ?cid di URL -->
+  <script>
+    // Redirect ke login jika tidak ada ?cid di URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const cid = urlParams.get("cid");
+    if (!cid) {
+      alert("⚠️ Silakan login terlebih dahulu.");
+      window.location.href = "/login.html";
+    }
+  </script>
   <script>
     // Edit Profile Modal logic
     document.addEventListener("DOMContentLoaded", function() {
@@ -599,8 +614,7 @@
       document.getElementById("profilePhotoModal").style.display = "none";
     }
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const cid = urlParams.get("cid");
+    // urlParams dan cid sudah dideklarasikan di atas
     if (cid && history.state === null) {
       history.replaceState({ modal: null }, '', location.href);
     }
@@ -1098,6 +1112,41 @@
         body.classList.remove("theme-default");
         body.classList.add("theme-queens");
       }
+    }
+
+    // Logout and Change Password Functions
+    function logout() {
+      alert("👋 Logout berhasil!");
+      // Optional: remove any local session storage if used
+      // localStorage.clear();
+      window.location.href = "/login.html";
+    }
+
+    function openChangePassword() {
+      const newPassword = prompt("Masukkan password baru:");
+      if (!newPassword || newPassword.trim().length < 6) {
+        alert("⚠️ Password harus minimal 6 karakter.");
+        return;
+      }
+
+      const username = cid; // Asumsikan 'cid' adalah identifier user
+      fetch(`https://your-backend-url.com/ganti-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password: newPassword })
+      })
+      .then(res => res.json())
+      .then(result => {
+        if (result.success) {
+          alert("✅ Password berhasil diganti.");
+        } else {
+          alert("❌ Gagal mengganti password.");
+        }
+      })
+      .catch(err => {
+        console.error("❌ Error:", err);
+        alert("⚠️ Terjadi kesalahan.");
+      });
     }
   </script>
   <!-- Bottom Navigation Bar -->
