@@ -526,11 +526,18 @@
     </div>
   </div>
 
-  <!-- Validasi login: redirect ke login jika tidak ada ?cid di URL -->
+  <!-- Validasi login: redirect ke login jika tidak ada ?cid di URL, simpan/baca dari localStorage -->
   <script>
-    // Redirect ke login jika tidak ada ?cid di URL
+    // Redirect ke login jika tidak ada ?cid di URL, simpan/baca dari localStorage
     const urlParams = new URLSearchParams(window.location.search);
-    const cid = urlParams.get("cid");
+    let cid = urlParams.get("cid");
+
+    if (cid) {
+      localStorage.setItem("cid", cid);
+    } else {
+      cid = localStorage.getItem("cid");
+    }
+
     if (!cid) {
       alert("⚠️ Silakan login terlebih dahulu.");
       window.location.href = "/login.html";
