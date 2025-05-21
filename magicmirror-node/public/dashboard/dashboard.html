@@ -840,7 +840,7 @@
                   followingList.innerText = "Belum mengikuti akun lain.";
                 } else {
                   console.error("❌ Data following bukan array:", followingData);
-                  followingList.innerText = "❌ Gagal memuat data.";
+                  document.getElementById("followingList").innerText = "❌ Gagal memuat data.";
                 }
               })
               .catch(err => {
