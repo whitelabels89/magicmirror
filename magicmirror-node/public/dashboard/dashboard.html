@@ -798,7 +798,7 @@
           data = res;
           // Tampilkan daftar akun yang diikuti (following)
           if (isOwner) {
-            fetch(`https://firebase-upload-backend.onrender.com/get-following?cid=${cid}`)
+            fetch(`https://script.google.com/macros/s/AKfycbyGoRJN_Sq3zgIhvkHh3NjlmBng7dOPgX_g4SnVCaZH8irWCrTJt6ZRCaXtaHRZTr52/exec?cid=${cid}`)
               .then(r => r.json())
               .then(followingData => {
                 const followingList = document.getElementById("followingList");
