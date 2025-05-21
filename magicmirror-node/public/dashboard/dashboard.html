@@ -801,7 +801,7 @@
           data = res;
           // Tampilkan daftar akun yang diikuti (following)
           if (isOwner || !isOwner) {
-            fetch(`https://script.google.com/macros/s/AKfycbyGoRJN_Sq3zgIhvkHh3NjlmBng7dOPgX_g4SnVCaZH8irWCrTJt6ZRCaXtaHRZTr52/exec?cid=${cid}`)
+            fetch(`https://firebase-upload-backend.onrender.com/proxy-following?cid=${cid}`)
               .then(r => r.json())
               .then(followingData => {
                 const followingList = document.getElementById("followingList");
@@ -851,7 +851,7 @@ async function updateFollowing(targetCid, isFollow = true) {
     const currentCid = localStorage.getItem("cid_login");
     if (!currentCid) return alert("Session habis.");
 
-    const res = await fetch(`https://script.google.com/macros/s/AKfycbyGoRJN_Sq3zgIhvkHh3NjlmBng7dOPgX_g4SnVCaZH8irWCrTJt6ZRCaXtaHRZTr52/exec`);
+    const res = await fetch(`https://firebase-upload-backend.onrender.com/proxy-following?cid=all`);
     const all = await res.json();
     let followList = all.map(u => u.cid);
 
@@ -874,7 +874,7 @@ async function updateFollowing(targetCid, isFollow = true) {
           // Eksplorasi akun lain
           // Ambil daftar following global agar bisa digunakan di Explore
           let followList = [];
-          fetch(`https://script.google.com/macros/s/AKfycbyGoRJN_Sq3zgIhvkHh3NjlmBng7dOPgX_g4SnVCaZH8irWCrTJt6ZRCaXtaHRZTr52/exec?cid=${cid}`)
+          fetch(`https://firebase-upload-backend.onrender.com/proxy-following?cid=${cid}`)
             .then(r => r.json())
             .then(followingData => {
               if (Array.isArray(followingData)) {
@@ -882,7 +882,7 @@ async function updateFollowing(targetCid, isFollow = true) {
               }
             })
             .finally(() => {
-              fetch("https://script.google.com/macros/s/AKfycbyGoRJN_Sq3zgIhvkHh3NjlmBng7dOPgX_g4SnVCaZH8irWCrTJt6ZRCaXtaHRZTr52/exec?cid=all")
+              fetch("https://firebase-upload-backend.onrender.com/proxy-following?cid=all")
                 .then(r => r.json())
                 .then(allUsers => {
                   const explore = document.getElementById("exploreList");
