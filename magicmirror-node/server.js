@@ -355,7 +355,7 @@ app.get("/login", async (req, res) => {
     return res.json({ success: true, cid: user.cid });
   }
 
-  // Jika sudah migrasi → cek via Firebase Auth
+  // Jika sudah migrasiiii → cek via Firebase Auth
   const email = `${username.replace(/\D/g, '')}@queensacademy.id`;
   try {
     const fbUser = await admin.auth().getUserByEmail(email);
