@@ -531,6 +531,7 @@
     // Redirect ke login jika tidak ada ?cid di URL, simpan/baca dari localStorage
     const urlParams = new URLSearchParams(window.location.search);
     let cid = urlParams.get("cid");
+    let data = {};
 
     if (cid) {
       localStorage.setItem("cid", cid);
@@ -671,7 +672,8 @@
     } else {
       fetch(`${API_URL}?cid=${cid}`, { cache: "no-store" })
         .then(res => res.json())
-        .then(data => {
+        .then(res => {
+          data = res;
           document.getElementById("loading").style.display = "none";
           document.getElementById("dashboard").style.display = "block";
 
