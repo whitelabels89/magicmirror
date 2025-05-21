@@ -950,13 +950,17 @@ async function updateFollowing(targetCid, isFollow = true) {
             // followList sudah didefinisikan sebelumnya (lihat bagian fetch daftar following)
             // Pastikan followList sudah diisi sebelum logika ini dijalankan
             const followUnfollowBtn = document.getElementById("followUnfollowBtn");
-            // fallback jika belum tersedia
             let isFollowed = false;
             try {
               isFollowed = Array.isArray(followList) && followList.includes(cid);
             } catch (e) {}
+
             followUnfollowBtn.innerText = isFollowed ? "Unfollow" : "Follow";
-            followUnfollowBtn.onclick = () => updateFollowing(cid, !isFollowed);
+            followUnfollowBtn.dataset.isFollowed = isFollowed;
+            followUnfollowBtn.onclick = () => {
+              const currentlyFollowed = followUnfollowBtn.dataset.isFollowed === "true";
+              updateFollowing(cid, !currentlyFollowed);
+            };
             followUnfollowBtn.style.display = "inline-block";
           }
 
