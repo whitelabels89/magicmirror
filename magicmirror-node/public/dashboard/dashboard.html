@@ -1240,15 +1240,11 @@
       }
     }
 
-    // Logout and Change Password Functions
+    // Logout Function: versi localStorage saja
     function logout() {
-      firebase.auth().signOut().then(() => {
-        alert("👋 Logout berhasil!");
-        window.location.replace("/login.html");
-      }).catch(err => {
-        console.error("❌ Firebase logout error:", err);
-        alert("⚠️ Terjadi kesalahan saat logout.");
-      });
+      localStorage.removeItem("cid");
+      alert("👋 Logout berhasil!");
+      window.location.href = "/login.html";
     }
 
     function openChangePassword() {
