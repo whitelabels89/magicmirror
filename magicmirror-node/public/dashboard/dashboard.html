@@ -650,6 +650,9 @@
       cid = localStorage.getItem("cid");
     }
 
+    const cid_login = localStorage.getItem("cid_login");
+    const isOwner = (cid && cid_login && cid === cid_login);
+
     if (!cid) {
       alert("⚠️ Anda belum login atau session habis.");
       window.location.href = "/login.html";
@@ -790,6 +793,11 @@
           data = res;
           document.getElementById("loading").style.display = "none";
           document.getElementById("dashboard").style.display = "block";
+          if (!isOwner) {
+            document.getElementById("profileButtons").style.display = "none";
+            document.getElementById("uploadForm").style.display = "none";
+            document.getElementById("profileNote").style.display = "none";
+          }
 
           document.getElementById("namaAnak").innerText = data.nama || "-";
           document.getElementById("profileName").innerText = data.nama || "-";
