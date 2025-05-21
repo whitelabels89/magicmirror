@@ -1118,7 +1118,7 @@
     function logout() {
       firebase.auth().signOut().then(() => {
         alert("👋 Logout berhasil!");
-        window.location.href = "/login.html";
+        window.location.replace("/login.html");
       }).catch(err => {
         console.error("❌ Firebase logout error:", err);
         alert("⚠️ Terjadi kesalahan saat logout.");
@@ -1132,8 +1132,8 @@
         return;
       }
 
-      const username = cid; // Asumsikan 'cid' adalah identifier user
-      fetch(`https://your-backend-url.com/ganti-password`, {
+      const username = data.whatsapp?.replace(/\s+/g, "") || cid; // Pakai nomor WA sebagai username
+      fetch("https://firebase-upload-backend.onrender.com/ganti-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password: newPassword })
