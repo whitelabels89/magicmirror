@@ -1221,8 +1221,13 @@
       alert("🎬 Fitur reels coming soon!");
     }
     function goProfile() {
-      const section = document.getElementById("profileHeader");
-      if (section) section.scrollIntoView({ behavior: "smooth" });
+      const cid = localStorage.getItem("cid_login");
+      if (cid) {
+        window.location.href = `/dashboard/dashboard.html?cid=${cid}`;
+      } else {
+        alert("⚠️ Session tidak ditemukan. Silakan login ulang.");
+        window.location.href = "/login.html";
+      }
     }
 
     function toggleProfessional() {
