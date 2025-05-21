@@ -5,6 +5,41 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/css2?family=Forum&display=swap" rel="stylesheet">
   <style>
+    #menuToggle {
+      position: fixed;
+      top: 10px;
+      right: 12px;
+      z-index: 2000;
+      background: none;
+      border: none;
+      font-size: 1.8rem;
+      color: #ffe58e;
+      cursor: pointer;
+    }
+    #dropdownMenu {
+      position: fixed;
+      top: 44px;
+      right: 12px;
+      background-color: #0d2d2b;
+      border: 1px solid #ffe58e;
+      border-radius: 8px;
+      padding: 8px;
+      display: none;
+      flex-direction: column;
+      z-index: 2000;
+    }
+    #dropdownMenu button {
+      background: none;
+      border: none;
+      color: #ffe58e;
+      text-align: left;
+      padding: 8px 12px;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    #dropdownMenu button:hover {
+      background-color: rgba(255, 229, 142, 0.1);
+    }
     /* Hilangkan efek biru saat klik/touch pada tombol dan input */
     button:focus,
     input:focus {
@@ -61,6 +96,41 @@
     }
     .theme-queens #galeri img {
       border: 1px solid #ffe58e;
+    }
+    /* theme-icoding: iCoding visual style */
+    body.theme-icoding {
+      background: #f6f3e8;
+      color: #4b3d2a;
+    }
+    .theme-icoding .dashboard-card {
+      background: #fffdf6;
+      border: 1px solid #d5c9a4;
+    }
+    .theme-icoding #profileButtons button,
+    .theme-icoding #profileNote button {
+      background-color: #fffdf6;
+      color: #4b3d2a;
+      border: 1px solid #d5c9a4;
+    }
+    .theme-icoding .modal-content {
+      background-color: #fffdf6;
+      color: #4b3d2a;
+    }
+    .theme-icoding .badge-item span,
+    .theme-icoding .dashboard-card p,
+    .theme-icoding .dashboard-card li,
+    .theme-icoding .dashboard-card ul,
+    .theme-icoding .dashboard-card h3,
+    .theme-icoding .dashboard-card h4,
+    .theme-icoding #professionalContent {
+      color: #4b3d2a;
+    }
+    .theme-icoding #galeri {
+      background-color: #fff;
+      border: 1px solid #d5c9a4;
+    }
+    .theme-icoding #galeri img {
+      border: 1px solid #d5c9a4;
     }
     .container {
       max-width: 100%;
@@ -457,7 +527,36 @@
   </style>
 </head>
 <body class="theme-default">
+  <!-- Hamburger Menu Toggle -->
+  <button id="menuToggle" aria-label="Menu" title="Menu">
+    <span style="display:inline-block;vertical-align:middle;">
+      <svg width="28" height="28" viewBox="0 0 28 28" style="vertical-align:middle;" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect y="6" width="28" height="3" rx="1.5" fill="currentColor"/>
+        <rect y="13" width="28" height="3" rx="1.5" fill="currentColor"/>
+        <rect y="20" width="28" height="3" rx="1.5" fill="currentColor"/>
+      </svg>
+    </span>
+  </button>
+  <!-- Dropdown Menu -->
+  <div id="dropdownMenu">
+    <button onclick="logout()">Logout</button>
+    <button onclick="openChangePassword()">Ganti Password</button>
+  </div>
   <div class="container">
+  <script>
+    // Hamburger menu toggle for dropdown
+    document.getElementById("menuToggle").addEventListener("click", function(e) {
+      e.stopPropagation();
+      const menu = document.getElementById("dropdownMenu");
+      menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
+    });
+
+    window.addEventListener("click", function(e) {
+      if (!document.getElementById("menuToggle").contains(e.target) && !document.getElementById("dropdownMenu").contains(e.target)) {
+        document.getElementById("dropdownMenu").style.display = "none";
+      }
+    });
+  </script>
     <div id="loading">
       <div class="spinner"></div>
       <p>Mengunduh kecerdasan luar biasa anak Anda ⏳</p>
@@ -523,6 +622,23 @@
     </div>
   </div>
 
+  <!-- Firebase App & Auth SDK for logout functionality -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAy70WBTa9zWkFi49WhXLGnJYRbLVb6n8A",
+      authDomain: "socmed-karya-anak.firebaseapp.com",
+      projectId: "socmed-karya-anak",
+      storageBucket: "socmed-karya-anak.firebasestorage.app",
+      messagingSenderId: "903463596001",
+      appId: "1:903463596001:web:9f994ac58fc6b7d6e6eca0",
+      measurementId: "G-9FKWHFXNGM"
+    };
+
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+  </script>
   <!-- Validasi login: redirect ke login jika tidak ada ?cid di URL, simpan/baca dari localStorage -->
   <script>
     const urlParams = new URLSearchParams(window.location.search);
@@ -1112,9 +1228,12 @@
     // Theme Switcher
     function toggleTheme() {
       const body = document.body;
-      if (body.classList.contains("theme-queens")) {
-        body.classList.remove("theme-queens");
+      if (body.classList.contains("theme-icoding")) {
+        body.classList.remove("theme-icoding");
         body.classList.add("theme-default");
+      } else if (body.classList.contains("theme-queens")) {
+        body.classList.remove("theme-queens");
+        body.classList.add("theme-icoding");
       } else {
         body.classList.remove("theme-default");
         body.classList.add("theme-queens");
