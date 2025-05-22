@@ -1005,8 +1005,18 @@ async function updateFollowing(targetCid, isFollow = true) {
             document.querySelector("#bottomNavBar button:last-child img").src = data.foto;
           }
           document.getElementById("totalPosts").innerText = data.karya ? data.karya.length : 0;
-          document.getElementById("totalFollowers").innerText = data.follower ? data.follower.length : 0;
-          document.getElementById("totalFollowing").innerText = data.following ? data.following.length : 0;
+          // Ganti cara update followers/following dengan fetch API baru
+          fetch(`https://firebase-upload-backend.onrender.com/proxy-following?cid=${cid}&action=getfollowing`)
+            .then(res => res.json())
+            .then(following => {
+              document.getElementById("totalFollowing").innerText = Array.isArray(following) ? following.length : 0;
+            });
+
+          fetch(`https://firebase-upload-backend.onrender.com/proxy-follower?cid=${cid}&action=getfollower`)
+            .then(res => res.json())
+            .then(follower => {
+              document.getElementById("totalFollowers").innerText = Array.isArray(follower) ? follower.length : 0;
+            });
           document.getElementById("usiaAnak").innerText = `Usia: ${data.usia || "-"}`;
           document.getElementById("kesimpulanAI").innerText = data.kesimpulan || "-";
           document.getElementById("tipeBakat").innerText = `Talent: ${data.tipe_bakat || "-"}`;
