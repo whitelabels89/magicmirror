@@ -808,7 +808,17 @@
               .then(followingData => {
                 const followingList = document.getElementById("followingList");
                 followingList.innerHTML = "";
-                if (Array.isArray(followingData) && followingData.length > 0) {
+                // PATCH: handle both array and single object (getprofile)
+                if (!Array.isArray(followingData)) {
+                  if (followingData && followingData.hasOwnProperty("cid")) {
+                    followingData = [followingData]; // Konversi jadi array jika hanya 1 user
+                  } else {
+                    console.error("❌ Data following bukan array:", followingData);
+                    document.getElementById("followingList").innerText = "❌ Gagal memuat data.";
+                    return;
+                  }
+                }
+                if (followingData.length > 0) {
                   followingData.forEach(user => {
                     const div = document.createElement("div");
                     div.style.marginBottom = "8px";
@@ -838,11 +848,8 @@
                     }
                     followingList.appendChild(div);
                   });
-                } else if (Array.isArray(followingData)) {
-                  followingList.innerText = "Belum mengikuti akun lain.";
                 } else {
-                  console.error("❌ Data following bukan array:", followingData);
-                  document.getElementById("followingList").innerText = "❌ Gagal memuat data.";
+                  followingList.innerText = "Belum mengikuti akun lain.";
                 }
               })
               .catch(err => {
@@ -892,10 +899,15 @@ async function updateFollowing(targetCid, isFollow = true) {
                 .then(allUsers => {
                   const explore = document.getElementById("exploreList");
                   explore.innerHTML = "";
+                  // PATCH: handle both array and single object (getprofile)
                   if (!Array.isArray(allUsers)) {
-                    console.error("❌ Data explore bukan array:", allUsers);
-                    document.getElementById("exploreList").innerText = "❌ Gagal memuat data.";
-                    return;
+                    if (allUsers && allUsers.hasOwnProperty("cid")) {
+                      allUsers = [allUsers]; // Konversi jadi array jika hanya 1 user
+                    } else {
+                      console.error("❌ Data explore bukan array:", allUsers);
+                      document.getElementById("exploreList").innerText = "❌ Gagal memuat data.";
+                      return;
+                    }
                   }
                   allUsers.forEach(user => {
                     if (user.cid !== cid) {
