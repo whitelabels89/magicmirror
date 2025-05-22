@@ -2,6 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login Dashboard Anak</title>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
@@ -36,37 +37,143 @@
         padding: 1.2rem;
       }
     }
-    img[alt="Login Art"] {
-      display: block;
-      height: auto;
-      max-height: 55vh;
-      object-fit: contain;
-    }
-    body {
-      box-sizing: border-box;
-    }
 
     @media (max-width: 480px) {
       body {
         padding: 0.5rem;
       }
     }
+
+    @media (max-width: 768px) {
+      .login-container {
+        flex-direction: column;
+        align-items: center;
+        padding: 1rem;
+        gap: 0;
+      }
+      .login-image {
+        margin-top: -3rem; /* Naikin gambar */
+        margin-bottom: -6rem; /* Atur jarak ke kartu login */
+        text-align: center;
+      }
+
+      .login-image img {
+        width: 100%;
+        max-width: 300px;
+      }
+
+      .login-card {
+        max-width: 380px;
+        padding: 1.2rem;
+      }
+
+      body {
+        padding: 1rem 0.5rem;
+      }
+    }
+
+    /* Default mobile first */
+    .login-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      padding: 1rem;
+      margin-bottom: 1rem; /* atau 0 kalau mau nempel bawah */
+    }
+
+    .login-image img {
+      width: 100%;
+      max-width: 320px;
+      height: auto;
+    }
+
+    .login-card {
+      background: #ffffff;
+      padding: 1rem;
+      border-radius: 24px;
+      width: 80%;
+      max-width: 300px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+      text-align: center;
+    }
+
+    .icoding-logo {
+      width: 100%;
+      max-width: 100px;
+      max-height: 100px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 768px) {
+      .icoding-logo {
+        max-width: 100px;
+        max-height: 100px;
+        margin-top: -1.5rem;
+        margin-bottom: -2rem;
+      }
+    }
+
+   /* Desktop layout */
+    @media screen and (min-width: 769px) {
+      .login-container {
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        gap: 8rem;
+        padding: 3rem 2rem;
+      }
+
+      .login-image {
+        flex: 1;
+        text-align: right;
+      }
+
+      .login-image img {
+        max-width: 700px;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+        margin-top: 4.5rem;
+        margin-bottom: 0;
+      }
+
+      .login-card {
+        flex: 1;
+        max-width: 600px;
+        padding: 1.5rem;
+        box-sizing: border-box;
+        margin-top: 0;
+      }
+
+      .icoding-logo {
+        max-width: 200px;
+        max-height: 200px;
+        margin-top: -1.5rem;
+        margin-bottom: -2rem;
+      }
+    }
+
+    
   </style>
 </head>
-<body style="margin:0; font-family:'Poppins', sans-serif; background:linear-gradient(180deg, #e0f7ff, #f0fbff); display:flex; justify-content:center; align-items:center; flex-direction:column; min-height:50vh; text-align:center; padding: 0 0rem 0rem 0rem; /* top right bottom left */">
-  <div style="text-align:center; width:100%; display:flex; justify-content:center; margin-bottom:-50px; margin-top:-40px;">
-    <img src="/login_illustration_blue.png" alt="Login Art" style="width:100%; max-width:none; height:auto; max-height:none; margin-bottom:-80px; object-fit:contain; margin-top:-40px;" />
-  </div>
-  <div style="background:#ffffff; padding:1rem 1rem; border-radius:24px; max-width:480px; width:100%; box-shadow:0 10px 20px rgba(0,0,0,0.05); text-align:center; margin-top:-120px;">
-    <img src="/icoding.png" alt="Queen's Academy iCoding" style="width:100%; max-width:160px; margin:0 auto;" />
-    <form id="loginForm" style="display:flex; flex-direction:column; gap:1rem; margin-top:1rem;">
-      <input type="text" id="username" placeholder="Username / Nomor WhatsApp" required style="padding:0.75rem; border-radius:12px; border:1px solid #cce3f0; background:#f7fcff;" autocomplete="off">
-      <input type="password" id="password" placeholder="Password" required style="padding:0.75rem; border-radius:12px; border:1px solid #cce3f0; background:#f7fcff;" autocomplete="off">
-      <button type="submit" style="background-color:#91d2ff; color:#ffffff; border:none; padding:0.75rem; border-radius:12px; font-weight:bold; cursor:pointer;">Login</button>
-    </form>
-    <p id="status" style="color:red; font-size:0.85rem; margin-top:0.5rem;"></p>
-    <p style="font-size:0.85rem; margin-top:1rem; color:#4b4b4b;">Belum punya akun?</p>
-    <button style="background:#e6f4ff; color:#007acc; border:none; padding:0.5rem 1rem; border-radius:10px; font-size:0.9rem;">Buat akun</button>
+<body style="margin:0; font-family:'Poppins', sans-serif; background:linear-gradient(180deg, #e0f7ff, #f0fbff); display:flex; justify-content:center; align-items:center; flex-direction:column; min-height:50vh; text-align:center;">
+  <div class="login-container">
+    <div class="login-image">
+      <img src="/login_illustration_blue.png" alt="Login Art" />
+    </div>
+    <div class="login-card">
+      <img src="/icoding.png" alt="Queen's Academy iCoding" class="icoding-logo" />
+      <form id="loginForm" style="display:flex; flex-direction:column; gap:1rem; margin-top:1rem;">
+        <input type="text" id="username" placeholder="Username / Nomor WhatsApp" required style="padding:0.6rem; border-radius:12px; border:1px solid #cce3f0; background:#f7fcff;" autocomplete="off">
+        <input type="password" id="password" placeholder="Password" required style="padding:0.6rem; border-radius:12px; border:1px solid #cce3f0; background:#f7fcff;" autocomplete="off">
+        <button type="submit" style="background-color:#91d2ff; color:#ffffff; border:none; padding:0.6rem; border-radius:12px; font-weight:bold; cursor:pointer;">Login</button>
+      </form>
+      <p id="status" style="color:red; font-size:0.85rem; margin-top:0.5rem;"></p>
+      <p style="font-size:0.85rem; margin-top:1rem; color:#4b4b4b;">Belum punya akun?</p>
+      <button style="background:#e6f4ff; color:#007acc; border:none; padding:0.4rem 0.8rem; border-radius:10px; font-size:0.8rem;">Buat akun</button>
+    </div>
   </div>
 
   <script>
