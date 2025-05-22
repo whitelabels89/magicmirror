@@ -662,6 +662,9 @@
 
     const cid_login = localStorage.getItem("cid_login");
     const isOwner = (cid && cid_login && cid === cid_login);
+    // Hide profileButtons at initial load, will be shown after isOwner validation
+    const profileButtons = document.getElementById("profileButtons");
+    if (profileButtons) profileButtons.style.display = "none";
 
     if (!cid) {
       alert("⚠️ Anda belum login atau session habis.");
@@ -980,9 +983,11 @@ async function updateFollowing(targetCid, isFollow = true) {
           // Pastikan fetchLoginFollowing dipanggil dan selesai sebelum render tombol follow/unfollow user target
           (async function() {
             await fetchLoginFollowing();
+            // After fetchLoginFollowing, show profileButtons (for both owner and not owner, will hide children below if needed)
+            if (profileButtons) profileButtons.style.display = "flex";
             if (!isOwner) {
               // Sembunyikan tombol-tombol lainnya (hanya tampilkan follow/unfollow)
-              const profileButtons = document.getElementById("profileButtons");
+              // profileButtons is already defined above
               Array.from(profileButtons.children).forEach(btn => {
                 if (btn.id !== "followUnfollowBtn") btn.style.display = "none";
               });
