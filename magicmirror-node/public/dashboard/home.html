@@ -35,33 +35,57 @@
       gap: 1rem;
     }
     .post {
-      background-color: #fffdf6;
-      border: 1px solid #d5c9a4;
+      background: linear-gradient(135deg, #fffdf6, #fefae0);
+      border: 2px solid #ffe58e;
       padding: 1rem;
-      border-radius: 10px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      border-radius: 16px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
       margin-bottom: 1rem;
       color: #4b3d2a;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .post:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
     }
     .post img {
       width: 100%;
       max-height: 240px;
       object-fit: cover;
-      border-radius: 8px;
-      margin-bottom: 0.5rem;
-      border: 1px solid #d5c9a4;
+      border-radius: 12px;
+      margin-bottom: 0.75rem;
+      border: 1px solid #ffe58e;
+      box-shadow: 0 2px 8px rgba(255,229,142,0.12);
+      background: #fffbe7;
+      transition: box-shadow 0.2s;
+    }
+    .post img:hover {
+      box-shadow: 0 4px 16px rgba(255,218,117,0.20);
     }
     .actions {
       display: flex;
-      gap: 1rem;
-      margin-top: 0.5rem;
+      justify-content: space-between;
+      margin-top: 0.75rem;
       font-size: 0.9rem;
+      gap: 0.5rem;
     }
     .actions button {
-      background: none;
+      background-color: #ffe58e;
       border: none;
       color: #4b3d2a;
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-weight: bold;
       cursor: pointer;
+      transition: background-color 0.2s ease, transform 0.15s;
+      box-shadow: 0 1px 2px rgba(255,229,142,0.10);
+      outline: none;
+    }
+    .actions button:hover {
+      background-color: #ffda75;
+      transform: scale(1.05) rotate(-2deg);
     }
   </style>
 </head>
