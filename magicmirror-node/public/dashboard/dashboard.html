@@ -863,17 +863,24 @@ async function updateFollowing(targetCid, isFollow = true) {
     const currentCid = localStorage.getItem("cid_login");
     if (!currentCid) return alert("Session habis.");
 
-    const res = await fetch(`https://firebase-upload-backend.onrender.com/proxy-following?cid=all&action=getfollowing`);
-    const all = await res.json();
-    let followList = all.map(u => u.cid);
+    // Ambil data following dari GAS untuk akun saat ini
+    const res = await fetch(`https://firebase-upload-backend.onrender.com/proxy-following?cid=${currentCid}&action=getfollowing`);
+    let currentFollowing = await res.json();
+    if (!Array.isArray(currentFollowing)) currentFollowing = [];
 
-    if (isFollow && !followList.includes(targetCid)) followList.push(targetCid);
-    if (!isFollow) followList = followList.filter(c => c !== targetCid);
+    // Tambah atau hapus targetCid
+    if (isFollow && !currentFollowing.map(u => u.cid).includes(targetCid)) {
+      currentFollowing.push({ cid: targetCid });
+    } else if (!isFollow) {
+      currentFollowing = currentFollowing.filter(u => u.cid !== targetCid);
+    }
+
+    const followingList = currentFollowing.map(u => u.cid);
 
     await fetch(`https://firebase-upload-backend.onrender.com/update-following`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cid: currentCid, followingList: followList })
+      body: JSON.stringify({ cid: currentCid, followingList })
     });
 
     alert(isFollow ? "✅ Diikuti" : "❌ Dihapus dari daftar");
@@ -965,9 +972,10 @@ async function updateFollowing(targetCid, isFollow = true) {
 
             followUnfollowBtn.innerText = isFollowed ? "Unfollow" : "Follow";
             followUnfollowBtn.dataset.isFollowed = isFollowed;
-            followUnfollowBtn.onclick = () => {
+            followUnfollowBtn.onclick = async () => {
+              // Update status follow/unfollow agar sinkron dengan database
               const currentlyFollowed = followUnfollowBtn.dataset.isFollowed === "true";
-              updateFollowing(cid, !currentlyFollowed);
+              await updateFollowing(cid, !currentlyFollowed);
             };
             // Pastikan tombol tampil dan tidak tertutup elemen lain
             followUnfollowBtn.style.display = "inline-block";
