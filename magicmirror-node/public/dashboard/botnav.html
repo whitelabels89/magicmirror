@@ -1,0 +1,59 @@
+<div id="bottomNavBar">
+  <button onclick="goHome()">
+    <img src="https://img.icons8.com/ios-filled/24/ffffff/home.png" alt="Home" />
+  </button>
+  <button onclick="goSearch()">
+    <img src="https://img.icons8.com/ios-filled/24/ffffff/search--v1.png" alt="Search" />
+  </button>
+  <button onclick="openKelasOptions()">
+    <img src="https://img.icons8.com/ios-filled/24/ffffff/plus-math.png" alt="Upload" />
+  </button>
+  <button onclick="goReels()">
+    <img src="https://img.icons8.com/ios-filled/24/ffffff/cinema-.png" alt="Reels" />
+  </button>
+  <button onclick="goProfile()">
+    <img src="https://placehold.co/32x32" alt="Profile" />
+  </button>
+</div>
+
+<style>
+#bottomNavBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #f6f3e8;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 10px 0;
+  border-top: 1px solid #d5c9a4;
+  z-index: 1001;
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
+}
+#bottomNavBar button {
+  background: none;
+  border: none;
+  color: #4b3d2a;
+  font-size: 1.6rem;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#bottomNavBar button img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  border-radius: 0;
+  filter: brightness(0) saturate(100%) invert(20%) sepia(20%) saturate(400%) hue-rotate(10deg);
+}
+#bottomNavBar button:last-child img {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #d5c9a4;
+}
+</style>

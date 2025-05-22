@@ -111,5 +111,13 @@
       }
     }
   </script>
+  <div id="navPlaceholder"></div>
+  <script>
+    fetch('/dashboard/botnav.html')
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById('navPlaceholder').innerHTML = html;
+      });
+  </script>
 </body>
 </html>
