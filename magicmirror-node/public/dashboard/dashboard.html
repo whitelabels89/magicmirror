@@ -869,13 +869,13 @@ async function updateFollowing(targetCid, isFollow = true) {
     if (!Array.isArray(currentFollowing)) currentFollowing = [];
 
     // Tambah atau hapus targetCid
-    if (isFollow && !currentFollowing.map(u => u.cid).includes(targetCid)) {
-      currentFollowing.push({ cid: targetCid });
+    if (isFollow && !currentFollowing.map(u => typeof u === "object" ? u.cid : u).includes(targetCid)) {
+      currentFollowing.push(targetCid);
     } else if (!isFollow) {
-      currentFollowing = currentFollowing.filter(u => u.cid !== targetCid);
+      currentFollowing = currentFollowing.filter(u => (typeof u === "object" ? u.cid : u) !== targetCid);
     }
 
-    const followingList = currentFollowing.map(u => u.cid);
+    const followingList = currentFollowing.map(u => typeof u === "object" ? u.cid : u);
 
     await fetch(`https://firebase-upload-backend.onrender.com/update-following`, {
       method: "POST",
