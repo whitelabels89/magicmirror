@@ -986,15 +986,20 @@ async function updateFollowing(targetCid, isFollow = true) {
             // After fetchLoginFollowing, show profileButtons (for both owner and not owner, will hide children below if needed)
             if (profileButtons) profileButtons.style.display = "flex";
             if (!isOwner) {
-              // Sembunyikan tombol-tombol lainnya (hanya tampilkan follow/unfollow)
-              // profileButtons is already defined above
+              // Sembunyikan semua tombol kecuali Follow/Unfollow
               Array.from(profileButtons.children).forEach(btn => {
                 if (btn.id !== "followUnfollowBtn") btn.style.display = "none";
               });
-              document.getElementById("uploadForm").style.display = "none";
-              document.getElementById("profileNote").style.display = "none";
-              document.getElementById("profileNote").style.display = "none";
-              document.querySelector('#profileNote button').style.display = "none";
+
+              // Sembunyikan upload dan dashboard section hanya jika bukan owner
+              const uploadForm = document.getElementById("uploadForm");
+              if (uploadForm) uploadForm.style.display = "none";
+
+              const profileNote = document.getElementById("profileNote");
+              if (profileNote) profileNote.style.display = "none";
+
+              const profileNoteBtn = document.querySelector('#profileNote button');
+              if (profileNoteBtn) profileNoteBtn.style.display = "none";
 
               // Tampilkan tombol Follow/Unfollow sesuai status follow
               const followUnfollowBtn = document.getElementById("followUnfollowBtn");
