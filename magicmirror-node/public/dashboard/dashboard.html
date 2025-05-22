@@ -5,6 +5,83 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/css2?family=Forum&display=swap" rel="stylesheet">
   <style>
+    /* ====== THEME DEFAULT (Login-style) ====== */
+    body.theme-default {
+      background: linear-gradient(to bottom right, #dff1ff, #e6f3fb);
+      color: #003c5a;
+    }
+    .theme-default .dashboard-card {
+      background: #ffffff;
+      border: 1px solid #c0e7f5;
+    }
+    .theme-default #profileButtons button,
+    .theme-default #profileNote button {
+      background-color: #ffffff;
+      color: #003c5a;
+      border: 1px solid #c0e7f5;
+    }
+    .theme-default .modal-content {
+      background-color: #ffffff;
+      color: #003c5a;
+    }
+    .theme-default .badge-item span,
+    .theme-default .dashboard-card p,
+    .theme-default .dashboard-card li,
+    .theme-default .dashboard-card ul,
+    .theme-default .dashboard-card h3,
+    .theme-default .dashboard-card h4,
+    .theme-default #professionalContent {
+      color: #003c5a;
+    }
+    .theme-default #galeri {
+      background-color: #fff;
+      border: 1px solid #c0e7f5;
+    }
+    .theme-default #galeri img {
+      border: 1px solid #c0e7f5;
+    }
+
+    /* ====== THEME LEGACY (Hijau-Gold Lama) ====== */
+    body.theme-legacy {
+      background-color: #0d2d2b;
+      color: #ffe58e;
+    }
+    .theme-legacy .dashboard-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,229,142,0.15);
+      border-radius: 16px;
+      padding: 0.5rem 0;
+      margin-bottom: 1.5rem;
+      overflow: visible;
+    }
+    .theme-legacy #profileButtons button,
+    .theme-legacy #profileNote button {
+      background: transparent;
+      color: #ffe58e;
+      border: 1px solid #ffe58e;
+    }
+    .theme-legacy .modal-content {
+      background-color: #0d2d2b;
+      color: #ffe58e;
+    }
+    .theme-legacy .badge-item span,
+    .theme-legacy .dashboard-card p,
+    .theme-legacy .dashboard-card li,
+    .theme-legacy .dashboard-card ul,
+    .theme-legacy .dashboard-card h3,
+    .theme-legacy .dashboard-card h4,
+    .theme-legacy #professionalContent {
+      color: #ffe58e;
+    }
+    .theme-legacy #galeri {
+      background-color: transparent;
+      border: none;
+    }
+    .theme-legacy #galeri img {
+      border: none;
+    }
+
+    /* ====== END THEME PATCH ====== */
     #menuToggle {
       position: fixed;
       top: 10px;
@@ -55,10 +132,7 @@
       margin: 0;
       padding: 4px;
     }
-    body.theme-default {
-      background-color: #0d2d2b;
-      color: #ffe58e;
-    }
+    /* body.theme-default and .theme-default ... moved to theme-legacy above */
     body.theme-queens {
       background: linear-gradient(135deg, #f6f3e8, #e8e2d0);
       color: #4b3d2a;
@@ -461,7 +535,7 @@
       bottom: 0;
       left: 0;
       width: 100%;
-      background-color: #0d2d2b;
+      background-color: inherit;
       display: flex;
       justify-content: space-around;
       align-items: center;
@@ -472,7 +546,7 @@
     #bottomNavBar button {
       background: none;
       border: none;
-      color: #fff;
+      color: inherit;
       font-size: 1.6rem;
       cursor: pointer;
       padding: 0;
@@ -1481,13 +1555,16 @@ async function updateFollowing(targetCid, isFollow = true) {
       const body = document.body;
       if (body.classList.contains("theme-icoding")) {
         body.classList.remove("theme-icoding");
-        body.classList.add("theme-default");
+        body.classList.add("theme-legacy");
       } else if (body.classList.contains("theme-queens")) {
         body.classList.remove("theme-queens");
         body.classList.add("theme-icoding");
-      } else {
+      } else if (body.classList.contains("theme-default")) {
         body.classList.remove("theme-default");
-        body.classList.add("theme-queens");
+        body.classList.add("theme-legacy");
+      } else {
+        body.classList.remove("theme-legacy");
+        body.classList.add("theme-default");
       }
     }
 
@@ -1525,28 +1602,41 @@ async function updateFollowing(targetCid, isFollow = true) {
       });
     }
   </script>
-  <!-- Bottom Navigation Bar -->
-  <div id="bottomNavBar">
-    <button onclick="goHome()">
-      <img src="https://img.icons8.com/ios-filled/24/ffffff/home.png" alt="Home" />
-    </button>
-    <button onclick="goSearch()">
-      <img src="https://img.icons8.com/ios-filled/24/ffffff/search--v1.png" alt="Search" />
-    </button>
-    <!--
-      Default: open modal kelas "Craft & Coding". 
-      Untuk versi dinamis, ganti parameternya sesuai kebutuhan.
-    -->
-    <button onclick="openKelasOptions()">
-      <img src="https://img.icons8.com/ios-filled/24/ffffff/plus-math.png" alt="Upload" />
-    </button>
-    <button onclick="goReels()">
-      <img src="https://img.icons8.com/ios-filled/24/ffffff/cinema-.png" alt="Reels" />
-    </button>
-    <button onclick="goProfile()">
-      <img src="https://placehold.co/32x32" alt="Profile" />
-    </button>
-  </div>
+  <div id="navPlaceholder"></div>
+  <script>
+    // Pastikan body punya class theme-default jika belum ada
+    (function() {
+      var body = document.body;
+      if (!body.classList.contains("theme-default")) {
+        body.classList.add("theme-default");
+      }
+    })();
+    fetch('/dashboard/botnav.html')
+      .then(res => res.text())
+      .then(html => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+
+        // Ambil isi <style> dan append manual ke <head>
+        const styles = doc.querySelectorAll('style');
+        styles.forEach(style => {
+          const newStyle = document.createElement('style');
+          newStyle.innerHTML = style.innerHTML;
+          document.head.appendChild(newStyle);
+        });
+
+        // Sisanya tempel ke navPlaceholder
+        const bodyContent = doc.body || doc;
+        const wrapper = document.createElement("div");
+        wrapper.innerHTML = bodyContent.innerHTML;
+
+        // Tambahkan class theme-default secara eksplisit
+        wrapper.classList.add("theme-default");
+
+        document.getElementById('navPlaceholder').innerHTML = "";
+        document.getElementById('navPlaceholder').appendChild(wrapper);
+      });
+  </script>
   <!-- Edit Profile Modal -->
   <div id="editProfileModal">
     <div class="modal-content">

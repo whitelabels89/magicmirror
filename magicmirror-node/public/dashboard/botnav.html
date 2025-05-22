@@ -1,40 +1,51 @@
-<div id="bottomNavBar">
-  <button onclick="goHome()">
-    <img src="https://img.icons8.com/ios-filled/24/ffffff/home.png" alt="Home" />
-  </button>
-  <button onclick="goSearch()">
-    <img src="https://img.icons8.com/ios-filled/24/ffffff/search--v1.png" alt="Search" />
-  </button>
-  <button onclick="openKelasOptions()">
-    <img src="https://img.icons8.com/ios-filled/24/ffffff/plus-math.png" alt="Upload" />
-  </button>
-  <button onclick="goReels()">
-    <img src="https://img.icons8.com/ios-filled/24/ffffff/cinema-.png" alt="Reels" />
-  </button>
-  <button onclick="goProfile()">
-    <img src="https://placehold.co/32x32" alt="Profile" />
-  </button>
+<!-- This version is for dashboard only. Make sure to load this file with class 'dashboard-botnav' applied to avoid global style conflicts -->
+<div class="botnav-theme dashboard-botnav">
+  <div id="bottomNavBar">
+    <button onclick="goHome()">
+      <img src="https://img.icons8.com/ios-filled/24/ffffff/home.png" alt="Home" />
+    </button>
+    <button onclick="goSearch()">
+      <img src="https://img.icons8.com/ios-filled/24/ffffff/search--v1.png" alt="Search" />
+    </button>
+    <button onclick="openKelasOptions()">
+      <img src="https://img.icons8.com/ios-filled/24/ffffff/plus-math.png" alt="Upload" />
+    </button>
+    <button onclick="goReels()">
+      <img src="https://img.icons8.com/ios-filled/24/ffffff/cinema-.png" alt="Reels" />
+    </button>
+    <button onclick="goProfile()">
+      <img src="https://placehold.co/32x32" alt="Profile" />
+    </button>
+  </div>
 </div>
 
 <style>
-#bottomNavBar {
+.dashboard-botnav {
+  background-color: #e5f3ff;
+  color: #003c5a;
+}
+.dashboard-botnav * {
+  color: inherit;
+}
+.dashboard-botnav #bottomNavBar {
   position: fixed;
   bottom: 0;
   left: 0;
   width: 100%;
-  background-color: #f6f3e8;
+  background-color: #e5f3ff !important;
   display: flex;
   justify-content: space-around;
   align-items: center;
   padding: 10px 0;
-  border-top: 1px solid #d5c9a4;
+  border-top: 1px solid #aad9f5;
   z-index: 1001;
   box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
+  border-radius: 20px 20px 0 0;
 }
-#bottomNavBar button {
+.dashboard-botnav #bottomNavBar button {
   background: none;
   border: none;
-  color: #4b3d2a;
+  color: #003c5a !important;
   font-size: 1.6rem;
   cursor: pointer;
   padding: 0;
@@ -42,18 +53,18 @@
   align-items: center;
   justify-content: center;
 }
-#bottomNavBar button img {
+.dashboard-botnav #bottomNavBar button img {
   width: 26px;
   height: 26px;
   object-fit: contain;
   border-radius: 0;
-  filter: brightness(0) saturate(100%) invert(20%) sepia(20%) saturate(400%) hue-rotate(10deg);
+  filter: brightness(0) saturate(100%) invert(31%) sepia(41%) saturate(342%) hue-rotate(179deg) brightness(92%) contrast(87%);
 }
-#bottomNavBar button:last-child img {
+.dashboard-botnav #bottomNavBar button:last-child img {
   width: 34px;
   height: 34px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #d5c9a4;
+  border: 2px solid #aad9f5;
 }
 </style>
