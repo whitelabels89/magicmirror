@@ -955,19 +955,22 @@ async function updateFollowing(targetCid, isFollow = true) {
 
           document.getElementById("loading").style.display = "none";
           document.getElementById("dashboard").style.display = "block";
-          // --- PATCH: Fetch following dari akun login sebelum logika follow/unfollow ---
+          // PATCH: Ambil daftar following akun login (async function)
           let loginFollowingCIDs = [];
-          fetch(`https://firebase-upload-backend.onrender.com/proxy-following?cid=${cid_login}&action=getfollowing`)
-            .then(res => res.json())
-            .then(data => {
-              if (Array.isArray(data)) {
-                loginFollowingCIDs = data.map(u => typeof u === "object" ? u.cid : u);
-              }
-            })
-            .catch(err => {
-              console.error("❌ Gagal mengambil following user login:", err);
-            });
 
+          async function fetchLoginFollowing() {
+            try {
+              const res = await fetch(`https://firebase-upload-backend.onrender.com/proxy-following?cid=${cid_login}&action=getfollowing`);
+              const dataLogin = await res.json();
+              if (Array.isArray(dataLogin)) {
+                loginFollowingCIDs = dataLogin.map(u => typeof u === "object" ? u.cid : u);
+              }
+            } catch (err) {
+              console.error("❌ Gagal mengambil following user login:", err);
+            }
+          }
+
+          fetchLoginFollowing();
           if (!isOwner) {
             // Sembunyikan tombol-tombol lainnya (hanya tampilkan follow/unfollow)
             const profileButtons = document.getElementById("profileButtons");
@@ -1541,7 +1544,7 @@ async function updateFollowing(targetCid, isFollow = true) {
   </div>
   <script>
     // Temukan elemen .dashboard-card dengan id badgeCard dan ubah <h3> menjadi versi dengan style margin
-    document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("DOMContentLoaded", async function() {
       var badgeCard = document.getElementById('badgeCard');
       if (badgeCard) {
         var h3 = badgeCard.querySelector('h3');
@@ -1585,16 +1588,14 @@ async function updateFollowing(targetCid, isFollow = true) {
       </div>
     </div>
   </div>
-</html>
-</html>
-
   <script>
-// Scroll to Upload Karya Anak
-function scrollToUpload() {
-  const form = document.getElementById("uploadForm");
-  if (form) form.scrollIntoView({ behavior: "smooth" });
-}
-</script>
+    // Scroll to Upload Karya Anak
+    function scrollToUpload() {
+      const form = document.getElementById("uploadForm");
+      if (form) form.scrollIntoView({ behavior: "smooth" });
+    }
+  </script>
+</body>
 </html>
 
   
