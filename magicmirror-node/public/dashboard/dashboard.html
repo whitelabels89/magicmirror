@@ -803,59 +803,62 @@
           data = res;
           // Tampilkan daftar akun yang diikuti (following)
           if (isOwner || !isOwner) {
-            fetch(`https://firebase-upload-backend.onrender.com/proxy-following?cid=${cid}&action=getfollowing`)
-              .then(r => r.json())
-              .then(followingData => {
-                const followingList = document.getElementById("followingList");
-                followingList.innerHTML = "";
-                // PATCH: handle both array and single object (getprofile)
-                if (!Array.isArray(followingData)) {
-                  if (followingData && followingData.hasOwnProperty("cid")) {
-                    followingData = [followingData]; // Konversi jadi array jika hanya 1 user
-                  } else {
-                    console.error("❌ Data following bukan array:", followingData);
-                    document.getElementById("followingList").innerText = "❌ Gagal memuat data.";
-                    return;
-                  }
-                }
-                if (followingData.length > 0) {
-                  followingData.forEach(user => {
-                    const div = document.createElement("div");
-                    div.style.marginBottom = "8px";
-                    div.style.display = "flex";
-                    div.style.alignItems = "center";
-                    div.innerHTML = `
-                      <a href="/dashboard/dashboard.html?cid=${user.cid}" style="display:flex;align-items:center;text-decoration:none;color:inherit;">
-                        <img src="${user.foto}" style="width:40px;height:40px;border-radius:50%;margin-right:8px;object-fit:cover;">
-                        <span>${user.nama}</span>
-                      </a>
-                    `;
-                    // Hanya render tombol follow/unfollow jika !isOwner (bukan pemilik profil)
-                    if (!isOwner) {
-                      const isFollowed = loginFollowingCIDs.includes(user.cid);
-                      const button = document.createElement("button");
-                      button.innerText = "Unfollow";
-                      button.style.marginLeft = "auto";
-                      button.style.padding = "4px 10px";
-                      button.style.fontSize = "0.8rem";
-                      button.style.borderRadius = "6px";
-                      button.style.cursor = "pointer";
-                      button.style.border = "1px solid #ffe58e";
-                      button.style.background = "transparent";
-                      button.style.color = "#ffe58e";
-                      button.onclick = () => updateFollowing(user.cid, false); // panggil fungsi unfollow
-                      div.appendChild(button);
+            // Pastikan fetchLoginFollowing dipanggil sebelum render followingList
+            (async function() {
+              await fetchLoginFollowing();
+              fetch(`https://firebase-upload-backend.onrender.com/proxy-following?cid=${cid}&action=getfollowing`)
+                .then(r => r.json())
+                .then(followingData => {
+                  const followingList = document.getElementById("followingList");
+                  followingList.innerHTML = "";
+                  // PATCH: handle both array and single object (getprofile)
+                  if (!Array.isArray(followingData)) {
+                    if (followingData && followingData.hasOwnProperty("cid")) {
+                      followingData = [followingData]; // Konversi jadi array jika hanya 1 user
+                    } else {
+                      console.error("❌ Data following bukan array:", followingData);
+                      document.getElementById("followingList").innerText = "❌ Gagal memuat data.";
+                      return;
                     }
-                    followingList.appendChild(div);
-                  });
-                } else {
-                  followingList.innerText = "Belum mengikuti akun lain.";
-                }
-              })
-              .catch(err => {
-                console.error("❌ Gagal memuat daftar following:", err);
-                document.getElementById("followingList").innerText = "❌ Gagal memuat data.";
-              });
+                  }
+                  if (followingData.length > 0) {
+                    followingData.forEach(user => {
+                      const div = document.createElement("div");
+                      div.style.marginBottom = "8px";
+                      div.style.display = "flex";
+                      div.style.alignItems = "center";
+                      div.innerHTML = `
+                        <a href="/dashboard/dashboard.html?cid=${user.cid}" style="display:flex;align-items:center;text-decoration:none;color:inherit;">
+                          <img src="${user.foto}" style="width:40px;height:40px;border-radius:50%;margin-right:8px;object-fit:cover;">
+                          <span>${user.nama}</span>
+                        </a>
+                      `;
+                      // PATCH: Render tombol Unfollow jika !isOwner dan user ada di loginFollowingCIDs
+                      if (!isOwner && loginFollowingCIDs.includes(user.cid)) {
+                        const button = document.createElement("button");
+                        button.innerText = "Unfollow";
+                        button.style.marginLeft = "auto";
+                        button.style.padding = "4px 10px";
+                        button.style.fontSize = "0.8rem";
+                        button.style.borderRadius = "6px";
+                        button.style.cursor = "pointer";
+                        button.style.border = "1px solid #ffe58e";
+                        button.style.background = "transparent";
+                        button.style.color = "#ffe58e";
+                        button.onclick = () => updateFollowing(user.cid, false); // panggil fungsi unfollow
+                        div.appendChild(button);
+                      }
+                      followingList.appendChild(div);
+                    });
+                  } else {
+                    followingList.innerText = "Belum mengikuti akun lain.";
+                  }
+                })
+                .catch(err => {
+                  console.error("❌ Gagal memuat daftar following:", err);
+                  document.getElementById("followingList").innerText = "❌ Gagal memuat data.";
+                });
+            })();
           }
 // Fungsi global untuk update following (follow/unfollow)
 async function updateFollowing(targetCid, isFollow = true) {
@@ -964,6 +967,10 @@ async function updateFollowing(targetCid, isFollow = true) {
               const dataLogin = await res.json();
               if (Array.isArray(dataLogin)) {
                 loginFollowingCIDs = dataLogin.map(u => typeof u === "object" ? u.cid : u);
+              } else if (typeof dataLogin === "object" && dataLogin.cid) {
+                loginFollowingCIDs = [dataLogin.cid];
+              } else {
+                loginFollowingCIDs = [];
               }
             } catch (err) {
               console.error("❌ Gagal mengambil following user login:", err);
