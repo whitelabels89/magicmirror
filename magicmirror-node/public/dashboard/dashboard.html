@@ -570,17 +570,16 @@
           <div><strong id="totalFollowers">0</strong><br>Followers</div>
           <div><strong id="totalFollowing">0</strong><br>Following</div>
         </div>
-        <!-- Follow/Unfollow button moved out from #profileButtons, placed after #profileStats and before #profileBio -->
-        <button id="followUnfollowBtn" style="display:none; text-align: center; margin-top: 8px;">Follow</button>
         <div id="profileBio" style="margin-top: 0.5rem; font-size: 0.85rem; line-height: 1.4;">
           <p id="tipeBakat">talent: -</p>
           <p id="tipeKepribadian">personality: -</p>
         </div>
-        <div id="profileButtons" style="visibility: hidden;">
+        <div id="profileButtons">
           <button>Edit Profile</button>
           <button onclick="openShareModal()">Share Profile</button>
           <!-- <button id="unfollowBtn" style="display:none;" onclick="updateFollowing(cid, false)">Unfollow</button> -->
           <button onclick="toggleTheme()">Switch Theme</button>
+          <button id="followUnfollowBtn" style="display:none;">Follow</button>
         </div>
         <div id="profileNote">
           <button onclick="toggleProfessional()" style="flex: 1; margin: 0 5px; padding: 8px 12px; border-radius: 10px; border: 1px solid #ffe58e; background: transparent; color: #ffe58e; font-weight: bold; cursor: pointer;">Show / Hide Dashboard</button>
@@ -986,14 +985,10 @@ async function updateFollowing(targetCid, isFollow = true) {
             await fetchLoginFollowing();
             // After fetchLoginFollowing, show profileButtons (for both owner and not owner, will hide children below if needed)
             if (profileButtons) profileButtons.style.display = "flex";
-            // Show #profileButtons after logic to avoid flicker
-            if (isOwner) {
-              profileButtons.style.visibility = "visible";
-            }
             if (!isOwner) {
-              // Sembunyikan semua tombol di profileButtons
+              // Sembunyikan semua tombol kecuali Follow/Unfollow
               Array.from(profileButtons.children).forEach(btn => {
-                btn.style.display = "none";
+                if (btn.id !== "followUnfollowBtn") btn.style.display = "none";
               });
 
               // Sembunyikan upload dan dashboard section hanya jika bukan owner
@@ -1020,8 +1015,6 @@ async function updateFollowing(targetCid, isFollow = true) {
               followUnfollowBtn.style.display = "inline-block";
               followUnfollowBtn.style.position = "relative";
               followUnfollowBtn.style.zIndex = "10";
-              followUnfollowBtn.style.textAlign = "center";
-              followUnfollowBtn.style.marginTop = "8px";
             }
           })();
 
