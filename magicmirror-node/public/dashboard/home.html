@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Home - Public Feed</title>
+  <link href="https://fonts.googleapis.com/css2?family=Forum&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Forum', sans-serif;
+      background: linear-gradient(135deg, #f6f3e8, #e8e2d0);
+      color: #4b3d2a;
+    }
+    header {
+      background-color: #4b3d2a;
+      color: #ffe58e;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.4rem;
+      font-weight: bold;
+    }
+    #announcement {
+      background: #fffdf6;
+      border: 1px solid #d5c9a4;
+      padding: 10px;
+      margin: 1rem;
+      border-radius: 8px;
+      color: #4b3d2a;
+    }
+    #feed {
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .post {
+      background-color: #fffdf6;
+      border: 1px solid #d5c9a4;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      margin-bottom: 1rem;
+      color: #4b3d2a;
+    }
+    .post img {
+      width: 100%;
+      max-height: 240px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      border: 1px solid #d5c9a4;
+    }
+    .actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+    }
+    .actions button {
+      background: none;
+      border: none;
+      color: #4b3d2a;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <header>🌍 Halaman Global - Queen's Academy</header>
+
+  <section id="announcement">
+    📢 <strong>Pengumuman:</strong> Jangan lewatkan event Coding Camp 28 Juni! Yuk daftar sekarang.
+  </section>
+
+  <section id="heroBanner" style="margin: 1rem; text-align:center; background: #fffdf6; border: 1px solid #d5c9a4; border-radius: 8px; padding: 1rem;">
+    <h2 style="margin: 0;">✨ Promo Libur Sekolah</h2>
+    <p style="margin: 0.5rem 0;">Ikuti kelas Coding dan Digital Creativity sekarang!</p>
+    <a href="https://wa.me/6282125896546" style="text-decoration: none; color: white; background: #4b3d2a; padding: 0.5rem 1rem; border-radius: 6px; display: inline-block; margin-top: 0.5rem;">Daftar via WhatsApp</a>
+  </section>
+
+  <section id="feed">
+    <!-- Sample post -->
+    <div class="post">
+      <img src="https://placehold.co/600x300" alt="Post Image" />
+      <div>🎨 <strong>Nayla</strong> baru saja mengunggah karya digitalnya!</div>
+      <div class="actions">
+        <button onclick="likePost()">❤️ Suka</button>
+        <button onclick="commentPost()">💬 Komentar</button>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const cid = urlParams.get("cid");
+    if (!cid) {
+      alert("❌ Akses tidak valid. Silakan login terlebih dahulu.");
+      window.location.href = "/login.html";
+    }
+
+    function likePost() {
+      alert("👍 Like tercatat untuk CID: " + cid);
+      // TODO: Send like to backend
+    }
+
+    function commentPost() {
+      const komentar = prompt("Tulis komentar:");
+      if (komentar) {
+        alert("💬 Komentar oleh " + cid + ": " + komentar);
+        // TODO: Send comment to backend
+      }
+    }
+  </script>
+</body>
+</html>

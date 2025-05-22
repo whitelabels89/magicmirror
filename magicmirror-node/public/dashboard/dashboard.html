@@ -1445,7 +1445,12 @@ async function updateFollowing(targetCid, isFollow = true) {
 
     // Bottom Nav Bar Functions
     function goHome() {
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      const cid = localStorage.getItem("cid");
+      if (cid) {
+        window.location.href = `/dashboard/home.html?cid=${cid}`;
+      } else {
+        alert("⚠️ CID tidak ditemukan.");
+      }
     }
     function goSearch() {
       alert("🔍 Fitur pencarian coming soon!");
