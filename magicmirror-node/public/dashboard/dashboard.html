@@ -993,6 +993,8 @@ async function updateFollowing(targetCid, isFollow = true) {
               });
               document.getElementById("uploadForm").style.display = "none";
               document.getElementById("profileNote").style.display = "none";
+              document.getElementById("profileNote").style.display = "none";
+              document.querySelector('#profileNote button').style.display = "none";
 
               // Tampilkan tombol Follow/Unfollow sesuai status follow
               const followUnfollowBtn = document.getElementById("followUnfollowBtn");
