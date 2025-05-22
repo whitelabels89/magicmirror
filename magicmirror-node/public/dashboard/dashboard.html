@@ -577,7 +577,7 @@
         <div id="profileButtons">
           <button>Edit Profile</button>
           <button onclick="openShareModal()">Share Profile</button>
-          <button id="unfollowBtn" style="display:none;" onclick="updateFollowing(cid, false)">Unfollow</button>
+          <!-- <button id="unfollowBtn" style="display:none;" onclick="updateFollowing(cid, false)">Unfollow</button> -->
           <button onclick="toggleTheme()">Switch Theme</button>
           <button id="followUnfollowBtn" style="display:none;">Follow</button>
         </div>
@@ -937,18 +937,14 @@ async function updateFollowing(targetCid, isFollow = true) {
           document.getElementById("loading").style.display = "none";
           document.getElementById("dashboard").style.display = "block";
           if (!isOwner) {
-            // Sembunyikan tombol edit, share, switch theme, unfollow lama
-            // Tapi tetap tampilkan tombol follow/unfollow dinamis
+            // Sembunyikan tombol edit, share, switch theme (kecuali followUnfollowBtn)
             const profileButtons = document.getElementById("profileButtons");
-            // Sembunyikan semua tombol kecuali followUnfollowBtn
             Array.from(profileButtons.children).forEach(btn => {
               if (btn.id !== "followUnfollowBtn") btn.style.display = "none";
             });
             document.getElementById("uploadForm").style.display = "none";
             document.getElementById("profileNote").style.display = "none";
-            // Setelah data followList didapat, tampilkan tombol follow/unfollow
-            // followList sudah didefinisikan sebelumnya (lihat bagian fetch daftar following)
-            // Pastikan followList sudah diisi sebelum logika ini dijalankan
+            // Cek apakah followList sudah didapat (dari fetch sebelumnya)
             const followUnfollowBtn = document.getElementById("followUnfollowBtn");
             let isFollowed = false;
             try {
@@ -961,7 +957,10 @@ async function updateFollowing(targetCid, isFollow = true) {
               const currentlyFollowed = followUnfollowBtn.dataset.isFollowed === "true";
               updateFollowing(cid, !currentlyFollowed);
             };
+            // Pastikan tombol tampil dan tidak tertutup elemen lain
             followUnfollowBtn.style.display = "inline-block";
+            followUnfollowBtn.style.position = "relative";
+            followUnfollowBtn.style.zIndex = "10";
           }
 
           document.getElementById("namaAnak").innerText = data.nama || "-";
