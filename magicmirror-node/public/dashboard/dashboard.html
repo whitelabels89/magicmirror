@@ -832,7 +832,7 @@
                     `;
                     // Hanya render tombol follow/unfollow jika !isOwner (bukan pemilik profil)
                     if (!isOwner) {
-                      const isFollowed = true; // default true, bisa dibuat lebih dinamis jika ada data
+                      const isFollowed = loginFollowingCIDs.includes(user.cid);
                       const button = document.createElement("button");
                       button.innerText = "Unfollow";
                       button.style.marginLeft = "auto";
@@ -970,30 +970,34 @@ async function updateFollowing(targetCid, isFollow = true) {
             }
           }
 
-          fetchLoginFollowing();
-          if (!isOwner) {
-            // Sembunyikan tombol-tombol lainnya (hanya tampilkan follow/unfollow)
-            const profileButtons = document.getElementById("profileButtons");
-            Array.from(profileButtons.children).forEach(btn => {
-              if (btn.id !== "followUnfollowBtn") btn.style.display = "none";
-            });
-            document.getElementById("uploadForm").style.display = "none";
-            document.getElementById("profileNote").style.display = "none";
+          // Pastikan fetchLoginFollowing dipanggil dan selesai sebelum render tombol follow/unfollow user target
+          (async function() {
+            await fetchLoginFollowing();
+            if (!isOwner) {
+              // Sembunyikan tombol-tombol lainnya (hanya tampilkan follow/unfollow)
+              const profileButtons = document.getElementById("profileButtons");
+              Array.from(profileButtons.children).forEach(btn => {
+                if (btn.id !== "followUnfollowBtn") btn.style.display = "none";
+              });
+              document.getElementById("uploadForm").style.display = "none";
+              document.getElementById("profileNote").style.display = "none";
 
-            // Tampilkan tombol Follow/Unfollow sesuai status follow
-            const followUnfollowBtn = document.getElementById("followUnfollowBtn");
-            const isFollowed = loginFollowingCIDs.includes(cid);
+              // Tampilkan tombol Follow/Unfollow sesuai status follow
+              const followUnfollowBtn = document.getElementById("followUnfollowBtn");
+              // Validasi agar loginFollowingCIDs sudah terisi sebelum digunakan
+              const isFollowed = loginFollowingCIDs && loginFollowingCIDs.length > 0 ? loginFollowingCIDs.includes(cid) : false;
 
-            followUnfollowBtn.innerText = isFollowed ? "Unfollow" : "Follow";
-            followUnfollowBtn.dataset.isFollowed = isFollowed;
-            followUnfollowBtn.onclick = async () => {
-              const currentlyFollowed = followUnfollowBtn.dataset.isFollowed === "true";
-              await updateFollowing(cid, !currentlyFollowed);
-            };
-            followUnfollowBtn.style.display = "inline-block";
-            followUnfollowBtn.style.position = "relative";
-            followUnfollowBtn.style.zIndex = "10";
-          }
+              followUnfollowBtn.innerText = isFollowed ? "Unfollow" : "Follow";
+              followUnfollowBtn.dataset.isFollowed = isFollowed;
+              followUnfollowBtn.onclick = async () => {
+                const currentlyFollowed = followUnfollowBtn.dataset.isFollowed === "true";
+                await updateFollowing(cid, !currentlyFollowed);
+              };
+              followUnfollowBtn.style.display = "inline-block";
+              followUnfollowBtn.style.position = "relative";
+              followUnfollowBtn.style.zIndex = "10";
+            }
+          })();
 
           document.getElementById("namaAnak").innerText = data.nama || "-";
           document.getElementById("profileName").innerText = data.nama || "-";
