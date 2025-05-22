@@ -567,8 +567,8 @@
         <div id="profileName">Nama Anak</div>
         <div id="profileStats">
           <div><strong id="totalPosts">0</strong><br>Posts</div>
-          <div><strong>1M</strong><br>Followers</div>
-          <div><strong>2</strong><br>Following</div>
+          <div><strong id="totalFollowers">0</strong><br>Followers</div>
+          <div><strong id="totalFollowing">0</strong><br>Following</div>
         </div>
         <div id="profileBio" style="margin-top: 0.5rem; font-size: 0.85rem; line-height: 1.4;">
           <p id="tipeBakat">talent: -</p>
@@ -955,6 +955,19 @@ async function updateFollowing(targetCid, isFollow = true) {
 
           document.getElementById("loading").style.display = "none";
           document.getElementById("dashboard").style.display = "block";
+          // --- PATCH: Fetch following dari akun login sebelum logika follow/unfollow ---
+          let loginFollowingCIDs = [];
+          fetch(`https://firebase-upload-backend.onrender.com/proxy-following?cid=${cid_login}&action=getfollowing`)
+            .then(res => res.json())
+            .then(data => {
+              if (Array.isArray(data)) {
+                loginFollowingCIDs = data.map(u => typeof u === "object" ? u.cid : u);
+              }
+            })
+            .catch(err => {
+              console.error("❌ Gagal mengambil following user login:", err);
+            });
+
           if (!isOwner) {
             // Sembunyikan tombol edit, share, switch theme (kecuali followUnfollowBtn)
             const profileButtons = document.getElementById("profileButtons");
@@ -963,11 +976,11 @@ async function updateFollowing(targetCid, isFollow = true) {
             });
             document.getElementById("uploadForm").style.display = "none";
             document.getElementById("profileNote").style.display = "none";
-            // Cek apakah followList sudah didapat (dari fetch sebelumnya)
+            // Gunakan loginFollowingCIDs untuk cek status follow
             const followUnfollowBtn = document.getElementById("followUnfollowBtn");
             let isFollowed = false;
             try {
-              isFollowed = Array.isArray(followList) && followList.includes(cid);
+              isFollowed = loginFollowingCIDs.includes(cid);
             } catch (e) {}
 
             followUnfollowBtn.innerText = isFollowed ? "Unfollow" : "Follow";
@@ -992,6 +1005,8 @@ async function updateFollowing(targetCid, isFollow = true) {
             document.querySelector("#bottomNavBar button:last-child img").src = data.foto;
           }
           document.getElementById("totalPosts").innerText = data.karya ? data.karya.length : 0;
+          document.getElementById("totalFollowers").innerText = data.follower ? data.follower.length : 0;
+          document.getElementById("totalFollowing").innerText = data.following ? data.following.length : 0;
           document.getElementById("usiaAnak").innerText = `Usia: ${data.usia || "-"}`;
           document.getElementById("kesimpulanAI").innerText = data.kesimpulan || "-";
           document.getElementById("tipeBakat").innerText = `Talent: ${data.tipe_bakat || "-"}`;
