@@ -969,28 +969,24 @@ async function updateFollowing(targetCid, isFollow = true) {
             });
 
           if (!isOwner) {
-            // Sembunyikan tombol edit, share, switch theme (kecuali followUnfollowBtn)
+            // Sembunyikan tombol-tombol lainnya (hanya tampilkan follow/unfollow)
             const profileButtons = document.getElementById("profileButtons");
             Array.from(profileButtons.children).forEach(btn => {
               if (btn.id !== "followUnfollowBtn") btn.style.display = "none";
             });
             document.getElementById("uploadForm").style.display = "none";
             document.getElementById("profileNote").style.display = "none";
-            // Gunakan loginFollowingCIDs untuk cek status follow
+
+            // Tampilkan tombol Follow/Unfollow sesuai status follow
             const followUnfollowBtn = document.getElementById("followUnfollowBtn");
-            let isFollowed = false;
-            try {
-              isFollowed = loginFollowingCIDs.includes(cid);
-            } catch (e) {}
+            const isFollowed = loginFollowingCIDs.includes(cid);
 
             followUnfollowBtn.innerText = isFollowed ? "Unfollow" : "Follow";
             followUnfollowBtn.dataset.isFollowed = isFollowed;
             followUnfollowBtn.onclick = async () => {
-              // Update status follow/unfollow agar sinkron dengan database
               const currentlyFollowed = followUnfollowBtn.dataset.isFollowed === "true";
               await updateFollowing(cid, !currentlyFollowed);
             };
-            // Pastikan tombol tampil dan tidak tertutup elemen lain
             followUnfollowBtn.style.display = "inline-block";
             followUnfollowBtn.style.position = "relative";
             followUnfollowBtn.style.zIndex = "10";
