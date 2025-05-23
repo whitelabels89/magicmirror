@@ -117,6 +117,7 @@
   <script>
     const urlParams = new URLSearchParams(window.location.search);
     const cid = urlParams.get("cid");
+    localStorage.setItem("cid_login", cid);
     if (!cid) {
       alert("❌ Akses tidak valid. Silakan login terlebih dahulu.");
       window.location.href = "/login.html";
@@ -140,8 +141,68 @@
     fetch('/dashboard/botnav.html')
       .then(res => res.text())
       .then(html => {
-        document.getElementById('navPlaceholder').innerHTML = html;
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+
+        const styles = doc.querySelectorAll('style');
+        styles.forEach(style => document.head.appendChild(style));
+
+        const scripts = doc.querySelectorAll('script');
+        scripts.forEach(script => {
+          const s = document.createElement('script');
+          if (script.src) {
+            s.src = script.src;
+          } else {
+            s.textContent = script.textContent;
+          }
+          document.body.appendChild(s);
+        });
+
+        const bodyContent = doc.body || doc;
+        document.getElementById('navPlaceholder').innerHTML = bodyContent.innerHTML;
+
+        // Versi baru: gunakan setInterval untuk menunggu elemen #botnavFoto muncul sebelum mengatur src foto
+        const cidLogin = localStorage.getItem("cid_login");
+        if (cidLogin) {
+          fetch(`https://firebase-upload-backend.onrender.com/proxy-getprofile?cid=${cidLogin}`)
+            .then(res => res.json())
+            .then(data => {
+              if (data && data.foto) {
+                const interval = setInterval(() => {
+                  const fotoEl = document.getElementById("botnavFoto");
+                  if (fotoEl) {
+                    fotoEl.src = data.foto;
+                    clearInterval(interval);
+                  }
+                }, 100);
+              }
+            });
+        }
+
+        
+        if (cidLogin) {
+          fetch(`https://firebase-upload-backend.onrender.com/proxy-getprofile?cid=${cidLogin}`)
+            .then(res => res.json())
+            .then(data => {
+              if (data && data.foto) {
+                const fotoEl = document.getElementById("botnavFoto");
+                if (fotoEl) {
+                  fotoEl.src = data.foto;
+                }
+              }
+            });
+        }
       });
+  </script>
+  <script>
+    const cidLogin = cid; // dari URL parameter yang sudah ada di atas
+    window.goProfile = function () {
+      if (cidLogin) {
+        window.location.href = `/dashboard/dashboard.html?cid=${cidLogin}`;
+      } else {
+        window.location.href = "/"; // fallback
+      }
+    };
   </script>
 </body>
 </html>

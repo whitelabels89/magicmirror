@@ -14,7 +14,7 @@
       <img src="https://img.icons8.com/ios-filled/24/ffffff/cinema-.png" alt="Reels" />
     </button>
     <button onclick="goProfile()">
-      <img src="https://placehold.co/32x32" alt="Profile" />
+      <img id="botnavFoto" src="https://placehold.co/32x32" alt="Profile" />
     </button>
   </div>
 </div>
@@ -66,5 +66,30 @@
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid #aad9f5;
+  filter: none !important;
 }
 </style>
+
+<script>
+  const cidLogin = localStorage.getItem("cid_login");
+  if (cidLogin) {
+    fetch(`https://firebase-upload-backend.onrender.com/proxy-getprofile?cid=${cidLogin}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.foto) {
+          document.getElementById("botnavFoto").src = data.foto;
+        }
+      })
+      .catch(err => {
+        console.error("❌ Gagal memuat foto profil:", err);
+      });
+  }
+
+  window.goProfile = function () {
+    if (cidLogin) {
+      window.location.href = `/dashboard/dashboard.html?cid=${cidLogin}`;
+    } else {
+      window.location.href = "/"; // fallback jika tidak login
+    }
+  };
+</script>

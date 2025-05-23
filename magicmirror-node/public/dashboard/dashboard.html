@@ -20,6 +20,13 @@
       color: #003c5a;
       border: 1px solid #c0e7f5;
     }
+    /* Override khusus untuk tombol #profileNote button di tema biru agar tidak ikut pewarisan dari tema lain */
+    .theme-default #profileNote button {
+      background-color: #ffffff;
+      color: #003c5a;
+      border: 1px solid #c0e7f5;
+      padding: 8px 16px;
+    }
     .theme-default .modal-content {
       background-color: #ffffff;
       color: #003c5a;
@@ -41,28 +48,29 @@
       border: 1px solid #c0e7f5;
     }
 
-    /* ====== THEME LEGACY (Hijau-Gold Lama) ====== */
+    /* ====== THEME LEGACY (Fun Modern: Pink, Coral, Yellow) ====== */
     body.theme-legacy {
-      background-color: #0d2d2b;
-      color: #ffe58e;
+      background: #ffd6e0;
+      color: #4b2e2e;
     }
     .theme-legacy .dashboard-card {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,229,142,0.15);
-      border-radius: 16px;
-      padding: 0.5rem 0;
+      background: #ffffff;
+      border: 2px solid #ffb3c6;
+      border-radius: 20px;
+      padding: 1rem;
       margin-bottom: 1.5rem;
-      overflow: visible;
+      box-shadow: 0 4px 8px rgba(255, 182, 193, 0.3);
     }
     .theme-legacy #profileButtons button,
     .theme-legacy #profileNote button {
-      background: transparent;
-      color: #ffe58e;
-      border: 1px solid #ffe58e;
+      background-color: #ffb3c6;
+      color: white;
+      border: none;
+      font-weight: bold;
     }
     .theme-legacy .modal-content {
-      background-color: #0d2d2b;
-      color: #ffe58e;
+      background-color: #fff0f5;
+      color: #4b2e2e;
     }
     .theme-legacy .badge-item span,
     .theme-legacy .dashboard-card p,
@@ -71,14 +79,15 @@
     .theme-legacy .dashboard-card h3,
     .theme-legacy .dashboard-card h4,
     .theme-legacy #professionalContent {
-      color: #ffe58e;
+      color: #4b2e2e;
     }
     .theme-legacy #galeri {
-      background-color: transparent;
-      border: none;
+      background-color: #fffafc;
+      border: 1px solid #ffb3c6;
     }
     .theme-legacy #galeri img {
-      border: none;
+      border: 1px solid #ffb3c6;
+      border-radius: 8px;
     }
 
     /* ====== END THEME PATCH ====== */
@@ -602,7 +611,7 @@
 </head>
 <body class="theme-default">
   <!-- Hamburger Menu Toggle -->
-  <button id="menuToggle" aria-label="Menu" title="Menu">
+  <button id="menuToggle" aria-label="Menu" title="Menu" style="border: 1px solid; border-radius: 10px; background: transparent; padding: 6px; margin-top: 4px;">
     <span style="display:inline-block;vertical-align:middle;">
       <svg width="28" height="28" viewBox="0 0 28 28" style="vertical-align:middle;" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect y="6" width="28" height="3" rx="1.5" fill="currentColor"/>
@@ -641,8 +650,8 @@
         <div id="profileName">Nama Anak</div>
         <div id="profileStats">
           <div><strong id="totalPosts">0</strong><br>Posts</div>
-          <div><strong id="totalFollowers">0</strong><br>Followers</div>
-          <div><strong id="totalFollowing">0</strong><br>Following</div>
+          <div onclick="openFollowerModal()" style="cursor:pointer;"><strong id="totalFollowers">0</strong><br>Followers</div>
+          <div onclick="openFollowingModal()" style="cursor:pointer;"><strong id="totalFollowing">0</strong><br>Following</div>
         </div>
         <div id="profileBio" style="margin-top: 0.5rem; font-size: 0.85rem; line-height: 1.4;">
           <p id="tipeBakat">talent: -</p>
@@ -656,7 +665,7 @@
           <button id="followUnfollowBtn" style="display:none;">Follow</button>
         </div>
         <div id="profileNote">
-          <button onclick="toggleProfessional()" style="flex: 1; margin: 0 5px; padding: 8px 12px; border-radius: 10px; border: 1px solid #ffe58e; background: transparent; color: #ffe58e; font-weight: bold; cursor: pointer;">Show / Hide Dashboard</button>
+          <button onclick="toggleProfessional()" style="flex: 1; margin: 0 5px; padding: 8px 0; border-radius: 10px; border: 1px solid #ffe58e; background: transparent; color: #ffe58e; font-weight: bold; cursor: pointer;">Show / Hide Dashboard</button>
           <div id="professionalContent">
             <h2 id="namaAnak"></h2>
             <p id="usiaAnak"></p>
@@ -669,25 +678,31 @@
         </div>
       </div>
 
-      <div class="dashboard-card" id="badgeCard">
+      <div class="dashboard-card" id="badgeGaleriCard">
         <h3 style="margin: 0.5rem 0;">🏅 Badge</h3>
         <div id="badgeList"></div>
-      </div>
-
-      <div class="dashboard-card" id="followingCard">
-        <h3>👥 Mengikuti</h3>
-        <div id="followingList"></div>
-      </div>
-
-      <div class="dashboard-card">
-        <h3>🔍 Jelajahi Akun Lain</h3>
-        <div id="exploreList"></div>
-      </div>
-
-      <div class="dashboard-card" id="galeriCard">
-        <h3>🎨 Galeri Karya Anak</h3>
+        <h3 style="margin: 1rem 0 0.5rem;">🎨 Galeri Karya Anak</h3>
         <div id="galeri"></div>
       </div>
+
+      <!-- Following and Explore sections removed as per instruction -->
+</body>
+  <div id="followingModal" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-close" onclick="document.getElementById('followingModal').style.display='none'">×</div>
+      <h3>👥 Daftar Following</h3>
+      <div id="modalFollowingList" style="max-height: 60vh; overflow-y: auto;"></div>
+    </div>
+  </div>
+
+  <div id="followerModal" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-close" onclick="document.getElementById('followerModal').style.display='none'">×</div>
+      <h3>👥 Daftar Follower</h3>
+      <div id="modalFollowerList" style="max-height: 60vh; overflow-y: auto;"></div>
+    </div>
+  </div>
+
 
       <div class="dashboard-card">
         <h3>📚 Rekomendasi Kelas</h3>
@@ -699,7 +714,7 @@
         <form id="uploadForm">
           <input type="file" id="fileInput" accept="image/*" required>
           <input type="text" id="titleInput" placeholder="Judul karya" required>
-          <button type="submit">Upload Karya</button>
+          <button type="submit" style="flex: 1; margin: 0 5px; padding: 8px 0; border-radius: 10px; border: 1px solid; background: transparent; font-weight: bold; cursor: pointer;">Upload Karya</button>
           <div id="uploadStatus"></div>
         </form>
       </div>
@@ -710,6 +725,88 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script>
+    function openFollowingModal() {
+      const modal = document.getElementById("followingModal");
+      const list = document.getElementById("modalFollowingList");
+      list.innerHTML = "⏳ Memuat...";
+
+      fetch(`https://firebase-upload-backend.onrender.com/proxy-following?cid=${cid}&action=getfollowing`)
+        .then(r => r.json())
+        .then(followingData => {
+          list.innerHTML = "";
+          if (!Array.isArray(followingData)) {
+            if (followingData && followingData.hasOwnProperty("cid")) {
+              followingData = [followingData];
+            } else {
+              list.innerHTML = "<p>❌ Gagal memuat data.</p>";
+              return;
+            }
+          }
+
+          if (followingData.length === 0) {
+            list.innerHTML = "<p>Belum mengikuti akun lain.</p>";
+            return;
+          }
+
+          followingData.forEach(user => {
+            const div = document.createElement("div");
+            div.style.marginBottom = "8px";
+            div.innerHTML = `
+              <a href="/dashboard/dashboard.html?cid=${user.cid}" style="display:flex;align-items:center;text-decoration:none;color:inherit;">
+                <img src="${user.foto}" style="width:40px;height:40px;border-radius:50%;margin-right:8px;object-fit:cover;">
+                <span>${user.nama}</span>
+              </a>
+            `;
+            list.appendChild(div);
+          });
+        })
+        .catch(err => {
+          console.error("❌ Gagal load following:", err);
+          list.innerHTML = "<p>❌ Gagal memuat data.</p>";
+        });
+
+      modal.style.display = "flex";
+      history.pushState({ modal: "following" }, '', '#following');
+    }
+
+    function openFollowerModal() {
+      const modal = document.getElementById("followerModal");
+      const list = document.getElementById("modalFollowerList");
+      fetch(`https://firebase-upload-backend.onrender.com/proxy-follower?cid=${cid}&action=getfollower`)
+        .then(r => r.json())
+        .then(data => {
+          list.innerHTML = "";
+          if (!Array.isArray(data)) return list.innerHTML = "<p>❌ Gagal muat data.</p>";
+          data.forEach(user => {
+            const div = document.createElement("div");
+            div.style.marginBottom = "8px";
+            div.innerHTML = `
+              <a href="/dashboard/dashboard.html?cid=${user.cid}" style="display:flex;align-items:center;text-decoration:none;color:inherit;">
+                <img src="${user.foto}" style="width:40px;height:40px;border-radius:50%;margin-right:8px;object-fit:cover;">
+                <span>${user.nama}</span>
+              </a>
+            `;
+            list.appendChild(div);
+          });
+        });
+      modal.style.display = "flex";
+      // Tambahkan pushState untuk modal follower
+      history.pushState({ modal: "follower" }, '', '#follower');
+    }
+
+    // Fungsi untuk close modal saat tekan tombol Back (popstate)
+    window.addEventListener("popstate", function (event) {
+      const followingModal = document.getElementById("followingModal");
+      const followerModal = document.getElementById("followerModal");
+      if (followingModal && followingModal.style.display === "flex") {
+        followingModal.style.display = "none";
+        history.replaceState(null, '', location.pathname + location.search);
+      }
+      if (followerModal && followerModal.style.display === "flex") {
+        followerModal.style.display = "none";
+        history.replaceState(null, '', location.pathname + location.search);
+      }
+    });
     const firebaseConfig = {
       apiKey: "AIzaSyAy70WBTa9zWkFi49WhXLGnJYRbLVb6n8A",
       authDomain: "socmed-karya-anak.firebaseapp.com",
