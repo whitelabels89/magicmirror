@@ -161,6 +161,23 @@
         const bodyContent = doc.body || doc;
         document.getElementById('navPlaceholder').innerHTML = bodyContent.innerHTML;
 
+        // Versi baru: gunakan setInterval untuk menunggu elemen #botnavFoto muncul sebelum mengatur src foto
+        const cidLogin = localStorage.getItem("cid_login");
+        if (cidLogin) {
+          fetch(`https://firebase-upload-backend.onrender.com/proxy-getprofile?cid=${cidLogin}`)
+            .then(res => res.json())
+            .then(data => {
+              if (data && data.foto) {
+                const interval = setInterval(() => {
+                  const fotoEl = document.getElementById("botnavFoto");
+                  if (fotoEl) {
+                    fotoEl.src = data.foto;
+                    clearInterval(interval);
+                  }
+                }, 100);
+              }
+            });
+        }
 
         
       });
