@@ -161,48 +161,9 @@
         const bodyContent = doc.body || doc;
         document.getElementById('navPlaceholder').innerHTML = bodyContent.innerHTML;
 
-        // Versi baru: gunakan setInterval untuk menunggu elemen #botnavFoto muncul sebelum mengatur src foto
-        const cidLogin = localStorage.getItem("cid_login");
-        if (cidLogin) {
-          fetch(`https://firebase-upload-backend.onrender.com/proxy-getprofile?cid=${cidLogin}`)
-            .then(res => res.json())
-            .then(data => {
-              if (data && data.foto) {
-                const interval = setInterval(() => {
-                  const fotoEl = document.getElementById("botnavFoto");
-                  if (fotoEl) {
-                    fotoEl.src = data.foto;
-                    clearInterval(interval);
-                  }
-                }, 100);
-              }
-            });
-        }
 
         
-        if (cidLogin) {
-          fetch(`https://firebase-upload-backend.onrender.com/proxy-getprofile?cid=${cidLogin}`)
-            .then(res => res.json())
-            .then(data => {
-              if (data && data.foto) {
-                const fotoEl = document.getElementById("botnavFoto");
-                if (fotoEl) {
-                  fotoEl.src = data.foto;
-                }
-              }
-            });
-        }
       });
-  </script>
-  <script>
-    const cidLogin = cid; // dari URL parameter yang sudah ada di atas
-    window.goProfile = function () {
-      if (cidLogin) {
-        window.location.href = `/dashboard/dashboard.html?cid=${cidLogin}`;
-      } else {
-        window.location.href = "/"; // fallback
-      }
-    };
   </script>
 </body>
 </html>
