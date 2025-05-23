@@ -165,5 +165,15 @@
         
       });
   </script>
+  <script>
+    const cidLogin = cid; // dari URL parameter yang sudah ada di atas
+    window.goProfile = function () {
+      if (cidLogin) {
+        window.location.href = `/dashboard/dashboard.html?cid=${cidLogin}`;
+      } else {
+        window.location.href = "/"; // fallback
+      }
+    };
+  </script>
 </body>
 </html>
