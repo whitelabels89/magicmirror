@@ -1,5 +1,5 @@
 <!-- This version is for dashboard only. Make sure to load this file with class 'dashboard-botnav' applied to avoid global style conflicts -->
-<div id="botnavWrapper" class="botnav-theme">
+<div id="botnavWrapper" class="dashboard-botnav">
   <div id="bottomNavBar">
     <button onclick="goHome()">
       <img src="https://img.icons8.com/ios-filled/24/ffffff/home.png" alt="Home" />
@@ -108,6 +108,4 @@
     }
   };
 
-  const themeClass = document.body?.className || "theme-default";
-  document.getElementById("botnavWrapper")?.classList.add(themeClass);
 </script>
