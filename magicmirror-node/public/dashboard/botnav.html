@@ -1,5 +1,5 @@
 <!-- This version is for dashboard only. Make sure to load this file with class 'dashboard-botnav' applied to avoid global style conflicts -->
-<div class="botnav-theme dashboard-botnav">
+<div id="botnavWrapper" class="botnav-theme">
   <div id="bottomNavBar">
     <button onclick="goHome()">
       <img src="https://img.icons8.com/ios-filled/24/ffffff/home.png" alt="Home" />
@@ -68,6 +68,21 @@
   border: 2px solid #aad9f5;
   filter: none !important;
 }
+
+.theme-legacy.dashboard-botnav {
+  background-color: #ffe3ec;
+  color: #4b2e2e;
+}
+.theme-legacy.dashboard-botnav #bottomNavBar {
+  background-color: #ffe3ec !important;
+  border-top: 1px solid #ffb3c6;
+}
+.theme-legacy.dashboard-botnav #bottomNavBar button {
+  color: #4b2e2e !important;
+}
+.theme-legacy.dashboard-botnav #bottomNavBar button:last-child img {
+  border: 2px solid #ffb3c6;
+}
 </style>
 
 <script>
@@ -92,4 +107,7 @@
       window.location.href = "/"; // fallback jika tidak login
     }
   };
+
+  const themeClass = document.body?.className || "theme-default";
+  document.getElementById("botnavWrapper")?.classList.add(themeClass);
 </script>

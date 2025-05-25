@@ -14,6 +14,9 @@
       background: #ffffff;
       border: 1px solid #c0e7f5;
     }
+    .theme-default .dashboard-card h3 {
+      padding: 0 12px;
+    }
     .theme-default #profileButtons button,
     .theme-default #profileNote button {
       background-color: #ffffff;
@@ -50,9 +53,16 @@
       background: #ffffff;
       border: 2px solid #ffb3c6;
       border-radius: 20px;
-      padding: 1rem 12px;
+      padding: 1rem 0;
       margin-bottom: 1.5rem;
       box-shadow: 0 4px 8px rgba(255, 182, 193, 0.3);
+    }
+
+    .theme-legacy .dashboard-card h3,
+    .theme-legacy .dashboard-card p,
+    .theme-legacy .dashboard-card ul {
+      padding-left: 12px;
+      padding-right: 12px;
     }
     .theme-legacy #profileButtons button,
     .theme-legacy #profileNote button {
@@ -1661,8 +1671,9 @@ async function updateFollowing(targetCid, isFollow = true) {
         const wrapper = document.createElement("div");
         wrapper.innerHTML = bodyContent.innerHTML;
 
-        // Tambahkan class theme-default secara eksplisit
-        wrapper.classList.add("theme-default");
+        // Tambahkan class theme yang aktif pada body ke wrapper botnav
+        const currentTheme = document.body.className || "theme-default";
+        wrapper.classList.add(currentTheme);
 
         document.getElementById('navPlaceholder').innerHTML = "";
         document.getElementById('navPlaceholder').appendChild(wrapper);
