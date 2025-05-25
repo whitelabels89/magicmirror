@@ -20,13 +20,6 @@
       color: #003c5a;
       border: 1px solid #c0e7f5;
     }
-    /* Override khusus untuk tombol #profileNote button di tema biru agar tidak ikut pewarisan dari tema lain */
-    .theme-default #profileNote button {
-      background-color: #ffffff;
-      color: #003c5a;
-      border: 1px solid #c0e7f5;
-      padding: 8px 16px;
-    }
     .theme-default .modal-content {
       background-color: #ffffff;
       color: #003c5a;
@@ -57,7 +50,7 @@
       background: #ffffff;
       border: 2px solid #ffb3c6;
       border-radius: 20px;
-      padding: 1rem;
+      padding: 1rem 12px;
       margin-bottom: 1.5rem;
       box-shadow: 0 4px 8px rgba(255, 182, 193, 0.3);
     }
@@ -664,8 +657,8 @@
           <button onclick="toggleTheme()">Switch Theme</button>
           <button id="followUnfollowBtn" style="display:none;">Follow</button>
         </div>
-        <div id="profileNote">
-          <button onclick="toggleProfessional()" style="flex: 1; margin: 0 5px; padding: 8px 0; border-radius: 10px; border: 1px solid #ffe58e; background: transparent; color: #ffe58e; font-weight: bold; cursor: pointer;">Show / Hide Dashboard</button>
+        <div id="profileNote" style="margin-bottom: 0.25rem;">
+          <button onclick="toggleProfessional()" style="padding: 8px 16px;">Show / Hide Dashboard</button>
           <div id="professionalContent">
             <h2 id="namaAnak"></h2>
             <p id="usiaAnak"></p>
@@ -975,65 +968,6 @@
         .then(res => res.json())
         .then(res => {
           data = res;
-          // Tampilkan daftar akun yang diikuti (following)
-          if (isOwner || !isOwner) {
-            // Pastikan fetchLoginFollowing dipanggil sebelum render followingList
-            (async function() {
-              await fetchLoginFollowing();
-              fetch(`https://firebase-upload-backend.onrender.com/proxy-following?cid=${cid}&action=getfollowing`)
-                .then(r => r.json())
-                .then(followingData => {
-                  const followingList = document.getElementById("followingList");
-                  followingList.innerHTML = "";
-                  // PATCH: handle both array and single object (getprofile)
-                  if (!Array.isArray(followingData)) {
-                    if (followingData && followingData.hasOwnProperty("cid")) {
-                      followingData = [followingData]; // Konversi jadi array jika hanya 1 user
-                    } else {
-                      console.error("❌ Data following bukan array:", followingData);
-                      document.getElementById("followingList").innerText = "❌ Gagal memuat data.";
-                      return;
-                    }
-                  }
-                  if (followingData.length > 0) {
-                    followingData.forEach(user => {
-                      const div = document.createElement("div");
-                      div.style.marginBottom = "8px";
-                      div.style.display = "flex";
-                      div.style.alignItems = "center";
-                      div.innerHTML = `
-                        <a href="/dashboard/dashboard.html?cid=${user.cid}" style="display:flex;align-items:center;text-decoration:none;color:inherit;">
-                          <img src="${user.foto}" style="width:40px;height:40px;border-radius:50%;margin-right:8px;object-fit:cover;">
-                          <span>${user.nama}</span>
-                        </a>
-                      `;
-                      // PATCH: Render tombol Unfollow jika !isOwner dan user ada di loginFollowingCIDs
-                      if (!isOwner && loginFollowingCIDs.includes(user.cid)) {
-                        const button = document.createElement("button");
-                        button.innerText = "Unfollow";
-                        button.style.marginLeft = "auto";
-                        button.style.padding = "4px 10px";
-                        button.style.fontSize = "0.8rem";
-                        button.style.borderRadius = "6px";
-                        button.style.cursor = "pointer";
-                        button.style.border = "1px solid #ffe58e";
-                        button.style.background = "transparent";
-                        button.style.color = "#ffe58e";
-                        button.onclick = () => updateFollowing(user.cid, false); // panggil fungsi unfollow
-                        div.appendChild(button);
-                      }
-                      followingList.appendChild(div);
-                    });
-                  } else {
-                    followingList.innerText = "Belum mengikuti akun lain.";
-                  }
-                })
-                .catch(err => {
-                  console.error("❌ Gagal memuat daftar following:", err);
-                  document.getElementById("followingList").innerText = "❌ Gagal memuat data.";
-                });
-            })();
-          }
 // Fungsi global untuk update following (follow/unfollow)
 async function updateFollowing(targetCid, isFollow = true) {
   try {
