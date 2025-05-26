@@ -1493,9 +1493,15 @@ async function updateFollowing(targetCid, isFollow = true) {
 
     function modalLike() {
       const heart = document.getElementById("heartOverlay");
+      if (!heart) return;
+      heart.style.display = "block"; // Pastikan overlay tampil
+      heart.classList.remove("show"); // Reset dulu
+      void heart.offsetWidth; // Trigger reflow agar animasi bisa diputar ulang
       heart.classList.add("show");
+      // Sembunyikan overlay setelah animasi selesai
       setTimeout(() => {
         heart.classList.remove("show");
+        heart.style.display = "none";
       }, 1000);
     }
     function modalComment() {
@@ -1621,9 +1627,6 @@ document.getElementById("uploadForm").addEventListener("submit", async function 
     function renderFeedPost(post) {
       // Ambil nama depan dari post.nama jika ada, fallback ke cid jika tidak ada nama
       const namaDepan = (post.nama || post.cid || "").split(" ")[0];
-      // Contoh penggunaan:
-      // <div>🎨 <strong>${post.cid}</strong> baru saja mengunggah: ${post.judul}</div>
-      // Menjadi:
       return `<div>🎨 <strong>${namaDepan}</strong> baru saja mengunggah: ${post.judul}</div>`;
     }
 
