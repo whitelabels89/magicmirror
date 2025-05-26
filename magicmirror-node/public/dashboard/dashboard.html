@@ -1522,39 +1522,45 @@ async function updateFollowing(targetCid, isFollow = true) {
     const titleInput = document.getElementById("titleInput");
     const uploadStatus = document.getElementById("uploadStatus");
 
-    document.getElementById("uploadForm").addEventListener("submit", async function (e) {
-      e.preventDefault();
+document.getElementById("uploadForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
 
-      const file = fileInput.files[0];
-      const title = titleInput.value;
+  const file = fileInput.files[0];
+  const title = titleInput.value;
+  const button = this.querySelector("button[type='submit']");
 
-      if (!file || !title || !cid) {
-        uploadStatus.innerText = "❌ Lengkapi semua data!";
-        return;
-      }
+  if (!file || !title || !cid) {
+    uploadStatus.innerText = "❌ Lengkapi semua data!";
+    return;
+  }
 
-      uploadStatus.innerText = "⏳ Mengunggah ke server...";
+  button.disabled = true;
+  button.innerText = "⏳ Mengunggah...";
 
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("cid", cid);
-      formData.append("title", title);
+  uploadStatus.innerText = "⏳ Uploading...";
 
-      try {
-        const res = await fetch("https://firebase-upload-backend.onrender.com/upload", {
-          method: "POST",
-          body: formData
-        });
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("cid", cid);
+  formData.append("title", title);
 
-        const result = await res.json();
-        console.log("✅ Response:", result);
-        uploadStatus.innerText = result.message || "✅ Berhasil!";
-        if (result.url) location.reload();
-      } catch (err) {
-        console.error("❌ Upload error:", err);
-        uploadStatus.innerText = "❌ Gagal upload: " + err.message;
-      }
+  try {
+    const res = await fetch("https://firebase-upload-backend.onrender.com/upload", {
+      method: "POST",
+      body: formData
     });
+
+    const result = await res.json();
+    console.log("✅ Response:", result);
+    uploadStatus.innerText = result.message || "✅ Berhasil!";
+    if (result.url) location.reload();
+  } catch (err) {
+    console.error("❌ Upload error:", err);
+    uploadStatus.innerText = "❌ Gagal upload: " + err.message;
+    button.disabled = false;
+    button.innerText = "Upload Karya";
+  }
+});
     // Fungsi hapusKarya dipanggil dari tombol hapus karya
     async function hapusKarya(id_karya) {
       console.log("🧨 Kirim hapus:", { cid, id_karya });
@@ -1608,6 +1614,17 @@ async function updateFollowing(targetCid, isFollow = true) {
         alert("⚠️ Session tidak ditemukan. Silakan login ulang.");
         window.location.href = "/login.html";
       }
+    }
+
+    // PATCHED FEED HOME RENDER POST: show nama depan atau fallback ke cid
+    // Fungsi render feed post (untuk home.html, contoh implementasi)
+    function renderFeedPost(post) {
+      // Ambil nama depan dari post.nama jika ada, fallback ke cid jika tidak ada nama
+      const namaDepan = (post.nama || post.cid || "").split(" ")[0];
+      // Contoh penggunaan:
+      // <div>🎨 <strong>${post.cid}</strong> baru saja mengunggah: ${post.judul}</div>
+      // Menjadi:
+      return `<div>🎨 <strong>${namaDepan}</strong> baru saja mengunggah: ${post.judul}</div>`;
     }
 
     function toggleProfessional() {
