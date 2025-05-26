@@ -6,27 +6,44 @@
   <title>Home - Public Feed</title>
   <link href="https://fonts.googleapis.com/css2?family=Forum&display=swap" rel="stylesheet" />
   <style>
+    .heart-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 4rem;
+      color: rgba(255, 0, 0, 0.75);
+      display: none;
+      animation: pop-heart 0.6s ease;
+      pointer-events: none;
+    }
+
+    @keyframes pop-heart {
+      0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+      50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+    }
     body {
       margin: 0;
       font-family: 'Forum', sans-serif;
-      background: linear-gradient(135deg, #f6f3e8, #e8e2d0);
-      color: #4b3d2a;
+      background: linear-gradient(135deg, #e5f3ff, #d2e9f7);
+      color: #003c5a;
     }
     header {
-      background-color: #4b3d2a;
-      color: #ffe58e;
+      background-color: #003c5a;
+      color: #e5f3ff;
       padding: 1rem;
       text-align: center;
       font-size: 1.4rem;
       font-weight: bold;
     }
     #announcement {
-      background: #fffdf6;
-      border: 1px solid #d5c9a4;
+      background: #f7fcff;
+      border: 1px solid #c0e7f5;
       padding: 10px;
       margin: 1rem;
       border-radius: 8px;
-      color: #4b3d2a;
+      color: #003c5a;
     }
     #feed {
       padding: 1rem;
@@ -35,8 +52,8 @@
       gap: 1rem;
     }
     .post {
-      background: linear-gradient(135deg, #fffdf6, #fefae0);
-      border: 2px solid #ffe58e;
+      background: linear-gradient(135deg, #ffffff, #f2faff);
+      border: 2px solid #c0e7f5;
       padding: 1rem;
       border-radius: 16px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.05);
@@ -45,6 +62,8 @@
       transition: transform 0.2s ease, box-shadow 0.2s ease;
       position: relative;
       overflow: hidden;
+      margin-left: 0;
+      margin-right: 0;
     }
     .post:hover {
       transform: translateY(-2px);
@@ -52,13 +71,13 @@
     }
     .post img {
       width: 100%;
-      max-height: 240px;
+      aspect-ratio: 1 / 1;
       object-fit: cover;
-      border-radius: 12px;
-      margin-bottom: 0.75rem;
-      border: 1px solid #ffe58e;
-      box-shadow: 0 2px 8px rgba(255,229,142,0.12);
-      background: #fffbe7;
+      border-radius: 0;
+      margin: 0;
+      border: none;
+      box-shadow: none;
+      background: transparent;
       transition: box-shadow 0.2s;
     }
     .post img:hover {
@@ -72,9 +91,9 @@
       gap: 0.5rem;
     }
     .actions button {
-      background-color: #ffe58e;
+      background-color: #c0e7f5;
       border: none;
-      color: #4b3d2a;
+      color: #003c5a;
       border-radius: 8px;
       padding: 6px 12px;
       font-weight: bold;
@@ -84,7 +103,7 @@
       outline: none;
     }
     .actions button:hover {
-      background-color: #ffda75;
+      background-color: #a6d6ec;
       transform: scale(1.05) rotate(-2deg);
     }
   </style>
@@ -96,19 +115,20 @@
     📢 <strong>Pengumuman:</strong> Jangan lewatkan event Coding Camp 28 Juni! Yuk daftar sekarang.
   </section>
 
-  <section id="heroBanner" style="margin: 1rem; text-align:center; background: #fffdf6; border: 1px solid #d5c9a4; border-radius: 8px; padding: 1rem;">
+  <section id="heroBanner" style="margin: 1rem; text-align:center; background: #f7fcff; border: 1px solid #c0e7f5; border-radius: 8px; padding: 1rem; color: #003c5a;">
     <h2 style="margin: 0;">✨ Promo Libur Sekolah</h2>
     <p style="margin: 0.5rem 0;">Ikuti kelas Coding dan Digital Creativity sekarang!</p>
-    <a href="https://wa.me/6282125896546" style="text-decoration: none; color: white; background: #4b3d2a; padding: 0.5rem 1rem; border-radius: 6px; display: inline-block; margin-top: 0.5rem;">Daftar via WhatsApp</a>
+    <a href="https://wa.me/6282125896546" style="text-decoration: none; color: white; background: #003c5a; padding: 0.5rem 1rem; border-radius: 6px; display: inline-block; margin-top: 0.5rem;">Daftar via WhatsApp</a>
   </section>
 
   <section id="feed">
     <!-- Sample post -->
     <div class="post">
       <img src="https://placehold.co/600x300" alt="Post Image" />
+      <div class="heart-overlay">❤️</div>
       <div>🎨 <strong>Nayla</strong> baru saja mengunggah karya digitalnya!</div>
       <div class="actions">
-        <button onclick="likePost()">❤️ Suka</button>
+        <button onclick="likePost(this)">❤️ Suka</button>
         <button onclick="commentPost()">💬 Komentar</button>
       </div>
     </div>
@@ -123,8 +143,14 @@
       window.location.href = "/login.html";
     }
 
-    function likePost() {
-      alert("👍 Like tercatat untuk CID: " + cid);
+    function likePost(imgElement) {
+      const heart = imgElement?.parentElement.querySelector(".heart-overlay");
+      if (heart) {
+        heart.style.display = "block";
+        setTimeout(() => {
+          heart.style.display = "none";
+        }, 600);
+      }
       // TODO: Send like to backend
     }
 
@@ -191,6 +217,46 @@
         window.location.href = "/"; // fallback
       }
     };
+
+    fetch("https://firebase-upload-backend.onrender.com/feed-karya")
+      .then(res => res.json())
+      .then(posts => {
+        const feed = document.getElementById("feed");
+        posts.forEach(post => {
+          const div = document.createElement("div");
+          div.className = "post";
+          div.innerHTML = `
+            <img src="${post.url}" alt="${post.judul}" />
+            <div class="heart-overlay">❤️</div>
+            <div>🎨 <strong>${post.cid}</strong> baru saja mengunggah: ${post.judul}</div>
+            <div class="actions">
+              <button onclick="likePost(this)">❤️ Suka</button>
+              <button onclick="commentPost()">💬 Komentar</button>
+            </div>
+          `;
+          feed.appendChild(div);
+        });
+      })
+      .catch(err => {
+        console.error("❌ Gagal memuat feed karya:", err);
+      });
+  </script>
+  <script>
+    // Ganti tombol like dengan double tap
+    document.addEventListener("DOMContentLoaded", function() {
+      document.querySelectorAll(".post img").forEach(img => {
+        img.addEventListener("dblclick", () => {
+          const heart = img.parentElement.querySelector(".heart-overlay");
+          if (heart) {
+            heart.style.display = "block";
+            setTimeout(() => {
+              heart.style.display = "none";
+            }, 600);
+          }
+          likePost(img);
+        });
+      });
+    });
   </script>
 </body>
 </html>

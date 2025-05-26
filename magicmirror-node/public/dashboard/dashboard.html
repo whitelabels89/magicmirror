@@ -65,6 +65,11 @@
       padding-left: 12px;
       padding-right: 12px;
     }
+    .theme-legacy .dashboard-card h3 {
+      margin-top: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    
     .theme-legacy #profileButtons button,
     .theme-legacy #profileNote button {
       background-color: #ffb3c6;
@@ -154,6 +159,16 @@
       background: rgba(255, 255, 255, 0.7);
       border: 1px solid #d5c9a4;
     }
+
+    .judul-badge-fix {
+      margin: 1rem 3px 0.5rem 3px;
+    }
+    .judul-galeri-fix {
+      margin: 0.5rem 3px 0.5rem 3px;
+    }
+    .theme-legacy .judul-galeri-fix {
+      margin-top: 1rem;
+    }
     .theme-queens #profileButtons button,
     .theme-queens #profileNote button {
       background-color: #f6f3e8;
@@ -227,6 +242,10 @@
       padding-top: 12px;
       border-radius: 12px;
       overflow-x: visible;
+    }
+    /* Tambahkan padding-bottom agar dashboard tidak tertutup bottom navbar */
+    #dashboard {
+      padding-bottom: 60px;
     }
     .dashboard-card {
       background: rgba(255,255,255,0.04);
@@ -581,9 +600,12 @@
     }
     #loading {
       text-align: center;
-      padding: 2rem;
       font-size: 1rem;
       color: #ffe58e;
+      background: url('/login_illustration_blue.png') center top no-repeat;
+      background-size: contain;
+      padding-top: 260px;
+      background-repeat: no-repeat;
     }
     .spinner {
       margin: 0 auto 1rem;
@@ -615,9 +637,9 @@
 </head>
 <body class="theme-default">
   <!-- Hamburger Menu Toggle -->
-  <button id="menuToggle" aria-label="Menu" title="Menu" style="border: 1px solid; border-radius: 10px; background: transparent; padding: 6px; margin-top: 4px;">
+  <button id="menuToggle" aria-label="Menu" title="Menu" style="border: 1px solid white; border-radius: 10px; background: transparent; padding: 6px; margin-top: 4px;">
     <span style="display:inline-block;vertical-align:middle;">
-      <svg width="28" height="28" viewBox="0 0 28 28" style="vertical-align:middle;" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg width="28" height="28" viewBox="0 0 28 28" style="vertical-align:middle; color: white;" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect y="6" width="28" height="3" rx="1.5" fill="currentColor"/>
         <rect y="13" width="28" height="3" rx="1.5" fill="currentColor"/>
         <rect y="20" width="28" height="3" rx="1.5" fill="currentColor"/>
@@ -649,7 +671,7 @@
       <p>Mengunduh kecerdasan luar biasa anak Anda ⏳</p>
     </div>
     <div id="dashboard" style="display:none;">
-      <div id="profileHeader">
+      <div id="profileHeader" id="profileHeaderWrapper">
         <img id="profilePhoto" src="https://placehold.co/80x80" alt="Foto Anak" onclick="previewProfilePhoto()" />
         <div id="profileName">Nama Anak</div>
         <div id="profileStats">
@@ -683,9 +705,9 @@
       </div>
 
       <div class="dashboard-card" id="badgeGaleriCard">
-        <h3 style="margin: 0.5rem 0;">🏅 Badge</h3>
+        <h3 class="judul-badge-fix">🏅 Badge</h3>
         <div id="badgeList"></div>
-        <h3 style="margin: 1rem 0 0.5rem;">🎨 Galeri Karya Anak</h3>
+        <h3 class="judul-galeri-fix">🎨 Galeri Karya Anak</h3>
         <div id="galeri"></div>
       </div>
 
@@ -718,7 +740,7 @@
         <form id="uploadForm">
           <input type="file" id="fileInput" accept="image/*" required>
           <input type="text" id="titleInput" placeholder="Judul karya" required>
-          <button type="submit" style="flex: 1; margin: 0 5px; padding: 8px 0; border-radius: 10px; border: 1px solid; background: transparent; font-weight: bold; cursor: pointer;">Upload Karya</button>
+          <button type="submit" style="flex: 1; margin: 0 5px 1.5rem; padding: 8px 0; border-radius: 10px; border: 1px solid; background: transparent; font-weight: bold; cursor: pointer;">Upload Karya</button>
           <div id="uploadStatus"></div>
         </form>
       </div>
@@ -1078,6 +1100,7 @@ async function updateFollowing(targetCid, isFollow = true) {
                 });
             });
 
+          // Segera sembunyikan loading dan tampilkan dashboard setelah data profil dasar berhasil di-render
           document.getElementById("loading").style.display = "none";
           document.getElementById("dashboard").style.display = "block";
           // PATCH: Ambil daftar following akun login (async function)
@@ -1689,8 +1712,9 @@ async function updateFollowing(targetCid, isFollow = true) {
         const wrapper = document.createElement("div");
         wrapper.innerHTML = bodyContent.innerHTML;
 
-        // Tambahkan class theme yang aktif pada body ke wrapper botnav
+        // Tambahkan class dashboard-botnav dan theme yang aktif pada wrapper utama (bukan ke semua elemen anak)
         const currentTheme = document.body.className || "theme-default";
+        wrapper.classList.add('dashboard-botnav');
         wrapper.classList.add(currentTheme);
 
         document.getElementById('navPlaceholder').innerHTML = "";
@@ -1720,19 +1744,7 @@ async function updateFollowing(targetCid, isFollow = true) {
       </div>
     </div>
   </div>
-  <script>
-    // Temukan elemen .dashboard-card dengan id badgeCard dan ubah <h3> menjadi versi dengan style margin
-    document.addEventListener("DOMContentLoaded", async function() {
-      var badgeCard = document.getElementById('badgeCard');
-      if (badgeCard) {
-        var h3 = badgeCard.querySelector('h3');
-        if (h3 && (h3.textContent.trim() === "🏅 Badge" || h3.textContent.trim().includes("🏅 Badge"))) {
-          // Ganti dengan versi style langsung
-          h3.outerHTML = '<h3 style="margin: 0.5rem 0;">🏅 Badge</h3>';
-        }
-      }
-    });
-  </script>
+  <!-- (Removed old script that patched badgeCard h3 inline style for badge title) -->
   <div id="heartOverlay" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:1000; pointer-events:none;">
     <img src="https://img.icons8.com/emoji/96/red-heart.png" alt="Love" style="width: 96px; height: 96px; opacity: 0.8;" />
   </div>
