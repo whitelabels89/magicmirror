@@ -737,6 +737,10 @@
 
       <div class="dashboard-card">
         <h3>📝 Upload Karya Anak</h3>
+        <!-- Flag anti-spam upload -->
+        <script>
+          let sedangUpload = false;
+        </script>
         <form id="uploadForm">
           <input type="file" id="fileInput" accept="image/*" required>
           <input type="text" id="titleInput" placeholder="Judul karya" required>
@@ -1001,6 +1005,8 @@
         .then(res => res.json())
         .then(res => {
           data = res;
+          const userRole = res.role || "";
+          const isModerator = userRole === "moderator";
 // Fungsi global untuk update following (follow/unfollow)
 async function updateFollowing(targetCid, isFollow = true) {
   try {
@@ -1304,8 +1310,30 @@ async function updateFollowing(targetCid, isFollow = true) {
                 // Modal open on click
                 wrapper.onclick = () => openModal(k);
 
-                // wrapper.appendChild(caption);
-                // wrapper.appendChild(btnDelete);
+                // Tambahkan tombol hapus jika moderator
+                if (isModerator) {
+                  const btnDelete = document.createElement("button");
+                  btnDelete.innerText = "🗑️";
+                  btnDelete.style.position = "absolute";
+                  btnDelete.style.top = "6px";
+                  btnDelete.style.right = "6px";
+                  btnDelete.style.backgroundColor = "#ffe58e";
+                  btnDelete.style.color = "#0d2d2b";
+                  btnDelete.style.border = "none";
+                  btnDelete.style.borderRadius = "50%";
+                  btnDelete.style.padding = "4px 8px";
+                  btnDelete.style.cursor = "pointer";
+                  btnDelete.title = "Hapus Karya";
+                  btnDelete.onclick = (e) => {
+                    e.stopPropagation();
+                    if (confirm("Yakin ingin menghapus karya ini?")) {
+                      hapusKarya(k.id_karya);
+                    }
+                  };
+                  wrapper.style.position = "relative";
+                  wrapper.appendChild(btnDelete);
+                }
+
                 wrapper.appendChild(previewElement);
                 galeri.appendChild(wrapper);
               } else {
@@ -1530,6 +1558,8 @@ async function updateFollowing(targetCid, isFollow = true) {
 
 document.getElementById("uploadForm").addEventListener("submit", async function (e) {
   e.preventDefault();
+  if (sedangUpload) return;
+  sedangUpload = true;
 
   const file = fileInput.files[0];
   const title = titleInput.value;
@@ -1537,6 +1567,7 @@ document.getElementById("uploadForm").addEventListener("submit", async function 
 
   if (!file || !title || !cid) {
     uploadStatus.innerText = "❌ Lengkapi semua data!";
+    sedangUpload = false;
     return;
   }
 
@@ -1565,6 +1596,7 @@ document.getElementById("uploadForm").addEventListener("submit", async function 
     uploadStatus.innerText = "❌ Gagal upload: " + err.message;
     button.disabled = false;
     button.innerText = "Upload Karya";
+    sedangUpload = false;
   }
 });
     // Fungsi hapusKarya dipanggil dari tombol hapus karya

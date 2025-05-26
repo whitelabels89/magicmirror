@@ -28,6 +28,7 @@
       font-family: 'Forum', sans-serif;
       background: linear-gradient(135deg, #e5f3ff, #d2e9f7);
       color: #003c5a;
+      padding-bottom: 80px;
     }
     header {
       background-color: #003c5a;
@@ -135,9 +136,19 @@
   </section>
 
   <script>
+    let sedangUpload = false;
+
     const urlParams = new URLSearchParams(window.location.search);
     const cid = urlParams.get("cid");
     localStorage.setItem("cid_login", cid);
+
+    let userRole = "";
+    fetch(`https://firebase-upload-backend.onrender.com/proxy-getprofile?cid=${cid}`)
+      .then(res => res.json())
+      .then(profile => {
+        if (profile.role) userRole = profile.role;
+      });
+
     if (!cid) {
       alert("❌ Akses tidak valid. Silakan login terlebih dahulu.");
       window.location.href = "/login.html";
@@ -160,6 +171,38 @@
         alert("💬 Komentar oleh " + cid + ": " + komentar);
         // TODO: Send comment to backend
       }
+    }
+
+    function uploadKarya() {
+      if (sedangUpload) return;
+      sedangUpload = true;
+
+      // TODO: Lakukan proses upload karya di sini
+      alert("Upload karya dimulai...");
+
+      // Contoh simulasi proses upload selesai setelah 5 detik
+      setTimeout(() => {
+        sedangUpload = false;
+        alert("Upload karya selesai.");
+      }, 5000);
+    }
+
+    function hapusKarya(cid, id_karya) {
+      if (!confirm("Yakin ingin menghapus karya ini?")) return;
+      fetch("https://firebase-upload-backend.onrender.com/hapus-karya", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cid, id_karya })
+      })
+        .then(res => res.json())
+        .then(data => {
+          alert(data.message || "✅ Berhasil hapus.");
+          window.location.reload();
+        })
+        .catch(err => {
+          console.error("❌ Gagal hapus:", err);
+          alert("❌ Gagal menghapus karya.");
+        });
     }
   </script>
   <div id="navPlaceholder"></div>
@@ -205,7 +248,24 @@
             });
         }
 
-        
+        // Tambahkan proteksi klik ganda pada tombol Upload Karya dari botnav jika ada
+        const uploadButtons = document.querySelectorAll("#navPlaceholder .upload-button, #navPlaceholder .btn-upload, #navPlaceholder .plus-badge, #navPlaceholder [onclick*='uploadKarya']");
+        uploadButtons.forEach(btn => {
+          btn.addEventListener("click", (e) => {
+            if (sedangUpload) {
+              e.preventDefault();
+              alert("Sedang proses upload, harap tunggu.");
+              return false;
+            }
+            sedangUpload = true;
+            // Jika tombol memanggil fungsi uploadKarya sendiri, biarkan fungsi uploadKarya mengatur flag sedangUpload
+            // Jika tidak, reset flag setelah 5 detik sebagai fallback
+            setTimeout(() => {
+              sedangUpload = false;
+            }, 5000);
+          });
+        });
+
       });
   </script>
   <script>
@@ -225,10 +285,15 @@
         posts.forEach(post => {
           const div = document.createElement("div");
           div.className = "post";
+          const namaDepan = (post.nama || post.cid || "").split(" ")[0];
+          let hapusBtn = "";
+          if (userRole === "moderator") {
+            hapusBtn = `<button onclick="hapusKarya('${post.cid}', '${post.id_karya}')">🗑️</button>`;
+          }
           div.innerHTML = `
             <img src="${post.url}" alt="${post.judul}" />
             <div class="heart-overlay">❤️</div>
-            <div>🎨 <strong>${post.cid}</strong> baru saja mengunggah: ${post.judul}</div>
+            <div>🎨 <strong>${namaDepan}</strong> baru saja mengunggah: ${post.judul} ${hapusBtn}</div>
             <div class="actions">
               <button onclick="likePost(this)">❤️ Suka</button>
               <button onclick="commentPost()">💬 Komentar</button>
