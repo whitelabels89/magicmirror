@@ -1027,6 +1027,7 @@ async function updateFollowing(targetCid, isFollow = true) {
                 .then(r => r.json())
                 .then(allUsers => {
                   const explore = document.getElementById("exploreList");
+                  if (!explore) return;
                   explore.innerHTML = "";
                   // PATCH: handle both array and single object (getprofile)
                   if (!Array.isArray(allUsers)) {
@@ -1034,7 +1035,8 @@ async function updateFollowing(targetCid, isFollow = true) {
                       allUsers = [allUsers]; // Konversi jadi array jika hanya 1 user
                     } else {
                       console.error("❌ Data explore bukan array:", allUsers);
-                      document.getElementById("exploreList").innerText = "❌ Gagal memuat data.";
+                      const el = document.getElementById("exploreList");
+                      if (el) el.innerText = "❌ Gagal memuat data.";
                       return;
                     }
                   }
@@ -1071,7 +1073,8 @@ async function updateFollowing(targetCid, isFollow = true) {
                 })
                 .catch(err => {
                   console.error("❌ Gagal memuat daftar akun:", err);
-                  document.getElementById("exploreList").innerText = "❌ Gagal memuat data.";
+                  const el = document.getElementById("exploreList");
+                  if (el) el.innerText = "❌ Gagal memuat data.";
                 });
             });
 
