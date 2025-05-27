@@ -115,7 +115,7 @@
       position: fixed;
       top: 44px;
       right: 12px;
-      background-color: #0d2d2b;
+      background-color: #ffffff;
       border: 1px solid #ffe58e;
       border-radius: 8px;
       padding: 8px;
@@ -126,14 +126,14 @@
     #dropdownMenu button {
       background: none;
       border: none;
-      color: #ffe58e;
+      color: #003c5a;
       text-align: left;
       padding: 8px 12px;
       font-size: 0.9rem;
       cursor: pointer;
     }
     #dropdownMenu button:hover {
-      background-color: rgba(255, 229, 142, 0.1);
+      background-color: rgba(0, 0, 0, 0.05);
     }
     /* Hilangkan efek biru saat klik/touch pada tombol dan input */
     button:focus,
@@ -1710,30 +1710,51 @@ document.getElementById("uploadForm").addEventListener("submit", async function 
     }
 
     function openChangePassword() {
-      const newPassword = prompt("Masukkan password baru:");
-      if (!newPassword || newPassword.trim().length < 6) {
-        alert("⚠️ Password harus minimal 6 karakter.");
-        return;
-      }
-
-      const username = data.whatsapp?.replace(/\s+/g, "") || cid; // Pakai nomor WA sebagai username
-      fetch("https://firebase-upload-backend.onrender.com/ganti-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password: newPassword })
-      })
-      .then(res => res.json())
-      .then(result => {
-        if (result.success) {
-          alert("✅ Password berhasil diganti.");
-        } else {
-          alert("❌ Gagal mengganti password.");
+      if (confirm("Ingin login dengan akun Gmail Anda? Klik OK untuk login via Gmail.\nAtau klik Batal untuk ubah password manual.")) {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        firebase.auth().signInWithPopup(provider)
+          .then((result) => {
+            const user = result.user;
+            if (!user) return alert("❌ Login gagal.");
+            alert(`✅ Login berhasil: ${user.displayName}`);
+            // Simpan email dan nama ke Sheets atau Firestore jika perlu
+          })
+          .catch((error) => {
+            console.error("❌ Login Gmail error:", error);
+            alert("❌ Gagal login Gmail.");
+          });
+      } else {
+        // Minta email pribadi user sebelum ganti password
+        // Email ini akan digunakan sebagai akun resmi di Firebase Auth
+        const email = prompt("Masukkan email pribadi Anda (wajib untuk ganti password):");
+        if (!email || !email.includes("@")) {
+          alert("⚠️ Email tidak valid.");
+          return;
         }
-      })
-      .catch(err => {
-        console.error("❌ Error:", err);
-        alert("⚠️ Terjadi kesalahan.");
-      });
+        const newPassword = prompt("Masukkan password baru:");
+        if (!newPassword || newPassword.trim().length < 6) {
+          alert("⚠️ Password harus minimal 6 karakter.");
+          return;
+        }
+        // Komentar: email akan digunakan sebagai akun Firebase Auth resmi.
+        fetch("https://firebase-upload-backend.onrender.com/ganti-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password: newPassword })
+        })
+        .then(res => res.json())
+        .then(result => {
+          if (result.success) {
+            alert("✅ Password berhasil diganti.");
+          } else {
+            alert("❌ Gagal mengganti password.");
+          }
+        })
+        .catch(err => {
+          console.error("❌ Error:", err);
+          alert("⚠️ Terjadi kesalahan.");
+        });
+      }
     }
   </script>
   <div id="navPlaceholder"></div>

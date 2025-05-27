@@ -114,11 +114,6 @@
 
   <section id="announcement">
     📢 <strong>Pengumuman:</strong> Jangan lewatkan event Coding Camp 28 Juni! Yuk daftar sekarang.
-    <div style="text-align: center; margin-top: 1rem;">
-      <button onclick="loginWithGoogle()" style="background:#fff; color:#003c5a; padding:10px 20px; border:2px solid #003c5a; border-radius:6px; cursor:pointer;">
-        🔐 Login dengan Gmail
-      </button>
-    </div>
   </section>
 
   <section id="heroBanner" style="margin: 1rem; text-align:center; background: #f7fcff; border: 1px solid #c0e7f5; border-radius: 8px; padding: 1rem; color: #003c5a;">
@@ -328,34 +323,4 @@
     });
   </script>
 </body>
-<!-- Firebase SDK for Gmail Login -->
-<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyAy70WBTa9zWkFi49WhXLGnJYRbLVb6n8A",
-    authDomain: "socmed-karya-anak.firebaseapp.com",
-    projectId: "socmed-karya-anak",
-    storageBucket: "socmed-karya-anak.firebasestorage.app",
-    messagingSenderId: "903463596001",
-    appId: "1:903463596001:web:9f994ac58fc6b7d6e6eca0",
-    measurementId: "G-9FKWHFXNGM"
-  };
-  firebase.initializeApp(firebaseConfig);
-
-  function loginWithGoogle() {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    firebase.auth().signInWithPopup(provider)
-      .then(result => {
-        const user = result.user;
-        console.log("✅ Login Gmail:", user);
-        alert("Selamat datang, " + user.displayName);
-        // Optionally: redirect to dashboard or store token
-      })
-      .catch(error => {
-        console.error("❌ Login gagal:", error.message);
-        alert("Login gagal: " + error.message);
-      });
-  }
-</script>
 </html>
