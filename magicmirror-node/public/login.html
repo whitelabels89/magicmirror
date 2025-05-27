@@ -227,6 +227,16 @@
       firebase.auth().signInWithPopup(provider)
         .then(async result => {
           const user = result.user;
+          // Cek jika user baru dan belum punya password
+          const isNewUser = result._tokenResponse?.isNewUser;
+          if (isNewUser) {
+            // Simpan email sementara dan redirect ke halaman set password
+            localStorage.setItem("temp_email", user.email);
+            localStorage.setItem("temp_displayName", user.displayName || "");
+            window.location.href = "/dashboard/set-password.html";
+            return;
+          }
+
           console.log("✅ Login Gmail:", user);
 
           const response = await fetch("https://firebase-upload-backend.onrender.com/simpan-email", {
