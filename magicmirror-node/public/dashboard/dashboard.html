@@ -1725,6 +1725,7 @@ document.getElementById("uploadForm").addEventListener("submit", async function 
             if (!user) return alert("❌ Login gagal.");
             alert(`✅ Login berhasil: ${user.displayName}`);
             // Simpan email dan nama ke Sheets atau Firestore jika perlu
+            // Dapat ditambahkan logika tambahan jika ingin update status migrated di Sheets
           })
           .catch((error) => {
             console.error("❌ Login Gmail error:", error);
@@ -1743,11 +1744,15 @@ document.getElementById("uploadForm").addEventListener("submit", async function 
           alert("⚠️ Password harus minimal 6 karakter.");
           return;
         }
-        // Komentar: email akan digunakan sebagai akun Firebase Auth resmi.
+        // Cek keberadaan cid
+        if (!cid) return alert("❌ CID tidak ditemukan, silakan login ulang.");
+        // Debug log sebelum fetch
+        console.log("📤 Ganti password:", { cid, email, newPassword });
+        // Kirim data ke backend: cid, email, password
         fetch("https://firebase-upload-backend.onrender.com/ganti-password", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password: newPassword })
+          body: JSON.stringify({ cid, email, password: newPassword })
         })
         .then(res => res.json())
         .then(result => {
