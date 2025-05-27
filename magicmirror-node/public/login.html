@@ -167,7 +167,10 @@
       <img src="/icoding.png" alt="Queen's Academy iCoding" class="icoding-logo" />
       <form id="loginForm" style="display:flex; flex-direction:column; gap:1rem; margin-top:1rem;">
         <input type="text" id="username" placeholder="Username / Nomor WhatsApp" required style="padding:0.6rem; border-radius:12px; border:1px solid #cce3f0; background:#f7fcff;" autocomplete="off">
-        <input type="password" id="password" placeholder="Password" required style="padding:0.6rem; border-radius:12px; border:1px solid #cce3f0; background:#f7fcff;" autocomplete="off">
+        <div style="position: relative;">
+          <input type="password" id="password" placeholder="Password" required style="padding:0.6rem 2.5rem 0.6rem 0.6rem; border-radius:12px; border:1px solid #cce3f0; background:#f7fcff; width:100%;" autocomplete="off">
+          <span onclick="togglePassword()" style="position:absolute; top:50%; right:0.8rem; transform:translateY(-50%); cursor:pointer; font-size:0.9rem; color:#888;">👁️</span>
+        </div>
         <button type="submit" style="background-color:#91d2ff; color:#ffffff; border:none; padding:0.6rem; border-radius:12px; font-weight:bold; cursor:pointer;">Login</button>
         <button type="button" onclick="loginWithGoogle()" style="background:#ffffff; color:#007acc; border:2px solid #007acc; padding:0.6rem; border-radius:12px; font-weight:bold; margin-top:0.5rem; cursor:pointer;">Login dengan Gmail</button>
       </form>
@@ -257,5 +260,13 @@
         });
     }
   </script>
+</script>
+<script>
+  function togglePassword() {
+    const passwordInput = document.getElementById("password");
+    const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
+    passwordInput.setAttribute("type", type);
+  }
+</script>
 </body>
 </html>
