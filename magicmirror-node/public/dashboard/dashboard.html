@@ -116,6 +116,7 @@
       top: 44px;
       right: 12px;
       background-color: #ffffff;
+      color: #003c5a;
       border: 1px solid #ffe58e;
       border-radius: 8px;
       padding: 8px;
@@ -126,7 +127,7 @@
     #dropdownMenu button {
       background: none;
       border: none;
-      color: #003c5a;
+      color: inherit;
       text-align: left;
       padding: 8px 12px;
       font-size: 0.9rem;
@@ -134,6 +135,10 @@
     }
     #dropdownMenu button:hover {
       background-color: rgba(0, 0, 0, 0.05);
+    }
+    /* Fallback: pastikan semua button dalam menu dropdown mewarisi warna dari parent */
+    [id*="dropdownMenu"] button:not([style*="color"]) {
+      color: inherit;
     }
     /* Hilangkan efek biru saat klik/touch pada tombol dan input */
     button:focus,
@@ -1702,10 +1707,12 @@ document.getElementById("uploadForm").addEventListener("submit", async function 
       meta.setAttribute("content", color);
     }
 
-    // Logout Function: versi localStorage saja
+    // Logout Function: hybrid (Firebase Auth + localStorage)
     function logout() {
-      localStorage.removeItem("cid");
-      alert("👋 Logout berhasil!");
+      if (firebase?.auth) {
+        firebase.auth().signOut().catch(() => {}); // attempt logout firebase
+      }
+      localStorage.clear(); // bersihkan semuanya
       window.location.href = "/login.html";
     }
 
