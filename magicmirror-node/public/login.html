@@ -167,8 +167,8 @@
       <img src="/icoding.png" alt="Queen's Academy iCoding" class="icoding-logo" />
       <form id="loginForm" style="display:flex; flex-direction:column; gap:1rem; margin-top:1rem;">
         <input type="text" id="username" placeholder="Username / Nomor WhatsApp" required style="padding:0.6rem; border-radius:12px; border:1px solid #cce3f0; background:#f7fcff;" autocomplete="off">
-        <div style="position: relative;">
-          <input type="password" id="password" placeholder="Password" required style="padding:0.6rem 2.5rem 0.6rem 0.6rem; border-radius:12px; border:1px solid #cce3f0; background:#f7fcff; width:100%;" autocomplete="off">
+        <div style="position: relative; width: 100%;">
+          <input type="password" id="password" placeholder="Password" required style="padding:0.6rem 2.5rem 0.6rem 0.6rem; border-radius:12px; border:1px solid #cce3f0; background:#f7fcff; width: 100%; box-sizing: border-box;" autocomplete="off">
           <span onclick="togglePassword()" style="position:absolute; top:50%; right:0.8rem; transform:translateY(-50%); cursor:pointer; font-size:0.9rem; color:#888;">👁️</span>
         </div>
         <button type="submit" style="background-color:#91d2ff; color:#ffffff; border:none; padding:0.6rem; border-radius:12px; font-weight:bold; cursor:pointer;">Login</button>
@@ -223,7 +223,7 @@
               document.getElementById("status").innerText = "Login Firebase gagal. Cek password Anda.";
             });
         } else {
-          document.getElementById("status").innerText = "Login gagal. Cek nomor dan password.";
+          document.getElementById("status").innerText = "Login gagal. Cek kembali data login kamu, pastikan email & password sudah benar.";
         }
       } catch (err) {
         console.error("❌ Error saat login:", err.message);
