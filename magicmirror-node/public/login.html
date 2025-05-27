@@ -212,6 +212,11 @@
             return;
           }
 
+          // Ensure firebase is initialized before using
+          if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+          }
+
           firebase.auth().signInWithEmailAndPassword(email, password)
             .then(() => {
               localStorage.setItem("cid", result.cid);
@@ -220,7 +225,9 @@
             })
             .catch((error) => {
               console.error("Firebase login error:", error.message);
-              document.getElementById("status").innerText = "Login Firebase gagal. Cek password Anda.";
+              document.getElementById("status").innerText = error.message.includes("auth/user-not-found")
+                ? "Akun belum terdaftar. Silakan login dengan Gmail terlebih dahulu."
+                : "Login Firebase gagal. Cek email & password kamu.";
             });
         } else {
           document.getElementById("status").innerText = "Login gagal. Cek kembali data login kamu, pastikan email & password sudah benar.";
