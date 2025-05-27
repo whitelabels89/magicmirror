@@ -274,10 +274,9 @@
       });
   </script>
   <script>
-    const cidLogin = cid; // dari URL parameter yang sudah ada di atas
     window.goProfile = function () {
-      if (cidLogin) {
-        window.location.href = `/dashboard/dashboard.html?cid=${cidLogin}`;
+      if (cid) {
+        window.location.href = `/dashboard/dashboard.html?cid=${cid}`;
       } else {
         window.location.href = "/"; // fallback
       }
@@ -330,8 +329,8 @@
   </script>
 </body>
 <!-- Firebase SDK for Gmail Login -->
-<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyAy70WBTa9zWkFi49WhXLGnJYRbLVb6n8A",
