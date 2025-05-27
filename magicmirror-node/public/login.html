@@ -200,7 +200,15 @@
           localStorage.setItem("cid_login", result.cid);
           window.location.href = `/dashboard/dashboard.html`;
         } else if (result.success && result.migrated) {
-          const email = `${username.replace(/\D/g, '')}@queensacademy.id`;
+          const getProfileRes = await fetch(`https://firebase-upload-backend.onrender.com/proxy-getprofile?cid=${result.cid}`);
+          const profile = await getProfileRes.json();
+          const email = profile.email;
+
+          if (!email) {
+            document.getElementById("status").innerText = "Email belum terdaftar. Silakan ganti password terlebih dahulu.";
+            return;
+          }
+
           firebase.auth().signInWithEmailAndPassword(email, password)
             .then(() => {
               localStorage.setItem("cid", result.cid);
