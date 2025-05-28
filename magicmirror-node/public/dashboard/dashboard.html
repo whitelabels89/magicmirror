@@ -1577,49 +1577,52 @@ async function updateFollowing(targetCid, isFollow = true) {
     const titleInput = document.getElementById("titleInput");
     const uploadStatus = document.getElementById("uploadStatus");
 
-document.getElementById("uploadForm").addEventListener("submit", async function (e) {
-  e.preventDefault();
-  if (sedangUpload) return;
-  sedangUpload = true;
+const uploadFormElement = document.getElementById("uploadForm");
+if (uploadFormElement) {
+  uploadFormElement.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    if (sedangUpload) return;
+    sedangUpload = true;
 
-  const file = fileInput.files[0];
-  const title = titleInput.value;
-  const button = this.querySelector("button[type='submit']");
+    const file = fileInput.files[0];
+    const title = titleInput.value;
+    const button = this.querySelector("button[type='submit']");
 
-  if (!file || !title || !cid) {
-    uploadStatus.innerText = "❌ Lengkapi semua data!";
-    sedangUpload = false;
-    return;
-  }
+    if (!file || !title || !cid) {
+      uploadStatus.innerText = "❌ Lengkapi semua data!";
+      sedangUpload = false;
+      return;
+    }
 
-  button.disabled = true;
-  button.innerText = "⏳ Mengunggah...";
+    button.disabled = true;
+    button.innerText = "⏳ Mengunggah...";
 
-  uploadStatus.innerText = "⏳ Uploading...";
+    uploadStatus.innerText = "⏳ Uploading...";
 
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("cid", cid);
-  formData.append("title", title);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("cid", cid);
+    formData.append("title", title);
 
-  try {
-    const res = await fetch("https://firebase-upload-backend.onrender.com/upload", {
-      method: "POST",
-      body: formData
-    });
+    try {
+      const res = await fetch("https://firebase-upload-backend.onrender.com/upload", {
+        method: "POST",
+        body: formData
+      });
 
-    const result = await res.json();
-    console.log("✅ Response:", result);
-    uploadStatus.innerText = result.message || "✅ Berhasil!";
-    if (result.url) location.reload();
-  } catch (err) {
-    console.error("❌ Upload error:", err);
-    uploadStatus.innerText = "❌ Gagal upload: " + err.message;
-    button.disabled = false;
-    button.innerText = "Upload Karya";
-    sedangUpload = false;
-  }
-});
+      const result = await res.json();
+      console.log("✅ Response:", result);
+      uploadStatus.innerText = result.message || "✅ Berhasil!";
+      if (result.url) location.reload();
+    } catch (err) {
+      console.error("❌ Upload error:", err);
+      uploadStatus.innerText = "❌ Gagal upload: " + err.message;
+      button.disabled = false;
+      button.innerText = "Upload Karya";
+      sedangUpload = false;
+    }
+  });
+}
     // Fungsi hapusKarya dipanggil dari tombol hapus karya
     async function hapusKarya(id_karya) {
       console.log("🧨 Kirim hapus:", { cid, id_karya });
