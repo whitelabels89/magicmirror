@@ -193,10 +193,15 @@
 
       // Kirim request ke backend untuk validasi login dari Google Sheets
       try {
+        const isEmail = rawInput.includes("@");
+        const bodyData = isEmail
+          ? { email: rawInput, password }
+          : { whatsapp: rawInput, password };
+
         const res = await fetch("https://firebase-upload-backend.onrender.com/proxy-login-sheet", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ whatsapp: rawInput, password })
+          body: JSON.stringify(bodyData)
         });
 
         const result = await res.json();
