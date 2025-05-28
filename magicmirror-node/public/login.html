@@ -235,32 +235,24 @@
       firebase.auth().signInWithPopup(provider)
         .then(async result => {
           const user = result.user;
-          // Cek jika user baru dan belum punya password
-          const isNewUser = result.additionalUserInfo?.isNewUser;
-          if (isNewUser) {
-            // Simpan email sementara dan redirect ke halaman set password
-            localStorage.setItem("temp_email", user.email);
-            localStorage.setItem("temp_displayName", user.displayName || "");
+          const email = user.email;
+          const name = user.displayName || "";
+
+          // Cek ke Sheet apakah email sudah terdaftar
+          const res = await fetch(`https://firebase-upload-backend.onrender.com/proxy-check-email-sheet?email=${email}`);
+          const data = await res.json();
+
+          if (data && data.found) {
+            // Email sudah terdaftar, lanjut ke dashboard
+            localStorage.setItem("cid_login", data.cid || "");
+            localStorage.setItem("cid", data.cid || "");
+            window.location.href = "/dashboard/dashboard.html";
+          } else {
+            // Email belum terdaftar, redirect ke set-password
+            localStorage.setItem("temp_email", email);
+            localStorage.setItem("temp_displayName", name);
             window.location.href = "/dashboard/set-password.html";
-            return;
           }
-
-          console.log("✅ Login Gmail:", user);
-
-          const response = await fetch("https://firebase-upload-backend.onrender.com/simpan-email", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              cid: localStorage.getItem("cid_login") || "",
-              email: user.email,
-              nama: user.displayName
-            })
-          });
-
-          const simpanResult = await response.json();
-          console.log("📩 Email disimpan:", simpanResult);
-
-          window.location.href = "/dashboard/dashboard.html";
         })
         .catch(error => {
           console.error("❌ Login Gmail gagal:", error.message);
