@@ -659,10 +659,13 @@
   <div class="container">
   <!-- Auto-login by ?cid=... parameter -->
   <script type="module" src="auto-login.js"></script>
-  <!-- Deklarasi variabel cid agar tidak error -->
+  <!-- Deklarasi variabel cid, cid_login, isOwner sesuai patch -->
   <script>
     const urlParams = new URLSearchParams(window.location.search);
     const cid = urlParams.get("cid") || localStorage.getItem("cid_login");
+    const cid_login = localStorage.getItem("cid_login");
+    const cid_viewed = cid;
+    const isOwner = (cid_login && cid_viewed && cid_viewed !== cid_login) ? false : true;
   </script>
   <script>
     // Session check: redirect to login.html if firebase_token not found
@@ -775,9 +778,6 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <!-- <script type="module" src="/dashboard.js"></script> -->
   <script>
-    // Deklarasi variabel global untuk login CID dan status owner
-    const cid_login = cid;
-    const isOwner = false;
     function openFollowingModal() {
       const modal = document.getElementById("followingModal");
       const list = document.getElementById("modalFollowingList");
