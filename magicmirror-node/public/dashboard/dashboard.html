@@ -658,6 +658,13 @@
   </div>
   <div class="container">
   <script>
+    // Session check: redirect to login.html if firebase_token not found
+    document.addEventListener('DOMContentLoaded', function() {
+      const token = localStorage.getItem("firebase_token");
+      if (!token) {
+        window.location.href = "/login.html";
+      }
+    });
     // Hamburger menu toggle for dropdown
     document.getElementById("menuToggle").addEventListener("click", function(e) {
       e.stopPropagation();
