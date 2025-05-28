@@ -881,8 +881,8 @@
       const profileButtons = document.getElementById("profileButtons");
       if (profileButtons) profileButtons.style.display = "none";
 
-      // Validasi session login: redirect jika tidak ada cid/cid_login
-      if (!cid) {
+      // Validasi session login: redirect jika tidak ada cid atau firebase_token
+      if (!cid || !localStorage.getItem("firebase_token")) {
         alert("⚠️ Anda belum login atau session habis.");
         window.location.href = "/login.html";
       }
