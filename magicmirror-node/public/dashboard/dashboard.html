@@ -864,27 +864,36 @@
   </script>
   <!-- Validasi login: redirect ke login jika tidak ada ?cid di URL, simpan/baca dari localStorage -->
   <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    let cid = urlParams.get("cid");
+    // Pastikan validasi session & cid dilakukan setelah DOM siap
+    document.addEventListener("DOMContentLoaded", function () {
+      const urlParams = new URLSearchParams(window.location.search);
+      let cid = urlParams.get("cid");
 
-    if (cid) {
-      localStorage.setItem("cid", cid);
-    } else {
-      cid = localStorage.getItem("cid");
-    }
+      if (cid) {
+        localStorage.setItem("cid", cid);
+      } else {
+        cid = localStorage.getItem("cid");
+      }
 
-    const cid_login = localStorage.getItem("cid_login");
-    const isOwner = (cid && cid_login && cid === cid_login);
-    // Hide profileButtons at initial load, will be shown after isOwner validation
-    const profileButtons = document.getElementById("profileButtons");
-    if (profileButtons) profileButtons.style.display = "none";
+      const cid_login = localStorage.getItem("cid_login");
+      const isOwner = (cid && cid_login && cid === cid_login);
+      // Hide profileButtons at initial load, will be shown after isOwner validation
+      const profileButtons = document.getElementById("profileButtons");
+      if (profileButtons) profileButtons.style.display = "none";
 
-    if (!cid) {
-      alert("⚠️ Anda belum login atau session habis.");
-      window.location.href = "/login.html";
-    }
+      // Validasi session login: redirect jika tidak ada cid/cid_login
+      if (!cid) {
+        alert("⚠️ Anda belum login atau session habis.");
+        window.location.href = "/login.html";
+      }
 
-    let data = {};
+      // Simpan ke global agar bisa diakses script lain
+      window.cid = cid;
+      window.cid_login = cid_login;
+      window.isOwner = isOwner;
+      window.profileButtons = profileButtons;
+      window.data = {};
+    });
   </script>
   
   <script>

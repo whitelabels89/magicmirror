@@ -208,7 +208,10 @@
         if (result.success) {
           localStorage.setItem("cid", result.cid);
           localStorage.setItem("cid_login", result.cid);
-          window.location.href = `/dashboard/dashboard.html`;
+          console.log("📦 Simpan ke localStorage:", result.cid);
+          setTimeout(() => {
+            window.location.href = "/dashboard/dashboard.html";
+          }, 300);
         } else {
           document.getElementById("status").innerText = result.message || "Login gagal.";
         }
