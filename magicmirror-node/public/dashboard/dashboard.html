@@ -773,9 +773,11 @@
   <!-- Firebase App & Auth SDK for logout functionality -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  <!-- Pastikan auto-login.js dipanggil sebelum dashboard.js -->
-  <script type="module" src="/dashboard.js"></script>
+  <!-- <script type="module" src="/dashboard.js"></script> -->
   <script>
+    // Deklarasi variabel global untuk login CID dan status owner
+    const cid_login = cid;
+    const isOwner = false;
     function openFollowingModal() {
       const modal = document.getElementById("followingModal");
       const list = document.getElementById("modalFollowingList");
