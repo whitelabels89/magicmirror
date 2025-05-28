@@ -291,6 +291,28 @@
           const res = await fetch(`https://firebase-upload-backend.onrender.com/proxy-check-email-sheet?email=${email}`);
           const data = await res.json();
 
+          // Gmail + Manual Account Hybrid Migration
+          if (data.found && !data.migrated) {
+            const oldPassword = prompt("Akun ini sebelumnya dibuat manual. Masukkan password lama Anda untuk menghubungkan dengan akun Google:");
+            if (!oldPassword) return alert("Password diperlukan untuk migrasi akun.");
+
+            try {
+              const credential = firebase.auth.EmailAuthProvider.credential(email, oldPassword);
+              await user.linkWithCredential(credential);
+              // Update kolom 'Migrated' di sheet
+              await fetch("https://firebase-upload-backend.onrender.com/proxy-update-migrated", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, migrated: true })
+              });
+              alert("✅ Akun berhasil dihubungkan ke Google.");
+            } catch (err) {
+              console.error("❌ Gagal menghubungkan akun:", err.message);
+              alert("Gagal menghubungkan akun. Pastikan password lama benar.");
+              return;
+            }
+          }
+
           if (data && data.found) {
             // Email sudah terdaftar, lanjut ke dashboard
             localStorage.setItem("cid_login", data.cid || "");

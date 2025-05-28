@@ -657,6 +657,8 @@
     <button onclick="openChangePassword()">Ganti Password</button>
   </div>
   <div class="container">
+  <!-- Auto-login by ?cid=... parameter -->
+  <script type="module" src="auto-login.js"></script>
   <script>
     // Session check: redirect to login.html if firebase_token not found
     document.addEventListener('DOMContentLoaded', function() {
@@ -766,11 +768,8 @@
   <!-- Firebase App & Auth SDK for logout functionality -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  <!-- Deklarasi global cid agar bisa digunakan di semua script setelah ini -->
-  <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const cid = urlParams.get("cid") || localStorage.getItem("cid");
-  </script>
+  <!-- Pastikan auto-login.js dipanggil sebelum dashboard.js -->
+  <script type="module" src="dashboard.js"></script>
   <script>
     function openFollowingModal() {
       const modal = document.getElementById("followingModal");
@@ -868,38 +867,7 @@
     const app = firebase.initializeApp(firebaseConfig);
   </script>
   <!-- Validasi login: redirect ke login jika tidak ada ?cid di URL, simpan/baca dari localStorage -->
-  <script>
-    // Pastikan validasi session & cid dilakukan setelah DOM siap
-    document.addEventListener("DOMContentLoaded", function () {
-      const urlParams = new URLSearchParams(window.location.search);
-      let cid = urlParams.get("cid");
-
-      if (cid) {
-        localStorage.setItem("cid", cid);
-      } else {
-        cid = localStorage.getItem("cid");
-      }
-
-      const cid_login = localStorage.getItem("cid_login");
-      const isOwner = (cid && cid_login && cid === cid_login);
-      // Hide profileButtons at initial load, will be shown after isOwner validation
-      const profileButtons = document.getElementById("profileButtons");
-      if (profileButtons) profileButtons.style.display = "none";
-
-      // Validasi session login: redirect jika tidak ada cid atau firebase_token
-      if (!cid || !localStorage.getItem("firebase_token")) {
-        alert("⚠️ Anda belum login atau session habis.");
-        window.location.href = "/login.html";
-      }
-
-      // Simpan ke global agar bisa diakses script lain
-      window.cid = cid;
-      window.cid_login = cid_login;
-      window.isOwner = isOwner;
-      window.profileButtons = profileButtons;
-      window.data = {};
-    });
-  </script>
+  <!-- (auto-login.js sudah handle deklarasi cid dan validasi login) -->
   
   <script>
     // Edit Profile Modal logic
