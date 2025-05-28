@@ -659,6 +659,11 @@
   <div class="container">
   <!-- Auto-login by ?cid=... parameter -->
   <script type="module" src="auto-login.js"></script>
+  <!-- Deklarasi variabel cid agar tidak error -->
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const cid = urlParams.get("cid") || localStorage.getItem("cid_login");
+  </script>
   <script>
     // Session check: redirect to login.html if firebase_token not found
     document.addEventListener('DOMContentLoaded', function() {
@@ -769,7 +774,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <!-- Pastikan auto-login.js dipanggil sebelum dashboard.js -->
-  <script type="module" src="dashboard.js"></script>
+  <script type="module" src="/dashboard.js"></script>
   <script>
     function openFollowingModal() {
       const modal = document.getElementById("followingModal");
