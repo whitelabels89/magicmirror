@@ -210,7 +210,7 @@
           localStorage.setItem("cid_login", result.cid);
           console.log("📦 Simpan ke localStorage:", result.cid);
           setTimeout(() => {
-            window.location.href = "/dashboard/dashboard.html";
+            window.location.href = "/dashboard/dashboard.html?cid=" + result.cid;
           }, 300);
         } else {
           document.getElementById("status").innerText = result.message || "Login gagal.";
