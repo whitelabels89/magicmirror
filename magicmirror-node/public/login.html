@@ -219,6 +219,8 @@
           if (result.cid) {
             localStorage.setItem("cid", result.cid);
             localStorage.setItem("cid_login", result.cid);
+            localStorage.setItem("firebase_token", "1");
+            console.log("✅ Login success, cid:", result.cid);
             window.location.href = "/dashboard/dashboard.html?cid=" + result.cid;
           } else {
             document.getElementById("status").innerText = "CID tidak ditemukan. Hubungi admin.";
