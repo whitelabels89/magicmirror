@@ -236,7 +236,7 @@
         .then(async result => {
           const user = result.user;
           // Cek jika user baru dan belum punya password
-          const isNewUser = result._tokenResponse?.isNewUser;
+          const isNewUser = result.additionalUserInfo?.isNewUser;
           if (isNewUser) {
             // Simpan email sementara dan redirect ke halaman set password
             localStorage.setItem("temp_email", user.email);
