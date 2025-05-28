@@ -288,11 +288,14 @@
           const name = user.displayName || "";
 
           // Cek ke Sheet apakah email sudah terdaftar
-          const res = await fetch(`https://firebase-upload-backend.onrender.com/proxy-check-email-sheet?email=${email}`);
+          const res = await fetch(`https://firebase-upload-backend.onrender.com/proxy-check-email-sheet?email=${encodeURIComponent(email)}`);
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status} during email check`);
+          }
           const data = await res.json();
 
           // Gmail + Manual Account Hybrid Migration
-          if (data.found && !data.migrated) {
+          if (data.exists && !data.migrated) {
             const oldPassword = prompt("Akun ini sebelumnya dibuat manual. Masukkan password lama Anda untuk menghubungkan dengan akun Google:");
             if (!oldPassword) return alert("Password diperlukan untuk migrasi akun.");
 
@@ -313,7 +316,7 @@
             }
           }
 
-          if (data && data.found) {
+          if (data.exists) {
             // Email sudah terdaftar, lanjut ke dashboard
             localStorage.setItem("cid_login", data.cid || "");
             localStorage.setItem("cid", data.cid || "");
