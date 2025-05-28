@@ -214,10 +214,18 @@
           }
         })
         .catch((error) => {
-          console.error("Firebase login error:", error.message);
-          document.getElementById("status").innerText = error.message.includes("auth/user-not-found")
-            ? "Akun belum terdaftar. Silakan login dengan Gmail terlebih dahulu."
-            : "Login gagal. Cek email / nomor dan password kamu.";
+          console.error("Firebase login error:", error.code, error.message);
+          let msg = "Login gagal. Cek email / nomor dan password kamu.";
+          if (error.code === "auth/invalid-email") {
+            msg = "Format email tidak valid.";
+          } else if (error.code === "auth/user-not-found") {
+            msg = "Akun belum terdaftar. Silakan login dengan Gmail terlebih dahulu.";
+          } else if (error.code === "auth/wrong-password") {
+            msg = "Password salah. Coba lagi.";
+          } else if (error.code === "auth/too-many-requests") {
+            msg = "Terlalu banyak percobaan login. Silakan coba beberapa saat lagi.";
+          }
+          document.getElementById("status").innerText = msg;
         });
     });
   </script>
