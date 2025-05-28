@@ -766,6 +766,11 @@
   <!-- Firebase App & Auth SDK for logout functionality -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <!-- Deklarasi global cid agar bisa digunakan di semua script setelah ini -->
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const cid = urlParams.get("cid") || localStorage.getItem("cid");
+  </script>
   <script>
     function openFollowingModal() {
       const modal = document.getElementById("followingModal");
