@@ -193,7 +193,7 @@
 
       // Kirim request ke backend untuk validasi login dari Google Sheets
       try {
-        const res = await fetch("https://queensacademy-id-backend.onrender.com/proxy-login-sheet", {
+        const res = await fetch("https://firebase-upload-backend.onrender.com/proxy-login-sheet", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ whatsapp: rawInput, password })
@@ -266,9 +266,9 @@
           const email = user.email;
           const name = user.displayName || "";
 
-          // Cek ke Sheet apakah email sudah terdaftar
-          const res = await fetch(`https://queensacademy-id-backend.onrender.com/proxy-check-email-sheet?email=${email}`);
-          const data = await res.json();
+      // Cek ke Sheet apakah email sudah terdaftar
+      const res = await fetch(`https://firebase-upload-backend.onrender.com/proxy-check-email-sheet?email=${email}`);
+      const data = await res.json();
 
           if (data && data.found) {
             // Email sudah terdaftar, lanjut ke dashboard
