@@ -205,13 +205,24 @@
         });
 
         const result = await res.json();
+        // Jika login sukses, pastikan dapatkan cid, jika belum ada, ambil dari API get-cid-by-wa
         if (result.success) {
-          localStorage.setItem("cid", result.cid);
-          localStorage.setItem("cid_login", result.cid);
-          console.log("📦 Simpan ke localStorage:", result.cid);
-          setTimeout(() => {
+          if (!result.cid && bodyData.whatsapp) {
+            try {
+              const getCid = await fetch(`https://firebase-upload-backend.onrender.com/proxy-get-cid-by-wa?wa=${bodyData.whatsapp}`);
+              const getCidResult = await getCid.json();
+              result.cid = getCidResult.cid || "";
+            } catch (err) {
+              result.cid = "";
+            }
+          }
+          if (result.cid) {
+            localStorage.setItem("cid", result.cid);
+            localStorage.setItem("cid_login", result.cid);
             window.location.href = "/dashboard/dashboard.html?cid=" + result.cid;
-          }, 300);
+          } else {
+            document.getElementById("status").innerText = "CID tidak ditemukan. Hubungi admin.";
+          }
         } else {
           document.getElementById("status").innerText = result.message || "Login gagal.";
         }
@@ -274,15 +285,15 @@
           const email = user.email;
           const name = user.displayName || "";
 
-      // Cek ke Sheet apakah email sudah terdaftar
-      const res = await fetch(`https://firebase-upload-backend.onrender.com/proxy-check-email-sheet?email=${email}`);
-      const data = await res.json();
+          // Cek ke Sheet apakah email sudah terdaftar
+          const res = await fetch(`https://firebase-upload-backend.onrender.com/proxy-check-email-sheet?email=${email}`);
+          const data = await res.json();
 
           if (data && data.found) {
             // Email sudah terdaftar, lanjut ke dashboard
             localStorage.setItem("cid_login", data.cid || "");
             localStorage.setItem("cid", data.cid || "");
-            window.location.href = "/dashboard/dashboard.html";
+            window.location.href = "/dashboard/dashboard.html?cid=" + (data.cid || "");
           } else {
             // Email belum terdaftar, redirect ke set-password
             localStorage.setItem("temp_email", email);
@@ -296,7 +307,6 @@
         });
     }
   </script>
-</script>
 <script>
   function togglePassword() {
     const passwordInput = document.getElementById("password");
