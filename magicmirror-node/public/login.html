@@ -186,6 +186,33 @@
       const rawInput = document.getElementById("username").value.trim();
       const password = document.getElementById("password").value;
 
+      if (!rawInput || !password) {
+        document.getElementById("status").innerText = "Masukkan nomor WA dan password.";
+        return;
+      }
+
+      // Kirim request ke backend untuk validasi login dari Google Sheets
+      try {
+        const res = await fetch("https://firebase-upload-backend.onrender.com/proxy-login-sheet", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ whatsapp: rawInput, password })
+        });
+
+        const result = await res.json();
+        if (result.success) {
+          localStorage.setItem("cid", result.cid);
+          localStorage.setItem("cid_login", result.cid);
+          window.location.href = `/dashboard/dashboard.html`;
+        } else {
+          document.getElementById("status").innerText = result.message || "Login gagal.";
+        }
+      } catch (err) {
+        console.error("Login error:", err);
+        document.getElementById("status").innerText = "Terjadi kesalahan server.";
+      }
+
+      /*
       // Jika input berupa nomor WA, ubah jadi email alias
       let email = rawInput;
       if (/^\d{10,15}$/.test(rawInput)) {
@@ -227,6 +254,7 @@
           }
           document.getElementById("status").innerText = msg;
         });
+      */
     });
   </script>
   <script>
