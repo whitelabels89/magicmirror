@@ -3,9 +3,16 @@ const detailKelasEl = document.getElementById("detail-kelas");
 const modulKelasSection = document.getElementById("modul-kelas");
 
 let currentUserUID = null;
+
+// Ganti dengan URL Web App kamu yang aktif
 const API_BASE = "https://script.google.com/macros/s/AKfycbynFv8gTnczc7abTL5Olq_sKmf1e0y6w9z_KBTKETK8i6NaGd941Cna4QVnoujoCsMdvA/exec";
 
 async function initApp() {
+  if (!firebase || !firebase.auth) {
+    console.error("❌ Firebase belum dimuat. Pastikan library Firebase disertakan di HTML.");
+    return;
+  }
+
   firebase.auth().onAuthStateChanged(async (user) => {
     if (user) {
       currentUserUID = user.uid;
@@ -43,11 +50,11 @@ async function fetchJadwalKelas(uid) {
 
 function showDetailKelas(kelas) {
   detailKelasEl.innerHTML = `
-    <p><strong>Tanggal:</strong> ${kelas.Tanggal}</p>
-    <p><strong>Jam:</strong> ${kelas.Jam}</p>
-    <p><strong>Kelas:</strong> ${kelas.Kelas}</p>
-    <p><strong>Modul:</strong> ${kelas.Modul}</p>
-    <p><strong>Tools:</strong> ${kelas.Tools || '-'}</p>
+    <p><strong>Hari:</strong> ${kelas.Hari || '-'}</p>
+    <p><strong>Jam:</strong> ${kelas.Jam || '-'}</p>
+    <p><strong>Nama Kelas:</strong> ${kelas["Nama Kelas"] || '-'}</p>
+    <p><strong>Link Meet:</strong> ${kelas["Link Meet"] ? `<a href="${kelas["Link Meet"]}" target="_blank">Join</a>` : '-'}</p>
+    <p><strong>Status:</strong> ${kelas.Status || '-'}</p>
   `;
   modulKelasSection.style.display = "block";
 }
@@ -58,8 +65,10 @@ function tutupDetail() {
 }
 
 function logout() {
-  localStorage.clear();
-  window.location.href = "/elearn/login-elearning.html";
+  firebase.auth().signOut().then(() => {
+    localStorage.clear();
+    window.location.href = "/elearn/login-elearning.html";
+  });
 }
 
 window.onload = initApp;

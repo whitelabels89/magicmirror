@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -7,6 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard Guru</title>
   <link rel="stylesheet" href="/elearn/style.css" />
+
+  <!-- Firebase SDK compat -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+  <!-- Firebase config -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBVO4ajDwkbcTGL33SVMxIoev4veB8itgI",
+      authDomain: "queens-academy-icoding.firebaseapp.com",
+      projectId: "queens-academy-icoding",
+      storageBucket: "queens-academy-icoding.firebasestorage.app",
+      messagingSenderId: "1048549258959",
+      appId: "1:1048549258959:web:f8dc1c104bb170d7ff69ba",
+      measurementId: "G-RJCXM1YL7E"
+    };
+    firebase.initializeApp(firebaseConfig);
+  </script>
+
+  <!-- Guru JS -->
   <script defer src="/elearn/guru.js"></script>
 </head>
 <body>
