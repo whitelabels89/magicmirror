@@ -319,6 +319,8 @@
             // Proceed to dashboard
             const userCID = data.cid || data.CID;
             localStorage.setItem("cid_login", userCID);
+            localStorage.setItem("cid", userCID);
+            localStorage.setItem("firebase_token", "1");
             window.location.href = "/dashboard/dashboard.html?cid=" + userCID;
           } else {
             // New: email not registered
