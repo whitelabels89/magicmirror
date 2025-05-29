@@ -1,0 +1,33 @@
+
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Guru</title>
+  <link rel="stylesheet" href="/elearn/style.css" />
+  <script defer src="/elearn/guru.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Selamat datang, Guru</h1>
+    <button onclick="logout()">Logout</button>
+  </header>
+
+  <main>
+    <section id="jadwal-kelas">
+      <h2>Jadwal Kelas Anda</h2>
+      <ul id="kelas-list">
+        <!-- Daftar kelas akan ditampilkan di sini -->
+      </ul>
+    </section>
+
+    <section id="modul-kelas" style="display:none;">
+      <h2>Detail Kelas & Modul</h2>
+      <div id="detail-kelas"></div>
+      <button onclick="tutupDetail()">Tutup</button>
+    </section>
+  </main>
+</body>
+</html>
