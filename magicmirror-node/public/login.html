@@ -320,7 +320,7 @@
             // Email sudah terdaftar, lanjut ke dashboard
             localStorage.setItem("cid_login", data.cid || "");
             localStorage.setItem("cid", data.cid || "");
-            window.location.href = "/dashboard/dashboard.html?cid=" + (data.cid || "");
+            window.location.href = "/dashboard/dashboard.html?cid=" + data.cid;
           } else {
             // Email belum terdaftar, redirect ke set-password
             localStorage.setItem("temp_email", email);
