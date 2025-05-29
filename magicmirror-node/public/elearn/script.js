@@ -13,20 +13,21 @@ async function login() {
     const res = await fetch(`${GAS_URL}?email=${encodeURIComponent(email)}`);
     const data = await res.json();
 
-    if (!data.Role) {
+    const role = data.Role?.toString().trim().toLowerCase();
+
+    if (!role) {
       errorEl.textContent = "❌ Akun tidak dikenali dalam sistem.";
       return;
     }
 
-    // Redirect berdasarkan role
-    if (data.Role === "guru") {
+    if (role === "guru") {
       window.location.href = "/elearn/guru.html";
-    } else if (data.Role === "anak") {
+    } else if (role === "anak") {
       window.location.href = "/elearn/murid.html";
-    } else if (data.Role === "ortu") {
+    } else if (role === "ortu") {
       window.location.href = "/elearn/ortu.html";
     } else {
-      errorEl.textContent = "❌ Role tidak dikenali.";
+      errorEl.textContent = "❌ Role tidak dikenali: " + role;
     }
 
   } catch (error) {
