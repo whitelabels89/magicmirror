@@ -250,7 +250,7 @@
     }
     /* Tambahkan padding-bottom agar dashboard tidak tertutup bottom navbar */
     #dashboard {
-      padding-bottom: 80px;
+      padding-bottom: 100px;
     }
     .dashboard-card {
       background: rgba(255,255,255,0.04);
@@ -566,42 +566,6 @@
       border: none;
       border-radius: 8px;
       cursor: pointer;
-    }
-    #bottomNavBar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      background-color: inherit;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      padding: 8px 0;
-      border-top: 1px solid rgba(255,255,255,0.1);
-      z-index: 9999;
-    }
-    #bottomNavBar button {
-      background: none;
-      border: none;
-      color: inherit;
-      font-size: 1.6rem;
-      cursor: pointer;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    #bottomNavBar button img {
-      width: 24px;
-      height: 24px;
-      object-fit: contain;
-      border-radius: 0;
-    }
-    #bottomNavBar button:last-child img {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      object-fit: cover;
     }
     #loading {
       text-align: center;
@@ -1777,39 +1741,60 @@ if (uploadFormElement) {
   </script>
   <div id="navPlaceholder"></div>
   <script>
-    // Pastikan body punya class theme-default jika belum ada
-    (function() {
-      var body = document.body;
-      if (!body.classList.contains("theme-default")) {
-        body.classList.add("theme-default");
-      }
-    })();
     fetch('/dashboard/botnav.html')
       .then(res => res.text())
       .then(html => {
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
 
-        // Ambil isi <style> dan append manual ke <head>
         const styles = doc.querySelectorAll('style');
-        styles.forEach(style => {
-          const newStyle = document.createElement('style');
-          newStyle.innerHTML = style.innerHTML;
-          document.head.appendChild(newStyle);
+        styles.forEach(style => document.head.appendChild(style));
+
+        const scripts = doc.querySelectorAll('script');
+        scripts.forEach(script => {
+          const s = document.createElement('script');
+          if (script.src) {
+            s.src = script.src;
+          } else {
+            s.textContent = script.textContent;
+          }
+          document.body.appendChild(s);
         });
 
-        // Sisanya tempel ke navPlaceholder
         const bodyContent = doc.body || doc;
-        const wrapper = document.createElement("div");
-        wrapper.innerHTML = bodyContent.innerHTML;
+        document.getElementById('navPlaceholder').innerHTML = bodyContent.innerHTML;
 
-        // Tambahkan class dashboard-botnav dan theme yang aktif pada wrapper utama (bukan ke semua elemen anak)
-        const currentTheme = document.body.className || "theme-default";
-        wrapper.classList.add('dashboard-botnav');
-        wrapper.classList.add(currentTheme);
+        const cidLogin = localStorage.getItem("cid_login");
+        if (cidLogin) {
+          fetch(`https://firebase-upload-backend.onrender.com/proxy-getprofile?cid=${cidLogin}`)
+            .then(res => res.json())
+            .then(data => {
+              if (data && data.foto) {
+                const interval = setInterval(() => {
+                  const fotoEl = document.getElementById("botnavFoto");
+                  if (fotoEl) {
+                    fotoEl.src = data.foto;
+                    clearInterval(interval);
+                  }
+                }, 100);
+              }
+            });
+        }
 
-        document.getElementById('navPlaceholder').innerHTML = "";
-        document.getElementById('navPlaceholder').appendChild(wrapper);
+        const uploadButtons = document.querySelectorAll("#navPlaceholder .upload-button, #navPlaceholder .btn-upload, #navPlaceholder .plus-badge, #navPlaceholder [onclick*='uploadKarya']");
+        uploadButtons.forEach(btn => {
+          btn.addEventListener("click", (e) => {
+            if (typeof sedangUpload !== 'undefined' && sedangUpload) {
+              e.preventDefault();
+              alert("Sedang proses upload, harap tunggu.");
+              return false;
+            }
+            if (typeof sedangUpload !== 'undefined') {
+              sedangUpload = true;
+              setTimeout(() => { sedangUpload = false; }, 5000);
+            }
+          });
+        });
       });
   </script>
   <!-- Edit Profile Modal -->
