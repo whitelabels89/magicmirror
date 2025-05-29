@@ -661,8 +661,15 @@
   <script type="module" src="auto-login.js"></script>
   <!-- Deklarasi variabel cid, cid_login, isOwner sesuai patch -->
   <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const cid = urlParams.get("cid") || localStorage.getItem("cid_login");
+    // Deklarasi variabel cid dengan fallback dari localStorage jika parameter URL tidak ada
+    let cid = new URLSearchParams(window.location.search).get("cid");
+    if (!cid || cid === "undefined") {
+      cid = localStorage.getItem("cid_login") || localStorage.getItem("cid");
+    }
+    if (!cid) {
+      alert("❌ Gagal mendapatkan CID. Silakan login ulang.");
+      window.location.href = "/login.html";
+    }
     const cid_login = localStorage.getItem("cid_login");
     const cid_viewed = cid;
     const isOwner = (cid_login && cid_viewed && cid_viewed !== cid_login) ? false : true;

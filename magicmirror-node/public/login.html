@@ -295,6 +295,11 @@
           }
           const data = await res.json();
 
+          if (!data.cid && !data.CID) {
+            alert("⚠️ Akun ditemukan tapi CID tidak tersedia. Silakan hubungi admin.");
+            return;
+          }
+
           // Gmail + Manual Account Hybrid Migration
           if (data.exists) {
             // One-time migration if needed
