@@ -17,6 +17,7 @@
       <img id="botnavFoto" src="https://placehold.co/32x32" alt="Profile" />
     </button>
   </div>
+  <div style="height: 160px;"></div>
 </div>
 
 <style>
@@ -32,15 +33,17 @@
   bottom: 0;
   left: 0;
   width: 100%;
-  background-color: #e5f3ff !important;
+  background-color: red !important;
   display: flex;
   justify-content: space-around;
   align-items: center;
   padding: 10px 0;
+  padding-bottom: env(safe-area-inset-bottom, 0);
   border-top: 1px solid #aad9f5;
-  z-index: 1001;
+  z-index: 99999;
   box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
   border-radius: 20px 20px 0 0;
+  height: 80px;
 }
 .dashboard-botnav #bottomNavBar button {
   background: none;
