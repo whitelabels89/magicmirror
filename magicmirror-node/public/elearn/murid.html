@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard Murid</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+    body { background: #f8f9ff; display: flex; height: 100vh; overflow: hidden; }
+    .sidebar { width: 220px; background: #fff; padding: 20px; box-shadow: 2px 0 8px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
+    .sidebar h2 { font-size: 20px; margin-bottom: 20px; color: #333; }
+    .sidebar a { padding: 10px 14px; margin-bottom: 10px; text-decoration: none; color: #444; background: #f1f5ff; border-radius: 10px; transition: 0.3s; }
+    .sidebar a:hover { background: #dbeafe; }
+    .main { flex: 1; padding: 30px; overflow-y: auto; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+    .header h1 { font-size: 24px; color: #333; }
+    .status-box { display: flex; gap: 20px; align-items: center; }
+    .status-box div { background: #fff; padding: 10px 16px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); font-size: 14px; }
+    .lesson-tree { display: flex; gap: 30px; flex-wrap: wrap; margin-top: 20px; }
+    .lesson-card { width: 180px; height: 180px; background: linear-gradient(to bottom, #93c5fd, #60a5fa); color: #fff; border-radius: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: relative; }
+    .lesson-card.locked { background: #e5e7eb; color: #9ca3af; box-shadow: none; }
+    .lesson-card h3 { font-size: 16px; margin-bottom: 8px; }
+    .lesson-card button { padding: 6px 12px; background: #fff; color: #3b82f6; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
+    .lesson-card.locked button { background: #d1d5db; color: #6b7280; cursor: not-allowed; }
+    .sidebar-right { width: 240px; background: #fff; padding: 20px; box-shadow: -2px 0 8px rgba(0,0,0,0.05); }
+    .sidebar-right h3 { font-size: 16px; margin-bottom: 12px; color: #374151; }
+    .notif, .progress-summary { margin-bottom: 20px; font-size: 14px; background: #f9fafb; padding: 10px; border-radius: 10px; }
+
+    .popup-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .popup-container {
+      width: 96vw;
+      height: 96vh;
+      /* Blackboard child-friendly background with chalk/crayon illustrations */
+      background-image: url('https://cdn.pixabay.com/photo/2017/10/11/18/16/chalkboard-2845795_960_720.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      color: #fff;
+      /* Slight dark overlay for readability */
+      box-shadow: 0 4px 30px rgba(0,0,0,0.2), inset 0 0 0 1000px rgba(0,0,0,0.4);
+      border-radius: 20px;
+      padding: 30px;
+      position: relative;
+      font-size: 24px;
+      font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .popup-container .close-btn {
+      position: absolute;
+      top: 10px; right: 20px;
+      background: transparent;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .shadow-text {
+      color: transparent;
+      text-shadow: 1px 1px 0 #ccc;
+      letter-spacing: 1px;
+    }
+
+    .user-input {
+      outline: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      color: #1e3a8a;
+      white-space: pre;
+      letter-spacing: 1px;
+      min-height: 1em;
+      width: 100%;
+      padding: 5px;
+      background: transparent;
+      z-index: 1;
+      font-family: monospace;
+      font-size: 32px;
+      border: none;
+      outline: none;
+    }
+
+    .typing-area {
+      position: relative;
+      background: #fef9c3;
+      border: 2px dashed #facc15;
+      padding: 20px;
+      margin-top: 20px;
+      font-size: 32px;
+      min-height: 60px;
+      /* pointer-events: none;  <-- Make sure this is not present */
+    }
+
+    .progress-bar {
+      height: 16px;
+      background: #e5e7eb;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 20px;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: #4ade80;
+      width: 0%;
+      transition: width 0.3s;
+    }
+
+    .animated-badge {
+      animation: pop-in 0.8s ease-out;
+    }
+
+    @keyframes pop-in {
+      from { transform: scale(0.2); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .sparkle-effect {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      width: 120px;
+      height: 120px;
+      background: radial-gradient(circle, #fffacd, #facc15, transparent 70%);
+      opacity: 0.6;
+      border-radius: 50%;
+      animation: sparkle 1s ease-out forwards;
+      pointer-events: none;
+    }
+
+    @keyframes sparkle {
+      0% { transform: scale(0.5); opacity: 0.8; }
+      100% { transform: scale(2.5); opacity: 0; }
+    }
+
+    .popup-container.success {
+      animation: glow-pulse 1s ease-in-out 2;
+    }
+
+    @keyframes glow-pulse {
+      0% { box-shadow: 0 0 0 rgba(0,255,0,0.0); }
+      50% { box-shadow: 0 0 40px rgba(34,197,94,0.8); }
+      100% { box-shadow: 0 0 0 rgba(0,255,0,0.0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>🎓 Murid Panel</h2>
+    <a href="#">🏠 Dashboard</a>
+    <a href="#">📚 Modul</a>
+    <a href="#">📝 Tugas</a>
+    <a href="#">📈 Progress</a>
+    <a href="#">🚪 Logout</a>
+  </div>
+
+  <div class="main">
+    <div class="header">
+      <h1>Halo, <span id="namaMurid">...</span>! 👋</h1>
+      <div class="status-box">
+        <div>⭐ Coin: 150</div>
+        <div>🏅 Badge: 3</div>
+      </div>
+    </div>
+
+    <h2>🚀 Petualangan Belajar</h2>
+    <div class="lesson-tree">
+      <!-- Lesson 1 dipindahkan ke file lesson1.html -->
+      <a href="lesson1.html" class="lesson-card">
+        <h3>Lesson 1</h3>
+        <p>Print & Hello World</p>
+        <button>START</button>
+      </a>
+      <a href="lesson2.html" class="lesson-card">
+        <h3>Lesson 2</h3>
+        <p>Variabel & Input</p>
+        <button>START</button>
+      </a>
+      <a href="lesson3.html" class="lesson-card locked">
+        <h3>Lesson 3</h3>
+        <p>Loop & Logika</p>
+        <button disabled>LOCKED</button>
+      </a>
+    </div>
+  </div>
+
+  <div class="sidebar-right">
+    <h3>🔔 Notifikasi</h3>
+    <div class="notif">Kelas Python akan dimulai 10 menit lagi</div>
+
+    <h3>📊 Progress Kamu</h3>
+    <div class="progress-summary">Kamu telah menyelesaikan 2 dari 16 lesson modul ini 🎉</div>
+  </div>
+  <audio id="typing-sound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_2eac74b008.mp3"></audio>
+  <script>
+    const muridName = localStorage.getItem('murid_nama') || 'Nina';
+    document.getElementById('namaMurid').textContent = muridName;
+  </script>
+</body>
+</html>

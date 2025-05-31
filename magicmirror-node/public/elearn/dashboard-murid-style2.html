@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>iCoding Playground</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      /* Font dan layout utama body */
+      font-family: 'Fredoka', sans-serif;
+      background: linear-gradient(to bottom, #fef9f9, #e7f1ff);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+
+      /* Efek awal tampilan 3D miring saat load */
+      transition: transform 1s ease;
+      transform: perspective(1000px) rotateY(20deg);
+    }
+
+    body.loaded {
+      /* Hilangkan efek miring setelah diklik */
+      transform: perspective(1000px) rotateY(0deg);
+    }
+
+    .konten-tengah {
+      flex: 1;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+      position: relative;
+      background-image: url('img/bghr.png');
+      background-size: cover;
+      background-position: center;
+      position: relative;
+    }
+
+    .judul {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 2rem; /* Ukuran font utama */
+      color: #6c1a1a;
+      text-align: center;
+      margin-bottom: 460px; /* Jarak ke elemen di bawahnya */
+      text-shadow: 1px 1px 2px #fff;
+      line-height: 1.2; /* Spasi antar baris untuk 2 baris teks */
+      padding-left: 25px; /* Jarak dari sisi kiri teks judul */
+      padding-right: 320px; /* Jarak dari sisi kanan teks judul */
+      /* Untuk pengaturan posisi tinggi-rendah bisa ubah margin-top atau padding-top */
+      /* Untuk geser kiri-kanan, bisa tambahkan text-align, padding-left/right atau transform: translateX */
+    }
+
+    .subject-buttons {
+      /* Tombol subjek ditaruh di bawah tengah halaman */
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-68%);
+      display: flex;
+      gap: 0px;
+      justify-content: center;
+      padding-top: 0;
+      margin-top: 0;
+    }
+
+    .subject-wrapper {
+      position: relative;
+      display: inline-block;
+      /* Optionally adjust top for finer positioning if needed */
+      top: 21px; 
+    }
+
+    .subject-wrapper img.overlay {
+      width: 135px;
+      height: 135px;
+      object-fit: contain;
+      cursor: pointer;
+      position: relative;
+      pointer-events: auto;
+      z-index: 5;
+      /* Remove absolute positioning for better centering */
+      /* Optionally use margin for fine-tuning */
+      /* margin: 0 auto; display: block; */
+      transition: transform 0.3s ease, filter 0.3s ease;
+    }
+    .subject-wrapper img.overlay:hover {
+      transform: scale(1.1);
+      transition: transform 0.3s ease, filter 0.3s ease;
+      filter: brightness(1.2) saturate(1.3);
+    }
+    .subject-wrapper img.overlay:active {
+      transform: scale(0.9);
+      transition: transform 0.1s ease;
+    }
+    .subject-wrapper:nth-child(2) {
+      /* Geser tombol kedua sedikit ke kiri */
+      transform: translateX(-6px);
+    }
+    .subject-wrapper:nth-child(3) {
+      /* Geser tombol ketiga sedikit ke kiri */
+      transform: translateX(-6px);
+    }
+    .subject-wrapper:nth-child(4) {
+      /* Geser tombol keempat sedikit ke kanan */
+      transform: translateX(3px);
+    }
+    .subject-wrapper:nth-child(5) {
+      /* Geser tombol kelima lebih jauh ke kanan */
+      transform: translateX(20px);
+    }
+    
+
+    .fade-light {
+      /* Efek animasi cahaya saat halaman muncul */
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, rgba(255,255,255,0.8), rgba(255,255,255,0));
+      animation: fadeOutLight 2s ease forwards;
+      z-index: 999;
+      pointer-events: none;
+    }
+
+    @keyframes fadeOutLight {
+      /* Animasi untuk membuat efek cahaya memudar */
+      from {
+        opacity: 1;
+      }
+      to {
+        opacity: 0;
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="fade-light"></div>
+  <div class="konten-tengah">
+    <div class="judul">Welcome to<br>Nina's Learning Adventure</div>
+    <div class="subject-buttons">
+      <div class="subject-wrapper">
+        <img src="img/s.png" class="overlay" />
+      </div>
+      <div class="subject-wrapper">
+        <img src="img/t.png" class="overlay" style="width: 146px; height: 146px; top: -5px;"/>
+      </div>
+      <div class="subject-wrapper">
+        <img src="img/e.png" class="overlay" style="top: 1.2px;"/>
+      </div>
+      <div class="subject-wrapper">
+        <img src="img/m.png" class="overlay" style="width: 130px; height: 130px; top: 2px;"/>
+      </div>
+      <div class="subject-wrapper">
+        <img src="img/a.png" class="overlay" />
+      </div>
+    </div>
+  </div>
+<script>
+  window.addEventListener('click', () => {
+    document.body.classList.add('loaded');
+  });
+</script>
+</body>
+</html>

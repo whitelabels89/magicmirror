@@ -37,7 +37,11 @@ async function fetchJadwalKelas(uid) {
 
     data.forEach(kelas => {
       const li = document.createElement("li");
-      li.textContent = `${kelas.Hari} - ${kelas.Jam} | ${kelas["Nama Kelas"]}`;
+      const jam = new Date(kelas.Jam).toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+      li.textContent = `${kelas.Hari} - ${jam} | ${kelas["Nama Kelas"]}`;
       li.style.cursor = "pointer";
       li.onclick = () => showDetailKelas(kelas);
       kelasListEl.appendChild(li);
@@ -51,7 +55,7 @@ async function fetchJadwalKelas(uid) {
 function showDetailKelas(kelas) {
   detailKelasEl.innerHTML = `
     <p><strong>Hari:</strong> ${kelas.Hari || '-'}</p>
-    <p><strong>Jam:</strong> ${kelas.Jam || '-'}</p>
+    <p><strong>Jam:</strong> ${kelas.Jam ? new Date(kelas.Jam).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) : '-'}</p>
     <p><strong>Nama Kelas:</strong> ${kelas["Nama Kelas"] || '-'}</p>
     <p><strong>Link Meet:</strong> ${kelas["Link Meet"] ? `<a href="${kelas["Link Meet"]}" target="_blank">Join</a>` : '-'}</p>
     <p><strong>Status:</strong> ${kelas.Status || '-'}</p>

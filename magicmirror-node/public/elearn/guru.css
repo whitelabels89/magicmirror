@@ -1,0 +1,85 @@
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(to right, #f5e7e1, #e3f1ed);
+  color: #2c2c2c;
+}
+
+header {
+  background-color: #ffffff;
+  padding: 20px 40px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+button {
+  background-color: #ff7878;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 30px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+button:hover {
+  background-color: #e55d5d;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 30px 40px;
+}
+
+section {
+  background-color: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  padding: 24px;
+}
+
+#jadwal-kelas h2,
+#modul-kelas h2 {
+  margin: 0 0 16px;
+  font-size: 20px;
+  color: #1e3a8a;
+}
+
+ul#kelas-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+ul#kelas-list li {
+  background: #f3f7fd;
+  border: 1px solid #d8e3f3;
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 12px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+ul#kelas-list li:hover {
+  background-color: #e6f0ff;
+  border-color: #b3d4ff;
+}
+
+#detail-kelas p {
+  margin: 8px 0;
+  font-size: 14px;
+}
