@@ -244,7 +244,7 @@
       </div>
     </div>
   </div>
-</script>
+<script src="userinfo.js"></script>
 <script>
   window.addEventListener('click', () => {
     document.body.classList.add('loaded');
@@ -258,16 +258,16 @@
   // Contoh inisialisasi 60%
   setProgress(100);
 
-  // Example login role check and redirect
-  // Assuming role is defined somewhere before this code
-  if (typeof role !== 'undefined') {
-    if (role === "anak") {
-      window.location.href = "elearn/dashboard-murid-style2.html";
-    } else if (role === "ortu") {
-      // redirect ortu
-    } else if (role === "guru") {
-      // redirect guru
+  window.onload = () => {
+    const user = getUserInfo();
+    if (user.role !== "anak") {
+      alert("❌ Akses tidak sah. Silakan login ulang.");
+      window.location.href = "/elearn/login-elearning.html";
+      return;
     }
+
+    console.log("👤 Nama:", user.nama);
+    console.log("🆔 UID:", user.uid);
   }
 </script>
 </body>

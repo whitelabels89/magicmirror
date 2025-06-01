@@ -350,23 +350,28 @@
     </div>
   </div>
 
+  <script src="userinfo.js"></script>
   <script>
     // Cek apakah user sudah login, jika tidak redirect
-    if (!localStorage.getItem('murid_nama')) {
+    const user = getUserInfo();
+    if (!user || user.role !== "anak") {
+      alert("❌ Akses tidak sah. Silakan login ulang.");
       window.location.href = "/elearn/login-elearning.html";
+    } else {
+      document.getElementById('namaMurid').textContent = user.nama;
     }
-    const muridName = localStorage.getItem('murid_nama') || 'Nina';
-    document.getElementById('namaMurid').textContent = muridName;
 
     function toggleSidebar() {
       document.getElementById('sidebar').classList.toggle('collapsed');
     }
 
     function handleLogout() {
-      // Clear local storage or any session data
-      localStorage.clear();
-      // Redirect to login page or homepage
-      window.location.href = "/elearn/login-elearning.html";
+      firebase.auth().signOut().then(() => {
+        sessionStorage.clear();
+        window.location.href = "/elearn/login-elearning.html";
+      }).catch((error) => {
+        alert("❌ Gagal logout. Coba lagi.");
+      });
     }
   </script>
 </body>

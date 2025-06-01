@@ -14,6 +14,14 @@ async function login() {
     const data = await res.json();
 
     const role = data.Role?.toString().trim().toLowerCase();
+    const nama = data.Nama || data.name || "-";
+    const uid_custom = data.UID || data.Uid || data.uid || "-";
+
+    // Simpan session
+    sessionStorage.setItem("role", role);
+    sessionStorage.setItem("nama", nama);
+    sessionStorage.setItem("uid_custom", uid_custom);
+    sessionStorage.setItem("email", email);
 
     if (!role) {
       errorEl.textContent = "❌ Akun tidak dikenali dalam sistem.";
@@ -34,4 +42,13 @@ async function login() {
     console.error("Login error:", error);
     errorEl.textContent = "❌ " + error.message;
   }
+}
+
+function logout() {
+  firebase.auth().signOut().then(() => {
+    sessionStorage.clear();
+    window.location.href = "/elearn/login-elearning.html";
+  }).catch((error) => {
+    alert("❌ Gagal logout. Coba ulangi.");
+  });
 }

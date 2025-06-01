@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Planetarium Lesson 1: Kalkulator Energi Sarapan</title>
+  <script src="/elearn/userinfo.js"></script>
   <style>
     body {
       margin: 0;
@@ -205,6 +206,13 @@
   </div>
 
 <script>
+  // Validasi session user
+  const user = getUserInfo();
+  if (!user || user.role !== "anak") {
+    alert("❌ Akses tidak sah. Silakan login ulang.");
+    window.location.href = "/elearn/login-elearning.html";
+  }
+
   // Step navigation logic
   function showStep(n) {
     for (let i = 1; i <= 6; i++) {

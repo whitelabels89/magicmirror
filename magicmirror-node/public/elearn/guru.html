@@ -372,12 +372,30 @@
     firebase.initializeApp(firebaseConfig);
   </script>
 
+  <!-- User Info JS -->
+  <script src="userinfo.js"></script>
   <!-- Guru JS -->
   <script defer src="/elearn/guru.js"></script>
   <script>
     function toggleSidebar(side) {
       const element = document.querySelector(`.sidebar-${side}`);
       element.classList.toggle('collapsed');
+    }
+
+    // Validasi user dan fungsi logout
+    const user = getUserInfo();
+    if (!user || user.role !== "guru") {
+      alert("❌ Akses tidak sah. Silakan login ulang.");
+      window.location.href = "/elearn/login-elearning.html";
+    }
+
+    function logout() {
+      firebase.auth().signOut().then(() => {
+        sessionStorage.clear();
+        window.location.href = "/elearn/login-elearning.html";
+      }).catch((error) => {
+        alert("❌ Gagal logout. Coba lagi.");
+      });
     }
   </script>
 </head>
