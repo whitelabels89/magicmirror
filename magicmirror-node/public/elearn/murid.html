@@ -143,10 +143,21 @@
       gap: 20px;
     }
     .status-box div {
-      background: #f1f5f9;
-      padding: 8px 12px;
-      border-radius: 10px;
-      font-size: 14px;
+      background: linear-gradient(to right, #fbbf24, #facc15);
+      padding: 10px 16px;
+      border-radius: 14px;
+      font-size: 15px;
+      color: #111827;
+      font-weight: bold;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .status-box div::before {
+      content: attr(data-icon);
+      font-size: 18px;
+      margin-right: 4px;
     }
 
     /* Card Style tetap dipertahankan seperti sebelumnya */
@@ -165,7 +176,7 @@
       padding: 20px;
       width: 280px;
       height: 180px;
-      overflow: hidden;
+      overflow: visible;
       color: #fff;
       text-align: center;
       flex-shrink: 0;
@@ -178,6 +189,7 @@
       transform: translateX(-50%);
       width: 100px;
       z-index: 2;
+      filter: drop-shadow(0px 8px 8px rgba(0, 0, 0, 0.3));
     }
 
     .lesson-number {
@@ -213,6 +225,11 @@
       text-decoration: none;
       font-size: 13px;
     }
+
+    .judul-section {
+      margin-top: -40px;   /* Atur jarak dari atas */
+      margin-bottom: 50px; /* Atur jarak dari bawah */
+    }
   </style>
 </head>
 <body>
@@ -237,7 +254,7 @@
           <span class="material-icons icon icon-emboss">insights</span>
           <span>Progress</span>
         </a>
-        <a href="#">
+        <a href="javascript:void(0);" onclick="handleLogout()">
           <span class="material-icons icon icon-emboss">logout</span>
           <span>Logout</span>
         </a>
@@ -246,7 +263,7 @@
 
     <!-- Konten Tengah (Panel Ungu / Neon) -->
     <div class="panel-ungu">
-      <h2>👾 Mode Belajar</h2>
+      <h2>👾 Learning Mode</h2>
       <p>Selamat datang kembali, murid pintar!</p>
       <div class="progress-card">
         <p>🚀 Progress kamu: 40%</p>
@@ -257,73 +274,73 @@
     <!-- Konten Kanan (Utama) -->
     <div class="main-content">
       <div class="header">
-        <h1>Halo, <span id="namaMurid">...</span>! 👋</h1>
+        <h1>Hello, <span id="namaMurid">...</span>! 👋</h1>
         <div class="status-box">
-          <div>⭐ Coin: 150</div>
-          <div>🏅 Badge: 3</div>
+          <div data-icon="⭐">Coin: 150</div>
+          <div data-icon="🏅">Badge: 3</div>
         </div>
       </div>
 
-      <h2>🚀 Petualangan Belajar</h2>
+      <h2 class="judul-section">🚀 Learning Journey</h2>
       <div class="game-style-cards">
         <div class="lesson-card" style="background: linear-gradient(to right, #3b82f6, #60a5fa);">
-          <img src="/elearn/reward/ASTRO1.png" class="reward" />
-          <span class="lesson-number">#01</span>
+          <img src="/elearn/img/KODY.png" class="reward" style="width: 105px ; height: auto;" />
+          <span class="lesson-number">#00</span>
           <h3>Lesson: Cerita Planetarium</h3>
           <p>Yuk kenalan sama planet dan dunia coding!</p>
           <a href="/elearn/lesson1.html" class="start-btn">Start</a>
         </div>
         <div class="lesson-card" style="background: linear-gradient(to right, #6366f1, #8b5cf6);">
-          <img src="/elearn/reward/ASTRO2.png" class="reward" />
-          <span class="lesson-number">#02</span>
+          <img src="/elearn/img/reward/ASTRO1.png" class="reward" style="width: 110px ; height: auto;" />
+          <span class="lesson-number">#01</span>
           <h3>Lesson 1: Baterai Plasma</h3>
           <p>Belajar cara spaceship baca tombol kamu</p>
           <a href="/elearn/L1-ASTRO1.html" class="start-btn">Start</a>
         </div>
         <div class="lesson-card" style="background: linear-gradient(to right, #10b981, #22c55e);">
-          <img src="/elearn/reward/ASTRO3.png" class="reward" />
-          <span class="lesson-number">#03</span>
+          <img src="/elearn/img/reward/ASTRO2.png" class="reward" style="width: 120px ; height: auto;" />
+          <span class="lesson-number">#02</span>
           <h3>Lesson 2: Navigasi Pesawat</h3>
           <p>Belok kanan? Atau kiri? Yuk belajar logika!</p>
           <a href="/elearn/L2-ASTRO.html" class="start-btn">Start</a>
         </div>
         <div class="lesson-card" style="background: linear-gradient(to right, #f43f5e, #fb7185);">
-          <img src="/elearn/reward/ASTRO4.png" class="reward" />
-          <span class="lesson-number">#04</span>
+          <img src="/elearn/img/reward/ASTRO3.png" class="reward" style="width: 120px ; height: auto;" />
+          <span class="lesson-number">#03</span>
           <h3>Lesson 3: Helm Anti Gravitasi</h3>
           <p>Helm ajaib yang aktif pas kamu bergerak!</p>
           <a href="/elearn/L3-ASTRO.html" class="start-btn">Start</a>
         </div>
         <div class="lesson-card" style="background: linear-gradient(to right, #ec4899, #d946ef);">
-          <img src="/elearn/reward/ASTRO5.png" class="reward" />
-          <span class="lesson-number">#05</span>
+          <img src="/elearn/img/reward/ASTRO4.png" class="reward" style="width: 120px ; height: auto;" />
+          <span class="lesson-number">#04</span>
           <h3>Lesson 4: Sensor & Keamanan</h3>
           <p>Sensor buat jaga spaceship kamu tetap aman!</p>
           <a href="/elearn/L4-ASTRO.html" class="start-btn">Start</a>
         </div>
         <div class="lesson-card" style="background: linear-gradient(to right, #0ea5e9, #38bdf8);">
-          <img src="/elearn/reward/ASTRO6.png" class="reward" />
-          <span class="lesson-number">#06</span>
+          <img src="/elearn/img/reward/ASTRO5.png" class="reward" style="width: 120px ; height: auto;" />
+          <span class="lesson-number">#05</span>
           <h3>Lesson 5: Panel Kontrol</h3>
           <p>Kendali spaceship saat ada bahaya! Waspada ya!</p>
           <a href="/elearn/L5-ASTRO.html" class="start-btn">Start</a>
         </div>
         <div class="lesson-card" style="background: linear-gradient(to right, #facc15, #fde047);">
-          <img src="/elearn/reward/ASTRO7.png" class="reward" />
-          <span class="lesson-number">#07</span>
+          <img src="/elearn/img/reward/ASTRO6.png" class="reward" style="width: 120px ; height: auto;" />
+          <span class="lesson-number">#06</span>
           <h3>Lesson 6: Perisai Anti Meteorit</h3>
           <p>Perisai aktif! Belajar kirim pesan dari luar angkasa</p>
           <a href="/elearn/L6-ASTRO.html" class="start-btn">Start</a>
         </div>
         <div class="lesson-card" style="background: linear-gradient(to right, #22d3ee, #3b82f6);">
-          <img src="/elearn/reward/ASTRO8.png" class="reward" />
+          <img src="/elearn/img/reward/ASTRO7.png" class="reward" style="width: 110px ; height: auto;" />
           <span class="lesson-number">#07</span>
           <h3>Lesson 7: Alat Komunikasi</h3>
           <p>Kita butuh alat buat ngobrol antar galaksi!</p>
           <a href="/elearn/L7-ASTRO.html" class="start-btn">Start</a>
         </div>
         <div class="lesson-card" style="background: linear-gradient(to right, #6d28d9, #a78bfa);">
-          <img src="/elearn/reward/ASTRO8.png" class="reward" />
+          <img src="/elearn/img/reward/ASTRO8.png" class="reward" style="width: 120px ; height: auto;" />
           <span class="lesson-number">#08</span>
           <h3>Lesson 8: Roket Astronot</h3>
           <p>Kita siap luncur! Yuk pelajari roket & fungsi!</p>
@@ -334,11 +351,22 @@
   </div>
 
   <script>
+    // Cek apakah user sudah login, jika tidak redirect
+    if (!localStorage.getItem('murid_nama')) {
+      window.location.href = "/elearn/login-elearning.html";
+    }
     const muridName = localStorage.getItem('murid_nama') || 'Nina';
     document.getElementById('namaMurid').textContent = muridName;
 
     function toggleSidebar() {
       document.getElementById('sidebar').classList.toggle('collapsed');
+    }
+
+    function handleLogout() {
+      // Clear local storage or any session data
+      localStorage.clear();
+      // Redirect to login page or homepage
+      window.location.href = "/elearn/login-elearning.html";
     }
   </script>
 </body>
