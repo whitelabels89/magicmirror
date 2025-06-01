@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Planetarium Lesson 6: Perisai Anti Meteorit</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #1e1e1e;
+      color: #d4d4d4;
+      font-family: 'Courier New', monospace;
+      overflow: hidden;
+    }
+    .code-board {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .code-container {
+      background-color: #1e1e1e;
+      border-radius: 8px;
+      padding: 40px;
+      width: 80%;
+      max-width: 900px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.5);
+    }
+    .code-line {
+      display: flex;
+      font-size: 18px;
+    }
+    .line-number {
+      width: 30px;
+      color: #858585;
+      text-align: right;
+      margin-right: 20px;
+    }
+    .code-text span.correct.keyword { color: #569CD6; }
+    .code-text span.correct.func { color: #DCDCAA; }
+    .code-text span.correct.str { color: #CE9178; }
+    .code-text span.correct.var { color: #9CDCFE; }
+    .code-text span.wrong { color: red; }
+    .progress-container {
+      height: 8px;
+      background: #444;
+      width: 100%;
+    }
+    .progress-bar {
+      height: 8px;
+      background: #4caf50;
+      width: 0%;
+      transition: width 0.2s;
+    }
+    .step-buttons {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+      gap: 12px;
+    }
+    .step-circle {
+      background-color: #1e90ff;
+      color: white;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      transition: transform 0.2s, background-color 0.3s;
+    }
+    .step-circle:hover {
+      background-color: #63b3ed;
+      transform: scale(1.1);
+    }
+
+    #outputResult {
+      font-family: 'Courier New', monospace;
+      white-space: pre-wrap;
+      animation: munculPelan 0.6s ease-out;
+    }
+    #rewardContainer {
+      animation: munculReward 0.7s ease-out;
+    }
+    @keyframes munculPelan {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes munculReward {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress-container">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+  <div class="step-buttons">
+    <button class="step-circle" onclick="showStep(1)">1</button>
+    <button class="step-circle" onclick="showStep(2)">2</button>
+    <button class="step-circle" onclick="showStep(3)">3</button>
+    <button class="step-circle" onclick="showStep(4)">4</button>
+    <button class="step-circle" onclick="showStep(5)">5</button>
+    <button class="step-circle" onclick="showStep(6)">6</button>
+  </div>
+
+  <!-- Langkah 1: Storytelling -->
+  <div id="step-1">
+    <div class="code-board">
+      <div class="code-container" style="text-align:center;">
+        <h3>🚨 Bahaya dari luar angkasa! 🚨</h3>
+        <p style="font-size:18px; white-space:pre-line; margin-top:30px;">
+Kody mendeteksi hujan meteor yang mendekat ke kapal luar angkasa kita! 
+Kita harus segera mengaktifkan sistem perlindungan otomatis... yaitu: 
+🛡️ <b>Perisai Anti Meteorit</b>!
+
+Yuk bantu Kody menulis logika pertahanan roket menggunakan <b>if-else</b>!
+        </p>
+        <button onclick="nextStep(2)" style="margin-top:32px; padding:14px 28px; font-size:18px; background:#1e90ff; color:white; border:none; border-radius:6px; cursor:pointer;">Aktifkan Perisai!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Langkah 2: Input ancaman -->
+  <div id="step-2" style="display:none;">
+    <div class="code-board">
+      <div class="code-container" style="text-align:center;">
+        <h3>Langkah 2: Input Ancaman</h3>
+        <p>
+          Tulis kode Python berikut untuk mendeteksi ancaman hari ini!
+        </p>
+        <div id="codeContainer2"></div>
+        <script>
+        // Ganti kode typing step 2
+        function initStep2Typing() {
+          const placeholderLines2 = ["serangan = input('Ada bahaya apa hari ini?')"];
+          let typed2 = placeholderLines2.map(() => '');
+          let lineIndex2 = 0;
+          let charIndex2 = 0;
+          function classifyToken2(char, line, i) {
+            if (line.includes('=') && i < line.indexOf('=')) return 'var';
+            if ((line.slice(i).startsWith('input') && i + 4 < line.length)) return 'func';
+            let inStr = false;
+            for (let j = 0; j <= i; j++) {
+              if (line[j] === "'") inStr = !inStr;
+            }
+            if (inStr) return 'str';
+            return '';
+          }
+          function renderCode2() {
+            const codeContainer2 = document.getElementById('codeContainer2');
+            codeContainer2.innerHTML = '';
+            placeholderLines2.forEach((line, idx) => {
+              const div = document.createElement('div');
+              div.className = 'code-line';
+              const lineNumber = document.createElement('span');
+              lineNumber.className = 'line-number';
+              lineNumber.textContent = idx + 1;
+              div.appendChild(lineNumber);
+              const codeText = document.createElement('span');
+              codeText.className = 'code-text';
+              for (let i = 0; i < line.length; i++) {
+                const span = document.createElement('span');
+                const trueChar = line[i];
+                const typedChar = typed2[idx][i];
+                const tokenClass = classifyToken2(trueChar, line, i);
+                if (typedChar !== undefined) {
+                  span.textContent = typedChar;
+                  if (typedChar === trueChar) {
+                    span.classList.add('correct');
+                    if (tokenClass) span.classList.add(tokenClass);
+                  } else {
+                    span.classList.add('wrong');
+                  }
+                } else {
+                  span.textContent = trueChar;
+                  span.style.opacity = 0.3;
+                }
+                codeText.appendChild(span);
+              }
+              div.appendChild(codeText);
+              codeContainer2.appendChild(div);
+            });
+            let totalTyped = 0, totalCorrect = 0;
+            placeholderLines2.forEach((line, idx) => {
+              for (let i = 0; i < line.length; i++) {
+                const trueChar = line[i];
+                const typedChar = typed2[idx][i];
+                if (typedChar !== undefined) totalTyped++;
+                if (typedChar === trueChar) totalCorrect++;
+              }
+            });
+            const totalChars = placeholderLines2.reduce((sum, line) => sum + line.length, 0);
+            const percent = totalChars === 0 ? 0 : Math.floor((totalCorrect / totalChars) * 100);
+            document.getElementById('progressBar').style.width = percent + '%';
+          }
+          function keydownStep2(e) {
+            if (lineIndex2 < 0 || lineIndex2 >= placeholderLines2.length) return;
+            const line = placeholderLines2[lineIndex2];
+            if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+              if (typed2[lineIndex2].length < line.length) {
+                typed2[lineIndex2] += e.key;
+                charIndex2++;
+                if (charIndex2 >= line.length && lineIndex2 < placeholderLines2.length - 1) {
+                  lineIndex2++;
+                  charIndex2 = typed2[lineIndex2].length;
+                }
+              }
+            } else if (e.key === 'Backspace') {
+              if (charIndex2 > 0) {
+                typed2[lineIndex2] = typed2[lineIndex2].slice(0, -1);
+                charIndex2--;
+              } else if (lineIndex2 > 0) {
+                lineIndex2--;
+                charIndex2 = typed2[lineIndex2].length;
+              }
+            }
+            renderCode2();
+          }
+          window.__keydownStep2Handler = keydownStep2;
+          document.addEventListener('keydown', window.__keydownStep2Handler);
+          function removeStep2Listener() {
+            document.removeEventListener('keydown', window.__keydownStep2Handler);
+            window.__step2TypingInitialized = undefined;
+          }
+          const origShowStep = window.showStep;
+          window.showStep = function(n) {
+            origShowStep(n);
+            if (n !== 2 && typeof window.__keydownStep2Handler !== "undefined") {
+              removeStep2Listener();
+            }
+          };
+          renderCode2();
+        }
+        </script>
+        <p style="margin-top: 20px;">
+          Ketikkan perlahan ya, satu huruf demi satu huruf.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Langkah 3: Kondisi ancaman -->
+  <div id="step-3" style="display:none;">
+    <div class="code-board">
+      <div class="code-container" style="text-align:center;">
+        <h3>Langkah 3: Kondisi Ancaman</h3>
+        <p>
+          Gunakan <b>if</b> untuk memeriksa apakah ada meteor!
+        </p>
+        <div id="codeContainer3"></div>
+        <script>
+        // Ganti kode typing step 3
+        function initStep3Typing() {
+          const placeholderLines3 = ["if serangan == 'meteor':"];
+          let typed3 = placeholderLines3.map(() => '');
+          let lineIndex3 = 0;
+          let charIndex3 = 0;
+          function classifyToken3(char, line, i) {
+            if (line.startsWith('if') && i < 2) return 'keyword';
+            if (line.includes('serangan') && line.indexOf('serangan') <= i && i < line.indexOf('serangan') + 8) return 'var';
+            if (line[i] === "'") return 'str';
+            let inStr = false;
+            for (let j = 0; j <= i; j++) {
+              if (line[j] === "'") inStr = !inStr;
+            }
+            if (inStr) return 'str';
+            return '';
+          }
+          function renderCode3() {
+            const codeContainer3 = document.getElementById('codeContainer3');
+            codeContainer3.innerHTML = '';
+            placeholderLines3.forEach((line, idx) => {
+              const div = document.createElement('div');
+              div.className = 'code-line';
+              const lineNumber = document.createElement('span');
+              lineNumber.className = 'line-number';
+              lineNumber.textContent = idx + 1;
+              div.appendChild(lineNumber);
+              const codeText = document.createElement('span');
+              codeText.className = 'code-text';
+              for (let i = 0; i < line.length; i++) {
+                const span = document.createElement('span');
+                const trueChar = line[i];
+                const typedChar = typed3[idx][i];
+                const tokenClass = classifyToken3(trueChar, line, i);
+                if (typedChar !== undefined) {
+                  span.textContent = typedChar;
+                  if (typedChar === trueChar) {
+                    span.classList.add('correct');
+                    if (tokenClass) span.classList.add(tokenClass);
+                  } else {
+                    span.classList.add('wrong');
+                  }
+                } else {
+                  span.textContent = trueChar;
+                  span.style.opacity = 0.3;
+                }
+                codeText.appendChild(span);
+              }
+              div.appendChild(codeText);
+              codeContainer3.appendChild(div);
+            });
+            let totalTyped = 0, totalCorrect = 0;
+            placeholderLines3.forEach((line, idx) => {
+              for (let i = 0; i < line.length; i++) {
+                const trueChar = line[i];
+                const typedChar = typed3[idx][i];
+                if (typedChar !== undefined) totalTyped++;
+                if (typedChar === trueChar) totalCorrect++;
+              }
+            });
+            const totalChars = placeholderLines3.reduce((sum, line) => sum + line.length, 0);
+            const percent = totalChars === 0 ? 0 : Math.floor((totalCorrect / totalChars) * 100);
+            document.getElementById('progressBar').style.width = percent + '%';
+          }
+          function keydownStep3(e) {
+            if (lineIndex3 < 0 || lineIndex3 >= placeholderLines3.length) return;
+            const line = placeholderLines3[lineIndex3];
+            if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+              if (typed3[lineIndex3].length < line.length) {
+                typed3[lineIndex3] += e.key;
+                charIndex3++;
+                if (charIndex3 >= line.length && lineIndex3 < placeholderLines3.length - 1) {
+                  lineIndex3++;
+                  charIndex3 = typed3[lineIndex3].length;
+                }
+              }
+            } else if (e.key === 'Backspace') {
+              if (charIndex3 > 0) {
+                typed3[lineIndex3] = typed3[lineIndex3].slice(0, -1);
+                charIndex3--;
+              } else if (lineIndex3 > 0) {
+                lineIndex3--;
+                charIndex3 = typed3[lineIndex3].length;
+              }
+            }
+            renderCode3();
+          }
+          window.__keydownStep3Handler = keydownStep3;
+          document.addEventListener('keydown', window.__keydownStep3Handler);
+          function removeStep3Listener() {
+            document.removeEventListener('keydown', window.__keydownStep3Handler);
+            window.__step3TypingInitialized = undefined;
+          }
+          const origShowStep3 = window.showStep;
+          window.showStep = function(n) {
+            origShowStep3(n);
+            if (n !== 3 && typeof window.__keydownStep3Handler !== "undefined") {
+              removeStep3Listener();
+            }
+          };
+          renderCode3();
+        }
+        </script>
+      </div>
+    </div>
+  </div>
+
+  <!-- Langkah 4: Tanggapan terhadap ancaman -->
+  <div id="step-4" style="display:none;">
+    <div class="code-board">
+      <div class="code-container" style="text-align:center;">
+        <h3>Langkah 4: Tanggapan terhadap Ancaman</h3>
+        <p>
+          Tulis perintah <b>print</b> untuk mengaktifkan perisai jika ada meteor!
+        </p>
+        <div id="codeContainer4"></div>
+        <script>
+        // Ganti kode typing step 4
+        function initStep4Typing() {
+          const placeholderLines4 = ["    print('Aktifkan perisai sekarang!')"];
+          let typed4 = placeholderLines4.map(() => '');
+          let lineIndex4 = 0;
+          let charIndex4 = 0;
+          function classifyToken4(char, line, i) {
+            if (line.trim().startsWith('print') && i >= line.indexOf('p') && i < line.indexOf('p') + 5) return 'func';
+            let inStr = false;
+            for (let j = 0; j <= i; j++) {
+              if (line[j] === "'") inStr = !inStr;
+            }
+            if (inStr) return 'str';
+            return '';
+          }
+          function renderCode4() {
+            const codeContainer4 = document.getElementById('codeContainer4');
+            codeContainer4.innerHTML = '';
+            placeholderLines4.forEach((line, idx) => {
+              const div = document.createElement('div');
+              div.className = 'code-line';
+              const lineNumber = document.createElement('span');
+              lineNumber.className = 'line-number';
+              lineNumber.textContent = idx + 1;
+              div.appendChild(lineNumber);
+              const codeText = document.createElement('span');
+              codeText.className = 'code-text';
+              for (let i = 0; i < line.length; i++) {
+                const span = document.createElement('span');
+                const trueChar = line[i];
+                const typedChar = typed4[idx][i];
+                const tokenClass = classifyToken4(trueChar, line, i);
+                if (typedChar !== undefined) {
+                  span.textContent = typedChar;
+                  if (typedChar === trueChar) {
+                    span.classList.add('correct');
+                    if (tokenClass) span.classList.add(tokenClass);
+                  } else {
+                    span.classList.add('wrong');
+                  }
+                } else {
+                  span.textContent = trueChar;
+                  span.style.opacity = 0.3;
+                }
+                codeText.appendChild(span);
+              }
+              div.appendChild(codeText);
+              codeContainer4.appendChild(div);
+            });
+            let totalTyped = 0, totalCorrect = 0;
+            placeholderLines4.forEach((line, idx) => {
+              for (let i = 0; i < line.length; i++) {
+                const trueChar = line[i];
+                const typedChar = typed4[idx][i];
+                if (typedChar !== undefined) totalTyped++;
+                if (typedChar === trueChar) totalCorrect++;
+              }
+            });
+            const totalChars = placeholderLines4.reduce((sum, line) => sum + line.length, 0);
+            const percent = totalChars === 0 ? 0 : Math.floor((totalCorrect / totalChars) * 100);
+            document.getElementById('progressBar').style.width = percent + '%';
+          }
+          function keydownStep4(e) {
+            if (lineIndex4 < 0 || lineIndex4 >= placeholderLines4.length) return;
+            const line = placeholderLines4[lineIndex4];
+            if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+              if (typed4[lineIndex4].length < line.length) {
+                typed4[lineIndex4] += e.key;
+                charIndex4++;
+                if (charIndex4 >= line.length && lineIndex4 < placeholderLines4.length - 1) {
+                  lineIndex4++;
+                  charIndex4 = typed4[lineIndex4].length;
+                }
+              }
+            } else if (e.key === 'Backspace') {
+              if (charIndex4 > 0) {
+                typed4[lineIndex4] = typed4[lineIndex4].slice(0, -1);
+                charIndex4--;
+              } else if (lineIndex4 > 0) {
+                lineIndex4--;
+                charIndex4 = typed4[lineIndex4].length;
+              }
+            }
+            renderCode4();
+          }
+          window.__keydownStep4Handler = keydownStep4;
+          document.addEventListener('keydown', window.__keydownStep4Handler);
+          function removeStep4Listener() {
+            document.removeEventListener('keydown', window.__keydownStep4Handler);
+            window.__step4TypingInitialized = undefined;
+          }
+          const origShowStep4 = window.showStep;
+          window.showStep = function(n) {
+            origShowStep4(n);
+            if (n !== 4 && typeof window.__keydownStep4Handler !== "undefined") {
+              removeStep4Listener();
+            }
+          };
+          renderCode4();
+        }
+        </script>
+      </div>
+    </div>
+  </div>
+
+  <!-- Langkah 5: Kondisi lain -->
+  <div id="step-5" style="display:none;">
+    <div class="code-board">
+      <div class="code-container" style="text-align:center;">
+        <h3>Langkah 5: Kondisi Lain</h3>
+        <p>
+          Tulis <b>else</b> dan perintah print jika tidak ada meteor!
+        </p>
+        <div id="codeContainer5"></div>
+        <script>
+        // Ganti kode typing step 5
+        function initStep5Typing() {
+          const placeholderLines5 = [
+            "else:",
+            "    print('Kondisi aman. Lanjut perjalanan.')"
+          ];
+          let typed5 = placeholderLines5.map(() => '');
+          let lineIndex5 = 0;
+          let charIndex5 = 0;
+          function classifyToken5(char, line, i) {
+            if (line.startsWith('else') && i < 4) return 'keyword';
+            if (line.trim().startsWith('print') && i >= line.indexOf('p') && i < line.indexOf('p') + 5) return 'func';
+            let inStr = false;
+            for (let j = 0; j <= i; j++) {
+              if (line[j] === "'") inStr = !inStr;
+            }
+            if (inStr) return 'str';
+            return '';
+          }
+          function renderCode5() {
+            const codeContainer5 = document.getElementById('codeContainer5');
+            codeContainer5.innerHTML = '';
+            placeholderLines5.forEach((line, idx) => {
+              const div = document.createElement('div');
+              div.className = 'code-line';
+              const lineNumber = document.createElement('span');
+              lineNumber.className = 'line-number';
+              lineNumber.textContent = idx + 1;
+              div.appendChild(lineNumber);
+              const codeText = document.createElement('span');
+              codeText.className = 'code-text';
+              for (let i = 0; i < line.length; i++) {
+                const span = document.createElement('span');
+                const trueChar = line[i];
+                const typedChar = typed5[idx][i];
+                const tokenClass = classifyToken5(trueChar, line, i);
+                if (typedChar !== undefined) {
+                  span.textContent = typedChar;
+                  if (typedChar === trueChar) {
+                    span.classList.add('correct');
+                    if (tokenClass) span.classList.add(tokenClass);
+                  } else {
+                    span.classList.add('wrong');
+                  }
+                } else {
+                  span.textContent = trueChar;
+                  span.style.opacity = 0.3;
+                }
+                codeText.appendChild(span);
+              }
+              div.appendChild(codeText);
+              codeContainer5.appendChild(div);
+            });
+            let totalTyped = 0, totalCorrect = 0;
+            placeholderLines5.forEach((line, idx) => {
+              for (let i = 0; i < line.length; i++) {
+                const trueChar = line[i];
+                const typedChar = typed5[idx][i];
+                if (typedChar !== undefined) totalTyped++;
+                if (typedChar === trueChar) totalCorrect++;
+              }
+            });
+            const totalChars = placeholderLines5.reduce((sum, line) => sum + line.length, 0);
+            const percent = totalChars === 0 ? 0 : Math.floor((totalCorrect / totalChars) * 100);
+            document.getElementById('progressBar').style.width = percent + '%';
+          }
+          function keydownStep5(e) {
+            if (lineIndex5 < 0 || lineIndex5 >= placeholderLines5.length) return;
+            const line = placeholderLines5[lineIndex5];
+            if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+              if (typed5[lineIndex5].length < line.length) {
+                typed5[lineIndex5] += e.key;
+                charIndex5++;
+                if (charIndex5 >= line.length && lineIndex5 < placeholderLines5.length - 1) {
+                  lineIndex5++;
+                  charIndex5 = typed5[lineIndex5].length;
+                }
+              }
+            } else if (e.key === 'Backspace') {
+              if (charIndex5 > 0) {
+                typed5[lineIndex5] = typed5[lineIndex5].slice(0, -1);
+                charIndex5--;
+              } else if (lineIndex5 > 0) {
+                lineIndex5--;
+                charIndex5 = typed5[lineIndex5].length;
+              }
+            }
+            renderCode5();
+          }
+          window.__keydownStep5Handler = keydownStep5;
+          document.addEventListener('keydown', window.__keydownStep5Handler);
+          function removeStep5Listener() {
+            document.removeEventListener('keydown', window.__keydownStep5Handler);
+            window.__step5TypingInitialized = undefined;
+          }
+          const origShowStep5 = window.showStep;
+          window.showStep = function(n) {
+            origShowStep5(n);
+            if (n !== 5 && typeof window.__keydownStep5Handler !== "undefined") {
+              removeStep5Listener();
+            }
+          };
+          renderCode5();
+        }
+        </script>
+      </div>
+    </div>
+  </div>
+
+  <!-- Langkah 6: Jalankan & Reward -->
+  <div id="step-6" style="display:none;">
+    <div class="code-board">
+      <div class="code-container" style="text-align:center;">
+        <h3>Langkah 6: Jalankan Program & Aktifkan Perisai</h3>
+        <p>
+          Jalankan sistem pelindung! Apa yang terjadi jika ada serangan?
+        </p>
+        <button onclick="runFinalProgram()" style="margin-top:20px; padding:12px 24px; font-size:16px; background:#2196f3; color:white; border:none; border-radius:6px; cursor:pointer;">Jalankan Program</button>
+        <pre id="outputResult" style="margin-top:24px; background:#111; color:#4caf50; padding:16px; border-radius:8px; font-size:16px;"></pre>
+        <div id="rewardContainer" style="margin-top:32px; display:none;">
+          <h3 style="color:#ffd700;">🎉 Hebat! Kamu telah mengaktifkan:</h3>
+          <p style="font-size:24px;">🛡️ Perisai Anti Meteorit</p>
+          <img src="https://cdn-icons-png.flaticon.com/512/3004/3004613.png" width="120" />
+          <p style="margin-top:20px;">(Gambar: https://cdn-icons-png.flaticon.com/512/3004/3004613.png)</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // Step navigation logic
+  function showStep(n) {
+    for (let i = 1; i <= 6; i++) {
+      const div = document.getElementById('step-' + i);
+      if (div) div.style.display = (i === n) ? 'block' : 'none';
+    }
+    // For step 2, initialize typing logic for codeContainer2 if present and not yet initialized
+    if (n === 2 && typeof window.__step2TypingInitialized === "undefined") {
+      if (document.getElementById('codeContainer2')) {
+        window.__step2TypingInitialized = true;
+        initStep2Typing();
+      }
+    }
+    if (n === 3 && typeof window.__step3TypingInitialized === "undefined") {
+      if (document.getElementById('codeContainer3')) {
+        window.__step3TypingInitialized = true;
+        initStep3Typing();
+      }
+    }
+    if (n === 4 && typeof window.__step4TypingInitialized === "undefined") {
+      if (document.getElementById('codeContainer4')) {
+        window.__step4TypingInitialized = true;
+        initStep4Typing();
+      }
+    }
+    if (n === 5 && typeof window.__step5TypingInitialized === "undefined") {
+      if (document.getElementById('codeContainer5')) {
+        window.__step5TypingInitialized = true;
+        initStep5Typing();
+      }
+    }
+  }
+  function nextStep(n) {
+    showStep(n);
+  }
+  // Show only step 1 on load
+  showStep(1);
+
+  // Step 6: Jalankan & Reward
+  function runFinalProgram() {
+    const serangan = 'meteor';
+    let hasil = '';
+    if (serangan === 'meteor') {
+      hasil += "Deteksi: Meteor terdeteksi!\n";
+      hasil += "🛡️ Perisai aktif melindungi roket!\n";
+    } else {
+      hasil += "Cuaca luar angkasa aman.\n";
+      hasil += "🚀 Lanjutkan perjalanan.";
+    }
+    document.getElementById('outputResult').textContent = hasil;
+    document.getElementById('rewardContainer').style.display = "block";
+  }
+</script>
+</body>
+</html>

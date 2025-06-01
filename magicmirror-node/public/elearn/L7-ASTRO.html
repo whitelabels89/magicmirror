@@ -102,22 +102,14 @@
   </div>
   <div id="step-1">
     <div style="text-align:center; padding: 20px;">
-      <h3>Selamat Datang di Dunia Koding Petualangan!</h3>
-      <p>
-        Ada seekor robot kecil bernama <strong>Kody</strong> 🤖 yang penasaran tentang dunia manusia.<br>
-        Ia ingin belajar menebak benda, tempat, dan kegiatan manusia... tapi ia tidak tahu harus mulai dari mana!
-      </p>
-      <p>
-        Kamu punya misi penting hari ini:
-        <br><br>
-        🧩 Bantu Kody mengenal cara bertanya (Langkah 2)<br>
-        🔢 Ubah jawaban jadi angka agar bisa dihitung (Langkah 3)<br>
-        🚀 Hitung data yang Kody kumpulkan (Langkah 4)<br>
-        💬 Cetak hasilnya di layar (Langkah 5)<br>
-        🧪 Dan jalankan semuanya seperti game betulan! (Langkah 6)
-      </p>
-      <p>
-        Yuk mulai petualangannya dari sini! Klik langkah selanjutnya untuk bantu Kody belajar! ✨
+      <h3>🚧 Proyek Roket Lanjut! 🚧</h3>
+      <p style="font-size: 18px; white-space: pre-line;">
+Kody dan kamu sudah merakit hampir semua bagian roket: dari tubuh utama, sayap, sistem navigasi, dan pelindung meteor.
+
+Sekarang kita butuh satu hal penting:
+📡 Sistem komunikasi galaksi!
+
+Kita akan bantu Kody membuat *pesan perkenalan* ke alien agar misi kita tidak dianggap ancaman. Yuk belajar cara menyusun kalimat dan menghitung panjang pesannya!
       </p>
     </div>
     <div class="code-board">
@@ -129,13 +121,14 @@
   <div id="step-2" style="display:none;">
     <div class="code-board">
       <div class="code-container" style="text-align:center;">
-        <h3>Langkah 2: Umurmu Berapa?</h3>
-        <p>
-          Kody ingin tahu: berapa usiamu sekarang? 🧠<br><br>
-          Yuk bantu dia bertanya ke manusia lewat kode Python!
+        <h3>Langkah 2: Buat Pesan Antar-Galaksi</h3>
+        <p style="font-size: 18px; white-space: pre-line;">
+Untuk melanjutkan ke tahap terakhir perakitan roket, Kody harus memperkenalkan tim kita ke makhluk galaksi lain agar tidak dianggap ancaman.
+
+Yuk bantu buat pesan perkenalan yang sopan dan jelas:
         </p>
         <div id="codeContainer2"></div>
-        <p style="margin-top: 20px;">
+        <p style="margin-top: 20px; font-size: 18px;">
           Ketikkan perlahan ya, satu huruf demi satu huruf.
         </p>
       </div>
@@ -144,9 +137,10 @@
   <div id="step-3" style="display:none;">
     <div class="code-board">
       <div class="code-container" style="text-align:center;">
-        <h3>Langkah 3: Jadikan Angka</h3>
-        <p>
-          Jawaban dari manusia masih berupa teks. Kita perlu bantu Kody mengubahnya ke angka utuh!
+        <h3>Langkah 3: Gabungkan Pesan</h3>
+        <p style="font-size: 18px; white-space: pre-line;">
+          Kody ingin memperkenalkan kamu ke dunia manusia.
+          Gabungkan nama dan misi kamu jadi satu pesan!
         </p>
         <div id="codeContainer3"></div>
       </div>
@@ -155,11 +149,10 @@
   <div id="step-4" style="display:none;">
     <div class="code-board">
       <div class="code-container" style="text-align:center;">
-        <h3>Langkah 4: Hitung Waktu Layar</h3>
-        <p>
-          Anak-anak sebaiknya punya batasan waktu layar tiap hari.<br>
-          WHO menyarankan sekitar <strong>10 menit per usia</strong>.<br><br>
-          Ayo bantu Kody menghitungnya!
+        <h3>Langkah 4: Hitung Panjang Pesan</h3>
+        <p style="font-size: 18px; white-space: pre-line;">
+          Kody ingin tahu seberapa panjang pesanmu!
+          Yuk bantu dia menghitung jumlah karakternya.
         </p>
         <div id="codeContainer4"></div>
       </div>
@@ -168,9 +161,9 @@
   <div id="step-5" style="display:none;">
     <div class="code-board">
       <div class="code-container" style="text-align:center;">
-        <h3>Langkah 5: Cetak Waktu Sehatmu!</h3>
-        <p>
-          Saatnya tampilkan ke layar: berapa waktu sehat untukmu hari ini!
+        <h3>Langkah 5: Cetak Pesan & Panjangnya</h3>
+        <p style="font-size: 18px; white-space: pre-line;">
+          Saatnya tampilkan pesanmu dan berapa panjangnya ke layar!
         </p>
         <div id="codeContainer5"></div>
       </div>
@@ -264,14 +257,14 @@ function startGuessingGame() {
 </script>
 <script>
 function runFinalProgram() {
-  const umur = 8; // contoh usia
-  const menit = umur * 10;
-  const jam = menit / 60;
-  const hasil = "⏰ Saran Waktu Layar Sehat! ⏰\n\n" +
-                "Usiamu: " + umur + " tahun\n" +
-                "Kamu disarankan maksimal " + menit + " menit\n" +
-                "atau sekitar " + jam.toFixed(1) + " jam per hari 📱💤\n\n" +
-                "Yuk seimbangkan waktu main & istirahat!";
+  const nama = "Kody";
+  const misi = "merakit roket perdamaian";
+  const pesan = "Halo, aku " + nama + ". Misiku: " + misi + ".";
+  const panjang = pesan.length;
+  const hasil = "📡 Sistem komunikasi berhasil dibuat!\n\n" +
+                "📨 Pesan:\n" + pesan + "\n" +
+                "Jumlah karakter: " + panjang + "\n\n" +
+                "✅ Kini roket siap melanjutkan ke tahap peluncuran di Lesson 8!";
   document.getElementById('outputResult').textContent = hasil;
 }
 </script>
@@ -398,14 +391,14 @@ function runFinalProgram() {
 
   // Typing logic for step 2
   function initStep2Typing() {
-    // Placeholder lines for step 2 (Kalkulator Waktu Layar Sehat)
+    // Interactive placeholder for step 2
     const placeholderLines2 = [
-      "umur = input('Berapa usiamu sekarang?')"
+      "nama = input('Namamu siapa?')",
+      "misi = input('Apa misi kamu di bumi?')"
     ];
     let typed2 = placeholderLines2.map(() => '');
     let lineIndex2 = 0;
     let charIndex2 = 0;
-    // Syntax highlighting: classify token for a char at index i in line
     function classifyToken2(char, line, i) {
       if (line.includes('=') && i < line.indexOf('=')) return 'var';
       if (
@@ -424,12 +417,10 @@ function runFinalProgram() {
       placeholderLines2.forEach((line, idx) => {
         const div = document.createElement('div');
         div.className = 'code-line';
-        // Line number
         const lineNumber = document.createElement('span');
         lineNumber.className = 'line-number';
         lineNumber.textContent = idx + 1;
         div.appendChild(lineNumber);
-        // Code text
         const codeText = document.createElement('span');
         codeText.className = 'code-text';
         for (let i = 0; i < line.length; i++) {
@@ -467,17 +458,13 @@ function runFinalProgram() {
       const percent = totalChars === 0 ? 0 : Math.floor((totalCorrect / totalChars) * 100);
       document.getElementById('progressBar').style.width = percent + '%';
     }
-    // Typing logic: handle keydown events for step 2
     function keydownStep2(e) {
-      // Only allow typing within bounds
       if (lineIndex2 < 0 || lineIndex2 >= placeholderLines2.length) return;
       const line = placeholderLines2[lineIndex2];
-      // Printable character
       if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
         if (typed2[lineIndex2].length < line.length) {
           typed2[lineIndex2] += e.key;
           charIndex2++;
-          // Move to next line if finished this line
           if (charIndex2 >= line.length && lineIndex2 < placeholderLines2.length - 1) {
             lineIndex2++;
             charIndex2 = typed2[lineIndex2].length;
@@ -494,15 +481,12 @@ function runFinalProgram() {
       }
       renderCode2();
     }
-    // Attach event listener only when step 2 is visible
     window.__keydownStep2Handler = keydownStep2;
     document.addEventListener('keydown', window.__keydownStep2Handler);
-    // Remove the event listener when leaving step 2
     function removeStep2Listener() {
       document.removeEventListener('keydown', window.__keydownStep2Handler);
       window.__step2TypingInitialized = undefined;
     }
-    // Listen for step changes to remove listener if not on step 2
     const origShowStep = window.showStep;
     window.showStep = function(n) {
       origShowStep(n);
@@ -510,27 +494,25 @@ function runFinalProgram() {
         removeStep2Listener();
       }
     };
-    // Initial render
     renderCode2();
   }
 
   // Typing logic for step 3
   function initStep3Typing() {
     const placeholderLines3 = [
-      "umur = int(umur)"
+      "pesan = \"Halo, aku \" + nama + \". \" + \"Misiku: \" + misi + \".\""
     ];
     let typed3 = placeholderLines3.map(() => '');
     let lineIndex3 = 0;
     let charIndex3 = 0;
     function classifyToken3(char, line, i) {
       if (line.includes('=') && i < line.indexOf('=')) return 'var';
-      if (
-        (line.slice(i).startsWith('input') && i + 4 < line.length) ||
-        (line.slice(i).startsWith('int') && i + 2 < line.length)
-      ) return 'func';
+      if (line.slice(i).startsWith('input') && i + 4 < line.length) return 'func';
+      if (line.slice(i).startsWith('int') && i + 2 < line.length) return 'func';
+      if (line[i] === '"') return 'str';
       let inStr = false;
       for (let j = 0; j <= i; j++) {
-        if (line[j] === "'") inStr = !inStr;
+        if (line[j] === '"') inStr = !inStr;
       }
       if (inStr) return 'str';
       return '';
@@ -624,16 +606,14 @@ function runFinalProgram() {
   // Typing logic for step 4
   function initStep4Typing() {
     const placeholderLines4 = [
-      "menit = umur * 10",
-      "jam = menit / 60"
+      "panjang = len(pesan)"
     ];
     let typed4 = placeholderLines4.map(() => '');
     let lineIndex4 = 0;
     let charIndex4 = 0;
     function classifyToken4(char, line, i) {
-      if (line.trim().startsWith('#')) return 'keyword';
       if (line.includes('=') && i < line.indexOf('=')) return 'var';
-      if (line.slice(i).startsWith('waktu') || line.slice(i).startsWith('kecepatan') || line.slice(i).startsWith('lama')) return 'var';
+      if (line.slice(i).startsWith('len') && i + 2 < line.length) return 'func';
       let inStr = false;
       for (let j = 0; j <= i; j++) {
         if (line[j] === "'") inStr = !inStr;
@@ -730,19 +710,20 @@ function runFinalProgram() {
   // Typing logic for step 5
   function initStep5Typing() {
     const placeholderLines5 = [
-      "print('Waktu sehatmu adalah', menit, 'menit atau', jam, 'jam per hari')"
+      "print(pesan)",
+      "print(\"Jumlah karakter:\", panjang)"
     ];
     let typed5 = placeholderLines5.map(() => '');
     let lineIndex5 = 0;
     let charIndex5 = 0;
     function classifyToken5(char, line, i) {
       if (line.startsWith('print') && i < 5) return 'func';
-      if (line.includes('tanggal') && line.indexOf('tanggal') <= i && i < line.indexOf('tanggal') + 7) return 'var';
-      if (line.includes('kota') && line.indexOf('kota') <= i && i < line.indexOf('kota') + 4) return 'var';
-      if (line.includes('lama') && line.indexOf('lama') <= i && i < line.indexOf('lama') + 4) return 'var';
+      if (line.includes('pesan') && line.indexOf('pesan') <= i && i < line.indexOf('pesan') + 5) return 'var';
+      if (line.includes('panjang') && line.indexOf('panjang') <= i && i < line.indexOf('panjang') + 7) return 'var';
       let inStr = false;
       for (let j = 0; j <= i; j++) {
         if (line[j] === "'") inStr = !inStr;
+        if (line[j] === '"') inStr = !inStr;
       }
       if (inStr) return 'str';
       return '';

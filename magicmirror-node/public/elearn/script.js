@@ -23,7 +23,7 @@ async function login() {
     if (role === "guru") {
       window.location.href = "/elearn/guru.html";
     } else if (role === "anak") {
-      window.location.href = "/elearn/murid.html";
+      window.location.href = "/dashboard-murid-style2.html";
     } else if (role === "ortu") {
       window.location.href = "/elearn/ortu.html";
     } else {

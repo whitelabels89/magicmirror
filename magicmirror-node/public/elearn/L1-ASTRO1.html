@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Typing Lesson Board</title>
+  <title>Planetarium Lesson 1: Kalkulator Energi Sarapan</title>
   <style>
     body {
       margin: 0;
@@ -81,10 +81,16 @@
       white-space: pre-wrap;
       animation: munculPelan 0.6s ease-out;
     }
-
+    #rewardContainer {
+      animation: munculReward 0.7s ease-out;
+    }
     @keyframes munculPelan {
       from { opacity: 0; transform: scale(0.95); }
       to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes munculReward {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
@@ -100,39 +106,33 @@
     <button class="step-circle" onclick="showStep(5)">5</button>
     <button class="step-circle" onclick="showStep(6)">6</button>
   </div>
+
+  <!-- Langkah 1: Storytelling -->
   <div id="step-1">
-    <div style="text-align:center; padding: 20px;">
-      <h3>Selamat Datang di Dunia Koding Petualangan!</h3>
-      <p>
-        Ada seekor robot kecil bernama <strong>Kody</strong> 🤖 yang penasaran tentang dunia manusia.<br>
-        Ia ingin belajar menebak benda, tempat, dan kegiatan manusia... tapi ia tidak tahu harus mulai dari mana!
-      </p>
-      <p>
-        Kamu punya misi penting hari ini:
-        <br><br>
-        🧩 Bantu Kody mengenal cara bertanya (Langkah 2)<br>
-        🔢 Ubah jawaban jadi angka agar bisa dihitung (Langkah 3)<br>
-        🚀 Hitung data yang Kody kumpulkan (Langkah 4)<br>
-        💬 Cetak hasilnya di layar (Langkah 5)<br>
-        🧪 Dan jalankan semuanya seperti game betulan! (Langkah 6)
-      </p>
-      <p>
-        Yuk mulai petualangannya dari sini! Klik langkah selanjutnya untuk bantu Kody belajar! ✨
-      </p>
-    </div>
     <div class="code-board">
-      <div class="code-container" id="codeContainer">
-        <!-- Kosong karena step 1 hanya storytelling -->
+      <div class="code-container" style="text-align:center;">
+        <h3>🚀 Misi Planetarium: Aktifkan Mesin Roket!</h3>
+        <p>
+          Halo Astronot Muda! 👩‍🚀👨‍🚀<br><br>
+          Kody si robot penjelajah luar angkasa sedang bersiap berangkat menjelajahi planet baru.<br>
+          Tapi roketnya belum bisa menyala... karena butuh energi dari sarapan! 🍞🍳<br><br>
+          Yuk bantu Kody menghitung energi dari sarapanmu hari ini!<br>
+          Kalau berhasil... kamu akan mendapatkan: <strong>Baterai Energi Plasma 🔋</strong> untuk roketmu!
+        </p>
+        <button onclick="nextStep(2)" style="margin-top:20px; padding:12px 24px; font-size:16px; background:#4caf50; color:white; border:none; border-radius:6px; cursor:pointer;">Mulai Misi!</button>
       </div>
     </div>
   </div>
+
+  <!-- Langkah 2: Input Makanan -->
   <div id="step-2" style="display:none;">
     <div class="code-board">
       <div class="code-container" style="text-align:center;">
-        <h3>Langkah 2: Umurmu Berapa?</h3>
+        <h3>Langkah 2: Catat Sarapanmu!</h3>
         <p>
-          Kody ingin tahu: berapa usiamu sekarang? 🧠<br><br>
-          Yuk bantu dia bertanya ke manusia lewat kode Python!
+          Kody bertanya: <br>
+          <em style="color:#ffd700;">"Apa yang kamu makan pagi ini?"</em> <br><br>
+          Yuk tuliskan kode Python untuk menjawab pertanyaan Kody!
         </p>
         <div id="codeContainer2"></div>
         <p style="margin-top: 20px;">
@@ -141,53 +141,65 @@
       </div>
     </div>
   </div>
+
+  <!-- Langkah 3: Input Kalori -->
   <div id="step-3" style="display:none;">
     <div class="code-board">
       <div class="code-container" style="text-align:center;">
-        <h3>Langkah 3: Jadikan Angka</h3>
+        <h3>Langkah 3: Berapa Kalorinya?</h3>
         <p>
-          Jawaban dari manusia masih berupa teks. Kita perlu bantu Kody mengubahnya ke angka utuh!
+          Sekarang Kody ingin tahu, berapa kira-kira kalorinya?<br>
+          Tulis kodenya untuk bertanya pada manusia!
         </p>
         <div id="codeContainer3"></div>
       </div>
     </div>
   </div>
+
+  <!-- Langkah 4: Ubah dan Hitung Energi -->
   <div id="step-4" style="display:none;">
     <div class="code-board">
       <div class="code-container" style="text-align:center;">
-        <h3>Langkah 4: Hitung Waktu Layar</h3>
+        <h3>Langkah 4: Ubah & Hitung Energi</h3>
         <p>
-          Anak-anak sebaiknya punya batasan waktu layar tiap hari.<br>
-          WHO menyarankan sekitar <strong>10 menit per usia</strong>.<br><br>
-          Ayo bantu Kody menghitungnya!
+          Kody perlu mengubah kalori jadi angka, lalu menghitung energi dalam satuan kiloJoules.<br>
+          Setiap 1 kalori = 4 kiloJoules.<br>
+          Yuk tuliskan kodenya!
         </p>
         <div id="codeContainer4"></div>
       </div>
     </div>
   </div>
+
+  <!-- Langkah 5: Tampilkan Energi -->
   <div id="step-5" style="display:none;">
     <div class="code-board">
       <div class="code-container" style="text-align:center;">
-        <h3>Langkah 5: Cetak Waktu Sehatmu!</h3>
+        <h3>Langkah 5: Tampilkan Energi Sarapanmu!</h3>
         <p>
-          Saatnya tampilkan ke layar: berapa waktu sehat untukmu hari ini!
+          Saatnya tampilkan ke layar: berapa energi dari sarapanmu hari ini dalam kiloJoules!
         </p>
         <div id="codeContainer5"></div>
       </div>
     </div>
   </div>
+
+  <!-- Langkah 6: Jalankan & Reward -->
   <div id="step-6" style="display:none;">
     <div class="code-board">
       <div class="code-container" style="text-align:center;">
-        <h3>Langkah 6: Jalankan Kalkulator Waktu Layar!</h3>
+        <h3>Langkah 6: Cek Energi & Aktifkan Mesin!</h3>
         <p>
-          Klik tombol di bawah ini untuk lihat saran dari Kody tentang waktu layar yang sehat buatmu 💻📱
+          Klik tombol di bawah ini untuk mengaktifkan sistem pengisian energi roket Kody! 🔌
         </p>
-        <button onclick="runFinalProgram()" style="margin-top:20px; padding:12px 24px; font-size:16px; background:#4caf50; color:white; border:none; border-radius:6px; cursor:pointer;">Jalankan Program</button>
+        <button onclick="runFinalProgram()" style="margin-top:20px; padding:12px 24px; font-size:16px; background:#2196f3; color:white; border:none; border-radius:6px; cursor:pointer;">Aktifkan Mesin</button>
         <pre id="outputResult" style="margin-top:24px; background:#111; color:#4caf50; padding:16px; border-radius:8px; font-size:16px;"></pre>
-        <p style="margin-top: 20px;">
-          Yuk istirahatkan mata dan badan juga ya! 🌟
-        </p>
+        <div id="rewardContainer" style="margin-top:32px; display:none;">
+          <h3 style="color:#ffd700;">🎉 Selamat! Kamu mendapatkan:</h3>
+          <p style="font-size:24px;">🔋 Baterai Energi Plasma</p>
+          <img src="https://cdn-icons-png.flaticon.com/512/2042/2042847.png" width="120" />
+          <p style="margin-top:20px;">Simpan baik-baik. Kita akan lanjutkan misi ke modul berikutnya! 🌌</p>
+        </div>
       </div>
     </div>
   </div>
@@ -224,193 +236,22 @@
         initStep5Typing();
       }
     }
-    if (n === 6 && typeof window.__step6TypingInitialized === "undefined") {
-      if (document.getElementById('codeContainer6')) {
-        window.__step6TypingInitialized = true;
-        initStep6Typing();
-      }
-    }
+  }
+  function nextStep(n) {
+    showStep(n);
   }
   // Show only step 1 on load
   showStep(1);
-function startGuessingGame() {
-  const gameArea = document.getElementById('gameArea');
-  const questions = [
-    "Apakah benda ini bisa dimakan?",
-    "Apakah benda ini berwarna merah?",
-    "Apakah benda ini dipakai di sekolah?",
-    "Apakah benda ini ada di rumahmu?",
-    "Apakah benda ini hidup?"
-  ];
-  let answers = [];
-  let index = 0;
 
-  gameArea.innerHTML = `<p><strong>Kody:</strong> ${questions[index]}</p>
-    <button onclick="answerGuess('Ya')">Ya</button>
-    <button onclick="answerGuess('Tidak')">Tidak</button>`;
-
-  window.answerGuess = function(answer) {
-    answers.push(answer);
-    index++;
-    if (index < questions.length) {
-      gameArea.innerHTML = `<p><strong>Kody:</strong> ${questions[index]}</p>
-        <button onclick="answerGuess('Ya')">Ya</button>
-        <button onclick="answerGuess('Tidak')">Tidak</button>`;
-    } else {
-      gameArea.innerHTML = "<p><strong>Kody:</strong> Terima kasih sudah membantu! Aku akan coba menebaknya nanti ya! 🧠</p><p><em>(Ini hanya contoh permainan logika, bukan penebakan sungguhan.)</em></p>";
-    }
-  };
-}
-</script>
-<script>
-function runFinalProgram() {
-  const umur = 8; // contoh usia
-  const menit = umur * 10;
-  const jam = menit / 60;
-  const hasil = "⏰ Saran Waktu Layar Sehat! ⏰\n\n" +
-                "Usiamu: " + umur + " tahun\n" +
-                "Kamu disarankan maksimal " + menit + " menit\n" +
-                "atau sekitar " + jam.toFixed(1) + " jam per hari 📱💤\n\n" +
-                "Yuk seimbangkan waktu main & istirahat!";
-  document.getElementById('outputResult').textContent = hasil;
-}
-</script>
-<script>
-  // Only initialize typing logic if codeContainer exists (step 1)
-  if (document.getElementById('codeContainer')) {
-    // Define the code lines for the lesson (edit this array for different lessons)
-    const placeholderLines = [
-      "tanggal = input('Tanggal:')",
-      "kota = input('Lokasi:')",
-      "waktu = input('Panjang jalur')",
-      "waktu = int(waktu)"
-    ];
-
-    // Initialize typed array (keeps user input per line)
-    let typed = placeholderLines.map(() => '');
-    let lineIndex = 0;
-    let charIndex = 0;
-
-    // Syntax highlighting: classify token for a char at index i in line
-    function classifyToken(char, line, i) {
-      // Keyword: variable name before '='
-      if (line.includes('=') && i < line.indexOf('=')) return 'var';
-      // Function: input, int, etc.
-      if (
-        (line.slice(i).startsWith('input') && i + 4 < line.length) ||
-        (line.slice(i).startsWith('int') && i + 2 < line.length)
-      ) return 'func';
-      // String literal: inside single quotes
-      let inStr = false;
-      for (let j = 0; j <= i; j++) {
-        if (line[j] === "'") inStr = !inStr;
-      }
-      if (inStr) return 'str';
-      return '';
-    }
-
-    // Render code lines with highlighting and typing feedback
-    function renderCode() {
-      const codeContainer = document.getElementById('codeContainer');
-      codeContainer.innerHTML = '';
-      placeholderLines.forEach((line, idx) => {
-        const div = document.createElement('div');
-        div.className = 'code-line';
-
-        // Line number
-        const lineNumber = document.createElement('span');
-        lineNumber.className = 'line-number';
-        lineNumber.textContent = idx + 1;
-        div.appendChild(lineNumber);
-
-        // Code text
-        const codeText = document.createElement('span');
-        codeText.className = 'code-text';
-
-        for (let i = 0; i < line.length; i++) {
-          const span = document.createElement('span');
-          const trueChar = line[i];
-          const typedChar = typed[idx][i];
-          const tokenClass = classifyToken(trueChar, line, i);
-          if (typedChar !== undefined) {
-            span.textContent = typedChar;
-            if (typedChar === trueChar) {
-              span.classList.add('correct');
-              if (tokenClass) span.classList.add(tokenClass);
-            } else {
-              span.classList.add('wrong');
-            }
-          } else {
-            span.textContent = trueChar;
-            span.style.opacity = 0.3;
-          }
-          codeText.appendChild(span);
-        }
-        div.appendChild(codeText);
-        codeContainer.appendChild(div);
-      });
-      let totalTyped = 0, totalCorrect = 0;
-      placeholderLines.forEach((line, idx) => {
-        for (let i = 0; i < line.length; i++) {
-          const trueChar = line[i];
-          const typedChar = typed[idx][i];
-          if (typedChar !== undefined) totalTyped++;
-          if (typedChar === trueChar) totalCorrect++;
-        }
-      });
-      const totalChars = placeholderLines.reduce((sum, line) => sum + line.length, 0);
-      const percent = totalChars === 0 ? 0 : Math.floor((totalCorrect / totalChars) * 100);
-      document.getElementById('progressBar').style.width = percent + '%';
-    }
-
-    // Typing logic: handle keydown events
-    document.addEventListener('keydown', (e) => {
-      // Only allow typing within bounds
-      if (lineIndex < 0 || lineIndex >= placeholderLines.length) return;
-      const line = placeholderLines[lineIndex];
-      // Printable character
-      if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-        if (typed[lineIndex].length < line.length) {
-          typed[lineIndex] += e.key;
-          charIndex++;
-          // Move to next line if finished this line
-          if (charIndex >= line.length && lineIndex < placeholderLines.length - 1) {
-            lineIndex++;
-            charIndex = typed[lineIndex].length;
-          }
-        }
-      } else if (e.key === 'Backspace') {
-        if (charIndex > 0) {
-          typed[lineIndex] = typed[lineIndex].slice(0, -1);
-          charIndex--;
-        } else if (lineIndex > 0) {
-          // Move to previous line if at start
-          lineIndex--;
-          charIndex = typed[lineIndex].length;
-        }
-      }
-      renderCode();
-    });
-
-    // Initial render
-    renderCode();
-  }
-
-  // Typing logic for step 2
+  // Step 2: Input makanan
   function initStep2Typing() {
-    // Placeholder lines for step 2 (Kalkulator Waktu Layar Sehat)
-    const placeholderLines2 = [
-      "umur = input('Berapa usiamu sekarang?')"
-    ];
+    const placeholderLines2 = ["makanan = input('Apa yang kamu makan pagi ini?')"];
     let typed2 = placeholderLines2.map(() => '');
     let lineIndex2 = 0;
     let charIndex2 = 0;
-    // Syntax highlighting: classify token for a char at index i in line
     function classifyToken2(char, line, i) {
       if (line.includes('=') && i < line.indexOf('=')) return 'var';
-      if (
-        (line.slice(i).startsWith('input') && i + 4 < line.length)
-      ) return 'func';
+      if ((line.slice(i).startsWith('input') && i + 4 < line.length)) return 'func';
       let inStr = false;
       for (let j = 0; j <= i; j++) {
         if (line[j] === "'") inStr = !inStr;
@@ -424,12 +265,10 @@ function runFinalProgram() {
       placeholderLines2.forEach((line, idx) => {
         const div = document.createElement('div');
         div.className = 'code-line';
-        // Line number
         const lineNumber = document.createElement('span');
         lineNumber.className = 'line-number';
         lineNumber.textContent = idx + 1;
         div.appendChild(lineNumber);
-        // Code text
         const codeText = document.createElement('span');
         codeText.className = 'code-text';
         for (let i = 0; i < line.length; i++) {
@@ -467,17 +306,13 @@ function runFinalProgram() {
       const percent = totalChars === 0 ? 0 : Math.floor((totalCorrect / totalChars) * 100);
       document.getElementById('progressBar').style.width = percent + '%';
     }
-    // Typing logic: handle keydown events for step 2
     function keydownStep2(e) {
-      // Only allow typing within bounds
       if (lineIndex2 < 0 || lineIndex2 >= placeholderLines2.length) return;
       const line = placeholderLines2[lineIndex2];
-      // Printable character
       if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
         if (typed2[lineIndex2].length < line.length) {
           typed2[lineIndex2] += e.key;
           charIndex2++;
-          // Move to next line if finished this line
           if (charIndex2 >= line.length && lineIndex2 < placeholderLines2.length - 1) {
             lineIndex2++;
             charIndex2 = typed2[lineIndex2].length;
@@ -494,15 +329,12 @@ function runFinalProgram() {
       }
       renderCode2();
     }
-    // Attach event listener only when step 2 is visible
     window.__keydownStep2Handler = keydownStep2;
     document.addEventListener('keydown', window.__keydownStep2Handler);
-    // Remove the event listener when leaving step 2
     function removeStep2Listener() {
       document.removeEventListener('keydown', window.__keydownStep2Handler);
       window.__step2TypingInitialized = undefined;
     }
-    // Listen for step changes to remove listener if not on step 2
     const origShowStep = window.showStep;
     window.showStep = function(n) {
       origShowStep(n);
@@ -510,24 +342,18 @@ function runFinalProgram() {
         removeStep2Listener();
       }
     };
-    // Initial render
     renderCode2();
   }
 
-  // Typing logic for step 3
+  // Step 3: Input kalori
   function initStep3Typing() {
-    const placeholderLines3 = [
-      "umur = int(umur)"
-    ];
+    const placeholderLines3 = ["kalori = input('Berapa kira-kira kalorinya?')"];
     let typed3 = placeholderLines3.map(() => '');
     let lineIndex3 = 0;
     let charIndex3 = 0;
     function classifyToken3(char, line, i) {
       if (line.includes('=') && i < line.indexOf('=')) return 'var';
-      if (
-        (line.slice(i).startsWith('input') && i + 4 < line.length) ||
-        (line.slice(i).startsWith('int') && i + 2 < line.length)
-      ) return 'func';
+      if ((line.slice(i).startsWith('input') && i + 4 < line.length)) return 'func';
       let inStr = false;
       for (let j = 0; j <= i; j++) {
         if (line[j] === "'") inStr = !inStr;
@@ -621,19 +447,18 @@ function runFinalProgram() {
     renderCode3();
   }
 
-  // Typing logic for step 4
+  // Step 4: Ubah dan hitung energi
   function initStep4Typing() {
     const placeholderLines4 = [
-      "menit = umur * 10",
-      "jam = menit / 60"
+      "kalori = int(kalori)",
+      "energi = kalori * 4"
     ];
     let typed4 = placeholderLines4.map(() => '');
     let lineIndex4 = 0;
     let charIndex4 = 0;
     function classifyToken4(char, line, i) {
-      if (line.trim().startsWith('#')) return 'keyword';
       if (line.includes('=') && i < line.indexOf('=')) return 'var';
-      if (line.slice(i).startsWith('waktu') || line.slice(i).startsWith('kecepatan') || line.slice(i).startsWith('lama')) return 'var';
+      if ((line.slice(i).startsWith('int') && i + 2 < line.length)) return 'func';
       let inStr = false;
       for (let j = 0; j <= i; j++) {
         if (line[j] === "'") inStr = !inStr;
@@ -727,19 +552,15 @@ function runFinalProgram() {
     renderCode4();
   }
 
-  // Typing logic for step 5
+  // Step 5: Tampilkan energi
   function initStep5Typing() {
-    const placeholderLines5 = [
-      "print('Waktu sehatmu adalah', menit, 'menit atau', jam, 'jam per hari')"
-    ];
+    const placeholderLines5 = ["print('Energi kamu hari ini adalah', energi, 'kiloJoules!')"];
     let typed5 = placeholderLines5.map(() => '');
     let lineIndex5 = 0;
     let charIndex5 = 0;
     function classifyToken5(char, line, i) {
       if (line.startsWith('print') && i < 5) return 'func';
-      if (line.includes('tanggal') && line.indexOf('tanggal') <= i && i < line.indexOf('tanggal') + 7) return 'var';
-      if (line.includes('kota') && line.indexOf('kota') <= i && i < line.indexOf('kota') + 4) return 'var';
-      if (line.includes('lama') && line.indexOf('lama') <= i && i < line.indexOf('lama') + 4) return 'var';
+      if (line.includes('energi') && line.indexOf('energi') <= i && i < line.indexOf('energi') + 6) return 'var';
       let inStr = false;
       for (let j = 0; j <= i; j++) {
         if (line[j] === "'") inStr = !inStr;
@@ -833,107 +654,15 @@ function runFinalProgram() {
     renderCode5();
   }
 
-  // Typing logic for step 6
-  function initStep6Typing() {
-    const placeholderLines6 = [
-      "# Jalankan dan lihat saran waktumu!"
-    ];
-    let typed6 = placeholderLines6.map(() => '');
-    let lineIndex6 = 0;
-    let charIndex6 = 0;
-    function classifyToken6(char, line, i) {
-      if (line.trim().startsWith('#')) return 'keyword';
-      let inStr = false;
-      for (let j = 0; j <= i; j++) {
-        if (line[j] === "'") inStr = !inStr;
-      }
-      if (inStr) return 'str';
-      return '';
-    }
-    function renderCode6() {
-      const codeContainer6 = document.getElementById('codeContainer6');
-      codeContainer6.innerHTML = '';
-      placeholderLines6.forEach((line, idx) => {
-        const div = document.createElement('div');
-        div.className = 'code-line';
-        const lineNumber = document.createElement('span');
-        lineNumber.className = 'line-number';
-        lineNumber.textContent = idx + 1;
-        div.appendChild(lineNumber);
-        const codeText = document.createElement('span');
-        codeText.className = 'code-text';
-        for (let i = 0; i < line.length; i++) {
-          const span = document.createElement('span');
-          const trueChar = line[i];
-          const typedChar = typed6[idx][i];
-          const tokenClass = classifyToken6(trueChar, line, i);
-          if (typedChar !== undefined) {
-            span.textContent = typedChar;
-            if (typedChar === trueChar) {
-              span.classList.add('correct');
-              if (tokenClass) span.classList.add(tokenClass);
-            } else {
-              span.classList.add('wrong');
-            }
-          } else {
-            span.textContent = trueChar;
-            span.style.opacity = 0.3;
-          }
-          codeText.appendChild(span);
-        }
-        div.appendChild(codeText);
-        codeContainer6.appendChild(div);
-      });
-      let totalTyped = 0, totalCorrect = 0;
-      placeholderLines6.forEach((line, idx) => {
-        for (let i = 0; i < line.length; i++) {
-          const trueChar = line[i];
-          const typedChar = typed6[idx][i];
-          if (typedChar !== undefined) totalTyped++;
-          if (typedChar === trueChar) totalCorrect++;
-        }
-      });
-      const totalChars = placeholderLines6.reduce((sum, line) => sum + line.length, 0);
-      const percent = totalChars === 0 ? 0 : Math.floor((totalCorrect / totalChars) * 100);
-      document.getElementById('progressBar').style.width = percent + '%';
-    }
-    function keydownStep6(e) {
-      if (lineIndex6 < 0 || lineIndex6 >= placeholderLines6.length) return;
-      const line = placeholderLines6[lineIndex6];
-      if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-        if (typed6[lineIndex6].length < line.length) {
-          typed6[lineIndex6] += e.key;
-          charIndex6++;
-          if (charIndex6 >= line.length && lineIndex6 < placeholderLines6.length - 1) {
-            lineIndex6++;
-            charIndex6 = typed6[lineIndex6].length;
-          }
-        }
-      } else if (e.key === 'Backspace') {
-        if (charIndex6 > 0) {
-          typed6[lineIndex6] = typed6[lineIndex6].slice(0, -1);
-          charIndex6--;
-        } else if (lineIndex6 > 0) {
-          lineIndex6--;
-          charIndex6 = typed6[lineIndex6].length;
-        }
-      }
-      renderCode6();
-    }
-    window.__keydownStep6Handler = keydownStep6;
-    document.addEventListener('keydown', window.__keydownStep6Handler);
-    function removeStep6Listener() {
-      document.removeEventListener('keydown', window.__keydownStep6Handler);
-      window.__step6TypingInitialized = undefined;
-    }
-    const origShowStep6 = window.showStep;
-    window.showStep = function(n) {
-      origShowStep6(n);
-      if (n !== 6 && typeof window.__keydownStep6Handler !== "undefined") {
-        removeStep6Listener();
-      }
-    };
-    renderCode6();
+  // Step 6: Jalankan & Reward
+  function runFinalProgram() {
+    const kalori = 300;
+    const energi = kalori * 4;
+    const hasil = "Energi dari sarapanmu: " + energi + " kiloJoules!\n\n" +
+                  "🔋 Energi berhasil disalurkan ke roket Kody!\n\n" +
+                  "Roket siap dinyalakan...";
+    document.getElementById('outputResult').textContent = hasil;
+    document.getElementById('rewardContainer').style.display = "block";
   }
 </script>
 </body>

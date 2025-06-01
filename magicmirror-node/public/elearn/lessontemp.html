@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Typing Lesson Board</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #1e1e1e;
+      color: #d4d4d4;
+      font-family: 'Courier New', monospace;
+      overflow: hidden;
+    }
+    .code-board {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .code-container {
+      background-color: #1e1e1e;
+      border-radius: 8px;
+      padding: 40px;
+      width: 80%;
+      max-width: 900px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.5);
+    }
+    .code-line {
+      display: flex;
+      font-size: 18px;
+    }
+    .line-number {
+      width: 30px;
+      color: #858585;
+      text-align: right;
+      margin-right: 20px;
+    }
+    .code-text span.correct { color: #d4d4d4; }
+    .code-text span.keyword { color: #569CD6; }
+    .code-text span.func { color: #DCDCAA; }
+    .code-text span.str { color: #CE9178; }
+    .code-text span.wrong { color: red; }
+    .progress-container {
+      height: 8px;
+      background: #444;
+      width: 100%;
+    }
+    .progress-bar {
+      height: 8px;
+      background: #4caf50;
+      width: 0%;
+      transition: width 0.2s;
+    }
+  </style>
+</head>
+<body>
+  <div class="progress-container">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+  <div class="code-board">
+    <div class="code-container" id="codeContainer">
+      <!-- Lines will be injected here by JS -->
+    </div>
+  </div>
+
+<script>
+  // Define the code lines for the lesson (edit this array for different lessons)
+  const placeholderLines = [
+    "tanggal = input('Tanggal:')",
+    "kota = input('Lokasi:')",
+    "waktu = input('Panjang jalur')",
+    "waktu = int(waktu)"
+  ];
+
+  // Initialize typed array (keeps user input per line)
+  let typed = placeholderLines.map(() => '');
+  let lineIndex = 0;
+  let charIndex = 0;
+
+  // Syntax highlighting: classify token for a char at index i in line
+  function classifyToken(char, line, i) {
+    // Keyword: variable name before '='
+    if (line.includes('=') && i < line.indexOf('=')) return 'keyword';
+    // Function: input, int, etc.
+    if (
+      (line.slice(i).startsWith('input') && i + 4 < line.length) ||
+      (line.slice(i).startsWith('int') && i + 2 < line.length)
+    ) return 'func';
+    // String literal: inside single quotes
+    let inStr = false;
+    for (let j = 0; j <= i; j++) {
+      if (line[j] === "'") inStr = !inStr;
+    }
+    if (inStr) return 'str';
+    return '';
+  }
+
+  // Render code lines with highlighting and typing feedback
+  function renderCode() {
+    const codeContainer = document.getElementById('codeContainer');
+    codeContainer.innerHTML = '';
+    placeholderLines.forEach((line, idx) => {
+      const div = document.createElement('div');
+      div.className = 'code-line';
+
+      // Line number
+      const lineNumber = document.createElement('span');
+      lineNumber.className = 'line-number';
+      lineNumber.textContent = idx + 1;
+      div.appendChild(lineNumber);
+
+      // Code text
+      const codeText = document.createElement('span');
+      codeText.className = 'code-text';
+
+      for (let i = 0; i < line.length; i++) {
+        const span = document.createElement('span');
+        const trueChar = line[i];
+        const typedChar = typed[idx][i];
+        const tokenClass = classifyToken(trueChar, line, i);
+        if (tokenClass) span.classList.add(tokenClass);
+
+        if (typedChar !== undefined) {
+          span.textContent = typedChar;
+          if (typedChar === trueChar) {
+            span.classList.add('correct');
+          } else {
+            span.classList.add('wrong');
+          }
+        } else {
+          span.textContent = trueChar;
+          span.style.opacity = 0.3;
+        }
+        codeText.appendChild(span);
+      }
+      div.appendChild(codeText);
+      codeContainer.appendChild(div);
+    });
+    let totalTyped = 0, totalCorrect = 0;
+    placeholderLines.forEach((line, idx) => {
+      for (let i = 0; i < line.length; i++) {
+        const trueChar = line[i];
+        const typedChar = typed[idx][i];
+        if (typedChar !== undefined) totalTyped++;
+        if (typedChar === trueChar) totalCorrect++;
+      }
+    });
+    const totalChars = placeholderLines.reduce((sum, line) => sum + line.length, 0);
+    const percent = totalChars === 0 ? 0 : Math.floor((totalCorrect / totalChars) * 100);
+    document.getElementById('progressBar').style.width = percent + '%';
+  }
+
+  // Typing logic: handle keydown events
+  document.addEventListener('keydown', (e) => {
+    // Only allow typing within bounds
+    if (lineIndex < 0 || lineIndex >= placeholderLines.length) return;
+    const line = placeholderLines[lineIndex];
+    // Printable character
+    if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      if (typed[lineIndex].length < line.length) {
+        typed[lineIndex] += e.key;
+        charIndex++;
+        // Move to next line if finished this line
+        if (charIndex >= line.length && lineIndex < placeholderLines.length - 1) {
+          lineIndex++;
+          charIndex = typed[lineIndex].length;
+        }
+      }
+    } else if (e.key === 'Backspace') {
+      if (charIndex > 0) {
+        typed[lineIndex] = typed[lineIndex].slice(0, -1);
+        charIndex--;
+      } else if (lineIndex > 0) {
+        // Move to previous line if at start
+        lineIndex--;
+        charIndex = typed[lineIndex].length;
+      }
+    }
+    renderCode();
+  });
+
+  // Initial render
+  renderCode();
+</script>
+</body>
+</html>

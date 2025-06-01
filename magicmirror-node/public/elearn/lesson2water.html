@@ -129,14 +129,14 @@
   <div id="step-2" style="display:none;">
     <div class="code-board">
       <div class="code-container" style="text-align:center;">
-        <h3>Langkah 2: Umurmu Berapa?</h3>
+        <h3>Langkah 2: Beratmu Hari Ini?</h3>
         <p>
-          Kody ingin tahu: berapa usiamu sekarang? 🧠<br><br>
-          Yuk bantu dia bertanya ke manusia lewat kode Python!
+          Kody ingin tahu berapa berat badanmu agar ia bisa menghitung kebutuhan air harianmu! 🧊<br><br>
+          Yuk bantu Kody bertanya lewat kode Python.
         </p>
         <div id="codeContainer2"></div>
         <p style="margin-top: 20px;">
-          Ketikkan perlahan ya, satu huruf demi satu huruf.
+          Ketikkan kode ini perlahan ya, satu huruf demi satu huruf!
         </p>
       </div>
     </div>
@@ -144,9 +144,9 @@
   <div id="step-3" style="display:none;">
     <div class="code-board">
       <div class="code-container" style="text-align:center;">
-        <h3>Langkah 3: Jadikan Angka</h3>
+        <h3>Langkah 3: Ubah ke Angka!</h3>
         <p>
-          Jawaban dari manusia masih berupa teks. Kita perlu bantu Kody mengubahnya ke angka utuh!
+          Jawaban dari manusia masih berupa tulisan. Kita perlu bantu Kody mengubahnya ke angka desimal agar bisa dihitung! 🔢
         </p>
         <div id="codeContainer3"></div>
       </div>
@@ -155,11 +155,10 @@
   <div id="step-4" style="display:none;">
     <div class="code-board">
       <div class="code-container" style="text-align:center;">
-        <h3>Langkah 4: Hitung Waktu Layar</h3>
+        <h3>Langkah 4: Hitung Berapa Gelas!</h3>
         <p>
-          Anak-anak sebaiknya punya batasan waktu layar tiap hari.<br>
-          WHO menyarankan sekitar <strong>10 menit per usia</strong>.<br><br>
-          Ayo bantu Kody menghitungnya!
+          Setiap orang butuh sekitar <strong>30 ml air per kg berat badan</strong>.<br>
+          Lalu kita bagi jadi gelas (1 gelas = 250 ml). Yuk bantu Kody menghitungnya!
         </p>
         <div id="codeContainer4"></div>
       </div>
@@ -168,9 +167,10 @@
   <div id="step-5" style="display:none;">
     <div class="code-board">
       <div class="code-container" style="text-align:center;">
-        <h3>Langkah 5: Cetak Waktu Sehatmu!</h3>
+        <h3>Langkah 5: Tampilkan Saran Kody!</h3>
         <p>
-          Saatnya tampilkan ke layar: berapa waktu sehat untukmu hari ini!
+          Saatnya Kody mencetak hasilnya di layar! 📢<br>
+          Biar kamu tahu berapa gelas air yang perlu kamu minum hari ini 💧
         </p>
         <div id="codeContainer5"></div>
       </div>
@@ -179,14 +179,14 @@
   <div id="step-6" style="display:none;">
     <div class="code-board">
       <div class="code-container" style="text-align:center;">
-        <h3>Langkah 6: Jalankan Kalkulator Waktu Layar!</h3>
+        <h3>Langkah 6: Jalankan Kalkulator Air Minum!</h3>
         <p>
-          Klik tombol di bawah ini untuk lihat saran dari Kody tentang waktu layar yang sehat buatmu 💻📱
+          Klik tombol di bawah ini untuk melihat saran dari Kody berdasarkan berat badanmu.
         </p>
         <button onclick="runFinalProgram()" style="margin-top:20px; padding:12px 24px; font-size:16px; background:#4caf50; color:white; border:none; border-radius:6px; cursor:pointer;">Jalankan Program</button>
         <pre id="outputResult" style="margin-top:24px; background:#111; color:#4caf50; padding:16px; border-radius:8px; font-size:16px;"></pre>
         <p style="margin-top: 20px;">
-          Yuk istirahatkan mata dan badan juga ya! 🌟
+          Yuk minum air yang cukup hari ini, tubuhmu akan berterima kasih! 🧃✨
         </p>
       </div>
     </div>
@@ -264,14 +264,13 @@ function startGuessingGame() {
 </script>
 <script>
 function runFinalProgram() {
-  const umur = 8; // contoh usia
-  const menit = umur * 10;
-  const jam = menit / 60;
-  const hasil = "⏰ Saran Waktu Layar Sehat! ⏰\n\n" +
-                "Usiamu: " + umur + " tahun\n" +
-                "Kamu disarankan maksimal " + menit + " menit\n" +
-                "atau sekitar " + jam.toFixed(1) + " jam per hari 📱💤\n\n" +
-                "Yuk seimbangkan waktu main & istirahat!";
+  const berat = 25; // contoh berat kg
+  const air_ml = berat * 30;
+  const gelas = air_ml / 250;
+  const hasil = "🎉 Hebat sekali! 🎉\n\n" +
+                "Dengan berat badan " + berat + " kg,\n" +
+                "Kamu perlu minum sekitar " + gelas.toFixed(1) + " gelas air hari ini! 💧\n\n" +
+                "Ayo jaga kesehatanmu dan bantu tubuhmu tetap segar!\n\n#TeamSehatBersamaKody";
   document.getElementById('outputResult').textContent = hasil;
 }
 </script>
@@ -398,9 +397,9 @@ function runFinalProgram() {
 
   // Typing logic for step 2
   function initStep2Typing() {
-    // Placeholder lines for step 2 (Kalkulator Waktu Layar Sehat)
+    // Placeholder lines for step 2 (Kalkulator Air Minum Kody)
     const placeholderLines2 = [
-      "umur = input('Berapa usiamu sekarang?')"
+      "berat = input('Berapa berat badanmu dalam kg?')"
     ];
     let typed2 = placeholderLines2.map(() => '');
     let lineIndex2 = 0;
@@ -517,7 +516,7 @@ function runFinalProgram() {
   // Typing logic for step 3
   function initStep3Typing() {
     const placeholderLines3 = [
-      "umur = int(umur)"
+      "berat = float(berat)"
     ];
     let typed3 = placeholderLines3.map(() => '');
     let lineIndex3 = 0;
@@ -624,8 +623,8 @@ function runFinalProgram() {
   // Typing logic for step 4
   function initStep4Typing() {
     const placeholderLines4 = [
-      "menit = umur * 10",
-      "jam = menit / 60"
+      "air_ml = berat * 30",
+      "gelas = air_ml / 250"
     ];
     let typed4 = placeholderLines4.map(() => '');
     let lineIndex4 = 0;
@@ -730,7 +729,7 @@ function runFinalProgram() {
   // Typing logic for step 5
   function initStep5Typing() {
     const placeholderLines5 = [
-      "print('Waktu sehatmu adalah', menit, 'menit atau', jam, 'jam per hari')"
+      "print('Kamu perlu minum', gelas, 'gelas air hari ini!')"
     ];
     let typed5 = placeholderLines5.map(() => '');
     let lineIndex5 = 0;
@@ -836,7 +835,7 @@ function runFinalProgram() {
   // Typing logic for step 6
   function initStep6Typing() {
     const placeholderLines6 = [
-      "# Jalankan dan lihat saran waktumu!"
+      "# Jalankan dan lihat berapa gelas yang kamu butuhkan!"
     ];
     let typed6 = placeholderLines6.map(() => '');
     let lineIndex6 = 0;

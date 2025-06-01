@@ -75,17 +75,6 @@
       background-color: #63b3ed;
       transform: scale(1.1);
     }
-
-    #outputResult {
-      font-family: 'Courier New', monospace;
-      white-space: pre-wrap;
-      animation: munculPelan 0.6s ease-out;
-    }
-
-    @keyframes munculPelan {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
-    }
   </style>
 </head>
 <body>
@@ -129,14 +118,14 @@
   <div id="step-2" style="display:none;">
     <div class="code-board">
       <div class="code-container" style="text-align:center;">
-        <h3>Langkah 2: Umurmu Berapa?</h3>
+        <h3>Langkah 2: Berapa Jauh Kamu Jalan Hari Ini?</h3>
         <p>
-          Kody ingin tahu: berapa usiamu sekarang? 🧠<br><br>
-          Yuk bantu dia bertanya ke manusia lewat kode Python!
+          Kody ingin tahu: kalau kamu tidak naik motor hari ini, berapa kilometer kamu berjalan kaki atau naik sepeda? 🚶‍♀️🚲<br><br>
+          Yuk bantu Kody menanyakan pertanyaan ini lewat kode Python!
         </p>
         <div id="codeContainer2"></div>
         <p style="margin-top: 20px;">
-          Ketikkan perlahan ya, satu huruf demi satu huruf.
+          Ayo ketikkan kode ini huruf demi huruf untuk bantu Kody bertanya kepada manusia!
         </p>
       </div>
     </div>
@@ -144,9 +133,10 @@
   <div id="step-3" style="display:none;">
     <div class="code-board">
       <div class="code-container" style="text-align:center;">
-        <h3>Langkah 3: Jadikan Angka</h3>
+        <h3>Langkah 3: Ubah Jadi Angka!</h3>
         <p>
-          Jawaban dari manusia masih berupa teks. Kita perlu bantu Kody mengubahnya ke angka utuh!
+          Jawaban dari manusia masih berupa tulisan. Kita harus bantu Kody mengubahnya menjadi angka agar bisa dihitung! 🔢<br><br>
+          Gunakan kode ajaib ini untuk mengubah tulisan jadi angka desimal.
         </p>
         <div id="codeContainer3"></div>
       </div>
@@ -155,11 +145,10 @@
   <div id="step-4" style="display:none;">
     <div class="code-board">
       <div class="code-container" style="text-align:center;">
-        <h3>Langkah 4: Hitung Waktu Layar</h3>
+        <h3>Langkah 4: Hitung Energi yang Diselamatkan!</h3>
         <p>
-          Anak-anak sebaiknya punya batasan waktu layar tiap hari.<br>
-          WHO menyarankan sekitar <strong>10 menit per usia</strong>.<br><br>
-          Ayo bantu Kody menghitungnya!
+          Setiap 1 kilometer berjalan kaki atau naik sepeda bisa menghemat sekitar 0.2 liter bensin!<br><br>
+          Yuk kita bantu Kody menghitung berapa liter bensin yang berhasil kamu hemat hari ini.
         </p>
         <div id="codeContainer4"></div>
       </div>
@@ -168,9 +157,10 @@
   <div id="step-5" style="display:none;">
     <div class="code-board">
       <div class="code-container" style="text-align:center;">
-        <h3>Langkah 5: Cetak Waktu Sehatmu!</h3>
+        <h3>Langkah 5: Tunjukkan Hebatmu!</h3>
         <p>
-          Saatnya tampilkan ke layar: berapa waktu sehat untukmu hari ini!
+          Sekarang kita bantu Kody mencetak hasilnya ke layar.<br><br>
+          Biar semua orang tahu, betapa hebatnya kamu menyelamatkan bumi hari ini! 🌍✨
         </p>
         <div id="codeContainer5"></div>
       </div>
@@ -179,14 +169,14 @@
   <div id="step-6" style="display:none;">
     <div class="code-board">
       <div class="code-container" style="text-align:center;">
-        <h3>Langkah 6: Jalankan Kalkulator Waktu Layar!</h3>
+        <h3>Langkah 6: Jalankan Program Penyelamat Bumi!</h3>
         <p>
-          Klik tombol di bawah ini untuk lihat saran dari Kody tentang waktu layar yang sehat buatmu 💻📱
+          Klik tombol di bawah ini untuk melihat seberapa besar kamu berkontribusi menyelamatkan lingkungan hari ini!
         </p>
         <button onclick="runFinalProgram()" style="margin-top:20px; padding:12px 24px; font-size:16px; background:#4caf50; color:white; border:none; border-radius:6px; cursor:pointer;">Jalankan Program</button>
         <pre id="outputResult" style="margin-top:24px; background:#111; color:#4caf50; padding:16px; border-radius:8px; font-size:16px;"></pre>
         <p style="margin-top: 20px;">
-          Yuk istirahatkan mata dan badan juga ya! 🌟
+          Kamu bisa ubah jaraknya di kode dan jalankan lagi. Semakin banyak jalan kaki = semakin ramah lingkungan! 💚
         </p>
       </div>
     </div>
@@ -264,14 +254,9 @@ function startGuessingGame() {
 </script>
 <script>
 function runFinalProgram() {
-  const umur = 8; // contoh usia
-  const menit = umur * 10;
-  const jam = menit / 60;
-  const hasil = "⏰ Saran Waktu Layar Sehat! ⏰\n\n" +
-                "Usiamu: " + umur + " tahun\n" +
-                "Kamu disarankan maksimal " + menit + " menit\n" +
-                "atau sekitar " + jam.toFixed(1) + " jam per hari 📱💤\n\n" +
-                "Yuk seimbangkan waktu main & istirahat!";
+  const jarak = 3.5; // contoh km
+  const hemat = jarak * 0.2;
+  const hasil = "Kamu sudah hemat " + hemat.toFixed(2) + " liter bensin hari ini! 🌱";
   document.getElementById('outputResult').textContent = hasil;
 }
 </script>
@@ -398,9 +383,9 @@ function runFinalProgram() {
 
   // Typing logic for step 2
   function initStep2Typing() {
-    // Placeholder lines for step 2 (Kalkulator Waktu Layar Sehat)
+    // Placeholder lines for step 2 (hemat bensin theme)
     const placeholderLines2 = [
-      "umur = input('Berapa usiamu sekarang?')"
+      "jarak = input('Berapa km kamu jalan hari ini?')"
     ];
     let typed2 = placeholderLines2.map(() => '');
     let lineIndex2 = 0;
@@ -517,7 +502,7 @@ function runFinalProgram() {
   // Typing logic for step 3
   function initStep3Typing() {
     const placeholderLines3 = [
-      "umur = int(umur)"
+      "jarak = float(jarak)"
     ];
     let typed3 = placeholderLines3.map(() => '');
     let lineIndex3 = 0;
@@ -624,8 +609,8 @@ function runFinalProgram() {
   // Typing logic for step 4
   function initStep4Typing() {
     const placeholderLines4 = [
-      "menit = umur * 10",
-      "jam = menit / 60"
+      "# Hitung hemat bensin",
+      "hemat = jarak * 0.2"
     ];
     let typed4 = placeholderLines4.map(() => '');
     let lineIndex4 = 0;
@@ -730,7 +715,7 @@ function runFinalProgram() {
   // Typing logic for step 5
   function initStep5Typing() {
     const placeholderLines5 = [
-      "print('Waktu sehatmu adalah', menit, 'menit atau', jam, 'jam per hari')"
+      "print('Kamu hemat', hemat, 'liter bensin!')"
     ];
     let typed5 = placeholderLines5.map(() => '');
     let lineIndex5 = 0;
@@ -836,7 +821,7 @@ function runFinalProgram() {
   // Typing logic for step 6
   function initStep6Typing() {
     const placeholderLines6 = [
-      "# Jalankan dan lihat saran waktumu!"
+      "# Jalankan dan ubah nilai jarak untuk hasil berbeda!"
     ];
     let typed6 = placeholderLines6.map(() => '');
     let lineIndex6 = 0;

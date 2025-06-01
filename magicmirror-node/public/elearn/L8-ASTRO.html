@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Typing Lesson Board</title>
+  <title>Lesson 8: Peluncuran Roket</title>
   <style>
     body {
       margin: 0;
@@ -102,22 +102,16 @@
   </div>
   <div id="step-1">
     <div style="text-align:center; padding: 20px;">
-      <h3>Selamat Datang di Dunia Koding Petualangan!</h3>
-      <p>
-        Ada seekor robot kecil bernama <strong>Kody</strong> 🤖 yang penasaran tentang dunia manusia.<br>
-        Ia ingin belajar menebak benda, tempat, dan kegiatan manusia... tapi ia tidak tahu harus mulai dari mana!
-      </p>
-      <p>
-        Kamu punya misi penting hari ini:
-        <br><br>
-        🧩 Bantu Kody mengenal cara bertanya (Langkah 2)<br>
-        🔢 Ubah jawaban jadi angka agar bisa dihitung (Langkah 3)<br>
-        🚀 Hitung data yang Kody kumpulkan (Langkah 4)<br>
-        💬 Cetak hasilnya di layar (Langkah 5)<br>
-        🧪 Dan jalankan semuanya seperti game betulan! (Langkah 6)
-      </p>
-      <p>
-        Yuk mulai petualangannya dari sini! Klik langkah selanjutnya untuk bantu Kody belajar! ✨
+      <h3>🚀 Saatnya Peluncuran! 🚀</h3>
+      <p style="font-size: 18px; white-space: pre-line;">
+Kerja keras kita akhirnya sampai di titik terakhir…
+
+Roket Kody sudah lengkap: dari tubuh, navigasi, perisai meteor, hingga komunikasi antar galaksi!
+
+Sekarang kita akan mengatur sistem peluncuran otomatis.
+Kita akan belajar menggunakan fungsi agar kode bisa dijalankan ulang kapan pun dibutuhkan!
+
+Yuk bantu Kody terbang ke luar angkasa! 🌌
       </p>
     </div>
     <div class="code-board">
@@ -129,13 +123,12 @@
   <div id="step-2" style="display:none;">
     <div class="code-board">
       <div class="code-container" style="text-align:center;">
-        <h3>Langkah 2: Umurmu Berapa?</h3>
-        <p>
-          Kody ingin tahu: berapa usiamu sekarang? 🧠<br><br>
-          Yuk bantu dia bertanya ke manusia lewat kode Python!
+        <h3>Langkah 2: Deklarasi Fungsi</h3>
+        <p style="font-size: 18px; white-space: pre-line;">
+Untuk membuat sistem peluncuran otomatis, kita akan mendeklarasikan sebuah fungsi bernama <b>mulai_peluncuran</b>.
         </p>
         <div id="codeContainer2"></div>
-        <p style="margin-top: 20px;">
+        <p style="margin-top: 20px; font-size: 18px;">
           Ketikkan perlahan ya, satu huruf demi satu huruf.
         </p>
       </div>
@@ -144,9 +137,9 @@
   <div id="step-3" style="display:none;">
     <div class="code-board">
       <div class="code-container" style="text-align:center;">
-        <h3>Langkah 3: Jadikan Angka</h3>
-        <p>
-          Jawaban dari manusia masih berupa teks. Kita perlu bantu Kody mengubahnya ke angka utuh!
+        <h3>Langkah 3: Isi Fungsi - Persiapan</h3>
+        <p style="font-size: 18px; white-space: pre-line;">
+Tambahkan kode di dalam fungsi untuk menyalakan mesin dan memulai hitung mundur!
         </p>
         <div id="codeContainer3"></div>
       </div>
@@ -155,11 +148,9 @@
   <div id="step-4" style="display:none;">
     <div class="code-board">
       <div class="code-container" style="text-align:center;">
-        <h3>Langkah 4: Hitung Waktu Layar</h3>
-        <p>
-          Anak-anak sebaiknya punya batasan waktu layar tiap hari.<br>
-          WHO menyarankan sekitar <strong>10 menit per usia</strong>.<br><br>
-          Ayo bantu Kody menghitungnya!
+        <h3>Langkah 4: Isi Fungsi - Peluncuran</h3>
+        <p style="font-size: 18px; white-space: pre-line;">
+Lanjutkan isi fungsi untuk proses hitung mundur dan peluncuran roket!
         </p>
         <div id="codeContainer4"></div>
       </div>
@@ -168,9 +159,9 @@
   <div id="step-5" style="display:none;">
     <div class="code-board">
       <div class="code-container" style="text-align:center;">
-        <h3>Langkah 5: Cetak Waktu Sehatmu!</h3>
-        <p>
-          Saatnya tampilkan ke layar: berapa waktu sehat untukmu hari ini!
+        <h3>Langkah 5: Panggil Fungsi</h3>
+        <p style="font-size: 18px; white-space: pre-line;">
+Fungsi sudah siap! Sekarang, panggil fungsi <b>mulai_peluncuran()</b> agar roket benar-benar meluncur.
         </p>
         <div id="codeContainer5"></div>
       </div>
@@ -179,14 +170,18 @@
   <div id="step-6" style="display:none;">
     <div class="code-board">
       <div class="code-container" style="text-align:center;">
-        <h3>Langkah 6: Jalankan Kalkulator Waktu Layar!</h3>
+        <h3>Langkah 6: Output & Reward</h3>
         <p>
-          Klik tombol di bawah ini untuk lihat saran dari Kody tentang waktu layar yang sehat buatmu 💻📱
+          Klik tombol di bawah ini untuk menjalankan sistem peluncuran otomatis! 🚀
         </p>
         <button onclick="runFinalProgram()" style="margin-top:20px; padding:12px 24px; font-size:16px; background:#4caf50; color:white; border:none; border-radius:6px; cursor:pointer;">Jalankan Program</button>
         <pre id="outputResult" style="margin-top:24px; background:#111; color:#4caf50; padding:16px; border-radius:8px; font-size:16px;"></pre>
+        <div id="rewardContainer" style="display:none; margin-top:32px; text-align:center;">
+          <div style="font-size: 22px; margin-bottom: 12px;">🎉 Luar biasa! Kamu menyelesaikan:<br>🚀 Lesson 8: Peluncuran Roket!</div>
+          <img src="https://cdn-icons-png.flaticon.com/512/3210/3210183.png" alt="Roket Kody" style="width:100px; margin-top:10px;">
+        </div>
         <p style="margin-top: 20px;">
-          Yuk istirahatkan mata dan badan juga ya! 🌟
+          🌌 Kody bangga padamu! Sampai jumpa di petualangan berikutnya!
         </p>
       </div>
     </div>
@@ -264,15 +259,11 @@ function startGuessingGame() {
 </script>
 <script>
 function runFinalProgram() {
-  const umur = 8; // contoh usia
-  const menit = umur * 10;
-  const jam = menit / 60;
-  const hasil = "⏰ Saran Waktu Layar Sehat! ⏰\n\n" +
-                "Usiamu: " + umur + " tahun\n" +
-                "Kamu disarankan maksimal " + menit + " menit\n" +
-                "atau sekitar " + jam.toFixed(1) + " jam per hari 📱💤\n\n" +
-                "Yuk seimbangkan waktu main & istirahat!";
+  const hasil = "✅ Sistem peluncuran aktif!\n\n" +
+                "Mesin menyala...\nHitung mundur...\n3... 2... 1... 🚀\nRoket Kody meluncur ke luar angkasa!\n\n" +
+                "🌌 Kamu berhasil menyelesaikan seluruh misi planetarium!";
   document.getElementById('outputResult').textContent = hasil;
+  document.getElementById('rewardContainer').style.display = "block";
 }
 </script>
 <script>
@@ -398,14 +389,13 @@ function runFinalProgram() {
 
   // Typing logic for step 2
   function initStep2Typing() {
-    // Placeholder lines for step 2 (Kalkulator Waktu Layar Sehat)
+    // Lesson 8: Deklarasi fungsi
     const placeholderLines2 = [
-      "umur = input('Berapa usiamu sekarang?')"
+      "def mulai_peluncuran():"
     ];
     let typed2 = placeholderLines2.map(() => '');
     let lineIndex2 = 0;
     let charIndex2 = 0;
-    // Syntax highlighting: classify token for a char at index i in line
     function classifyToken2(char, line, i) {
       if (line.includes('=') && i < line.indexOf('=')) return 'var';
       if (
@@ -424,12 +414,10 @@ function runFinalProgram() {
       placeholderLines2.forEach((line, idx) => {
         const div = document.createElement('div');
         div.className = 'code-line';
-        // Line number
         const lineNumber = document.createElement('span');
         lineNumber.className = 'line-number';
         lineNumber.textContent = idx + 1;
         div.appendChild(lineNumber);
-        // Code text
         const codeText = document.createElement('span');
         codeText.className = 'code-text';
         for (let i = 0; i < line.length; i++) {
@@ -467,17 +455,13 @@ function runFinalProgram() {
       const percent = totalChars === 0 ? 0 : Math.floor((totalCorrect / totalChars) * 100);
       document.getElementById('progressBar').style.width = percent + '%';
     }
-    // Typing logic: handle keydown events for step 2
     function keydownStep2(e) {
-      // Only allow typing within bounds
       if (lineIndex2 < 0 || lineIndex2 >= placeholderLines2.length) return;
       const line = placeholderLines2[lineIndex2];
-      // Printable character
       if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
         if (typed2[lineIndex2].length < line.length) {
           typed2[lineIndex2] += e.key;
           charIndex2++;
-          // Move to next line if finished this line
           if (charIndex2 >= line.length && lineIndex2 < placeholderLines2.length - 1) {
             lineIndex2++;
             charIndex2 = typed2[lineIndex2].length;
@@ -494,15 +478,12 @@ function runFinalProgram() {
       }
       renderCode2();
     }
-    // Attach event listener only when step 2 is visible
     window.__keydownStep2Handler = keydownStep2;
     document.addEventListener('keydown', window.__keydownStep2Handler);
-    // Remove the event listener when leaving step 2
     function removeStep2Listener() {
       document.removeEventListener('keydown', window.__keydownStep2Handler);
       window.__step2TypingInitialized = undefined;
     }
-    // Listen for step changes to remove listener if not on step 2
     const origShowStep = window.showStep;
     window.showStep = function(n) {
       origShowStep(n);
@@ -510,24 +491,27 @@ function runFinalProgram() {
         removeStep2Listener();
       }
     };
-    // Initial render
     renderCode2();
   }
 
   // Typing logic for step 3
   function initStep3Typing() {
+    // Lesson 8: Isi fungsi - persiapan
+    // Placeholder lines without leading indentation
     const placeholderLines3 = [
-      "umur = int(umur)"
+      "print('Mesin menyala...')",
+      "print('Hitung mundur...')"
     ];
     let typed3 = placeholderLines3.map(() => '');
     let lineIndex3 = 0;
     let charIndex3 = 0;
     function classifyToken3(char, line, i) {
+      // Highlight variable before '='
       if (line.includes('=') && i < line.indexOf('=')) return 'var';
-      if (
-        (line.slice(i).startsWith('input') && i + 4 < line.length) ||
-        (line.slice(i).startsWith('int') && i + 2 < line.length)
-      ) return 'func';
+      // Highlight function name
+      if (line.slice(i).startsWith('input') && i + 4 < line.length) return 'func';
+      if (line.slice(i).startsWith('int') && i + 2 < line.length) return 'func';
+      // String literal: inside single quotes
       let inStr = false;
       for (let j = 0; j <= i; j++) {
         if (line[j] === "'") inStr = !inStr;
@@ -538,6 +522,8 @@ function runFinalProgram() {
     function renderCode3() {
       const codeContainer3 = document.getElementById('codeContainer3');
       codeContainer3.innerHTML = '';
+      // Add indentation visually, not in the placeholder
+      const indentation = "    ";
       placeholderLines3.forEach((line, idx) => {
         const div = document.createElement('div');
         div.className = 'code-line';
@@ -547,6 +533,13 @@ function runFinalProgram() {
         div.appendChild(lineNumber);
         const codeText = document.createElement('span');
         codeText.className = 'code-text';
+        // Add indentation visually
+        for (let s = 0; s < indentation.length; s++) {
+          const indentSpan = document.createElement('span');
+          indentSpan.textContent = ' ';
+          indentSpan.style.opacity = 0.3;
+          codeText.appendChild(indentSpan);
+        }
         for (let i = 0; i < line.length; i++) {
           const span = document.createElement('span');
           const trueChar = line[i];
@@ -587,6 +580,9 @@ function runFinalProgram() {
       const line = placeholderLines3[lineIndex3];
       if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
         if (typed3[lineIndex3].length < line.length) {
+          // Only allow correct character at this position
+          const expectedChar = line[typed3[lineIndex3].length];
+          // Accept all keys, let the renderCode3 handle wrong/correct coloring
           typed3[lineIndex3] += e.key;
           charIndex3++;
           if (charIndex3 >= line.length && lineIndex3 < placeholderLines3.length - 1) {
@@ -623,17 +619,19 @@ function runFinalProgram() {
 
   // Typing logic for step 4
   function initStep4Typing() {
+    // Lesson 8: Isi fungsi - peluncuran
+    // Placeholder lines without leading indentation
     const placeholderLines4 = [
-      "menit = umur * 10",
-      "jam = menit / 60"
+      "print('3... 2... 1...')",
+      "print('Roket meluncur!')"
     ];
     let typed4 = placeholderLines4.map(() => '');
     let lineIndex4 = 0;
     let charIndex4 = 0;
     function classifyToken4(char, line, i) {
-      if (line.trim().startsWith('#')) return 'keyword';
       if (line.includes('=') && i < line.indexOf('=')) return 'var';
-      if (line.slice(i).startsWith('waktu') || line.slice(i).startsWith('kecepatan') || line.slice(i).startsWith('lama')) return 'var';
+      if (line.slice(i).startsWith('len') && i + 2 < line.length) return 'func';
+      // String literal: inside single quotes
       let inStr = false;
       for (let j = 0; j <= i; j++) {
         if (line[j] === "'") inStr = !inStr;
@@ -644,6 +642,8 @@ function runFinalProgram() {
     function renderCode4() {
       const codeContainer4 = document.getElementById('codeContainer4');
       codeContainer4.innerHTML = '';
+      // Add indentation visually, not in the placeholder
+      const indentation = "    ";
       placeholderLines4.forEach((line, idx) => {
         const div = document.createElement('div');
         div.className = 'code-line';
@@ -653,6 +653,13 @@ function runFinalProgram() {
         div.appendChild(lineNumber);
         const codeText = document.createElement('span');
         codeText.className = 'code-text';
+        // Add indentation visually
+        for (let s = 0; s < indentation.length; s++) {
+          const indentSpan = document.createElement('span');
+          indentSpan.textContent = ' ';
+          indentSpan.style.opacity = 0.3;
+          codeText.appendChild(indentSpan);
+        }
         for (let i = 0; i < line.length; i++) {
           const span = document.createElement('span');
           const trueChar = line[i];
@@ -729,20 +736,21 @@ function runFinalProgram() {
 
   // Typing logic for step 5
   function initStep5Typing() {
+    // Lesson 8: Panggil fungsi
     const placeholderLines5 = [
-      "print('Waktu sehatmu adalah', menit, 'menit atau', jam, 'jam per hari')"
+      "mulai_peluncuran()"
     ];
     let typed5 = placeholderLines5.map(() => '');
     let lineIndex5 = 0;
     let charIndex5 = 0;
     function classifyToken5(char, line, i) {
       if (line.startsWith('print') && i < 5) return 'func';
-      if (line.includes('tanggal') && line.indexOf('tanggal') <= i && i < line.indexOf('tanggal') + 7) return 'var';
-      if (line.includes('kota') && line.indexOf('kota') <= i && i < line.indexOf('kota') + 4) return 'var';
-      if (line.includes('lama') && line.indexOf('lama') <= i && i < line.indexOf('lama') + 4) return 'var';
+      if (line.includes('pesan') && line.indexOf('pesan') <= i && i < line.indexOf('pesan') + 5) return 'var';
+      if (line.includes('panjang') && line.indexOf('panjang') <= i && i < line.indexOf('panjang') + 7) return 'var';
       let inStr = false;
       for (let j = 0; j <= i; j++) {
         if (line[j] === "'") inStr = !inStr;
+        if (line[j] === '"') inStr = !inStr;
       }
       if (inStr) return 'str';
       return '';
@@ -835,8 +843,9 @@ function runFinalProgram() {
 
   // Typing logic for step 6
   function initStep6Typing() {
+    // Dummy for step 6, not used in Lesson 8
     const placeholderLines6 = [
-      "# Jalankan dan lihat saran waktumu!"
+      "# Jalankan dan lihat hasil peluncuran!"
     ];
     let typed6 = placeholderLines6.map(() => '');
     let lineIndex6 = 0;

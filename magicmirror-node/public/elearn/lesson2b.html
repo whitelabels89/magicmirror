@@ -75,17 +75,6 @@
       background-color: #63b3ed;
       transform: scale(1.1);
     }
-
-    #outputResult {
-      font-family: 'Courier New', monospace;
-      white-space: pre-wrap;
-      animation: munculPelan 0.6s ease-out;
-    }
-
-    @keyframes munculPelan {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
-    }
   </style>
 </head>
 <body>
@@ -129,14 +118,15 @@
   <div id="step-2" style="display:none;">
     <div class="code-board">
       <div class="code-container" style="text-align:center;">
-        <h3>Langkah 2: Umurmu Berapa?</h3>
+        <h3>Langkah 2: Pertanyaan Ajaib dari Kody</h3>
         <p>
-          Kody ingin tahu: berapa usiamu sekarang? 🧠<br><br>
-          Yuk bantu dia bertanya ke manusia lewat kode Python!
+          Kody si robot penasaran mulai belajar bertanya! Tapi dia belum tahu caranya.<br><br>
+          Sekarang, bantu Kody untuk menanyakan sesuatu pada manusia. Kita akan ajari dia untuk bertanya seperti ini:
         </p>
         <div id="codeContainer2"></div>
         <p style="margin-top: 20px;">
-          Ketikkan perlahan ya, satu huruf demi satu huruf.
+          Yuk ketikkan kode sederhana ini huruf demi huruf untuk bantu Kody bertanya kepada teman barunya!<br>
+          (Ketikkan sesuai huruf yang muncul, satu per satu ya!)
         </p>
       </div>
     </div>
@@ -144,9 +134,15 @@
   <div id="step-3" style="display:none;">
     <div class="code-board">
       <div class="code-container" style="text-align:center;">
-        <h3>Langkah 3: Jadikan Angka</h3>
+        <h3>Langkah 3: Sulap Tulisan Jadi Angka!</h3>
         <p>
-          Jawaban dari manusia masih berupa teks. Kita perlu bantu Kody mengubahnya ke angka utuh!
+          Hore! 🎉 Kody berhasil bertanya dan dapat jawaban dari manusia.<br>
+          Tapi... ada masalah! Jawaban itu masih berupa tulisan.<br><br>
+          Kody butuh bantuanmu lagi untuk menyulap tulisan itu jadi angka sungguhan agar bisa dihitung.
+        </p>
+        <p>
+          Yuk ketikkan kode di bawah ini secara perlahan. Ini adalah mantra ajaib untuk mengubah jawaban menjadi angka! 🧙‍♂️<br>
+          (Ingat, ketik satu per satu hurufnya ya!)
         </p>
         <div id="codeContainer3"></div>
       </div>
@@ -155,22 +151,34 @@
   <div id="step-4" style="display:none;">
     <div class="code-board">
       <div class="code-container" style="text-align:center;">
-        <h3>Langkah 4: Hitung Waktu Layar</h3>
+        <h3>Langkah 4: Saatnya Berhitung!</h3>
         <p>
-          Anak-anak sebaiknya punya batasan waktu layar tiap hari.<br>
-          WHO menyarankan sekitar <strong>10 menit per usia</strong>.<br><br>
-          Ayo bantu Kody menghitungnya!
+          Wah, Kody sudah punya semua datanya sekarang: tanggal, lokasi, dan panjang jalur. Tapi dia bingung cara menghitung berapa lama perjalanan yang dibutuhkan.
+        </p>
+        <p>
+          Yuk bantu Kody dengan mengetik kode ajaib untuk menghitung waktu perjalanan berdasarkan panjang jalur dan kecepatan! 🚗💨
+        </p>
+        <p>
+          Kita asumsikan kecepatan perjalanan adalah 10 km per jam ya.
         </p>
         <div id="codeContainer4"></div>
+        <p style="margin-top: 20px;">
+          Ketikkan kodenya dengan hati-hati, satu huruf demi satu huruf... Kody menghitung sambil kamu menulis! 🔢✨
+        </p>
       </div>
     </div>
   </div>
   <div id="step-5" style="display:none;">
     <div class="code-board">
       <div class="code-container" style="text-align:center;">
-        <h3>Langkah 5: Cetak Waktu Sehatmu!</h3>
+        <h3>Langkah 5: Saatnya Kody Bicara!</h3>
         <p>
-          Saatnya tampilkan ke layar: berapa waktu sehat untukmu hari ini!
+          Hore! Semua perhitungan sudah selesai. Sekarang Kody ingin memberitahu hasilnya ke semua orang! 📢<br><br>
+          Kita akan bantu Kody menampilkan hasil perjalanannya ke layar, seperti penyihir yang memunculkan tulisan di udara!
+        </p>
+        <p>
+          Yuk ketikkan kode sihir terakhir ini agar Kody bisa bicara!<br>
+          (Jangan lupa ketik huruf demi huruf ya!)
         </p>
         <div id="codeContainer5"></div>
       </div>
@@ -179,14 +187,15 @@
   <div id="step-6" style="display:none;">
     <div class="code-board">
       <div class="code-container" style="text-align:center;">
-        <h3>Langkah 6: Jalankan Kalkulator Waktu Layar!</h3>
+        <h3>Langkah 6: Waktunya Aksi!</h3>
         <p>
-          Klik tombol di bawah ini untuk lihat saran dari Kody tentang waktu layar yang sehat buatmu 💻📱
+          Luar biasa! 🌟 Kamu sudah bantu Kody belajar bertanya, menghitung, dan bicara.<br><br>
+          Sekarang, mari kita lihat hasilnya! Klik tombol di bawah ini untuk menjalankan program dan lihat bagaimana Kody menampilkan semua jawaban yang telah kamu bantu buat!
         </p>
         <button onclick="runFinalProgram()" style="margin-top:20px; padding:12px 24px; font-size:16px; background:#4caf50; color:white; border:none; border-radius:6px; cursor:pointer;">Jalankan Program</button>
         <pre id="outputResult" style="margin-top:24px; background:#111; color:#4caf50; padding:16px; border-radius:8px; font-size:16px;"></pre>
         <p style="margin-top: 20px;">
-          Yuk istirahatkan mata dan badan juga ya! 🌟
+          Kalau kamu mau mencoba lagi, tinggal klik langkah-langkah sebelumnya dan ganti input-nya ya! 🎮
         </p>
       </div>
     </div>
@@ -264,14 +273,20 @@ function startGuessingGame() {
 </script>
 <script>
 function runFinalProgram() {
-  const umur = 8; // contoh usia
-  const menit = umur * 10;
-  const jam = menit / 60;
-  const hasil = "⏰ Saran Waktu Layar Sehat! ⏰\n\n" +
-                "Usiamu: " + umur + " tahun\n" +
-                "Kamu disarankan maksimal " + menit + " menit\n" +
-                "atau sekitar " + jam.toFixed(1) + " jam per hari 📱💤\n\n" +
-                "Yuk seimbangkan waktu main & istirahat!";
+  // Simulasi input yang diisi oleh user dari langkah sebelumnya
+  const tanggal = '1 Juni';
+  const kota = 'Bandung';
+  const waktu = '120'; // Panjang jalur
+  const waktuInt = parseInt(waktu);
+  const kecepatan = 10;
+  const lama = waktuInt / kecepatan;
+
+  // Hasil program
+  const hasil =
+    "Tanggal: " + tanggal + "\n" +
+    "Lokasi: " + kota + "\n" +
+    "Lama perjalanan: " + lama + " jam";
+
   document.getElementById('outputResult').textContent = hasil;
 }
 </script>
@@ -398,9 +413,10 @@ function runFinalProgram() {
 
   // Typing logic for step 2
   function initStep2Typing() {
-    // Placeholder lines for step 2 (Kalkulator Waktu Layar Sehat)
+    // Placeholder lines for step 2
     const placeholderLines2 = [
-      "umur = input('Berapa usiamu sekarang?')"
+      "tanggal = input('Tanggal:')",
+      "kota = input('Lokasi:')"
     ];
     let typed2 = placeholderLines2.map(() => '');
     let lineIndex2 = 0;
@@ -517,7 +533,8 @@ function runFinalProgram() {
   // Typing logic for step 3
   function initStep3Typing() {
     const placeholderLines3 = [
-      "umur = int(umur)"
+      "waktu = input('Panjang jalur')",
+      "waktu = int(waktu)"
     ];
     let typed3 = placeholderLines3.map(() => '');
     let lineIndex3 = 0;
@@ -624,8 +641,9 @@ function runFinalProgram() {
   // Typing logic for step 4
   function initStep4Typing() {
     const placeholderLines4 = [
-      "menit = umur * 10",
-      "jam = menit / 60"
+      "# Contoh: menghitung waktu tempuh",
+      "kecepatan = 10",
+      "lama = waktu / kecepatan"
     ];
     let typed4 = placeholderLines4.map(() => '');
     let lineIndex4 = 0;
@@ -730,7 +748,9 @@ function runFinalProgram() {
   // Typing logic for step 5
   function initStep5Typing() {
     const placeholderLines5 = [
-      "print('Waktu sehatmu adalah', menit, 'menit atau', jam, 'jam per hari')"
+      "print('Tanggal:', tanggal)",
+      "print('Lokasi:', kota)",
+      "print('Lama perjalanan:', lama, 'jam')"
     ];
     let typed5 = placeholderLines5.map(() => '');
     let lineIndex5 = 0;
@@ -836,7 +856,7 @@ function runFinalProgram() {
   // Typing logic for step 6
   function initStep6Typing() {
     const placeholderLines6 = [
-      "# Jalankan dan lihat saran waktumu!"
+      "# Jalankan program dan masukkan data yang berbeda untuk melihat hasilnya."
     ];
     let typed6 = placeholderLines6.map(() => '');
     let lineIndex6 = 0;
