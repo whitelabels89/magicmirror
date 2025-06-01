@@ -4,209 +4,342 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Dashboard Murid</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
-    body { background: #f8f9ff; display: flex; height: 100vh; overflow: hidden; }
-    .sidebar { width: 220px; background: #fff; padding: 20px; box-shadow: 2px 0 8px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
-    .sidebar h2 { font-size: 20px; margin-bottom: 20px; color: #333; }
-    .sidebar a { padding: 10px 14px; margin-bottom: 10px; text-decoration: none; color: #444; background: #f1f5ff; border-radius: 10px; transition: 0.3s; }
-    .sidebar a:hover { background: #dbeafe; }
-    .main { flex: 1; padding: 30px; overflow-y: auto; }
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-    .header h1 { font-size: 24px; color: #333; }
-    .status-box { display: flex; gap: 20px; align-items: center; }
-    .status-box div { background: #fff; padding: 10px 16px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); font-size: 14px; }
-    .lesson-tree { display: flex; gap: 30px; flex-wrap: wrap; margin-top: 20px; }
-    .lesson-card { width: 180px; height: 180px; background: linear-gradient(to bottom, #93c5fd, #60a5fa); color: #fff; border-radius: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: relative; }
-    .lesson-card.locked { background: #e5e7eb; color: #9ca3af; box-shadow: none; }
-    .lesson-card h3 { font-size: 16px; margin-bottom: 8px; }
-    .lesson-card button { padding: 6px 12px; background: #fff; color: #3b82f6; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
-    .lesson-card.locked button { background: #d1d5db; color: #6b7280; cursor: not-allowed; }
-    .sidebar-right { width: 240px; background: #fff; padding: 20px; box-shadow: -2px 0 8px rgba(0,0,0,0.05); }
-    .sidebar-right h3 { font-size: 16px; margin-bottom: 12px; color: #374151; }
-    .notif, .progress-summary { margin-bottom: 20px; font-size: 14px; background: #f9fafb; padding: 10px; border-radius: 10px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Baloo 2', sans-serif; }
+    body {
+      background: #e0f2fe;
+      margin: 0;
+      height: 100vh;
+      font-family: 'Baloo 2', sans-serif;
+      display: flex;
+    }
 
-    .popup-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+    .page-container {
+      display: flex;
+      width: calc(100% - 60px);
+      height: calc(100% - 60px);
+      margin: 30px;
+      border-radius: 40px;
+      overflow: hidden;
+      outline: 12px solid #111827;
+      outline-offset: 0px;
+    }
+
+    .sidebar {
+      background: #111827;
+      color: #fff;
+      width: 220px;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      transition: width 0.3s ease;
+      border-radius: 40px 0 0 40px;
+    }
+
+    .sidebar.collapsed {
+      width: 60px;
+    }
+    .sidebar.collapsed .sidebar-menu span:not(.material-icons) {
+      display: none;
+    }
+    .sidebar.collapsed .sidebar-menu a {
+      justify-content: center;
+    }
+
+    .toggle-btn {
+      background: #374151;
+      color: #fff;
+      border: none;
+      padding: 4px;
+      height: 36px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      cursor: pointer;
+      align-self: center;
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 9999;
     }
 
-    .popup-container {
-      width: 96vw;
-      height: 96vh;
-      /* Blackboard child-friendly background with chalk/crayon illustrations */
-      background-image: url('https://cdn.pixabay.com/photo/2017/10/11/18/16/chalkboard-2845795_960_720.jpg');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
+    .sidebar .toggle-btn {
+      align-self: center;
+    }
+
+    .sidebar:not(.collapsed) .toggle-btn {
+      width: 100%;
+    }
+
+    .sidebar-menu a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      color: #e5e7eb;
+      text-decoration: none;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      transition: background 0.2s ease;
+    }
+
+    .sidebar-menu a:hover {
+      background: #1f2937;
+    }
+
+    .material-icons.icon-emboss {
+      background: #374151;
+      padding: 6px;
+      border-radius: 8px;
+      font-size: 20px;
+      box-shadow: inset -2px -2px 4px rgba(255, 255, 255, 0.15),
+                  inset 2px 2px 4px rgba(0, 0, 0, 0.25),
+                  0 2px 4px rgba(0, 0, 0, 0.4);
+    }
+
+    .panel-ungu {
+      background: #8b5cf6;
       color: #fff;
-      /* Slight dark overlay for readability */
-      box-shadow: 0 4px 30px rgba(0,0,0,0.2), inset 0 0 0 1000px rgba(0,0,0,0.4);
-      border-radius: 20px;
+      width: 300px;
       padding: 30px;
-      position: relative;
-      font-size: 24px;
-      font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+      border-radius: 0 40px 40px 0;
       display: flex;
       flex-direction: column;
       justify-content: center;
+      box-shadow: inset 0 0 10px #c084fc;
     }
 
-    .popup-container .close-btn {
-      position: absolute;
-      top: 10px; right: 20px;
-      background: transparent;
-      border: none;
-      font-size: 20px;
-      cursor: pointer;
-    }
-
-    .shadow-text {
-      color: transparent;
-      text-shadow: 1px 1px 0 #ccc;
-      letter-spacing: 1px;
-    }
-
-    .user-input {
-      outline: none;
-      position: absolute;
-      top: 0;
-      left: 0;
-      color: #1e3a8a;
-      white-space: pre;
-      letter-spacing: 1px;
-      min-height: 1em;
-      width: 100%;
-      padding: 5px;
-      background: transparent;
-      z-index: 1;
-      font-family: monospace;
-      font-size: 32px;
-      border: none;
-      outline: none;
-    }
-
-    .typing-area {
-      position: relative;
-      background: #fef9c3;
-      border: 2px dashed #facc15;
-      padding: 20px;
+    .progress-card {
       margin-top: 20px;
-      font-size: 32px;
-      min-height: 60px;
-      /* pointer-events: none;  <-- Make sure this is not present */
     }
-
     .progress-bar {
-      height: 16px;
+      height: 10px;
       background: #e5e7eb;
-      border-radius: 10px;
+      border-radius: 20px;
       overflow: hidden;
-      margin-top: 20px;
+      margin-top: 6px;
     }
     .progress-bar-fill {
       height: 100%;
-      background: #4ade80;
-      width: 0%;
-      transition: width 0.3s;
+      background: #facc15;
+      transition: width 0.3s ease;
     }
 
-    .animated-badge {
-      animation: pop-in 0.8s ease-out;
+    .main-content {
+      flex: 1;
+      background: #fff;
+      padding: 30px;
+      border-radius: 40px 0 0 40px;
+      overflow-y: auto;
     }
 
-    @keyframes pop-in {
-      from { transform: scale(0.2); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 30px;
+    }
+    .status-box {
+      display: flex;
+      gap: 20px;
+    }
+    .status-box div {
+      background: #f1f5f9;
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 14px;
     }
 
-    .sparkle-effect {
+    /* Card Style tetap dipertahankan seperti sebelumnya */
+    .game-style-cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      justify-content: flex-start;
+    }
+
+    .lesson-card {
+      position: relative;
+      background: linear-gradient(to right, #6366f1, #8b5cf6);
+      border-radius: 20px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+      padding: 20px;
+      width: 280px;
+      height: 180px;
+      overflow: hidden;
+      color: #fff;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .reward {
       position: absolute;
-      top: 40%;
+      top: -40px;
       left: 50%;
-      width: 120px;
-      height: 120px;
-      background: radial-gradient(circle, #fffacd, #facc15, transparent 70%);
-      opacity: 0.6;
-      border-radius: 50%;
-      animation: sparkle 1s ease-out forwards;
-      pointer-events: none;
+      transform: translateX(-50%);
+      width: 100px;
+      z-index: 2;
     }
 
-    @keyframes sparkle {
-      0% { transform: scale(0.5); opacity: 0.8; }
-      100% { transform: scale(2.5); opacity: 0; }
+    .lesson-number {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      font-size: 24px;
+      font-weight: bold;
+      color: rgba(255, 255, 255, 0.25);
     }
 
-    .popup-container.success {
-      animation: glow-pulse 1s ease-in-out 2;
+    .lesson-card h3 {
+      margin-top: 40px;
+      margin-bottom: -10px;
+      font-size: 16px;
     }
 
-    @keyframes glow-pulse {
-      0% { box-shadow: 0 0 0 rgba(0,255,0,0.0); }
-      50% { box-shadow: 0 0 40px rgba(34,197,94,0.8); }
-      100% { box-shadow: 0 0 0 rgba(0,255,0,0.0); }
+    .lesson-card p {
+      font-size: 14px;
+      opacity: 0.9;
+      margin: 6px 0;
+      margin-bottom: 12px;
+      line-height: 1;
+    }
+
+    .start-btn {
+      margin-top: 6px;
+      padding: 6px 12px;
+      background: #fff;
+      color: #8b5cf6;
+      border-radius: 12px;
+      font-weight: bold;
+      text-decoration: none;
+      font-size: 13px;
     }
   </style>
 </head>
 <body>
-  <div class="sidebar">
-    <h2>🎓 Murid Panel</h2>
-    <a href="#">🏠 Dashboard</a>
-    <a href="#">📚 Modul</a>
-    <a href="#">📝 Tugas</a>
-    <a href="#">📈 Progress</a>
-    <a href="#">🚪 Logout</a>
-  </div>
+  <div class="page-container">
+    <!-- Sidebar Kiri -->
+    <div class="sidebar" id="sidebar">
+      <button class="toggle-btn" onclick="toggleSidebar()">⇔</button>
+      <nav class="sidebar-menu">
+        <a href="/elearn/dashboard-murid-style2.html">
+          <span class="material-icons icon icon-emboss">dashboard</span>
+          <span>Dashboard</span>
+        </a>
+        <a href="#">
+          <span class="material-icons icon icon-emboss">menu_book</span>
+          <span>Modul</span>
+        </a>
+        <a href="#">
+          <span class="material-icons icon icon-emboss">assignment</span>
+          <span>Tugas</span>
+        </a>
+        <a href="#">
+          <span class="material-icons icon icon-emboss">insights</span>
+          <span>Progress</span>
+        </a>
+        <a href="#">
+          <span class="material-icons icon icon-emboss">logout</span>
+          <span>Logout</span>
+        </a>
+      </nav>
+    </div>
 
-  <div class="main">
-    <div class="header">
-      <h1>Halo, <span id="namaMurid">...</span>! 👋</h1>
-      <div class="status-box">
-        <div>⭐ Coin: 150</div>
-        <div>🏅 Badge: 3</div>
+    <!-- Konten Tengah (Panel Ungu / Neon) -->
+    <div class="panel-ungu">
+      <h2>👾 Mode Belajar</h2>
+      <p>Selamat datang kembali, murid pintar!</p>
+      <div class="progress-card">
+        <p>🚀 Progress kamu: 40%</p>
+        <div class="progress-bar"><div class="progress-bar-fill" style="width: 40%;"></div></div>
       </div>
     </div>
 
-    <h2>🚀 Petualangan Belajar</h2>
-    <div class="lesson-tree">
-      <!-- Lesson 1 dipindahkan ke file lesson1.html -->
-      <a href="lesson1.html" class="lesson-card">
-        <h3>Lesson 1</h3>
-        <p>Print & Hello World</p>
-        <button>START</button>
-      </a>
-      <a href="lesson2.html" class="lesson-card">
-        <h3>Lesson 2</h3>
-        <p>Variabel & Input</p>
-        <button>START</button>
-      </a>
-      <a href="lesson3.html" class="lesson-card locked">
-        <h3>Lesson 3</h3>
-        <p>Loop & Logika</p>
-        <button disabled>LOCKED</button>
-      </a>
+    <!-- Konten Kanan (Utama) -->
+    <div class="main-content">
+      <div class="header">
+        <h1>Halo, <span id="namaMurid">...</span>! 👋</h1>
+        <div class="status-box">
+          <div>⭐ Coin: 150</div>
+          <div>🏅 Badge: 3</div>
+        </div>
+      </div>
+
+      <h2>🚀 Petualangan Belajar</h2>
+      <div class="game-style-cards">
+        <div class="lesson-card" style="background: linear-gradient(to right, #3b82f6, #60a5fa);">
+          <img src="/elearn/reward/ASTRO1.png" class="reward" />
+          <span class="lesson-number">#01</span>
+          <h3>Lesson: Cerita Planetarium</h3>
+          <p>Yuk kenalan sama planet dan dunia coding!</p>
+          <a href="/elearn/lesson1.html" class="start-btn">Start</a>
+        </div>
+        <div class="lesson-card" style="background: linear-gradient(to right, #6366f1, #8b5cf6);">
+          <img src="/elearn/reward/ASTRO2.png" class="reward" />
+          <span class="lesson-number">#02</span>
+          <h3>Lesson 1: Baterai Plasma</h3>
+          <p>Belajar cara spaceship baca tombol kamu</p>
+          <a href="/elearn/L1-ASTRO1.html" class="start-btn">Start</a>
+        </div>
+        <div class="lesson-card" style="background: linear-gradient(to right, #10b981, #22c55e);">
+          <img src="/elearn/reward/ASTRO3.png" class="reward" />
+          <span class="lesson-number">#03</span>
+          <h3>Lesson 2: Navigasi Pesawat</h3>
+          <p>Belok kanan? Atau kiri? Yuk belajar logika!</p>
+          <a href="/elearn/L2-ASTRO.html" class="start-btn">Start</a>
+        </div>
+        <div class="lesson-card" style="background: linear-gradient(to right, #f43f5e, #fb7185);">
+          <img src="/elearn/reward/ASTRO4.png" class="reward" />
+          <span class="lesson-number">#04</span>
+          <h3>Lesson 3: Helm Anti Gravitasi</h3>
+          <p>Helm ajaib yang aktif pas kamu bergerak!</p>
+          <a href="/elearn/L3-ASTRO.html" class="start-btn">Start</a>
+        </div>
+        <div class="lesson-card" style="background: linear-gradient(to right, #ec4899, #d946ef);">
+          <img src="/elearn/reward/ASTRO5.png" class="reward" />
+          <span class="lesson-number">#05</span>
+          <h3>Lesson 4: Sensor & Keamanan</h3>
+          <p>Sensor buat jaga spaceship kamu tetap aman!</p>
+          <a href="/elearn/L4-ASTRO.html" class="start-btn">Start</a>
+        </div>
+        <div class="lesson-card" style="background: linear-gradient(to right, #0ea5e9, #38bdf8);">
+          <img src="/elearn/reward/ASTRO6.png" class="reward" />
+          <span class="lesson-number">#06</span>
+          <h3>Lesson 5: Panel Kontrol</h3>
+          <p>Kendali spaceship saat ada bahaya! Waspada ya!</p>
+          <a href="/elearn/L5-ASTRO.html" class="start-btn">Start</a>
+        </div>
+        <div class="lesson-card" style="background: linear-gradient(to right, #facc15, #fde047);">
+          <img src="/elearn/reward/ASTRO7.png" class="reward" />
+          <span class="lesson-number">#07</span>
+          <h3>Lesson 6: Perisai Anti Meteorit</h3>
+          <p>Perisai aktif! Belajar kirim pesan dari luar angkasa</p>
+          <a href="/elearn/L6-ASTRO.html" class="start-btn">Start</a>
+        </div>
+        <div class="lesson-card" style="background: linear-gradient(to right, #22d3ee, #3b82f6);">
+          <img src="/elearn/reward/ASTRO8.png" class="reward" />
+          <span class="lesson-number">#07</span>
+          <h3>Lesson 7: Alat Komunikasi</h3>
+          <p>Kita butuh alat buat ngobrol antar galaksi!</p>
+          <a href="/elearn/L7-ASTRO.html" class="start-btn">Start</a>
+        </div>
+        <div class="lesson-card" style="background: linear-gradient(to right, #6d28d9, #a78bfa);">
+          <img src="/elearn/reward/ASTRO8.png" class="reward" />
+          <span class="lesson-number">#08</span>
+          <h3>Lesson 8: Roket Astronot</h3>
+          <p>Kita siap luncur! Yuk pelajari roket & fungsi!</p>
+          <a href="/elearn/L8-ASTRO.html" class="start-btn">Start</a>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="sidebar-right">
-    <h3>🔔 Notifikasi</h3>
-    <div class="notif">Kelas Python akan dimulai 10 menit lagi</div>
-
-    <h3>📊 Progress Kamu</h3>
-    <div class="progress-summary">Kamu telah menyelesaikan 2 dari 16 lesson modul ini 🎉</div>
-  </div>
-  <audio id="typing-sound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_2eac74b008.mp3"></audio>
   <script>
     const muridName = localStorage.getItem('murid_nama') || 'Nina';
     document.getElementById('namaMurid').textContent = muridName;
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('collapsed');
+    }
   </script>
 </body>
 </html>
