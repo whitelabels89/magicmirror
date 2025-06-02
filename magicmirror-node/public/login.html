@@ -253,6 +253,10 @@
 
           // Ambil data profile dari backend berdasarkan email
           const res = await fetch(`https://firebase-upload-backend.onrender.com/proxy-get-cid-by-email?email=${email}`);
+          if (!res.ok) {
+            const text = await res.text();
+            throw new Error(`Gagal ambil CID: ${text}`);
+          }
           const profile = await res.json();
           if (profile && profile.cid) {
             localStorage.setItem("cid", profile.cid);
@@ -299,6 +303,10 @@
           const userCID = data.cid || data.CID;
           if (!userCID) {
             const getCidByEmail = await fetch(`${BACKEND_URL}/proxy-get-cid-by-email?email=${encodeURIComponent(email)}`);
+            if (!getCidByEmail.ok) {
+              const text = await getCidByEmail.text();
+              throw new Error(`Gagal ambil CID dari email: ${text}`);
+            }
             const emailData = await getCidByEmail.json();
             if (emailData && emailData.cid) {
               localStorage.setItem("cid_login", emailData.cid);
