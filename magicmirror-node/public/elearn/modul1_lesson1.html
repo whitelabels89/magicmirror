@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>M1 L1: Introduction to Python</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="header">
+    <h1>Module 1 - Lesson 1: Introduction to the Python Programming Language</h1>
+    <p class="subtitle">Yuk kenalan dengan Python, bahasa pemrograman paling populer di dunia!</p>
+  </header>
+
+  <main class="lesson-content">
+    <!-- Section 1: Warm-Up -->
+    <section class="lesson-section">
+      <h2>🔸 Warm-Up & Greeting (5 menit)</h2>
+      <p>Ajak murid menyebutkan bahasa pemrograman yang pernah mereka dengar. Tanyakan: “Pernah dengar Python?”</p>
+    </section>
+
+    <!-- Section 2: Theoretical Onboarding -->
+    <section class="lesson-section">
+      <h2>🧠 Apa Itu Python? (20 menit)</h2>
+      <p>Python adalah bahasa pemrograman yang mudah dibaca dan digunakan. Banyak digunakan di AI, game, dan web!</p>
+      <ul>
+        <li>Bahasa tingkat tinggi</li>
+        <li>Mudah dibaca</li>
+        <li>Digunakan oleh Google, Netflix, Instagram</li>
+      </ul>
+    </section>
+
+    <!-- Section 3: Praktik 1 -->
+    <section class="lesson-section">
+      <h2>💻 Praktik 1: Perintah print()</h2>
+      <p>Coba tulis kode berikut di editor:</p>
+      <pre><code>print("Halo Dunia!")</code></pre>
+      <p>Diskusi: Apa yang terjadi saat kamu menekan "Run"?</p>
+    </section>
+
+    <!-- Section 4: Teori Tambahan -->
+    <section class="lesson-section">
+      <h2>📘 Teori Tambahan</h2>
+      <p>Kenalkan ide variabel, fungsi dasar, dan komentar dalam kode:</p>
+      <pre><code>nama = "Nina"
+print("Halo", nama)</code></pre>
+    </section>
+
+    <!-- Section 5: Praktik 2 -->
+    <section class="lesson-section">
+      <h2>💻 Praktik 2: Hitung-hitungan</h2>
+      <p>Coba tulis dan jalankan kode:</p>
+      <pre><code>print(5 + 3)
+print(10 - 2)</code></pre>
+      <p>Tanya murid: Apa hasilnya? Apa artinya?</p>
+    </section>
+
+    <!-- Section 5.1: Editor Interaktif -->
+    <section class="lesson-section">
+      <h2>🧪 Coba Koding Langsung</h2>
+      <p>Klik di bawah untuk mencoba langsung menulis kode di editor online:</p>
+      <iframe height="400px" width="100%" src="https://replit.com/@queensacademy/python-m1l1?embed=true" frameborder="no" allowfullscreen></iframe>
+    </section>
+
+    <!-- Section 5.2: Progress Tracker -->
+    <section class="lesson-section">
+      <h2>📊 Progress Tracker</h2>
+      <p>Sudah menyelesaikan bagian ini? Klik tombol di bawah untuk tandai sebagai selesai:</p>
+      <button onclick="markProgress('m1l1_practice')">✅ Tandai Selesai Praktik</button>
+      <p id="progress-status-m1l1_practice" style="margin-top: 10px; color: green;"></p>
+    </section>
+
+    <!-- Section 6: Quiz -->
+    <section class="lesson-section">
+      <h2>🧩 Quiz Wawasan</h2>
+      <ol>
+        <li>Apa fungsi dari perintah <code>print()</code>?</li>
+        <li>Apa yang akan terjadi jika kamu mengetik <code>print("Hello")</code>?</li>
+      </ol>
+    </section>
+
+    <!-- Section 7: Wrap-Up -->
+    <section class="lesson-section">
+      <h2>✅ Wrap-Up & Tanya Jawab</h2>
+      <p>Review: Apa itu Python, kenapa digunakan, dan bagaimana cara membuat program sederhana.</p>
+      <p>Ajak murid untuk menyebutkan 3 hal baru yang mereka pelajari hari ini.</p>
+    </section>
+  </main>
+
+<script>
+  function markProgress(id) {
+    localStorage.setItem(id, 'done');
+    document.getElementById('progress-status-' + id).innerText = '✅ Sudah ditandai selesai!';
+  }
+
+  window.onload = () => {
+    const id = 'm1l1_practice';
+    if (localStorage.getItem(id) === 'done') {
+      document.getElementById('progress-status-' + id).innerText = '✅ Sudah ditandai selesai!';
+    }
+  }
+</script>
+</body>
+</html>
