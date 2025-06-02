@@ -295,10 +295,22 @@
           }
           const data = await res.json();
 
-          if (!data.cid && !data.CID) {
-            alert("⚠️ Akun ditemukan tapi CID tidak tersedia. Silakan hubungi admin.");
+          // --- PATCHED BLOCK START ---
+          const userCID = data.cid || data.CID;
+          if (!userCID) {
+            const getCidByEmail = await fetch(`${BACKEND_URL}/proxy-get-cid-by-email?email=${encodeURIComponent(email)}`);
+            const emailData = await getCidByEmail.json();
+            if (emailData && emailData.cid) {
+              localStorage.setItem("cid_login", emailData.cid);
+              localStorage.setItem("cid", emailData.cid);
+              localStorage.setItem("firebase_token", "1");
+              window.location.href = "/dashboard/dashboard.html?cid=" + emailData.cid;
+              return;
+            }
+            alert("⚠️ CID tidak ditemukan. Silakan hubungi admin.");
             return;
           }
+          // --- PATCHED BLOCK END ---
 
           // Gmail + Manual Account Hybrid Migration
           if (data.exists) {
@@ -322,7 +334,6 @@
               }
             }
             // Proceed to dashboard
-            const userCID = data.cid || data.CID;
             localStorage.setItem("cid_login", userCID);
             localStorage.setItem("cid", userCID);
             localStorage.setItem("firebase_token", "1");
