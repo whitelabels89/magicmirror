@@ -192,9 +192,10 @@
         return;
       }
 
+      const isEmail = rawInput.includes("@"); // <== dipindahkan ke atas sebelum try
+
       // Kirim request ke backend untuk validasi login dari Google Sheets
       try {
-        const isEmail = rawInput.includes("@");
         const bodyData = isEmail
           ? { email: rawInput, password }
           : { whatsapp: rawInput, password };
