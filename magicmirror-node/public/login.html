@@ -234,7 +234,7 @@
         document.getElementById("status").innerText = "Terjadi kesalahan server.";
       }
 
-      /*
+      
       // Jika input berupa nomor WA, ubah jadi email alias
       let email = rawInput;
       if (/^\d{10,15}$/.test(rawInput)) {
@@ -252,7 +252,7 @@
           const email = userCredential.user.email;
 
           // Ambil data profile dari backend berdasarkan email
-          const res = await fetch(`https://queensacademy-id-backend.onrender.com/proxy-getprofile-byemail?email=${email}`);
+          const res = await fetch(`https://firebase-upload-backend.onrender.com/proxy-get-cid-by-email?email=${email}`);
           const profile = await res.json();
           if (profile && profile.cid) {
             localStorage.setItem("cid", profile.cid);
@@ -276,7 +276,7 @@
           }
           document.getElementById("status").innerText = msg;
         });
-      */
+      
     });
   </script>
   <script>
