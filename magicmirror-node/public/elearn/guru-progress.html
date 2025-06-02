@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Progress Murid - Dashboard Guru</title>
+  <link rel="stylesheet" href="/elearn/style.css" />
+</head>
+<body class="loaded">
+
+  <script src="/elearn/userinfo.js"></script>
+  <script type="module">
+    const user = getUserInfo();
+    if (user.role !== "guru") {
+      alert("❌ Hanya guru yang bisa mengakses halaman ini.");
+      window.location.href = "/elearn/login-elearning.html";
+    }
+  </script>
+
+  <div class="container">
+    <h1>📊 Progress Semua Murid</h1>
+    <input type="text" id="filterInput" placeholder="🔍 Cari nama murid..." />
+    <button id="exportBtn">⬇️ Export CSV</button>
+    <button id="syncBtn">🔄 Sync ke Spreadsheet</button>
+    <table class="progress-table">
+      <thead>
+        <tr>
+          <th>Nama</th>
+          <th>UID</th>
+          <th>Modul</th>
+          <th>Lesson</th>
+          <th>Bagian</th>
+          <th>Status</th>
+          <th>Update Terakhir</th>
+          <th>Profil</th>
+        </tr>
+      </thead>
+      <tbody id="progress-body"></tbody>
+    </table>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBVO4ajDwkbcTGL33SVMxIoev4veB8itgI",
+      authDomain: "queens-academy.firebaseapp.com",
+      projectId: "queens-academy",
+      storageBucket: "queens-academy.appspot.com",
+      messagingSenderId: "933754866139",
+      appId: "1:933754866139:web:cfffc083597f28b14c86c5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function loadProgress() {
+      const tbody = document.getElementById("progress-body");
+      tbody.innerHTML = "";
+
+      const querySnapshot = await getDocs(collection(db, "progress"));
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td><a href="#" class="murid-link" data-uid="${data.uid || '-'}">${data.nama || "-"}</a></td>
+          <td>${data.uid || "-"}</td>
+          <td>${data.module || "-"}</td>
+          <td>${data.lesson || "-"}</td>
+          <td>${data.lessonId || "-"}</td>
+          <td>✅ Selesai</td>
+          <td>${data.timestamp || '-'}</td>
+          <td><a href="/elearn/profil.html?uid=${data.uid || '-'}" target="_blank">🔍</a></td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      document.querySelectorAll(".murid-link").forEach(link => {
+        link.addEventListener("click", (e) => {
+          e.preventDefault();
+          const uid = link.getAttribute("data-uid");
+          alert("📋 Lihat detail untuk UID: " + uid);
+          // Bisa diganti dengan modal detail atau redirect ke halaman profil murid nanti
+        });
+      });
+    }
+
+    loadProgress();
+
+    document.getElementById("filterInput").addEventListener("input", function () {
+      const keyword = this.value.toLowerCase();
+      const rows = document.querySelectorAll("#progress-body tr");
+      rows.forEach((row) => {
+        const nama = row.children[0].textContent.toLowerCase();
+        row.style.display = nama.includes(keyword) ? "" : "none";
+      });
+    });
+
+    document.getElementById("exportBtn").addEventListener("click", function () {
+      const rows = Array.from(document.querySelectorAll("#progress-body tr"))
+        .filter(row => row.style.display !== "none")
+        .map(row => Array.from(row.children).map(td => `"${td.textContent}"`).join(","));
+
+      const csvContent = "data:text/csv;charset=utf-8,"
+        + ["Nama,UID,Modul,Lesson,Bagian,Status,Update Terakhir,Profil", ...rows].join("\n");
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "progress_murid.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+
+    document.getElementById("syncBtn").addEventListener("click", async function () {
+      const rows = Array.from(document.querySelectorAll("#progress-body tr"))
+        .filter(row => row.style.display !== "none")
+        .map(row => {
+          return {
+            nama: row.children[0].textContent,
+            uid: row.children[1].textContent,
+            module: row.children[2].textContent,
+            lesson: row.children[3].textContent,
+            lessonId: row.children[4].textContent,
+            status: row.children[5].textContent,
+            timestamp: row.children[6].textContent
+          };
+        });
+
+      try {
+        const res = await fetch("https://script.google.com/macros/s/AKfycbynFv8gTnczc7abTL5Olq_sKmf1e0y6w9z_KBTKETK8i6NaGd941Cna4QVnoujoCsMdvA/exec", {
+          method: "POST",
+          body: JSON.stringify({ action: "syncProgress", data: rows }),
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+
+        const result = await res.json();
+        alert("✅ Sinkronisasi berhasil: " + result.message);
+      } catch (err) {
+        console.error("❌ Gagal sinkronisasi:", err);
+        alert("❌ Gagal sinkronisasi ke spreadsheet.");
+      }
+    });
+  </script>
+</body>
+</html>

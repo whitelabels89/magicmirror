@@ -87,18 +87,38 @@ print(10 - 2)</code></pre>
     </section>
   </main>
 
-<script>
+<script type="module">
+  import { updateProgress, getProgressFromFirestore } from './firebase-tracker.js';
+
   function markProgress(id) {
-    localStorage.setItem(id, 'done');
     document.getElementById('progress-status-' + id).innerText = '✅ Sudah ditandai selesai!';
+    localStorage.setItem(id, 'done');
+    updateProgress('M1', 'L1', id);
   }
 
   window.onload = () => {
+    const user = getUserInfo();
+    if (user.role !== "anak") {
+      alert("❌ Akses tidak sah. Silakan login ulang.");
+      window.location.href = "/elearn/login-elearning.html";
+      return;
+    }
+
     const id = 'm1l1_practice';
     if (localStorage.getItem(id) === 'done') {
       document.getElementById('progress-status-' + id).innerText = '✅ Sudah ditandai selesai!';
+    } else {
+      // Cek dari Firestore
+      getProgressFromFirestore("M1", "L1", id).then((found) => {
+        if (found) {
+          localStorage.setItem(id, 'done');
+          document.getElementById('progress-status-' + id).innerText = '✅ Sudah ditandai selesai!';
+        }
+      });
     }
   }
 </script>
+</script>
+<script src="userinfo.js"></script>
 </body>
 </html>
