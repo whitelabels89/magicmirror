@@ -318,27 +318,27 @@
       <div class="step-button-container">
         <a class="step-button" onclick="showStep(1)">
           <span class="circle-icon">1</span>
-          <span>Step 1: Apakah Python itu?</span>
+          <span>Step 1</span>
         </a>
         <a class="step-button" onclick="showStep(2)">
           <span class="circle-icon">2</span>
-          <span>Step 2: Mengapa Python Populer?</span>
+          <span>Step 2</span>
         </a>
         <a class="step-button" onclick="showStep(3)">
           <span class="circle-icon">3</span>
-          <span>Step 3: Code Hello World</span>
+          <span>Step 3</span>
         </a>
         <a class="step-button" onclick="showStep(4)">
           <span class="circle-icon">4</span>
-          <span>Step 4: Menampilkan Hasil Penjumlahan</span>
+          <span>Step 4</span>
         </a>
         <a class="step-button" onclick="showStep(5)">
           <span class="circle-icon">5</span>
-          <span>Step 5: Mencetak Angka dan Teks</span>
+          <span>Step 5</span>
         </a>
         <a class="step-button" onclick="showStep(6)">
           <span class="circle-icon">6</span>
-          <span>Step 6: Melakukan Comment Pada Python</span>
+          <span>Step 6</span>
         </a>
       </div>
       <hr style="border: none; border-top: 1px solid #444; margin: 1rem 0;" />
@@ -360,91 +360,173 @@
       <p class="subtitle">Yuk kenalan dengan Python, bahasa pemrograman paling populer di dunia!</p>
     </section>
     <div class="lesson-modular-container">
-      <!-- STEP 1 -->
       <div id="step-1-container">
+        <!-- Section 1: Warm-Up -->
         <section class="lesson-section" id="step-1">
-          <h2>Step 1: Apakah Python itu?</h2>
-          <p><strong>Python</strong> adalah bahasa pemrograman tingkat tinggi yang mudah dipelajari dan digunakan. Python pertama kali diciptakan oleh <b>Guido van Rossum</b> pada tahun 1991.</p>
+          <h2>🔸 Warm-Up & Greeting (5 menit)</h2>
+          <p>Ajak murid menyebutkan bahasa pemrograman yang pernah mereka dengar. Tanyakan: “Pernah dengar Python?”</p>
+        </section>
+
+        <!-- Section 2: Theoretical Onboarding -->
+        <section class="lesson-section" id="step-1">
+          <h2>🧠 Apa Itu Python? (20 menit)</h2>
+          <p>Python adalah bahasa pemrograman yang mudah dibaca dan digunakan. Banyak digunakan di AI, game, dan web!</p>
           <ul>
-            <li>Python digunakan untuk membuat berbagai aplikasi, mulai dari website, game, hingga kecerdasan buatan (AI).</li>
-            <li>Python terkenal karena sintaksnya yang sederhana dan mudah dibaca, sehingga cocok untuk pemula maupun profesional.</li>
+            <li>Bahasa tingkat tinggi</li>
+            <li>Mudah dibaca</li>
+            <li>Digunakan oleh Google, Netflix, Instagram</li>
           </ul>
-          <p><em>Contoh perusahaan yang menggunakan Python: Google, Instagram, Netflix, dan Spotify.</em></p>
         </section>
       </div>
-      <!-- STEP 2 -->
-      <div id="step-2-container" style="display:none">
-        <section class="lesson-section" id="step-2">
-          <h2>Step 2: Mengapa Python Populer?</h2>
-          <ul>
-            <li><b>Mudah Dipelajari:</b> Sintaks Python mirip bahasa manusia, sehingga mudah dimengerti.</li>
-            <li><b>Gratis & Open Source:</b> Python dapat digunakan tanpa biaya dan bisa dikembangkan siapa saja.</li>
-            <li><b>Komunitas Besar:</b> Banyak tutorial, dokumentasi, dan forum bantuan.</li>
-            <li><b>Multi-platform:</b> Bisa dijalankan di Windows, Mac, maupun Linux.</li>
-            <li><b>Banyak Library:</b> Tersedia pustaka (library) untuk data science, web, AI, dan lainnya.</li>
-          </ul>
-          <p><strong>Kapan Python digunakan?</strong><br>
-          <ul>
-            <li>Data Science & Analisis Data</li>
-            <li>Kecerdasan Buatan (AI & Machine Learning)</li>
-            <li>Pembuatan Website (misal: Instagram)</li>
-            <li>Otomasi tugas sehari-hari</li>
-          </ul>
-          </p>
-        </section>
-      </div>
-      <!-- STEP 3 -->
       <div id="step3" class="step-section" style="display: none;">
-        <section class="lesson-section" id="step-3">
-          <h2>Step 3: Code Hello World</h2>
-          <p>Yuk, coba menulis program Python pertama kita! Program paling sederhana biasanya mencetak tulisan <strong>Hello World</strong> ke layar.</p>
-          <p>Ketik kode berikut di editor Python:</p>
-          <div id="editor" style="height: 100px; width: 100%; border: 1px solid #ccc;">print("Hello World")</div>
+        <section class="lesson-section" id="step-2">
+          <h2>👩‍💻 Python Interaktif (Langsung di Browser!)</h2>
+          <div id="editor" style="height: 250px; width: 100%; border: 1px solid #ccc;">print("Halo Dunia!")</div>
           <button onclick="runPythonCode()" style="margin-top: 10px;">▶️ Jalankan Kode</button>
           <pre id="output" style="background:#111;color:#0f0;padding:10px;margin-top:10px;min-height:50px;"># Output akan muncul di sini...</pre>
-          <p><b>Penjelasan:</b> Fungsi <code>print()</code> digunakan untuk menampilkan teks ke layar.</p>
         </section>
       </div>
-      <!-- STEP 4 -->
+      <div id="step-2-container" style="display:none">
+        <!-- Section 3: Praktik 1 -->
+        <section class="lesson-section" id="step-2">
+          <h2>💻 Praktik 1: Perintah print()</h2>
+          <p>Ketikkan kode berikut huruf demi huruf:</p>
+          <div id="typing-box-praktik1" class="typing-container" tabindex="0" data-id="praktik1" data-text='print("Halo Dunia!")'>
+            <div class="typing-line">
+              <span class="line-number">1</span>
+              <span class="code-output"></span>
+            </div>
+          </div>
+          <div class="python-editor-container" style="margin-top: 12px;">
+            <textarea class="python-editor hide-editor-only" rows="4" style="width:100%; font-family:'Courier New', monospace;"></textarea>
+            <button onclick="runInlinePython(this)" style="margin-top:6px;">▶️ Jalankan Kode</button>
+            <pre class="python-output" style="background:#111; color:#4caf50; padding:10px; min-height:30px;"></pre>
+          </div>
+          <p>Target kode: <code>print("Halo Dunia!")</code></p>
+        </section>
+
+        <!-- Section 4: Teori Tambahan -->
+        <section class="lesson-section" id="step-2">
+          <h2>📘 Teori Tambahan</h2>
+          <p>Kenalkan ide variabel, fungsi dasar, dan komentar dalam kode:</p>
+          <div id="typing-box-teori" class="typing-container" tabindex="0" data-id="teori" data-text='nama = "Nina"
+print("Halo", nama)'>
+            <div class="typing-line">
+              <span class="line-number">1</span>
+              <span class="code-output"></span>
+            </div>
+            <div class="typing-line">
+              <span class="line-number">2</span>
+              <span class="code-output"></span>
+            </div>
+          </div>
+          <div class="python-editor-container" style="margin-top: 12px;">
+            <textarea class="python-editor hide-editor-only" rows="4" style="width:100%; font-family:'Courier New', monospace;"></textarea>
+            <button onclick="runInlinePython(this)" style="margin-top:6px;">▶️ Jalankan Kode</button>
+            <pre class="python-output" style="background:#111; color:#4caf50; padding:10px; min-height:30px;"></pre>
+          </div>
+        </section>
+
+        <!-- Section 5: Praktik 2 -->
+        <section class="lesson-section" id="step-2">
+          <h2>💻 Praktik 2: Hitung-hitungan</h2>
+          <p>Coba tulis dan jalankan kode:</p>
+          <div id="typing-box-praktik2" class="typing-container" tabindex="0" data-id="praktik2" data-text='print(5 + 3)
+print(10 - 2)'>
+            <div class="typing-line">
+              <span class="line-number">1</span>
+              <span class="code-output"></span>
+            </div>
+            <div class="typing-line">
+              <span class="line-number">2</span>
+              <span class="code-output"></span>
+            </div>
+          </div>
+          <div class="python-editor-container" style="margin-top: 12px;">
+            <textarea class="python-editor hide-editor-only" rows="4" style="width:100%; font-family:'Courier New', monospace;"></textarea>
+            <button onclick="runInlinePython(this)" style="margin-top:6px;">▶️ Jalankan Kode</button>
+            <pre class="python-output" style="background:#111; color:#4caf50; padding:10px; min-height:30px;"></pre>
+          </div>
+          <p>Tanya murid: Apa hasilnya? Apa artinya?</p>
+        </section>
+
+        <!-- Section 5.1.1: Editor Python Interaktif -->
+        
+      </div>
+
       <div id="step4" class="step-section" style="display: none;">
-        <section class="lesson-section" id="step-4">
-          <h2>Step 4: Menampilkan Hasil Penjumlahan</h2>
-          <p>Selain teks, Python bisa mencetak hasil operasi matematika. Contohnya:</p>
-          <pre><code>print(5+1)</code></pre>
-          <p>Ketik kode di atas dan jalankan. Apa hasilnya?</p>
-          <div class="python-editor-container" style="margin-top: 12px;">
-            <textarea class="python-editor hide-editor-only" rows="2" style="width:100%; font-family:'Courier New', monospace;">print(5+1)</textarea>
-            <button onclick="runInlinePython(this)" style="margin-top:6px;">▶️ Jalankan Kode</button>
-            <pre class="python-output" style="background:#111; color:#4caf50; padding:10px; min-height:30px;"></pre>
-          </div>
-          <p><b>Penjelasan:</b> Python akan menghitung 5 + 1, lalu menampilkan hasilnya (6).</p>
+        <section class="lesson-section">
+          <h2>📚 Tugas Mandiri</h2>
+          <p>1. Buat program Python yang mencetak nama kamu dan umur kamu.</p>
+          <p>2. Coba ubah kode di atas untuk mencetak hasil perkalian 6 * 7.</p>
+          <p>3. Kirimkan hasilnya ke guru melalui email atau platform yang digunakan.</p>
         </section>
+        <section class="lesson-section">
+          <h2>📈 Penilaian</h2>
+          <p>Penilaian akan dilakukan berdasarkan:</p>
+          <ul>
+            <li>Kemampuan menulis kode Python sederhana</li>
+            <li>Memahami konsep dasar variabel dan fungsi print()</li>
+            <li>Kemampuan menyelesaikan tugas mandiri</li>
+          </ul>
+          <p>Nilai akan diberikan dalam skala 1-100.</p>
+        </section>
+        <section class="lesson-section">
+          <h2>🧩 Quiz Wawasan</h2>
+          <ol>
+            <li>Apa fungsi dari perintah <code>print()</code>?</li>
+            <li>Apa yang akan terjadi jika kamu mengetik <code>print("Hello")</code>?</li>
+          </ol>
+        </section>
+        <!-- Section 6: Quiz -->
+          <section class="lesson-section">
+              <h2>📝 Quiz: Jawab Pertanyaan Berikut</h2>
+              <p>1. Apa itu Python?</p>
+              <p>2. Sebutkan 3 contoh penggunaan Python!</p>
+              <p>3. Apa yang akan terjadi jika kamu mengetik <code>print("Hello")</code>?</p>
+              <p>4. Bagaimana cara membuat variabel di Python?</p>
+              <p>5. Apa yang akan terjadi jika kamu mengetik <code>print(5 + 3)</code>?</p>
+          </section>
       </div>
-      <!-- STEP 5 -->
+
       <div id="step5" class="step-section" style="display: none;">
+          <!-- Section 6.5: Penilaian Otomatis -->
         <section class="lesson-section" id="step-5">
-          <h2>Step 5: Mencetak Angka dan Teks</h2>
-          <p>Python bisa mencetak hasil operasi matematika dan juga teks. Contoh:</p>
-          <pre><code>print(10*2+5)</code></pre>
-          <pre><code>print("Academy DQLab")</code></pre>
+          <h2>📝 Coba Jawab: Hitung dan Cetak</h2>
+          <p>Tulis kode Python untuk mencetak hasil penjumlahan 5 + 3</p>
+          <div id="typing-box-quiz1" class="typing-container" style="margin-bottom:12px;" tabindex="0" data-id="quiz1" data-text='print(5 + 3)'>
+            <div class="typing-line">
+              <span class="line-number">1</span>
+              <span class="code-output"></span>
+            </div>
+          </div>
           <div class="python-editor-container" style="margin-top: 12px;">
-            <textarea class="python-editor hide-editor-only" rows="3" style="width:100%; font-family:'Courier New', monospace;">print(10*2+5)
-print("Academy DQLab")</textarea>
+            <textarea class="python-editor hide-editor-only" rows="4" style="width:100%; font-family:'Courier New', monospace;"></textarea>
             <button onclick="runInlinePython(this)" style="margin-top:6px;">▶️ Jalankan Kode</button>
             <pre class="python-output" style="background:#111; color:#4caf50; padding:10px; min-height:30px;"></pre>
           </div>
-          <p><b>Penjelasan:</b> Baris pertama menghitung 10 x 2 + 5 = 25, lalu mencetaknya. Baris kedua mencetak teks "Academy DQLab".</p>
+          <div id="quiz-editor" style="height: 150px; width: 100%; border: 1px solid #ccc;"></div>
+          <button onclick="checkAnswer()" style="margin-top: 10px;">🔍 Periksa Jawaban</button>
+          <pre id="quiz-feedback" style="background:#f9f9f9;color:#333;padding:10px;margin-top:10px;min-height:40px;"></pre>
         </section>
       </div>
-      <!-- STEP 6 -->
+
       <div id="step6" class="step-section" style="display: none;">
-        <section class="lesson-section" id="step-6">
-          <h2>Step 6: Melakukan Comment Pada Python</h2>
-          <p>Comment (komentar) adalah baris yang tidak dijalankan, hanya sebagai catatan. Di Python, comment diawali dengan tanda pagar (<code>#</code>).</p>
-          <pre><code># mencetak Hello World
-print("Hello World")</code></pre>
-          <p>Baris pertama adalah komentar, tidak akan dieksekusi. Baris kedua akan dijalankan oleh Python.</p>
+          <!-- Section 6: Progress Tracker -->
+        <section class="lesson-section">
+          <h2>📊 Progress Tracker</h2>
+          <p>Sudah menyelesaikan bagian ini? Klik tombol di bawah untuk tandai sebagai selesai:</p>
+          <button onclick="markProgress('m1l1_practice')">✅ Tandai Selesai Praktik</button>
+          <p id="progress-status-m1l1_practice" style="margin-top: 10px; color: green;"></p>
         </section>
+
+        <!-- Section 7: Wrap-Up -->
+        <section class="lesson-section" >
+          <h2>✅ Wrap-Up & Tanya Jawab</h2>
+          <p>Review: Apa itu Python, kenapa digunakan, dan bagaimana cara membuat program sederhana.</p>
+          <p>Ajak murid untuk menyebutkan 3 hal baru yang mereka pelajari hari ini.</p>
+        </section>
+      
       </div>
     </div>
     </main>
