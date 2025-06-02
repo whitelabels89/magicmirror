@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>M1 L1: Introduction to Python</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="header">
+    <h1>Module 1 - Lesson 1: Introduction to the Python Programming Language</h1>
+    <p class="subtitle">Yuk kenalan dengan Python, bahasa pemrograman paling populer di dunia!</p>
+  </header>
+
+  <main class="lesson-content">
+    <!-- Section 1: Warm-Up -->
+    <section class="lesson-section">
+      <h2>🔸 Warm-Up & Greeting (5 menit)</h2>
+      <p>Ajak murid menyebutkan bahasa pemrograman yang pernah mereka dengar. Tanyakan: “Pernah dengar Python?”</p>
+    </section>
+
+    <!-- Section 2: Theoretical Onboarding -->
+    <section class="lesson-section">
+      <h2>🧠 Apa Itu Python? (20 menit)</h2>
+      <p>Python adalah bahasa pemrograman yang mudah dibaca dan digunakan. Banyak digunakan di AI, game, dan web!</p>
+      <ul>
+        <li>Bahasa tingkat tinggi</li>
+        <li>Mudah dibaca</li>
+        <li>Digunakan oleh Google, Netflix, Instagram</li>
+      </ul>
+    </section>
+
+    <!-- Section 3: Praktik 1 -->
+    <section class="lesson-section">
+      <h2>💻 Praktik 1: Perintah print()</h2>
+      <p>Coba tulis kode berikut di editor:</p>
+      <pre><code>print("Halo Dunia!")</code></pre>
+      <p>Diskusi: Apa yang terjadi saat kamu menekan "Run"?</p>
+    </section>
+
+    <!-- Section 4: Teori Tambahan -->
+    <section class="lesson-section">
+      <h2>📘 Teori Tambahan</h2>
+      <p>Kenalkan ide variabel, fungsi dasar, dan komentar dalam kode:</p>
+      <pre><code>nama = "Nina"
+print("Halo", nama)</code></pre>
+    </section>
+
+    <!-- Section 5: Praktik 2 -->
+    <section class="lesson-section">
+      <h2>💻 Praktik 2: Hitung-hitungan</h2>
+      <p>Coba tulis dan jalankan kode:</p>
+      <pre><code>print(5 + 3)
+print(10 - 2)</code></pre>
+      <p>Tanya murid: Apa hasilnya? Apa artinya?</p>
+    </section>
+
+    <!-- Section 5.1.1: Editor Python Interaktif -->
+    <section class="lesson-section">
+      <h2>👩‍💻 Python Interaktif (Langsung di Browser!)</h2>
+      <div id="editor" style="height: 250px; width: 100%; border: 1px solid #ccc;">print("Halo Dunia!")</div>
+      <button onclick="runPythonCode()" style="margin-top: 10px;">▶️ Jalankan Kode</button>
+      <pre id="output" style="background:#111;color:#0f0;padding:10px;margin-top:10px;min-height:50px;"># Output akan muncul di sini...</pre>
+    </section>
+
+
+    <!-- Section 5.2: Progress Tracker -->
+    <section class="lesson-section">
+      <h2>📊 Progress Tracker</h2>
+      <p>Sudah menyelesaikan bagian ini? Klik tombol di bawah untuk tandai sebagai selesai:</p>
+      <button onclick="markProgress('m1l1_practice')">✅ Tandai Selesai Praktik</button>
+      <p id="progress-status-m1l1_practice" style="margin-top: 10px; color: green;"></p>
+    </section>
+
+    <!-- Section 6: Quiz -->
+    <section class="lesson-section">
+      <h2>🧩 Quiz Wawasan</h2>
+      <ol>
+        <li>Apa fungsi dari perintah <code>print()</code>?</li>
+        <li>Apa yang akan terjadi jika kamu mengetik <code>print("Hello")</code>?</li>
+      </ol>
+    </section>
+
+    <!-- Section 6.5: Penilaian Otomatis -->
+    <section class="lesson-section">
+      <h2>📝 Coba Jawab: Hitung dan Cetak</h2>
+      <p>Tulis kode Python untuk mencetak hasil penjumlahan 5 + 3</p>
+      <div id="quiz-editor" style="height: 150px; width: 100%; border: 1px solid #ccc;"></div>
+      <button onclick="checkAnswer()" style="margin-top: 10px;">🔍 Periksa Jawaban</button>
+      <pre id="quiz-feedback" style="background:#f9f9f9;color:#333;padding:10px;margin-top:10px;min-height:40px;"></pre>
+    </section>
+
+    <!-- Section 7: Wrap-Up -->
+    <section class="lesson-section">
+      <h2>✅ Wrap-Up & Tanya Jawab</h2>
+      <p>Review: Apa itu Python, kenapa digunakan, dan bagaimana cara membuat program sederhana.</p>
+      <p>Ajak murid untuk menyebutkan 3 hal baru yang mereka pelajari hari ini.</p>
+    </section>
+  </main>
+
+<script type="module">
+  import { updateProgress, getProgressFromFirestore } from './firebase-tracker.js';
+
+  let quizEditor = null;
+  window.onload = () => {
+    const user = getUserInfo();
+    quizEditor = ace.edit("quiz-editor");
+    window.quizEditor = quizEditor;
+    quizEditor.session.setMode("ace/mode/python");
+    quizEditor.setTheme("ace/theme/github");
+    quizEditor.setFontSize(14);
+
+    if (user.role !== "anak") {
+      alert("❌ Akses tidak sah. Silakan login ulang.");
+      window.location.href = "/elearn/login-elearning.html";
+      return;
+    }
+
+    const id = 'm1l1_practice';
+    if (localStorage.getItem(id) === 'done') {
+      document.getElementById('progress-status-' + id).innerText = '✅ Sudah ditandai selesai!';
+    } else {
+      // Cek dari Firestore
+      getProgressFromFirestore("M1", "L1", id).then((found) => {
+        if (found) {
+          localStorage.setItem(id, 'done');
+          document.getElementById('progress-status-' + id).innerText = '✅ Sudah ditandai selesai!';
+        }
+      });
+    }
+  }
+</script>
+<script>
+
+  async function checkAnswer() {
+    if (!quizEditor) {
+      console.error("❌ quizEditor belum siap");
+      return;
+    }
+    console.log("✅ Pyodide ready?", pyodideReady);
+
+    const code = quizEditor.getValue();
+    const feedbackEl = document.getElementById("quiz-feedback");
+
+    if (!pyodideReady) {
+      feedbackEl.textContent = "❌ Pyodide belum siap.";
+      return;
+    }
+
+    try {
+      let output = "";
+      pyodide.setStdout({
+        batched: (s) => { output += s + "\n"; }
+      });
+
+      console.log("🚀 Running code:", code);
+      await pyodide.runPythonAsync(code);
+      pyodide.setStdout({});
+
+      const expected = "8";
+      const actual = output.trim();
+
+      console.log("🔍 Output:", actual);
+
+      if (actual === expected) {
+        feedbackEl.textContent = "✅ Jawaban benar! Output = " + actual;
+      } else {
+        feedbackEl.textContent = "❌ Hmm, hasilnya belum pas. Yuk coba lagi!\nOutput kamu: " + (actual || "(tidak ada output)");
+      }
+    } catch (err) {
+      feedbackEl.textContent = "❌ Ups, ada kesalahan di kodenya nih. Coba dicek lagi ya!\n\nDetail:\n" + err;
+      console.error("❌ Runtime error:", err);
+    }
+  }
+</script>
+</script>
+</script>
+<script src="userinfo.js"></script>
+
+<!-- Pyodide dan Ace Editor -->
+<script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/ace.js"></script>
+<script>
+  let pyodideReady = false;
+  let pyodide = null;
+
+  async function loadPyodideAndSetup() {
+    pyodide = await loadPyodide();
+    pyodideReady = true;
+    console.log("✅ Pyodide siap digunakan");
+  }
+
+  loadPyodideAndSetup();
+
+  const editor = ace.edit("editor");
+  editor.session.setMode("ace/mode/python");
+  editor.setTheme("ace/theme/github");
+  editor.setFontSize(14);
+
+  async function runPythonCode() {
+    const code = editor.getValue();
+    const outputEl = document.getElementById("output");
+    outputEl.textContent = "⏳ Menjalankan...";
+    if (!pyodideReady) {
+      outputEl.textContent = "❌ Pyodide belum siap.";
+      return;
+    }
+    try {
+      let output = "";
+      pyodide.setStdout({
+        batched: (s) => { output += s + "\n"; }
+      });
+
+      await pyodide.runPythonAsync(code);
+
+      outputEl.textContent = output.trim() || "✅ Berhasil (tidak ada output)";
+    } catch (err) {
+      outputEl.textContent = "❌ Error:\n" + err;
+    } finally {
+      pyodide.setStdout({});
+    }
+  }
+</script>
+</body>
+</html>

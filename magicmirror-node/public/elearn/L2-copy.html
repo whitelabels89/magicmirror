@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Planetarium Lesson 2: Perakitan Mesin Navigasi</title>
+  <style>
+    html, body {
+      height: 100%;
+      overflow: auto;
+    }
+    body {
+      margin: 0;
+      background-color: #1e1e1e;
+      color: #d4d4d4;
+      font-family: 'Courier New', monospace;
+    }
+    .code-board {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .code-container {
+      background-color: #1e1e1e;
+      border-radius: 8px;
+      padding: 40px;
+      width: 80%;
+      max-width: 900px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.5);
+    }
+    .code-line {
+      display: flex;
+      font-size: 18px;
+    }
+    .line-number {
+      width: 30px;
+      color: #858585;
+      text-align: right;
+      margin-right: 20px;
+    }
+    .code-text span.correct.keyword { color: #569CD6; }
+    .code-text span.correct.func { color: #DCDCAA; }
+    .code-text span.correct.str { color: #CE9178; }
+    .code-text span.correct.var { color: #9CDCFE; }
+    .code-text span.wrong { color: red; }
+    .progress-container {
+      height: 8px;
+      background: #444;
+      width: 100%;
+    }
+    .progress-bar {
+      height: 8px;
+      background: #4caf50;
+      width: 0%;
+      transition: width 0.2s;
+    }
+    .step-buttons {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+      gap: 12px;
+    }
+    .step-circle {
+      background-color: #1e90ff;
+      color: white;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      transition: transform 0.2s, background-color 0.3s;
+    }
+    .step-circle:hover {
+      background-color: #63b3ed;
+      transform: scale(1.1);
+    }
+
+    #outputResult {
+      font-family: 'Courier New', monospace;
+      white-space: pre-wrap;
+      animation: munculPelan 0.6s ease-out;
+    }
+    #rewardContainer {
+      animation: munculReward 0.7s ease-out;
+    }
+    @keyframes munculPelan {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes munculReward {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="main-content">
+    <!-- HEADER LESSON -->
+    <header class="header" style="background: #20232a; padding: 32px 0 20px 0; text-align: center;">
+      <h1 style="font-size: 2.3rem; color: #ffd700; margin-bottom: 8px;">
+        🚀 Modul 1: Pengenalan Python
+      </h1>
+      <p style="font-size: 1.2rem; color:#d4d4d4; margin-bottom: 0;">
+        Lesson 1: Dasar-dasar Python - print(), input(), dan Variabel
+      </p>
+    </header>
+    <div class="step-buttons">
+      <button class="step-circle" onclick="showStep(1)">1</button>
+      <button class="step-circle" onclick="showStep(2)">2</button>
+      <button class="step-circle" onclick="showStep(3)">3</button>
+      <button class="step-circle" onclick="showStep(4)">4</button>
+      <button class="step-circle" onclick="showStep(5)">5</button>
+      <button class="step-circle" onclick="showStep(6)">6</button>
+    </div>
+    <main class="lesson-content" style="margin-top:30px;">
+      <!-- 1. Warm-Up & Greeting -->
+      <section id="warm-up" class="lesson-section" style="margin-bottom:32px; background: #23272e; border-radius: 10px; padding: 28px 28px 20px 28px;">
+        <h2 style="color: #ffd700; margin-top:0;">1. 🔸 Warm-Up &amp; Greeting (5 menit)</h2>
+        <p>
+          Python adalah bahasa pemrograman yang mudah dipelajari dan digunakan untuk membuat program komputer. Dengan Python, kamu bisa membuat game, aplikasi, dan banyak hal seru lainnya!
+        </p>
+      </section>
+      <!-- 2. Apa Itu Python -->
+      <section id="apa-itu-python" class="lesson-section" style="margin-bottom:32px; background: #23272e; border-radius: 10px; padding: 28px 28px 20px 28px;">
+        <h2 style="color: #ffd700;">2. 🧠 Apa Itu Python? (20 menit)</h2>
+        <p>
+          Python adalah bahasa pemrograman tingkat tinggi yang populer di dunia. Mudah dipelajari, sintaksnya sederhana, dan digunakan di banyak bidang seperti data science, web, dan otomasi.
+        </p>
+      </section>
+      <!-- Step 2 Content Container -->
+      <section id="praktik1" class="lesson-section" style="margin-bottom:32px; background: #23272e; border-radius: 10px; padding: 28px 28px 20px 28px; display:none;">
+        <h2 style="color: #ffd700;">3. 💻 Praktik 1: Perintah print()</h2>
+        <p>
+          Fungsi <code>print()</code> digunakan untuk menampilkan teks ke layar.<br>
+        </p>
+        <p>Coba ketik kode berikut huruf demi huruf:</p>
+        <!-- Typing box for Praktik 1: print() -->
+        <div id="codeContainerPrint" class="typing-box-container"></div>
+        <!--
+        <div class="typing-box-container">
+          <div class="code-line">
+            <span class="line-number">1</span>
+            <span id="typingBox" class="code-text"></span>
+          </div>
+        </div>
+        -->
+        <style>
+          .typing-box-container {
+            background: #111;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: 'Courier New', Courier, monospace;
+            color: #d4d4d4;
+          }
+          .code-line {
+            display: flex;
+            align-items: flex-start;
+          }
+          .line-number {
+            color: #555;
+            width: 30px;
+            text-align: right;
+            margin-right: 10px;
+            user-select: none;
+          }
+          .code-text {
+            white-space: pre-wrap;
+          }
+          .correct.func { color: #DCDCAA; }
+          .correct.str { color: #CE9178; }
+          .correct.paren { color: #d4d4d4; }
+          .wrong { color: red; }
+        </style>
+        <script>
+          const targetLine = "print('Halo, dunia!')";
+          let typedLine = "";
+          const typingBox = document.getElementById("typingBox");
+
+          function getSyntaxClass(char, i) {
+            const eqIndex = targetLine.indexOf('=');
+            if (eqIndex !== -1 && i < eqIndex) return 'var';
+            if (targetLine.slice(i).startsWith('input') && i + 4 < targetLine.length) return 'func';
+            let inStr = false;
+            for (let j = 0; j <= i; j++) {
+              if (targetLine[j] === "'") inStr = !inStr;
+            }
+            if (inStr) return 'str';
+            return '';
+          }
+
+          function renderTypedLine() {
+            typingBox.innerHTML = '';
+            for (let i = 0; i < targetLine.length; i++) {
+              const span = document.createElement("span");
+              span.textContent = typedLine[i] ?? targetLine[i];
+              if (typedLine[i] === targetLine[i]) {
+                span.classList.add("correct");
+                const cls = getSyntaxClass(typedLine[i], i);
+                if (cls) span.classList.add(cls);
+              } else if (typedLine[i]) {
+                span.classList.add("wrong");
+              } else {
+                span.style.opacity = 0.3;
+              }
+              typingBox.appendChild(span);
+            }
+          }
+
+          document.addEventListener("keydown", function(e) {
+            if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+              if (typedLine.length < targetLine.length) {
+                typedLine += e.key;
+              }
+            } else if (e.key === "Backspace") {
+              typedLine = typedLine.slice(0, -1);
+            }
+            renderTypedLine();
+          });
+
+          renderTypedLine();
+        </script>
+      </section>
+      <section id="teori-tambahan" class="lesson-section" style="margin-bottom:32px; background: #23272e; border-radius: 10px; padding: 28px 28px 20px 28px; display:none;">
+        <h2 style="color: #ffd700;">4. 📘 Teori Tambahan</h2>
+        <p>
+          Fungsi <code>input()</code> meminta pengguna mengetik sesuatu.<br>
+          Contoh:
+        </p>
+        <div id="codeContainer2" class="typing-box-container"></div>
+        <p>Program akan menunggu kamu mengetikkan nama, lalu menyapa dengan nama tersebut.</p>
+      </section>
+      <!-- 5. Praktik 2: Hitung-hitungan -->
+      <section id="praktik2" class="lesson-section" style="margin-bottom:32px; background: #23272e; border-radius: 10px; padding: 28px 28px 20px 28px;">
+        <h2 style="color: #ffd700;">5. 💻 Praktik 2: Hitung-hitungan</h2>
+        <p>
+          Variabel adalah "wadah" untuk menyimpan data, seperti angka atau teks.<br>
+          Contoh variabel:
+        </p>
+        <div id="codeContainer3" class="typing-box-container"></div>
+        <p>
+          Kamu bisa menggunakan variabel untuk menyimpan hasil <code>input()</code> atau nilai lain.
+        </p>
+      </section>
+      <!-- 6. Python Interaktif (Langsung di Browser!) -->
+      <section id="interactive" class="lesson-section" style="margin-bottom:32px; background: #23272e; border-radius: 10px; padding: 28px 28px 20px 28px;">
+        <h2 style="color: #ffd700;">6. 👩‍💻 Python Interaktif (Langsung di Browser!)</h2>
+        <ol>
+          <li>Buat program yang meminta pengguna memasukkan umur.</li>
+          <li>Tampilkan pesan: <code>Umur kamu adalah ...</code></li>
+        </ol>
+        <div id="codeContainer4" class="typing-box-container"></div>
+      </section>
+      <!-- 7. Progress Tracker -->
+      <section id="progress" class="lesson-section" style="margin-bottom:32px; background: #23272e; border-radius: 10px; padding: 28px 28px 20px 28px;">
+        <h2 style="color: #ffd700;">7. 📊 Progress Tracker</h2>
+        <p>
+          Pantau perkembangan belajarmu! Tandai setiap langkah yang sudah kamu lakukan.
+        </p>
+      </section>
+      <!-- 8. Quiz Wawasan -->
+      <section id="quiz" class="quiz-section" style="margin:50px auto 0 auto; max-width:600px;">
+        <h2 style="color:#ffd700;">8. 🧩 Quiz Wawasan</h2>
+        <form id="quizForm">
+          <div style="margin-bottom:18px;">
+            <label for="quiz1"><strong>1. Apa fungsi dari perintah <code>print()</code> di Python?</strong></label>
+            <select id="quiz1" name="quiz1" style="margin-top:8px; width:100%; padding:8px; border-radius:4px;">
+              <option value="">-- Pilih jawaban --</option>
+              <option value="a">Mengambil input dari pengguna</option>
+              <option value="b">Menampilkan teks ke layar</option>
+              <option value="c">Menyimpan data ke variabel</option>
+            </select>
+          </div>
+          <div style="margin-bottom:18px;">
+            <label for="quiz2"><strong>2. Bagaimana cara meminta pengguna mengetikkan sesuatu?</strong></label>
+            <select id="quiz2" name="quiz2" style="margin-top:8px; width:100%; padding:8px; border-radius:4px;">
+              <option value="">-- Pilih jawaban --</option>
+              <option value="a">print()</option>
+              <option value="b">input()</option>
+              <option value="c">output()</option>
+            </select>
+          </div>
+          <button type="button" onclick="checkQuiz()" style="margin-top:12px; background:#4caf50; color:white; padding:10px 22px; border:none; border-radius:6px; font-size:1rem; cursor:pointer;">Cek Jawaban</button>
+        </form>
+        <div id="quizResult" style="margin-top: 22px;"></div>
+      </section>
+      <!-- 9. Coba Jawab: Hitung dan Cetak -->
+      <section id="penilaian" class="lesson-section" style="margin-bottom:32px; background: #23272e; border-radius: 10px; padding: 28px 28px 20px 28px;">
+        <h2 style="color: #ffd700;">9. 📝 Coba Jawab: Hitung dan Cetak</h2>
+        <p>
+          Coba buat program sederhana yang meminta dua angka dari pengguna, lalu mencetak hasil penjumlahan keduanya!
+        </p>
+        <div id="codeContainer5" class="typing-box-container"></div>
+      </section>
+      <!-- Python Interaktif Step 6 -->
+      <section id="step-6" class="lesson-section" style="margin-bottom:32px; background: #23272e; border-radius: 10px; padding: 28px;">
+        <h2 style="color: #ffd700;">6. 👩‍💻 Python Interaktif (Langsung di Browser!)</h2>
+        <p>Buat program Python yang mencetak hasil dari 5 + 3 dan tampilkan hasilnya.</p>
+        <div id="editor" style="height: 180px; width: 100%; border: 1px solid #ccc;">print(5 + 3)</div>
+        <button onclick="runPythonCode()" style="margin-top: 10px;">▶️ Jalankan Kode</button>
+        <pre id="output" style="background:#111;color:#0f0;padding:10px;margin-top:10px;min-height:50px;"># Output akan muncul di sini...</pre>
+      </section>
+      <!-- 10. Wrap-Up & Tanya Jawab -->
+      <section id="wrapup" class="lesson-section" style="margin-bottom:32px; background: #23272e; border-radius: 10px; padding: 28px 28px 20px 28px;">
+        <h2 style="color: #ffd700;">10. ✅ Wrap-Up &amp; Tanya Jawab</h2>
+        <p>
+          Sesi tanya jawab dan rangkuman materi hari ini. Silakan tanyakan jika ada yang belum jelas!
+        </p>
+      </section>
+    </main>
+  </div>
+
+<!-- SCRIPTS: pyodide, ace.js, lesson logic, quiz -->
+<script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
+<script>
+// Pyodide + Ace Editor setup for interactive Python
+let pyodideReady = false;
+let pyodide = null;
+
+async function loadPyodideAndSetup() {
+  pyodide = await loadPyodide();
+  pyodideReady = true;
+  console.log("✅ Pyodide siap digunakan");
+}
+
+loadPyodideAndSetup();
+
+const editor = ace.edit("editor");
+editor.session.setMode("ace/mode/python");
+editor.setTheme("ace/theme/github");
+editor.setFontSize(14);
+
+async function runPythonCode() {
+  const code = editor.getValue();
+  const outputEl = document.getElementById("output");
+  outputEl.textContent = "⏳ Menjalankan...";
+  if (!pyodideReady) {
+    outputEl.textContent = "❌ Pyodide belum siap.";
+    return;
+  }
+  try {
+    let output = "";
+    pyodide.setStdout({
+      batched: (s) => { output += s + "\n"; }
+    });
+
+    await pyodide.runPythonAsync(code);
+
+    outputEl.textContent = output.trim() || "✅ Berhasil (tidak ada output)";
+  } catch (err) {
+    outputEl.textContent = "❌ Error:\n" + err;
+  } finally {
+    pyodide.setStdout({});
+  }
+}
+// Helper: show only specific lesson sections by ID, hide others
+function showSections(sectionIds) {
+  const allSectionIds = ["warm-up", "apa-itu-python", "praktik1", "teori-tambahan", "praktik2", "interactive", "progress", "quiz", "penilaian", "wrapup"];
+  allSectionIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = sectionIds.includes(id) ? "block" : "none";
+  });
+  // Also hide all step-N sections if any
+  for (let i = 1; i <= 6; i++) {
+    const div = document.getElementById('step-' + i);
+    if (div) div.style.display = 'none';
+  }
+}
+// Step navigation logic
+function showStep(n) {
+  // Clean up all previous keydown handlers
+  if (typeof window.__keydownPrintHandler !== "undefined") {
+    document.removeEventListener('keydown', window.__keydownPrintHandler);
+    window.__keydownPrintHandler = undefined;
+  }
+  if (typeof window.__keydownStep2Handler !== "undefined") {
+    document.removeEventListener('keydown', window.__keydownStep2Handler);
+    window.__keydownStep2Handler = undefined;
+  }
+  switch ("step" + n) {
+    case "step1":
+      showSections(["warm-up", "apa-itu-python"]);
+      break;
+    case "step2":
+      showSections(["praktik1", "teori-tambahan"]);
+      // --- Tambahan: Remove previous keydownPrintHandler before initTypingPrint ---
+      if (typeof window.__keydownPrintHandler !== "undefined") {
+        document.removeEventListener('keydown', window.__keydownPrintHandler);
+        window.__keydownPrintHandler = undefined;
+      }
+      initTypingPrint();
+      // Tambahan: pastikan initStep2Typing() selalu dipanggil (cek + panggil di sini)
+      if (typeof window.__step2TypingInitialized === "undefined") {
+        if (document.getElementById('codeContainer2')) {
+          window.__step2TypingInitialized = true;
+          initStep2Typing();
+        }
+      }
+      break;
+    case "step3":
+      showSections(["praktik2"]);
+      break;
+    case "step4":
+      showSections(["interactive"]);
+      break;
+    case "step5":
+      showSections(["progress", "quiz", "penilaian"]);
+      break;
+    case "step6":
+      showSections(["wrapup"]);
+      // Also show step-6 section if present
+      var s6 = document.getElementById('step-6');
+      if (s6) s6.style.display = "block";
+      break;
+    default:
+      showSections([]);
+  }
+  // Step-specific typing logic (unchanged)
+  if (n === 3 && typeof window.__step3TypingInitialized === "undefined") {
+    if (document.getElementById('codeContainer3')) {
+      window.__step3TypingInitialized = true;
+      initStep3Typing();
+    }
+  }
+  if (n === 4 && typeof window.__step4TypingInitialized === "undefined") {
+    if (document.getElementById('codeContainer4')) {
+      window.__step4TypingInitialized = true;
+      initStep4Typing();
+    }
+  }
+  if (n === 5 && typeof window.__step5TypingInitialized === "undefined") {
+    if (document.getElementById('codeContainer5')) {
+      window.__step5TypingInitialized = true;
+      initStep5Typing();
+    }
+  }
+}
+function nextStep(n) {
+  showStep(n);
+}
+// Show only step 1 on load
+showStep(1);
+
+// Langkah 2: Input X
+function initStep2Typing() {
+  // Dua baris kode sesuai contoh interaktif input nama
+  const placeholderLines2 = [
+    "nama = input('Siapa namamu? ')",
+    "print('Halo,', nama)"
+  ];
+  let typed2 = placeholderLines2.map(() => '');
+  let lineIndex2 = 0;
+  let charIndex2 = 0;
+  function classifyToken2(char, line, i) {
+    // .var: variabel sebelum '='
+    if (line.includes('=') && i < line.indexOf('=')) return 'var';
+    // .func: nama fungsi input, print, int
+    if (line.slice(i).startsWith('input') && i + 4 < line.length) return 'func';
+    if (line.slice(i).startsWith('print') && i + 4 < line.length) return 'func';
+    if (line.slice(i).startsWith('int') && i + 2 < line.length) return 'func';
+    // .var: highlight 'nama' pada baris print
+    if (line.includes('nama') && line.indexOf('nama') <= i && i < line.indexOf('nama') + 4) {
+      // Baris print: highlight 'nama' setelah koma
+      // Hanya jika sebelum 'nama' sudah ada koma
+      if (line.trim().startsWith('print')) {
+        const commaIdx = line.indexOf(',');
+        if (commaIdx !== -1 && i > commaIdx) return 'var';
+      } else {
+        // baris assignment, 'nama' sebelum '='
+        if (i < line.indexOf('=')) return 'var';
+      }
+    }
+    // .str: di dalam tanda kutip tunggal
+    let inStr = false;
+    for (let j = 0; j <= i; j++) {
+      if (line[j] === "'") inStr = !inStr;
+    }
+    if (inStr) return 'str';
+    return '';
+  }
+  function renderCode2() {
+    const codeContainer2 = document.getElementById('codeContainer2');
+    codeContainer2.innerHTML = '';
+    placeholderLines2.forEach((line, idx) => {
+      const div = document.createElement('div');
+      div.className = 'code-line';
+      const lineNumber = document.createElement('span');
+      lineNumber.className = 'line-number';
+      lineNumber.textContent = idx + 1;
+      div.appendChild(lineNumber);
+      const codeText = document.createElement('span');
+      codeText.className = 'code-text';
+      for (let i = 0; i < line.length; i++) {
+        const span = document.createElement('span');
+        const trueChar = line[i];
+        const typedChar = typed2[idx][i];
+        const tokenClass = classifyToken2(trueChar, line, i);
+        if (typedChar !== undefined) {
+          span.textContent = typedChar;
+          if (typedChar === trueChar) {
+            span.classList.add('correct');
+            if (tokenClass) span.classList.add(tokenClass);
+          } else {
+            span.classList.add('wrong');
+          }
+        } else {
+          span.textContent = trueChar;
+          span.style.opacity = 0.3;
+        }
+        codeText.appendChild(span);
+      }
+      div.appendChild(codeText);
+      codeContainer2.appendChild(div);
+    });
+    let totalTyped = 0, totalCorrect = 0;
+    placeholderLines2.forEach((line, idx) => {
+      for (let i = 0; i < line.length; i++) {
+        const trueChar = line[i];
+        const typedChar = typed2[idx][i];
+        if (typedChar !== undefined) totalTyped++;
+        if (typedChar === trueChar) totalCorrect++;
+      }
+    });
+    // Progress bar (if exists)
+    if (document.getElementById('progressBar')) {
+      const totalChars = placeholderLines2.reduce((sum, line) => sum + line.length, 0);
+      const percent = totalChars === 0 ? 0 : Math.floor((totalCorrect / totalChars) * 100);
+      document.getElementById('progressBar').style.width = percent + '%';
+    }
+  }
+  function keydownStep2(e) {
+    if (lineIndex2 < 0 || lineIndex2 >= placeholderLines2.length) return;
+    const line = placeholderLines2[lineIndex2];
+    if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      if (typed2[lineIndex2].length < line.length) {
+        typed2[lineIndex2] += e.key;
+        charIndex2++;
+        if (charIndex2 >= line.length && lineIndex2 < placeholderLines2.length - 1) {
+          lineIndex2++;
+          charIndex2 = typed2[lineIndex2].length;
+        }
+      }
+    } else if (e.key === 'Backspace') {
+      if (charIndex2 > 0) {
+        typed2[lineIndex2] = typed2[lineIndex2].slice(0, -1);
+        charIndex2--;
+      } else if (lineIndex2 > 0) {
+        lineIndex2--;
+        charIndex2 = typed2[lineIndex2].length;
+      }
+    }
+    renderCode2();
+  }
+  document.addEventListener('keydown', keydownStep2);
+  window.__keydownStep2Handler = keydownStep2;
+  function removeStep2Listener() {
+    document.removeEventListener('keydown', window.__keydownStep2Handler);
+    window.__step2TypingInitialized = undefined;
+  }
+  const origShowStep = window.showStep;
+  window.showStep = function(n) {
+    origShowStep(n);
+    if (n !== 2 && typeof window.__keydownStep2Handler !== "undefined") {
+      removeStep2Listener();
+    }
+  };
+  renderCode2();
+}
+
+// Langkah 3: Input Y
+function initStep3Typing() {
+  const placeholderLines3 = ["y = input('Masukkan koordinat Y tujuan:')"];
+  let typed3 = placeholderLines3.map(() => '');
+  let lineIndex3 = 0;
+  let charIndex3 = 0;
+  function classifyToken3(char, line, i) {
+    // .var: variabel sebelum '='
+    if (line.includes('=') && i < line.indexOf('=')) return 'var';
+    // .func: nama fungsi input, print, int
+    if (line.slice(i).startsWith('input') && i + 4 < line.length) return 'func';
+    if (line.slice(i).startsWith('print') && i + 4 < line.length) return 'func';
+    if (line.slice(i).startsWith('int') && i + 2 < line.length) return 'func';
+    // .str: di dalam tanda kutip tunggal
+    let inStr = false;
+    for (let j = 0; j <= i; j++) {
+      if (line[j] === "'") inStr = !inStr;
+    }
+    if (inStr) return 'str';
+    return '';
+  }
+  function renderCode3() {
+    const codeContainer3 = document.getElementById('codeContainer3');
+    codeContainer3.innerHTML = '';
+    placeholderLines3.forEach((line, idx) => {
+      const div = document.createElement('div');
+      div.className = 'code-line';
+      const lineNumber = document.createElement('span');
+      lineNumber.className = 'line-number';
+      lineNumber.textContent = idx + 1;
+      div.appendChild(lineNumber);
+      const codeText = document.createElement('span');
+      codeText.className = 'code-text';
+      for (let i = 0; i < line.length; i++) {
+        const span = document.createElement('span');
+        const trueChar = line[i];
+        const typedChar = typed3[idx][i];
+        const tokenClass = classifyToken3(trueChar, line, i);
+        if (typedChar !== undefined) {
+          span.textContent = typedChar;
+          if (typedChar === trueChar) {
+            span.classList.add('correct');
+            if (tokenClass) span.classList.add(tokenClass);
+          } else {
+            span.classList.add('wrong');
+          }
+        } else {
+          span.textContent = trueChar;
+          span.style.opacity = 0.3;
+        }
+        codeText.appendChild(span);
+      }
+      div.appendChild(codeText);
+      codeContainer3.appendChild(div);
+    });
+    let totalTyped = 0, totalCorrect = 0;
+    placeholderLines3.forEach((line, idx) => {
+      for (let i = 0; i < line.length; i++) {
+        const trueChar = line[i];
+        const typedChar = typed3[idx][i];
+        if (typedChar !== undefined) totalTyped++;
+        if (typedChar === trueChar) totalCorrect++;
+      }
+    });
+    const totalChars = placeholderLines3.reduce((sum, line) => sum + line.length, 0);
+    const percent = totalChars === 0 ? 0 : Math.floor((totalCorrect / totalChars) * 100);
+    document.getElementById('progressBar').style.width = percent + '%';
+  }
+  function keydownStep3(e) {
+    if (lineIndex3 < 0 || lineIndex3 >= placeholderLines3.length) return;
+    const line = placeholderLines3[lineIndex3];
+    if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      if (typed3[lineIndex3].length < line.length) {
+        typed3[lineIndex3] += e.key;
+        charIndex3++;
+        if (charIndex3 >= line.length && lineIndex3 < placeholderLines3.length - 1) {
+          lineIndex3++;
+          charIndex3 = typed3[lineIndex3].length;
+        }
+      }
+    } else if (e.key === 'Backspace') {
+      if (charIndex3 > 0) {
+        typed3[lineIndex3] = typed3[lineIndex3].slice(0, -1);
+        charIndex3--;
+      } else if (lineIndex3 > 0) {
+        lineIndex3--;
+        charIndex3 = typed3[lineIndex3].length;
+      }
+    }
+    renderCode3();
+  }
+  window.__keydownStep3Handler = keydownStep3;
+  document.addEventListener('keydown', window.__keydownStep3Handler);
+  function removeStep3Listener() {
+    document.removeEventListener('keydown', window.__keydownStep3Handler);
+    window.__step3TypingInitialized = undefined;
+  }
+  const origShowStep3 = window.showStep;
+  window.showStep = function(n) {
+    origShowStep3(n);
+    if (n !== 3 && typeof window.__keydownStep3Handler !== "undefined") {
+      removeStep3Listener();
+    }
+  };
+  renderCode3();
+}
+
+// Langkah 4: Ubah dan hitung jarak
+function initStep4Typing() {
+  const placeholderLines4 = [
+    "x = int(x)",
+    "y = int(y)",
+    "jarak = (x**2 + y**2) ** 0.5"
+  ];
+  let typed4 = placeholderLines4.map(() => '');
+  let lineIndex4 = 0;
+  let charIndex4 = 0;
+  function classifyToken4(char, line, i) {
+    // .var: variabel sebelum '='
+    if (line.includes('=') && i < line.indexOf('=')) return 'var';
+    // .func: nama fungsi input, print, int
+    if (line.slice(i).startsWith('int') && i + 2 < line.length) return 'func';
+    if (line.slice(i).startsWith('input') && i + 4 < line.length) return 'func';
+    if (line.slice(i).startsWith('print') && i + 4 < line.length) return 'func';
+    // .str: di dalam tanda kutip tunggal
+    let inStr = false;
+    for (let j = 0; j <= i; j++) {
+      if (line[j] === "'") inStr = !inStr;
+    }
+    if (inStr) return 'str';
+    return '';
+  }
+  function renderCode4() {
+    const codeContainer4 = document.getElementById('codeContainer4');
+    codeContainer4.innerHTML = '';
+    placeholderLines4.forEach((line, idx) => {
+      const div = document.createElement('div');
+      div.className = 'code-line';
+      const lineNumber = document.createElement('span');
+      lineNumber.className = 'line-number';
+      lineNumber.textContent = idx + 1;
+      div.appendChild(lineNumber);
+      const codeText = document.createElement('span');
+      codeText.className = 'code-text';
+      for (let i = 0; i < line.length; i++) {
+        const span = document.createElement('span');
+        const trueChar = line[i];
+        const typedChar = typed4[idx][i];
+        const tokenClass = classifyToken4(trueChar, line, i);
+        if (typedChar !== undefined) {
+          span.textContent = typedChar;
+          if (typedChar === trueChar) {
+            span.classList.add('correct');
+            if (tokenClass) span.classList.add(tokenClass);
+          } else {
+            span.classList.add('wrong');
+          }
+        } else {
+          span.textContent = trueChar;
+          span.style.opacity = 0.3;
+        }
+        codeText.appendChild(span);
+      }
+      div.appendChild(codeText);
+      codeContainer4.appendChild(div);
+    });
+    let totalTyped = 0, totalCorrect = 0;
+    placeholderLines4.forEach((line, idx) => {
+      for (let i = 0; i < line.length; i++) {
+        const trueChar = line[i];
+        const typedChar = typed4[idx][i];
+        if (typedChar !== undefined) totalTyped++;
+        if (typedChar === trueChar) totalCorrect++;
+      }
+    });
+    const totalChars = placeholderLines4.reduce((sum, line) => sum + line.length, 0);
+    const percent = totalChars === 0 ? 0 : Math.floor((totalCorrect / totalChars) * 100);
+    document.getElementById('progressBar').style.width = percent + '%';
+  }
+  function keydownStep4(e) {
+    if (lineIndex4 < 0 || lineIndex4 >= placeholderLines4.length) return;
+    const line = placeholderLines4[lineIndex4];
+    if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      if (typed4[lineIndex4].length < line.length) {
+        typed4[lineIndex4] += e.key;
+        charIndex4++;
+        if (charIndex4 >= line.length && lineIndex4 < placeholderLines4.length - 1) {
+          lineIndex4++;
+          charIndex4 = typed4[lineIndex4].length;
+        }
+      }
+    } else if (e.key === 'Backspace') {
+      if (charIndex4 > 0) {
+        typed4[lineIndex4] = typed4[lineIndex4].slice(0, -1);
+        charIndex4--;
+      } else if (lineIndex4 > 0) {
+        lineIndex4--;
+        charIndex4 = typed4[lineIndex4].length;
+      }
+    }
+    renderCode4();
+  }
+  window.__keydownStep4Handler = keydownStep4;
+  document.addEventListener('keydown', window.__keydownStep4Handler);
+  function removeStep4Listener() {
+    document.removeEventListener('keydown', window.__keydownStep4Handler);
+    window.__step4TypingInitialized = undefined;
+  }
+  const origShowStep4 = window.showStep;
+  window.showStep = function(n) {
+    origShowStep4(n);
+    if (n !== 4 && typeof window.__keydownStep4Handler !== "undefined") {
+      removeStep4Listener();
+    }
+  };
+  renderCode4();
+}
+
+// Langkah 5: Tampilkan jarak
+function initStep5Typing() {
+  const placeholderLines5 = ["print('Jarak ke planet tujuan adalah', jarak, 'unit luar angkasa')"];
+  let typed5 = placeholderLines5.map(() => '');
+  let lineIndex5 = 0;
+  let charIndex5 = 0;
+  function classifyToken5(char, line, i) {
+    // .var: variabel sebelum '=' (tidak ada '=' di print, tapi tetap konsisten)
+    if (line.includes('=') && i < line.indexOf('=')) return 'var';
+    // .func: nama fungsi input, print, int
+    if (line.slice(i).startsWith('print') && i + 4 < line.length) return 'func';
+    if (line.slice(i).startsWith('input') && i + 4 < line.length) return 'func';
+    if (line.slice(i).startsWith('int') && i + 2 < line.length) return 'func';
+    // .var: highlight 'jarak' sebagai variabel
+    if (line.includes('jarak') && line.indexOf('jarak') <= i && i < line.indexOf('jarak') + 5) return 'var';
+    // .str: di dalam tanda kutip tunggal
+    let inStr = false;
+    for (let j = 0; j <= i; j++) {
+      if (line[j] === "'") inStr = !inStr;
+    }
+    if (inStr) return 'str';
+    return '';
+  }
+  function renderCode5() {
+    const codeContainer5 = document.getElementById('codeContainer5');
+    codeContainer5.innerHTML = '';
+    placeholderLines5.forEach((line, idx) => {
+      const div = document.createElement('div');
+      div.className = 'code-line';
+      const lineNumber = document.createElement('span');
+      lineNumber.className = 'line-number';
+      lineNumber.textContent = idx + 1;
+      div.appendChild(lineNumber);
+      const codeText = document.createElement('span');
+      codeText.className = 'code-text';
+      for (let i = 0; i < line.length; i++) {
+        const span = document.createElement('span');
+        const trueChar = line[i];
+        const typedChar = typed5[idx][i];
+        const tokenClass = classifyToken5(trueChar, line, i);
+        if (typedChar !== undefined) {
+          span.textContent = typedChar;
+          if (typedChar === trueChar) {
+            span.classList.add('correct');
+            if (tokenClass) span.classList.add(tokenClass);
+          } else {
+            span.classList.add('wrong');
+          }
+        } else {
+          span.textContent = trueChar;
+          span.style.opacity = 0.3;
+        }
+        codeText.appendChild(span);
+      }
+      div.appendChild(codeText);
+      codeContainer5.appendChild(div);
+    });
+    let totalTyped = 0, totalCorrect = 0;
+    placeholderLines5.forEach((line, idx) => {
+      for (let i = 0; i < line.length; i++) {
+        const trueChar = line[i];
+        const typedChar = typed5[idx][i];
+        if (typedChar !== undefined) totalTyped++;
+        if (typedChar === trueChar) totalCorrect++;
+      }
+    });
+    const totalChars = placeholderLines5.reduce((sum, line) => sum + line.length, 0);
+    const percent = totalChars === 0 ? 0 : Math.floor((totalCorrect / totalChars) * 100);
+    document.getElementById('progressBar').style.width = percent + '%';
+  }
+  function keydownStep5(e) {
+    if (lineIndex5 < 0 || lineIndex5 >= placeholderLines5.length) return;
+    const line = placeholderLines5[lineIndex5];
+    if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      if (typed5[lineIndex5].length < line.length) {
+        typed5[lineIndex5] += e.key;
+        charIndex5++;
+        if (charIndex5 >= line.length && lineIndex5 < placeholderLines5.length - 1) {
+          lineIndex5++;
+          charIndex5 = typed5[lineIndex5].length;
+        }
+      }
+    } else if (e.key === 'Backspace') {
+      if (charIndex5 > 0) {
+        typed5[lineIndex5] = typed5[lineIndex5].slice(0, -1);
+        charIndex5--;
+      } else if (lineIndex5 > 0) {
+        lineIndex5--;
+        charIndex5 = typed5[lineIndex5].length;
+      }
+    }
+    renderCode5();
+  }
+  window.__keydownStep5Handler = keydownStep5;
+  document.addEventListener('keydown', window.__keydownStep5Handler);
+  function removeStep5Listener() {
+    document.removeEventListener('keydown', window.__keydownStep5Handler);
+    window.__step5TypingInitialized = undefined;
+  }
+  const origShowStep5 = window.showStep;
+  window.showStep = function(n) {
+    origShowStep5(n);
+    if (n !== 5 && typeof window.__keydownStep5Handler !== "undefined") {
+      removeStep5Listener();
+    }
+  };
+  renderCode5();
+}
+
+// Langkah 6: Jalankan & Reward
+function runFinalProgram() {
+  const x = 6;
+  const y = 8;
+  const jarak = Math.sqrt(x ** 2 + y ** 2);
+  const hasil = "🛰️ Koordinat tujuan: (" + x + ", " + y + ")\n" +
+                "Jarak ke planet tujuan: " + jarak.toFixed(2) + " unit luar angkasa\n\n" +
+                "Mesin navigasi berhasil aktif!";
+  document.getElementById('outputResult').textContent = hasil;
+  document.getElementById('rewardContainer').style.display = "block";
+}
+
+// Praktik 1: Typing print() interactive
+function initTypingPrint() {
+  const placeholderLine = "print('Halo, dunia!')";
+  let typedPrint = "";
+  const codeContainer = document.getElementById('codeContainerPrint');
+
+  function classifyToken(char, i) {
+    if (placeholderLine.startsWith("print") && i < 5) return 'func';
+    if (placeholderLine[i] === "'" || placeholderLine[i] === "!") return 'str';
+    return '';
+  }
+
+  function render() {
+    codeContainer.innerHTML = '';
+    const div = document.createElement('div');
+    div.className = 'code-line';
+    const lineNumber = document.createElement('span');
+    lineNumber.className = 'line-number';
+    lineNumber.textContent = '1';
+    div.appendChild(lineNumber);
+    const codeText = document.createElement('span');
+    codeText.className = 'code-text';
+    for (let i = 0; i < placeholderLine.length; i++) {
+      const span = document.createElement('span');
+      const trueChar = placeholderLine[i];
+      const typedChar = typedPrint[i];
+      const tokenClass = classifyToken(trueChar, i);
+      if (typedChar !== undefined) {
+        span.textContent = typedChar;
+        if (typedChar === trueChar) {
+          span.classList.add('correct');
+          if (tokenClass) span.classList.add(tokenClass);
+        } else {
+          span.classList.add('wrong');
+        }
+      } else {
+        span.textContent = trueChar;
+        span.style.opacity = 0.3;
+      }
+      codeText.appendChild(span);
+    }
+    div.appendChild(codeText);
+    codeContainer.appendChild(div);
+  }
+
+  function keydownHandler(e) {
+    if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      if (typedPrint.length < placeholderLine.length) {
+        typedPrint += e.key;
+      }
+    } else if (e.key === 'Backspace') {
+      typedPrint = typedPrint.slice(0, -1);
+    }
+    render();
+  }
+
+  render();
+  document.addEventListener('keydown', keydownHandler);
+  window.__keydownPrintHandler = keydownHandler;
+  // Langsung panggil pengetikan pada box codeContainer2 (soal nomor 4)
+  initStep2Typing();
+}
+
+// Quiz logic
+function checkQuiz() {
+  let benar = 0;
+  let total = 2;
+  let q1 = document.getElementById('quiz1').value;
+  let q2 = document.getElementById('quiz2').value;
+  let result = "";
+  if (q1 === "b") benar++;
+  if (q2 === "b") benar++;
+  if (benar === total) {
+    result = '<span style="color:#4caf50;font-weight:bold;">Semua jawaban benar! Hebat! 🚀</span>';
+  } else {
+    result = '<span style="color:#ffd700;font-weight:bold;">Ada jawaban yang kurang tepat, coba lagi ya!</span>';
+  }
+  document.getElementById('quizResult').innerHTML = result;
+}
+</script>
+</body>
+</html>

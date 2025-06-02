@@ -4,100 +4,591 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>M1 L1: Introduction to Python</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Layout Flex Container */
+    .page-container {
+      display: flex;
+      height: 100%;
+      overflow: hidden;
+    }
+    .lesson-wrapper-outline {
+      margin: 0;
+      padding: 0px;
+      height: 100vh;
+      box-sizing: border-box;
+      border: 10px solid #000;
+      border-radius: 24px;
+      background-color: #fff;
+      
+    }
+    .sidebar {
+      background-color: #20232a;
+      padding: 1.5rem 1rem;
+      color: white;
+      width: 200px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      z-index: 2;
+      flex-shrink: 0;
+      transition: width 0.3s ease, padding 0.3s ease;
+      position: relative;
+      border-top-left-radius: 10px;
+      border-bottom-left-radius: 20px;
+    }
+    .step-button-container {
+      margin-top: 50px;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    #toggleSidebar {
+      position: absolute;
+      top: 12px;
+      right: 0;
+      background-color: #4a90e2;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px 0 0 4px;
+      cursor: pointer;
+      transition: right 0.3s ease;
+    }
+    .sidebar.hidden {
+      width: 40px;
+      overflow: hidden;
+      padding: 1.5rem 0.5rem;
+    }
+    .sidebar button {
+      background: transparent;
+      color: white;
+      border: none;
+      text-align: left;
+      width: 100%;
+      padding: 10px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background 0.3s ease;
+    }
+    .sidebar button:hover {
+      background: #4a90e2;
+    }
+    .panel-ungu {
+      flex-shrink: 0;
+      width: 300px;
+      background-color: #7f56d9;
+      color: white;
+      padding: 2rem 1rem;
+      text-align: center;
+      height: 100vh;
+      box-sizing: border-box;
+      z-index: 1;
+      position: relative;
+      transition: transform 0.3s ease;
+      border-top-right-radius: 20px;
+      border-bottom-right-radius: 200px;
+    }
+    .progress-bar {
+      margin-top: 20px;
+      background-color: #dcdcdc;
+      border-radius: 20px;
+      overflow: hidden;
+      height: 10px;
+    }
+    .progress-bar-fill {
+      background-color: #ffce00;
+      height: 100%;
+      width: 40%;
+    }
+    .lesson-content {
+      flex-grow: 1;
+      padding: 2rem;
+      overflow-y: auto;
+      /* margin-left: 0; */
+      margin: 0 !important;
+      transition: transform 0.3s ease;
+      border-radius: 20px;
+    }
+    /* Sidebar hidden: panel-ungu stays static, lesson-content shifts */
+    .sidebar.hidden ~ .panel-ungu {
+      transform: none;
+    }
+
+    .sidebar.hidden ~ .panel-ungu + .lesson-content {
+      transform: none;
+    }
+
+    .sidebar.hidden .step-button span:nth-child(2) {
+      display: none;
+    }
+    
+    .lesson-modular-container {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+    .lesson-section {
+      background: white;
+      border-radius: 12px;
+      padding: 1.8rem 2rem;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+      transition: transform 0.2s ease;
+      margin-bottom: 2rem;
+    }
+    .lesson-section:hover {
+      transform: translateY(-2px);
+    }
+    .lesson-section h2 {
+      font-size: 1.25rem;
+      margin-bottom: 0.8rem;
+      margin-top: 0;
+      color: #2c3e50;
+    }
+    .lesson-section p, .lesson-section ul, .lesson-section ol {
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+    .step-navigation button {
+      background-color: #e0e0e0;
+      color: #333;
+      margin: 5px;
+      padding: 8px 16px;
+      border-radius: 5px;
+      border: 1px solid #bbb;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .step-navigation button:hover {
+      background-color: #4a90e2;
+      color: white;
+    }
+    .hide-editor-only {
+      display: none;
+    }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f7f9fc;
+      color: #333;
+    }
+    .header {
+      background: #4a90e2;
+      color: white;
+      padding: 2rem;
+      text-align: center;
+    }
+    .subtitle {
+      font-size: 1.2rem;
+      margin-top: 0.5rem;
+    }
+    pre {
+      background: #1e1e1e;
+      color: #dcdcdc;
+      padding: 1rem;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 15px;
+    }
+    /* VS Code-style typing box */
+    .circle-icon {
+      display: inline-block;
+      width: 28px;
+      height: 28px;
+      line-height: 28px;
+      border-radius: 50%;
+      background-color: #4a90e2;
+      color: white;
+      font-weight: bold;
+      text-align: center;
+      margin-right: 8px;
+      font-size: 14px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .circle-icon:hover {
+      background-color: #ffce00;
+      color: #20232a;
+      transform: scale(1.1);
+      transition: background-color 0.2s ease, transform 0.2s ease;
+    }
+    .typing-container {
+      background-color: #1e1e1e;
+      padding: 1rem;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 15px;
+      color: #dcdcdc;
+    }
+    #typed-output-praktik1 {
+      position: relative;
+      display: inline-block;
+      min-width: 10px;
+    }
+    .code-output {
+      position: relative;
+      z-index: 1;
+    }
+    .typing-line {
+      display: flex;
+      align-items: center;
+    }
+    .line-number {
+      color: #555;
+      width: 30px;
+      user-select: none;
+    }
+    .code-output .keyword { color: #569cd6; }
+    .code-output .paren { color: #d4d4d4; }
+    .code-output .str { color: #ce9178; }
+    .code-output .default { color: #dcdcdc; }
+    .code-output span.correct.str { color: #ce9178; }
+    code {
+      color: #00d8ff;
+    }
+    button {
+      background: #4a90e2;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #357ab8;
+    }
+    #output, #quiz-feedback {
+      font-family: 'Courier New', monospace;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    .code-output span.correct.keyword { color: #569cd6; }
+    .code-output span.correct.paren { color: #d4d4d4; }
+    .code-output span.correct.str { color: #ce9178; }
+    .code-output span.correct.default { color: #dcdcdc; }
+    .code-output span.wrong { color: red; }
+    .code-output span.pending { color: #888; opacity: 0.4; }
+    @media (max-width: 768px) {
+      .lesson-content {
+        padding: 1rem;
+        /* margin-left: 0; */
+      }
+      .lesson-section {
+        padding: 1rem;
+      }
+      .page-container {
+        flex-direction: column;
+      }
+      .sidebar,
+      .panel-ungu {
+        width: 100vw;
+        left: 0 ;
+        position: relative;
+        height: auto;
+      }
+      /* Optional: Reset transform for mobile if needed */
+      .sidebar.hidden ~ .panel-ungu,
+      .sidebar.hidden ~ .panel-ungu + .lesson-content {
+        transform: none;
+      }
+    }
+  </style>
 </head>
 <body>
-  <header class="header">
-    <h1>Module 1 - Lesson 1: Introduction to the Python Programming Language</h1>
-    <p class="subtitle">Yuk kenalan dengan Python, bahasa pemrograman paling populer di dunia!</p>
-  </header>
-
-  <main class="lesson-content">
-    <!-- Section 1: Warm-Up -->
+  <div class="lesson-wrapper-outline">
+    <div class="page-container">
+    <div class="sidebar">
+      <button id="toggleSidebar" onclick="toggleSidebar()">
+        <span id="toggleIcon">⮜</span>
+      </button>
+      <div class="step-button-container">
+        <a class="step-button" onclick="showStep(1)">
+          <span class="circle-icon">1</span>
+          <span>Step 1</span>
+        </a>
+        <a class="step-button" onclick="showStep(2)">
+          <span class="circle-icon">2</span>
+          <span>Step 2</span>
+        </a>
+        <a class="step-button" onclick="showStep(3)">
+          <span class="circle-icon">3</span>
+          <span>Step 3</span>
+        </a>
+        <a class="step-button" onclick="showStep(4)">
+          <span class="circle-icon">4</span>
+          <span>Step 4</span>
+        </a>
+        <a class="step-button" onclick="showStep(5)">
+          <span class="circle-icon">5</span>
+          <span>Step 5</span>
+        </a>
+        <a class="step-button" onclick="showStep(6)">
+          <span class="circle-icon">6</span>
+          <span>Step 6</span>
+        </a>
+      </div>
+    </div>
+    <div class="panel-ungu">
+      <h2>👾 Python Interaktif</h2>
+      <p>Ketik dan jalankan kode langsung di sini!</p>
+      <div id="panel-editor" style="height: 200px; width: 100%; border: 1px solid #ccc;">print("Halo Dunia!")</div>
+      <button onclick="runPanelCode()" style="margin-top: 10px;">▶️ Jalankan Kode</button>
+      <pre id="panel-output" style="background:#111;color:#0f0;padding:10px;margin-top:10px;min-height:50px;"># Output akan muncul di sini...</pre>
+    </div>
+    <main class="lesson-content">
     <section class="lesson-section">
-      <h2>🔸 Warm-Up & Greeting (5 menit)</h2>
-      <p>Ajak murid menyebutkan bahasa pemrograman yang pernah mereka dengar. Tanyakan: “Pernah dengar Python?”</p>
+      <h1>Module 1 - Lesson 1: Introduction to the Python Programming Language</h1>
+      <p class="subtitle">Yuk kenalan dengan Python, bahasa pemrograman paling populer di dunia!</p>
     </section>
+    <div class="lesson-modular-container">
+      <div id="step-1-container">
+        <!-- Section 1: Warm-Up -->
+        <section class="lesson-section" id="step-1">
+          <h2>🔸 Warm-Up & Greeting (5 menit)</h2>
+          <p>Ajak murid menyebutkan bahasa pemrograman yang pernah mereka dengar. Tanyakan: “Pernah dengar Python?”</p>
+        </section>
 
-    <!-- Section 2: Theoretical Onboarding -->
-    <section class="lesson-section">
-      <h2>🧠 Apa Itu Python? (20 menit)</h2>
-      <p>Python adalah bahasa pemrograman yang mudah dibaca dan digunakan. Banyak digunakan di AI, game, dan web!</p>
-      <ul>
-        <li>Bahasa tingkat tinggi</li>
-        <li>Mudah dibaca</li>
-        <li>Digunakan oleh Google, Netflix, Instagram</li>
-      </ul>
-    </section>
+        <!-- Section 2: Theoretical Onboarding -->
+        <section class="lesson-section" id="step-1">
+          <h2>🧠 Apa Itu Python? (20 menit)</h2>
+          <p>Python adalah bahasa pemrograman yang mudah dibaca dan digunakan. Banyak digunakan di AI, game, dan web!</p>
+          <ul>
+            <li>Bahasa tingkat tinggi</li>
+            <li>Mudah dibaca</li>
+            <li>Digunakan oleh Google, Netflix, Instagram</li>
+          </ul>
+        </section>
+      </div>
+      <div id="step3" class="step-section" style="display: none;">
+        <section class="lesson-section" id="step-2">
+          <h2>👩‍💻 Python Interaktif (Langsung di Browser!)</h2>
+          <div id="editor" style="height: 250px; width: 100%; border: 1px solid #ccc;">print("Halo Dunia!")</div>
+          <button onclick="runPythonCode()" style="margin-top: 10px;">▶️ Jalankan Kode</button>
+          <pre id="output" style="background:#111;color:#0f0;padding:10px;margin-top:10px;min-height:50px;"># Output akan muncul di sini...</pre>
+        </section>
+      </div>
+      <div id="step-2-container" style="display:none">
+        <!-- Section 3: Praktik 1 -->
+        <section class="lesson-section" id="step-2">
+          <h2>💻 Praktik 1: Perintah print()</h2>
+          <p>Ketikkan kode berikut huruf demi huruf:</p>
+          <div id="typing-box-praktik1" class="typing-container" tabindex="0" data-id="praktik1" data-text='print("Halo Dunia!")'>
+            <div class="typing-line">
+              <span class="line-number">1</span>
+              <span class="code-output"></span>
+            </div>
+          </div>
+          <div class="python-editor-container" style="margin-top: 12px;">
+            <textarea class="python-editor hide-editor-only" rows="4" style="width:100%; font-family:'Courier New', monospace;"></textarea>
+            <button onclick="runInlinePython(this)" style="margin-top:6px;">▶️ Jalankan Kode</button>
+            <pre class="python-output" style="background:#111; color:#4caf50; padding:10px; min-height:30px;"></pre>
+          </div>
+          <p>Target kode: <code>print("Halo Dunia!")</code></p>
+        </section>
 
-    <!-- Section 3: Praktik 1 -->
-    <section class="lesson-section">
-      <h2>💻 Praktik 1: Perintah print()</h2>
-      <p>Coba tulis kode berikut di editor:</p>
-      <pre><code>print("Halo Dunia!")</code></pre>
-      <p>Diskusi: Apa yang terjadi saat kamu menekan "Run"?</p>
-    </section>
+        <!-- Section 4: Teori Tambahan -->
+        <section class="lesson-section" id="step-2">
+          <h2>📘 Teori Tambahan</h2>
+          <p>Kenalkan ide variabel, fungsi dasar, dan komentar dalam kode:</p>
+          <div id="typing-box-teori" class="typing-container" tabindex="0" data-id="teori" data-text='nama = "Nina"
+print("Halo", nama)'>
+            <div class="typing-line">
+              <span class="line-number">1</span>
+              <span class="code-output"></span>
+            </div>
+            <div class="typing-line">
+              <span class="line-number">2</span>
+              <span class="code-output"></span>
+            </div>
+          </div>
+          <div class="python-editor-container" style="margin-top: 12px;">
+            <textarea class="python-editor hide-editor-only" rows="4" style="width:100%; font-family:'Courier New', monospace;"></textarea>
+            <button onclick="runInlinePython(this)" style="margin-top:6px;">▶️ Jalankan Kode</button>
+            <pre class="python-output" style="background:#111; color:#4caf50; padding:10px; min-height:30px;"></pre>
+          </div>
+        </section>
 
-    <!-- Section 4: Teori Tambahan -->
-    <section class="lesson-section">
-      <h2>📘 Teori Tambahan</h2>
-      <p>Kenalkan ide variabel, fungsi dasar, dan komentar dalam kode:</p>
-      <pre><code>nama = "Nina"
-print("Halo", nama)</code></pre>
-    </section>
+        <!-- Section 5: Praktik 2 -->
+        <section class="lesson-section" id="step-2">
+          <h2>💻 Praktik 2: Hitung-hitungan</h2>
+          <p>Coba tulis dan jalankan kode:</p>
+          <div id="typing-box-praktik2" class="typing-container" tabindex="0" data-id="praktik2" data-text='print(5 + 3)
+print(10 - 2)'>
+            <div class="typing-line">
+              <span class="line-number">1</span>
+              <span class="code-output"></span>
+            </div>
+            <div class="typing-line">
+              <span class="line-number">2</span>
+              <span class="code-output"></span>
+            </div>
+          </div>
+          <div class="python-editor-container" style="margin-top: 12px;">
+            <textarea class="python-editor hide-editor-only" rows="4" style="width:100%; font-family:'Courier New', monospace;"></textarea>
+            <button onclick="runInlinePython(this)" style="margin-top:6px;">▶️ Jalankan Kode</button>
+            <pre class="python-output" style="background:#111; color:#4caf50; padding:10px; min-height:30px;"></pre>
+          </div>
+          <p>Tanya murid: Apa hasilnya? Apa artinya?</p>
+        </section>
 
-    <!-- Section 5: Praktik 2 -->
-    <section class="lesson-section">
-      <h2>💻 Praktik 2: Hitung-hitungan</h2>
-      <p>Coba tulis dan jalankan kode:</p>
-      <pre><code>print(5 + 3)
-print(10 - 2)</code></pre>
-      <p>Tanya murid: Apa hasilnya? Apa artinya?</p>
-    </section>
+        <!-- Section 5.1.1: Editor Python Interaktif -->
+        
+      </div>
 
-    <!-- Section 5.1: Editor Interaktif -->
-    <section class="lesson-section">
-      <h2>🧪 Coba Koding Langsung</h2>
-      <p>Klik di bawah untuk mencoba langsung menulis kode di editor online:</p>
-      <iframe height="400px" width="100%" src="https://replit.com/@queensacademy/python-m1l1?embed=true" frameborder="no" allowfullscreen></iframe>
-    </section>
+      <div id="step4" class="step-section" style="display: none;">
+        <section class="lesson-section">
+          <h2>📚 Tugas Mandiri</h2>
+          <p>1. Buat program Python yang mencetak nama kamu dan umur kamu.</p>
+          <p>2. Coba ubah kode di atas untuk mencetak hasil perkalian 6 * 7.</p>
+          <p>3. Kirimkan hasilnya ke guru melalui email atau platform yang digunakan.</p>
+        </section>
+        <section class="lesson-section">
+          <h2>📈 Penilaian</h2>
+          <p>Penilaian akan dilakukan berdasarkan:</p>
+          <ul>
+            <li>Kemampuan menulis kode Python sederhana</li>
+            <li>Memahami konsep dasar variabel dan fungsi print()</li>
+            <li>Kemampuan menyelesaikan tugas mandiri</li>
+          </ul>
+          <p>Nilai akan diberikan dalam skala 1-100.</p>
+        </section>
+        <section class="lesson-section">
+          <h2>🧩 Quiz Wawasan</h2>
+          <ol>
+            <li>Apa fungsi dari perintah <code>print()</code>?</li>
+            <li>Apa yang akan terjadi jika kamu mengetik <code>print("Hello")</code>?</li>
+          </ol>
+        </section>
+        <!-- Section 6: Quiz -->
+          <section class="lesson-section">
+              <h2>📝 Quiz: Jawab Pertanyaan Berikut</h2>
+              <p>1. Apa itu Python?</p>
+              <p>2. Sebutkan 3 contoh penggunaan Python!</p>
+              <p>3. Apa yang akan terjadi jika kamu mengetik <code>print("Hello")</code>?</p>
+              <p>4. Bagaimana cara membuat variabel di Python?</p>
+              <p>5. Apa yang akan terjadi jika kamu mengetik <code>print(5 + 3)</code>?</p>
+          </section>
+      </div>
 
-    <!-- Section 5.2: Progress Tracker -->
-    <section class="lesson-section">
-      <h2>📊 Progress Tracker</h2>
-      <p>Sudah menyelesaikan bagian ini? Klik tombol di bawah untuk tandai sebagai selesai:</p>
-      <button onclick="markProgress('m1l1_practice')">✅ Tandai Selesai Praktik</button>
-      <p id="progress-status-m1l1_practice" style="margin-top: 10px; color: green;"></p>
-    </section>
+      <div id="step5" class="step-section" style="display: none;">
+          <!-- Section 6.5: Penilaian Otomatis -->
+        <section class="lesson-section" id="step-5">
+          <h2>📝 Coba Jawab: Hitung dan Cetak</h2>
+          <p>Tulis kode Python untuk mencetak hasil penjumlahan 5 + 3</p>
+          <div id="typing-box-quiz1" class="typing-container" style="margin-bottom:12px;" tabindex="0" data-id="quiz1" data-text='print(5 + 3)'>
+            <div class="typing-line">
+              <span class="line-number">1</span>
+              <span class="code-output"></span>
+            </div>
+          </div>
+          <div class="python-editor-container" style="margin-top: 12px;">
+            <textarea class="python-editor hide-editor-only" rows="4" style="width:100%; font-family:'Courier New', monospace;"></textarea>
+            <button onclick="runInlinePython(this)" style="margin-top:6px;">▶️ Jalankan Kode</button>
+            <pre class="python-output" style="background:#111; color:#4caf50; padding:10px; min-height:30px;"></pre>
+          </div>
+          <div id="quiz-editor" style="height: 150px; width: 100%; border: 1px solid #ccc;"></div>
+          <button onclick="checkAnswer()" style="margin-top: 10px;">🔍 Periksa Jawaban</button>
+          <pre id="quiz-feedback" style="background:#f9f9f9;color:#333;padding:10px;margin-top:10px;min-height:40px;"></pre>
+        </section>
+      </div>
 
-    <!-- Section 6: Quiz -->
-    <section class="lesson-section">
-      <h2>🧩 Quiz Wawasan</h2>
-      <ol>
-        <li>Apa fungsi dari perintah <code>print()</code>?</li>
-        <li>Apa yang akan terjadi jika kamu mengetik <code>print("Hello")</code>?</li>
-      </ol>
-    </section>
+      <div id="step6" class="step-section" style="display: none;">
+          <!-- Section 6: Progress Tracker -->
+        <section class="lesson-section">
+          <h2>📊 Progress Tracker</h2>
+          <p>Sudah menyelesaikan bagian ini? Klik tombol di bawah untuk tandai sebagai selesai:</p>
+          <button onclick="markProgress('m1l1_practice')">✅ Tandai Selesai Praktik</button>
+          <p id="progress-status-m1l1_practice" style="margin-top: 10px; color: green;"></p>
+        </section>
 
-    <!-- Section 7: Wrap-Up -->
-    <section class="lesson-section">
-      <h2>✅ Wrap-Up & Tanya Jawab</h2>
-      <p>Review: Apa itu Python, kenapa digunakan, dan bagaimana cara membuat program sederhana.</p>
-      <p>Ajak murid untuk menyebutkan 3 hal baru yang mereka pelajari hari ini.</p>
-    </section>
-  </main>
+        <!-- Section 7: Wrap-Up -->
+        <section class="lesson-section" >
+          <h2>✅ Wrap-Up & Tanya Jawab</h2>
+          <p>Review: Apa itu Python, kenapa digunakan, dan bagaimana cara membuat program sederhana.</p>
+          <p>Ajak murid untuk menyebutkan 3 hal baru yang mereka pelajari hari ini.</p>
+        </section>
+      
+      </div>
+    </div>
+    </main>
+    </div>
+  </div>
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.querySelector('.sidebar');
+      const toggleBtn = document.getElementById('toggleSidebar');
+      const icon = document.getElementById('toggleIcon');
+      sidebar.classList.toggle('hidden');
+
+      if (sidebar.classList.contains('hidden')) {
+        icon.textContent = '⮞';
+      } else {
+        icon.textContent = '⮜';
+      }
+    }
+  </script>
+  
+  <script>
+  async function runInlinePython(button) {
+    const container = button.closest('.python-editor-container');
+    const textarea = container.querySelector('textarea');
+    const outputEl = container.querySelector('.python-output');
+    outputEl.textContent = "⏳ Menjalankan...";
+
+    if (!pyodideReady) {
+      outputEl.textContent = "❌ Pyodide belum siap.";
+      return;
+    }
+
+    try {
+      let output = "";
+
+      // Tangkap semua hasil print
+      pyodide.setStdout({
+        batched: (s) => {
+          output += s + "\n";
+        }
+      });
+
+      await pyodide.runPythonAsync(textarea.value);
+
+      outputEl.textContent = output.trim() || "✅ Berhasil (tidak ada output)";
+    } catch (err) {
+      outputEl.textContent = "❌ Error:\n" + err;
+    } finally {
+      pyodide.setStdout({});
+    }
+  }
+</script>
+<script>
+  function showStep(step) {
+    document.getElementById('step-1-container').style.display = (step === 1) ? 'block' : 'none';
+    document.getElementById('step-2-container').style.display = (step === 2) ? 'block' : 'none';
+    document.getElementById('step3').style.display = (step === 3) ? 'block' : 'none';
+    document.getElementById('step4').style.display = (step === 4) ? 'block' : 'none';
+    document.getElementById('step5').style.display = (step === 5) ? 'block' : 'none';
+    document.getElementById('step6').style.display = (step === 6) ? 'block' : 'none';
+  }
+</script>
 
 <script type="module">
   import { updateProgress, getProgressFromFirestore } from './firebase-tracker.js';
 
-  function markProgress(id) {
-    document.getElementById('progress-status-' + id).innerText = '✅ Sudah ditandai selesai!';
-    localStorage.setItem(id, 'done');
-    updateProgress('M1', 'L1', id);
-  }
-
+  let quizEditor = null;
   window.onload = () => {
     const user = getUserInfo();
+    quizEditor = ace.edit("quiz-editor");
+    window.quizEditor = quizEditor;
+    quizEditor.session.setMode("ace/mode/python");
+    quizEditor.setTheme("ace/theme/github");
+    quizEditor.setFontSize(14);
+
     if (user.role !== "anak") {
       alert("❌ Akses tidak sah. Silakan login ulang.");
       window.location.href = "/elearn/login-elearning.html";
@@ -118,7 +609,239 @@ print(10 - 2)</code></pre>
     }
   }
 </script>
+<script>
+
+  async function checkAnswer() {
+    if (!quizEditor) {
+      console.error("❌ quizEditor belum siap");
+      return;
+    }
+    console.log("✅ Pyodide ready?", pyodideReady);
+
+    const code = quizEditor.getValue();
+    const feedbackEl = document.getElementById("quiz-feedback");
+
+    if (!pyodideReady) {
+      feedbackEl.textContent = "❌ Pyodide belum siap.";
+      return;
+    }
+
+    try {
+      let output = "";
+      pyodide.setStdout({
+        batched: (s) => { output += s + "\n"; }
+      });
+
+      console.log("🚀 Running code:", code);
+      await pyodide.runPythonAsync(code);
+      pyodide.setStdout({});
+
+      const expected = "8";
+      const actual = output.trim();
+
+      console.log("🔍 Output:", actual);
+
+      if (actual === expected) {
+        feedbackEl.textContent = "✅ Jawaban benar! Output = " + actual;
+      } else {
+        feedbackEl.textContent = "❌ Hmm, hasilnya belum pas. Yuk coba lagi!\nOutput kamu: " + (actual || "(tidak ada output)");
+      }
+    } catch (err) {
+      feedbackEl.textContent = "❌ Ups, ada kesalahan di kodenya nih. Coba dicek lagi ya!\n\nDetail:\n" + err;
+      console.error("❌ Runtime error:", err);
+    }
+  }
+</script>
+</script>
 </script>
 <script src="userinfo.js"></script>
-</body>
+
+<!-- Pyodide dan Ace Editor -->
+<script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/ace.js"></script>
+<script>
+  let pyodideReady = false;
+  let pyodide = null;
+
+  async function loadPyodideAndSetup() {
+    pyodide = await loadPyodide();
+    pyodideReady = true;
+    console.log("✅ Pyodide siap digunakan");
+  }
+
+  loadPyodideAndSetup();
+
+  const editor = ace.edit("editor");
+  editor.session.setMode("ace/mode/python");
+  editor.setTheme("ace/theme/github");
+  editor.setFontSize(14);
+
+  async function runPythonCode() {
+    const code = editor.getValue();
+    const outputEl = document.getElementById("output");
+    outputEl.textContent = "⏳ Menjalankan...";
+    if (!pyodideReady) {
+      outputEl.textContent = "❌ Pyodide belum siap.";
+      return;
+    }
+    try {
+      let output = "";
+      pyodide.setStdout({
+        batched: (s) => { output += s + "\n"; }
+      });
+
+      await pyodide.runPythonAsync(code);
+
+      outputEl.textContent = output.trim() || "✅ Berhasil (tidak ada output)";
+    } catch (err) {
+      outputEl.textContent = "❌ Error:\n" + err;
+    } finally {
+      pyodide.setStdout({});
+    }
+  }
+
+  // Panel (sidebar) Python Editor
+  const panelEditor = ace.edit("panel-editor");
+  panelEditor.session.setMode("ace/mode/python");
+  panelEditor.setTheme("ace/theme/github");
+  panelEditor.setFontSize(14);
+
+  async function runPanelCode() {
+    const code = panelEditor.getValue();
+    const outputEl = document.getElementById("panel-output");
+    outputEl.textContent = "⏳ Menjalankan...";
+    if (!pyodideReady) {
+      outputEl.textContent = "❌ Pyodide belum siap.";
+      return;
+    }
+    try {
+      let output = "";
+      pyodide.setStdout({ batched: (s) => { output += s + "\n"; } });
+      await pyodide.runPythonAsync(code);
+      outputEl.textContent = output.trim() || "✅ Berhasil (tidak ada output)";
+    } catch (err) {
+      outputEl.textContent = "❌ Error:\n" + err;
+    } finally {
+      pyodide.setStdout({});
+    }
+  }
+</script>
+ </body>
+<script>
+  function syntaxClassPython(line, i, char) {
+    if (line.startsWith('print') && i < 5) return "keyword";
+    if (char === '(' || char === ')') return "paren";
+    if (line.indexOf('"') !== -1) {
+      let first = line.indexOf('"');
+      let last = line.lastIndexOf('"');
+      if (i >= first && i <= last) return "str";
+    }
+    if (line.indexOf('=') !== -1 && line.indexOf('"') !== -1) {
+      let eq = line.indexOf('=');
+      let first = line.indexOf('"', eq);
+      let last = line.lastIndexOf('"');
+      if (i >= first && i <= last) return "str";
+    }
+    return "default";
+  }
+
+  function setupTypingBox(container) {
+    const outputEls = container.querySelectorAll('.code-output');
+    const lines = Array.from(outputEls).map((el, idx) => ({
+      el,
+      text: (container.dataset.text || "").split('\n')[idx] || "",
+      typed: []
+    }));
+
+    // Initialize global line index per container (active line for typing)
+    container._lineIndex = 0;
+
+    // Init HTML output
+    lines.forEach(line => {
+      line.el.innerHTML = line.text.split('').map(char => `<span class="pending">${char}</span>`).join('');
+    });
+
+    // --- Sinkronisasi otomatis ke textarea editor di bawahnya ---
+    // Setelah inisialisasi container._typedLines
+    if (!container._typedLines) {
+      container._typedLines = lines.map(line => [...line.typed]);
+    }
+    const editor = container.nextElementSibling?.querySelector('textarea');
+    if (editor) {
+      container._syncToEditor = function() {
+        const fullCode = container._typedLines.map(line => line.join('')).join('\n');
+        editor.value = fullCode;
+      };
+    }
+    // -----------------------------------------------------------
+
+    // Focus tracking
+    container.addEventListener('click', () => {
+      document.querySelectorAll('.typing-container').forEach(c => c.classList.remove('active'));
+      container.classList.add('active');
+      container.focus();
+    });
+
+    // Updated keydown logic for multi-line typing
+    container.addEventListener('keydown', (e) => {
+      if (!container.classList.contains('active')) return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+      e.preventDefault();
+
+      const outputEls = container.querySelectorAll('.code-output');
+      const lines = Array.from(outputEls).map((el, idx) => ({
+        el,
+        text: (container.dataset.text || "").split('\n')[idx] || "",
+        typed: (container._typedLines && container._typedLines[idx]) || []
+      }));
+
+      if (!container._typedLines) {
+        container._typedLines = lines.map(line => [...line.typed]);
+      }
+
+      const idx = container._lineIndex || 0;
+
+      if (e.key === 'Backspace') {
+        if (container._typedLines[idx].length > 0) {
+          container._typedLines[idx].pop();
+        } else if (idx > 0) {
+          container._lineIndex--;
+        }
+      } else if (e.key === 'Enter') {
+        if (idx < lines.length - 1) {
+          container._lineIndex++;
+        }
+      } else if (e.key.length === 1 && container._typedLines[idx].length < lines[idx].text.length) {
+        container._typedLines[idx].push(e.key);
+      }
+
+      lines.forEach((line, i) => {
+        const typed = container._typedLines[i] || [];
+        line.el.innerHTML = line.text.split('').map((char, j) => {
+          const ch = typed[j];
+          if (ch == null) return `<span class="pending">${char}</span>`;
+          if (ch === char) return `<span class="correct ${syntaxClassPython(line.text, j, char)}">${char}</span>`;
+          return `<span class="wrong">${ch}</span>`;
+        }).join('');
+      });
+
+      // --- Sinkronisasi ke textarea editor setelah render ulang ---
+      if (typeof container._syncToEditor === 'function') {
+        container._syncToEditor();
+      }
+      // -----------------------------------------------------------
+    });
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.typing-container').forEach(container => setupTypingBox(container));
+  });
+
+  document.body.addEventListener('click', (e) => {
+    if (!e.target.closest('.typing-container')) {
+      document.querySelectorAll('.typing-container').forEach(c => c.classList.remove('active'));
+    }
+  });
+</script>
 </html>

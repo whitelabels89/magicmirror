@@ -1,0 +1,224 @@
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Baloo 2', sans-serif; }
+    body {
+      background: #e0f2fe;
+      margin: 0;
+      height: 100vh;
+      font-family: 'Baloo 2', sans-serif;
+      display: flex;
+    }
+
+    .page-container {
+      display: flex;
+      width: calc(100% - 60px);
+      height: calc(100% - 60px);
+      margin: 30px;
+      border-radius: 40px;
+      overflow: hidden;
+      outline: 12px solid #111827;
+      outline-offset: 0px;
+    }
+
+    .sidebar {
+      background: #111827;
+      color: #fff;
+      width: 220px;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      transition: width 0.3s ease;
+      border-radius: 40px 0 0 40px;
+    }
+
+    .sidebar.collapsed {
+      width: 60px;
+    }
+    .sidebar.collapsed .sidebar-menu span:not(.material-icons) {
+      display: none;
+    }
+    .sidebar.collapsed .sidebar-menu a {
+      justify-content: center;
+    }
+
+    .toggle-btn {
+      background: #374151;
+      color: #fff;
+      border: none;
+      padding: 4px;
+      height: 36px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      cursor: pointer;
+      align-self: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sidebar .toggle-btn {
+      align-self: center;
+    }
+
+    .sidebar:not(.collapsed) .toggle-btn {
+      width: 100%;
+    }
+
+    .sidebar-menu a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      color: #e5e7eb;
+      text-decoration: none;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      transition: background 0.2s ease;
+    }
+
+    .sidebar-menu a:hover {
+      background: #1f2937;
+    }
+
+    .material-icons.icon-emboss {
+      background: #374151;
+      padding: 6px;
+      border-radius: 8px;
+      font-size: 20px;
+      box-shadow: inset -2px -2px 4px rgba(255, 255, 255, 0.15),
+                  inset 2px 2px 4px rgba(0, 0, 0, 0.25),
+                  0 2px 4px rgba(0, 0, 0, 0.4);
+    }
+
+    .panel-ungu {
+      background: #8b5cf6;
+      color: #fff;
+      width: 300px;
+      padding: 30px;
+      border-radius: 0 40px 40px 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      box-shadow: inset 0 0 10px #c084fc;
+    }
+
+    .progress-card {
+      margin-top: 20px;
+    }
+    .progress-bar {
+      height: 10px;
+      background: #e5e7eb;
+      border-radius: 20px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: #facc15;
+      transition: width 0.3s ease;
+    }
+
+    .main-content {
+      flex: 1;
+      background: #fff;
+      padding: 30px;
+      border-radius: 40px 0 0 40px;
+      overflow-y: auto;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 30px;
+    }
+    .status-box {
+      display: flex;
+      gap: 20px;
+    }
+    .status-box div {
+      background: linear-gradient(to right, #fbbf24, #facc15);
+      padding: 10px 16px;
+      border-radius: 14px;
+      font-size: 15px;
+      color: #111827;
+      font-weight: bold;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .status-box div::before {
+      content: attr(data-icon);
+      font-size: 18px;
+      margin-right: 4px;
+    }
+
+    /* Card Style tetap dipertahankan seperti sebelumnya */
+    .game-style-cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      justify-content: flex-start;
+    }
+
+    .lesson-card {
+      position: relative;
+      background: linear-gradient(to right, #6366f1, #8b5cf6);
+      border-radius: 20px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+      padding: 20px;
+      width: 280px;
+      height: 180px;
+      overflow: visible;
+      color: #fff;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .reward {
+      position: absolute;
+      top: -40px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      z-index: 2;
+      filter: drop-shadow(0px 8px 8px rgba(0, 0, 0, 0.3));
+    }
+
+    .lesson-number {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      font-size: 24px;
+      font-weight: bold;
+      color: rgba(255, 255, 255, 0.25);
+    }
+
+    .lesson-card h3 {
+      margin-top: 40px;
+      margin-bottom: -10px;
+      font-size: 16px;
+    }
+
+    .lesson-card p {
+      font-size: 14px;
+      opacity: 0.9;
+      margin: 6px 0;
+      margin-bottom: 12px;
+      line-height: 1;
+    }
+
+    .start-btn {
+      margin-top: 6px;
+      padding: 6px 12px;
+      background: #fff;
+      color: #8b5cf6;
+      border-radius: 12px;
+      font-weight: bold;
+      text-decoration: none;
+      font-size: 13px;
+    }
+
+    .judul-section {
+      margin-top: -40px;   /* Atur jarak dari atas */
+      margin-bottom: 50px; /* Atur jarak dari bawah */
+    }
