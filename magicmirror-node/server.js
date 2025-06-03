@@ -274,7 +274,7 @@ app.post('/push_faces_to_frontend', (req, res) => {
 
 // Endpoint: Generate cerita dari form anak
 app.post("/api/generate-story", async (req, res) => {
-  const { namaAnak, usia, impian, pahlawan, problem, disayang, recipient } = req.body;
+  const { namaAnak, usia, dream: impian, hero: pahlawan, fear: problem, mostLoved: disayang, recipient } = req.body;
   const apiKey = process.env.OPENAI_API_KEY;
 
   if (!apiKey) return res.status(500).json({ success: false, message: "API key tidak tersedia." });
