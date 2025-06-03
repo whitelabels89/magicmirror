@@ -272,6 +272,45 @@ app.post('/push_faces_to_frontend', (req, res) => {
     }
 });
 
+// Endpoint: Generate cerita dari form anak
+app.post("/api/generate-story", async (req, res) => {
+  const { namaAnak, usia, tema, hewanFavorit, mimpi, planetFavorit } = req.body;
+  const apiKey = process.env.OPENAI_API_KEY;
+
+  if (!apiKey) return res.status(500).json({ success: false, message: "API key tidak tersedia." });
+
+  const prompt = `
+  Tulis cerita pendek untuk anak usia ${usia} tahun. Nama anak adalah ${namaAnak}.
+  Cerita ini bertema ${tema}, dan mengandung karakter hewan favorit: ${hewanFavorit}.
+  Impian anak ini adalah: ${mimpi}, dan petualangan terjadi di planet ${planetFavorit}.
+  Gaya cerita harus ringan, menyenangkan, dan menyentuh hati orang tua.
+  Buatkan paragraf-paragraf pendek maksimal 300 kata. Gunakan bahasa Indonesia yang mudah dimengerti anak-anak.
+  `;
+
+  try {
+    const response = await axios.post(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        model: "gpt-3.5-turbo",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.8
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`
+        }
+      }
+    );
+
+    const story = response.data.choices[0].message.content;
+    res.json({ success: true, story });
+  } catch (error) {
+    console.error("❌ Gagal generate cerita:", error?.response?.data || error.message);
+    res.status(500).json({ success: false, message: "Gagal generate cerita." });
+  }
+});
+
 // WebSocket logic
 io.on('connection', (socket) => {
     console.log('✅ User connected via WebSocket');
