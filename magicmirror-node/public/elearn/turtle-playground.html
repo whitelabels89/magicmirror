@@ -1,0 +1,76 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Turtle Playground</title>
+  <script src="https://cdn.jsdelivr.net/npm/js-turtle@1.0.4/build/turtle.min.js"></script>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      background-color: #fefefe;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      margin-top: 20px;
+    }
+    #editor {
+      width: 90%;
+      max-width: 700px;
+      height: 150px;
+      border: 2px solid #333;
+      border-radius: 6px;
+      padding: 10px;
+      font-size: 16px;
+      background-color: #f0f0f0;
+      margin-bottom: 12px;
+    }
+    #runBtn {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: purple;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+    #turtleCanvas {
+      border: 2px solid #888;
+    }
+  </style>
+</head>
+<body>
+  <h1>🐢 Turtle Playground</h1>
+  <textarea id="editor">
+forward(100)
+left(90)
+forward(100)
+left(90)
+forward(100)
+left(90)
+forward(100)
+  </textarea>
+  <button id="runBtn">Jalankan Kode</button>
+  <canvas id="turtleCanvas" width="500" height="500"></canvas>
+
+  <script>
+    const turtle = new Turtle('turtleCanvas');
+    document.getElementById('runBtn').onclick = function () {
+      turtle.reset();
+      const code = document.getElementById('editor').value;
+      try {
+        eval("with(turtle){" + code + "}");
+      } catch (e) {
+        alert("Ada error di kode kamu:\n" + e.message);
+      }
+    };
+  </script>
+</body>
+</html>
