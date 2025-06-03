@@ -78,7 +78,8 @@
 
   document.getElementById("recipientInfo").innerText = untuk ? `Untuk: ${untuk}` : "";
   document.getElementById("cidInfo").innerText = cid ? `Dibuat oleh: ${cid}` : "";
-  document.getElementById("storyContent").innerText = cerita ? cerita : "Cerita belum tersedia.";
+  const storyFromStorage = localStorage.getItem("story");
+  document.getElementById("storyContent").innerText = cerita || storyFromStorage || "Cerita belum tersedia.";
 
   // Tampilkan gambar dari localStorage di imageGallery
   const imageGallery = document.getElementById("imageGallery");

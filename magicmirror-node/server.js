@@ -381,7 +381,7 @@ app.post("/api/generate-story-with-images", async (req, res) => {
         "https://api.openai.com/v1/images/generations",
         {
           model: "dall-e-3",
-          prompt: desc.replace(/^\d+[\.\)]\s*/, ''),
+          prompt: desc.replace(/^\d+[\.\)]\s*/, '') + ", in colorful children’s storybook illustration style, cartoon style, no photorealistic faces",
           size: "1024x1024",
           n: 1
         },
