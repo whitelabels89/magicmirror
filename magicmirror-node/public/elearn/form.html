@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>M1 L1: Introduction to Python</title>
-  <script src="userinfo.js"></script>
+  <script src="userInfo.js"></script>
   <script>
     window.addEventListener("DOMContentLoaded", () => {
       const user = getUserInfo();
@@ -486,7 +486,7 @@ async function runValidatedCode(id) {
   </script>
 
   <!-- Script untuk form Cerita Digital -->
-  <script src="userinfo.js"></script>
+  <script src="userInfo.js"></script>
   <script>
     const user = getUserInfo();
     if (!user || user.role !== "anak") {
@@ -609,84 +609,9 @@ async function runValidatedCode(id) {
   }
 </script>
 
-<script type="module">
-  import { updateProgress, getProgressFromFirestore } from './firebase-tracker.js';
-
-  let quizEditor = null;
-  window.onload = () => {
-    const user = getUserInfo();
-    quizEditor = ace.edit("quiz-editor");
-    window.quizEditor = quizEditor;
-    quizEditor.session.setMode("ace/mode/python");
-    quizEditor.setTheme("ace/theme/github");
-    quizEditor.setFontSize(14);
-
-    if (user.role !== "anak") {
-      alert("❌ Akses tidak sah. Silakan login ulang.");
-      window.location.href = "/elearn/login-elearning.html";
-      return;
-    }
-
-    const id = 'm1l1_practice';
-    if (localStorage.getItem(id) === 'done') {
-      document.getElementById('progress-status-' + id).innerText = '✅ Sudah ditandai selesai!';
-    } else {
-      // Cek dari Firestore
-      getProgressFromFirestore("M1", "L1", id).then((found) => {
-        if (found) {
-          localStorage.setItem(id, 'done');
-          document.getElementById('progress-status-' + id).innerText = '✅ Sudah ditandai selesai!';
-        }
-      });
-    }
-  }
-</script>
-<script>
-
-  async function checkAnswer() {
-    if (!quizEditor) {
-      console.error("❌ quizEditor belum siap");
-      return;
-    }
-    console.log("✅ Pyodide ready?", pyodideReady);
-
-    const code = quizEditor.getValue();
-    const feedbackEl = document.getElementById("quiz-feedback");
-
-    if (!pyodideReady) {
-      feedbackEl.textContent = "❌ Pyodide belum siap.";
-      return;
-    }
-
-    try {
-      let output = "";
-      pyodide.setStdout({
-        batched: (s) => { output += s + "\n"; }
-      });
-
-      console.log("🚀 Running code:", code);
-      await pyodide.runPythonAsync(code);
-      pyodide.setStdout({});
-
-      const expected = "8";
-      const actual = output.trim();
-
-      console.log("🔍 Output:", actual);
-
-      if (actual === expected) {
-        feedbackEl.textContent = "✅ Jawaban benar! Output = " + actual;
-      } else {
-        feedbackEl.textContent = "❌ Hmm, hasilnya belum pas. Yuk coba lagi!\nOutput kamu: " + (actual || "(tidak ada output)");
-      }
-    } catch (err) {
-      feedbackEl.textContent = "❌ Ups, ada kesalahan di kodenya nih. Coba dicek lagi ya!\n\nDetail:\n" + err;
-      console.error("❌ Runtime error:", err);
-    }
-  }
 </script>
 </script>
-</script>
-<script src="userinfo.js"></script>
+<script src="userInfo.js"></script>
 
 <!-- Pyodide dan Ace Editor -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/ace.js"></script>
