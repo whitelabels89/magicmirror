@@ -6,11 +6,13 @@
   <title>M1 L1: Introduction to Python</title>
   <script src="userinfo.js"></script>
   <script>
-    const user = getUserInfo();
-    if (!user || user.role !== "anak") {
-      alert("❌ Akses tidak sah. Silakan login ulang.");
-      window.location.href = "/elearn/login-elearning.html";
-    }
+    window.addEventListener("DOMContentLoaded", () => {
+      const user = getUserInfo();
+      if (!user || user.role !== "anak") {
+        alert("❌ Akses tidak sah. Silakan login ulang.");
+        window.location.href = "/elearn/login-elearning.html";
+      }
+    });
   </script>
   <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
@@ -427,8 +429,10 @@
           <label for="recipient">🎁 Cerita ini kamu persembahkan untuk siapa?</label><br>
           <input type="text" id="recipient" name="recipient" required><br><br>
 
-          <button type="submit">✨ Buat Cerita Sekarang</button>
-          <button type="button" onclick="document.getElementById('formInput').reset();">🔁 Reset Form</button>
+          <div class="button-group" style="margin-top: 20px;">
+            <button type="submit">🚀 Buat Cerita</button>
+            <button type="button" id="resetBtn">🔁 Reset</button>
+          </div>
         </form>
         <div id="loadingSpinner" style="display:none; margin-top: 20px; text-align: center;">
           <p>🌀 Sedang membuat cerita... mohon tunggu ya...</p>
@@ -482,52 +486,61 @@ async function runValidatedCode(id) {
   </script>
 
   <!-- Script untuk form Cerita Digital -->
+  <script src="userinfo.js"></script>
   <script>
-  // Ganti dengan API Key OpenAI yang valid
-  const OPENAI_API_KEY = window.OPENAI_API_KEY || "YOUR_OPENAI_API_KEY";
-  document.getElementById("formInput").addEventListener("submit", async function(e) {
-    e.preventDefault();
-
-    const character = document.getElementById("character").value.trim();
-    const setting = document.getElementById("setting").value.trim();
-    const problem = document.getElementById("problem").value.trim();
-    const helper = document.getElementById("helper").value.trim();
-    const recipient = document.getElementById("recipient").value.trim();
-
-    if (!character || !setting || !problem || !helper || !recipient) {
-      alert("❗ Semua kolom wajib diisi ya!");
-      return;
+    const user = getUserInfo();
+    if (!user || user.role !== "anak") {
+      alert("❌ Akses tidak sah. Silakan login ulang.");
+      window.location.href = "/elearn/login-elearning.html";
     }
 
-    document.getElementById("loadingSpinner").style.display = "block";
+    const form = document.getElementById("formInput");
+    const spinner = document.getElementById("loadingSpinner");
 
-    const prompt = `Buatkan cerita dongeng pendek untuk anak-anak dengan karakter utama ${character}, berlatar di ${setting}, yang menghadapi masalah ${problem}, dan dibantu oleh ${helper}. Cerita ditujukan untuk ${recipient}.`;
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      spinner.style.display = "block";
 
-    try {
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${OPENAI_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: "gpt-3.5-turbo",
-          messages: [{ role: "user", content: prompt }],
-          temperature: 0.8,
-          max_tokens: 800
-        })
-      });
+      const namaAnak = user.nama;
+      // Map input fields to new fields
+      const usia = document.getElementById("setting").value;
+      const tema = document.getElementById("problem").value;
+      const hewanFavorit = document.getElementById("character").value;
+      const mimpi = document.getElementById("helper").value;
+      const planetFavorit = document.getElementById("recipient").value;
 
-      const data = await response.json();
-      const story = data.choices?.[0]?.message?.content || "Cerita gagal dibuat.";
+      if (!usia || !tema || !hewanFavorit || !mimpi || !planetFavorit) {
+        spinner.style.display = "none";
+        alert("❗ Semua kolom harus diisi ya!");
+        return;
+      }
 
-      const bookUrl = `/elearn/book.html?uid=${user.uid}&cid=${encodeURIComponent(user.nama)}&to=${encodeURIComponent(recipient)}&story=${encodeURIComponent(story)}`;
-      window.location.href = bookUrl;
-    } catch (err) {
-      alert("❌ Gagal membuat cerita. Coba lagi nanti.");
-      document.getElementById("loadingSpinner").style.display = "none";
-    }
-  });
+      try {
+        const res = await fetch("/api/generate-story", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ namaAnak, usia, tema, hewanFavorit, mimpi, planetFavorit })
+        });
+
+        const data = await res.json();
+        spinner.style.display = "none";
+
+        if (data.success) {
+          const redirectUrl = `/elearn/book.html?uid=${user.uid}&cid=${encodeURIComponent(user.nama)}&to=Mami&story=${encodeURIComponent(data.story)}`;
+          window.location.href = redirectUrl;
+        } else {
+          alert("❌ Cerita gagal dibuat. Coba lagi ya.");
+        }
+      } catch (err) {
+        spinner.style.display = "none";
+        alert("❌ Terjadi kesalahan. Coba lagi nanti.");
+      }
+    });
+
+    // Reset button logic
+    form.querySelector('button[type="button"]').addEventListener("click", () => {
+      form.reset();
+    });
   </script>
   <script>
   function toggleSidebar() {
