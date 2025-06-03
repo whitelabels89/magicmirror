@@ -403,6 +403,8 @@ app.post("/api/generate-story-with-images", async (req, res) => {
 });
 
 // Endpoint: Generate lagu dari cerita menggunakan Suno API
+// Prompt kedua untuk generate lirik dinonaktifkan sementara
+/*
 app.post("/api/generate-song", async (req, res) => {
   const { story, namaAnak } = req.body;
   const apiKey = process.env.OPENAI_API_KEY;
@@ -459,6 +461,7 @@ app.post("/api/generate-song", async (req, res) => {
     res.status(500).json({ success: false, message: "Gagal generate lagu." });
   }
 });
+*/
 
 // WebSocket logic
 io.on('connection', (socket) => {

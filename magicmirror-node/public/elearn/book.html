@@ -99,14 +99,17 @@
   waitForStory();
 
   function waitForStory() {
-    if (storyContainer.innerText !== "Cerita sedang dimuat...") {
-      attemptGeneratePDF();
+    if (
+      storyContainer.innerText !== "Cerita sedang dimuat..." &&
+      storyContainer.innerText.trim() !== ""
+    ) {
+      checkImagesLoaded();
     } else {
       setTimeout(waitForStory, 100); // cek lagi tiap 100ms
     }
   }
 
-  function attemptGeneratePDF() {
+  function checkImagesLoaded() {
     if (loadedCount >= imagesToLoad.length) {
       const opt = {
         margin: 0.5,
@@ -122,15 +125,15 @@
   imagesToLoad.forEach((img) => {
     if (img.complete) {
       loadedCount++;
-      attemptGeneratePDF();
+      checkImagesLoaded();
     } else {
       img.addEventListener('load', () => {
         loadedCount++;
-        attemptGeneratePDF();
+        checkImagesLoaded();
       });
       img.addEventListener('error', () => {
         loadedCount++;
-        attemptGeneratePDF();
+        checkImagesLoaded();
       });
     }
   });
