@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Buku Cerita Digital</title>
+  <style>
+    body {
+      font-family: 'Arial Rounded MT Bold', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #fdf6ec;
+      color: #333;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      padding: 2rem 1rem;
+    }
+    h1 {
+      font-size: 1.8rem;
+      color: #d97706;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    .meta {
+      text-align: center;
+      margin-bottom: 2rem;
+      font-size: 1rem;
+      color: #555;
+    }
+    .story {
+      background: #fff;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      line-height: 1.6;
+      white-space: pre-wrap;
+      font-size: 1.1rem;
+    }
+    .footer {
+      margin-top: 2rem;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Buku Cerita Digital</h1>
+    <div class="meta" id="recipientInfo">Untuk: ...</div>
+    <div class="story" id="storyContent">
+      Cerita sedang dimuat...
+    </div>
+    <div class="footer">
+      Dibuat bersama Kody, si Robot Penulis 🧠✨
+    </div>
+  </div>
+
+  <script>
+    // Ambil query string dari URL
+    const params = new URLSearchParams(window.location.search);
+    const cerita = params.get("story");
+    const untuk = params.get("to");
+
+    document.getElementById("recipientInfo").innerText = untuk ? `Untuk: ${untuk}` : "";
+    document.getElementById("storyContent").innerText = cerita ? cerita : "Cerita belum tersedia.";
+  </script>
+</body>
+</html>

@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>M1 L1: Introduction to Python</title>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .outline-wrapper {
+      margin: 0 auto;
+      padding: 0;
+      max-width: 100vw;
+      box-sizing: border-box;
+      border: 2px solid #000;
+      border-radius: 12px;
+      overflow: hidden;
+      background-color: #ffffff;
+      color: #000000;
+    }
+    /* Layout Flex Container */
+    .main-container,
+    .page-container {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+      position: static;
+    }
+    .lesson-wrapper-outline {
+      margin: 0;
+      padding: 0px;
+      height: 100vh;
+      box-sizing: border-box;
+      border: 10px solid #000;
+      border-radius: 24px;
+      background-color: #fff;
+      
+    }
+    .sidebar {
+      background-color: #20232a;
+      padding: 1.5rem 1rem;
+      color: white;
+      min-width: 200px;
+      position: relative;
+      /* Remove fixed positioning for flex context */
+      overflow-y: auto;
+      height: 100vh;
+      padding-bottom: 2rem;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-shrink: 0;
+      transition: width 0.3s ease, padding 0.3s ease;
+      border-top-left-radius: 10px;
+      border-bottom-left-radius: 20px;
+      scrollbar-width: thin;
+      scrollbar-color: #888 #20232a;
+      min-width: max-content;
+      /* Remove fixed positioning if present */
+    }
+
+    /* Sidebar collapsed/hidden mode: maintain scroll and padding */
+    .sidebar.collapsed {
+      overflow-y: auto !important;
+      height: 100vh !important;
+      padding-bottom: 2rem !important;
+    }
+    .sidebar-footer {
+      margin-top: auto;
+      padding-top: 1rem;
+      border-top: 1px solid #444;
+    }
+    /* Dashboard button after toggleSidebar */
+    #toggleSidebar + a.step-button {
+      display: flex;
+      align-items: center;
+      justify-content: left;
+      white-space: nowrap;
+      font-size: 14px;
+      padding: -10px 10px;
+      margin-top: 3rem;
+    }
+
+    .sidebar.hidden a.step-button span:nth-child(2) {
+      display: none;
+    }
+    .step-button-container {
+      margin-top: 5px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      white-space: nowrap;
+    }
+    .sidebar .step-button span {
+      display: inline-block;
+      white-space: nowrap;
+    }
+    #toggleSidebar {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      z-index: 999;
+      background-color: #4a90e2;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px 0 0 4px;
+      cursor: pointer;
+      transition: right 0.3s ease;
+    }
+    .sidebar.hidden {
+      width: 40px;
+      padding: 1.5rem 0.5rem;
+      /* Keep scrollable even when hidden/collapsed */
+      overflow-y: auto !important;
+      height: 100vh !important;
+      padding-bottom: 2rem !important;
+    }
+    .sidebar button {
+      background: transparent;
+      color: white;
+      border: none;
+      text-align: left;
+      width: 100%;
+      padding: 10px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background 0.3s ease;
+    }
+    .sidebar button:hover {
+      background: #4a90e2;
+    }
+    .panel-ungu {
+      flex-shrink: 0;
+      width: 300px;
+      background-color: #7f56d9;
+      color: white;
+      padding: 2rem 1rem;
+      text-align: center;
+      height: 100vh;
+      box-sizing: border-box;
+      z-index: 1;
+      position: relative;
+      transition: transform 0.3s ease;
+      border-top-right-radius: 20px;
+      border-bottom-right-radius: 200px;
+    }
+    .panel-ungu.hidden {
+      display: none !important;
+    }
+    .progress-bar {
+      margin-top: 20px;
+      background-color: #dcdcdc;
+      border-radius: 20px;
+      overflow: hidden;
+      height: 10px;
+    }
+    .progress-bar-fill {
+      background-color: #ffce00;
+      height: 100%;
+      width: 40%;
+    }
+    .lesson-content {
+      flex-grow: 1;
+      padding: 2rem;
+      overflow-y: auto;
+      margin: 0 !important;
+      transition: transform 0.3s ease;
+      border-radius: 20px;
+      /* Remove any large margin-left that was for fixed sidebar */
+    }
+    /* Sidebar hidden: panel-ungu stays static, lesson-content shifts */
+    .sidebar.hidden ~ .panel-ungu {
+      transform: none;
+    }
+
+    .sidebar.hidden ~ .panel-ungu + .lesson-content {
+      transform: none;
+    }
+
+    .sidebar.hidden .step-button span:nth-child(2) {
+      display: none;
+    }
+    
+    .lesson-modular-container {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+    .lesson-section {
+      background: white;
+      border-radius: 12px;
+      padding: 1.8rem 2rem;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+      transition: transform 0.2s ease;
+      margin-bottom: 2rem;
+    }
+    .lesson-section:hover {
+      transform: translateY(-2px);
+    }
+    .lesson-section h2 {
+      font-size: 1.25rem;
+      margin-bottom: 0.8rem;
+      margin-top: 0;
+      color: #2c3e50;
+    }
+    .lesson-section p, .lesson-section ul, .lesson-section ol {
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+    .step-navigation button {
+      background-color: #e0e0e0;
+      color: #333;
+      margin: 5px;
+      padding: 8px 16px;
+      border-radius: 5px;
+      border: 1px solid #bbb;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .step-navigation button:hover {
+      background-color: #4a90e2;
+      color: white;
+    }
+    .hide-editor-only {
+      display: none;
+    }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #fff;
+      color: #333;
+      overflow-x: hidden;
+    }
+    .header {
+      background: #4a90e2;
+      color: white;
+      padding: 2rem;
+      text-align: center;
+    }
+    .subtitle {
+      font-size: 1.2rem;
+      margin-top: 0.5rem;
+    }
+    pre {
+      background: #1e1e1e;
+      color: #dcdcdc;
+      padding: 1rem;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 15px;
+    }
+    /* VS Code-style typing box */
+    .circle-icon {
+      display: inline-block;
+      width: 28px;
+      height: 28px;
+      line-height: 28px;
+      border-radius: 50%;
+      background-color: #4a90e2;
+      color: white;
+      font-weight: bold;
+      text-align: center;
+      margin-right: 8px;
+      font-size: 14px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .circle-icon:hover {
+      background-color: #ffce00;
+      color: #20232a;
+      transform: scale(1.1);
+      transition: background-color 0.2s ease, transform 0.2s ease;
+    }
+    .typing-container {
+      background-color: #1e1e1e;
+      padding: 1rem;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 15px;
+      color: #dcdcdc;
+    }
+    #typed-output-praktik1 {
+      position: relative;
+      display: inline-block;
+      min-width: 10px;
+    }
+    .code-output {
+      position: relative;
+      z-index: 1;
+    }
+    .typing-line {
+      display: flex;
+      align-items: center;
+    }
+    .line-number {
+      color: #555;
+      width: 30px;
+      user-select: none;
+    }
+    .code-output .keyword { color: #569cd6; }
+    .code-output .paren { color: #d4d4d4; }
+    .code-output .str { color: #ce9178; }
+    .code-output .default { color: #dcdcdc; }
+    .code-output span.correct.str { color: #ce9178; }
+    .code-text span.orange { color: #D7BA7D; }
+    code {
+      color: #00d8ff;
+    }
+    button {
+      background: #4a90e2;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #357ab8;
+    }
+    #output, #quiz-feedback {
+      font-family: 'Courier New', monospace;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    .code-output span.correct.keyword { color: #569cd6; }
+    .code-output span.correct.paren { color: #d4d4d4; }
+    .code-output span.correct.str { color: #ce9178; }
+    .code-output span.correct.default { color: #dcdcdc; }
+    .code-output span.correct.orange { color: #D7BA7D; }
+    .code-output span.wrong { color: red; }
+    .code-output span.pending { color: #888; opacity: 0.4; }
+    /* Sidebar step-button links: remove underline and set color */
+    .sidebar a.step-button {
+      text-decoration: none;
+      color: white;
+    }
+    .sidebar a.step-button:hover {
+      color: #ffce00;
+    }
+    @media (max-width: 768px) {
+      .lesson-content {
+        padding: 1rem;
+      }
+      .lesson-section {
+        padding: 1rem;
+      }
+      .main-container,
+      .page-container {
+        flex-direction: column;
+        height: auto;
+      }
+      .sidebar,
+      .panel-ungu {
+        width: 100vw;
+        left: 0;
+        position: relative;
+        height: auto;
+        min-width: 0 !important;
+        max-width: 100vw !important;
+        overflow-y: auto !important;
+      }
+      /* Optional: Reset transform for mobile if needed */
+      .sidebar.hidden ~ .panel-ungu,
+      .sidebar.hidden ~ .panel-ungu + .lesson-content {
+        transform: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="outline-wrapper">
+    <div class="main-container">
+    <div class="sidebar">
+      <button id="toggleSidebar">
+        <span id="toggleIcon">⮜</span>
+      </button>
+      <a class="step-button" href="#" id="dashboardBtn">
+        <span class="circle-icon">🏠</span>
+        <span>Dashboard</span>
+      </a>
+      <div class="step-button-container"></div>
+      <div class="sidebar-footer">
+        <!-- Dashboard button moved to below toggleSidebar -->
+      </div>
+    </div>
+    <button id="togglePanelUngu" style="position: absolute; top: 1rem; left: 4rem; z-index: 999;">🎨</button>
+    <div class="panel-ungu">
+      <h2>👾 Python Interaktif</h2>
+      <p>Ketik dan jalankan kode langsung di sini!</p>
+      <div id="panel-editor" style="height: 200px; width: 100%; border: 1px solid #ccc;">print("Halo Dunia!")</div>
+      <button onclick="runPanelCode()">Jalankan</button>
+      <pre id="panel-output" class="output-box"></pre>
+    </div>
+    <main class="lesson-content">
+      <section class="lesson-section">
+        <h1>Workshop: Cerita Digital untuk Orang Tua</h1>
+        <p class="subtitle">Yuk, bantu Kody si Robot Penulis membuat cerita untuk orang tua kamu!</p>
+        <form id="storyForm" class="lesson-section" style="margin-top: 1rem;">
+          <label for="character">🧒 Siapa tokoh utama dalam ceritamu?</label><br>
+          <input type="text" id="character" name="character" required><br><br>
+
+          <label for="setting">🌍 Ceritanya terjadi di mana?</label><br>
+          <input type="text" id="setting" name="setting" required><br><br>
+
+          <label for="problem">😮 Apa masalah yang dia hadapi?</label><br>
+          <input type="text" id="problem" name="problem" required><br><br>
+
+          <label for="helper">🧙 Siapa yang membantunya?</label><br>
+          <input type="text" id="helper" name="helper"><br><br>
+
+          <label for="recipient">🎁 Cerita ini kamu persembahkan untuk siapa?</label><br>
+          <input type="text" id="recipient" name="recipient" required><br><br>
+
+          <button type="submit">✨ Buat Cerita Sekarang</button>
+        </form>
+        <div id="result" style="margin-top: 2rem;"></div>
+        <div id="pythonLogic" style="margin-top: 1rem; font-family:monospace; background:#eee; padding:1rem; border-radius:8px;"></div>
+      </section>
+    </main>
+<script>
+const targetCodeStep7 = `a = 3 * 12
+b = 10 * 45
+total = a + b
+print("Total due amount:", total)`;
+
+function validateTypingStep7(e) {
+  const input = e.target.value;
+  const validSoFar = targetCodeStep7.slice(0, input.length);
+  if (input !== validSoFar) {
+    e.target.value = input.slice(0, -1);
+  }
+}
+
+async function runValidatedCode(id) {
+  const input = document.getElementById(`typing-input-${id}`).value;
+  const outputEl = document.getElementById(`output-${id}`);
+  if (!pyodideReady) {
+    outputEl.textContent = "❌ Pyodide belum siap.";
+    return;
+  }
+  try {
+    let output = "";
+    pyodide.setStdout({ batched: (s) => { output += s + "\n"; } });
+    await pyodide.runPythonAsync(input);
+    outputEl.textContent = output.trim() || "✅ Berhasil (tidak ada output)";
+  } catch (err) {
+    outputEl.textContent = "❌ Error:\n" + err;
+  } finally {
+    pyodide.setStdout({});
+  }
+}
+</script>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+    </main>
+    </div>
+  </div>
+  <script>
+  </script>
+
+  <!-- Script untuk form Cerita Digital -->
+  <script>
+  document.getElementById("storyForm").addEventListener("submit", async function(event) {
+    event.preventDefault();
+    const character = document.getElementById("character").value;
+    const setting = document.getElementById("setting").value;
+    const problem = document.getElementById("problem").value;
+    const helper = document.getElementById("helper").value;
+    const recipient = document.getElementById("recipient").value;
+
+    const prompt = `Buatkan cerita anak singkat dengan tokoh utama bernama ${character} yang tinggal di ${setting}. Dia menghadapi masalah: ${problem}, dan dibantu oleh ${helper}. Cerita ini ditujukan untuk ${recipient}, harus berisi pesan kasih sayang dan keberanian.`;
+
+    const resultDiv = document.getElementById("result");
+    const pythonLogic = document.getElementById("pythonLogic");
+
+    resultDiv.innerHTML = "<p>⏳ Robot Kody sedang menulis ceritamu...</p>";
+    pythonLogic.innerHTML = "";
+
+    try {
+      const response = await fetch("/api/generate-story", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ prompt })
+      });
+
+      const data = await response.json();
+      const story = data.choices?.[0]?.message?.content || "❌ Gagal membuat cerita.";
+      resultDiv.innerHTML = `<h3>📖 Ceritamu:</h3><p>${story.replace(/\n/g, "<br>")}</p>`;
+
+      pythonLogic.innerHTML = `# Logika Python-nya kira-kira seperti ini:<br>
+character = "${character}"<br>
+setting = "${setting}"<br>
+problem = "${problem}"<br>
+helper = "${helper}"<br>
+recipient = "${recipient}"<br>
+story = buat_cerita(character, setting, problem, helper, recipient)<br>
+print(story)`;
+    } catch (error) {
+      resultDiv.innerHTML = "❌ Gagal menghubungi robot. Coba lagi ya.";
+      console.error("Error:", error);
+    }
+  });
+  
+  </script>
+  <script>
+  function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const icon = document.getElementById('toggleIcon');
+    sidebar.classList.toggle('hidden');
+    if (sidebar.classList.contains('hidden')) {
+      icon.textContent = '⮞';
+    } else {
+      icon.textContent = '⮜';
+    }
+  }
+  function togglePanelUngu() {
+    const panelUngu = document.querySelector('.panel-ungu');
+    if (panelUngu) {
+      panelUngu.classList.toggle('hidden');
+    }
+  }
+  </script> 
+  <script>
+  async function runInlinePython(button) {
+    const container = button.closest('.python-editor-container');
+    const textarea = container.querySelector('textarea');
+    const outputEl = container.querySelector('.python-output');
+    outputEl.textContent = "⏳ Menjalankan...";
+
+    if (!pyodideReady) {
+      outputEl.textContent = "❌ Pyodide belum siap.";
+      return;
+    }
+
+    try {
+      let output = "";
+
+      // Tangkap semua hasil print
+      pyodide.setStdout({
+        batched: (s) => {
+          output += s + "\n";
+        }
+      });
+
+      await pyodide.runPythonAsync(textarea.value);
+
+      outputEl.textContent = output.trim() || "✅ Berhasil (tidak ada output)";
+    } catch (err) {
+      outputEl.textContent = "❌ Error:\n" + err;
+    } finally {
+      pyodide.setStdout({});
+    }
+  }
+</script>
+<script>
+  function showStep(step) {
+    // Hide all steps 1-23
+    for (let i = 1; i <= 23; i++) {
+      const el = document.getElementById(`step-${i}-container`);
+      if (el) el.style.display = (step === i) ? 'block' : 'none';
+    }
+    // Reset substep for the shown step
+    setTimeout(() => {
+      const shownSection = document.querySelector(`#step-${step}-container .lesson-section`);
+      if (shownSection) {
+        resetSubsteps(shownSection);
+      }
+    }, 10);
+  }
+</script>
+
+<script type="module">
+  import { updateProgress, getProgressFromFirestore } from './firebase-tracker.js';
+
+  let quizEditor = null;
+  window.onload = () => {
+    const user = getUserInfo();
+    quizEditor = ace.edit("quiz-editor");
+    window.quizEditor = quizEditor;
+    quizEditor.session.setMode("ace/mode/python");
+    quizEditor.setTheme("ace/theme/github");
+    quizEditor.setFontSize(14);
+
+    if (user.role !== "anak") {
+      alert("❌ Akses tidak sah. Silakan login ulang.");
+      window.location.href = "/elearn/login-elearning.html";
+      return;
+    }
+
+    const id = 'm1l1_practice';
+    if (localStorage.getItem(id) === 'done') {
+      document.getElementById('progress-status-' + id).innerText = '✅ Sudah ditandai selesai!';
+    } else {
+      // Cek dari Firestore
+      getProgressFromFirestore("M1", "L1", id).then((found) => {
+        if (found) {
+          localStorage.setItem(id, 'done');
+          document.getElementById('progress-status-' + id).innerText = '✅ Sudah ditandai selesai!';
+        }
+      });
+    }
+  }
+</script>
+<script>
+
+  async function checkAnswer() {
+    if (!quizEditor) {
+      console.error("❌ quizEditor belum siap");
+      return;
+    }
+    console.log("✅ Pyodide ready?", pyodideReady);
+
+    const code = quizEditor.getValue();
+    const feedbackEl = document.getElementById("quiz-feedback");
+
+    if (!pyodideReady) {
+      feedbackEl.textContent = "❌ Pyodide belum siap.";
+      return;
+    }
+
+    try {
+      let output = "";
+      pyodide.setStdout({
+        batched: (s) => { output += s + "\n"; }
+      });
+
+      console.log("🚀 Running code:", code);
+      await pyodide.runPythonAsync(code);
+      pyodide.setStdout({});
+
+      const expected = "8";
+      const actual = output.trim();
+
+      console.log("🔍 Output:", actual);
+
+      if (actual === expected) {
+        feedbackEl.textContent = "✅ Jawaban benar! Output = " + actual;
+      } else {
+        feedbackEl.textContent = "❌ Hmm, hasilnya belum pas. Yuk coba lagi!\nOutput kamu: " + (actual || "(tidak ada output)");
+      }
+    } catch (err) {
+      feedbackEl.textContent = "❌ Ups, ada kesalahan di kodenya nih. Coba dicek lagi ya!\n\nDetail:\n" + err;
+      console.error("❌ Runtime error:", err);
+    }
+  }
+</script>
+</script>
+</script>
+<script src="userinfo.js"></script>
+
+<!-- Pyodide dan Ace Editor -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/ace.js"></script>
+<script>
+let pyodide;
+let pyodideReady = false;
+
+async function loadPyodideAndPackages() {
+  pyodide = await loadPyodide();
+  pyodideReady = true;
+}
+
+loadPyodideAndPackages();
+
+const panelEditor = ace.edit("panel-editor");
+panelEditor.setTheme("ace/theme/monokai");
+panelEditor.session.setMode("ace/mode/python");
+panelEditor.setReadOnly(false);
+panelEditor.setValue(`# Coba ketik di sini\nprint("Halo Dunia!")`, 1);
+
+async function runPanelCode() {
+  console.log("runPanelCode triggered");
+  const code = panelEditor.getValue();
+  const outputEl = document.getElementById("panel-output");
+  outputEl.textContent = "⏳ Menjalankan...";
+  if (!pyodideReady) {
+    outputEl.textContent = "❌ Pyodide belum siap.";
+    return;
+  }
+  try {
+    let output = "";
+    pyodide.setStdout({ batched: (s) => { output += s + "\n"; } });
+    await pyodide.runPythonAsync(code);
+    outputEl.textContent = output.trim() || "✅ Berhasil (tidak ada output)";
+  } catch (err) {
+    outputEl.textContent = "❌ Error:\n" + err;
+  } finally {
+    pyodide.setStdout({});
+  }
+}
+</script>
+<script>
+// Inisialisasi Ace Editor untuk hint di Step 7
+window.addEventListener('DOMContentLoaded', function() {
+  // Pastikan elemen ada sebelum inisialisasi
+  if (document.getElementById("hint-editor-7")) {
+    const hintEditor7 = ace.edit("hint-editor-7");
+    hintEditor7.setTheme("ace/theme/monokai");
+    hintEditor7.session.setMode("ace/mode/python");
+    hintEditor7.setReadOnly(false);
+    window.hintEditor7 = hintEditor7;
+  }
+  // Tombol untuk menjalankan kode hint
+  const btn = document.getElementById("run-hint-7");
+  if (btn) {
+    btn.addEventListener("click", runHint7Code);
+  }
+});
+
+// Fungsi untuk menjalankan kode dari hint Ace Editor
+async function runHint7Code() {
+  const hintEditor7 = window.hintEditor7;
+  if (!hintEditor7) return;
+  const code = hintEditor7.getValue();
+  const outputEl = document.getElementById("hint-output-7");
+  outputEl.textContent = "⏳ Menjalankan...";
+  if (!pyodideReady) {
+    outputEl.textContent = "❌ Pyodide belum siap.";
+    return;
+  }
+  try {
+    let output = "";
+    pyodide.setStdout({ batched: (s) => { output += s + "\n"; } });
+    await pyodide.runPythonAsync(code);
+    outputEl.textContent = output.trim() || "✅ Berhasil (tidak ada output)";
+  } catch (err) {
+    outputEl.textContent = "❌ Error:\n" + err;
+  } finally {
+    pyodide.setStdout({});
+  }
+}
+</script>
+  <script>
+    document.getElementById('dashboardBtn').addEventListener('click', function(e) {
+      e.preventDefault();
+      if (confirm('Yakin ingin kembali ke halaman Dashboard? Semua progres tidak akan disimpan.')) {
+        if (confirm('Baik, sedang diarahkan ke Dashboard...')) {
+          window.location.href = '/elearn/murid.html';
+        }
+      }
+    });
+  </script>
+</body>
+<script>
+  function syntaxClassPython(line, i, char) {
+    if (line.startsWith('print') && i < 5) return "keyword";
+    if (char === '(' || char === ')') return "paren";
+    if (line.indexOf('"') !== -1) {
+      let first = line.indexOf('"');
+      let last = line.lastIndexOf('"');
+      if (i >= first && i <= last) return "str";
+    }
+    if (line.indexOf('=') !== -1 && line.indexOf('"') !== -1) {
+      let eq = line.indexOf('=');
+      let first = line.indexOf('"', eq);
+      let last = line.lastIndexOf('"');
+      if (i >= first && i <= last) return "str";
+    }
+    // Tambahkan: angka sebagai orange, kecuali spasi
+    if (!isNaN(parseInt(char)) && char !== ' ') return 'orange';
+    return "default";
+  }
+
+  function setupTypingBox(container) {
+    const outputEls = container.querySelectorAll('.code-output');
+    const lines = Array.from(outputEls).map((el, idx) => ({
+      el,
+      text: (container.dataset.text || "").split('\n')[idx] || "",
+      typed: []
+    }));
+
+    // Initialize global line index per container (active line for typing)
+    container._lineIndex = 0;
+
+    // Init HTML output
+    lines.forEach(line => {
+      line.el.innerHTML = line.text.split('').map(char => `<span class="pending">${char}</span>`).join('');
+    });
+
+    // --- Sinkronisasi otomatis ke textarea editor di bawahnya ---
+    // Setelah inisialisasi container._typedLines
+    if (!container._typedLines) {
+      container._typedLines = lines.map(line => [...line.typed]);
+    }
+    const editor = container.nextElementSibling?.querySelector('textarea');
+    if (editor) {
+      container._syncToEditor = function() {
+        const fullCode = container._typedLines.map(line => line.join('')).join('\n');
+        editor.value = fullCode;
+      };
+    }
+    // -----------------------------------------------------------
+
+    // Focus tracking
+    container.addEventListener('click', () => {
+      document.querySelectorAll('.typing-container').forEach(c => c.classList.remove('active'));
+      container.classList.add('active');
+      container.focus();
+    });
+
+    // Updated keydown logic for multi-line typing
+    container.addEventListener('keydown', (e) => {
+      if (!container.classList.contains('active')) return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+      e.preventDefault();
+
+      const outputEls = container.querySelectorAll('.code-output');
+      const lines = Array.from(outputEls).map((el, idx) => ({
+        el,
+        text: (container.dataset.text || "").split('\n')[idx] || "",
+        typed: (container._typedLines && container._typedLines[idx]) || []
+      }));
+
+      if (!container._typedLines) {
+        container._typedLines = lines.map(line => [...line.typed]);
+      }
+
+      const idx = container._lineIndex || 0;
+
+      if (e.key === 'Backspace') {
+        if (container._typedLines[idx].length > 0) {
+          container._typedLines[idx].pop();
+        } else if (idx > 0) {
+          container._lineIndex--;
+        }
+      } else if (e.key === 'Enter') {
+        if (idx < lines.length - 1) {
+          container._lineIndex++;
+        }
+      } else if (e.key.length === 1 && container._typedLines[idx].length < lines[idx].text.length) {
+        container._typedLines[idx].push(e.key);
+      }
+
+      lines.forEach((line, i) => {
+        const typed = container._typedLines[i] || [];
+        line.el.innerHTML = line.text.split('').map((char, j) => {
+          const ch = typed[j];
+          if (ch == null) return `<span class="pending">${char}</span>`;
+          if (ch === char) return `<span class="correct ${syntaxClassPython(line.text, j, char)}">${char}</span>`;
+          return `<span class="wrong">${ch}</span>`;
+        }).join('');
+      });
+
+      // --- Sinkronisasi ke textarea editor setelah render ulang ---
+      if (typeof container._syncToEditor === 'function') {
+        container._syncToEditor();
+      }
+      // -----------------------------------------------------------
+    });
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.typing-container').forEach(container => setupTypingBox(container));
+  });
+
+  document.body.addEventListener('click', (e) => {
+    if (!e.target.closest('.typing-container')) {
+      document.querySelectorAll('.typing-container').forEach(c => c.classList.remove('active'));
+    }
+  });
+</script>
+</html>
+</script>
+<script>
+// Substep logic for all steps
+function resetSubsteps(section) {
+  const substeps = section.querySelectorAll('.substep-container .substep');
+  substeps.forEach((el, i) => {
+    el.style.display = (i === 0) ? '' : 'none';
+  });
+  const btn = section.querySelector('.next-substep-btn');
+  if (!btn) return;
+  // If only one substep, hide the button
+  if (substeps.length <= 1) {
+    btn.style.display = 'none';
+  } else {
+    btn.style.display = '';
+    btn.disabled = false;
+    btn.textContent = "Selanjutnya";
+  }
+  btn.dataset.substepIdx = "0";
+}
+document.addEventListener('DOMContentLoaded', function() {
+  // For each lesson-section with substep-container, wire up button
+  document.querySelectorAll('.lesson-section').forEach(section => {
+    const btn = section.querySelector('.next-substep-btn');
+    const substepContainer = section.querySelector('.substep-container');
+    if (!btn || !substepContainer) return;
+    btn.addEventListener('click', function() {
+      const substeps = substepContainer.querySelectorAll('.substep');
+      let idx = parseInt(btn.dataset.substepIdx || "0");
+      if (idx < substeps.length - 1) {
+        substeps[idx + 1].style.display = '';
+        substeps[idx].style.display = 'none';
+        btn.dataset.substepIdx = (idx + 1).toString();
+        // Hide button if last substep
+        if (idx + 1 === substeps.length - 1) {
+          btn.style.display = 'none';
+        }
+      }
+    });
+    // Initial state
+    resetSubsteps(section);
+  });
+  // On step change, reinitialize substeps
+  // (Handled by showStep)
+});
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const toggleBtn = document.getElementById('toggleSidebar');
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', toggleSidebar);
+    }
+
+    const togglePanel = document.getElementById('togglePanelUngu');
+    if (togglePanel) {
+      togglePanel.addEventListener('click', togglePanelUngu);
+    }
+  });
+</script>

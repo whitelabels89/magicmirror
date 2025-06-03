@@ -1,12 +1,10 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Turtle Playground</title>
-  <script src="https://cdn.jsdelivr.net/npm/js-turtle@1.0.4/build/turtle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/js-turtle@1.0.4/lib/turtle.min.js"></script>
   <style>
     body {
       font-family: 'Courier New', monospace;
@@ -43,30 +41,33 @@
     }
     #turtleCanvas {
       border: 2px solid #888;
+      background-color: white;
+      margin-bottom: 2rem;
     }
   </style>
 </head>
 <body>
   <h1>🐢 Turtle Playground</h1>
   <textarea id="editor">
-forward(100)
-left(90)
-forward(100)
-left(90)
-forward(100)
-left(90)
-forward(100)
+turtle.forward(100)
+turtle.left(90)
+turtle.forward(100)
+turtle.left(90)
+turtle.forward(100)
+turtle.left(90)
+turtle.forward(100)
   </textarea>
   <button id="runBtn">Jalankan Kode</button>
   <canvas id="turtleCanvas" width="500" height="500"></canvas>
 
   <script>
-    const turtle = new Turtle('turtleCanvas');
+    const canvas = document.getElementById("turtleCanvas");
+    const turtle = new Turtle(canvas);
+
     document.getElementById('runBtn').onclick = function () {
       turtle.reset();
-      const code = document.getElementById('editor').value;
       try {
-        eval("with(turtle){" + code + "}");
+        eval(document.getElementById('editor').value);
       } catch (e) {
         alert("Ada error di kode kamu:\n" + e.message);
       }
