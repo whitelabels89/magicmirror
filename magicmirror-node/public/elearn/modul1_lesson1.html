@@ -4,14 +4,28 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>M1 L1: Introduction to Python</title>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
   <style>
+    .outline-wrapper {
+      margin: 0 auto;
+      padding: 0;
+      max-width: 100vw;
+      box-sizing: border-box;
+      border: 2px solid #000;
+      border-radius: 12px;
+      overflow: hidden;
+      background-color: #ffffff;
+      color: #000000;
+    }
     /* Layout Flex Container */
+    .main-container,
     .page-container {
       display: flex;
-      height: 100%;
+      height: 100vh;
       overflow: hidden;
+      position: static;
     }
     .lesson-wrapper-outline {
       margin: 0;
@@ -27,28 +41,68 @@
       background-color: #20232a;
       padding: 1.5rem 1rem;
       color: white;
-      width: 200px;
+      min-width: 200px;
+      position: relative;
+      /* Remove fixed positioning for flex context */
+      overflow-y: auto;
       height: 100vh;
+      padding-bottom: 2rem;
+      z-index: 100;
       display: flex;
       flex-direction: column;
+      justify-content: space-between;
       gap: 1rem;
-      z-index: 2;
       flex-shrink: 0;
       transition: width 0.3s ease, padding 0.3s ease;
-      position: relative;
       border-top-left-radius: 10px;
       border-bottom-left-radius: 20px;
+      scrollbar-width: thin;
+      scrollbar-color: #888 #20232a;
+      min-width: max-content;
+      /* Remove fixed positioning if present */
+    }
+
+    /* Sidebar collapsed/hidden mode: maintain scroll and padding */
+    .sidebar.collapsed {
+      overflow-y: auto !important;
+      height: 100vh !important;
+      padding-bottom: 2rem !important;
+    }
+    .sidebar-footer {
+      margin-top: auto;
+      padding-top: 1rem;
+      border-top: 1px solid #444;
+    }
+    /* Dashboard button after toggleSidebar */
+    #toggleSidebar + a.step-button {
+      display: flex;
+      align-items: center;
+      justify-content: left;
+      white-space: nowrap;
+      font-size: 14px;
+      padding: -10px 10px;
+      margin-top: 3rem;
+    }
+
+    .sidebar.hidden a.step-button span:nth-child(2) {
+      display: none;
     }
     .step-button-container {
-      margin-top: 50px;
+      margin-top: 5px;
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: 0.75rem;
+      white-space: nowrap;
+    }
+    .sidebar .step-button span {
+      display: inline-block;
+      white-space: nowrap;
     }
     #toggleSidebar {
       position: absolute;
-      top: 12px;
-      right: 0;
+      top: 1rem;
+      left: 1rem;
+      z-index: 999;
       background-color: #4a90e2;
       color: white;
       border: none;
@@ -59,8 +113,11 @@
     }
     .sidebar.hidden {
       width: 40px;
-      overflow: hidden;
       padding: 1.5rem 0.5rem;
+      /* Keep scrollable even when hidden/collapsed */
+      overflow-y: auto !important;
+      height: 100vh !important;
+      padding-bottom: 2rem !important;
     }
     .sidebar button {
       background: transparent;
@@ -108,10 +165,10 @@
       flex-grow: 1;
       padding: 2rem;
       overflow-y: auto;
-      /* margin-left: 0; */
       margin: 0 !important;
       transition: transform 0.3s ease;
       border-radius: 20px;
+      /* Remove any large margin-left that was for fixed sidebar */
     }
     /* Sidebar hidden: panel-ungu stays static, lesson-content shifts */
     .sidebar.hidden ~ .panel-ungu {
@@ -173,8 +230,9 @@
       font-family: 'Segoe UI', sans-serif;
       margin: 0;
       padding: 0;
-      background: #f7f9fc;
+      background-color: #fff;
       color: #333;
+      overflow-x: hidden;
     }
     .header {
       background: #4a90e2;
@@ -247,6 +305,7 @@
     .code-output .str { color: #ce9178; }
     .code-output .default { color: #dcdcdc; }
     .code-output span.correct.str { color: #ce9178; }
+    .code-text span.orange { color: #D7BA7D; }
     code {
       color: #00d8ff;
     }
@@ -272,6 +331,7 @@
     .code-output span.correct.paren { color: #d4d4d4; }
     .code-output span.correct.str { color: #ce9178; }
     .code-output span.correct.default { color: #dcdcdc; }
+    .code-output span.correct.orange { color: #D7BA7D; }
     .code-output span.wrong { color: red; }
     .code-output span.pending { color: #888; opacity: 0.4; }
     /* Sidebar step-button links: remove underline and set color */
@@ -285,20 +345,24 @@
     @media (max-width: 768px) {
       .lesson-content {
         padding: 1rem;
-        /* margin-left: 0; */
       }
       .lesson-section {
         padding: 1rem;
       }
+      .main-container,
       .page-container {
         flex-direction: column;
+        height: auto;
       }
       .sidebar,
       .panel-ungu {
         width: 100vw;
-        left: 0 ;
+        left: 0;
         position: relative;
         height: auto;
+        min-width: 0 !important;
+        max-width: 100vw !important;
+        overflow-y: auto !important;
       }
       /* Optional: Reset transform for mobile if needed */
       .sidebar.hidden ~ .panel-ungu,
@@ -309,141 +373,832 @@
   </style>
 </head>
 <body>
-  <div class="lesson-wrapper-outline">
-    <div class="page-container">
+  <div class="outline-wrapper">
+    <div class="main-container">
     <div class="sidebar">
       <button id="toggleSidebar" onclick="toggleSidebar()">
         <span id="toggleIcon">⮜</span>
       </button>
-      <div class="step-button-container">
-        <a class="step-button" onclick="showStep(1)">
-          <span class="circle-icon">1</span>
-          <span>Step 1: Apakah Python itu?</span>
-        </a>
-        <a class="step-button" onclick="showStep(2)">
-          <span class="circle-icon">2</span>
-          <span>Step 2: Mengapa Python Populer?</span>
-        </a>
-        <a class="step-button" onclick="showStep(3)">
-          <span class="circle-icon">3</span>
-          <span>Step 3: Code Hello World</span>
-        </a>
-        <a class="step-button" onclick="showStep(4)">
-          <span class="circle-icon">4</span>
-          <span>Step 4: Menampilkan Hasil Penjumlahan</span>
-        </a>
-        <a class="step-button" onclick="showStep(5)">
-          <span class="circle-icon">5</span>
-          <span>Step 5: Mencetak Angka dan Teks</span>
-        </a>
-        <a class="step-button" onclick="showStep(6)">
-          <span class="circle-icon">6</span>
-          <span>Step 6: Melakukan Comment Pada Python</span>
-        </a>
-      </div>
-      <hr style="border: none; border-top: 1px solid #444; margin: 1rem 0;" />
-      <a class="step-button" href="/elearn/murid.html">
+      <a class="step-button" href="#" id="dashboardBtn">
         <span class="circle-icon">🏠</span>
         <span>Dashboard</span>
       </a>
+      <div class="step-button-container">
+        <a class="step-button" onclick="showStep(1)">
+          <span class="circle-icon">1</span>
+          <span>Selamat Datang di Dunia Python!</span>
+        </a>
+        <a class="step-button" onclick="showStep(2)">
+          <span class="circle-icon">2</span>
+          <span>Apa yang Bisa Dilakukan Python?</span>
+        </a>
+        <a class="step-button" onclick="showStep(3)">
+          <span class="circle-icon">3</span>
+          <span>Sebelum Mulai Menulis Kode</span>
+        </a>
+        <a class="step-button" onclick="showStep(4)">
+          <span class="circle-icon">4</span>
+          <span>Konsep Inti yang Harus Dipahami</span>
+        </a>
+        <a class="step-button" onclick="showStep(5)">
+          <span class="circle-icon">5</span>
+          <span>Apa Itu Algoritma?</span>
+        </a>
+        <a class="step-button" onclick="showStep(6)">
+          <span class="circle-icon">6</span>
+          <span>Ciri-Ciri Algoritma yang Baik</span>
+        </a>
+        <a class="step-button" onclick="showStep(7)">
+          <span class="circle-icon">7</span>
+          <span>Contoh Algoritma</span>
+        </a>
+        <a class="step-button" onclick="showStep(8)">
+          <span class="circle-icon">8</span>
+          <span>Apa yang Membuat Kode Bisa Dijalankan?</span>
+        </a>
+        <a class="step-button" onclick="showStep(9)">
+          <span class="circle-icon">9</span>
+          <span>Apa Itu Bahasa Pemrograman?</span>
+        </a>
+        <a class="step-button" onclick="showStep(10)">
+          <span class="circle-icon">10</span>
+          <span>Apa Itu Program?</span>
+        </a>
+        <a class="step-button" onclick="showStep(11)">
+          <span class="circle-icon">11</span>
+          <span>Cara Menulis Program yang Dimengerti Komputer</span>
+        </a>
+        <a class="step-button" onclick="showStep(12)">
+          <span class="circle-icon">12</span>
+          <span>Kesimpulan Dasar Python</span>
+        </a>
+        <a class="step-button" onclick="showStep(13)">
+          <span class="circle-icon">13</span>
+          <span>Tugas Ringan Seru</span>
+        </a>
+        <a class="step-button" onclick="showStep(14)">
+          <span class="circle-icon">14</span>
+          <span>Apa Itu Fungsi?</span>
+        </a>
+        <a class="step-button" onclick="showStep(15)">
+          <span class="circle-icon">15</span>
+          <span>Bentuk Dasar Fungsi Python</span>
+        </a>
+        <a class="step-button" onclick="showStep(16)">
+          <span class="circle-icon">16</span>
+          <span>Menampilkan Nilai dengan print()</span>
+        </a>
+        <a class="step-button" onclick="showStep(17)">
+          <span class="circle-icon">17</span>
+          <span>print() dengan Ekspresi</span>
+        </a>
+        <a class="step-button" onclick="showStep(18)">
+          <span class="circle-icon">18</span>
+          <span>Sintaks & Operasi Lanjutan</span>
+        </a>
+        <a class="step-button" onclick="showStep(19)">
+          <span class="circle-icon">19</span>
+          <span>Urutan Operasi</span>
+        </a>
+        <a class="step-button" onclick="showStep(20)">
+          <span class="circle-icon">20</span>
+          <span>Ringkasan & Hal Penting</span>
+        </a>
+        <a class="step-button" onclick="showStep(21)">
+          <span class="circle-icon">21</span>
+          <span>Tugas Gambar dengan Python</span>
+        </a>
+        <a class="step-button" onclick="showStep(22)">
+          <span class="circle-icon">22</span>
+          <span>Quiz & Q&amp;A</span>
+        </a>
+        <a class="step-button" onclick="showStep(23)">
+          <span class="circle-icon">23</span>
+          <span>Quiz & Q&amp;A - Part 2 (Jupyter)</span>
+        </a>
+      </div>
+      <div class="sidebar-footer">
+        <!-- Dashboard button moved to below toggleSidebar -->
+      </div>
     </div>
     <div class="panel-ungu">
       <h2>👾 Python Interaktif</h2>
       <p>Ketik dan jalankan kode langsung di sini!</p>
       <div id="panel-editor" style="height: 200px; width: 100%; border: 1px solid #ccc;">print("Halo Dunia!")</div>
-      <button onclick="runPanelCode()" style="margin-top: 10px;">▶️ Jalankan Kode</button>
-      <pre id="panel-output" style="background:#111;color:#0f0;padding:10px;margin-top:10px;min-height:50px;"># Output akan muncul di sini...</pre>
+      <button onclick="runPanelCode()">Jalankan</button>
+      <pre id="panel-output" class="output-box"></pre>
     </div>
     <main class="lesson-content">
     <section class="lesson-section">
-      <h1>Module 1 - Lesson 1: Introduction to the Python Programming Language</h1>
-      <p class="subtitle">Yuk kenalan dengan Python, bahasa pemrograman paling populer di dunia!</p>
+      <h1>Modul 1 - Lesson 1: Kenalan dengan Bahasa Pemrograman Python</h1>
+      <p class="subtitle">Ayo mulai petualangan codingmu bersama Python!</p>
     </section>
     <div class="lesson-modular-container">
       <!-- STEP 1 -->
       <div id="step-1-container">
         <section class="lesson-section" id="step-1">
-          <h2>Step 1: Apakah Python itu?</h2>
-          <p><strong>Python</strong> adalah bahasa pemrograman tingkat tinggi yang mudah dipelajari dan digunakan. Python pertama kali diciptakan oleh <b>Guido van Rossum</b> pada tahun 1991.</p>
-          <ul>
-            <li>Python digunakan untuk membuat berbagai aplikasi, mulai dari website, game, hingga kecerdasan buatan (AI).</li>
-            <li>Python terkenal karena sintaksnya yang sederhana dan mudah dibaca, sehingga cocok untuk pemula maupun profesional.</li>
-          </ul>
-          <p><em>Contoh perusahaan yang menggunakan Python: Google, Instagram, Netflix, dan Spotify.</em></p>
+          <h2>Step 1: Kenapa Kita Menggunakan Python?</h2>
+          <div class="substep-container">
+            <div class="substep">
+              <p>Pernahkah kamu bertanya-tanya, kenapa banyak orang suka belajar Python? Python adalah bahasa pemrograman yang mudah dibaca dan dipelajari, serta digunakan di seluruh dunia untuk membuat banyak hal keren!</p>
+            </div>
+          </div>
+          <button class="next-substep-btn" style="margin-top:16px; display:none;">Selanjutnya</button>
         </section>
       </div>
       <!-- STEP 2 -->
       <div id="step-2-container" style="display:none">
         <section class="lesson-section" id="step-2">
-          <h2>Step 2: Mengapa Python Populer?</h2>
-          <ul>
-            <li><b>Mudah Dipelajari:</b> Sintaks Python mirip bahasa manusia, sehingga mudah dimengerti.</li>
-            <li><b>Gratis & Open Source:</b> Python dapat digunakan tanpa biaya dan bisa dikembangkan siapa saja.</li>
-            <li><b>Komunitas Besar:</b> Banyak tutorial, dokumentasi, dan forum bantuan.</li>
-            <li><b>Multi-platform:</b> Bisa dijalankan di Windows, Mac, maupun Linux.</li>
-            <li><b>Banyak Library:</b> Tersedia pustaka (library) untuk data science, web, AI, dan lainnya.</li>
-          </ul>
-          <p><strong>Kapan Python digunakan?</strong><br>
-          <ul>
-            <li>Data Science & Analisis Data</li>
-            <li>Kecerdasan Buatan (AI & Machine Learning)</li>
-            <li>Pembuatan Website (misal: Instagram)</li>
-            <li>Otomasi tugas sehari-hari</li>
-          </ul>
-          </p>
+          <h2>Step 2: Apa Saja yang Bisa Dilakukan Python?</h2>
+          <div class="substep-container">
+            <div class="substep">
+              <p>Python sangat serbaguna! Banyak hal keren bisa kamu buat dengan Python, seperti:</p>
+            </div>
+            <div class="substep" style="display:none;">
+              <ul>
+                <li><b>Game development</b>: membuat logika permainan seru.</li>
+                <li><b>Otomatisasi proses</b> seperti:</li>
+                <ul>
+                  <li>Analisis dan pemrosesan pesan</li>
+                  <li>Generasi laporan otomatis</li>
+                  <li>Perhitungan berat dan kompleks</li>
+                </ul>
+              </ul>
+            </div>
+            <div class="substep" style="display:none;">
+              <ul>
+                <li><b>Pemrograman mikrokontroler</b>, contohnya:</li>
+                <ul>
+                  <li>Perangkat jaringan</li>
+                  <li>Peralatan rumah pintar (smart home)</li>
+                  <li>Robotika!</li>
+                </ul>
+              </ul>
+            </div>
+          </div>
+          <button class="next-substep-btn" style="margin-top:16px;">Selanjutnya</button>
         </section>
       </div>
       <!-- STEP 3 -->
-      <div id="step3" class="step-section" style="display: none;">
+      <div id="step-3-container" style="display:none">
         <section class="lesson-section" id="step-3">
-          <h2>Step 3: Code Hello World</h2>
-          <p>Yuk, coba menulis program Python pertama kita! Program paling sederhana biasanya mencetak tulisan <strong>Hello World</strong> ke layar.</p>
-          <p>Ketik kode berikut di editor Python:</p>
-          <div id="editor" style="height: 100px; width: 100%; border: 1px solid #ccc;">print("Hello World")</div>
-          <button onclick="runPythonCode()" style="margin-top: 10px;">▶️ Jalankan Kode</button>
-          <pre id="output" style="background:#111;color:#0f0;padding:10px;margin-top:10px;min-height:50px;"># Output akan muncul di sini...</pre>
-          <p><b>Penjelasan:</b> Fungsi <code>print()</code> digunakan untuk menampilkan teks ke layar.</p>
+          <h2>Step 3: Sebelum Mulai Menulis Kode</h2>
+          <div class="substep-container">
+            <div class="substep">
+              <p>Sebelum kamu mulai menulis kode, penting untuk memahami beberapa hal dasar yang menjadi pondasi dalam dunia pemrograman.</p>
+            </div>
+            <div class="substep" style="display:none;">
+              <p>Berikut adalah hal-hal penting yang perlu kamu kenal:</p>
+              <ul>
+                <li><b>Apa itu algoritma?</b> Urutan langkah-langkah untuk menyelesaikan masalah.</li>
+                <li><b>Apa itu bahasa pemrograman?</b> Bahasa khusus untuk memberi instruksi ke komputer.</li>
+                <li><b>Apa itu program?</b> Kumpulan instruksi yang ditulis dalam bahasa pemrograman.</li>
+                <li><b>Kenapa urutan penting?</b> Komputer mengikuti langkah secara persis sesuai urutan.</li>
+                <li><b>Apa itu sintaks?</b> Aturan penulisan kode agar bisa dibaca oleh komputer.</li>
+              </ul>
+            </div>
+            <div class="substep" style="display:none;">
+              <p>Dengan mengenal konsep-konsep dasar ini, kamu akan lebih mudah membuat program yang benar dan bisa dijalankan dengan lancar.</p>
+            </div>
+          </div>
+          <button class="next-substep-btn" style="margin-top:16px;">Selanjutnya</button>
         </section>
       </div>
       <!-- STEP 4 -->
-      <div id="step4" class="step-section" style="display: none;">
+      <div id="step-4-container" style="display:none">
         <section class="lesson-section" id="step-4">
-          <h2>Step 4: Menampilkan Hasil Penjumlahan</h2>
-          <p>Selain teks, Python bisa mencetak hasil operasi matematika. Contohnya:</p>
-          <pre><code>print(5+1)</code></pre>
-          <p>Ketik kode di atas dan jalankan. Apa hasilnya?</p>
-          <div class="python-editor-container" style="margin-top: 12px;">
-            <textarea class="python-editor hide-editor-only" rows="2" style="width:100%; font-family:'Courier New', monospace;">print(5+1)</textarea>
-            <button onclick="runInlinePython(this)" style="margin-top:6px;">▶️ Jalankan Kode</button>
-            <pre class="python-output" style="background:#111; color:#4caf50; padding:10px; min-height:30px;"></pre>
+          <h2>Step 4: Konsep Inti yang Harus Dipahami</h2>
+          <div class="substep-container">
+            <div class="substep">
+              <p>Sebelum lanjut lebih jauh, yuk kita kenali 3 konsep penting dalam dunia pemrograman:</p>
+            </div>
+            <div class="substep" style="display:none;">
+              <p><b>1. Apa itu algoritma?</b><br>
+              Algoritma adalah langkah-langkah berurutan untuk menyelesaikan suatu masalah.</p>
+              <p>Contoh sederhana: membuat mie instan!</p>
+              <ul>
+                <li>Panaskan air</li>
+                <li>Masukkan mie ke dalam air</li>
+                <li>Tunggu 3 menit</li>
+                <li>Tambahkan bumbu</li>
+                <li>Aduk dan sajikan</li>
+              </ul>
+            </div>
+            <div class="substep" style="display:none;">
+              <p><b>2. Apa itu bahasa pemrograman?</b><br>
+              Bahasa pemrograman adalah cara kita memberi instruksi ke komputer dalam bentuk kode.</p>
+              <p>Contoh: kita bisa menulis <code>print("Halo")</code> untuk menyuruh komputer menampilkan teks.</p>
+            </div>
+            <div class="substep" style="display:none;">
+              <p><b>3. Apa itu program?</b><br>
+              Program adalah kumpulan algoritma yang ditulis menggunakan bahasa pemrograman.</p>
+              <p>Contoh: Jika kamu gabungkan langkah-langkah membuat mie dan menulisnya sebagai instruksi di komputer, itu namanya program.</p>
+            </div>
           </div>
-          <p><b>Penjelasan:</b> Python akan menghitung 5 + 1, lalu menampilkan hasilnya (6).</p>
+          <button class="next-substep-btn" style="margin-top:16px;">Selanjutnya</button>
         </section>
       </div>
       <!-- STEP 5 -->
-      <div id="step5" class="step-section" style="display: none;">
+      <div id="step-5-container" style="display:none">
         <section class="lesson-section" id="step-5">
-          <h2>Step 5: Mencetak Angka dan Teks</h2>
-          <p>Python bisa mencetak hasil operasi matematika dan juga teks. Contoh:</p>
-          <pre><code>print(10*2+5)</code></pre>
-          <pre><code>print("Academy DQLab")</code></pre>
-          <div class="python-editor-container" style="margin-top: 12px;">
-            <textarea class="python-editor hide-editor-only" rows="3" style="width:100%; font-family:'Courier New', monospace;">print(10*2+5)
-print("Academy DQLab")</textarea>
-            <button onclick="runInlinePython(this)" style="margin-top:6px;">▶️ Jalankan Kode</button>
-            <pre class="python-output" style="background:#111; color:#4caf50; padding:10px; min-height:30px;"></pre>
+          <h2>Step 5: Apa Itu Algoritma?</h2>
+          <div class="substep-container">
+            <div class="substep">
+              <p>Algoritma adalah urutan langkah-langkah yang dirancang untuk mencapai suatu tujuan.</p>
+            </div>
+            <div class="substep" style="display:none;">
+              <p>Algoritma sangat penting dalam pemrograman karena membantu kita menyusun solusi dengan logika yang jelas dan teratur.</p>
+            </div>
+            <div class="substep" style="display:none;">
+              <p><b>Contoh algoritma sehari-hari:</b></p>
+              <p><i>Algoritma menyikat gigi:</i></p>
+              <ul>
+                <li>Ambil sikat gigi</li>
+                <li>Oleskan pasta gigi</li>
+                <li>Basahi dengan air</li>
+                <li>Sikat gigi selama 2 menit</li>
+                <li>Berkumur dan bersihkan sikat</li>
+              </ul>
+              <p>Langkah-langkah tersebut harus dilakukan berurutan agar hasilnya maksimal. Nah, itulah yang disebut algoritma!</p>
+            </div>
           </div>
-          <p><b>Penjelasan:</b> Baris pertama menghitung 10 x 2 + 5 = 25, lalu mencetaknya. Baris kedua mencetak teks "Academy DQLab".</p>
+          <button class="next-substep-btn" style="margin-top:16px;">Selanjutnya</button>
         </section>
       </div>
       <!-- STEP 6 -->
-      <div id="step6" class="step-section" style="display: none;">
+      <div id="step-6-container" style="display:none">
         <section class="lesson-section" id="step-6">
-          <h2>Step 6: Melakukan Comment Pada Python</h2>
-          <p>Comment (komentar) adalah baris yang tidak dijalankan, hanya sebagai catatan. Di Python, comment diawali dengan tanda pagar (<code>#</code>).</p>
-          <pre><code># mencetak Hello World
-print("Hello World")</code></pre>
-          <p>Baris pertama adalah komentar, tidak akan dieksekusi. Baris kedua akan dijalankan oleh Python.</p>
+          <h2>Step 6: Ciri-Ciri Algoritma yang Baik</h2>
+          <div class="substep-container">
+            <div class="substep">
+              <p>Agar bisa dijalankan dengan benar, algoritma harus disusun dengan baik. Ini dia tiga ciri pentingnya:</p>
+            </div>
+            <div class="substep" style="display:none;">
+              <ul>
+                <li><b>Semua langkah penting disertakan</b><br>
+                Kenapa penting? Karena komputer hanya menjalankan apa yang ditulis. Kalau ada langkah yang lupa ditulis, hasilnya bisa salah.</li>
+              </ul>
+            </div>
+            <div class="substep" style="display:none;">
+              <ul>
+                <li><b>Urutan langkah harus benar</b><br>
+                Algoritma harus disusun sesuai urutan logis. Misalnya, kamu tidak bisa aduk mie sebelum dimasukkan ke air, kan?</li>
+              </ul>
+            </div>
+            <div class="substep" style="display:none;">
+              <ul>
+                <li><b>Instruksi harus jelas dan tidak membingungkan</b><br>
+                Komputer tidak bisa menebak maksudmu. Semua perintah harus tegas dan spesifik.</li>
+              </ul>
+            </div>
+          </div>
+          <button class="next-substep-btn" style="margin-top:16px;">Selanjutnya</button>
+        </section>
+      </div>
+      <!-- STEP 7 -->
+      <div id="step-7-container" style="display:none">
+        <section class="lesson-section" id="step-7">
+          <h2>Step 7: Contoh Algoritma Sederhana</h2>
+          <div class="substep-container">
+            <div class="substep">
+              <p>Yuk kita lihat contoh algoritma yang bisa dijalankan oleh komputer:</p>
+              <ol>
+                <li>Kali 3 dengan 12</li>
+                <li>Kali 10 dengan 45</li>
+                <li>Jumlahkan hasil keduanya</li>
+                <li>Tampilkan teks “Total due amount” di layar</li>
+              </ol>
+            </div>
+            <div class="substep" style="display:none;">
+              <p>Komputer bisa menjalankan langkah-langkah ini satu per satu. Coba tuliskan perintahnya di panel ungu (Python Interaktif)!</p>
+              <!-- Typing Area for Substep 7.2 -->
+              <div id="codeContainerSub7" class="typing-container" tabindex="0" style="margin-top:24px; margin-bottom:8px;" data-text="angka1 = 3 * 12&#10;angka2 = 10 * 45&#10;total = angka1 + angka2&#10;print('Total due amount:', total)">
+                <div id="progressBarSub7" style="height: 6px; width: 100%; background:#222; border-radius: 3px; margin-bottom:8px; overflow:hidden;">
+                  <div style="height:100%; width:0%; background:#ffce00; transition:width 0.2s;" id="progressFillSub7"></div>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:2px;">
+                  <div class="typing-line"><span class="line-number">1</span><span class="code-output" id="typedSub7_0"></span></div>
+                  <div class="typing-line"><span class="line-number">2</span><span class="code-output" id="typedSub7_1"></span></div>
+                  <div class="typing-line"><span class="line-number">3</span><span class="code-output" id="typedSub7_2"></span></div>
+                  <div class="typing-line"><span class="line-number">4</span><span class="code-output" id="typedSub7_3"></span></div>
+                </div>
+              </div>
+              <div style="margin-bottom:8px;">
+                <textarea id="editorSub7" style="width:100%;min-height:90px;resize:vertical;font-family:'Courier New',monospace;font-size:15px;background:#23272e;color:#dcdcdc;border-radius:6px;padding:8px 10px;border:1px solid #444;" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" readonly></textarea>
+              </div>
+              <button id="runSub7Btn" style="margin-bottom:6px;">Jalankan Kode Ini</button>
+              <pre id="outputSub7" class="output-box" style="margin-top:4px;"></pre>
+            </div>
+          </div>
+          <button class="next-substep-btn" style="margin-top:16px;">Selanjutnya</button>
+        </section>
+      </div>
+
+      <!-- STEP 8 -->
+      <div id="step-8-container" style="display:none">
+        <section class="lesson-section" id="step-8">
+          <h2>Step 8: Apa yang Membuat Kode Bisa Dijalankan?</h2>
+          <div class="substep-container">
+            <div class="substep">
+              <p>Agar kode bisa dijalankan oleh komputer, ada beberapa aturan penting yang harus kita pahami:</p>
+              <ul>
+                <li><b>Perintah harus ditulis dalam satu bahasa yang dimengerti.</b><br>
+                  Misalnya, kita pakai Python. Jangan campur dengan bahasa lain seperti Inggris biasa ya.</li>
+                <li><b>Setiap perintah harus ditulis secara terpisah.</b><br>
+                  Artinya, satu baris satu perintah supaya komputer bisa membaca dengan jelas.</li>
+                <li><b>Kata yang bukan perintah harus dibedakan.</b><br>
+                  Misalnya komentar atau catatan, itu harus ditulis khusus supaya tidak disangka kode.</li>
+              </ul>
+            </div>
+            <div class="substep" style="display:none;">
+              <p>Contoh perintah Python yang benar:</p>
+              <pre><code># Ini komentar, bukan perintah
+print("Halo!")
+print("Selamat datang di Python")</code></pre>
+            </div>
+          </div>
+          <button class="next-substep-btn" style="margin-top:16px;">Selanjutnya</button>
+        </section>
+      </div>
+      <!-- STEP 9 -->
+      <div id="step-9-container" style="display:none">
+        <section class="lesson-section" id="step-9">
+          <h2>Step 9: Apa Itu Bahasa Pemrograman?</h2>
+          <div class="substep-container">
+            <div class="substep">
+              <p>Bahasa pemrograman adalah bahasa khusus yang digunakan untuk berkomunikasi dengan mesin (komputer).</p>
+            </div>
+            <div class="substep" style="display:none;">
+              <p>Dalam bahasa pemrograman, kita menggunakan serangkaian perintah yang masing-masing memiliki makna yang spesifik dan jelas.</p>
+              <p>Contohnya seperti ini:</p>
+              <pre><code>print("Halo!")</code></pre>
+              <p>Perintah di atas berarti: tampilkan tulisan “Halo!” di layar.</p>
+            </div>
+          </div>
+          <button class="next-substep-btn" style="margin-top:16px;">Selanjutnya</button>
+        </section>
+      </div>
+      <!-- STEP 10 -->
+      <div id="step-10-container" style="display:none">
+        <section class="lesson-section" id="step-10">
+          <h2>Step 10: Apa Itu Program?</h2>
+          <div class="substep-container">
+            <div class="substep">
+              <p>Sebuah <b>program</b> adalah kumpulan langkah-langkah (algoritma) yang ditulis dalam bahasa pemrograman.</p>
+            </div>
+            <div class="substep" style="display:none;">
+              <p>Program berisi instruksi yang bisa dimengerti dan dijalankan oleh komputer.</p>
+              <p>Contohnya, saat kamu menulis:</p>
+              <pre><code>print("Selamat belajar coding!")</code></pre>
+              <p>Itu artinya kamu sedang menjalankan program sederhana!</p>
+            </div>
+          </div>
+          <button class="next-substep-btn" style="margin-top:16px;">Selanjutnya</button>
+        </section>
+      </div>
+      <!-- STEP 11 -->
+      <div id="step-11-container" style="display:none">
+        <section class="lesson-section" id="step-11">
+          <h2>Step 11: Cara Menulis Program yang Dipahami Komputer</h2>
+          <div class="substep-container">
+            <div class="substep">
+              <p>Ada tiga aturan utama agar programmu bisa dimengerti dan dijalankan dengan baik oleh komputer:</p>
+              <ol>
+                <li><b>Mulai dengan benar</b><br> Awali program dengan logika dasar yang jelas dan sesuai.</li>
+                <li><b>Ikuti urutan yang tepat</b><br> Tuliskan instruksi secara berurutan agar komputer bisa mengikuti langkah-langkahnya.</li>
+                <li><b>Gunakan gaya penulisan kode yang rapi</b><br> Format kode dengan rapi agar mudah dibaca oleh manusia (dan tidak bikin bingung!).</li>
+              </ol>
+            </div>
+            <div class="substep" style="display:none;">
+              <p>Contoh kode yang rapi dan benar urutannya:</p>
+              <pre><code># Inisialisasi
+nama = "Nina"
+
+# Menjalankan logika
+print("Halo, " + nama)</code></pre>
+            </div>
+          </div>
+          <button class="next-substep-btn" style="margin-top:16px;">Selanjutnya</button>
+        </section>
+      </div>
+      <!-- STEP 12 -->
+      <div id="step-12-container" style="display:none">
+        <section class="lesson-section" id="step-12">
+          <h2>Step 12: Kesimpulan dari Pelajaran Hari Ini</h2>
+          <div class="substep-container">
+            <div class="substep">
+              <p>Python adalah bahasa pemrograman yang sangat populer dan digunakan di berbagai bidang, seperti teknologi, data, robotik, dan edukasi.</p>
+            </div>
+            <div class="substep" style="display:none;">
+              <p>Ingat, sebuah <b>program</b> = <b>algoritma</b> + <b>bahasa pemrograman</b>.</p>
+              <p>Kamu harus menuliskan algoritma dalam bahasa yang dimengerti komputer, yaitu Python!</p>
+            </div>
+            <div class="substep" style="display:none;">
+              <p>Agar programmu valid dan efektif, ikuti prinsip dasar seperti urutan logika, penamaan yang benar, dan gaya penulisan kode yang rapi dan konsisten.</p>
+            </div>
+          </div>
+          <button class="next-substep-btn" style="margin-top:16px;">Selanjutnya</button>
+        </section>
+      </div>
+      <!-- STEP 13 -->
+      <div id="step-13-container" style="display:none">
+        <section class="lesson-section" id="step-13">
+          <h2>Step 13: Tugas Seru di Platform!</h2>
+          <div class="substep-container">
+            <div class="substep">
+              <p>🧠 Saatnya refreshing otak! Yuk kita kerjakan tantangan seru berikut ini di platform coding kamu.</p>
+              <p style="margin-top: 1rem;">🎨 <b>Desain Tantangan:</b></p>
+              <ul>
+                <li>Buat program Python yang menampilkan teks ucapan kreatif untuk temanmu.</li>
+                <li>Tambahkan emoji favoritmu di dalam pesan!</li>
+                <li>Cetak lebih dari satu baris teks dengan <code>print()</code>.</li>
+              </ul>
+              <div style="margin-top:1rem; text-align:center;">
+                <img src="/elearn/assets/fun-task-preview.png" alt="Fun Task Preview" style="max-width:100%; border-radius:12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" />
+              </div>
+              <p style="margin-top:1rem;">📌 Jangan lupa klik <b>“Jalankan”</b> untuk melihat hasilnya ya!</p>
+            </div>
+          </div>
+          <button class="next-substep-btn" style="margin-top:16px; display:none;">Selanjutnya</button>
+        </section>
+      </div>
+      <!-- STEP 14 -->
+      <div id="step-14-container" style="display:none">
+        <section class="lesson-section" id="step-14">
+          <h2>Step 14: Apa Itu Fungsi?</h2>
+          <div class="substep-container">
+            <div class="substep">
+              <p>Fungsi adalah sebuah algoritma yang ditulis dalam bahasa pemrograman dan diberi nama khusus agar bisa digunakan kapan saja.</p>
+            </div>
+            <div class="substep" style="display:none;">
+              <p>Fungsi digunakan untuk melakukan tugas tertentu. Saat dipanggil, fungsi akan menjalankan semua langkah yang sudah ditulis di dalamnya.</p>
+              <pre><code>def sapa():
+  print("Halo, teman!")
+  print("Selamat datang!")</code></pre>
+              <p>Untuk menjalankan fungsi ini, cukup panggil namanya:</p>
+              <pre><code>sapa()</code></pre>
+            </div>
+          </div>
+          <button class="next-substep-btn" style="margin-top:16px;">Selanjutnya</button>
+        </section>
+      </div>
+      <!-- STEP 15 -->
+      <div id="step-15-container" style="display:none">
+        <section class="lesson-section" id="step-15">
+          <h2>Step 15: Fungsi <code>print()</code> di Python</h2>
+          <div class="substep-container">
+            <div class="substep">
+              <p><code>print()</code> adalah <b>fungsi bawaan</b> di Python.</p>
+              <p>Fungsi ini digunakan untuk menampilkan nilai (argument) yang dituliskan di dalam tanda kurungnya ke layar.</p>
+            </div>
+            <div class="substep" style="display:none;">
+              <p><b>Contoh 1:</b> Menampilkan satu kalimat</p>
+              <pre><code>print('Hello, hackers!')</code></pre>
+              <p><b>Output:</b></p>
+              <pre><code>Hello, hackers!</code></pre>
+            </div>
+            <div class="substep" style="display:none;">
+              <p><b>Contoh 2:</b> Menampilkan beberapa kata sekaligus</p>
+              <pre><code>print('Hello', 'hackers')</code></pre>
+              <p><b>Output:</b></p>
+              <pre><code>Hello hackers</code></pre>
+              <p>Catatan: Python otomatis memberi spasi antar kata jika dipisah dengan koma.</p>
+            </div>
+          </div>
+          <button class="next-substep-btn" style="margin-top:16px;">Selanjutnya</button>
+        </section>
+      </div>
+      <!-- STEP 16 -->
+      <div id="step-16-container" style="display:none">
+        <section class="lesson-section" id="step-16">
+          <h2>Step 16: Menampilkan Nilai dengan <code>print()</code></h2>
+          <div class="substep-container">
+            <div class="substep">
+              <p>Fungsi <code>print()</code> bisa digunakan untuk menampilkan teks biasa atau hasil dari perhitungan ke layar.</p>
+              <p>Contoh sederhana:</p>
+              <pre><code>print('My age is: 14')
+print(1, 4)</code></pre>
+              <p><b>Output:</b></p>
+              <pre><code>My age is: 14
+1 4</code></pre>
+            </div>
+            <div class="substep" style="display:none;">
+              <p><b>print()</b> juga bisa dipakai untuk menampilkan hasil perhitungan langsung:</p>
+              <pre><code>print(2*7)     # Output: 14   (Perkalian)
+print(10+4)    # Output: 14   (Penjumlahan)
+print(20-6)    # Output: 14   (Pengurangan)
+print(28/2)    # Output: 14.0 (Pembagian)</code></pre>
+              <p><b>Output:</b></p>
+              <pre><code>14
+14
+14
+14.0</code></pre>
+              <p>⚠️ Catatan: Pembagian selalu menghasilkan angka desimal (float), meskipun hasilnya terlihat bulat.</p>
+            </div>
+          </div>
+          <button class="next-substep-btn" style="margin-top:16px;">Selanjutnya</button>
+        </section>
+      </div>
+      <!-- STEP 17 -->
+      <div id="step-17-container" style="display:none">
+        <section class="lesson-section" id="step-17">
+          <h2>Step 17: Menggunakan <code>print()</code> dengan Ekspresi</h2>
+          <div class="substep-container">
+            <div class="substep">
+              <p>Kita bisa menggabungkan teks dan hasil perhitungan dalam satu perintah <code>print()</code>.</p>
+              <p>Contoh:</p>
+              <pre><code>print('Total:', 150*3)</code></pre>
+              <p><b>Output:</b></p>
+              <pre><code>Total: 450</code></pre>
+              <p>🎯 Artinya: Python akan menghitung <code>150*3</code> dulu, lalu menampilkannya setelah teks.</p>
+            </div>
+          </div>
+          <button class="next-substep-btn" style="margin-top:16px; display:none;">Selanjutnya</button>
+        </section>
+      </div>
+      <!-- STEP 18 -->
+      <div id="step-18-container" style="display:none">
+        <section class="lesson-section" id="step-18">
+          <h2>Step 18: Sintaks Fungsi dan Operasi Lanjutan</h2>
+          <div class="substep-container">
+            <div class="substep">
+              <p>Selain operasi dasar, Python punya beberapa operator lain yang penting:</p>
+              <pre><code>print(14 % 2)   # Sisa bagi (modulus), hasil: 0
+print(14 // 3)  # Pembagian bulat, hasil: 4
+print(3 ** 3)   # Pangkat, hasil: 27</code></pre>
+              <p><b>Output:</b></p>
+              <pre><code>0
+4
+27</code></pre>
+              <p>🧠 Ingat ya:
+                <ul>
+                  <li><code>%</code> = sisa hasil bagi</li>
+                  <li><code>//</code> = bagi bulat (tanpa desimal)</li>
+                  <li><code>**</code> = pangkat (exponent)</li>
+                </ul>
+              </p>
+            </div>
+          </div>
+          <button class="next-substep-btn" style="margin-top:16px; display:none;">Selanjutnya</button>
+        </section>
+      </div>
+      <!-- STEP 19 -->
+      <div id="step-19-container" style="display:none">
+        <section class="lesson-section" id="step-19">
+          <h2>Step 19: Urutan Operasi (Order of Operations)</h2>
+          <div class="substep-container">
+            <div class="substep">
+              <p>Dalam Python, seperti matematika biasa, ada aturan urutan dalam menjalankan operasi.</p>
+              <p>Contoh tanpa tanda kurung:</p>
+              <pre><code>print(1 + 1 * 7)</code></pre>
+              <p><b>Output:</b></p>
+              <pre><code>8</code></pre>
+              <p>Kenapa hasilnya 8? Karena <code>1 * 7</code> dihitung dulu (karena perkalian lebih kuat), baru ditambah 1.</p>
+            </div>
+            <div class="substep" style="display:none;">
+              <p>Contoh dengan tanda kurung:</p>
+              <pre><code>print((1 + 1) * 7)</code></pre>
+              <p><b>Output:</b></p>
+              <pre><code>14</code></pre>
+              <p>Karena ada tanda kurung, Python akan hitung <code>1 + 1</code> dulu, hasilnya 2. Baru dikali 7.</p>
+              <p>🧠 Gunakan tanda kurung jika ingin mengatur urutan perhitungan secara manual!</p>
+            </div>
+          </div>
+          <button class="next-substep-btn" style="margin-top:16px;">Selanjutnya</button>
+        </section>
+      </div>
+      <!-- STEP 20 -->
+      <div id="step-20-container" style="display:none">
+        <section class="lesson-section" id="step-20">
+          <h2>Step 20: Ringkasan & Hal Penting yang Harus Diingat</h2>
+          <div class="substep-container">
+            <div class="substep">
+              <p>📌 Yuk kita ingat kembali beberapa hal penting tentang fungsi di Python:</p>
+              <ul>
+                <li>✅ <b>Fungsi</b> adalah algoritma yang punya nama unik dan ditulis dalam bahasa pemrograman.</li>
+                <li>✅ Beberapa fungsi menerima masukan yang disebut <b>argumen</b>.</li>
+                <li>✅ <code>print()</code> adalah contoh fungsi bawaan Python untuk menampilkan nilai dari argumen ke layar.</li>
+              </ul>
+              <p>Contoh singkat:</p>
+              <pre><code>print("Selamat belajar!")</code></pre>
+              <p>Hasilnya akan menampilkan teks: <b>Selamat belajar!</b></p>
+            </div>
+          </div>
+          <button class="next-substep-btn" style="margin-top:16px; display:none;">Selanjutnya</button>
+        </section>
+      </div>
+      <!-- STEP 21 -->
+      <div id="step-21-container" style="display:none">
+        <section class="lesson-section" id="step-21">
+          <h2>Step 21: Tugas Seru - Gambar dengan Python!</h2>
+          <div class="substep-container">
+            <div class="substep">
+              <p>🧠 Saatnya mencoba sesuatu yang baru dan menyenangkan! Di Python, kita bisa menggambar bentuk menggunakan modul <code>turtle</code>.</p>
+              <p>Ketik dan jalankan kode berikut di editor Python interaktif:</p>
+              <pre><code>import turtle
+
+kura = turtle.Turtle()
+kura.color("purple")
+for i in range(36):
+    kura.forward(100)
+    kura.left(170)
+
+turtle.done()</code></pre>
+              <p>🎨 Program ini akan menggambar pola seperti bunga yang keren! Kamu bisa mengganti warna atau jumlah putarannya sesukamu.</p>
+            </div>
+          </div>
+          <button class="next-substep-btn" style="margin-top:16px; display:none;">Selanjutnya</button>
+        </section>
+      </div>
+      <!-- STEP 22 -->
+      <div id="step-22-container" style="display:none">
+        <section class="lesson-section" id="step-22">
+          <h2>Step 22: Quiz & Q&amp;A</h2>
+          <div class="substep-container">
+            <!-- Substep 1 -->
+            <div class="substep">
+              <p><b>1. What is Python?</b></p>
+              <label><input type="radio" name="q1"> a) A type of food</label><br/>
+              <label><input type="radio" name="q1"> b) A programming language</label><br/>
+              <label><input type="radio" name="q1"> c) A video game</label><br/>
+              <label><input type="radio" name="q1"> d) A sports activity</label>
+            </div>
+            <!-- Substep 2 -->
+            <div class="substep" style="display:none;">
+              <p><b>2. Why do people use Python?</b><br/><i>Name at least two things Python can be used for.</i></p>
+              <textarea rows="3" style="width:100%;" placeholder="Your answer here..."></textarea>
+            </div>
+            <!-- Substep 3 -->
+            <div class="substep" style="display:none;">
+              <p><b>3. What is an algorithm?</b><br/><i>Can you describe what an algorithm is in your own words?</i></p>
+              <textarea rows="3" style="width:100%;" placeholder="Your answer here..."></textarea>
+            </div>
+            <!-- Substep 4 -->
+            <div class="substep" style="display:none;">
+              <p><b>4. True or False:</b></p>
+              <label><input type="checkbox"> A computer can understand instructions that are written unclearly.</label><br/>
+              <label><input type="checkbox"> An algorithm must have the correct order of steps.</label>
+            </div>
+            <!-- Substep 5 -->
+            <div class="substep" style="display:none;">
+              <p><b>5. What is a programming language?</b><br/><i>Why do we need programming languages?</i></p>
+              <textarea rows="3" style="width:100%;" placeholder="Your answer here..."></textarea>
+            </div>
+            <!-- Substep 6 -->
+            <div class="substep" style="display:none;">
+              <p><b>6. What is a program?</b><br/><i>How is a program different from an algorithm?</i></p>
+              <textarea rows="3" style="width:100%;" placeholder="Your answer here..."></textarea>
+            </div>
+            <!-- Substep 7 -->
+            <div class="substep" style="display:none;">
+              <p><b>7. What is the difference between an algorithm and a program?</b></p>
+              <textarea rows="3" style="width:100%;" placeholder="Your answer here..."></textarea>
+            </div>
+            <!-- Substep 8 -->
+            <div class="substep" style="display:none;">
+              <p><b>8. Put these steps in order to make a sandwich:</b></p>
+              <ul>
+                <li>Put bread on the table</li>
+                <li>Put peanut butter on the bread</li>
+                <li>Close the sandwich</li>
+                <li>Take two slices of bread</li>
+              </ul>
+              <textarea rows="3" style="width:100%;" placeholder="Your answer here..."></textarea>
+            </div>
+            <!-- Substep 9 -->
+            <div class="substep" style="display:none;">
+              <p><b>9. Put these steps in the correct order to brush your teeth:</b></p>
+              <ul>
+                <li>Rinse your mouth</li>
+                <li>Put toothpaste on your toothbrush</li>
+                <li>Brush your teeth</li>
+                <li>Wet the toothbrush</li>
+              </ul>
+              <textarea rows="3" style="width:100%;" placeholder="Your answer here..."></textarea>
+            </div>
+          </div>
+          <button class="next-substep-btn" style="margin-top:16px;">Selanjutnya</button>
+        </section>
+      </div>
+
+      <!-- STEP 23 -->
+      <div id="step-23-container" style="display:none">
+        <section class="lesson-section" id="step-23">
+          <h2>Step 23: Quiz & Q&amp;A - Part 2</h2>
+          <div class="substep-container">
+
+            <!-- Soal 1 -->
+            <div class="substep">
+              <p><b>1. Greeting Program:</b><br/>Write a program that prints:</p>
+              <pre><code>Hello, hackers!</code></pre>
+              <textarea rows="3" style="width:100%;" placeholder="Your code here..."></textarea>
+            </div>
+
+            <!-- Soal 2 -->
+            <div class="substep" style="display:none;">
+              <p><b>2. Age Statement:</b><br/>Write a program to print:</p>
+              <pre><code>My age is 13</code></pre>
+              <textarea rows="3" style="width:100%;" placeholder="Your code here..."></textarea>
+            </div>
+
+            <!-- Soal 3 -->
+            <div class="substep" style="display:none;">
+              <p><b>3. Team Accountant Problem:</b><br/>Write a program that prints:</p>
+              <pre><code>Amount of employee salaries: 12000</code></pre>
+              <textarea rows="3" style="width:100%;" placeholder="Your code here..."></textarea>
+            </div>
+
+            <!-- Soal 4 -->
+            <div class="substep" style="display:none;">
+              <p><b>4. Error Checking: Which code lines are correct?</b><br/>Mark the pieces of code that are free of errors.</p>
+              <label><input type="checkbox"> A) print('Python', 1.0, 'was released in', 1994, '')</label><br/>
+              <label><input type="checkbox"> B) print Python 1.0 was released in 1994</label><br/>
+              <label><input type="checkbox"> C) print(Python 1.0 was released in 1994)</label><br/>
+              <label><input type="checkbox"> D) print(Python (1.0) was released in (1994))</label><br/>
+              <label><input type="checkbox"> E) print('Python 1.0 was released in 1994')</label>
+            </div>
+
+            <!-- Soal 5 -->
+            <div class="substep" style="display:none;">
+              <p><b>5. Price Increase:</b><br/>Expected Output:</p>
+              <pre><code>Office rental price: 93500.0</code></pre>
+              <textarea rows="3" style="width:100%;" placeholder="Your code here..."></textarea>
+            </div>
+
+            <!-- Soal 6 -->
+            <div class="substep" style="display:none;">
+              <p><b>6. Budget Allocation:</b><br/>Expected Output:</p>
+              <pre><code>Total Equipment Budget: 404341</code></pre>
+              <textarea rows="3" style="width:100%;" placeholder="Your code here..."></textarea>
+            </div>
+
+            <!-- Soal 7 -->
+            <div class="substep" style="display:none;">
+              <p><b>7. Toy Sharing:</b><br/>Expected Output:</p>
+              <pre><code>Each kid gets 7 toy cars</code></pre>
+              <textarea rows="3" style="width:100%;" placeholder="Your code here..."></textarea>
+            </div>
+
+            <!-- Soal 8 -->
+            <div class="substep" style="display:none;">
+              <p><b>8. Leftover Sweets:</b><br/>Expected Output:</p>
+              <pre><code>Leftover candies: 1</code></pre>
+              <textarea rows="3" style="width:100%;" placeholder="Your code here..."></textarea>
+            </div>
+
+            <!-- Soal 9 -->
+            <div class="substep" style="display:none;">
+              <p><b>9. Multiplying Numbers:</b><br/>Expected Output:</p>
+              <pre><code>3 raised to the power of 2 is 9</code></pre>
+              <textarea rows="3" style="width:100%;" placeholder="Your code here..."></textarea>
+            </div>
+
+            <!-- Soal 10 -->
+            <div class="substep" style="display:none;">
+              <p><b>10. Classroom Points:</b><br/>Expected Output:</p>
+              <pre><code>Final quiz score: 53</code></pre>
+              <textarea rows="3" style="width:100%;" placeholder="Your code here..."></textarea>
+            </div>
+
+          </div>
+          <button class="next-substep-btn" style="margin-top:16px; display:none;">Selanjutnya</button>
+        </section>
+      </div>
+<script>
+const targetCodeStep7 = `a = 3 * 12
+b = 10 * 45
+total = a + b
+print("Total due amount:", total)`;
+
+function validateTypingStep7(e) {
+  const input = e.target.value;
+  const validSoFar = targetCodeStep7.slice(0, input.length);
+  if (input !== validSoFar) {
+    e.target.value = input.slice(0, -1);
+  }
+}
+
+async function runValidatedCode(id) {
+  const input = document.getElementById(`typing-input-${id}`).value;
+  const outputEl = document.getElementById(`output-${id}`);
+  if (!pyodideReady) {
+    outputEl.textContent = "❌ Pyodide belum siap.";
+    return;
+  }
+  try {
+    let output = "";
+    pyodide.setStdout({ batched: (s) => { output += s + "\n"; } });
+    await pyodide.runPythonAsync(input);
+    outputEl.textContent = output.trim() || "✅ Berhasil (tidak ada output)";
+  } catch (err) {
+    outputEl.textContent = "❌ Error:\n" + err;
+  } finally {
+    pyodide.setStdout({});
+  }
+}
+</script>
+            </div>
+          </div>
         </section>
       </div>
     </div>
@@ -499,12 +1254,18 @@ print("Hello World")</code></pre>
 </script>
 <script>
   function showStep(step) {
-    document.getElementById('step-1-container').style.display = (step === 1) ? 'block' : 'none';
-    document.getElementById('step-2-container').style.display = (step === 2) ? 'block' : 'none';
-    document.getElementById('step3').style.display = (step === 3) ? 'block' : 'none';
-    document.getElementById('step4').style.display = (step === 4) ? 'block' : 'none';
-    document.getElementById('step5').style.display = (step === 5) ? 'block' : 'none';
-    document.getElementById('step6').style.display = (step === 6) ? 'block' : 'none';
+    // Hide all steps 1-23
+    for (let i = 1; i <= 23; i++) {
+      const el = document.getElementById(`step-${i}-container`);
+      if (el) el.style.display = (step === i) ? 'block' : 'none';
+    }
+    // Reset substep for the shown step
+    setTimeout(() => {
+      const shownSection = document.querySelector(`#step-${step}-container .lesson-section`);
+      if (shownSection) {
+        resetSubsteps(shownSection);
+      }
+    }, 10);
   }
 </script>
 
@@ -588,76 +1349,97 @@ print("Hello World")</code></pre>
 <script src="userinfo.js"></script>
 
 <!-- Pyodide dan Ace Editor -->
-<script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/ace.js"></script>
 <script>
-  let pyodideReady = false;
-  let pyodide = null;
+let pyodide;
+let pyodideReady = false;
 
-  async function loadPyodideAndSetup() {
-    pyodide = await loadPyodide();
-    pyodideReady = true;
-    console.log("✅ Pyodide siap digunakan");
+async function loadPyodideAndPackages() {
+  pyodide = await loadPyodide();
+  pyodideReady = true;
+}
+
+loadPyodideAndPackages();
+
+const panelEditor = ace.edit("panel-editor");
+panelEditor.setTheme("ace/theme/monokai");
+panelEditor.session.setMode("ace/mode/python");
+panelEditor.setReadOnly(false);
+panelEditor.setValue(`# Coba ketik di sini\nprint("Halo Dunia!")`, 1);
+
+async function runPanelCode() {
+  console.log("runPanelCode triggered");
+  const code = panelEditor.getValue();
+  const outputEl = document.getElementById("panel-output");
+  outputEl.textContent = "⏳ Menjalankan...";
+  if (!pyodideReady) {
+    outputEl.textContent = "❌ Pyodide belum siap.";
+    return;
   }
-
-  loadPyodideAndSetup();
-
-  const editor = ace.edit("editor");
-  editor.session.setMode("ace/mode/python");
-  editor.setTheme("ace/theme/github");
-  editor.setFontSize(14);
-
-  async function runPythonCode() {
-    const code = editor.getValue();
-    const outputEl = document.getElementById("output");
-    outputEl.textContent = "⏳ Menjalankan...";
-    if (!pyodideReady) {
-      outputEl.textContent = "❌ Pyodide belum siap.";
-      return;
-    }
-    try {
-      let output = "";
-      pyodide.setStdout({
-        batched: (s) => { output += s + "\n"; }
-      });
-
-      await pyodide.runPythonAsync(code);
-
-      outputEl.textContent = output.trim() || "✅ Berhasil (tidak ada output)";
-    } catch (err) {
-      outputEl.textContent = "❌ Error:\n" + err;
-    } finally {
-      pyodide.setStdout({});
-    }
+  try {
+    let output = "";
+    pyodide.setStdout({ batched: (s) => { output += s + "\n"; } });
+    await pyodide.runPythonAsync(code);
+    outputEl.textContent = output.trim() || "✅ Berhasil (tidak ada output)";
+  } catch (err) {
+    outputEl.textContent = "❌ Error:\n" + err;
+  } finally {
+    pyodide.setStdout({});
   }
-
-  // Panel (sidebar) Python Editor
-  const panelEditor = ace.edit("panel-editor");
-  panelEditor.session.setMode("ace/mode/python");
-  panelEditor.setTheme("ace/theme/github");
-  panelEditor.setFontSize(14);
-
-  async function runPanelCode() {
-    const code = panelEditor.getValue();
-    const outputEl = document.getElementById("panel-output");
-    outputEl.textContent = "⏳ Menjalankan...";
-    if (!pyodideReady) {
-      outputEl.textContent = "❌ Pyodide belum siap.";
-      return;
-    }
-    try {
-      let output = "";
-      pyodide.setStdout({ batched: (s) => { output += s + "\n"; } });
-      await pyodide.runPythonAsync(code);
-      outputEl.textContent = output.trim() || "✅ Berhasil (tidak ada output)";
-    } catch (err) {
-      outputEl.textContent = "❌ Error:\n" + err;
-    } finally {
-      pyodide.setStdout({});
-    }
-  }
+}
 </script>
- </body>
+<script>
+// Inisialisasi Ace Editor untuk hint di Step 7
+window.addEventListener('DOMContentLoaded', function() {
+  // Pastikan elemen ada sebelum inisialisasi
+  if (document.getElementById("hint-editor-7")) {
+    const hintEditor7 = ace.edit("hint-editor-7");
+    hintEditor7.setTheme("ace/theme/monokai");
+    hintEditor7.session.setMode("ace/mode/python");
+    hintEditor7.setReadOnly(false);
+    window.hintEditor7 = hintEditor7;
+  }
+  // Tombol untuk menjalankan kode hint
+  const btn = document.getElementById("run-hint-7");
+  if (btn) {
+    btn.addEventListener("click", runHint7Code);
+  }
+});
+
+// Fungsi untuk menjalankan kode dari hint Ace Editor
+async function runHint7Code() {
+  const hintEditor7 = window.hintEditor7;
+  if (!hintEditor7) return;
+  const code = hintEditor7.getValue();
+  const outputEl = document.getElementById("hint-output-7");
+  outputEl.textContent = "⏳ Menjalankan...";
+  if (!pyodideReady) {
+    outputEl.textContent = "❌ Pyodide belum siap.";
+    return;
+  }
+  try {
+    let output = "";
+    pyodide.setStdout({ batched: (s) => { output += s + "\n"; } });
+    await pyodide.runPythonAsync(code);
+    outputEl.textContent = output.trim() || "✅ Berhasil (tidak ada output)";
+  } catch (err) {
+    outputEl.textContent = "❌ Error:\n" + err;
+  } finally {
+    pyodide.setStdout({});
+  }
+}
+</script>
+  <script>
+    document.getElementById('dashboardBtn').addEventListener('click', function(e) {
+      e.preventDefault();
+      if (confirm('Yakin ingin kembali ke halaman Dashboard? Semua progres tidak akan disimpan.')) {
+        if (confirm('Baik, sedang diarahkan ke Dashboard...')) {
+          window.location.href = '/elearn/murid.html';
+        }
+      }
+    });
+  </script>
+</body>
 <script>
   function syntaxClassPython(line, i, char) {
     if (line.startsWith('print') && i < 5) return "keyword";
@@ -673,6 +1455,8 @@ print("Hello World")</code></pre>
       let last = line.lastIndexOf('"');
       if (i >= first && i <= last) return "str";
     }
+    // Tambahkan: angka sebagai orange, kecuali spasi
+    if (!isNaN(parseInt(char)) && char !== ' ') return 'orange';
     return "default";
   }
 
@@ -776,3 +1560,49 @@ print("Hello World")</code></pre>
   });
 </script>
 </html>
+</script>
+<script>
+// Substep logic for all steps
+function resetSubsteps(section) {
+  const substeps = section.querySelectorAll('.substep-container .substep');
+  substeps.forEach((el, i) => {
+    el.style.display = (i === 0) ? '' : 'none';
+  });
+  const btn = section.querySelector('.next-substep-btn');
+  if (!btn) return;
+  // If only one substep, hide the button
+  if (substeps.length <= 1) {
+    btn.style.display = 'none';
+  } else {
+    btn.style.display = '';
+    btn.disabled = false;
+    btn.textContent = "Selanjutnya";
+  }
+  btn.dataset.substepIdx = "0";
+}
+document.addEventListener('DOMContentLoaded', function() {
+  // For each lesson-section with substep-container, wire up button
+  document.querySelectorAll('.lesson-section').forEach(section => {
+    const btn = section.querySelector('.next-substep-btn');
+    const substepContainer = section.querySelector('.substep-container');
+    if (!btn || !substepContainer) return;
+    btn.addEventListener('click', function() {
+      const substeps = substepContainer.querySelectorAll('.substep');
+      let idx = parseInt(btn.dataset.substepIdx || "0");
+      if (idx < substeps.length - 1) {
+        substeps[idx + 1].style.display = '';
+        substeps[idx].style.display = 'none';
+        btn.dataset.substepIdx = (idx + 1).toString();
+        // Hide button if last substep
+        if (idx + 1 === substeps.length - 1) {
+          btn.style.display = 'none';
+        }
+      }
+    });
+    // Initial state
+    resetSubsteps(section);
+  });
+  // On step change, reinitialize substeps
+  // (Handled by showStep)
+});
+</script>
