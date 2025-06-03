@@ -408,7 +408,15 @@
         <span class="circle-icon">🏠</span>
         <span>Dashboard</span>
       </a>
-      <div class="step-button-container"></div>
+      <div class="step-button-container">
+        <button class="step-button sidebar-step-button" type="button" data-target="level-1"><span class="circle-icon">1</span> <span>Aktifkan Kody</span></button>
+        <button class="step-button sidebar-step-button" type="button" data-target="level-2"><span class="circle-icon">2</span> <span>Kody Kenalan Sama Kamu</span></button>
+        <button class="step-button sidebar-step-button" type="button" data-target="level-3"><span class="circle-icon">3</span> <span>Isi Memory Kody</span></button>
+        <button class="step-button sidebar-step-button" type="button" data-target="level-4"><span class="circle-icon">4</span> <span>Latih Kody Menulis</span></button>
+        <button class="step-button sidebar-step-button" type="button" data-target="level-5"><span class="circle-icon">5</span> <span>Kody Belajar Perasaan</span></button>
+        <button class="step-button sidebar-step-button" type="button" data-target="level-6"><span class="circle-icon">6</span> <span>Kody Aktifkan Otak AI!</span></button>
+        <button class="step-button sidebar-step-button" type="button" data-target="level-7"><span class="circle-icon">7</span> <span>Tulis Dongengmu</span></button>
+      </div>
       <div class="sidebar-footer">
         <!-- Dashboard button moved to below toggleSidebar -->
       </div>
@@ -422,9 +430,161 @@
       <pre id="panel-output" class="output-box"></pre>
     </div>
     <main class="lesson-content">
-      <section class="lesson-section">
-        <h1>Workshop: Cerita Digital untuk Orang Tua</h1>
-        <p class="subtitle">Yuk, bantu Kody si Robot Penulis membuat cerita untuk orang tua kamu!</p>
+      <!-- Level 1 -->
+      <section class="lesson-section level-section active-level" id="level-1" style="display: block;">
+        <h2>Level 1: Aktifkan Kody</h2>
+        <p>Ketik kode berikut untuk mengaktifkan Kody:</p>
+        <div class="python-editor-container" style="margin-bottom:1rem;">
+          <pre class="editable-hint-box"
+            contenteditable="true"
+            spellcheck="false"
+            placeholder="print(&quot;Halo! Aku Kody, calon robot penulis.&quot;)"
+          >print("Halo! Aku Kody, calon robot penulis.")</pre>
+          <textarea rows="2" style="width:100%;margin-top:0.5rem;">print("Halo! Aku Kody, calon robot penulis.")</textarea>
+          <button type="button" onclick="runInlinePython(this)">Jalankan</button>
+          <pre class="python-output" style="background:#222;color:#fff;border-radius:6px;padding:0.5rem;margin-top:0.5rem;"></pre>
+        </div>
+        <!-- Step navigation removed for sidebar-only navigation -->
+      </section>
+  <style>
+    /* Editable hint box for book.html and form.html */
+    .editable-hint-box {
+      background: #1e1e1e;
+      color: #4da6ff;
+      padding: 1rem;
+      border-radius: 8px;
+      font-family: 'Fira Mono', 'Consolas', 'Menlo', 'Monaco', 'Courier New', monospace;
+      font-size: 16px;
+      min-height: 2em;
+      outline: none;
+      border: 1px solid #333;
+      margin-top: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.13);
+      transition: background 0.15s, color 0.15s;
+    }
+    .editable-hint-box:focus {
+      outline: 2px solid #4da6ff;
+      background: #23272e;
+    }
+    .editable-hint-box.hint-placeholder {
+      color: #555ca7 !important;
+      font-style: italic;
+      user-select: none;
+    }
+  </style>
+  <script>
+    // Editable hint box logic for .editable-hint-box
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('.editable-hint-box').forEach(function(editable) {
+        const placeholder = editable.getAttribute('placeholder') || '';
+        function showPlaceholderIfEmpty() {
+          if (editable.textContent.trim().length === 0) {
+            editable.classList.add('hint-placeholder');
+            editable.innerHTML = '';
+            editable.setAttribute('data-empty', 'true');
+            // Show placeholder as text node for caret
+            editable.appendChild(document.createTextNode(placeholder));
+            editable.style.color = "#555ca7";
+          } else {
+            editable.classList.remove('hint-placeholder');
+            editable.setAttribute('data-empty', 'false');
+            editable.style.color = "#4da6ff";
+          }
+        }
+        // Initial state
+        if (editable.textContent.trim() === '' || editable.textContent.trim() === placeholder) {
+          editable.textContent = '';
+          showPlaceholderIfEmpty();
+        } else {
+          editable.style.color = "#4da6ff";
+        }
+        editable.addEventListener('focus', function() {
+          if (editable.getAttribute('data-empty') === 'true') {
+            editable.textContent = '';
+            editable.style.color = "#4da6ff";
+          }
+        });
+        editable.addEventListener('blur', function() {
+          showPlaceholderIfEmpty();
+        });
+        editable.addEventListener('input', function() {
+          showPlaceholderIfEmpty();
+        });
+        // VS Code style: Tab inserts 4 spaces
+        editable.addEventListener('keydown', function(e) {
+          if (e.key === 'Tab') {
+            e.preventDefault();
+            document.execCommand('insertText', false, '    ');
+          }
+        });
+      });
+    });
+  </script>
+      <!-- Level 2 -->
+      <section class="lesson-section level-section" id="level-2" style="display: none;">
+        <h2>Level 2: Kody Kenalan Sama Kamu</h2>
+        <p>Ketik kode berikut agar Kody bisa kenalan denganmu:</p>
+        <div class="python-editor-container" style="margin-bottom:1rem;">
+          <pre><code class="language-python">nama = input("Siapa namamu?")<br>cita = input("Apa cita-cita kamu?")</code></pre>
+          <textarea rows="2" style="width:100%;margin-top:0.5rem;">nama = input("Siapa namamu?")&#10;cita = input("Apa cita-cita kamu?")</textarea>
+          <button type="button" onclick="runInlinePython(this)">Jalankan</button>
+          <pre class="python-output" style="background:#222;color:#fff;border-radius:6px;padding:0.5rem;margin-top:0.5rem;"></pre>
+        </div>
+        <!-- Step navigation removed for sidebar-only navigation -->
+      </section>
+      <!-- Level 3 -->
+      <section class="lesson-section level-section" id="level-3" style="display: none;">
+        <h2>Level 3: Isi Memory Kody</h2>
+        <p>Ketik kode berikut agar Kody mengingat cita-citamu:</p>
+        <div class="python-editor-container" style="margin-bottom:1rem;">
+          <pre><code class="language-python">info = f"{nama} ingin menjadi {cita}"</code></pre>
+          <textarea rows="1" style="width:100%;margin-top:0.5rem;">info = f"{nama} ingin menjadi {cita}"</textarea>
+          <button type="button" onclick="runInlinePython(this)">Jalankan</button>
+          <pre class="python-output" style="background:#222;color:#fff;border-radius:6px;padding:0.5rem;margin-top:0.5rem;"></pre>
+        </div>
+        <!-- Step navigation removed for sidebar-only navigation -->
+      </section>
+      <!-- Level 4 -->
+      <section class="lesson-section level-section" id="level-4" style="display: none;">
+        <h2>Level 4: Latih Kody Menulis</h2>
+        <p>Ketik kode berikut untuk melatih Kody menulis cerita:</p>
+        <div class="python-editor-container" style="margin-bottom:1rem;">
+          <pre><code class="language-python">def tulis_cerita(nama, cita):<br>    return f"Pada suatu hari, {nama} bermimpi menjadi {cita}..."</code></pre>
+          <textarea rows="2" style="width:100%;margin-top:0.5rem;">def tulis_cerita(nama, cita):&#10;    return f"Pada suatu hari, {nama} bermimpi menjadi {cita}..."</textarea>
+          <button type="button" onclick="runInlinePython(this)">Jalankan</button>
+          <pre class="python-output" style="background:#222;color:#fff;border-radius:6px;padding:0.5rem;margin-top:0.5rem;"></pre>
+        </div>
+        <!-- Step navigation removed for sidebar-only navigation -->
+      </section>
+      <!-- Level 5 -->
+      <section class="lesson-section level-section" id="level-5" style="display: none;">
+        <h2>Level 5: Kody Belajar Perasaan</h2>
+        <p>Ketik kode berikut agar Kody bisa belajar tentang perasaan:</p>
+        <div class="python-editor-container" style="margin-bottom:1rem;">
+          <pre><code class="language-python">takut = input("Kamu takut gelap? (ya/tidak)")<br>if takut == "ya":<br>    print("Kody kasih lentera ajaib!")</code></pre>
+          <textarea rows="3" style="width:100%;margin-top:0.5rem;">takut = input("Kamu takut gelap? (ya/tidak)")&#10;if takut == "ya":&#10;    print("Kody kasih lentera ajaib!")</textarea>
+          <button type="button" onclick="runInlinePython(this)">Jalankan</button>
+          <pre class="python-output" style="background:#222;color:#fff;border-radius:6px;padding:0.5rem;margin-top:0.5rem;"></pre>
+        </div>
+        <!-- Step navigation removed for sidebar-only navigation -->
+      </section>
+      <!-- Level 6 -->
+      <section class="lesson-section level-section" id="level-6" style="display: none;">
+        <h2>Level 6: Kody Aktifkan Otak AI!</h2>
+        <p>Ketik kode berikut untuk membuat otak AI sederhana untuk Kody:</p>
+        <div class="python-editor-container" style="margin-bottom:1rem;">
+          <pre><code class="language-python">class KodyPenulis:<br>    def __init__(self, nama):<br>        self.nama = nama<br>    def buat_dongeng(self):<br>        return f"Ini cerita spesial dari {self.nama}!"</code></pre>
+          <textarea rows="5" style="width:100%;margin-top:0.5rem;">class KodyPenulis:&#10;    def __init__(self, nama):&#10;        self.nama = nama&#10;    def buat_dongeng(self):&#10;        return f"Ini cerita spesial dari {self.nama}!"</textarea>
+          <button type="button" onclick="runInlinePython(this)">Jalankan</button>
+          <pre class="python-output" style="background:#222;color:#fff;border-radius:6px;padding:0.5rem;margin-top:0.5rem;"></pre>
+        </div>
+        <!-- Step navigation removed for sidebar-only navigation -->
+      </section>
+      <!-- Level 7: Form Pengisian Dongeng -->
+      <section class="lesson-section level-section" id="level-7" style="display: none;">
+        <h2>Level 7: Tulis Dongengmu</h2>
+        <p>Isi form berikut agar Kody bisa membuatkan dongeng spesial untukmu!</p>
         <form id="formInput" class="lesson-section" style="margin-top: 1rem;">
           <label for="namaAnak">👧 Siapa nama kamu?</label>
           <input type="text" id="namaAnak" name="namaAnak" required><br><br>
@@ -457,8 +617,136 @@
         </div>
         <div id="result" style="margin-top: 2rem;"></div>
         <div id="pythonLogic" style="margin-top: 1rem; font-family:monospace; background:#eee; padding:1rem; border-radius:8px;"></div>
+        <!-- Step navigation removed for sidebar-only navigation -->
       </section>
+<script>
+// Navigasi level hanya via sidebar step buttons, tanpa scroll atau scrollIntoView
+document.addEventListener('DOMContentLoaded', function() {
+  // Pastikan hanya level 1 yang aktif di awal
+  document.querySelectorAll('.level-section').forEach(function(el) {
+    if (el.id === 'level-1') {
+      el.style.display = 'block';
+      el.classList.add('active-level');
+    } else {
+      el.style.display = 'none';
+      el.classList.remove('active-level');
+    }
+  });
+
+  // Event handler untuk sidebar-step-button, tanpa efek scroll
+  document.querySelectorAll('.sidebar-step-button').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault(); // cegah default behavior
+      const targetId = this.getAttribute('data-target');
+      document.querySelectorAll('.level-section').forEach(sec => {
+        sec.style.display = 'none';
+        sec.classList.remove('active-level');
+      });
+      const target = document.getElementById(targetId);
+      if (target) {
+        target.style.display = 'block';
+        target.classList.add('active-level');
+      }
+    });
+  });
+});
+</script>
     </main>
+    <!-- VS Code-style editable hint box for book.html, demo only -->
+    <!--
+      Replace the static hint box in book.html with this element:
+      <div id="editableHintBox"
+           contenteditable="true"
+           spellcheck="false"
+           style="
+             background:#1e1e1e;
+             color:#4da6ff;
+             padding: 1rem;
+             border-radius: 8px;
+             font-family: 'Fira Mono', 'Consolas', 'Menlo', 'Monaco', 'Courier New', monospace;
+             font-size: 16px;
+             min-height: 2em;
+             outline: none;
+             border: 1px solid #333;
+             margin-top: 1.5rem;
+             margin-bottom: 1.5rem;
+             box-shadow: 0 2px 8px rgba(0,0,0,0.13);
+           "
+           data-placeholder="Tulis kode hint di sini..."
+      >print("Hint: Tulis kode Python-mu di sini!")</div>
+    -->
+  <script>
+  // VS Code-style editable hint box logic for book.html
+  document.addEventListener('DOMContentLoaded', function() {
+    const editable = document.getElementById('editableHintBox');
+    if (!editable) return;
+    // Placeholder logic
+    const defaultText = editable.textContent.trim();
+    const placeholder = editable.getAttribute('data-placeholder') || '';
+    function showPlaceholderIfEmpty() {
+      if (editable.textContent.trim().length === 0) {
+        editable.classList.add('hint-placeholder');
+        editable.innerHTML = '';
+        editable.setAttribute('data-empty', 'true');
+        editable.appendChild(document.createTextNode(placeholder));
+        editable.style.color = "#555ca7";
+      } else {
+        editable.classList.remove('hint-placeholder');
+        editable.setAttribute('data-empty', 'false');
+        editable.style.color = "#4da6ff";
+      }
+    }
+    // Initial placeholder
+    if (editable.textContent.trim() === '' || editable.textContent.trim() === placeholder) {
+      editable.textContent = '';
+      showPlaceholderIfEmpty();
+    } else {
+      editable.style.color = "#4da6ff";
+    }
+    editable.addEventListener('focus', function() {
+      if (editable.getAttribute('data-empty') === 'true') {
+        editable.textContent = '';
+        editable.style.color = "#4da6ff";
+      }
+    });
+    editable.addEventListener('blur', function() {
+      showPlaceholderIfEmpty();
+    });
+    editable.addEventListener('input', function() {
+      showPlaceholderIfEmpty();
+    });
+    // VS Code style: Tab inserts 4 spaces
+    editable.addEventListener('keydown', function(e) {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        // Insert spaces at caret
+        document.execCommand('insertText', false, '    ');
+      }
+    });
+    // Expose get/set value for other scripts (e.g. on "Jalankan" button)
+    window.getEditableHintBoxValue = function() {
+      if (!editable) return '';
+      if (editable.getAttribute('data-empty') === 'true') return '';
+      return editable.textContent;
+    };
+    window.setEditableHintBoxValue = function(val) {
+      if (!editable) return;
+      editable.textContent = val || '';
+      showPlaceholderIfEmpty();
+    };
+  });
+  </script>
+  <style>
+    #editableHintBox.hint-placeholder {
+      color: #555ca7 !important;
+      font-style: italic;
+      user-select: none;
+    }
+    #editableHintBox:focus {
+      outline: 2px solid #4da6ff;
+      background: #23272e;
+    }
+  </style>
 <script>
 const targetCodeStep7 = `a = 3 * 12
 b = 10 * 45
@@ -512,15 +800,22 @@ async function runValidatedCode(id) {
       window.location.href = "/elearn/login-elearning.html";
     }
 
-    const form = document.getElementById("formInput");
-    const spinner = document.getElementById("loadingSpinner");
-
-    form.addEventListener("submit", submitForm);
+    // Bind form and spinner from Level 7
+    document.addEventListener("DOMContentLoaded", function() {
+      const form = document.getElementById("formInput");
+      const spinner = document.getElementById("loadingSpinner");
+      if (!form) return;
+      form.addEventListener("submit", submitForm);
+      // Reset button logic
+      form.querySelector('button[type="button"]').addEventListener("click", () => {
+        form.reset();
+      });
+    });
 
     async function submitForm(e) {
       e.preventDefault();
+      const spinner = document.getElementById("loadingSpinner");
       spinner.style.display = "block";
-
       // Use form values directly from the new input fields
       const namaAnak = document.getElementById("namaAnak").value.trim();
       const usia = document.getElementById("usia").value.trim();
@@ -551,10 +846,6 @@ async function runValidatedCode(id) {
           // Simpan story dan images ke localStorage
           localStorage.setItem("story", data.story);
           localStorage.setItem("images", JSON.stringify(data.images));
-
-          // --- Generate song based on story (DISABLED, no longer called) ---
-          // (Bagian pemanggilan API lagu Suno dikomentari/dihapus)
-
           // Redirect ke book.html
           window.location.href = "book.html";
         } else {
@@ -565,11 +856,6 @@ async function runValidatedCode(id) {
         alert("❌ Terjadi kesalahan. Coba lagi nanti.");
       }
     }
-
-    // Reset button logic
-    form.querySelector('button[type="button"]').addEventListener("click", () => {
-      form.reset();
-    });
   </script>
   <script>
   function toggleSidebar() {
@@ -682,47 +968,136 @@ async function runPanelCode() {
   }
 }
 </script>
-<script>
-// Inisialisasi Ace Editor untuk hint di Step 7
-window.addEventListener('DOMContentLoaded', function() {
-  // Pastikan elemen ada sebelum inisialisasi
-  if (document.getElementById("hint-editor-7")) {
-    const hintEditor7 = ace.edit("hint-editor-7");
-    hintEditor7.setTheme("ace/theme/monokai");
-    hintEditor7.session.setMode("ace/mode/python");
-    hintEditor7.setReadOnly(false);
-    window.hintEditor7 = hintEditor7;
-  }
-  // Tombol untuk menjalankan kode hint
-  const btn = document.getElementById("run-hint-7");
-  if (btn) {
-    btn.addEventListener("click", runHint7Code);
-  }
-});
+  <script>
+// --- VS Code style Typing Editor for "Hint" in book.html ---
+// This script is meant to be loaded in book.html, but included here for clarity.
+// It replaces the static hint column with an interactive typing box using VS Code style highlighting.
+// Usage: Place a <div class="typingBox-vscode" data-hint="..."></div> where you want the typing editor.
+// The data-hint attribute should contain the Python code to type.
+// This will render a code area with syntax highlighting, and allow user to type over it.
 
-// Fungsi untuk menjalankan kode dari hint Ace Editor
-async function runHint7Code() {
-  const hintEditor7 = window.hintEditor7;
-  if (!hintEditor7) return;
-  const code = hintEditor7.getValue();
-  const outputEl = document.getElementById("hint-output-7");
-  outputEl.textContent = "⏳ Menjalankan...";
-  if (!pyodideReady) {
-    outputEl.textContent = "❌ Pyodide belum siap.";
-    return;
+function syntaxClassPython(line, i, char) {
+  // Simple Python syntax highlighting for typing box
+  if (line.startsWith('print') && i < 5) return "keyword";
+  if (char === '(' || char === ')') return "paren";
+  if (line.indexOf('"') !== -1) {
+    let first = line.indexOf('"');
+    let last = line.lastIndexOf('"');
+    if (i >= first && i <= last) return "str";
   }
-  try {
-    let output = "";
-    pyodide.setStdout({ batched: (s) => { output += s + "\n"; } });
-    await pyodide.runPythonAsync(code);
-    outputEl.textContent = output.trim() || "✅ Berhasil (tidak ada output)";
-  } catch (err) {
-    outputEl.textContent = "❌ Error:\n" + err;
-  } finally {
-    pyodide.setStdout({});
+  if (line.indexOf('=') !== -1 && line.indexOf('"') !== -1) {
+    let eq = line.indexOf('=');
+    let first = line.indexOf('"', eq);
+    let last = line.lastIndexOf('"');
+    if (i >= first && i <= last) return "str";
   }
+  if (!isNaN(parseInt(char)) && char !== ' ') return 'orange';
+  return "default";
 }
-</script>
+
+function setupVscodeTypingBox(container) {
+  // Accepts: <div class="typingBox-vscode" data-hint="..."></div>
+  const code = container.dataset.hint || "";
+  const lines = code.split('\n');
+  container.innerHTML = `
+    <div class="typing-container vscode-typing" tabindex="0">
+      <div class="code-output" style="white-space:pre;min-height:1em;"></div>
+    </div>
+    <div style="margin-top:0.5em;">
+      <button type="button" class="run-vscode-typing-btn">Jalankan</button>
+      <span class="vscode-typing-feedback" style="margin-left:1em;"></span>
+    </div>
+    <pre class="vscode-typing-output" style="background:#222;color:#fff;border-radius:6px;padding:0.5rem;margin-top:0.5rem;"></pre>
+  `;
+  const typingContainer = container.querySelector('.typing-container');
+  const codeOutput = container.querySelector('.code-output');
+  const feedback = container.querySelector('.vscode-typing-feedback');
+  const outputEl = container.querySelector('.vscode-typing-output');
+  const runBtn = container.querySelector('.run-vscode-typing-btn');
+  // State
+  let typed = [];
+  let currentLine = 0;
+  let linesTyped = lines.map(() => []);
+
+  // Render function
+  function render() {
+    codeOutput.innerHTML = lines.map((line, i) => {
+      const t = linesTyped[i] || [];
+      return line.split('').map((char, j) => {
+        const ch = t[j];
+        if (ch == null) return `<span class="pending">${char}</span>`;
+        if (ch === char) return `<span class="correct ${syntaxClassPython(line, j, char)}">${char}</span>`;
+        return `<span class="wrong">${ch}</span>`;
+      }).join('');
+    }).join('\n');
+    // Visual feedback if all correct
+    const allCorrect = lines.every((line, i) => (linesTyped[i] || []).join('') === line);
+    if (allCorrect) {
+      feedback.textContent = "✅ Benar!";
+      feedback.style.color = "#2ecc40";
+    } else {
+      feedback.textContent = "";
+    }
+  }
+
+  // Focus logic
+  typingContainer.addEventListener('click', () => {
+    typingContainer.classList.add('active');
+    typingContainer.focus();
+  });
+
+  // Typing logic (VS Code style)
+  typingContainer.addEventListener('keydown', (e) => {
+    if (!typingContainer.classList.contains('active')) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    e.preventDefault();
+    // Multi-line
+    if (e.key === 'Backspace') {
+      if (linesTyped[currentLine].length > 0) {
+        linesTyped[currentLine].pop();
+      } else if (currentLine > 0) {
+        currentLine--;
+      }
+    } else if (e.key === 'Enter') {
+      if (currentLine < lines.length - 1) {
+        currentLine++;
+      }
+    } else if (e.key.length === 1 && linesTyped[currentLine].length < lines[currentLine].length) {
+      linesTyped[currentLine].push(e.key);
+    }
+    // Visual feedback: highlight green if correct, red if wrong
+    render();
+  });
+
+  // Run code button
+  runBtn.addEventListener('click', async () => {
+    const codeTyped = linesTyped.map(a => a.join('')).join('\n');
+    outputEl.textContent = "⏳ Menjalankan...";
+    if (!window.pyodideReady) {
+      outputEl.textContent = "❌ Pyodide belum siap.";
+      return;
+    }
+    try {
+      let output = "";
+      window.pyodide.setStdout({ batched: (s) => { output += s + "\n"; } });
+      await window.pyodide.runPythonAsync(codeTyped);
+      outputEl.textContent = output.trim() || "✅ Berhasil (tidak ada output)";
+    } catch (err) {
+      outputEl.textContent = "❌ Error:\n" + err;
+    } finally {
+      window.pyodide.setStdout({});
+    }
+  });
+
+  // Initial render
+  render();
+}
+
+// On DOMContentLoaded, scan for .typingBox-vscode and initialize them
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.typingBox-vscode').forEach(setupVscodeTypingBox);
+});
+  </script>
   <script>
     document.getElementById('dashboardBtn').addEventListener('click', function(e) {
       e.preventDefault();
