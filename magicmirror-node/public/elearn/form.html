@@ -4,6 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>M1 L1: Introduction to Python</title>
+  <script src="userinfo.js"></script>
+  <script>
+    const user = getUserInfo();
+    if (!user || user.role !== "anak") {
+      alert("❌ Akses tidak sah. Silakan login ulang.");
+      window.location.href = "/elearn/login-elearning.html";
+    }
+  </script>
   <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
@@ -403,7 +411,7 @@
       <section class="lesson-section">
         <h1>Workshop: Cerita Digital untuk Orang Tua</h1>
         <p class="subtitle">Yuk, bantu Kody si Robot Penulis membuat cerita untuk orang tua kamu!</p>
-        <form id="storyForm" class="lesson-section" style="margin-top: 1rem;">
+        <form id="formInput" class="lesson-section" style="margin-top: 1rem;">
           <label for="character">🧒 Siapa tokoh utama dalam ceritamu?</label><br>
           <input type="text" id="character" name="character" required><br><br>
 
@@ -414,13 +422,17 @@
           <input type="text" id="problem" name="problem" required><br><br>
 
           <label for="helper">🧙 Siapa yang membantunya?</label><br>
-          <input type="text" id="helper" name="helper"><br><br>
+          <input type="text" id="helper" name="helper" required><br><br>
 
           <label for="recipient">🎁 Cerita ini kamu persembahkan untuk siapa?</label><br>
           <input type="text" id="recipient" name="recipient" required><br><br>
 
           <button type="submit">✨ Buat Cerita Sekarang</button>
+          <button type="button" onclick="document.getElementById('formInput').reset();">🔁 Reset Form</button>
         </form>
+        <div id="loadingSpinner" style="display:none; margin-top: 20px; text-align: center;">
+          <p>🌀 Sedang membuat cerita... mohon tunggu ya...</p>
+        </div>
         <div id="result" style="margin-top: 2rem;"></div>
         <div id="pythonLogic" style="margin-top: 1rem; font-family:monospace; background:#eee; padding:1rem; border-radius:8px;"></div>
       </section>
@@ -471,49 +483,51 @@ async function runValidatedCode(id) {
 
   <!-- Script untuk form Cerita Digital -->
   <script>
-  document.getElementById("storyForm").addEventListener("submit", async function(event) {
-    event.preventDefault();
-    const character = document.getElementById("character").value;
-    const setting = document.getElementById("setting").value;
-    const problem = document.getElementById("problem").value;
-    const helper = document.getElementById("helper").value;
-    const recipient = document.getElementById("recipient").value;
+  // Ganti dengan API Key OpenAI yang valid
+  const OPENAI_API_KEY = window.OPENAI_API_KEY || "YOUR_OPENAI_API_KEY";
+  document.getElementById("formInput").addEventListener("submit", async function(e) {
+    e.preventDefault();
 
-    const prompt = `Buatkan cerita anak singkat dengan tokoh utama bernama ${character} yang tinggal di ${setting}. Dia menghadapi masalah: ${problem}, dan dibantu oleh ${helper}. Cerita ini ditujukan untuk ${recipient}, harus berisi pesan kasih sayang dan keberanian.`;
+    const character = document.getElementById("character").value.trim();
+    const setting = document.getElementById("setting").value.trim();
+    const problem = document.getElementById("problem").value.trim();
+    const helper = document.getElementById("helper").value.trim();
+    const recipient = document.getElementById("recipient").value.trim();
 
-    const resultDiv = document.getElementById("result");
-    const pythonLogic = document.getElementById("pythonLogic");
+    if (!character || !setting || !problem || !helper || !recipient) {
+      alert("❗ Semua kolom wajib diisi ya!");
+      return;
+    }
 
-    resultDiv.innerHTML = "<p>⏳ Robot Kody sedang menulis ceritamu...</p>";
-    pythonLogic.innerHTML = "";
+    document.getElementById("loadingSpinner").style.display = "block";
+
+    const prompt = `Buatkan cerita dongeng pendek untuk anak-anak dengan karakter utama ${character}, berlatar di ${setting}, yang menghadapi masalah ${problem}, dan dibantu oleh ${helper}. Cerita ditujukan untuk ${recipient}.`;
 
     try {
-      const response = await fetch("/api/generate-story", {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${OPENAI_API_KEY}`
         },
-        body: JSON.stringify({ prompt })
+        body: JSON.stringify({
+          model: "gpt-3.5-turbo",
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.8,
+          max_tokens: 800
+        })
       });
 
       const data = await response.json();
-      const story = data.choices?.[0]?.message?.content || "❌ Gagal membuat cerita.";
-      resultDiv.innerHTML = `<h3>📖 Ceritamu:</h3><p>${story.replace(/\n/g, "<br>")}</p>`;
+      const story = data.choices?.[0]?.message?.content || "Cerita gagal dibuat.";
 
-      pythonLogic.innerHTML = `# Logika Python-nya kira-kira seperti ini:<br>
-character = "${character}"<br>
-setting = "${setting}"<br>
-problem = "${problem}"<br>
-helper = "${helper}"<br>
-recipient = "${recipient}"<br>
-story = buat_cerita(character, setting, problem, helper, recipient)<br>
-print(story)`;
-    } catch (error) {
-      resultDiv.innerHTML = "❌ Gagal menghubungi robot. Coba lagi ya.";
-      console.error("Error:", error);
+      const bookUrl = `/elearn/book.html?uid=${user.uid}&cid=${encodeURIComponent(user.nama)}&to=${encodeURIComponent(recipient)}&story=${encodeURIComponent(story)}`;
+      window.location.href = bookUrl;
+    } catch (err) {
+      alert("❌ Gagal membuat cerita. Coba lagi nanti.");
+      document.getElementById("loadingSpinner").style.display = "none";
     }
   });
-  
   </script>
   <script>
   function toggleSidebar() {

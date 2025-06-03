@@ -49,6 +49,7 @@
 <body>
   <div class="container">
     <h1>Buku Cerita Digital</h1>
+    <div class="meta" id="cidInfo">Dibuat oleh: ...</div>
     <div class="meta" id="recipientInfo">Untuk: ...</div>
     <div class="story" id="storyContent">
       Cerita sedang dimuat...
@@ -58,14 +59,33 @@
     </div>
   </div>
 
-  <script>
-    // Ambil query string dari URL
-    const params = new URLSearchParams(window.location.search);
-    const cerita = params.get("story");
-    const untuk = params.get("to");
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const cerita = params.get("story");
+  const untuk = params.get("to");
+  const cid = params.get("cid");
+  const uid = params.get("uid");
 
-    document.getElementById("recipientInfo").innerText = untuk ? `Untuk: ${untuk}` : "";
-    document.getElementById("storyContent").innerText = cerita ? cerita : "Cerita belum tersedia.";
-  </script>
+  document.getElementById("recipientInfo").innerText = untuk ? `Untuk: ${untuk}` : "";
+  document.getElementById("cidInfo").innerText = cid ? `Dibuat oleh: ${cid}` : "";
+  document.getElementById("storyContent").innerText = cerita ? cerita : "Cerita belum tersedia.";
+
+  // Auto-generate PDF setelah render
+  setTimeout(() => {
+    const element = document.querySelector(".container");
+    const opt = {
+      margin: 0.5,
+      filename: `Cerita_${cid || 'anak'}_${Date.now()}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+
+    html2pdf().from(element).set(opt).save();
+  }, 1500);
+</script>
+</html>
 </body>
 </html>
