@@ -144,6 +144,7 @@
     .sidebar button:hover {
       background: #4a90e2;
     }
+    #panelUngu,
     .panel-ungu {
       flex-shrink: 0;
       width: 300px;
@@ -155,12 +156,23 @@
       box-sizing: border-box;
       z-index: 1;
       position: relative;
-      transition: transform 0.3s ease;
       border-top-right-radius: 20px;
       border-bottom-right-radius: 200px;
+      /* For smooth transition: animate transform and width */
+      transition: all 0.4s ease;
+      transform: translateX(0);
+      overflow: hidden;
     }
+    #panelUngu.hidden,
     .panel-ungu.hidden {
-      display: none !important;
+      /* Hide with transform for smooth transition */
+      transform: translateX(-100%);
+      /* Optionally, also animate width to 0 if desired */
+      /* width: 0; */
+      /* padding: 0; */
+      /* overflow: hidden; */
+      /* display: block !important; */
+      /* Keep element in DOM for transition, but visually hidden */
     }
     .progress-bar {
       margin-top: 20px;
@@ -401,8 +413,8 @@
         <!-- Dashboard button moved to below toggleSidebar -->
       </div>
     </div>
-    <button id="togglePanelUngu" style="position: absolute; top: 1rem; left: 4rem; z-index: 999;">🎨</button>
-    <div class="panel-ungu">
+    <button id="togglePanelUngu" style="width: 1px ; align-items: center; justify-content: center; display: inline-flex; border-radius: 0%; transition: right 0.3s ease; z-index: 1000;">O</button>
+    <div class="panel-ungu" id="panelUngu">
       <h2>👾 Python Interaktif</h2>
       <p>Ketik dan jalankan kode langsung di sini!</p>
       <div id="panel-editor" style="height: 200px; width: 100%; border: 1px solid #ccc;">print("Halo Dunia!")</div>
@@ -503,7 +515,9 @@ async function runValidatedCode(id) {
     const form = document.getElementById("formInput");
     const spinner = document.getElementById("loadingSpinner");
 
-    form.addEventListener("submit", async (e) => {
+    form.addEventListener("submit", submitForm);
+
+    async function submitForm(e) {
       e.preventDefault();
       spinner.style.display = "block";
 
@@ -523,7 +537,8 @@ async function runValidatedCode(id) {
       }
 
       try {
-        const res = await fetch("/api/generate-story", {
+        // Ganti endpoint ke /api/generate-story-with-images
+        const res = await fetch("/api/generate-story-with-images", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ namaAnak, usia, dream, hero, fear, mostLoved, recipient })
@@ -533,8 +548,11 @@ async function runValidatedCode(id) {
         spinner.style.display = "none";
 
         if (data.success) {
-          const redirectUrl = `/elearn/book.html?uid=${user.uid}&cid=${encodeURIComponent(namaAnak)}&to=${encodeURIComponent(recipient)}&story=${encodeURIComponent(data.story)}`;
-          window.location.href = redirectUrl;
+          // Simpan story dan images ke localStorage
+          localStorage.setItem("story", data.story);
+          localStorage.setItem("images", JSON.stringify(data.images));
+          // Redirect ke book.html
+          window.location.href = "book.html";
         } else {
           alert("❌ Cerita gagal dibuat. Coba lagi ya.");
         }
@@ -542,7 +560,7 @@ async function runValidatedCode(id) {
         spinner.style.display = "none";
         alert("❌ Terjadi kesalahan. Coba lagi nanti.");
       }
-    });
+    }
 
     // Reset button logic
     form.querySelector('button[type="button"]').addEventListener("click", () => {

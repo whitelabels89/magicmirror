@@ -293,7 +293,7 @@ app.post("/api/generate-story", async (req, res) => {
     const response = await axios.post(
       "https://api.openai.com/v1/chat/completions",
       {
-        model: "gpt-3.5-turbo",
+        model: "gpt-4o",
         messages: [{ role: "user", content: prompt }],
         temperature: 0.8
       },
@@ -310,6 +310,95 @@ app.post("/api/generate-story", async (req, res) => {
   } catch (error) {
     console.error("❌ Gagal generate cerita:", error?.response?.data || error.message);
     res.status(500).json({ success: false, message: "Gagal generate cerita." });
+  }
+});
+
+// Endpoint: Generate cerita dan gambar ilustrasi dari form anak
+app.post("/api/generate-story-with-images", async (req, res) => {
+  const { namaAnak, usia, dream: impian, hero: pahlawan, fear: problem, mostLoved: disayang, recipient } = req.body;
+  const apiKey = process.env.OPENAI_API_KEY;
+
+  if (!apiKey) return res.status(500).json({ success: false, message: "API key tidak tersedia." });
+
+  const storyPrompt = `
+  Buatkan cerita pendek untuk anak usia ${usia} tahun, dengan tokoh utama bernama ${namaAnak}.
+  Ia memiliki impian menjadi ${impian}, dan sangat mengagumi ${pahlawan} sebagai pahlawan hidupnya.
+  Cerita terjadi di tempat yang menyenangkan. Suatu hari, dia menghadapi ketakutan terbesarnya: ${problem}.
+  Untungnya, dengan semangat dan dukungan dari ${disayang}, dia belajar menghadapi rasa takutnya.
+  Cerita ini dipersembahkan untuk ${recipient}.
+  Cerita harus ringan, menyenangkan, dan menyentuh hati, dalam 3–5 paragraf pendek, maksimal 300 kata.
+  Gunakan bahasa Indonesia yang mudah dimengerti anak-anak, dan membuat orang tua tersenyum saat membacanya.
+  `;
+
+  try {
+    // Generate story
+    const gptResponse = await axios.post(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        model: "gpt-4o",
+        messages: [{ role: "user", content: storyPrompt }],
+        temperature: 0.8
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`
+        }
+      }
+    );
+
+    const story = gptResponse.data.choices[0].message.content;
+
+    // Ekstrak 2–3 adegan deskriptif untuk ilustrasi
+    const highlightPrompt = `
+    Dari cerita berikut, ambil 2–3 adegan penting yang cocok dijadikan gambar ilustrasi buku anak. 
+    Buat dalam format list deskriptif pendek berbahasa Inggris, masing-masing satu kalimat.
+    Cerita: """${story}"""
+    `;
+
+    const highlightsResponse = await axios.post(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        model: "gpt-4o",
+        messages: [{ role: "user", content: highlightPrompt }],
+        temperature: 0.7
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`
+        }
+      }
+    );
+
+    const highlightsText = highlightsResponse.data.choices[0].message.content;
+    const highlightLines = highlightsText.split("\n").filter(line => line.trim().length > 0).slice(0, 3);
+    
+    const images = [];
+
+    for (const desc of highlightLines) {
+      const imageRes = await axios.post(
+        "https://api.openai.com/v1/images/generations",
+        {
+          model: "dall-e-3",
+          prompt: desc.replace(/^\d+[\.\)]\s*/, ''),
+          size: "1024x1024",
+          n: 1
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`
+          }
+        }
+      );
+      images.push(imageRes.data.data[0].url);
+    }
+
+    res.json({ success: true, story, images });
+  } catch (error) {
+    console.error("❌ Gagal generate story with images:", error?.response?.data || error.message);
+    res.status(500).json({ success: false, message: "Gagal generate story & image." });
   }
 });
 

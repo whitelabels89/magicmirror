@@ -44,6 +44,13 @@
       font-size: 0.9rem;
       color: #888;
     }
+    .images img {
+      width: 100%;
+      max-width: 100%;
+      border-radius: 12px;
+      margin-top: 1rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
   </style>
 </head>
 <body>
@@ -54,6 +61,7 @@
     <div class="story" id="storyContent">
       Cerita sedang dimuat...
     </div>
+    <div class="images" id="imageGallery"></div>
     <div class="footer">
       Dibuat bersama Kody, si Robot Penulis 🧠✨
     </div>
@@ -71,6 +79,15 @@
   document.getElementById("recipientInfo").innerText = untuk ? `Untuk: ${untuk}` : "";
   document.getElementById("cidInfo").innerText = cid ? `Dibuat oleh: ${cid}` : "";
   document.getElementById("storyContent").innerText = cerita ? cerita : "Cerita belum tersedia.";
+
+  // Tampilkan gambar dari localStorage di imageGallery
+  const imageGallery = document.getElementById("imageGallery");
+  const images = JSON.parse(localStorage.getItem("images")) || [];
+  images.forEach((url) => {
+    const img = document.createElement("img");
+    img.src = url;
+    imageGallery.appendChild(img);
+  });
 
   // Auto-generate PDF setelah render
   setTimeout(() => {
