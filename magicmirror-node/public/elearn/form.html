@@ -551,6 +551,28 @@ async function runValidatedCode(id) {
           // Simpan story dan images ke localStorage
           localStorage.setItem("story", data.story);
           localStorage.setItem("images", JSON.stringify(data.images));
+
+          // --- Generate song based on story, simpan audioUrl & lyrics di sessionStorage ---
+          const storyText = data.story;
+          // Ambil namaAnak dari input jika belum ada
+          // Sudah ada di atas: const namaAnak = document.getElementById("namaAnak").value;
+          fetch('/api/generate-song', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ story: storyText, namaAnak })
+          })
+            .then(response => response.json())
+            .then(songData => {
+              if (songData.audioUrl) {
+                sessionStorage.setItem('audioUrl', songData.audioUrl);
+                sessionStorage.setItem('lyrics', songData.lyrics);
+              }
+            })
+            .catch(error => {
+              console.error("Gagal generate lagu:", error);
+            });
+          // --- End song generation ---
+
           // Redirect ke book.html
           window.location.href = "book.html";
         } else {

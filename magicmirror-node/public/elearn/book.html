@@ -79,7 +79,8 @@
   document.getElementById("recipientInfo").innerText = untuk ? `Untuk: ${untuk}` : "";
   document.getElementById("cidInfo").innerText = cid ? `Dibuat oleh: ${cid}` : "";
   const storyFromStorage = localStorage.getItem("story");
-  document.getElementById("storyContent").innerText = cerita || storyFromStorage || "Cerita belum tersedia.";
+  const storyContainer = document.getElementById("storyContent");
+  storyContainer.innerText = cerita || storyFromStorage || "Cerita belum tersedia.";
 
   // Tampilkan gambar dari localStorage di imageGallery
   const imageGallery = document.getElementById("imageGallery");
@@ -90,19 +91,49 @@
     imageGallery.appendChild(img);
   });
 
-  // Auto-generate PDF setelah render
-  setTimeout(() => {
-    const element = document.querySelector(".container");
-    const opt = {
-      margin: 0.5,
-      filename: `Cerita_${cid || 'anak'}_${Date.now()}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-    };
+  // Tunggu semua gambar selesai dimuat sebelum generate PDF
+  const element = document.querySelector(".container");
+  const imagesToLoad = Array.from(document.images);
+  let loadedCount = 0;
 
-    html2pdf().from(element).set(opt).save();
-  }, 1500);
+  waitForStory();
+
+  function waitForStory() {
+    if (storyContainer.innerText !== "Cerita sedang dimuat...") {
+      attemptGeneratePDF();
+    } else {
+      setTimeout(waitForStory, 100); // cek lagi tiap 100ms
+    }
+  }
+
+  function attemptGeneratePDF() {
+    if (loadedCount >= imagesToLoad.length) {
+      const opt = {
+        margin: 0.5,
+        filename: `Cerita_${cid || 'anak'}_${Date.now()}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+      };
+      html2pdf().from(element).set(opt).save();
+    }
+  }
+
+  imagesToLoad.forEach((img) => {
+    if (img.complete) {
+      loadedCount++;
+      attemptGeneratePDF();
+    } else {
+      img.addEventListener('load', () => {
+        loadedCount++;
+        attemptGeneratePDF();
+      });
+      img.addEventListener('error', () => {
+        loadedCount++;
+        attemptGeneratePDF();
+      });
+    }
+  });
 </script>
 </html>
 </body>
