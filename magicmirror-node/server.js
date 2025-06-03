@@ -274,17 +274,19 @@ app.post('/push_faces_to_frontend', (req, res) => {
 
 // Endpoint: Generate cerita dari form anak
 app.post("/api/generate-story", async (req, res) => {
-  const { namaAnak, usia, tema, hewanFavorit, mimpi, planetFavorit } = req.body;
+  const { namaAnak, usia, impian, pahlawan, problem, disayang, recipient } = req.body;
   const apiKey = process.env.OPENAI_API_KEY;
 
   if (!apiKey) return res.status(500).json({ success: false, message: "API key tidak tersedia." });
 
   const prompt = `
-  Tulis cerita pendek untuk anak usia ${usia} tahun. Nama anak adalah ${namaAnak}.
-  Cerita ini bertema ${tema}, dan mengandung karakter hewan favorit: ${hewanFavorit}.
-  Impian anak ini adalah: ${mimpi}, dan petualangan terjadi di planet ${planetFavorit}.
-  Gaya cerita harus ringan, menyenangkan, dan menyentuh hati orang tua.
-  Buatkan paragraf-paragraf pendek maksimal 300 kata. Gunakan bahasa Indonesia yang mudah dimengerti anak-anak.
+  Buatkan cerita pendek untuk anak usia ${usia} tahun, dengan tokoh utama bernama ${namaAnak}.
+  Ia memiliki impian menjadi ${impian}, dan sangat mengagumi ${pahlawan} sebagai pahlawan hidupnya.
+  Cerita terjadi di tempat yang menyenangkan. Suatu hari, dia menghadapi ketakutan terbesarnya: ${problem}.
+  Untungnya, dengan semangat dan dukungan dari ${disayang}, dia belajar menghadapi rasa takutnya.
+  Cerita ini dipersembahkan untuk ${recipient}.
+  Cerita harus ringan, menyenangkan, dan menyentuh hati, dalam 3–5 paragraf pendek, maksimal 300 kata.
+  Gunakan bahasa Indonesia yang mudah dimengerti anak-anak, dan membuat orang tua tersenyum saat membacanya.
   `;
 
   try {

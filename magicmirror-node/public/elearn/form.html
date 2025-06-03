@@ -414,19 +414,25 @@
         <h1>Workshop: Cerita Digital untuk Orang Tua</h1>
         <p class="subtitle">Yuk, bantu Kody si Robot Penulis membuat cerita untuk orang tua kamu!</p>
         <form id="formInput" class="lesson-section" style="margin-top: 1rem;">
-          <label for="character">🧒 Siapa tokoh utama dalam ceritamu?</label><br>
-          <input type="text" id="character" name="character" required><br><br>
+          <label for="namaAnak">👧 Siapa nama kamu?</label>
+          <input type="text" id="namaAnak" name="namaAnak" required><br><br>
 
-          <label for="setting">🌍 Ceritanya terjadi di mana?</label><br>
-          <input type="text" id="setting" name="setting" required><br><br>
+          <label for="usia">🎂 Berapa usia kamu?</label>
+          <input type="number" id="usia" name="usia" min="3" max="12" required><br><br>
 
-          <label for="problem">😮 Apa masalah yang dia hadapi?</label><br>
-          <input type="text" id="problem" name="problem" required><br><br>
+          <label for="dream">💫 Apa cita-cita atau impian terbesarmu?</label>
+          <input type="text" id="dream" name="dream" required><br><br>
 
-          <label for="helper">🧙 Siapa yang membantunya?</label><br>
-          <input type="text" id="helper" name="helper" required><br><br>
+          <label for="hero">🦸 Siapa pahlawan dalam hidupmu? (Orang yang kamu kagumi banget)</label>
+          <input type="text" id="hero" name="hero" required><br><br>
 
-          <label for="recipient">🎁 Cerita ini kamu persembahkan untuk siapa?</label><br>
+          <label for="fear">😨 Hal apa yang paling kamu takuti?</label>
+          <input type="text" id="fear" name="fear" required><br><br>
+
+          <label for="mostLoved">👩‍👦 Siapa orang yang paling kamu sayangi?</label>
+          <input type="text" id="mostLoved" name="mostLoved" required><br><br>
+
+          <label for="recipient">🎁 Cerita ini kamu persembahkan untuk siapa?</label>
           <input type="text" id="recipient" name="recipient" required><br><br>
 
           <div class="button-group" style="margin-top: 20px;">
@@ -501,15 +507,16 @@ async function runValidatedCode(id) {
       e.preventDefault();
       spinner.style.display = "block";
 
-      const namaAnak = user.nama;
-      // Map input fields to new fields
-      const usia = document.getElementById("setting").value;
-      const tema = document.getElementById("problem").value;
-      const hewanFavorit = document.getElementById("character").value;
-      const mimpi = document.getElementById("helper").value;
-      const planetFavorit = document.getElementById("recipient").value;
+      // Use form values directly from the new input fields
+      const namaAnak = document.getElementById("namaAnak").value.trim();
+      const usia = document.getElementById("usia").value.trim();
+      const dream = document.getElementById("dream").value.trim();
+      const hero = document.getElementById("hero").value.trim();
+      const fear = document.getElementById("fear").value.trim();
+      const mostLoved = document.getElementById("mostLoved").value.trim();
+      const recipient = document.getElementById("recipient").value.trim();
 
-      if (!usia || !tema || !hewanFavorit || !mimpi || !planetFavorit) {
+      if (!namaAnak || !usia || !dream || !hero || !fear || !mostLoved || !recipient) {
         spinner.style.display = "none";
         alert("❗ Semua kolom harus diisi ya!");
         return;
@@ -519,14 +526,14 @@ async function runValidatedCode(id) {
         const res = await fetch("/api/generate-story", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ namaAnak, usia, tema, hewanFavorit, mimpi, planetFavorit })
+          body: JSON.stringify({ namaAnak, usia, dream, hero, fear, mostLoved, recipient })
         });
 
         const data = await res.json();
         spinner.style.display = "none";
 
         if (data.success) {
-          const redirectUrl = `/elearn/book.html?uid=${user.uid}&cid=${encodeURIComponent(user.nama)}&to=Mami&story=${encodeURIComponent(data.story)}`;
+          const redirectUrl = `/elearn/book.html?uid=${user.uid}&cid=${encodeURIComponent(namaAnak)}&to=${encodeURIComponent(recipient)}&story=${encodeURIComponent(data.story)}`;
           window.location.href = redirectUrl;
         } else {
           alert("❌ Cerita gagal dibuat. Coba lagi ya.");
