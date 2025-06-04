@@ -416,27 +416,30 @@ app.post("/api/generate-kody-image", async (req, res) => {
 
   try {
     const prompt = `${description}, in colorful children’s storybook illustration style, cartoon style, no photorealistic faces, 3D clay-style mascot`;
-    
-    const response = await axios.post(
-      "https://api.openai.com/v1/images/generations",
-      {
+
+    const dalleRes = await fetch("https://api.openai.com/v1/images/generations", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
         model: "dall-e-3",
         prompt,
-        size: "512x512",
+        size: "1024x1024",
         n: 1
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`
-        }
-      }
-    );
+      })
+    });
 
-    const imageUrl = response.data.data[0].url;
+    const data = await dalleRes.json();
+    if (!data?.data || !data.data[0]?.url) {
+      throw new Error("Tidak ada URL gambar dalam respons.");
+    }
+
+    const imageUrl = data.data[0].url;
     res.json({ success: true, imageUrl });
   } catch (error) {
-    console.error("❌ Gagal generate gambar Kody:", error && error.response && error.response.data ? error.response.data : error.message);
+    console.error("❌ Gagal generate gambar Kody:", error.message || error);
     res.status(500).json({ success: false, message: "Gagal generate gambar Kody." });
   }
 });
