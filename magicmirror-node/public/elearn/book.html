@@ -52,6 +52,23 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
   </style>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBVO4ajDwkbcTGL33SVMxIoev4veB8itgI",
+      authDomain: "queens-academy-icoding.firebaseapp.com",
+      projectId: "queens-academy-icoding",
+      storageBucket: "queens-academy-icoding.firebasestorage.app",
+      messagingSenderId: "1048549258959",
+      appId: "1:1048549258959:web:f8dc1c104bb170d7ff69ba",
+      measurementId: "G-RJCXM1YL7E"
+    };
+    const app = firebase.initializeApp(firebaseConfig);
+    const storage = firebase.storage();
+    const db = firebase.firestore();
+  </script>
 </head>
 <body>
   <div class="container">
@@ -128,7 +145,10 @@
         html2canvas: { scale: 2 },
         jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
       };
-      html2pdf().from(element).set(opt).save();
+      html2pdf().from(element).set(opt).outputPdf('blob').then(blob => {
+        uploadPDFToFirebase(blob, opt.filename);
+        html2pdf().from(element).set(opt).save(); // tetap download ke user
+      });
     }
   }
 
@@ -140,6 +160,25 @@
       img.addEventListener('error', checkImagesLoaded);
     });
   }
+</script>
+<script>
+// Fungsi untuk upload PDF ke Firebase Storage dan simpan info ke Firestore
+async function uploadPDFToFirebase(blob, filename) {
+  const cid = localStorage.getItem('cid') || 'anon';
+  const storageRef = storage.ref(`karya_anak/${cid}/${filename}`);
+  const snapshot = await storageRef.put(blob);
+  const downloadURL = await snapshot.ref.getDownloadURL();
+
+  await db.collection("karya_anak").add({
+    cid: cid,
+    judul: "Cerita Digital Kody",
+    link: downloadURL,
+    timestamp: Date.now(),
+    id_karya: filename
+  });
+
+  alert("✅ PDF Cerita berhasil disimpan ke dashboard murid!");
+}
 </script>
 </html>
 </body>
