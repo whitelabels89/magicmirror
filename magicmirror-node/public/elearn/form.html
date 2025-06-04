@@ -5,34 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>M1 L1: Introduction to Python</title>
   <script src="userInfo.js"></script>
-  <!-- Firebase Auth anonymous login initialization -->
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-storage.js"></script>
   <script>
-    // Inisialisasi Firebase jika belum
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
-
-    // Login anonim ke Firebase
-    firebase.auth().signInAnonymously()
-      .then(() => {
-        console.log("✅ Login anonim berhasil");
-      })
-      .catch((error) => {
-        console.error("❌ Gagal login anonim:", error);
-      });
-  </script>
-
-  <!-- Firebase SDKs (Compat) -->
-  <!-- Firebase App (Compat) -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <!-- Firebase Auth (Compat, jika perlu login) -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-  <!-- Firebase Storage (Compat) -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
-  <!-- Firebase Firestore (Compat) -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-  <script>
-    // Firebase v8 compatible initialization for legacy style
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBVO4ajDwkbcTGL33SVMxIoev4veB8itgI",
       authDomain: "queens-academy-icoding.firebaseapp.com",
@@ -42,10 +21,21 @@
       appId: "1:1048549258959:web:f8dc1c104bb170d7ff69ba",
       measurementId: "G-RJCXM1YL7E"
     };
-    // For Firebase v9 compat
-    const app = firebase.initializeApp(firebaseConfig);
+    // Inisialisasi Firebase jika belum
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    // Firebase references
     const storage = firebase.storage();
     const db = firebase.firestore();
+    // Login anonim ke Firebase
+    firebase.auth().signInAnonymously()
+      .then(() => {
+        console.log("✅ Login anonim berhasil");
+      })
+      .catch((error) => {
+        console.error("❌ Gagal login anonim:", error);
+      });
   </script>
   <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
