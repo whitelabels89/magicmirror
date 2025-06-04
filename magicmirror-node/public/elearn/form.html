@@ -6,43 +6,39 @@
   <title>M1 L1: Introduction to Python</title>
   <script src="userInfo.js"></script>
   <script>
-    // Script upload gambar Kody ke Firebase via backend endpoint
+    // Script upload gambar Kody ke Firebase (VERSI BARU, ADOP DASHBOARD)
     async function uploadKodyToFirebase(cid, judul) {
-      const imageElement = document.getElementById("kodyImage") || document.getElementById("outputImage");
-      const imageURL = imageElement?.src;
-      if (!imageURL || imageURL.includes("placeholder")) {
-        console.error("❌ Gambar belum tersedia atau masih placeholder.");
-        return;
-      }
-
       try {
-        const response = await fetch(imageURL);
+        const imageData = localStorage.getItem("generatedImageData");
+        if (!imageData) {
+          alert("❌ Tidak ada gambar untuk diupload.");
+          return;
+        }
+
+        const response = await fetch(imageData);
         const blob = await response.blob();
 
-        const formData = new FormData();
-        formData.append("cid", cid);
-        formData.append("judul", judul);
-        formData.append("image", blob, "kody.png");
+        const fileName = `kody_${Date.now()}.png`;
+        const filePath = `karya_anak/${cid}/${fileName}`;
 
-        const res = await fetch("https://firebase-upload-backend.onrender.com/api/upload-kody-image", {
-          method: "POST",
-          body: formData,
+        const storageRef = firebase.storage().ref(filePath);
+        const uploadTaskSnapshot = await storageRef.put(blob);
+        const downloadURL = await uploadTaskSnapshot.ref.getDownloadURL();
+
+        const timestamp = new Date().toISOString();
+        const firestore = firebase.firestore();
+        await firestore.collection("karya_anak").add({
+          CID: cid,
+          Judul: judul,
+          URL: downloadURL,
+          ID_KARYA: fileName,
+          Timestamp: timestamp,
         });
-        if (res.ok) {
-          alert("Berhasil simpan ke dashboard!");
-        } else {
-          alert("Gagal simpan. Coba lagi.");
-        }
-        // (Optional: bisa log hasil detail jika mau)
-        // const result = await res.json();
-        // if (result.success) {
-        //   console.log("✅ Gambar berhasil diupload:", result.link);
-        // } else {
-        //   console.error("❌ Upload gagal:", result.message);
-        // }
-      } catch (err) {
-        alert("Gagal simpan. Coba lagi.");
-        console.error("❌ Fetch error:", err);
+
+        alert("✅ Berhasil disimpan ke dashboard!");
+      } catch (error) {
+        console.error("❌ Upload error:", error);
+        alert("❌ Gagal simpan ke dashboard.");
       }
     }
   </script>
