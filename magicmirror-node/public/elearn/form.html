@@ -744,6 +744,7 @@ async function runValidatedCode(id) {
   <script src="userInfo.js"></script>
   <script>
     const user = getUserInfo();
+    localStorage.setItem("cid", user.uid);
     if (!user || user.role !== "anak") {
       alert("❌ Akses tidak sah. Silakan login ulang.");
       window.location.href = "/elearn/login-elearning.html";
@@ -1368,7 +1369,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const response = await fetch(imageUrl);
       const blob = await response.blob();
 
-      const cid = localStorage.getItem('cid') || 'anon';
+      const cid = localStorage.getItem('cid') || (user?.uid || 'anon');
       const timestamp = Date.now();
       const filePath = `karya_anak/${cid}/kody_custom_${timestamp}.png`;
       const storageRef = storage.ref(filePath);
