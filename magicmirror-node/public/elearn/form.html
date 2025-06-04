@@ -434,103 +434,14 @@
       <section class="lesson-section level-section active-level" id="level-1" style="display: block;">
         <h2>Level 1: Aktifkan Kody</h2>
         <p>Ketik kode berikut untuk mengaktifkan Kody:</p>
-        <div class="python-editor-container" style="margin-bottom:1rem;">
-          <pre class="editable-hint-box"
-            contenteditable="true"
-            spellcheck="false"
-            placeholder="print(&quot;Halo! Aku Kody, calon robot penulis.&quot;)"
-          >print("Halo! Aku Kody, calon robot penulis.")</pre>
-          <textarea rows="2" style="width:100%;margin-top:0.5rem;">print("Halo! Aku Kody, calon robot penulis.")</textarea>
-          <button type="button" onclick="runInlinePython(this)">Jalankan</button>
-          <pre class="python-output" style="background:#222;color:#fff;border-radius:6px;padding:0.5rem;margin-top:0.5rem;"></pre>
-        </div>
+        <div class="typingBox-vscode" data-hint='print("Halo! Aku Kody, calon robot penulis.")'></div>
         <!-- Step navigation removed for sidebar-only navigation -->
       </section>
-  <style>
-    /* Editable hint box for book.html and form.html */
-    .editable-hint-box {
-      background: #1e1e1e;
-      color: #4da6ff;
-      padding: 1rem;
-      border-radius: 8px;
-      font-family: 'Fira Mono', 'Consolas', 'Menlo', 'Monaco', 'Courier New', monospace;
-      font-size: 16px;
-      min-height: 2em;
-      outline: none;
-      border: 1px solid #333;
-      margin-top: 1.5rem;
-      margin-bottom: 1.5rem;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.13);
-      transition: background 0.15s, color 0.15s;
-    }
-    .editable-hint-box:focus {
-      outline: 2px solid #4da6ff;
-      background: #23272e;
-    }
-    .editable-hint-box.hint-placeholder {
-      color: #555ca7 !important;
-      font-style: italic;
-      user-select: none;
-    }
-  </style>
-  <script>
-    // Editable hint box logic for .editable-hint-box
-    document.addEventListener('DOMContentLoaded', function() {
-      document.querySelectorAll('.editable-hint-box').forEach(function(editable) {
-        const placeholder = editable.getAttribute('placeholder') || '';
-        function showPlaceholderIfEmpty() {
-          if (editable.textContent.trim().length === 0) {
-            editable.classList.add('hint-placeholder');
-            editable.innerHTML = '';
-            editable.setAttribute('data-empty', 'true');
-            // Show placeholder as text node for caret
-            editable.appendChild(document.createTextNode(placeholder));
-            editable.style.color = "#555ca7";
-          } else {
-            editable.classList.remove('hint-placeholder');
-            editable.setAttribute('data-empty', 'false');
-            editable.style.color = "#4da6ff";
-          }
-        }
-        // Initial state
-        if (editable.textContent.trim() === '' || editable.textContent.trim() === placeholder) {
-          editable.textContent = '';
-          showPlaceholderIfEmpty();
-        } else {
-          editable.style.color = "#4da6ff";
-        }
-        editable.addEventListener('focus', function() {
-          if (editable.getAttribute('data-empty') === 'true') {
-            editable.textContent = '';
-            editable.style.color = "#4da6ff";
-          }
-        });
-        editable.addEventListener('blur', function() {
-          showPlaceholderIfEmpty();
-        });
-        editable.addEventListener('input', function() {
-          showPlaceholderIfEmpty();
-        });
-        // VS Code style: Tab inserts 4 spaces
-        editable.addEventListener('keydown', function(e) {
-          if (e.key === 'Tab') {
-            e.preventDefault();
-            document.execCommand('insertText', false, '    ');
-          }
-        });
-      });
-    });
-  </script>
       <!-- Level 2 -->
       <section class="lesson-section level-section" id="level-2" style="display: none;">
         <h2>Level 2: Kody Kenalan Sama Kamu</h2>
         <p>Ketik kode berikut agar Kody bisa kenalan denganmu:</p>
-        <div class="python-editor-container" style="margin-bottom:1rem;">
-          <pre><code class="language-python">nama = input("Siapa namamu?")<br>cita = input("Apa cita-cita kamu?")</code></pre>
-          <textarea rows="2" style="width:100%;margin-top:0.5rem;">nama = input("Siapa namamu?")&#10;cita = input("Apa cita-cita kamu?")</textarea>
-          <button type="button" onclick="runInlinePython(this)">Jalankan</button>
-          <pre class="python-output" style="background:#222;color:#fff;border-radius:6px;padding:0.5rem;margin-top:0.5rem;"></pre>
-        </div>
+        <div class="typingBox-vscode" data-hint='nama = input("Siapa namamu?")&#10;cita = input("Apa cita-cita kamu?")'></div>
         <!-- Step navigation removed for sidebar-only navigation -->
       </section>
       <!-- Level 3 -->
@@ -995,103 +906,6 @@ function syntaxClassPython(line, i, char) {
   return "default";
 }
 
-function setupVscodeTypingBox(container) {
-  // Accepts: <div class="typingBox-vscode" data-hint="..."></div>
-  const code = container.dataset.hint || "";
-  const lines = code.split('\n');
-  container.innerHTML = `
-    <div class="typing-container vscode-typing" tabindex="0">
-      <div class="code-output" style="white-space:pre;min-height:1em;"></div>
-    </div>
-    <div style="margin-top:0.5em;">
-      <button type="button" class="run-vscode-typing-btn">Jalankan</button>
-      <span class="vscode-typing-feedback" style="margin-left:1em;"></span>
-    </div>
-    <pre class="vscode-typing-output" style="background:#222;color:#fff;border-radius:6px;padding:0.5rem;margin-top:0.5rem;"></pre>
-  `;
-  const typingContainer = container.querySelector('.typing-container');
-  const codeOutput = container.querySelector('.code-output');
-  const feedback = container.querySelector('.vscode-typing-feedback');
-  const outputEl = container.querySelector('.vscode-typing-output');
-  const runBtn = container.querySelector('.run-vscode-typing-btn');
-  // State
-  let typed = [];
-  let currentLine = 0;
-  let linesTyped = lines.map(() => []);
-
-  // Render function
-  function render() {
-    codeOutput.innerHTML = lines.map((line, i) => {
-      const t = linesTyped[i] || [];
-      return line.split('').map((char, j) => {
-        const ch = t[j];
-        if (ch == null) return `<span class="pending">${char}</span>`;
-        if (ch === char) return `<span class="correct ${syntaxClassPython(line, j, char)}">${char}</span>`;
-        return `<span class="wrong">${ch}</span>`;
-      }).join('');
-    }).join('\n');
-    // Visual feedback if all correct
-    const allCorrect = lines.every((line, i) => (linesTyped[i] || []).join('') === line);
-    if (allCorrect) {
-      feedback.textContent = "✅ Benar!";
-      feedback.style.color = "#2ecc40";
-    } else {
-      feedback.textContent = "";
-    }
-  }
-
-  // Focus logic
-  typingContainer.addEventListener('click', () => {
-    typingContainer.classList.add('active');
-    typingContainer.focus();
-  });
-
-  // Typing logic (VS Code style)
-  typingContainer.addEventListener('keydown', (e) => {
-    if (!typingContainer.classList.contains('active')) return;
-    if (e.ctrlKey || e.metaKey || e.altKey) return;
-    e.preventDefault();
-    // Multi-line
-    if (e.key === 'Backspace') {
-      if (linesTyped[currentLine].length > 0) {
-        linesTyped[currentLine].pop();
-      } else if (currentLine > 0) {
-        currentLine--;
-      }
-    } else if (e.key === 'Enter') {
-      if (currentLine < lines.length - 1) {
-        currentLine++;
-      }
-    } else if (e.key.length === 1 && linesTyped[currentLine].length < lines[currentLine].length) {
-      linesTyped[currentLine].push(e.key);
-    }
-    // Visual feedback: highlight green if correct, red if wrong
-    render();
-  });
-
-  // Run code button
-  runBtn.addEventListener('click', async () => {
-    const codeTyped = linesTyped.map(a => a.join('')).join('\n');
-    outputEl.textContent = "⏳ Menjalankan...";
-    if (!window.pyodideReady) {
-      outputEl.textContent = "❌ Pyodide belum siap.";
-      return;
-    }
-    try {
-      let output = "";
-      window.pyodide.setStdout({ batched: (s) => { output += s + "\n"; } });
-      await window.pyodide.runPythonAsync(codeTyped);
-      outputEl.textContent = output.trim() || "✅ Berhasil (tidak ada output)";
-    } catch (err) {
-      outputEl.textContent = "❌ Error:\n" + err;
-    } finally {
-      window.pyodide.setStdout({});
-    }
-  });
-
-  // Initial render
-  render();
-}
 
 // On DOMContentLoaded, scan for .typingBox-vscode and initialize them
 document.addEventListener('DOMContentLoaded', function() {
@@ -1287,4 +1101,19 @@ document.addEventListener('DOMContentLoaded', function() {
       togglePanel.addEventListener('click', togglePanelUngu);
     }
   });
-</script>
+  </script>
+
+  <!-- Fallback manual trigger jika ada typingBox-vscode yang belum ke-render -->
+  <script>
+    // Fallback manual trigger jika ada typingBox-vscode yang belum ke-render
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(() => {
+        document.querySelectorAll('.typingBox-vscode').forEach(el => {
+          if (!el.classList.contains('initialized')) {
+            setupVscodeTypingBox(el);
+            el.classList.add('initialized');
+          }
+        });
+      }, 100);
+    });
+  </script>
