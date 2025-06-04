@@ -102,7 +102,7 @@
 
   // Tunggu semua gambar selesai dimuat sebelum generate PDF
   const element = document.querySelector(".container");
-  const imagesToLoad = Array.from(document.images);
+  const imagesToLoad = Array.from(element.querySelectorAll("img")).filter(img => !img.complete);
   let loadedCount = 0;
 
   waitForStory();
@@ -119,6 +119,7 @@
   }
 
   function checkImagesLoaded() {
+    loadedCount++;
     if (loadedCount >= imagesToLoad.length) {
       const opt = {
         margin: 0.5,
@@ -131,21 +132,14 @@
     }
   }
 
-  imagesToLoad.forEach((img) => {
-    if (img.complete) {
-      loadedCount++;
-      checkImagesLoaded();
-    } else {
-      img.addEventListener('load', () => {
-        loadedCount++;
-        checkImagesLoaded();
-      });
-      img.addEventListener('error', () => {
-        loadedCount++;
-        checkImagesLoaded();
-      });
-    }
-  });
+  if (imagesToLoad.length === 0) {
+    checkImagesLoaded();
+  } else {
+    imagesToLoad.forEach((img) => {
+      img.addEventListener('load', checkImagesLoaded);
+      img.addEventListener('error', checkImagesLoaded);
+    });
+  }
 </script>
 </html>
 </body>
