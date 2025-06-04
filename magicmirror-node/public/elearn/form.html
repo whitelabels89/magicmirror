@@ -22,19 +22,26 @@
         const formData = new FormData();
         formData.append("cid", cid);
         formData.append("judul", judul);
-        formData.append("image", blob, `${judul || "kody"}.png`);
+        formData.append("image", blob, "kody.png");
 
-        const res = await fetch("/upload-kody-image", {
+        const res = await fetch("https://queensacademy.id/api/upload-kody-image", {
           method: "POST",
           body: formData,
         });
-        const result = await res.json();
-        if (result.success) {
-          console.log("✅ Gambar berhasil diupload:", result.link);
+        if (res.ok) {
+          alert("Berhasil simpan ke dashboard!");
         } else {
-          console.error("❌ Upload gagal:", result.message);
+          alert("Gagal simpan. Coba lagi.");
         }
+        // (Optional: bisa log hasil detail jika mau)
+        // const result = await res.json();
+        // if (result.success) {
+        //   console.log("✅ Gambar berhasil diupload:", result.link);
+        // } else {
+        //   console.error("❌ Upload gagal:", result.message);
+        // }
       } catch (err) {
+        alert("Gagal simpan. Coba lagi.");
         console.error("❌ Fetch error:", err);
       }
     }
