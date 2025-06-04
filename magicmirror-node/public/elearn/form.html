@@ -744,7 +744,7 @@ async function runValidatedCode(id) {
   <script src="userInfo.js"></script>
   <script>
     const user = getUserInfo();
-    localStorage.setItem("cid", user.uid);
+    localStorage.setItem("currentCid", user.uid);
     if (!user || user.role !== "anak") {
       alert("❌ Akses tidak sah. Silakan login ulang.");
       window.location.href = "/elearn/login-elearning.html";
@@ -897,7 +897,7 @@ async function runValidatedCode(id) {
   }
 
   // Handler untuk generate gambar Kody (terhubung ke backend)
-  async function generateKodyImage() {
+    async function generateKodyImage() {
     const prompt = document.getElementById("kodyPromptInput").value.trim();
     const preview = document.getElementById("kodyImagePreview");
     const outputImage = document.getElementById("outputImage");
@@ -936,7 +936,7 @@ async function runValidatedCode(id) {
         outputImage.style.display = "";
         saveBtn.style.display = "";
 
-        const currentCid = localStorage.getItem("currentCid") || "UNKNOWN";
+        const currentCid = localStorage.getItem("currentCid") || localStorage.getItem("cid") || user?.uid || "anon";
         outputImage.onload = () => {
           if (typeof uploadKodyToFirebase === "function") {
             uploadKodyToFirebase(currentCid, "Robot Impian Kody");
