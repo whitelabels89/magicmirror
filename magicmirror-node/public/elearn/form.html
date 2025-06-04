@@ -14,6 +14,26 @@
       }
     });
   </script>
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js"></script>
+  <script>
+    // Firebase v8 compatible initialization for legacy style
+    const firebaseConfig = {
+      apiKey: "AIzaSyBVO4ajDwkbcTGL33SVMxIoev4veB8itgI",
+      authDomain: "queens-academy-icoding.firebaseapp.com",
+      projectId: "queens-academy-icoding",
+      storageBucket: "queens-academy-icoding.appspot.com",
+      messagingSenderId: "1048549258959",
+      appId: "1:1048549258959:web:f8dc1c104bb170d7ff69ba",
+      measurementId: "G-RJCXM1YL7E"
+    };
+    // For Firebase v9 compat
+    const app = firebase.initializeApp(firebaseConfig);
+    const storage = firebase.storage();
+    const db = firebase.firestore();
+  </script>
   <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
@@ -438,7 +458,14 @@
           <label for="kodyPromptInput">💡 Bayangkan bentuk Kody: </label>
           <input id="kodyPromptInput" type="text" style="width:100%;margin-top:0.5rem;" placeholder="Contoh: lucu, berkepala bulat, tangan laser"/>
           <button type="button" onclick="generateKodyImage()">🧠 Buat Gambar Kody</button>
-          <div id="kodyImagePreview" style="margin-top:1rem;"></div>
+          <div id="kodyImagePreview" style="margin-top:1rem;">
+            <!-- Output image will be placed here -->
+          </div>
+          <div style="text-align:center;">
+            <img id="outputImage" src="" alt="" style="display:none;max-width:200px;border-radius:8px;margin-top:1rem;">
+            <br>
+            <button id="saveToDashboardBtn" style="margin-top: 12px; display:none;">Simpan ke Dashboard</button>
+          </div>
         </div>
         <div class="python-editor-container" style="margin-bottom:1rem;">
           <pre><code class="language-python">print("Halo! Aku Kody, calon robot penulis.")</code></pre>
@@ -877,6 +904,8 @@ async function runValidatedCode(id) {
   async function generateKodyImage() {
     const prompt = document.getElementById("kodyPromptInput").value.trim();
     const preview = document.getElementById("kodyImagePreview");
+    const outputImage = document.getElementById("outputImage");
+    const saveBtn = document.getElementById("saveToDashboardBtn");
 
     if (!prompt) {
       alert("Tolong isi deskripsi Kody dulu ya!");
@@ -884,6 +913,8 @@ async function runValidatedCode(id) {
     }
 
     preview.innerHTML = "⏳ Sedang membuat gambar dari imajinasi kamu...";
+    outputImage.style.display = "none";
+    saveBtn.style.display = "none";
     try {
       const res = await fetch("/api/generate-kody-image", {
         method: "POST",
@@ -901,13 +932,20 @@ async function runValidatedCode(id) {
       if (data.success && data.imageUrl) {
         localStorage.setItem("kodyPrompt", prompt);
         localStorage.setItem("kodyImage", data.imageUrl);
-        preview.innerHTML = `<img src="${data.imageUrl}" style="max-width:200px;border-radius:8px;">`;
+        preview.innerHTML = "";
+        outputImage.src = data.imageUrl;
+        outputImage.style.display = "";
+        saveBtn.style.display = "";
       } else {
         preview.innerHTML = "❌ Gagal membuat gambar. Coba lagi ya.";
+        outputImage.style.display = "none";
+        saveBtn.style.display = "none";
       }
     } catch (err) {
       console.error("Gagal fetch:", err);
       preview.innerHTML = "❌ Terjadi kesalahan saat membuat gambar.";
+      outputImage.style.display = "none";
+      saveBtn.style.display = "none";
     }
   }
 </script>
@@ -1305,3 +1343,47 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 </script>
+</script>
+<script>
+// Firebase save-to-dashboard logic
+document.addEventListener('DOMContentLoaded', function () {
+  const saveBtn = document.getElementById('saveToDashboardBtn');
+  if (!saveBtn) return;
+  saveBtn.addEventListener('click', async () => {
+    const imageElement = document.getElementById('outputImage');
+    const imageUrl = imageElement.src;
+    if (!imageUrl) {
+      alert('❗ Gambar belum tersedia.');
+      return;
+    }
+    try {
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Menyimpan...';
+      // Ambil blob dari URL gambar
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+
+      const cid = localStorage.getItem('cid') || 'anon';
+      const timestamp = Date.now();
+      const filePath = `karya_anak/${cid}/kody_custom_${timestamp}.png`;
+      const storageRef = storage.ref(filePath);
+      const snapshot = await storageRef.put(blob);
+      const downloadURL = await snapshot.ref.getDownloadURL();
+
+      await db.collection('karya_anak').add({
+        cid: cid,
+        judul: 'Robot Kody Custom',
+        link: downloadURL,
+        timestamp: timestamp,
+        id_karya: `kody_custom_${timestamp}`
+      });
+
+      alert('✅ Gambar berhasil disimpan ke dashboard!');
+    } catch (err) {
+      alert('❌ Terjadi kesalahan saat menyimpan gambar.');
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Simpan ke Dashboard';
+    }
+  });
+});
