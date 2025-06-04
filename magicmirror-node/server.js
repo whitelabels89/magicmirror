@@ -402,7 +402,7 @@ app.post("/api/generate-story-with-images", async (req, res) => {
   }
 });
 
-// Endpoint: generate gambar Kody dari prompt anak (lebih aman)
+// Endpoint: generate gambar Kody dari prompt anak (struktur & style sama dengan generate-story-with-images)
 app.post("/api/generate-kody-image", async (req, res) => {
   const { description } = req.body;
   const apiKey = process.env.OPENAI_API_KEY;
@@ -415,11 +415,13 @@ app.post("/api/generate-kody-image", async (req, res) => {
   }
 
   try {
-    const dalleResponse = await axios.post(
+    const prompt = `${description}, in colorful children’s storybook illustration style, cartoon style, no photorealistic faces, 3D clay-style mascot`;
+    
+    const response = await axios.post(
       "https://api.openai.com/v1/images/generations",
       {
         model: "dall-e-3",
-        prompt: `${description}, cute 2.5D clay-style robot, colorful, kids-friendly, cartoon mascot design, isolated on white background`,
+        prompt,
         size: "512x512",
         n: 1
       },
@@ -431,18 +433,10 @@ app.post("/api/generate-kody-image", async (req, res) => {
       }
     );
 
-    const imageData = dalleResponse.data?.data?.[0];
-    if (!imageData?.url) throw new Error("URL gambar tidak ditemukan.");
-
-    res.json({ success: true, imageUrl: imageData.url });
+    const imageUrl = response.data.data[0].url;
+    res.json({ success: true, imageUrl });
   } catch (error) {
-    console.error("❌ Gagal generate gambar Kody:");
-    if (error.response) {
-      console.error("📥 Status:", error.response.status);
-      console.error("📥 Data:", error.response.data);
-    } else {
-      console.error(error.message);
-    }
+    console.error("❌ Gagal generate gambar Kody:", error && error.response && error.response.data ? error.response.data : error.message);
     res.status(500).json({ success: false, message: "Gagal generate gambar Kody." });
   }
 });
