@@ -24,7 +24,7 @@
         formData.append("judul", judul);
         formData.append("image", blob, "kody.png");
 
-        const res = await fetch("https://queensacademy.id/api/upload-kody-image", {
+        const res = await fetch("https://firebase-upload-backend.onrender.com/api/upload-kody-image", {
           method: "POST",
           body: formData,
         });
