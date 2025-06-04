@@ -249,7 +249,7 @@
       color: white;
     }
     .hide-editor-only {
-      display: none;
+      display: none !important;
     }
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -434,19 +434,24 @@
       <section class="lesson-section level-section active-level" id="level-1" style="display: block;">
         <h2>Level 1: Aktifkan Kody</h2>
         <p>Ketik kode berikut untuk mengaktifkan Kody:</p>
-        <div class="typingBox-vscode" data-hint='print("Halo! Aku Kody, calon robot penulis.")'></div>
-        <button onclick="jalankanPython()">Jalankan</button>
-        <pre id="outputPython" style="background:#111; color:#4caf50; padding:12px; margin-top:10px;"></pre>
+        <div class="python-editor-container" style="margin-bottom:1rem;">
+          <pre><code class="language-python">print("Halo! Aku Kody, calon robot penulis.")</code></pre>
+          <textarea class="hide-editor-only" rows="2" style="width:100%;margin-top:0.5rem;">print("Halo! Aku Kody, calon robot penulis.")</textarea>
+          <button type="button" onclick="runInlinePython(this)">Jalankan</button>
+          <pre class="python-output" style="background:#222;color:#fff;border-radius:6px;padding:0.5rem;margin-top:0.5rem;"></pre>
+        </div>
         <!-- Step navigation removed for sidebar-only navigation -->
       </section>
       <!-- Level 2 -->
       <section class="lesson-section level-section" id="level-2" style="display: none;">
         <h2>Level 2: Kody Kenalan Sama Kamu</h2>
         <p>Ketik kode berikut agar Kody bisa kenalan denganmu:</p>
-        <pre><code class="language-python">nama = input("Siapa namamu?")<br>cita = input("Apa cita-cita kamu?")</code></pre>
-        <div class="typingBox-vscode" data-hint="print('Halo! Aku Kody, calon robot penulis.')&#10;nama = input('Siapa namamu?')&#10;cita = input('Apa cita-cita kamu?')"></div>
-        <button onclick="jalankanPython()">Jalankan</button>
-        <pre id="outputPython" style="background:#111; color:#4caf50; padding:12px; margin-top:10px;"></pre>
+        <div class="python-editor-container" style="margin-bottom:1rem;">
+          <pre><code class="language-python">nama = input("Siapa namamu?")<br>cita = input("Apa cita-cita kamu?")</code></pre>
+          <textarea class="hide-editor-only" rows="2" style="width:100%;margin-top:0.5rem;">nama = input("Siapa namamu?")&#10;cita = input("Apa cita-cita kamu?")</textarea>
+          <button type="button" onclick="runInlinePython(this)">Jalankan</button>
+          <pre class="python-output" style="background:#222;color:#fff;border-radius:6px;padding:0.5rem;margin-top:0.5rem;"></pre>
+        </div>
         <!-- Step navigation removed for sidebar-only navigation -->
       </section>
       <!-- Level 3 -->
@@ -455,7 +460,7 @@
         <p>Ketik kode berikut agar Kody mengingat cita-citamu:</p>
         <div class="python-editor-container" style="margin-bottom:1rem;">
           <pre><code class="language-python">info = f"{nama} ingin menjadi {cita}"</code></pre>
-          <textarea rows="1" style="width:100%;margin-top:0.5rem;">info = f"{nama} ingin menjadi {cita}"</textarea>
+          <textarea class="hide-editor-only" rows="1" style="width:100%;margin-top:0.5rem;">info = f"{nama} ingin menjadi {cita}"</textarea>
           <button type="button" onclick="runInlinePython(this)">Jalankan</button>
           <pre class="python-output" style="background:#222;color:#fff;border-radius:6px;padding:0.5rem;margin-top:0.5rem;"></pre>
         </div>
@@ -467,7 +472,7 @@
         <p>Ketik kode berikut untuk melatih Kody menulis cerita:</p>
         <div class="python-editor-container" style="margin-bottom:1rem;">
           <pre><code class="language-python">def tulis_cerita(nama, cita):<br>    return f"Pada suatu hari, {nama} bermimpi menjadi {cita}..."</code></pre>
-          <textarea rows="2" style="width:100%;margin-top:0.5rem;">def tulis_cerita(nama, cita):&#10;    return f"Pada suatu hari, {nama} bermimpi menjadi {cita}..."</textarea>
+          <textarea class="hide-editor-only" rows="2" style="width:100%;margin-top:0.5rem;">def tulis_cerita(nama, cita):&#10;    return f"Pada suatu hari, {nama} bermimpi menjadi {cita}..."</textarea>
           <button type="button" onclick="runInlinePython(this)">Jalankan</button>
           <pre class="python-output" style="background:#222;color:#fff;border-radius:6px;padding:0.5rem;margin-top:0.5rem;"></pre>
         </div>
@@ -479,7 +484,7 @@
         <p>Ketik kode berikut agar Kody bisa belajar tentang perasaan:</p>
         <div class="python-editor-container" style="margin-bottom:1rem;">
           <pre><code class="language-python">takut = input("Kamu takut gelap? (ya/tidak)")<br>if takut == "ya":<br>    print("Kody kasih lentera ajaib!")</code></pre>
-          <textarea rows="3" style="width:100%;margin-top:0.5rem;">takut = input("Kamu takut gelap? (ya/tidak)")&#10;if takut == "ya":&#10;    print("Kody kasih lentera ajaib!")</textarea>
+          <textarea class="hide-editor-only" rows="3" style="width:100%;margin-top:0.5rem;">takut = input("Kamu takut gelap? (ya/tidak)")&#10;if takut == "ya":&#10;    print("Kody kasih lentera ajaib!")</textarea>
           <button type="button" onclick="runInlinePython(this)">Jalankan</button>
           <pre class="python-output" style="background:#222;color:#fff;border-radius:6px;padding:0.5rem;margin-top:0.5rem;"></pre>
         </div>
@@ -491,7 +496,7 @@
         <p>Ketik kode berikut untuk membuat otak AI sederhana untuk Kody:</p>
         <div class="python-editor-container" style="margin-bottom:1rem;">
           <pre><code class="language-python">class KodyPenulis:<br>    def __init__(self, nama):<br>        self.nama = nama<br>    def buat_dongeng(self):<br>        return f"Ini cerita spesial dari {self.nama}!"</code></pre>
-          <textarea rows="5" style="width:100%;margin-top:0.5rem;">class KodyPenulis:&#10;    def __init__(self, nama):&#10;        self.nama = nama&#10;    def buat_dongeng(self):&#10;        return f"Ini cerita spesial dari {self.nama}!"</textarea>
+          <textarea class="hide-editor-only" rows="5" style="width:100%;margin-top:0.5rem;">class KodyPenulis:&#10;    def __init__(self, nama):&#10;        self.nama = nama&#10;    def buat_dongeng(self):&#10;        return f"Ini cerita spesial dari {self.nama}!"</textarea>
           <button type="button" onclick="runInlinePython(this)">Jalankan</button>
           <pre class="python-output" style="background:#222;color:#fff;border-radius:6px;padding:0.5rem;margin-top:0.5rem;"></pre>
         </div>
@@ -591,8 +596,6 @@ document.addEventListener('DOMContentLoaded', function() {
            data-placeholder="Tulis kode hint di sini..."
       >print("Hint: Tulis kode Python-mu di sini!")</div>
     -->
-  <link rel="stylesheet" href="presetvs.css">
-  <script src="presetvs.js" defer></script>
   <script>
   // VS Code-style editable hint box logic for book.html
   document.addEventListener('DOMContentLoaded', function() {
@@ -815,7 +818,36 @@ async function runValidatedCode(id) {
         }
       });
 
-      await pyodide.runPythonAsync(textarea.value);
+      // PATCH: Jalankan kode asli tanpa replace input(), biarkan prompt berjalan
+      let code = textarea.value;
+      // Ganti logika agar hanya menambah print jika input prompt yang tepat digunakan
+      if (
+        code.includes('input("Siapa namamu?') &&
+        code.includes('input("Apa cita-cita kamu?')
+      ) {
+        code += "\nprint(\"Halo, namaku\", nama)\nprint(\"Aku ingin menjadi\", cita)";
+      }
+      if (code.includes("info =") && code.includes("nama") && code.includes("cita")) {
+        code += "\nprint(info)";
+      }
+      // Tambahan pengecekan Level 4: def tulis_cerita dan return f"Pada suatu hari
+      if (
+        code.includes("def tulis_cerita(") &&
+        code.includes('return f"Pada suatu hari')
+      ) {
+        code += "\nprint(tulis_cerita(nama, cita))";
+      }
+      // Tambahan pengecekan Level 5: jika ada takut = dan if takut == "ya", tambahkan else jika belum ada
+      if (code.includes('takut =') && code.includes('if takut == "ya"')) {
+        if (!code.includes('else')) {
+          code += '\nelse:\n    print("Berani banget! 🏅")';
+        }
+      }
+      // Tambahan pengecekan Level 6: class KodyPenulis dan def buat_dongeng
+      if (code.includes("class KodyPenulis:") && code.includes("def buat_dongeng")) {
+        code += "\nkody = KodyPenulis(nama)\nprint(kody.buat_dongeng())";
+      }
+      await pyodide.runPythonAsync(code);
 
       outputEl.textContent = output.trim() || "✅ Berhasil (tidak ada output)";
     } catch (err) {
@@ -855,6 +887,19 @@ let pyodideReady = false;
 async function loadPyodideAndPackages() {
   pyodide = await loadPyodide();
   pyodideReady = true;
+  // Override input() agar tidak error saat dijalankan dari textarea
+  pyodide.runPython(`
+import builtins
+def custom_input(prompt=""):
+    import js
+    # Hanya tampilkan prompt jika bukan dummy
+    if "dummy" in prompt.lower():
+        val = "dummy"
+    else:
+        val = js.prompt(prompt)
+    return val
+builtins.input = custom_input
+`);
 }
 
 loadPyodideAndPackages();
@@ -1205,32 +1250,4 @@ document.addEventListener('DOMContentLoaded', function() {
       togglePanel.addEventListener('click', togglePanelUngu);
     }
   });
-
-
-    // Fungsi untuk mendapatkan kode Python hasil ketikan siswa dari .typingBox-vscode di level aktif
-    function getCompiledCode() {
-      const container = document.querySelector('.level-section.active-level .typingBox-vscode .code-output');
-      if (!container) return '';
-      return container.textContent || '';
-    }
-
-  async function jalankanPython() {
-    const kode = getCompiledCode();
-    const outputEl = document.getElementById("outputPython");
-    outputEl.textContent = "⏳ Menjalankan...";
-    if (!pyodideReady || !pyodide) {
-      outputEl.textContent = "❌ Pyodide belum siap.";
-      return;
-    }
-    try {
-      let output = "";
-      pyodide.setStdout({ batched: (s) => { output += s + "\n"; } });
-      await pyodide.runPythonAsync(kode);
-      outputEl.textContent = output.trim() || "✅ Berhasil (tidak ada output)";
-    } catch (err) {
-      outputEl.textContent = "❌ Error:\n" + err;
-    } finally {
-      pyodide.setStdout({});
-    }
-  }
 </script>

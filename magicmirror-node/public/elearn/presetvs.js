@@ -1,12 +1,21 @@
+if (typeof window.pyodide === 'undefined') {
+  window.pyodideReady = false;
+  window.loadPyodideAndPackages = async () => {
+    window.pyodide = await loadPyodide();
+    window.pyodideReady = true;
+    console.log("✅ Pyodide loaded from presetvs");
+  };
+  loadPyodideAndPackages();
+}
 console.log("✅ presetvs.js loaded");
 function setupVscodeTypingBox(container) {
   console.log("🔧 setupVscodeTypingBox dipanggil untuk:", container);
   const rawHint = container.getAttribute('data-hint') || '';
   const hintCode = rawHint.replace(/&quot;/g, '"'); // Convert HTML-safe quotes
   const lines = hintCode.split('\n');
-  const typed = lines.map(() => '');
-  let lineIndex = 0;
-  let charIndex = 0;
+  container._typed = lines.map(() => '');
+  container._lineIndex = 0;
+  container._charIndex = 0;
 
   function classifyToken(char, line, i) {
     if (line.includes('=') && i < line.indexOf('=')) return 'keyword';
@@ -37,7 +46,7 @@ function setupVscodeTypingBox(container) {
       for (let i = 0; i < line.length; i++) {
         const span = document.createElement('span');
         const trueChar = line[i];
-        const typedChar = typed[idx][i];
+        const typedChar = container._typed[idx][i];
         const tokenClass = classifyToken(trueChar, line, i);
         if (tokenClass) span.classList.add(tokenClass);
 
@@ -60,9 +69,9 @@ function setupVscodeTypingBox(container) {
     });
 
     const totalChars = lines.reduce((sum, line) => sum + line.length, 0);
-    const totalTyped = typed.reduce((sum, line) => sum + line.length, 0);
+    const totalTyped = container._typed.reduce((sum, line) => sum + line.length, 0);
     let correct = 0;
-    typed.forEach((line, idx) => {
+    container._typed.forEach((line, idx) => {
       for (let i = 0; i < line.length; i++) {
         if (line[i] === lines[idx][i]) correct++;
       }
@@ -76,25 +85,25 @@ function setupVscodeTypingBox(container) {
   container.classList.add('initialized');
 
   document.addEventListener('keydown', (e) => {
-    if (lineIndex < 0 || lineIndex >= lines.length) return;
-    const line = lines[lineIndex];
+    if (container._lineIndex < 0 || container._lineIndex >= lines.length) return;
+    const line = lines[container._lineIndex];
 
     if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-      if (typed[lineIndex].length < line.length) {
-        typed[lineIndex] += e.key;
-        charIndex++;
-        if (charIndex >= line.length && lineIndex < lines.length - 1) {
-          lineIndex++;
-          charIndex = typed[lineIndex].length;
+      if (container._typed[container._lineIndex].length < line.length) {
+        container._typed[container._lineIndex] += e.key;
+        container._charIndex++;
+        if (container._charIndex >= line.length && container._lineIndex < lines.length - 1) {
+          container._lineIndex++;
+          container._charIndex = container._typed[container._lineIndex].length;
         }
       }
     } else if (e.key === 'Backspace') {
-      if (charIndex > 0) {
-        typed[lineIndex] = typed[lineIndex].slice(0, -1);
-        charIndex--;
-      } else if (lineIndex > 0) {
-        lineIndex--;
-        charIndex = typed[lineIndex].length;
+      if (container._charIndex > 0) {
+        container._typed[container._lineIndex] = container._typed[container._lineIndex].slice(0, -1);
+        container._charIndex--;
+      } else if (container._lineIndex > 0) {
+        container._lineIndex--;
+        container._charIndex = container._typed[container._lineIndex].length;
       }
     }
     renderCode();
@@ -132,7 +141,7 @@ function setupVscodeTypingBox(container) {
       outputEl.textContent = "⏳ Pyodide belum siap, tunggu sebentar...";
       return;
     }
-    const typedCode = typed.map(line => line).join('\n');
+    const typedCode = container._typed.map(line => line).join('\n');
     outputEl.textContent = "⏳ Menjalankan...";
     try {
       let output = "";
@@ -154,7 +163,7 @@ function setupVscodeTypingBox(container) {
 
   // Update isi code-output setiap kali user ketik
   const updateCodeOutput = () => {
-    const lines = typed.map(line => line).join("\n");
+    const lines = container._typed.map(line => line).join("\n");
     const outputEl = container.querySelector(".code-output");
     if (outputEl) outputEl.textContent = lines;
   };
