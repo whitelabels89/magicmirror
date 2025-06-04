@@ -977,9 +977,11 @@ async function runValidatedCode(id) {
         // --- Tambahan untuk upload ke Firebase setelah gambar tampil ---
         // Cek/ambil currentCid
         const currentCid = localStorage.getItem("currentCid") || "UNKNOWN";
-        if (typeof uploadKodyToFirebase === "function") {
-          uploadKodyToFirebase(currentCid, "Robot Impian Kody");
-        }
+        outputImage.onload = () => {
+          if (typeof uploadKodyToFirebase === "function") {
+            uploadKodyToFirebase(currentCid, "Robot Impian Kody");
+          }
+        };
         // --------------------------------------------------------------
       } else {
         preview.innerHTML = "❌ Gagal membuat gambar. Coba lagi ya.";
