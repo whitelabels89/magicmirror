@@ -968,6 +968,7 @@ async function runValidatedCode(id) {
         localStorage.setItem("kodyImage", data.imageUrl);
         preview.innerHTML = "";
         outputImage.src = data.imageUrl;
+        localStorage.setItem("generatedImageData", data.imageUrl);
         outputImage.style.display = "";
         saveBtn.style.display = "";
         // --- Tambahan untuk upload ke Firebase setelah gambar tampil ---
