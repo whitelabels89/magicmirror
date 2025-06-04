@@ -28,14 +28,6 @@
     // Firebase references
     const storage = firebase.storage();
     const db = firebase.firestore();
-    // Login anonim ke Firebase
-    firebase.auth().signInAnonymously()
-      .then(() => {
-        console.log("✅ Login anonim berhasil");
-      })
-      .catch((error) => {
-        console.error("❌ Gagal login anonim:", error);
-      });
   </script>
   <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
