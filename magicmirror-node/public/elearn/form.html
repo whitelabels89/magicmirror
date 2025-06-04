@@ -434,6 +434,12 @@
       <section class="lesson-section level-section active-level" id="level-1" style="display: block;">
         <h2>Level 1: Aktifkan Kody</h2>
         <p>Ketik kode berikut untuk mengaktifkan Kody:</p>
+        <div style="margin-bottom:1rem;">
+          <label for="kodyPromptInput">💡 Bayangkan bentuk Kody: </label>
+          <input id="kodyPromptInput" type="text" style="width:100%;margin-top:0.5rem;" placeholder="Contoh: lucu, berkepala bulat, tangan laser"/>
+          <button type="button" onclick="generateKodyImage()">🧠 Buat Gambar Kody</button>
+          <div id="kodyImagePreview" style="margin-top:1rem;"></div>
+        </div>
         <div class="python-editor-container" style="margin-bottom:1rem;">
           <pre><code class="language-python">print("Halo! Aku Kody, calon robot penulis.")</code></pre>
           <textarea class="hide-editor-only" rows="2" style="width:100%;margin-top:0.5rem;">print("Halo! Aku Kody, calon robot penulis.")</textarea>
@@ -803,6 +809,16 @@ async function runValidatedCode(id) {
     const outputEl = container.querySelector('.python-output');
     outputEl.textContent = "⏳ Menjalankan...";
 
+    // Tambahkan gambar Kody jika sudah ada di localStorage
+    const kodyImgUrl = localStorage.getItem("kodyImage");
+    if (kodyImgUrl && container && !container.querySelector('.kody-pic')) {
+      const img = document.createElement("img");
+      img.src = kodyImgUrl;
+      img.style = "max-width:100px;margin-bottom:10px;border-radius:8px;";
+      img.className = "kody-pic";
+      container.prepend(img);
+    }
+
     if (!pyodideReady) {
       outputEl.textContent = "❌ Pyodide belum siap.";
       return;
@@ -854,6 +870,37 @@ async function runValidatedCode(id) {
       outputEl.textContent = "❌ Error:\n" + err;
     } finally {
       pyodide.setStdout({});
+    }
+  }
+
+  // Handler untuk generate gambar Kody (terhubung ke backend)
+  async function generateKodyImage() {
+    const prompt = document.getElementById("kodyPromptInput").value.trim();
+    const preview = document.getElementById("kodyImagePreview");
+
+    if (!prompt) {
+      alert("Tolong isi deskripsi Kody dulu ya!");
+      return;
+    }
+
+    preview.innerHTML = "⏳ Sedang membuat gambar dari imajinasi kamu...";
+    try {
+      const res = await fetch("/api/generate-kody-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ description: prompt })
+      });
+      const data = await res.json();
+      if (data.success) {
+        localStorage.setItem("kodyPrompt", prompt);
+        localStorage.setItem("kodyImage", data.imageUrl);
+        preview.innerHTML = `<img src="${data.imageUrl}" style="max-width:200px;border-radius:8px;">`;
+      } else {
+        preview.innerHTML = "❌ Gagal membuat gambar. Coba lagi ya.";
+      }
+    } catch (err) {
+      console.error("Gagal fetch:", err);
+      preview.innerHTML = "❌ Terjadi kesalahan saat membuat gambar.";
     }
   }
 </script>

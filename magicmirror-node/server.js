@@ -402,26 +402,23 @@ app.post("/api/generate-story-with-images", async (req, res) => {
   }
 });
 
-// Endpoint: Generate lagu dari cerita menggunakan Suno API
-// Prompt kedua untuk generate lirik dinonaktifkan sementara
-/*
-app.post("/api/generate-song", async (req, res) => {
-  const { story, namaAnak } = req.body;
+// Endpoint: generate gambar Kody dari prompt anak
+app.post("/api/generate-kody-image", async (req, res) => {
+  const { description } = req.body;
   const apiKey = process.env.OPENAI_API_KEY;
-  const sunoApiKey = process.env.SUNO_API_KEY;
 
-  if (!apiKey || !sunoApiKey) return res.status(500).json({ success: false, message: "API key tidak tersedia." });
+  if (!description || !apiKey) {
+    return res.status(400).json({ success: false, message: "Deskripsi atau API Key tidak tersedia." });
+  }
 
   try {
-    // Buat lirik lagu dari cerita
-    const lyricsPrompt = `Buatkan lirik lagu anak-anak dari cerita berikut, bernuansa hangat, emosional, dan menyentuh. Gunakan gaya bahasa sederhana seperti lagu Disney, cocok dinyanyikan oleh anak untuk orang tuanya.\n\nCerita: """${story}"""`;
-
-    const gptLyricsResponse = await axios.post(
-      "https://api.openai.com/v1/chat/completions",
+    const dalleResponse = await axios.post(
+      "https://api.openai.com/v1/images/generations",
       {
-        model: "gpt-4o",
-        messages: [{ role: "user", content: lyricsPrompt }],
-        temperature: 0.7
+        model: "dall-e-3",
+        prompt: `${description}, a cartoon-style robot character, suitable for children, friendly and colorful`,
+        size: "512x512",
+        n: 1
       },
       {
         headers: {
@@ -431,37 +428,13 @@ app.post("/api/generate-song", async (req, res) => {
       }
     );
 
-    const lyrics = gptLyricsResponse.data.choices[0].message.content;
-
-    // Kirim ke Suno API
-    const sunoResponse = await axios.post(
-      "https://studio-api.suno.ai/api/generate/v2/",
-      {
-        prompt: lyrics,
-        style: "Warm uplifting acoustic song from a child to their parents, Female solo, guitar and ukulele, soft happy Disney vibe",
-        title: `Lagu dari ${namaAnak}`,
-        customMode: true,
-        instrumental: false,
-        model: "v4_5"
-      },
-      {
-        headers: {
-          "Authorization": `Bearer ${sunoApiKey}`,
-          "Content-Type": "application/json"
-        }
-      }
-    );
-
-    const audioUrl = sunoResponse.data.audio_url || sunoResponse.data.result?.audio_url || null;
-    if (!audioUrl) throw new Error("URL lagu tidak ditemukan dari Suno.");
-
-    res.json({ success: true, lyrics, audioUrl });
+    const imageUrl = dalleResponse.data.data[0].url;
+    res.json({ success: true, imageUrl });
   } catch (error) {
-    console.error("❌ Gagal generate lagu:", error?.response?.data || error.message);
-    res.status(500).json({ success: false, message: "Gagal generate lagu." });
+    console.error("❌ Gagal generate gambar Kody:", error?.response?.data || error.message);
+    res.status(500).json({ success: false, message: "Gagal generate gambar Kody." });
   }
 });
-*/
 
 // WebSocket logic
 io.on('connection', (socket) => {
