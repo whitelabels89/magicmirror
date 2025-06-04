@@ -911,6 +911,7 @@ async function runValidatedCode(id) {
     outputImage.style.display = "none";
     saveBtn.style.display = "none";
     try {
+      // Fetch langsung ke endpoint, respons OpenAI berupa URL gambar langsung
       const res = await fetch("/api/generate-kody-image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -924,6 +925,7 @@ async function runValidatedCode(id) {
       }
 
       const data = await res.json();
+      // PATCH: gunakan respons langsung dari OpenAI, tanpa FileReader/blob/base64/URL.createObjectURL
       if (data.success && data.imageUrl) {
         localStorage.setItem("kodyPrompt", prompt);
         localStorage.setItem("kodyImage", data.imageUrl);
@@ -932,15 +934,13 @@ async function runValidatedCode(id) {
         localStorage.setItem("generatedImageData", data.imageUrl);
         outputImage.style.display = "";
         saveBtn.style.display = "";
-        // --- Tambahan untuk upload ke Firebase setelah gambar tampil ---
-        // Cek/ambil currentCid
+
         const currentCid = localStorage.getItem("currentCid") || "UNKNOWN";
         outputImage.onload = () => {
           if (typeof uploadKodyToFirebase === "function") {
             uploadKodyToFirebase(currentCid, "Robot Impian Kody");
           }
         };
-        // --------------------------------------------------------------
       } else {
         preview.innerHTML = "❌ Gagal membuat gambar. Coba lagi ya.";
         outputImage.style.display = "none";
