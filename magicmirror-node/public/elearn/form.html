@@ -910,8 +910,17 @@ function syntaxClassPython(line, i, char) {
 
 
 // On DOMContentLoaded, scan for .typingBox-vscode and initialize them
-document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('.typingBox-vscode').forEach(setupVscodeTypingBox);
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof setupVscodeTypingBox === 'function') {
+    document.querySelectorAll('.typingBox-vscode').forEach(el => {
+      if (!el.classList.contains('initialized')) {
+        setupVscodeTypingBox(el);
+        el.classList.add('initialized');
+      }
+    });
+  } else {
+    console.warn("setupVscodeTypingBox tidak ditemukan");
+  }
 });
   </script>
   <script>
