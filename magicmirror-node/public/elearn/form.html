@@ -5,42 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>M1 L1: Introduction to Python</title>
   <script src="userInfo.js"></script>
+  <!-- Firebase Auth anonymous login initialization -->
   <script>
-    // Script upload gambar Kody ke Firebase (VERSI BARU, ADOP DASHBOARD)
-    async function uploadKodyToFirebase(cid, judul) {
-      try {
-        const imageData = localStorage.getItem("generatedImageData");
-        if (!imageData) {
-          alert("❌ Tidak ada gambar untuk diupload.");
-          return;
-        }
-
-        const response = await fetch(imageData);
-        const blob = await response.blob();
-
-        const fileName = `kody_${Date.now()}.png`;
-        const filePath = `karya_anak/${cid}/${fileName}`;
-
-        const storageRef = firebase.storage().ref(filePath);
-        const uploadTaskSnapshot = await storageRef.put(blob);
-        const downloadURL = await uploadTaskSnapshot.ref.getDownloadURL();
-
-        const timestamp = new Date().toISOString();
-        const firestore = firebase.firestore();
-        await firestore.collection("karya_anak").add({
-          CID: cid,
-          Judul: judul,
-          URL: downloadURL,
-          ID_KARYA: fileName,
-          Timestamp: timestamp,
-        });
-
-        alert("✅ Berhasil disimpan ke dashboard!");
-      } catch (error) {
-        console.error("❌ Upload error:", error);
-        alert("❌ Gagal simpan ke dashboard.");
-      }
+    // Inisialisasi Firebase jika belum
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
     }
+
+    // Login anonim ke Firebase
+    firebase.auth().signInAnonymously()
+      .then(() => {
+        console.log("✅ Login anonim berhasil");
+      })
+      .catch((error) => {
+        console.error("❌ Gagal login anonim:", error);
+      });
   </script>
 
   <!-- Firebase SDKs (Compat) -->
@@ -1432,33 +1411,31 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 // Fungsi upload Kody ke Firebase Storage dan Firestore
-function uploadKodyToFirebase(currentCid, judul) {
+async function uploadKodyToFirebase(currentCid, judul) {
   // Ambil gambar Kody dari localStorage
   const imageUrl = localStorage.getItem("kodyImage");
   if (!imageUrl) {
     console.warn("Tidak ada gambar Kody di localStorage.");
     return;
   }
-  fetch(imageUrl)
-    .then((res) => res.blob())
-    .then(async (blob) => {
-      try {
-        const timestamp = Date.now();
-        const filePath = `karya_anak/${currentCid}/kody_auto_${timestamp}.png`;
-        const storageRef = storage.ref(filePath);
-        const snapshot = await storageRef.put(blob);
-        const downloadURL = await snapshot.ref.getDownloadURL();
-        await db.collection('karya_anak').add({
-          cid: currentCid,
-          judul: judul,
-          link: downloadURL,
-          timestamp: timestamp,
-          id_karya: `kody_auto_${timestamp}`
-        });
-        // Optional: bisa tampilkan notifikasi jika mau
-        // alert('✅ Gambar Kody berhasil di-upload otomatis!');
-      } catch (err) {
-        console.error("Gagal upload gambar Kody ke Firebase:", err);
-      }
+  try {
+    const response = await fetch(imageUrl);
+    const blob = await response.blob();
+    const timestamp = Date.now();
+    const filePath = `karya_anak/${currentCid}/kody_auto_${timestamp}.png`;
+    const storageRef = storage.ref(filePath);
+    const snapshot = await storageRef.put(blob);
+    const downloadURL = await snapshot.ref.getDownloadURL();
+    await db.collection('karya_anak').add({
+      cid: currentCid,
+      judul: judul,
+      link: downloadURL,
+      timestamp: timestamp,
+      id_karya: `kody_auto_${timestamp}`
     });
+    // Optional: bisa tampilkan notifikasi jika mau
+    // alert('✅ Gambar Kody berhasil di-upload otomatis!');
+  } catch (err) {
+    console.error("Gagal upload gambar Kody ke Firebase:", err);
+  }
 }
