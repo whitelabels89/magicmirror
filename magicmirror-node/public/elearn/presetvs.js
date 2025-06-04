@@ -1,7 +1,8 @@
 console.log("✅ presetvs.js loaded");
 function setupVscodeTypingBox(container) {
   console.log("🔧 setupVscodeTypingBox dipanggil untuk:", container);
-  const hintCode = container.getAttribute('data-hint') || '';
+  const rawHint = container.getAttribute('data-hint') || '';
+  const hintCode = rawHint.replace(/&quot;/g, '"'); // Convert HTML-safe quotes
   const lines = hintCode.split('\n');
   const typed = lines.map(() => '');
   let lineIndex = 0;

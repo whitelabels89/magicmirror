@@ -436,14 +436,23 @@
       <section class="lesson-section level-section active-level" id="level-1" style="display: block;">
         <h2>Level 1: Aktifkan Kody</h2>
         <p>Ketik kode berikut untuk mengaktifkan Kody:</p>
-        <div class="typingBox-vscode" data-hint='print("Halo! Aku Kody, calon robot penulis.")'></div>
+        <div class="typingBox">
+          <pre id="editor-level-1" class="editor">print("Halo! Aku Kody, calon robot penulis.")</pre>
+          <button onclick="runPython('editor-level-1', 'output-level-1')">Jalankan</button>
+          <pre id="output-level-1" class="output"></pre>
+        </div>
         <!-- Step navigation removed for sidebar-only navigation -->
       </section>
       <!-- Level 2 -->
       <section class="lesson-section level-section" id="level-2" style="display: none;">
         <h2>Level 2: Kody Kenalan Sama Kamu</h2>
         <p>Ketik kode berikut agar Kody bisa kenalan denganmu:</p>
-        <div class="typingBox-vscode" data-hint='nama = input("Siapa namamu?")&#10;cita = input("Apa cita-cita kamu?")'></div>
+        <div class="typingBox">
+          <pre id="editor-level-2" class="editor">nama = input("Siapa namamu?")
+cita = input("Apa cita-cita kamu?")</pre>
+          <button onclick="runPython('editor-level-2', 'output-level-2')">Jalankan</button>
+          <pre id="output-level-2" class="output"></pre>
+        </div>
         <!-- Step navigation removed for sidebar-only navigation -->
       </section>
       <!-- Level 3 -->
