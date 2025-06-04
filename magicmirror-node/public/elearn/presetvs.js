@@ -146,6 +146,20 @@ function setupVscodeTypingBox(container) {
     }
   });
 
+  // Add hidden code-output element to store typed code for external use
+  const hiddenOutput = document.createElement('div');
+  hiddenOutput.className = 'code-output';
+  hiddenOutput.style.display = 'none';
+  container.appendChild(hiddenOutput);
+
+  // Update isi code-output setiap kali user ketik
+  const updateCodeOutput = () => {
+    const lines = typed.map(line => line).join("\n");
+    const outputEl = container.querySelector(".code-output");
+    if (outputEl) outputEl.textContent = lines;
+  };
+  document.addEventListener("keydown", updateCodeOutput);
+
   renderCode();
 }
 
