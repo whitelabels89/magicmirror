@@ -97,6 +97,52 @@ function setupVscodeTypingBox(container) {
     renderCode();
   });
 
+  // Add Run button and output
+  const runBtn = document.createElement('button');
+  runBtn.textContent = 'Jalankan';
+  runBtn.style.marginTop = '1rem';
+  runBtn.style.display = 'block';
+
+  const outputEl = document.createElement('pre');
+  outputEl.className = 'python-output';
+  outputEl.style.background = '#222';
+  outputEl.style.color = '#fff';
+  outputEl.style.borderRadius = '6px';
+  outputEl.style.padding = '0.5rem';
+  outputEl.style.marginTop = '0.5rem';
+
+  container.appendChild(runBtn);
+  container.appendChild(outputEl);
+
+  // Disable button until pyodide ready
+  runBtn.disabled = true;
+  const waitForPyodide = setInterval(() => {
+    if (window.pyodideReady) {
+      runBtn.disabled = false;
+      clearInterval(waitForPyodide);
+    }
+  }, 100);
+
+  // On click run Python
+  runBtn.addEventListener('click', async () => {
+    if (!window.pyodideReady) {
+      outputEl.textContent = "⏳ Pyodide belum siap, tunggu sebentar...";
+      return;
+    }
+    const typedCode = typed.map(line => line).join('\n');
+    outputEl.textContent = "⏳ Menjalankan...";
+    try {
+      let output = "";
+      window.pyodide.setStdout({ batched: (s) => { output += s + "\n"; } });
+      await window.pyodide.runPythonAsync(typedCode);
+      outputEl.textContent = output.trim() || "✅ Berhasil (tidak ada output)";
+    } catch (err) {
+      outputEl.textContent = "❌ Error:\n" + err;
+    } finally {
+      window.pyodide.setStdout({});
+    }
+  });
+
   renderCode();
 }
 

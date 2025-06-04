@@ -17,6 +17,8 @@
   <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="presetvs.css" />
+  <script src="presetvs.js" defer></script>
   <style>
     .outline-wrapper {
       margin: 0 auto;
@@ -1103,17 +1105,20 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   </script>
 
-  <!-- Fallback manual trigger jika ada typingBox-vscode yang belum ke-render -->
+  <!-- Inisialisasi typingBox-vscode hanya setelah presetvs.js siap -->
   <script>
-    // Fallback manual trigger jika ada typingBox-vscode yang belum ke-render
-    document.addEventListener('DOMContentLoaded', function() {
-      setTimeout(() => {
-        document.querySelectorAll('.typingBox-vscode').forEach(el => {
-          if (!el.classList.contains('initialized')) {
-            setupVscodeTypingBox(el);
-            el.classList.add('initialized');
-          }
-        });
-      }, 100);
-    });
+    function initTypingVSCodeEditors() {
+      if (typeof setupVscodeTypingBox !== 'function') {
+        console.warn("⏳ setupVscodeTypingBox belum siap, retry...");
+        setTimeout(initTypingVSCodeEditors, 100);
+        return;
+      }
+      document.querySelectorAll('.typingBox-vscode').forEach(el => {
+        if (!el.classList.contains('initialized')) {
+          setupVscodeTypingBox(el);
+          el.classList.add('initialized');
+        }
+      });
+    }
+    document.addEventListener('DOMContentLoaded', initTypingVSCodeEditors);
   </script>
