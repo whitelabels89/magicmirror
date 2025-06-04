@@ -890,8 +890,15 @@ async function runValidatedCode(id) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ description: prompt })
       });
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.error("Respon error:", text);
+        throw new Error("Gagal fetch gambar");
+      }
+
       const data = await res.json();
-      if (data.success) {
+      if (data.success && data.imageUrl) {
         localStorage.setItem("kodyPrompt", prompt);
         localStorage.setItem("kodyImage", data.imageUrl);
         preview.innerHTML = `<img src="${data.imageUrl}" style="max-width:200px;border-radius:8px;">`;
