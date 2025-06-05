@@ -798,6 +798,46 @@ async function runValidatedCode(id) {
           localStorage.setItem("images", JSON.stringify(data.images));
           // Redirect ke book.html
           window.location.href = "book.html";
+
+          // PATCH: Save otomatis ke karya_anak + log progress + kirim WhatsApp
+          // PATCH: Kirim metadata karya ke backend dan simpan progress + kirim WA
+          const cid = localStorage.getItem("cid") || user?.uid || "anon";
+          const karyaTitle = "Buku Dongeng " + namaAnak;
+          const now = Date.now();
+
+          await fetch("/api/save-karya", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              cid: cid,
+              judul: karyaTitle,
+              id_karya: `buku_${now}`,
+              link: `/generated_books/${cid}_buku_${now}.pdf`, // asumsikan disimpan di folder ini
+              timestamp: now
+            })
+          });
+
+          await fetch("/api/update-progress", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              cid: cid,
+              id_modul: "MODUL_WORKSHOP_DONGENG",
+              status: "done",
+              skor: 100,
+              timestamp: now
+            })
+          });
+
+          await fetch("/api/notify-ortu", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              cid: cid,
+              link: `/generated_books/${cid}_buku_${now}.pdf`,
+              judul: karyaTitle
+            })
+          });
         } else {
           alert("❌ Cerita gagal dibuat. Coba lagi ya.");
         }
