@@ -162,22 +162,52 @@
   }
 </script>
 <script>
-// Fungsi untuk upload PDF ke Firebase Storage dan simpan info ke Firestore
+// Fungsi untuk upload PDF ke Firebase Storage, simpan metadata, update progress, dan kirim WhatsApp ke orang tua
 async function uploadPDFToFirebase(blob, filename) {
   const cid = localStorage.getItem('cid') || 'anon';
+  const now = Date.now();
   const storageRef = storage.ref(`karya_anak/${cid}/${filename}`);
   const snapshot = await storageRef.put(blob);
   const downloadURL = await snapshot.ref.getDownloadURL();
 
-  await db.collection("karya_anak").add({
-    cid: cid,
-    judul: "Cerita Digital Kody",
-    link: downloadURL,
-    timestamp: Date.now(),
-    id_karya: filename
+  // Kirim metadata karya ke backend
+  await fetch("/api/save-karya", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      cid: cid,
+      judul: "Cerita Digital Kody",
+      id_karya: filename.replace(".pdf", ""),
+      link: downloadURL,
+      timestamp: now
+    })
   });
 
-  alert("✅ PDF Cerita berhasil disimpan ke dashboard murid!");
+  // Kirim progress ke backend
+  await fetch("/api/update-progress", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      cid: cid,
+      id_modul: "MODUL_WORKSHOP_DONGENG",
+      status: "done",
+      skor: 100,
+      timestamp: now
+    })
+  });
+
+  // Kirim WhatsApp ke orang tua
+  await fetch("/api/notify-ortu", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      cid: cid,
+      link: downloadURL,
+      judul: "Cerita Digital Kody"
+    })
+  });
+
+  alert("✅ Cerita berhasil disimpan & dikirim ke orang tua!");
 }
 </script>
 </html>
