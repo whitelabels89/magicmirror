@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Progress Murid - Spreadsheet</title>
+  <link rel="stylesheet" href="/elearn/guru.css">
+  <style>
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    tbody tr:nth-child(even) { background: #f9f9f9; }
+    .loading { text-align: center; margin: 20px 0; }
+    .badge {
+      padding: 2px 6px;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 13px;
+    }
+    .badge-green { background:#4caf50; }
+    .badge-yellow { background:#fbc02d; color:#000; }
+    .progress {
+      height: 6px;
+      background:#eee;
+      border-radius:4px;
+      overflow:hidden;
+      margin-top:4px;
+    }
+    .progress-fill { height:100%; background:#4caf50; }
+    @media(max-width:600px){
+      table, thead, tbody, th, td, tr { display:block; }
+      thead tr{ position:absolute; top:-9999px; left:-9999px; }
+      tr{ margin:0 0 1rem 0; }
+      td{ border:none; position:relative; padding-left:50%; }
+      td:before{ position:absolute; top:0; left:6px; width:45%; white-space:nowrap; }
+    }
+  </style>
+</head>
+<body class="loaded">
+<script src="/elearn/userInfo.js"></script>
+<script>
+const user = getUserInfo();
+if(!user || user.role !== 'guru'){
+  alert('❌ Hanya guru yang bisa mengakses halaman ini.');
+  window.location.href = '/elearn/login-elearning.html';
+}
+</script>
+<header>
+  <h1>Progress Murid</h1>
+  <div>
+    <label>Kelas:
+      <select id="kelasFilter">
+        <option value="">Semua</option>
+      </select>
+    </label>
+    <label>Modul:
+      <select id="modulFilter">
+        <option value="">Semua</option>
+      </select>
+    </label>
+    <button onclick="applyFilters()">Filter</button>
+    <button onclick="location.href='/elearn/guru.html'">🏠 Dashboard</button>
+  </div>
+</header>
+<main>
+  <div id="loader" class="loading">⏳ Loading...</div>
+  <table id="progressTable" style="display:none">
+    <thead>
+      <tr>
+        <th>Nama Murid</th>
+        <th>Kelas</th>
+        <th>Modul</th>
+        <th>Step Terakhir</th>
+        <th>Skor Akhir</th>
+        <th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody id="progressBody"></tbody>
+  </table>
+  <div id="error" class="loading" style="display:none;color:red;"></div>
+</main>
+<script>
+const API_BASE = 'https://script.google.com/macros/s/AKfycbynFv8gTnczc7abTL5Olq_sKmf1e0y6w9z_KBTKETK8i6NaGd941Cna4QVnoujoCsMdvA/exec';
+let allProgress = [];
+let karyaCountMap = {};
+let modulMap = {};
+let nameMap = {};
+
+async function loadDashboard(){
+  const loader=document.getElementById('loader');
+  const table=document.getElementById('progressTable');
+  const tbody=document.getElementById('progressBody');
+  const errEl=document.getElementById('error');
+  try{
+    loader.style.display='block';
+    table.style.display='none';
+    errEl.style.display='none';
+
+    // Jadwal kelas guru
+    const jadwalRes=await fetch(`${API_BASE}?tab=EL_JADWAL_KELAS&uid=${encodeURIComponent(user.uid)}`);
+    const jadwalData=await jadwalRes.json();
+    const kelasIds=[...new Set(jadwalData.map(k=>k.kelas_id||k['kelas_id']||k['Kelas ID']))].filter(Boolean);
+
+    // Semua progress
+    const progRes=await fetch(`${API_BASE}?tab=EL_PROGRESS_MURID`);
+    const progData=await progRes.json();
+    const progress=progData.filter(p=>kelasIds.includes(p.kelas_id||p['kelas_id']||p['Kelas ID']));
+
+    // Data modul untuk total step
+    const modulRes=await fetch(`${API_BASE}?tab=EL_MODULS`);
+    const modulData=await modulRes.json();
+    modulMap={};
+    modulData.forEach(m=>{
+      const total=parseInt(m.jumlah_pertemuan||m['jumlah_pertemuan']||m['Jumlah Pertemuan']);
+      modulMap[m.modul_id||m['modul_id']||m['Modul ID']]=isNaN(total)?'-':total;
+    });
+
+    // Hitung karya per murid
+    const karyaRes=await fetch(`${API_BASE}?tab=EL_KARYA_MURID`);
+    const karyaData=await karyaRes.json();
+    karyaCountMap={};
+    karyaData.forEach(k=>{
+      const key=`${k.cid||k['cid']||k['CID']}_${k.modul_id||k['modul_id']||k['Modul ID']}`;
+      karyaCountMap[key]=(karyaCountMap[key]||0)+1;
+    });
+
+    // Nama murid
+    const profileRes=await fetch(`${API_BASE}?tab=PROFILE_ANAK`);
+    const profileData=await profileRes.json();
+    nameMap={};
+    profileData.forEach(p=>{ nameMap[p.cid||p['cid']||p['CID']]=p['Nama Anak']||p.nama||p.Name; });
+
+    allProgress=progress;
+    populateFilters();
+    renderTable(allProgress);
+    loader.style.display='none';
+    table.style.display='table';
+  }catch(err){
+    console.error('Fetch error',err);
+    loader.style.display='none';
+    errEl.textContent='❌ Gagal memuat data.';
+    errEl.style.display='block';
+  }
+}
+
+function viewLog(cid,kelas,modul){
+  window.open(`/elearn/guru-log.html?cid=${cid}&kelas=${kelas}&modul=${modul}`,'_blank');
+}
+function viewKarya(cid,kelas,modul){
+  window.open(`/elearn/guru-karya.html?cid=${cid}&kelas=${kelas}&modul=${modul}`,'_blank');
+}
+
+function renderTable(rows){
+  const tbody=document.getElementById('progressBody');
+  tbody.innerHTML='';
+  rows.forEach(row=>{
+    const cid=row.cid||row['cid']||row['CID'];
+    const modulId=row.modul_id||row['modul_id']||row['Modul ID'];
+    const totalStep=modulMap[modulId]||'-';
+    const step=row.step_terakhir||row['step_terakhir']||row['Step Terakhir']||'-';
+    const skor=row.skor_akhir||row['skor_akhir']||row['Skor Akhir']||'-';
+    const kelas=row.kelas_id||row['kelas_id']||row['Kelas ID'];
+    const percent=totalStep!=='-'?Math.min(100,Math.round((parseInt(step)||0)/parseInt(totalStep)*100)):0;
+    const karyaCnt=karyaCountMap[`${cid}_${modulId}`]||0;
+    const karyaBadge=karyaCnt>1?` <span class="badge badge-green">${karyaCnt}</span>`:'';
+    const tr=document.createElement('tr');
+    tr.dataset.cid=cid;
+    tr.dataset.kelas=kelas;
+    tr.dataset.modul=modulId;
+    tr.innerHTML=
+      `<td>${nameMap[cid]||cid}</td>`+
+      `<td>${kelas}</td>`+
+      `<td>${modulId}</td>`+
+      `<td>${step} / ${totalStep}<div class="progress"><div class="progress-fill" style="width:${percent}%;"></div></div></td>`+
+      `<td><span class="badge badge-yellow">${skor}</span></td>`+
+      `<td><button onclick="viewLog('${cid}','${kelas}','${modulId}')">📄 Log</button> <button onclick="viewKarya('${cid}','${kelas}','${modulId}')">🎨 Karya${karyaBadge}</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function populateFilters(){
+  const kSel=document.getElementById('kelasFilter');
+  const mSel=document.getElementById('modulFilter');
+  const kelasSet=new Set(allProgress.map(r=>r.kelas_id||r['kelas_id']||r['Kelas ID']));
+  const modulSet=new Set(allProgress.map(r=>r.modul_id||r['modul_id']||r['Modul ID']));
+  kSel.innerHTML='<option value="">Semua</option>';
+  kelasSet.forEach(k=>{kSel.innerHTML+=`<option value="${k}">${k}</option>`});
+  mSel.innerHTML='<option value="">Semua</option>';
+  modulSet.forEach(m=>{mSel.innerHTML+=`<option value="${m}">${m}</option>`});
+}
+
+function applyFilters(){
+  const kf=document.getElementById('kelasFilter').value;
+  const mf=document.getElementById('modulFilter').value;
+  let rows=allProgress;
+  if(kf) rows=rows.filter(r=>(r.kelas_id||r['kelas_id']||r['Kelas ID'])==kf);
+  if(mf) rows=rows.filter(r=>(r.modul_id||r['modul_id']||r['Modul ID'])==mf);
+  renderTable(rows);
+}
+
+window.onload=loadDashboard;
+</script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Karya Murid</title>
+  <link rel="stylesheet" href="/elearn/guru.css">
+  <style>
+    table{width:100%;border-collapse:collapse;}
+    th,td{border:1px solid #ddd;padding:6px;text-align:left;}
+    tbody tr:nth-child(even){background:#f9f9f9;}
+    .loading{text-align:center;margin:20px 0;}
+  </style>
+</head>
+<body class="loaded">
+<script src="/elearn/userInfo.js"></script>
+<script>
+const user=getUserInfo();
+if(!user||user.role!=='guru'){alert('❌ Hanya guru.');window.location.href='/elearn/login-elearning.html';}
+</script>
+<header>
+  <h1>🎨 Karya Murid</h1>
+  <div>
+    <button onclick="window.print()">📄 Export</button>
+    <button onclick="window.close()">Tutup</button>
+  </div>
+</header>
+<main>
+  <div id="loader" class="loading">⏳ Loading...</div>
+  <table id="karyaTable" style="display:none">
+    <thead>
+      <tr>
+        <th>Judul</th>
+        <th>Deskripsi</th>
+        <th>Link</th>
+        <th>Jenis</th>
+        <th>Waktu</th>
+      </tr>
+    </thead>
+    <tbody id="karyaBody"></tbody>
+  </table>
+  <div id="error" class="loading" style="display:none;color:red;"></div>
+</main>
+<script>
+const API_BASE='https://script.google.com/macros/s/AKfycbynFv8gTnczc7abTL5Olq_sKmf1e0y6w9z_KBTKETK8i6NaGd941Cna4QVnoujoCsMdvA/exec';
+const params=new URLSearchParams(location.search);
+const cid=params.get('cid');
+const kelas=params.get('kelas');
+const modul=params.get('modul');
+async function loadKarya(){
+  const loader=document.getElementById('loader');
+  const table=document.getElementById('karyaTable');
+  const body=document.getElementById('karyaBody');
+  const err=document.getElementById('error');
+  try{
+    loader.style.display='block';table.style.display='none';err.style.display='none';
+    const res=await fetch(`${API_BASE}?tab=EL_KARYA_MURID`);
+    const data=await res.json();
+    const rows=data.filter(r=>(!cid||r.cid==cid)&&(!kelas||r.kelas_id==kelas)&&(!modul||r.modul_id==modul));
+    body.innerHTML='';
+    rows.forEach(r=>{
+      const tr=document.createElement('tr');
+      const link=r.link_karya||r.link||'#';
+      const time=r.Timestamp?new Date(r.Timestamp).toLocaleString('id-ID'):'';
+      tr.innerHTML=`<td>${r.judul||'-'}</td><td>${r.deskripsi||'-'}</td><td><a href="${link}" target="_blank">🔗</a></td><td>${r.jenis_karya||'-'}</td><td>${time}</td>`;
+      body.appendChild(tr);
+    });
+    loader.style.display='none';table.style.display='table';
+  }catch(e){console.error(e);loader.style.display='none';err.textContent='Gagal memuat karya.';err.style.display='block';}
+}
+window.onload=loadKarya;
+</script>
+</body>
+</html>
