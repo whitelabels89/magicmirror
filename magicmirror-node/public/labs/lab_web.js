@@ -7,7 +7,6 @@ const firebaseConfig = {
   appId: "1:1048549258959:web:f8dc1c104bb170d7ff69ba",
   measurementId: "G-RJCXM1YL7E"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 function runWeb(){
@@ -47,4 +46,5 @@ function saveWeb(){
   };
   db.collection('karya_anak').add(data);
   alert('✅ Disimpan!');
+
 }
