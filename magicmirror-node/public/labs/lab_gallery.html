@@ -17,7 +17,15 @@
   <h1>🎨 Gallery Lab</h1>
   <div class="grid" id="grid"></div>
 <script>
-const firebaseConfig={ /* your firebase config */ };
+const firebaseConfig={
+  apiKey: "AIzaSyBVO4ajDwkbcTGL33SVMxIoev4veB8itgI",
+  authDomain: "queens-academy-icoding.firebaseapp.com",
+  projectId: "queens-academy-icoding",
+  storageBucket: "queens-academy-icoding.appspot.com",
+  messagingSenderId: "1048549258959",
+  appId: "1:1048549258959:web:f8dc1c104bb170d7ff69ba",
+  measurementId: "G-RJCXM1YL7E"
+};
 firebase.initializeApp(firebaseConfig);
 const db=firebase.firestore();
 db.collection('karya_anak').get().then(q=>{
