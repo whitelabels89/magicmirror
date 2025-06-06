@@ -1,0 +1,9 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /karya_anak/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}
