@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Progress Murid - Spreadsheet</title>
+  <link rel="stylesheet" href="/elearn/guru.css">
+  <style>
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    tbody tr:nth-child(even) { background: #f9f9f9; }
+    .loading { text-align: center; margin: 20px 0; }
+    @media(max-width:600px){
+      table, thead, tbody, th, td, tr { display:block; }
+      thead tr{ position:absolute; top:-9999px; left:-9999px; }
+      tr{ margin:0 0 1rem 0; }
+      td{ border:none; position:relative; padding-left:50%; }
+      td:before{ position:absolute; top:0; left:6px; width:45%; white-space:nowrap; }
+    }
+  </style>
+</head>
+<body class="loaded">
+<script src="/elearn/userInfo.js"></script>
+<script>
+const user = getUserInfo();
+if(!user || user.role !== 'guru'){
+  alert('❌ Hanya guru yang bisa mengakses halaman ini.');
+  window.location.href = '/elearn/login-elearning.html';
+}
+</script>
+<header>
+  <h1>Progress Murid</h1>
+  <button onclick="location.href='/elearn/guru.html'">🏠 Dashboard</button>
+</header>
+<main>
+  <div id="loader" class="loading">⏳ Loading...</div>
+  <table id="progressTable" style="display:none">
+    <thead>
+      <tr>
+        <th>Nama Murid</th>
+        <th>Kelas</th>
+        <th>Modul</th>
+        <th>Step Terakhir</th>
+        <th>Skor Akhir</th>
+        <th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody id="progressBody"></tbody>
+  </table>
+  <div id="error" class="loading" style="display:none;color:red;"></div>
+</main>
+<script>
+const API_BASE = 'https://script.google.com/macros/s/AKfycbynFv8gTnczc7abTL5Olq_sKmf1e0y6w9z_KBTKETK8i6NaGd941Cna4QVnoujoCsMdvA/exec';
+
+async function loadDashboard(){
+  const loader=document.getElementById('loader');
+  const table=document.getElementById('progressTable');
+  const tbody=document.getElementById('progressBody');
+  const errEl=document.getElementById('error');
+  try{
+    loader.style.display='block';
+    table.style.display='none';
+    errEl.style.display='none';
+
+    // Jadwal kelas guru
+    const jadwalRes=await fetch(`${API_BASE}?tab=EL_JADWAL_KELAS&uid=${encodeURIComponent(user.uid)}`);
+    const jadwalData=await jadwalRes.json();
+    const kelasIds=[...new Set(jadwalData.map(k=>k.kelas_id||k['kelas_id']||k['Kelas ID']))].filter(Boolean);
+
+    // Semua progress
+    const progRes=await fetch(`${API_BASE}?tab=EL_PROGRESS_MURID`);
+    const progData=await progRes.json();
+    const progress=progData.filter(p=>kelasIds.includes(p.kelas_id||p['kelas_id']||p['Kelas ID']));
+
+    // Data modul untuk total step
+    const modulRes=await fetch(`${API_BASE}?tab=EL_MODULS`);
+    const modulData=await modulRes.json();
+    const modulMap={};
+    modulData.forEach(m=>{ modulMap[m.modul_id||m['modul_id']||m['Modul ID']]=m.jumlah_pertemuan||m['jumlah_pertemuan']||m['Jumlah Pertemuan']; });
+
+    // Nama murid
+    const profileRes=await fetch(`${API_BASE}?tab=PROFILE_ANAK`);
+    const profileData=await profileRes.json();
+    const nameMap={};
+    profileData.forEach(p=>{ nameMap[p.cid||p['cid']||p['CID']]=p['Nama Anak']||p.nama||p.Name; });
+
+    tbody.innerHTML='';
+    progress.forEach(row=>{
+      const cid=row.cid||row['cid']||row['CID'];
+      const modulId=row.modul_id||row['modul_id']||row['Modul ID'];
+      const totalStep=modulMap[modulId]||'-';
+      const step=row.step_terakhir||row['step_terakhir']||row['Step Terakhir']||'-';
+      const skor=row.skor_akhir||row['skor_akhir']||row['Skor Akhir']||'-';
+      const kelas=row.kelas_id||row['kelas_id']||row['Kelas ID'];
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td>${nameMap[cid]||cid}</td><td>${kelas}</td><td>${modulId}</td><td>${step} / ${totalStep}</td><td>${skor}</td><td><button onclick="viewLog('${cid}','${kelas}','${modulId}')">Log</button> <button onclick="viewKarya('${cid}','${kelas}','${modulId}')">Karya</button></td>`;
+      tbody.appendChild(tr);
+    });
+
+    loader.style.display='none';
+    table.style.display='table';
+  }catch(err){
+    console.error('Fetch error',err);
+    loader.style.display='none';
+    errEl.textContent='❌ Gagal memuat data.';
+    errEl.style.display='block';
+  }
+}
+
+function viewLog(cid,kelas,modul){
+  alert(`Lihat log untuk ${cid} di ${kelas} modul ${modul}`);
+}
+function viewKarya(cid,kelas,modul){
+  alert(`Lihat karya untuk ${cid} di ${kelas} modul ${modul}`);
+}
+
+window.onload=loadDashboard;
+</script>
+</body>
+</html>
