@@ -75,7 +75,7 @@
         await fetch("https://firebase-upload-backend.onrender.com/api/daftar-akun-baru", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ uid, cid, nama, email, wa, role: "murid" })
+          body: JSON.stringify({ uid, cid, nama, email, wa, password: pass, role: "murid" })
         });
 
         status.innerText = "✅ Akun berhasil dibuat. Mengarahkan ke halaman login...";
