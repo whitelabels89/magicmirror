@@ -200,9 +200,11 @@ async function login() {
       return;
     }
 
-    sessionStorage.setItem("uid", uid);
-    sessionStorage.setItem("email", email);
-    sessionStorage.setItem("nama", data.nama || "murid");
+    // Store all properties returned by backend response into sessionStorage, matching backend keys exactly
+    sessionStorage.setItem("uid", data.uid);
+    sessionStorage.setItem("cid", data.cid);
+    sessionStorage.setItem("email", data.email);
+    sessionStorage.setItem("nama", data.nama);
     sessionStorage.setItem("role", data.role);
 
     window.location.href = "/murid.html";
