@@ -2,45 +2,48 @@ const GAS_URL = "https://script.google.com/macros/s/AKfycbynFv8gTnczc7abTL5Olq_s
 
 async function login() {
   const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value;
+  const pass = document.getElementById("password").value.trim();
   const errorEl = document.getElementById("error-message");
 
-  try {
-    const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
-    const user = userCredential.user;
+  if (!email || !pass) {
+    errorEl.innerText = "❗ Email dan password harus diisi.";
+    return;
+  }
 
-    // Fetch user profile from GAS sheet
-    const res = await fetch(`${GAS_URL}?email=${encodeURIComponent(email)}`);
+  try {
+    const userCred = await firebase.auth().signInWithEmailAndPassword(email, pass);
+    const uid = userCred.user.uid;
+
+    // Ambil info role dan data lain dari Firestore
+    const res = await fetch(`https://firebase-upload-backend.onrender.com/api/get-role-by-uid?uid=${uid}`);
     const data = await res.json();
 
-    const role = data.Role?.toString().trim().toLowerCase();
-    const nama = data.Nama || data.name || "-";
-    const uid_custom = data.UID || data.Uid || data.uid || "-";
-
-    // Simpan session
-    sessionStorage.setItem("role", role);
-    sessionStorage.setItem("nama", nama);
-    sessionStorage.setItem("uid_custom", uid_custom);
-    sessionStorage.setItem("email", email);
-
-    if (!role) {
-      errorEl.textContent = "❌ Akun tidak dikenali dalam sistem.";
+    if (!data || !data.role) {
+      errorEl.innerText = "❌ Role tidak ditemukan. Hubungi admin.";
       return;
     }
 
-    if (role === "guru") {
+    // Simpan ke localStorage
+    localStorage.setItem("uid", uid);
+    localStorage.setItem("cid", data.cid || "");
+    localStorage.setItem("role", data.role);
+    localStorage.setItem("nama", data.nama || "");
+    localStorage.setItem("email", email);
+
+    // Redirect berdasarkan role
+    if (data.role === "murid") {
+      window.location.href = "/elearn/murid.html";
+    } else if (data.role === "guru") {
       window.location.href = "/elearn/guru.html";
-    } else if (role === "anak") {
-      window.location.href = "/elearn/dashboard-murid-style2.html";
-    } else if (role === "ortu") {
+    } else if (data.role === "ortu") {
       window.location.href = "/elearn/ortu.html";
     } else {
-      errorEl.textContent = "❌ Role tidak dikenali: " + role;
+      errorEl.innerText = "❌ Role tidak dikenali.";
     }
 
-  } catch (error) {
-    console.error("Login error:", error);
-    errorEl.textContent = "❌ " + error.message;
+  } catch (err) {
+    console.error("Login error:", err);
+    errorEl.innerText = "❌ Gagal login: " + err.message;
   }
 }
 
