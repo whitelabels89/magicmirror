@@ -260,7 +260,9 @@
 
   window.onload = () => {
     const user = getUserInfo();
-    if (user.role !== "murid") {
+    console.log("🧪 USER DASHBOARD INFO:", user);
+
+    if (!user || !user.role || user.role.toLowerCase() !== "murid") {
       alert("❌ Akses tidak sah. Silakan login ulang.");
       window.location.href = "/elearn/login-elearning.html";
       return;
@@ -268,7 +270,7 @@
 
     console.log("👤 Nama:", user.nama);
     console.log("🆔 UID:", user.uid);
-  }
+  };
 </script>
 </body>
 </html>
