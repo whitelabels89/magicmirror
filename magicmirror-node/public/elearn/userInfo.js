@@ -1,9 +1,9 @@
 function getUserInfo() {
   return {
-    email: sessionStorage.getItem("email"),
-    role: sessionStorage.getItem("role"),
-    nama: sessionStorage.getItem("nama"),
-    uid: sessionStorage.getItem("uid"),
-    cid: sessionStorage.getItem("cid")
+    email: localStorage.getItem("email"),
+    role: localStorage.getItem("role"),
+    nama: localStorage.getItem("nama"),
+    uid: localStorage.getItem("uid"),
+    cid: localStorage.getItem("cid")
   };
 }

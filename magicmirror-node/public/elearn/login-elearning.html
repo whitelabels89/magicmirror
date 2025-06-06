@@ -200,12 +200,12 @@ async function login() {
       return;
     }
 
-    // Store all properties returned by backend response into sessionStorage, matching backend keys exactly
-    sessionStorage.setItem("uid", data.uid);
-    sessionStorage.setItem("cid", data.cid);
-    sessionStorage.setItem("email", data.email);
-    sessionStorage.setItem("nama", data.nama);
-    sessionStorage.setItem("role", data.role);
+    // Store all properties returned by backend response into localStorage, matching backend keys exactly
+    localStorage.setItem("uid", data.uid);
+    localStorage.setItem("cid", data.cid);
+    localStorage.setItem("email", data.email);
+    localStorage.setItem("nama", data.nama);
+    localStorage.setItem("role", data.role);
 
     window.location.href = "/murid.html";
   } catch (err) {

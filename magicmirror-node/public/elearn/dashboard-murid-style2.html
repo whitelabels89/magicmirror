@@ -259,7 +259,13 @@
   setProgress(100);
 
   window.onload = () => {
-    const user = getUserInfo();
+    const user = {
+      email: localStorage.getItem("email"),
+      role: localStorage.getItem("role"),
+      nama: localStorage.getItem("nama"),
+      uid: localStorage.getItem("uid"),
+      cid: localStorage.getItem("cid")
+    };
     console.log("🧪 USER DASHBOARD INFO:", user);
 
     if (!user || !user.role || user.role.toLowerCase() !== "murid") {
