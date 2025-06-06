@@ -38,4 +38,13 @@ function saveWeb(){
     })
   });
   alert('✅ Disimpan! +10 XP');
+  const data = {
+    html: document.getElementById('html').value,
+    css: document.getElementById('css').value,
+    js: document.getElementById('js').value,
+    created: Date.now()
+  };
+  db.collection('karya_anak').add(data);
+  alert('✅ Disimpan!');
+
 }
