@@ -177,6 +177,40 @@
     </div>
   </div>
 
+<script>
+async function login() {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const errorEl = document.getElementById("error-message");
+
+  if (!email || !password) {
+    errorEl.innerText = "❗ Email dan password harus diisi.";
+    return;
+  }
+
+  try {
+    const userCred = await firebase.auth().signInWithEmailAndPassword(email, password);
+    const uid = userCred.user.uid;
+
+    const res = await fetch(`https://firebase-upload-backend.onrender.com/api/get-role-by-uid?uid=${uid}`);
+    const data = await res.json();
+
+    if (!data || !data.role) {
+      errorEl.innerText = "❌ Akun tidak memiliki akses yang valid.";
+      return;
+    }
+
+    sessionStorage.setItem("uid_custom", uid);
+    sessionStorage.setItem("email", email);
+    sessionStorage.setItem("nama", data.nama || "murid");
+    sessionStorage.setItem("role", data.role);
+
+    window.location.href = "/murid.html";
+  } catch (err) {
+    console.error(err);
+    errorEl.innerText = "❌ Login gagal. Periksa email dan password kamu.";
+  }
+}
 </script>
 <script src="userInfo.js"></script>
 <script src="script.js"></script>
