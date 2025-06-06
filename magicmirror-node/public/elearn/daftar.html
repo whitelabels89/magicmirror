@@ -1,0 +1,88 @@
+
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Daftar Akun Baru - Queen's Academy</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      max-width: 500px;
+      margin: auto;
+    }
+    input, button {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin: 12px 0;
+      font-size: 1rem;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "YOUR_FIREBASE_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      projectId: "YOUR_PROJECT",
+    };
+    firebase.initializeApp(firebaseConfig);
+  </script>
+</head>
+<body>
+  <h2>Daftar Akun Murid</h2>
+  <input type="text" id="nama" placeholder="Nama Anak" />
+  <input type="email" id="email" placeholder="Email Ortu" />
+  <input type="text" id="wa" placeholder="Nomor WhatsApp" />
+  <input type="password" id="pass" placeholder="Password" />
+  <button onclick="daftar()">Daftar</button>
+  <p id="status"></p>
+
+  <script>
+    async function daftar() {
+      const nama = document.getElementById("nama").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const wa = document.getElementById("wa").value.trim();
+      const pass = document.getElementById("pass").value.trim();
+      const status = document.getElementById("status");
+
+      if (!nama || !email || !wa || !pass) {
+        status.innerText = "❗ Semua kolom harus diisi.";
+        return;
+      }
+
+      try {
+        const cidRes = await fetch("/generate-cqa");
+        const cidData = await cidRes.json();
+        const cid = cidData.cid;
+
+        const userCred = await firebase.auth().createUserWithEmailAndPassword(email, pass);
+        const uid = userCred.user.uid;
+
+        await fetch("/api/daftar-akun-baru", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ uid, cid, nama, email, wa, role: "murid" })
+        });
+
+        status.innerText = "✅ Akun berhasil dibuat. Mengarahkan ke halaman login...";
+        setTimeout(() => {
+          window.location.href = "/elearn/login-elearning.html";
+        }, 2000);
+      } catch (err) {
+        console.error(err);
+        status.innerText = "❌ Gagal daftar: " + err.message;
+      }
+    }
+  </script>
+</body>
+</html>
