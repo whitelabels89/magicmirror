@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Log Progress Murid</title>
+  <link rel="stylesheet" href="/elearn/guru.css">
+  <style>
+    table{width:100%;border-collapse:collapse;}
+    th,td{border:1px solid #ddd;padding:6px;text-align:left;}
+    tbody tr:nth-child(even){background:#f9f9f9;}
+    .loading{text-align:center;margin:20px 0;}
+  </style>
+</head>
+<body class="loaded">
+<script src="/elearn/userInfo.js"></script>
+<script>
+const user=getUserInfo();
+if(!user||user.role!=='guru'){alert('❌ Hanya guru.');window.location.href='/elearn/login-elearning.html';}
+</script>
+<header>
+  <h1>📄 Log Murid</h1>
+  <div>
+    <label>Kelas:
+      <select id="kelasFilter"><option value="">Semua</option></select>
+    </label>
+    <label>Modul:
+      <select id="modulFilter"><option value="">Semua</option></select>
+    </label>
+    <button onclick="applyFilters()">Filter</button>
+    <button onclick="window.print()">🖨️ Print</button>
+    <button onclick="window.close()">Tutup</button>
+  </div>
+</header>
+<main>
+  <div id="loader" class="loading">⏳ Loading...</div>
+  <table id="logTable" style="display:none">
+    <thead>
+      <tr>
+        <th>Step</th>
+        <th>Status</th>
+        <th>Skor</th>
+        <th>Waktu</th>
+        <th>Keterangan</th>
+      </tr>
+    </thead>
+    <tbody id="logBody"></tbody>
+  </table>
+  <div id="error" class="loading" style="display:none;color:red;"></div>
+</main>
+<script>
+const API_BASE='https://script.google.com/macros/s/AKfycbynFv8gTnczc7abTL5Olq_sKmf1e0y6w9z_KBTKETK8i6NaGd941Cna4QVnoujoCsMdvA/exec';
+let allRows=[];
+const params=new URLSearchParams(location.search);
+const cid=params.get('cid');
+const kelas=params.get('kelas');
+const modul=params.get('modul');
+async function loadLog(){
+  const loader=document.getElementById('loader');
+  const table=document.getElementById('logTable');
+  const body=document.getElementById('logBody');
+  const err=document.getElementById('error');
+  try{
+    loader.style.display='block';table.style.display='none';err.style.display='none';
+    const res=await fetch(`${API_BASE}?tab=EL_PROGRESS_TRACKER`);
+    const data=await res.json();
+    allRows=data;
+    populateFilters();
+    applyFilters();
+    loader.style.display='none';table.style.display='table';
+  }catch(e){console.error(e);loader.style.display='none';err.textContent='Gagal memuat log.';err.style.display='block';}
+}
+
+function renderRows(rows){
+  const body=document.getElementById('logBody');
+  body.innerHTML='';
+  rows.forEach(r=>{
+    const tr=document.createElement('tr');
+    const statusIcon=(r.status||'').toLowerCase().includes('done')?'✅':'🔄';
+    const t=r.waktu||r.Timestamp;
+    const time=t?new Date(t).toLocaleString('id-ID'):'';
+    tr.innerHTML=`<td>${r.step||'-'}</td><td>${statusIcon}</td><td>${r.skor||'-'}</td><td>${time}</td><td>${r.keterangan||'-'}</td>`;
+    body.appendChild(tr);
+  });
+}
+
+function populateFilters(){
+  const kSel=document.getElementById('kelasFilter');
+  const mSel=document.getElementById('modulFilter');
+  const kelasSet=new Set(allRows.map(r=>r.kelas_id));
+  const modulSet=new Set(allRows.map(r=>r.modul_id));
+  kSel.innerHTML='<option value="">Semua</option>';
+  kelasSet.forEach(k=>{if(k)kSel.innerHTML+=`<option value="${k}">${k}</option>`});
+  mSel.innerHTML='<option value="">Semua</option>';
+  modulSet.forEach(m=>{if(m)mSel.innerHTML+=`<option value="${m}">${m}</option>`});
+  if(kelas) kSel.value=kelas;
+  if(modul) mSel.value=modul;
+}
+
+function applyFilters(){
+  const kf=document.getElementById('kelasFilter').value;
+  const mf=document.getElementById('modulFilter').value;
+  let rows=allRows.filter(r=>(!cid||r.cid==cid));
+  if(kf) rows=rows.filter(r=>r.kelas_id==kf);
+  if(mf) rows=rows.filter(r=>r.modul_id==mf);
+  renderRows(rows);
+}
+
+window.onload=loadLog;
+</script>
+</body>
+</html>
