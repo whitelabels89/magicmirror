@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Co-Pilot Lab</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap">
+  <style>
+    body {font-family:'Baloo 2', cursive; background:#f0f9ff; margin:0; padding:20px;}
+    textarea {width:100%; height:150px; border-radius:8px; padding:10px; font-size:16px;}
+    button {margin-top:10px; padding:10px 16px; background:#6366f1; color:#fff; border:none; border-radius:8px; cursor:pointer;}
+    #result {border:1px solid #ccc; margin-top:20px; width:100%; height:150px;}
+  </style>
+</head>
+<body>
+  <h1>🤖 AI Co-Pilot Lab</h1>
+  <input id="prompt" placeholder="Tulis perintah kode" style="width:100%; padding:10px; border-radius:8px;" />
+  <button onclick="generateCode()">Generate</button>
+  <textarea id="editor"></textarea>
+  <button onclick="runAI()">Jalankan</button>
+  <iframe id="result"></iframe>
+<script>
+async function generateCode(){
+  const prompt = document.getElementById('prompt').value;
+  const response = await fetch('/openai-api', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({prompt})});
+  const data = await response.json();
+  document.getElementById('editor').value = data.code || data.choices?.[0]?.text || '';
+}
+function runAI(){
+  const code = document.getElementById('editor').value;
+  document.getElementById('result').srcdoc = `<script>${code}<\/script>`;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logic Puzzle Lab</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap">
+  <style>
+    body {font-family:'Baloo 2', cursive; background:#f0f9ff; padding:20px;}
+    textarea {width:100%; height:150px; border-radius:8px; padding:10px; font-size:16px;}
+    button {margin-top:10px; padding:10px 16px; background:#f43f5e; color:#fff; border:none; border-radius:8px; cursor:pointer;}
+    #result {margin-top:20px; font-weight:bold;}
+  </style>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+</head>
+<body>
+  <h1>🕹️ Logic Puzzle Lab</h1>
+  <select id="question"></select>
+  <textarea id="answer" placeholder="Tulis kode Python di sini"></textarea>
+  <button onclick="checkAnswer()">Cek Jawaban</button>
+  <div id="result"></div>
+<script>
+const puzzles=[{q:'Buatlah fungsi yang mengembalikan jumlah 1..n', test:'sum_n(5)', expect:'15'},{q:'Buatlah program yang mencetak angka 0-4', test:'\n', expect:'01234'}];
+const select=document.getElementById('question');
+puzzles.forEach((p,i)=>{const opt=document.createElement('option');opt.value=i;opt.textContent=p.q;select.appendChild(opt);});
+let pyReady=loadPyodide({indexURL:'https://cdn.jsdelivr.net/pyodide/v0.24.1/full/'});
+async function checkAnswer(){
+  const py=await pyReady; const idx=select.value; const puzzle=puzzles[idx];
+  await py.runPythonAsync(document.getElementById('answer').value);
+  const res=await py.runPythonAsync(puzzle.test);
+  document.getElementById('result').textContent=res==puzzle.expect?'Benar!':'Salah!';
+}
+</script>
+</body>
+</html>
