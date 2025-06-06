@@ -5,6 +5,7 @@ const app = express();
 const http = require('http').createServer(app);
 const io = require('socket.io')(http, { cors: { origin: "*" } });
 const path = require('path');
+const { google } = require('googleapis');
 
 const PORT = process.env.PORT || 3000;
 
@@ -235,6 +236,48 @@ async function getProfileAnakData() {
     return rowObj;
   });
 }
+
+// Endpoint: simpan metadata karya ke Google Sheet
+app.post('/api/save-karya', async (req, res) => {
+  const { cid, judul, id_karya, link, timestamp } = req.body;
+  if (!cid || !judul) return res.status(400).json({ success: false, message: 'Data kurang' });
+  try {
+    const auth = new google.auth.GoogleAuth({ scopes: ['https://www.googleapis.com/auth/spreadsheets'] });
+    const client = await auth.getClient();
+    const sheets = google.sheets({ version: 'v4', auth: client });
+    const spreadsheetId = process.env.SPREADSHEET_ID;
+    await sheets.spreadsheets.values.append({
+      spreadsheetId,
+      range: 'KARYA_ANAK!A1',
+      valueInputOption: 'RAW',
+      insertDataOption: 'INSERT_ROWS',
+      requestBody: { values: [[cid, judul, id_karya, link, timestamp]] }
+    });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('❌ Error save karya:', err?.response?.data || err.message);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+});
+
+// Endpoint: proxy OpenAI untuk Lab Co-Pilot
+app.post('/openai-api', async (req, res) => {
+  const { prompt } = req.body;
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: 'API Key tidak tersedia.' });
+  try {
+    const response = await axios.post(
+      'https://api.openai.com/v1/chat/completions',
+      { model: 'gpt-4o', messages: [{ role: 'user', content: prompt }] },
+      { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` } }
+    );
+    const code = response.data.choices[0].message?.content || '';
+    res.json({ code });
+  } catch (err) {
+    console.error('❌ OpenAI API error:', err?.response?.data || err.message);
+    res.status(500).json({ error: 'Gagal generate kode.' });
+  }
+});
 
 // Endpoint: menerima foto base64 dari alat
 app.post('/upload_photo', (req, res) => {
