@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Web Editor Lab</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap">
+  <style>
+    body {font-family:'Baloo 2', cursive; background:#f0f9ff; margin:0; padding:20px;}
+    .editors {display:flex; flex-wrap:wrap; gap:10px;}
+    textarea {width:32%; height:150px; border-radius:8px; padding:10px; font-size:14px;}
+    #preview {border:1px solid #ccc; width:100%; height:300px; margin-top:20px;}
+    button {margin-top:10px; padding:10px 16px; background:#38bdf8; color:#fff; border:none; border-radius:8px; cursor:pointer;}
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <h1>🌐 HTML/JS Editor Lab</h1>
+  <div class="editors">
+    <textarea id="html" placeholder="HTML"></textarea>
+    <textarea id="css" placeholder="CSS"></textarea>
+    <textarea id="js" placeholder="JavaScript"></textarea>
+  </div>
+  <button onclick="runWeb()">Jalankan</button>
+  <button onclick="saveWeb()">Simpan</button>
+  <iframe id="preview"></iframe>
+  <script src="lab_web.js"></script>
+</body>
+</html>

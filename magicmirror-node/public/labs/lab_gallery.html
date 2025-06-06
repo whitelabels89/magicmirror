@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gallery Lab</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap">
+  <style>
+    body {font-family:'Baloo 2', cursive; background:#f0f9ff; padding:20px;}
+    .grid {display:flex; flex-wrap:wrap; gap:10px;}
+    .item {background:#fff; border-radius:8px; padding:10px; width:150px; text-align:center; box-shadow:0 2px 4px rgba(0,0,0,0.1);}
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <h1>🎨 Gallery Lab</h1>
+  <div class="grid" id="grid"></div>
+<script>
+const firebaseConfig={ /* your firebase config */ };
+firebase.initializeApp(firebaseConfig);
+const db=firebase.firestore();
+db.collection('karya_anak').get().then(q=>{
+  const grid=document.getElementById('grid');
+  q.forEach(doc=>{
+    const d=doc.data();
+    const div=document.createElement('div');
+    div.className='item';
+    div.innerHTML=`<h4>${d.title||'Tanpa Judul'}</h4><p>${d.cid||''}</p><a href="${d.link||'#'}" target="_blank">Preview</a>`;
+    grid.appendChild(div);
+  });
+});
+</script>
+</body>
+</html>
