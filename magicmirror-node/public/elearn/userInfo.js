@@ -5,6 +5,6 @@ function getUserInfo() {
     email: sessionStorage.getItem("email"),
     role: sessionStorage.getItem("role"),
     nama: sessionStorage.getItem("nama"),
-    uid: sessionStorage.getItem("uid_custom")
+    uid: sessionStorage.getItem("uid")
   };
 }
