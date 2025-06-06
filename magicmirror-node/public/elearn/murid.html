@@ -372,7 +372,7 @@
   <script>
     // Cek apakah user sudah login, jika tidak redirect
     const user = getUserInfo();
-    if (!user || user.role !== "anak") {
+    if (!user || user.role !== "murid") {
       alert("❌ Akses tidak sah. Silakan login ulang.");
       window.location.href = "/elearn/login-elearning.html";
     } else {

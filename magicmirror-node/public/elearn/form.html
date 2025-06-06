@@ -745,7 +745,7 @@ async function runValidatedCode(id) {
   <script>
     const user = getUserInfo();
     localStorage.setItem("currentCid", user.uid);
-    if (!user || user.role !== "anak") {
+    if (!user || user.role !== "murid") {
       alert("❌ Akses tidak sah. Silakan login ulang.");
       window.location.href = "/elearn/login-elearning.html";
     }
