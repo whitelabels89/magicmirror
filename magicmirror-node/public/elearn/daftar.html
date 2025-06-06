@@ -61,14 +61,14 @@
       }
 
       try {
-        const cidRes = await fetch("/generate-cqa");
+        const cidRes = await fetch("https://firebase-upload-backend.onrender.com/generate-cqa");
         const cidData = await cidRes.json();
         const cid = cidData.cid;
 
         const userCred = await firebase.auth().createUserWithEmailAndPassword(email, pass);
         const uid = userCred.user.uid;
 
-        await fetch("/api/daftar-akun-baru", {
+        await fetch("https://firebase-upload-backend.onrender.com/api/daftar-akun-baru", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ uid, cid, nama, email, wa, role: "murid" })
