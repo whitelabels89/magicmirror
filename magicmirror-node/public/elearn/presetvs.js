@@ -8,6 +8,7 @@ if (typeof window.pyodide === 'undefined') {
   loadPyodideAndPackages();
 }
 console.log("✅ presetvs.js loaded");
+window.activeTypingBox = null;
 function setupVscodeTypingBox(container) {
   console.log("🔧 setupVscodeTypingBox dipanggil untuk:", container);
   const rawHint = container.getAttribute('data-hint') || '';
@@ -83,8 +84,14 @@ function setupVscodeTypingBox(container) {
   }
 
   container.classList.add('initialized');
+  container.setAttribute('tabindex', '0');
+  container.addEventListener('click', () => {
+    window.activeTypingBox = container;
+    container.focus();
+  });
 
-  document.addEventListener('keydown', (e) => {
+  container.addEventListener('keydown', (e) => {
+    if (window.activeTypingBox !== container) return;
     if (container._lineIndex < 0 || container._lineIndex >= lines.length) return;
     const line = lines[container._lineIndex];
 
@@ -167,7 +174,7 @@ function setupVscodeTypingBox(container) {
     const outputEl = container.querySelector(".code-output");
     if (outputEl) outputEl.textContent = lines;
   };
-  document.addEventListener("keydown", updateCodeOutput);
+  container.addEventListener("keydown", updateCodeOutput);
 
   renderCode();
 }
