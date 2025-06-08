@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blockly Visual Lab</title>
+  <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+  <style>
+    body {font-family:'Baloo 2', cursive; background:#f0f9ff; padding:20px;}
+    #blocklyDiv {height:480px; width:100%; border:1px solid #ccc;}
+    button {margin-top:10px; padding:10px 16px; background:#0ea5e9; color:#fff; border:none; border-radius:8px; cursor:pointer;}
+    pre {background:#fff; padding:10px; border-radius:8px;}
+  </style>
+</head>
+<body>
+  <a href="index.html">⬅️ Kembali ke Lab Index</a>
+  <a href="/elearn/murid.html">🏠 Kembali ke Dashboard</a>
+  <h1>🧩 Blockly Visual Lab</h1>
+  <div id="blocklyDiv"></div>
+  <button onclick="showCode()">Lihat Kode</button>
+  <button onclick="runBlocks()">Jalankan</button>
+  <pre id="code"></pre>
+  <pre id="output" style="color:red"></pre>
+  <xml id="toolbox" style="display:none">
+    <category name="Logic" colour="210">
+      <block type="controls_if"></block>
+      <block type="logic_compare"></block>
+    </category>
+    <category name="Loops" colour="120">
+      <block type="controls_repeat_ext"></block>
+      <block type="controls_whileUntil"></block>
+    </category>
+    <category name="Math" colour="230">
+      <block type="math_number"></block>
+      <block type="math_arithmetic"></block>
+    </category>
+    <category name="Text" colour="160">
+      <block type="text"></block>
+      <block type="text_print"></block>
+    </category>
+  </xml>
+  <script src="lab_blockly.js"></script>
+</body>
+</html>
