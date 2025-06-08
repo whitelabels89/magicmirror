@@ -102,7 +102,9 @@ function renderProgress(data, container) {
       <span class="student-name">${m.nama}</span>
       <div class="progress-bar"><div class="progress-fill" style="width:${m.progress}%"></div></div>
       <span class="badge">${m.badge}</span>
-      <a href="/elearn/murid.html?cid=${m.cid}" class="btn">Detail</a>`;
+
+      <a href="/elearn/murid.html?cid=${m.cid}" class="btn">Modul</a>
+      <a href="/elearn/dashboard-murid-style2.html?cid=${m.cid}" class="btn">Dashboard</a>`;
     container.appendChild(div);
   });
 }
@@ -121,7 +123,9 @@ async function loadMuridList() {
   ];
   siswa.forEach(s => {
     const li = document.createElement('li');
-    li.innerHTML = `<a href="/elearn/murid.html?cid=${s.cid}" class="btn">${s.nama}</a>`;
+    li.innerHTML = `<span>${s.nama}</span>
+      <a href="/elearn/murid.html?cid=${s.cid}" class="btn">Modul</a>
+      <a href="/elearn/dashboard-murid-style2.html?cid=${s.cid}" class="btn">Dashboard</a>`;
     list.appendChild(li);
   });
 }
