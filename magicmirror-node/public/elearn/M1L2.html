@@ -39,6 +39,16 @@
     height: 100%;
     background: #facc15;
   }
+  .back-btn {
+    display: inline-block;
+    margin-top: 8px;
+    color: #fff;
+    background: #22c55e;
+    padding: 6px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+  }
   .container {
     display: flex;
     padding: 20px;
@@ -80,6 +90,18 @@
     color: #a7f3d0;
     min-width: 260px;
   }
+  .whiteboard-container {
+    margin-top: 1rem;
+    text-align: center;
+  }
+  #whiteboardCanvas {
+    border: 1px solid #ccc;
+    width: 100%;
+    height: 300px;
+    display: none;
+    touch-action: none;
+    background: #fff;
+  }
   .step-content {
     display: none;
     background: #fff;
@@ -97,6 +119,9 @@
   <p>Memahami Variabel dengan cara seru</p>
   <div class="progress-container">
     <div class="progress-bar"><div class="progress" id="progressBar"></div></div>
+  </div>
+  <div style="margin-top:10px;">
+    <a href="/elearn/modul1.html" class="back-btn">⟵ Kembali ke Modul</a>
   </div>
 </div>
 
@@ -143,8 +168,6 @@
     </div>
     <div id="panel-8" class="step-content">
       <div class="typingBox-vscode" data-hint="tinggi = 135.5&#10;print(tinggi)"></div>
-      <button class="run-button">Jalankan</button>
-      <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-9" class="step-content">
       <h2>Pilih Nama yang Jelas</h2>
@@ -156,8 +179,6 @@
     </div>
     <div id="panel-11" class="step-content">
       <div class="typingBox-vscode" data-hint="buah = &quot;Apel&quot;&#10;print(buah)&#10;buah = &quot;Jeruk&quot;&#10;print(buah)"></div>
-      <button class="run-button">Jalankan</button>
-      <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-12" class="step-content">
       <h2>Bisa Berubah-ubah</h2>
@@ -189,7 +210,11 @@ print(warna)</code></pre>
     </div>
   </div>
   <div class="lab-column">
-    <p>Whiteboard feature coming soon.</p>
+    <div class="whiteboard-container">
+      <button id="toggleWhiteboard">Tampilkan Whiteboard</button>
+      <button id="clearWhiteboard">Clear</button>
+      <canvas id="whiteboardCanvas"></canvas>
+    </div>
   </div>
 </div>
 
@@ -215,4 +240,23 @@ print(warna)</code></pre>
     }
   });
   document.addEventListener('DOMContentLoaded', () => showPanel(1));
+</script>
+
+<!-- Firebase and Whiteboard -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script src="whiteboard.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBVO4ajDwkbcTGL33SVMxIoev4veB8itgI",
+    authDomain: "queens-academy-icoding.firebaseapp.com",
+    projectId: "queens-academy-icoding",
+    storageBucket: "queens-academy-icoding.appspot.com",
+    messagingSenderId: "1048549258959",
+    appId: "1:1048549258959:web:f8dc1c104bb170d7ff69ba",
+  };
+  firebase.initializeApp(firebaseConfig);
+  window.kelasId = 'demo';
+  window.lessonId = 'M1L2';
+  initWhiteboard();
 </script>
