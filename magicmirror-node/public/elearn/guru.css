@@ -39,15 +39,20 @@ body {
   font-weight: 600;
   margin-left:0.5rem;
 }
+
 .layout {
   display: flex;
   min-height: calc(100vh - 70px);
+  align-items: stretch;
 }
 .sidebar {
   width: 220px;
   background: #ffffff;
   padding: 1rem;
   box-shadow: 2px 0 4px rgba(0,0,0,0.05);
+  min-height: calc(100vh - 70px);
+  display: flex;
+  flex-direction: column;
 }
 .sidebar ul {
   list-style: none;
@@ -189,10 +194,9 @@ body {
 .template-card:hover {background:#c7d7ff;}
 #lab-code {width:100%; margin:0.5rem 0;}
 #lab-output {background:#000; color:#0f0; padding:0.5rem; min-height:40px;}
-
 @media(max-width:768px){
   .layout {flex-direction: column;}
-  .sidebar {width: 100%; display:flex; overflow-x:auto;}
+  .sidebar {width: 100%; display:flex; overflow-x:auto; min-height:auto;}
   .sidebar ul {display:flex; gap:0.5rem;}
   .sidebar li {flex:none; white-space:nowrap;}
 }

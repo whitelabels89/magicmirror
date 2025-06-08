@@ -27,10 +27,7 @@ function handleLogout() {
 function adjustSidebarByRole() {
   if (typeof getUserInfo !== 'function') return;
   const user = getUserInfo();
-  if (user && user.role === 'guru') {
-    const dash = document.querySelector('#sidebar a[href="/elearn/dashboard-murid-style2.html"]');
-    if (dash) dash.style.display = 'none';
-  }
+  // Currently no role-based adjustments needed
 }
 
 document.addEventListener('DOMContentLoaded', loadSidebar);
