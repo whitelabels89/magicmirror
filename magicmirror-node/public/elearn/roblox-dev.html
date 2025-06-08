@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kelas Coding Roblox Developer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Fredoka', sans-serif;
+      margin: 0;
+      background: #f0f7ff;
+      color: #333;
+    }
+    .header {
+      text-align: center;
+      padding: 20px;
+      background: #4f46e5;
+      color: #fff;
+    }
+    .header h1 {
+      margin-bottom: 10px;
+      font-size: 2.2rem;
+    }
+    .header p {
+      margin-bottom: 20px;
+    }
+    .download-btn {
+      display: inline-block;
+      background: #22c55e;
+      color: #fff;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 12px;
+      font-weight: bold;
+    }
+    .progress-container {
+      margin-top: 20px;
+      width: 80%;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .progress-bar {
+      height: 12px;
+      background: #fff;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .progress {
+      width: 30%;
+      height: 100%;
+      background: #facc15;
+    }
+    .container {
+      display: flex;
+      padding: 20px;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .sidebar {
+      flex: 1 1 180px;
+      max-width: 200px;
+      background: #fde68a;
+      padding: 20px;
+      border-radius: 20px;
+    }
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+    }
+    .sidebar li {
+      margin-bottom: 10px;
+      background: #fcd34d;
+      padding: 8px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .sidebar li.active {
+      background: #fbbf24;
+    }
+    .main {
+      flex: 3 1 300px;
+      background: #fff;
+      padding: 20px;
+      border-radius: 20px;
+    }
+    .lab-column {
+      flex: 1 1 260px;
+      background: #111827;
+      padding: 20px;
+      border-radius: 20px;
+      color: #a7f3d0;
+      min-width: 260px;
+    }
+    #lua-editor {
+      width: 100%;
+      height: 150px;
+      background: #1e1e1e;
+      color: #7efb84;
+      border: none;
+      padding: 10px;
+      font-family: monospace;
+      border-radius: 8px;
+    }
+    .run-btn {
+      margin-top: 10px;
+      padding: 6px 12px;
+      background: #059669;
+      border: none;
+      color: #fff;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #lua-output {
+      background: #1e1e1e;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 10px;
+      min-height: 50px;
+      color: #7efb84;
+      font-family: monospace;
+    }
+    .lab-section { display: none; }
+    .lab-section.active { display: block; }
+    .lab-selector {
+      text-align: center;
+      margin: 20px;
+    }
+    @media (max-width: 768px) {
+      .container { flex-direction: column; }
+      .lab-column { order: 2; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Kelas Coding Roblox Developer</h1>
+    <p>Belajar Coding dan Membuat Game Sendiri di Dunia Roblox</p>
+    <a class="download-btn" href="https://create.roblox.com/studio/download" target="_blank">Download Roblox Studio</a>
+    <div class="progress-container">
+      <div class="progress-bar"><div class="progress"></div></div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="sidebar">
+      <ul id="lesson-list">
+        <li data-lesson="1" class="active">1. 🌟 Pengenalan Roblox</li>
+        <li data-lesson="2">2. 🚀 Dasar Lua</li>
+        <li data-lesson="3">3. 🎮 Logika Game</li>
+        <li data-lesson="4">4. 🕹️ Gameplay</li>
+        <li data-lesson="5">5. 👾 Desain Karakter</li>
+        <li data-lesson="6">6. 🌐 Multiplayer</li>
+        <li data-lesson="7">7. 🏆 Final Project</li>
+      </ul>
+    </div>
+
+    <div class="main" id="lesson-content">
+      <!-- Konten dinamis akan muncul di sini -->
+    </div>
+
+    <div class="lab-column">
+      <div id="lab1" class="lab-section active">
+        <textarea id="lua-editor" placeholder="-- Tulis kode Lua di sini..."></textarea>
+        <button class="run-btn" onclick="runLua()">Run Code</button>
+        <div id="lua-output">Output:</div>
+      </div>
+      <div id="lab2" class="lab-section">
+        <iframe width="100%" height="180" src="https://www.youtube.com/embed/9Tjfk0L6W8k" frameborder="0" allowfullscreen></iframe>
+        <p>Petunjuk: buka Roblox Studio, buat project baru, lalu tempelkan kode dari LMS ke dalam Script. Jalankan dan lihat hasilnya!</p>
+        <button class="run-btn">Upload hasil tugas</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="lab-selector">
+    <label for="lab-select">Pilih Lab: </label>
+    <select id="lab-select">
+      <option value="lab1">Lab 1: Lua Practice</option>
+      <option value="lab2">Lab 2: Roblox Experiment</option>
+    </select>
+  </div>
+
+  <script>
+    const lessons = {
+      1: `
+        <h2>Modul 1: Pengenalan Dunia Roblox &amp; Studio</h2>
+        <h3>🎯 Tujuan Pembelajaran</h3>
+        <p>Memahami apa itu Roblox dan mengenal tampilan awal Roblox Studio.</p>
+        <h3>🧪 Simulasi Praktik</h3>
+        <ol>
+          <li>Buka Roblox Studio dan pilih template <strong>Baseplate</strong>.</li>
+          <li>Tambahkan objek <em>Part</em> lalu ubah warnanya.</li>
+        </ol>
+        <pre>print("Hello Roblox!")</pre>
+        <div class="guru-only">
+          <h3>📖 Penjelasan Guru</h3>
+          <p>Jelaskan bahwa Roblox adalah platform untuk bermain dan membuat game. Ajak anak melihat tampilan awal Roblox Studio.</p>
+          <h3>💡 Tips Mengajar</h3>
+          <p>Biarkan anak bereksplorasi dan bandingkan dunia kosong dengan hasil kreasi mereka.</p>
+        </div>
+      `,
+      2: `
+        <h2>Modul 2: Dasar Coding Lua di Roblox</h2>
+        <h3>🎯 Tujuan Pembelajaran</h3>
+        <p>Mengenal script Lua dan cara menambahkannya ke objek.</p>
+        <h3>🧪 Simulasi Praktik</h3>
+        <pre>
+script.Parent.Touched:Connect(function(hit)
+  print("Objek disentuh oleh: " .. hit.Name)
+end)
+        </pre>
+        <div class="guru-only">
+          <h3>📖 Penjelasan Guru</h3>
+          <p>Terangkan bahwa script adalah "otak" dari objek. Kenalkan variabel, fungsi, dan event.</p>
+          <h3>💡 Tips Mengajar</h3>
+          <p>Ajak anak menebak apa yang terjadi saat objek disentuh sebelum menjalankan kodenya.</p>
+        </div>
+      `,
+      3: `
+        <h2>Modul 3: Logika Pemrograman Game</h2>
+        <h3>🎯 Tujuan Pembelajaran</h3>
+        <p>Mempelajari kondisi if-else dan loop untuk membuat aksi berurutan.</p>
+        <h3>🧪 Simulasi Praktik</h3>
+        <pre>
+function hancurkan(part)
+  wait(2)
+  part:Destroy()
+end
+
+script.Parent.Touched:Connect(function()
+  hancurkan(script.Parent)
+end)
+        </pre>
+        <div class="guru-only">
+          <h3>📖 Penjelasan Guru</h3>
+          <p>Jelaskan penggunaan logika kondisi dan loop dalam game.</p>
+          <h3>💡 Tips Mengajar</h3>
+          <p>Tanyakan apa yang terjadi jika waktu tunggu diganti 10 detik.</p>
+        </div>
+      `,
+      4: `
+        <h2>Modul 4: Interaktivitas dan Gameplay</h2>
+        <h3>🎯 Tujuan Pembelajaran</h3>
+        <p>Mengenal zona trigger dan efek power-up pada pemain.</p>
+        <h3>🧪 Simulasi Praktik</h3>
+        <pre>
+script.Parent.Touched:Connect(function(hit)
+  local char = hit.Parent
+  local humanoid = char:FindFirstChild("Humanoid")
+  if humanoid then
+    humanoid.WalkSpeed = 50
+    wait(5)
+    humanoid.WalkSpeed = 16
+  end
+end)
+        </pre>
+        <div class="guru-only">
+          <h3>📖 Penjelasan Guru</h3>
+          <p>Tunjukkan cara membuat zona yang memberi efek kecepatan sementara.</p>
+          <h3>💡 Tips Mengajar</h3>
+          <p>Berikan tantangan membuat zona dengan efek lompat tinggi.</p>
+        </div>
+      `,
+      5: `
+        <h2>Modul 5: Desain Karakter &amp; Asset</h2>
+        <h3>🎯 Tujuan Pembelajaran</h3>
+        <p>Belajar menambahkan asset dan membuat GUI sederhana.</p>
+        <h3>🧪 Simulasi Praktik</h3>
+        <pre>
+local button = Instance.new("TextButton")
+button.Text = "Klik Aku!"
+button.Size = UDim2.new(0, 100, 0, 50)
+button.Position = UDim2.new(0.5, -50, 0.5, -25)
+button.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+        </pre>
+        <div class="guru-only">
+          <h3>📖 Penjelasan Guru</h3>
+          <p>Perlihatkan penggunaan Toolbox untuk menambah karakter dan efek.</p>
+          <h3>💡 Tips Mengajar</h3>
+          <p>Dorong anak memodifikasi tampilan GUI agar lebih menarik.</p>
+        </div>
+      `,
+      6: `
+        <h2>Modul 6: Multiplayer &amp; Kolaborasi</h2>
+        <h3>🎯 Tujuan Pembelajaran</h3>
+        <p>Memahami konsep server-client dan kolaborasi lewat Team Create.</p>
+        <h3>🧪 Simulasi Praktik</h3>
+        <pre>
+game.Players.PlayerAdded:Connect(function(player)
+  local leaderstats = Instance.new("Folder", player)
+  leaderstats.Name = "leaderstats"
+  local score = Instance.new("IntValue", leaderstats)
+  score.Name = "Score"
+  score.Value = 0
+end)
+        </pre>
+        <div class="guru-only">
+          <h3>📖 Penjelasan Guru</h3>
+          <p>Jelaskan perbedaan server dan client serta manfaat bekerja bersama teman.</p>
+          <h3>💡 Tips Mengajar</h3>
+          <p>Simulasikan peran berbeda: pembuat perangkap dan tester.</p>
+        </div>
+      `,
+      7: `
+        <h2>Modul 7: Final Project &amp; Publish</h2>
+        <h3>🎯 Tujuan Pembelajaran</h3>
+        <p>Menyelesaikan game original dan mempublikasikannya di Roblox.</p>
+        <h3>🧪 Simulasi Praktik</h3>
+        <pre>print("Selamat, game siap dipublish!")</pre>
+        <div class="guru-only">
+          <h3>📖 Penjelasan Guru</h3>
+          <p>Bahas proses desain game dari ide hingga promosi setelah dipublish.</p>
+          <h3>💡 Tips Mengajar</h3>
+          <p>Ajak tiap anak mempresentasikan gamenya dan memberi masukan teman.</p>
+        </div>
+      `
+    };
+
+    function renderLessonContent(html) {
+      const container = document.getElementById('lesson-content');
+      const role = localStorage.getItem('userRole') || 'murid';
+      container.innerHTML = html;
+      if (role !== 'guru') {
+        container.querySelectorAll('.guru-only').forEach(el => el.remove());
+      }
+    }
+
+    function loadLesson(n) {
+      renderLessonContent(lessons[n]);
+      document.querySelectorAll('.sidebar li').forEach(li => li.classList.remove('active'));
+      document.querySelector('.sidebar li[data-lesson="'+n+'"]').classList.add('active');
+    }
+
+    document.getElementById('lesson-list').addEventListener('click', function(e) {
+      if(e.target.matches('li[data-lesson]')) {
+        loadLesson(e.target.getAttribute('data-lesson'));
+      }
+    });
+
+    loadLesson(1); // muat konten pertama saat awal
+
+    function runLua() {
+      const code = document.getElementById('lua-editor').value;
+      document.getElementById('lua-output').textContent = 'Output: ' + code;
+    }
+
+    document.getElementById('lab-select').addEventListener('change', function() {
+      const value = this.value;
+      document.querySelectorAll('.lab-section').forEach(sec => sec.classList.remove('active'));
+      document.getElementById(value).classList.add('active');
+    });
+  </script>
+</body>
+</html>
