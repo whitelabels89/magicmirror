@@ -1,3 +1,4 @@
+
 let pyodide = null;
 
 // Load Pyodide once
@@ -6,11 +7,13 @@ const pyReady = (async () => {
     pyodide = await loadPyodide({ indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.24.1/full/' });
   } catch (err) {
     document.getElementById('output').textContent = 'Gagal memuat Pyodide: ' + err;
+
     throw err;
   }
 })();
 
 // Jalankan kode Python pengguna
+
 async function runTurtle() {
   const output = document.getElementById('output');
   output.textContent = 'Menjalankan...';
@@ -38,10 +41,12 @@ async function runTurtle() {
       'try:',
       ...userCode.split('\n').map(l => '  ' + l),
       'except Exception:',
+
       "  js.document.getElementById('output').textContent = traceback.format_exc()"
     ].join('\n');
     await pyodide.runPythonAsync(pyCode);
   } catch (err) {
+
     output.textContent = 'Gagal menjalankan kode: ' + err;
   }
 }

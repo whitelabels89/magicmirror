@@ -1,7 +1,10 @@
+
+
 // Inisialisasi Blockly
 const workspaceBlockly = Blockly.inject('blocklyDiv', {
   toolbox: document.getElementById('toolbox')
 });
+
 let pyodide = null;
 const pyReady = (async () => {
   try {
@@ -13,12 +16,15 @@ const pyReady = (async () => {
 })();
 function showCode(){
   const code = Blockly.Python.workspaceToCode(workspaceBlockly);
+
   document.getElementById('code').textContent = code;
 }
 async function runBlocks(){
   const output = document.getElementById('output');
   output.textContent = 'Menjalankan...';
+
   const code = Blockly.Python.workspaceToCode(workspaceBlockly);
+
   document.getElementById('code').textContent = code;
   try {
     await pyReady;
