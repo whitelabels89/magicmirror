@@ -4,32 +4,79 @@
 <style>
   body {
     font-family: 'Fredoka', sans-serif;
-    background: #f0f7ff;
     margin: 0;
+    background: #f0f7ff;
+    color: #333;
+  }
+  .header {
+    text-align: center;
+    padding: 20px;
+    background: #4f46e5;
+    color: #fff;
+  }
+  .header h1 {
+    margin-bottom: 10px;
+    font-size: 2.2rem;
+  }
+  .progress-container {
+    margin-top: 20px;
+    width: 80%;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .progress-bar {
+    height: 12px;
+    background: #fff;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .progress {
+    width: 0%;
+    height: 100%;
+    background: #facc15;
+  }
+  .container {
+    display: flex;
+    padding: 20px;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .sidebar {
+    flex: 1 1 180px;
+    max-width: 200px;
+    background: #fde68a;
+    padding: 20px;
+    border-radius: 20px;
+  }
+  .sidebar ul {
+    list-style: none;
     padding: 0;
   }
-  .lesson-wrapper { display: flex; min-height: 100vh; }
-  .sidebar {
-    background: #7c3aed;
-    color: #fff;
-    padding: 20px;
-    width: 180px;
-    box-sizing: border-box;
-  }
-  .sidebar button {
-    display: block;
-    width: 100%;
+  .sidebar li {
     margin-bottom: 10px;
-    padding: 10px;
-    background: #a78bfa;
-    border: none;
-    border-radius: 8px;
-    color: #111827;
-    font-weight: bold;
+    background: #fcd34d;
+    padding: 8px 12px;
+    border-radius: 10px;
     cursor: pointer;
   }
-  .sidebar button:hover { background: #c4b5fd; }
-  .content { flex: 1; padding: 20px; }
+  .sidebar li.active {
+    background: #fbbf24;
+  }
+  .main {
+    flex: 3 1 300px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 20px;
+  }
+  .lab-column {
+    flex: 1 1 260px;
+    background: #111827;
+    padding: 20px;
+    border-radius: 20px;
+    color: #a7f3d0;
+    min-width: 260px;
+  }
   .step-content {
     display: none;
     background: #fff;
@@ -42,16 +89,26 @@
   .nav-controls { text-align: center; margin-top: 20px; }
 </style>
 
-<div class="lesson-wrapper">
-  <div class="sidebar">
-    <button onclick="showPanel(1)">1. Warm-Up</button>
-    <button onclick="showPanel(11)">2. Praktik</button>
-    <button onclick="showPanel(4)">3. Teori</button>
-    <button onclick="showPanel(14)">4. Eksperimen</button>
-    <button onclick="showPanel(19)">5. Quiz</button>
-    <button onclick="showPanel(22)">6. Wrap-Up</button>
+<div class="header">
+  <h1>Kelas Python Dasar</h1>
+  <p>Introduction to the Python Programming Language</p>
+  <div class="progress-container">
+    <div class="progress-bar"><div class="progress" id="progressBar"></div></div>
   </div>
-  <div class="content">
+</div>
+
+<div class="container">
+  <div class="sidebar">
+    <ul id="lesson-nav">
+      <li data-step="1" class="active">1. Warm-Up</li>
+      <li data-step="11">2. Praktik</li>
+      <li data-step="4">3. Teori</li>
+      <li data-step="14">4. Eksperimen</li>
+      <li data-step="19">5. Quiz</li>
+      <li data-step="22">6. Wrap-Up</li>
+    </ul>
+  </div>
+  <div class="main">
     <div id="panel-1" class="step-content">
       <h2>Python di Dunia Nyata</h2>
       <p>Python dipakai di perusahaan besar seperti Google dan YouTube. Wah, keren ya!</p>
@@ -175,6 +232,9 @@
       <button onclick="nextPanel()">Selanjutnya ⟶</button>
     </div>
   </div>
+  <div class="lab-column">
+    <p>Whiteboard feature coming soon.</p>
+  </div>
 </div>
 
 <script>
@@ -191,5 +251,12 @@
   function nextPanel() { if (currentPanel < totalPanels) showPanel(currentPanel + 1); }
   function prevPanel() { if (currentPanel > 1) showPanel(currentPanel - 1); }
   function updateIndicator() { document.getElementById('indicator').textContent = 'Slide ' + currentPanel + ' / ' + totalPanels; }
+  document.getElementById('lesson-nav').addEventListener('click', function(e) {
+    if(e.target.matches('li[data-step]')) {
+      document.querySelectorAll('#lesson-nav li').forEach(li => li.classList.remove('active'));
+      e.target.classList.add('active');
+      showPanel(Number(e.target.getAttribute('data-step')));
+    }
+  });
   document.addEventListener('DOMContentLoaded', () => showPanel(1));
 </script>
