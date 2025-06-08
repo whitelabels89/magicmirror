@@ -39,7 +39,6 @@ body {
   font-weight: 600;
   margin-left:0.5rem;
 }
-
 .layout {
   display: flex;
   min-height: calc(100vh - 70px);
@@ -174,6 +173,7 @@ body {
   border-radius:8px;
   box-shadow:0 1px 3px rgba(0,0,0,0.1);
   margin-bottom:1rem;
+
 }
 .template-list {
   display:flex;
@@ -190,6 +190,7 @@ body {
 .template-card:hover {background:#c7d7ff;}
 #lab-code {width:100%; margin:0.5rem 0;}
 #lab-output {background:#000; color:#0f0; padding:0.5rem; min-height:40px;}
+
 @media(max-width:768px){
   .layout {flex-direction: column;}
   .sidebar {width: 100%; display:flex; overflow-x:auto;}
