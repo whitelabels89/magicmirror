@@ -1,3 +1,4 @@
+
 let pyodide = null;
 const pyodideReadyPromise = (async () => {
   try {
@@ -18,10 +19,23 @@ async function runTurtle() {
     const code = document.getElementById('code').value;
     await pyodide.runPythonAsync(`
 import js, traceback
+
+let pyodideReadyPromise = loadPyodide({indexURL:'https://cdn.jsdelivr.net/pyodide/v0.24.1/full/'});
+async function runTurtle(){
+  const pyodide = await pyodideReadyPromise;
+  const code = document.getElementById('code').value;
+
+  const setup = `
+import js
+from pyodide.ffi import create_proxy
+import micropip
+await micropip.install('py_turtle')
+
 from py_turtle import Turtle, Canvas
 canvas = Canvas(width=400, height=300)
 js.document.getElementById('output').innerHTML = ''
 js.document.getElementById('output').appendChild(canvas.element)
+
 try:
 ` + code.split('\n').map(line => '  ' + line).join('\n') + `
 except Exception as e:
@@ -30,4 +44,9 @@ except Exception as e:
   } catch (err) {
     output.textContent = err;
   }
+
+`;
+
+  await pyodide.runPythonAsync(setup + '\n' + code);
+
 }
