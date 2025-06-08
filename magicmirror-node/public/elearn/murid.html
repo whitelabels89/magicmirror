@@ -36,6 +36,7 @@
       padding: 20px;
       transition: width 0.3s ease;
       border-radius: 40px 0 0 40px;
+      min-height: calc(100vh - 60px);
     }
 
     .sidebar.collapsed {
@@ -107,6 +108,7 @@
       flex-direction: column;
       justify-content: center;
       box-shadow: inset 0 0 10px #c084fc;
+      min-height: calc(100vh - 60px);
     }
 
     .progress-card {
@@ -234,6 +236,7 @@
   <!-- Firebase App & Auth SDKs (compat) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBVO4ajDwkbcTGL33SVMxIoev4veB8itgI",
@@ -246,43 +249,16 @@
     };
     firebase.initializeApp(firebaseConfig);
   </script>
+  <style>
+    .whiteboard-container{margin:1rem;text-align:center;}
+    #whiteboardCanvas{border:1px solid #ccc;width:100%;height:400px;display:none;touch-action:none;}
+    .wb-input{font-size:16px;padding:2px;border:1px solid #333;}
+  </style>
 </head>
 <body>
   <div class="page-container">
-    <!-- Sidebar Kiri -->
-    <div class="sidebar" id="sidebar">
-      <button class="toggle-btn" onclick="toggleSidebar()">⇔</button>
-      <nav class="sidebar-menu">
-        <a href="/elearn/dashboard-murid-style2.html">
-          <span class="material-icons icon icon-emboss">dashboard</span>
-          <span>Dashboard</span>
-        </a>
-        <a href="/elearn/modul.html">
-          <span class="material-icons icon icon-emboss">menu_book</span>
-          <span>Modul</span>
-        </a>
-        <a href="#">
-          <span class="material-icons icon icon-emboss">assignment</span>
-          <span>Free Trial</span>
-        </a>
-        <a href="/elearn/modul1_lesson1.html">
-          <span class="material-icons icon icon-emboss">insights</span>
-          <span>Progress</span>
-        </a>
-        <a href="/labs/index.html">
-          <span class="material-icons icon icon-emboss">computer</span>
-          <span>Lab Coding</span>
-        </a>
-        <a href="/elearn/roblox-dev.html">
-          <span class="material-icons icon icon-emboss">videogame_asset</span>
-          <span>Roblox Dev</span>
-        </a>
-        <a href="javascript:void(0);" onclick="handleLogout()">
-          <span class="material-icons icon icon-emboss">logout</span>
-          <span>Logout</span>
-        </a>
-      </nav>
-    </div>
+    <!-- Sidebar Kiri akan dimuat secara dinamis -->
+    <div id="sidebar-container"></div>
 
     <!-- Konten Tengah (Panel Ungu / Neon) -->
     <div class="panel-ungu">
@@ -370,13 +346,19 @@
           <span class="lesson-number">#08</span>
           <h3>Lesson 8: Roket Astronot</h3>
           <p>Kita siap luncur! Yuk pelajari roket & fungsi!</p>
-          <a href="/elearn/L8-ASTRO.html" class="start-btn">Start</a>
-        </div>
+        <a href="/elearn/L8-ASTRO.html" class="start-btn">Start</a>
       </div>
+      </div>
+    </div>
+    <div class="whiteboard-container">
+      <button id="toggleWhiteboard" class="btn">Tampilkan Whiteboard</button>
+      <button id="clearWhiteboard" class="btn">Clear Whiteboard</button>
+      <canvas id="whiteboardCanvas"></canvas>
     </div>
   </div>
 
   <script src="userInfo.js"></script>
+  <script src="sidebar.js"></script>
   <script>
     // Cek apakah user sudah login, jika tidak redirect
     const user = getUserInfo();
@@ -388,19 +370,7 @@
     } else {
       document.getElementById('namaMurid').textContent = user.nama || "Murid";
     }
-
-    function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('collapsed');
-    }
-
-    function handleLogout() {
-      firebase.auth().signOut().then(() => {
-        sessionStorage.clear();
-        window.location.href = "/elearn/login-elearning.html";
-      }).catch((error) => {
-        alert("❌ Gagal logout. Coba lagi.");
-      });
-    }
+    // Sidebar logic ada di sidebar.js (whiteboard dihapus)
   </script>
 </body>
 </html>
