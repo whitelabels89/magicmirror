@@ -187,6 +187,17 @@
 
       1: `
         <h2>Modul 1: Pengenalan Dunia Roblox &amp; Studio</h2>
+        <div class="guru-only">
+          <h3>📋 Poin Modul</h3>
+          <ul>
+            <li>Apa itu Roblox?</li>
+            <li>Instalasi Roblox Studio</li>
+            <li>Navigasi dasar: workspace, explorer, toolbox</li>
+            <li>Mengenal objek dan properti</li>
+            <li>Mini project: Membuat dunia pertama</li>
+          </ul>
+        </div>
+
         <h3>🎯 Tujuan Pembelajaran</h3>
         <p>Memahami apa itu Roblox dan mengenal tampilan awal Roblox Studio.</p>
         <h3>🧪 Simulasi Praktik</h3>
@@ -204,6 +215,17 @@
       `,
       2: `
         <h2>Modul 2: Dasar Coding Lua di Roblox</h2>
+        <div class="guru-only">
+          <h3>📋 Poin Modul</h3>
+          <ul>
+            <li>Apa itu scripting dan bahasa Lua</li>
+            <li>Menambahkan Script di objek</li>
+            <li>Variabel &amp; tipe data</li>
+            <li>Fungsi dan event sederhana (Touched, Clicked)</li>
+            <li>Mini project: Membuat tombol teleport</li>
+          </ul>
+        </div>
+
         <h3>🎯 Tujuan Pembelajaran</h3>
         <p>Mengenal script Lua dan cara menambahkannya ke objek.</p>
         <h3>🧪 Simulasi Praktik</h3>
@@ -221,6 +243,17 @@ end)
       `,
       3: `
         <h2>Modul 3: Logika Pemrograman Game</h2>
+
+        <div class="guru-only">
+          <h3>📋 Poin Modul</h3>
+          <ul>
+            <li>Conditional: if, else, ==, ~=</li>
+            <li>Looping: for, while</li>
+            <li>Event handler &amp; penggunaan function</li>
+            <li>Mini game: Buat game "Obby"</li>
+          </ul>
+        </div>
+
         <h3>🎯 Tujuan Pembelajaran</h3>
         <p>Mempelajari kondisi if-else dan loop untuk membuat aksi berurutan.</p>
         <h3>🧪 Simulasi Praktik</h3>
@@ -243,6 +276,16 @@ end)
       `,
       4: `
         <h2>Modul 4: Interaktivitas dan Gameplay</h2>
+
+        <div class="guru-only">
+          <h3>📋 Poin Modul</h3>
+          <ul>
+            <li>Deteksi pemain masuk zona</li>
+            <li>Memberikan efek: speed, jump, damage</li>
+            <li>Buat leaderboard sederhana</li>
+            <li>Mini game: Buat game “Tag”</li>
+          </ul>
+        </div>
         <h3>🎯 Tujuan Pembelajaran</h3>
         <p>Mengenal zona trigger dan efek power-up pada pemain.</p>
         <h3>🧪 Simulasi Praktik</h3>
@@ -266,6 +309,15 @@ end)
       `,
       5: `
         <h2>Modul 5: Desain Karakter &amp; Asset</h2>
+        <div class="guru-only">
+          <h3>📋 Poin Modul</h3>
+          <ul>
+            <li>Menggunakan toolbox &amp; asset library</li>
+            <li>Mengedit karakter &amp; animasi</li>
+            <li>Mengatur tampilan GUI</li>
+            <li>Mini project: Buat toko item in-game</li>
+          </ul>
+        </div>
         <h3>🎯 Tujuan Pembelajaran</h3>
         <p>Belajar menambahkan asset dan membuat GUI sederhana.</p>
         <h3>🧪 Simulasi Praktik</h3>
@@ -285,6 +337,15 @@ button.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
       `,
       6: `
         <h2>Modul 6: Multiplayer &amp; Kolaborasi</h2>
+        <div class="guru-only">
+          <h3>📋 Poin Modul</h3>
+          <ul>
+            <li>Menjelaskan konsep multiplayer &amp; server</li>
+            <li>Kolaborasi dengan teman di satu project</li>
+            <li>Melindungi script dan data</li>
+            <li>Mini game: Game Multiplayer sederhana</li>
+          </ul>
+        </div>
         <h3>🎯 Tujuan Pembelajaran</h3>
         <p>Memahami konsep server-client dan kolaborasi lewat Team Create.</p>
         <h3>🧪 Simulasi Praktik</h3>
@@ -306,6 +367,15 @@ end)
       `,
       7: `
         <h2>Modul 7: Final Project &amp; Publish</h2>
+        <div class="guru-only">
+          <h3>📋 Poin Modul</h3>
+          <ul>
+            <li>Rancang game original</li>
+            <li>Uji coba dan feedback</li>
+            <li>Publish ke Roblox platform</li>
+            <li>Promosikan dan kelola game</li>
+          </ul>
+        </div>
         <h3>🎯 Tujuan Pembelajaran</h3>
         <p>Menyelesaikan game original dan mempublikasikannya di Roblox.</p>
         <h3>🧪 Simulasi Praktik</h3>
@@ -330,7 +400,6 @@ end)
 
     function loadLesson(n) {
       renderLessonContent(lessons[n]);
-
       document.querySelectorAll('.sidebar li').forEach(li => li.classList.remove('active'));
       document.querySelector('.sidebar li[data-lesson="'+n+'"]').classList.add('active');
     }
