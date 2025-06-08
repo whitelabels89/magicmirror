@@ -62,8 +62,11 @@ function initWhiteboard(opts={}) {
       const x = e.offsetX;
       const y = e.offsetY;
       function commit(){
+        if(!inputEl) return;
         const text = inputEl.value.trim();
-        document.body.removeChild(inputEl);
+        if(inputEl.parentNode){
+          inputEl.parentNode.removeChild(inputEl);
+        }
         if(text){
           drawText({text,x,y});
           sendAction({type:'text', text, x, y});
