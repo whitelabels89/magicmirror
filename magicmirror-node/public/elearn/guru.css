@@ -12,6 +12,7 @@ body {
   background: #ffffff;
   padding: 1rem 1.5rem;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
 }
 .header-left {
   display: flex;
@@ -27,10 +28,18 @@ body {
   align-items: center;
   gap: 1rem;
 }
+.btn.editor {
+  background:#7e57c2;
+  font-size:1rem;
+  padding:0.5rem 1rem;
+}
+.btn.editor:hover{
+  background:#673ab7;
+}
 .teacher-name {
   font-weight: 600;
+  margin-left:0.5rem;
 }
-
 .layout {
   display: flex;
   min-height: calc(100vh - 70px);
@@ -51,6 +60,16 @@ body {
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.2s;
+  display:flex;
+  align-items:center;
+  gap:0.5rem;
+}
+.sidebar li a {
+  color: inherit;
+  text-decoration: none;
+  display:flex;
+  align-items:center;
+  gap:0.5rem;
 }
 .sidebar li:hover,
 .sidebar li.active {
@@ -97,6 +116,16 @@ body {
   display: grid;
   gap: 1rem;
 }
+.progress-tools {
+  display:flex;
+  align-items:center;
+  gap:0.5rem;
+  margin-bottom:0.5rem;
+  flex-wrap:wrap;
+}
+.progress-tools select {
+  padding:0.3rem;
+}
 .student-item {
   background: #fff;
   padding: 0.75rem 1rem;
@@ -134,13 +163,38 @@ body {
 }
 .murid-list li {
   margin-bottom: 0.5rem;
-
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
+
+.ai-box, .search-box, .template-box, .notif-box {
+  background:#fff;
+  padding:1rem;
+  border-radius:8px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.1);
+  margin-bottom:1rem;
+
+}
+.template-list {
+  display:flex;
+  gap:0.5rem;
+  flex-wrap:wrap;
+}
+.template-card {
+  background:#e0ecff;
+  padding:0.75rem 1rem;
+  border-radius:8px;
+  cursor:pointer;
+  transition:background 0.2s;
+}
+.template-card:hover {background:#c7d7ff;}
+#lab-code {width:100%; margin:0.5rem 0;}
+#lab-output {background:#000; color:#0f0; padding:0.5rem; min-height:40px;}
+
 @media(max-width:768px){
   .layout {flex-direction: column;}
   .sidebar {width: 100%; display:flex; overflow-x:auto;}
   .sidebar ul {display:flex; gap:0.5rem;}
+  .sidebar li {flex:none; white-space:nowrap;}
 }
