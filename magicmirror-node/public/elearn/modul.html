@@ -307,7 +307,7 @@
             Basic Python
           </summary>
           <div class="game-style-cards" style="margin: 40px 0;">
-            <a href="/elearn/modul1_lesson1.html" style="text-decoration:none;">
+            <a href="/elearn/M1L1.html" style="text-decoration:none;">
               <div class="lesson-card">
                 <span class="lesson-number">M1 L1</span>
                 <h3>Intro to Python</h3>
@@ -403,6 +403,10 @@
       window.location.href = "/elearn/login-elearning.html";
     } else {
       document.getElementById('namaMurid').textContent = user.nama;
+      if (user.role === 'guru') {
+        const dashLink = document.querySelector('a[href="/elearn/dashboard-murid-style2.html"]');
+        if (dashLink) dashLink.style.display = 'none';
+      }
     }
 
     // fungsi sidebar tersedia di sidebar.js
