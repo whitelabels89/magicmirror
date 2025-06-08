@@ -102,6 +102,7 @@ function renderProgress(data, container) {
       <span class="student-name">${m.nama}</span>
       <div class="progress-bar"><div class="progress-fill" style="width:${m.progress}%"></div></div>
       <span class="badge">${m.badge}</span>
+
       <a href="/elearn/murid.html?cid=${m.cid}" class="btn">Modul</a>
       <a href="/elearn/dashboard-murid-style2.html?cid=${m.cid}" class="btn">Dashboard</a>`;
     container.appendChild(div);
