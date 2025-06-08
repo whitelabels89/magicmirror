@@ -1,7 +1,9 @@
+
 let pyodide = null;
 
 // Load Pyodide and py_turtle once
 const pyReady = (async () => {
+
   try {
     pyodide = await loadPyodide({ indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.24.1/full/' });
     await pyodide.loadPackage('micropip');
@@ -12,11 +14,14 @@ const pyReady = (async () => {
   }
 })();
 
+
 // Jalankan kode Python pengguna
+
 async function runTurtle() {
   const output = document.getElementById('output');
   output.textContent = 'Menjalankan...';
   try {
+
     await pyReady;
     const userCode = document.getElementById('code').value;
     const pyCode = [
@@ -34,4 +39,5 @@ async function runTurtle() {
   } catch (err) {
     output.textContent = err;
   }
+
 }
