@@ -12,8 +12,8 @@ const db = firebase.firestore();
 function runWeb(){
   const html = document.getElementById('html').value;
   const css = `<style>${document.getElementById('css').value}</style>`;
-
-  const jsCode = document.getElementById('js').value;
+  const errHandler = `<script>window.onerror=function(msg){parent.postMessage({type:'preview-error',msg},'*');};<\/script>`;
+      void iframe.contentWindow.location;
   const safeJS = `<script>${jsCode.replace(/<\/script>/g,'<\\/script>')}<\/script>`;
   const errHandler = `<script>window.onerror=function(msg){parent.postMessage({type:'preview-error',msg:msg},'*');};<\/script>`;
   const iframe = document.getElementById('preview');
