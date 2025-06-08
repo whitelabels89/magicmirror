@@ -382,7 +382,7 @@
     const user = getUserInfo();
     console.log("🧪 USER INFO:", user);
 
-    if (!user || !user.role || user.role.toLowerCase() !== "murid") {
+    if (!user || !user.role || (user.role.toLowerCase() !== "murid" && user.role.toLowerCase() !== "guru")) {
       alert("❌ Akses tidak sah. Silakan login ulang.");
       window.location.href = "/elearn/login-elearning.html";
     } else {
