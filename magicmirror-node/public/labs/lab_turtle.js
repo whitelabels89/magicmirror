@@ -1,52 +1,70 @@
 
+
 let pyodide = null;
 
-// Load Pyodide once
 const pyReady = (async () => {
   try {
-    pyodide = await loadPyodide({ indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.24.1/full/' });
+    pyodide = await loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/" });
   } catch (err) {
-    document.getElementById('output').textContent = 'Gagal memuat Pyodide: ' + err;
-
+    document.getElementById("output").textContent = "Gagal memuat Pyodide: " + err;
     throw err;
   }
 })();
 
-// Jalankan kode Python pengguna
+function clearCanvas() {
+  const canvas = document.getElementById("turtle-canvas");
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function drawLine(x1, y1, x2, y2) {
+  const canvas = document.getElementById("turtle-canvas");
+  const ctx = canvas.getContext("2d");
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+}
 
 async function runTurtle() {
-  const output = document.getElementById('output');
-  output.textContent = 'Menjalankan...';
+  const output = document.getElementById("output");
+  output.textContent = "Menjalankan...";
+  const code = document.getElementById("code").value;
+
+  await pyReady;
+
+  const namespace = pyodide.globals.get("dict")();
+  namespace.set("drawLine", pyodide.toPy(drawLine));
+
+  const script = `
+import math
+
+class SimTurtle:
+    def __init__(self):
+        self.x = 150
+        self.y = 150
+        self.angle = 0
+
+    def forward(self, distance):
+        rad = math.radians(self.angle)
+        new_x = self.x + math.cos(rad) * distance
+        new_y = self.y + math.sin(rad) * distance
+        drawLine(self.x, self.y, new_x, new_y)
+        self.x = new_x
+        self.y = new_y
+
+    def right(self, angle):
+        self.angle += angle
+
+t = SimTurtle()
+` + code;
+
   try {
-    await pyReady;
-    const userCode = document.getElementById('code').value;
-    const pyCode = [
-      'import js, traceback, types, sys',
-      'canvas = js.document.createElement("canvas")',
-      'canvas.width = 400',
-      'canvas.height = 300',
-      "js.document.getElementById('output').innerHTML = ''",
-      "js.document.getElementById('output').appendChild(canvas)",
-      '_jt = js.Turtle.new(canvas)',
-      'class JSTurtle:',
-      '  def forward(self, x): _jt.forward(x)',
-      '  def backward(self, x): _jt.backward(x)',
-      '  def right(self, a): _jt.right(a)',
-      '  def left(self, a): _jt.left(a)',
-      '  def penup(self): _jt.penup()',
-      '  def pendown(self): _jt.pendown()',
-      '  def speed(self, s): pass',
-      'turtle = types.SimpleNamespace(Turtle=JSTurtle)',
-      'sys.modules["turtle"] = turtle',
-      'try:',
-      ...userCode.split('\n').map(l => '  ' + l),
-      'except Exception:',
-
-      "  js.document.getElementById('output').textContent = traceback.format_exc()"
-    ].join('\n');
-    await pyodide.runPythonAsync(pyCode);
+    clearCanvas();
+    await pyodide.runPythonAsync(script, { globals: namespace });
+    output.textContent = "✅ Selesai!";
   } catch (err) {
-
-    output.textContent = 'Gagal menjalankan kode: ' + err;
+    output.textContent = "❌ Error: " + err;
   }
 }
