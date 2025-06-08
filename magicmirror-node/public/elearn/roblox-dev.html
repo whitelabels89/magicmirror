@@ -184,6 +184,7 @@
 
   <script>
     const lessons = {
+
       1: `
         <h2>Modul 1: Pengenalan Dunia Roblox &amp; Studio</h2>
         <h3>🎯 Tujuan Pembelajaran</h3>
@@ -329,6 +330,7 @@ end)
 
     function loadLesson(n) {
       renderLessonContent(lessons[n]);
+
       document.querySelectorAll('.sidebar li').forEach(li => li.classList.remove('active'));
       document.querySelector('.sidebar li[data-lesson="'+n+'"]').classList.add('active');
     }
