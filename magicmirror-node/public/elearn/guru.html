@@ -7,6 +7,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <link rel="stylesheet" href="/elearn/guru.css">
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <!-- konfigurasi Firebase sudah diinisialisasi pada halaman lain -->
+  <style>
+    .whiteboard-container{margin:1rem 0;text-align:center;}
+    #whiteboardCanvas{border:1px solid #ccc;width:100%;height:400px;display:none;touch-action:none;}
+    .wb-input{font-size:16px;padding:2px;border:1px solid #333;}
+  </style>
 </head>
 <body>
   <header class="header">
@@ -103,10 +113,19 @@
           <ul id="notif-list"></ul>
         </div>
       </section>
+      <div class="whiteboard-container">
+        <button id="toggleWhiteboard" class="btn">Tampilkan Whiteboard</button>
+        <button id="clearWhiteboard" class="btn">Clear Whiteboard</button>
+        <canvas id="whiteboardCanvas"></canvas>
+      </div>
     </main>
   </div>
   <script src="/elearn/userInfo.js"></script>
   <script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
+  <script src="/elearn/whiteboard.js"></script>
   <script src="/elearn/guru.js"></script>
+  <script>
+    window.addEventListener('load',()=>{initWhiteboard({readOnly:false});});
+  </script>
 </body>
 </html>
