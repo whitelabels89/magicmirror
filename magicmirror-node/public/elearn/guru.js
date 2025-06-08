@@ -295,10 +295,22 @@ function prepareSearch() {
     const out = document.getElementById('search-result');
     out.innerHTML = `<li><a href="https://www.google.com/search?q=${encodeURIComponent(q)}" target="_blank">Cari di Google</a></li>`;
   });
-}
+});
+
+document.getElementById('simpan-catatan').addEventListener('click', async () => {
+  const modul = document.getElementById('modul-select').value;
+  const text = document.getElementById('catatan-text').value;
+  await fetch('/api/save-catatan-modul', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({modul, text, uid:currentUser.uid})
+  });
+  alert('Catatan tersimpan');
+});
 
 window.addEventListener('load', () => {
   prepareLab();
   prepareAI();
   prepareSearch();
 });
+
