@@ -184,73 +184,153 @@
 
   <script>
     const lessons = {
-      1: `<h2>Modul 1: Pengenalan Dunia Roblox & Studio</h2>
-          <ul>
-            <li>Apa itu Roblox?</li>
-            <li>Instalasi Roblox Studio</li>
-            <li>Navigasi dasar: workspace, explorer, toolbox</li>
-            <li>Mengenal objek dan properti</li>
-            <li>Mini project: Membuat dunia pertama</li>
-          </ul>
-          <h3>Tujuan Pembelajaran</h3>
-          <p>Mengenal antarmuka Roblox Studio dan membuat dunia sederhana.</p>
-          <h3>Langkah-langkah Praktik</h3>
-          <ol>
-            <li>Buka Roblox Studio dan pilih template Baseplate.</li>
-            <li>Tambahkan beberapa Part dari Toolbox.</li>
-            <li>Ubah warna dan ukuran objek.</li>
-          </ol>
-          <h3>Contoh Kode Lua</h3>
-          <pre>print("Hello Roblox World!")</pre>
-          <h3>Tips Mengajar</h3>
-          <p>Ajak murid eksplorasi semua menu dan bereksperimen menambahkan objek.</p>`,
-      2: `<h2>Modul 2: Dasar Coding Lua di Roblox</h2>
-          <ul>
-            <li>Apa itu scripting dan bahasa Lua</li>
-            <li>Menambahkan Script di objek</li>
-            <li>Variabel &amp; tipe data</li>
-            <li>Fungsi dan event sederhana (Touched, Clicked)</li>
-            <li>Mini project: Membuat tombol teleport</li>
-          </ul>`,
-      3: `<h2>Modul 3: Logika Pemrograman Game</h2>
-          <ul>
-            <li>Conditional: if, else, ==, ~=</li>
-            <li>Looping: for, while</li>
-            <li>Event handler &amp; penggunaan function</li>
-            <li>Mini game: Buat game "Obby"</li>
-          </ul>`,
-      4: `<h2>Modul 4: Interaktivitas dan Gameplay</h2>
-          <ul>
-            <li>Deteksi pemain masuk zona</li>
-            <li>Memberikan efek: speed, jump, damage</li>
-            <li>Buat leaderboard sederhana</li>
-            <li>Mini game: Buat game “Tag”</li>
-          </ul>`,
-      5: `<h2>Modul 5: Design Karakter &amp; Asset</h2>
-          <ul>
-            <li>Menggunakan toolbox &amp; asset library</li>
-            <li>Mengedit karakter &amp; animasi</li>
-            <li>Mengatur tampilan GUI</li>
-            <li>Mini project: Buat toko item in-game</li>
-          </ul>`,
-      6: `<h2>Modul 6: Pengenalan Multiplayer &amp; Kolaborasi</h2>
-          <ul>
-            <li>Menjelaskan konsep multiplayer &amp; server</li>
-            <li>Kolaborasi dengan teman di satu project</li>
-            <li>Melindungi script dan data</li>
-            <li>Mini game: Game Multiplayer sederhana</li>
-          </ul>`,
-      7: `<h2>Modul 7: Final Project &amp; Publish</h2>
-          <ul>
-            <li>Rancang game original</li>
-            <li>Uji coba dan feedback</li>
-            <li>Publish ke Roblox platform</li>
-            <li>Promosikan dan kelola game</li>
-          </ul>`
+
+      1: `
+        <h2>Modul 1: Pengenalan Dunia Roblox &amp; Studio</h2>
+        <h3>🎯 Tujuan Pembelajaran</h3>
+        <p>Memahami apa itu Roblox dan mengenal tampilan awal Roblox Studio.</p>
+        <h3>🧪 Simulasi Praktik</h3>
+        <ol>
+          <li>Buka Roblox Studio dan pilih template <strong>Baseplate</strong>.</li>
+          <li>Tambahkan objek <em>Part</em> lalu ubah warnanya.</li>
+        </ol>
+        <pre>print("Hello Roblox!")</pre>
+        <div class="guru-only">
+          <h3>📖 Penjelasan Guru</h3>
+          <p>Jelaskan bahwa Roblox adalah platform untuk bermain dan membuat game. Ajak anak melihat tampilan awal Roblox Studio.</p>
+          <h3>💡 Tips Mengajar</h3>
+          <p>Biarkan anak bereksplorasi dan bandingkan dunia kosong dengan hasil kreasi mereka.</p>
+        </div>
+      `,
+      2: `
+        <h2>Modul 2: Dasar Coding Lua di Roblox</h2>
+        <h3>🎯 Tujuan Pembelajaran</h3>
+        <p>Mengenal script Lua dan cara menambahkannya ke objek.</p>
+        <h3>🧪 Simulasi Praktik</h3>
+        <pre>
+script.Parent.Touched:Connect(function(hit)
+  print("Objek disentuh oleh: " .. hit.Name)
+end)
+        </pre>
+        <div class="guru-only">
+          <h3>📖 Penjelasan Guru</h3>
+          <p>Terangkan bahwa script adalah "otak" dari objek. Kenalkan variabel, fungsi, dan event.</p>
+          <h3>💡 Tips Mengajar</h3>
+          <p>Ajak anak menebak apa yang terjadi saat objek disentuh sebelum menjalankan kodenya.</p>
+        </div>
+      `,
+      3: `
+        <h2>Modul 3: Logika Pemrograman Game</h2>
+        <h3>🎯 Tujuan Pembelajaran</h3>
+        <p>Mempelajari kondisi if-else dan loop untuk membuat aksi berurutan.</p>
+        <h3>🧪 Simulasi Praktik</h3>
+        <pre>
+function hancurkan(part)
+  wait(2)
+  part:Destroy()
+end
+
+script.Parent.Touched:Connect(function()
+  hancurkan(script.Parent)
+end)
+        </pre>
+        <div class="guru-only">
+          <h3>📖 Penjelasan Guru</h3>
+          <p>Jelaskan penggunaan logika kondisi dan loop dalam game.</p>
+          <h3>💡 Tips Mengajar</h3>
+          <p>Tanyakan apa yang terjadi jika waktu tunggu diganti 10 detik.</p>
+        </div>
+      `,
+      4: `
+        <h2>Modul 4: Interaktivitas dan Gameplay</h2>
+        <h3>🎯 Tujuan Pembelajaran</h3>
+        <p>Mengenal zona trigger dan efek power-up pada pemain.</p>
+        <h3>🧪 Simulasi Praktik</h3>
+        <pre>
+script.Parent.Touched:Connect(function(hit)
+  local char = hit.Parent
+  local humanoid = char:FindFirstChild("Humanoid")
+  if humanoid then
+    humanoid.WalkSpeed = 50
+    wait(5)
+    humanoid.WalkSpeed = 16
+  end
+end)
+        </pre>
+        <div class="guru-only">
+          <h3>📖 Penjelasan Guru</h3>
+          <p>Tunjukkan cara membuat zona yang memberi efek kecepatan sementara.</p>
+          <h3>💡 Tips Mengajar</h3>
+          <p>Berikan tantangan membuat zona dengan efek lompat tinggi.</p>
+        </div>
+      `,
+      5: `
+        <h2>Modul 5: Desain Karakter &amp; Asset</h2>
+        <h3>🎯 Tujuan Pembelajaran</h3>
+        <p>Belajar menambahkan asset dan membuat GUI sederhana.</p>
+        <h3>🧪 Simulasi Praktik</h3>
+        <pre>
+local button = Instance.new("TextButton")
+button.Text = "Klik Aku!"
+button.Size = UDim2.new(0, 100, 0, 50)
+button.Position = UDim2.new(0.5, -50, 0.5, -25)
+button.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+        </pre>
+        <div class="guru-only">
+          <h3>📖 Penjelasan Guru</h3>
+          <p>Perlihatkan penggunaan Toolbox untuk menambah karakter dan efek.</p>
+          <h3>💡 Tips Mengajar</h3>
+          <p>Dorong anak memodifikasi tampilan GUI agar lebih menarik.</p>
+        </div>
+      `,
+      6: `
+        <h2>Modul 6: Multiplayer &amp; Kolaborasi</h2>
+        <h3>🎯 Tujuan Pembelajaran</h3>
+        <p>Memahami konsep server-client dan kolaborasi lewat Team Create.</p>
+        <h3>🧪 Simulasi Praktik</h3>
+        <pre>
+game.Players.PlayerAdded:Connect(function(player)
+  local leaderstats = Instance.new("Folder", player)
+  leaderstats.Name = "leaderstats"
+  local score = Instance.new("IntValue", leaderstats)
+  score.Name = "Score"
+  score.Value = 0
+end)
+        </pre>
+        <div class="guru-only">
+          <h3>📖 Penjelasan Guru</h3>
+          <p>Jelaskan perbedaan server dan client serta manfaat bekerja bersama teman.</p>
+          <h3>💡 Tips Mengajar</h3>
+          <p>Simulasikan peran berbeda: pembuat perangkap dan tester.</p>
+        </div>
+      `,
+      7: `
+        <h2>Modul 7: Final Project &amp; Publish</h2>
+        <h3>🎯 Tujuan Pembelajaran</h3>
+        <p>Menyelesaikan game original dan mempublikasikannya di Roblox.</p>
+        <h3>🧪 Simulasi Praktik</h3>
+        <pre>print("Selamat, game siap dipublish!")</pre>
+        <div class="guru-only">
+          <h3>📖 Penjelasan Guru</h3>
+          <p>Bahas proses desain game dari ide hingga promosi setelah dipublish.</p>
+          <h3>💡 Tips Mengajar</h3>
+          <p>Ajak tiap anak mempresentasikan gamenya dan memberi masukan teman.</p>
+        </div>
+      `
     };
 
+    function renderLessonContent(html) {
+      const container = document.getElementById('lesson-content');
+      const role = localStorage.getItem('userRole') || 'murid';
+      container.innerHTML = html;
+      if (role !== 'guru') {
+        container.querySelectorAll('.guru-only').forEach(el => el.remove());
+      }
+    }
+
     function loadLesson(n) {
-      document.getElementById('lesson-content').innerHTML = lessons[n];
+      renderLessonContent(lessons[n]);
+
       document.querySelectorAll('.sidebar li').forEach(li => li.classList.remove('active'));
       document.querySelector('.sidebar li[data-lesson="'+n+'"]').classList.add('active');
     }
