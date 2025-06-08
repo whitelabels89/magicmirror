@@ -1,4 +1,5 @@
 
+
 // Inisialisasi Blockly
 const workspaceBlockly = Blockly.inject('blocklyDiv', {
   toolbox: document.getElementById('toolbox')
@@ -14,7 +15,6 @@ const pyReady = (async () => {
   }
 })();
 function showCode(){
-
   const code = Blockly.Python.workspaceToCode(workspaceBlockly);
 
   document.getElementById('code').textContent = code;

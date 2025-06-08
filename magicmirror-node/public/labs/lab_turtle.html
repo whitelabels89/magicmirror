@@ -16,9 +16,16 @@
   <a href="index.html">⬅️ Kembali ke Lab Index</a>
   <a href="/elearn/murid.html">🏠 Kembali ke Dashboard</a>
   <h1>🐢 Python Turtle Lab</h1>
-  <textarea id="code">import turtle\nt=turtle.Turtle()\nfor i in range(4):\n    t.forward(100)\n    t.right(90)</textarea>
+
+  <textarea id="code">import turtle
+t = turtle.Turtle()
+for i in range(4):
+    t.forward(100)
+    t.right(90)</textarea>
   <button onclick="runTurtle()">Run</button>
   <div id="output"></div>
+  <script src="https://cdn.jsdelivr.net/npm/js-turtle@1.0.4/lib/turtle.min.js"></script>
+
   <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
   <script src="lab_turtle.js"></script>
 </body>
