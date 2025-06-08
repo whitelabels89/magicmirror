@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard Guru - Queen's Academy</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <link rel="stylesheet" href="/elearn/guru.css">
 </head>
 <body>
@@ -14,6 +14,7 @@
       <span class="logo-text">Queen's Academy</span>
     </div>
     <div class="header-right">
+      <button id="editorBtn" class="btn editor">🧩 Masuk Editor Kelas</button>
       <span id="namaGuru" class="teacher-name"></span>
       <button id="logoutBtn" class="btn">Logout</button>
     </div>
@@ -21,11 +22,14 @@
   <div class="layout">
     <aside class="sidebar" id="sidebar-nav">
       <ul>
-        <li data-section="dashboard" class="active">Dashboard Guru</li>
-        <li data-section="jadwal">Jadwal Kelas</li>
-        <li data-section="progress">Progress Murid</li>
-        <li data-section="catatan">Catatan Modul</li>
-        <li data-section="murid">Akses Dashboard Murid</li>
+        <li data-section="dashboard" class="active"><i class="fa fa-home"></i> Dashboard Utama</li>
+        <li data-section="jadwal"><i class="fa fa-calendar"></i> Jadwal Kelas</li>
+        <li data-section="progress"><i class="fa fa-chart-line"></i> Report Progress</li>
+        <li data-section="catatan"><i class="fa fa-book"></i> Modul & Catatan</li>
+        <li data-section="lab"><i class="fa fa-flask"></i> Lab Interaktif</li>
+        <li><a href="/editor-kelas.html" id="sidebarEditor"><i class="fa fa-puzzle-piece"></i> Editor Kelas</a></li>
+        <li data-section="murid"><i class="fa fa-user-graduate"></i> Lihat Dashboard Murid</li>
+        <li data-section="assist"><i class="fa fa-lightbulb"></i> Alat Bantu Guru</li>
       </ul>
     </aside>
     <main id="mainContent">
@@ -38,6 +42,10 @@
         <div class="jadwal-group">
           <h3>Hari Ini</h3>
           <div id="jadwal-hari-ini" class="jadwal-list"></div>
+        </div>
+        <div class="jadwal-group">
+          <h3>Minggu Ini</h3>
+          <div id="jadwal-minggu-ini" class="jadwal-list"></div>
         </div>
         <div class="jadwal-group">
           <h3>Minggu Ini</h3>
@@ -58,9 +66,61 @@
         <h2>Dashboard Murid</h2>
         <ul id="murid-list" class="murid-list"></ul>
       </section>
+      <section id="progress" class="page-section">
+        <h2>Progress Murid</h2>
+        <div class="progress-tools">
+          <select id="progress-filter"></select>
+          <button id="export-progress" class="btn">Export CSV</button>
+        </div>
+        <div id="progress-container" class="progress-container"></div>
+      </section>
+      <section id="catatan" class="page-section">
+        <h2>Catatan Modul</h2>
+        <select id="modul-select"></select>
+        <textarea id="catatan-text" rows="6" placeholder="Tulis catatan di sini..."></textarea>
+        <button id="simpan-catatan" class="btn">Simpan Catatan</button>
+      </section>
+      <section id="lab" class="page-section">
+        <h2>Lab Interaktif</h2>
+        <select id="lab-template">
+          <option value="print('Hello')">print('Hello')</option>
+          <option value="for i in range(3):\n    print(i)">Loop 3x</option>
+        </select>
+        <textarea id="lab-code" rows="6"></textarea>
+        <button id="run-code" class="btn">Jalankan</button>
+        <pre id="lab-output"></pre>
+      </section>
+      <section id="murid" class="page-section">
+        <h2>Dashboard Murid</h2>
+        <ul id="murid-list" class="murid-list"></ul>
+      </section>
+      <section id="assist" class="page-section">
+        <h2>Alat Bantu Guru</h2>
+        <div class="ai-box">
+          <h3>Ide Materi dari AI</h3>
+          <input id="ai-input" type="text" placeholder="Masukkan topik" />
+          <button id="ai-run" class="btn">Cari Ide</button>
+          <ul id="ai-result"></ul>
+        </div>
+        <div class="search-box">
+          <h3>Cari Referensi</h3>
+          <input id="search-input" type="text" placeholder="Kata kunci" />
+          <button id="search-run" class="btn">Cari</button>
+          <ul id="search-result"></ul>
+        </div>
+        <div class="template-box">
+          <h3>Template Modul</h3>
+          <div id="template-list" class="template-list"></div>
+        </div>
+        <div class="notif-box">
+          <h3>Notifikasi</h3>
+          <ul id="notif-list"></ul>
+        </div>
+      </section>
     </main>
   </div>
   <script src="/elearn/userInfo.js"></script>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
   <script src="/elearn/guru.js"></script>
 </body>
 </html>
