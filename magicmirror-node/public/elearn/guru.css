@@ -12,6 +12,7 @@ body {
   background: #ffffff;
   padding: 1rem 1.5rem;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
 }
 .header-left {
   display: flex;

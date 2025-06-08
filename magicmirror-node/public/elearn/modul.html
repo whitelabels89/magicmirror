@@ -342,7 +342,13 @@
                 <p>Introduction to the Python Programming Language</p>
               </div>
             </a>
-            <a href="/elearn/modul1_lesson2.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M1 L2</span><h3>Variables</h3><p>Understanding Variables in Python</p></div></a>
+            <a href="/elearn/modul1_lesson2.html" style="text-decoration:none;">
+              <div class="lesson-card">
+                <span class="lesson-number">M1 L2</span>
+                <h3>Variables</h3>
+                <p>Understanding Variables in Python</p>
+              </div>
+            </a>
             <div class="lesson-card"><span class="lesson-number">M1 L3</span><h3>Strings</h3><p>Working with String Data Types</p></div>
             <div class="lesson-card"><span class="lesson-number">M1 L4</span><h3>Nested Constructs</h3><p>Simplifying Code with Nested Constructs</p></div>
           </div>
@@ -419,11 +425,15 @@
   <script>
     // Cek apakah user sudah login, jika tidak redirect
     const user = getUserInfo();
-    if (!user || user.role !== "murid") {
+    if (!user || (user.role !== "murid" && user.role !== "guru")) {
       alert("❌ Akses tidak sah. Silakan login ulang.");
       window.location.href = "/elearn/login-elearning.html";
     } else {
       document.getElementById('namaMurid').textContent = user.nama;
+      if (user.role === 'guru') {
+        const dashLink = document.querySelector('a[href="/elearn/dashboard-murid-style2.html"]');
+        if (dashLink) dashLink.style.display = 'none';
+      }
     }
 
     function toggleSidebar() {
