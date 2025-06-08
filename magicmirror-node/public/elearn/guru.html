@@ -1,510 +1,112 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard Guru</title>
-  <style>
-    .icon-emboss {
-      background-color: #f3f4f6;
-      padding: 10px;
-      border-radius: 12px;
-      box-shadow: 
-        inset 4px 4px 8px rgba(0, 0, 0, 0.08),
-        inset -4px -4px 8px rgba(255, 255, 255, 0.6);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      color: #1e3a8a;
-    }
-    body {
-      font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: linear-gradient(to right, #f5e7e1, #e3f1ed);
-      color: #2c2c2c;
-      /* Pastikan body bisa scroll normal */
-      /* overflow: hidden;  <-- JANGAN ada ini */
-    }
-
-    header {
-      background-color: #ffffff;
-      padding: 20px 40px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    header h1 {
-      margin: 0;
-      font-size: 22px;
-      font-weight: 700;
-      color: #111827;
-    }
-
-    button {
-      background-color: #ff7878;
-      color: white;
-      border: none;
-      padding: 10px 18px;
-      border-radius: 30px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background-color 0.2s ease;
-    }
-
-    button:hover {
-      background-color: #e55d5d;
-    }
-
-    main {
-      /* main is now inside .layout, styling moved to .main-content */
-    }
-
-    section {
-      background-color: white;
-      border-radius: 16px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-      padding: 24px;
-    }
-
-    #jadwal-kelas h2,
-    #modul-kelas h2 {
-      margin: 0 0 16px;
-      font-size: 20px;
-      color: #1e3a8a;
-    }
-
-    ul#kelas-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-
-    ul#kelas-list li {
-      background: #f3f7fd;
-      border: 1px solid #d8e3f3;
-      border-radius: 12px;
-      padding: 14px 18px;
-      margin-bottom: 12px;
-      transition: all 0.2s ease;
-      cursor: pointer;
-    }
-
-    ul#kelas-list li:hover {
-      background-color: #e6f0ff;
-      border-color: #b3d4ff;
-    }
-
-    #detail-kelas p {
-      margin: 8px 0;
-      font-size: 14px;
-    }
-    /* Layout tiga kolom */
-    .layout {
-      display: flex;
-    }
-
-    .sidebar-left, .sidebar-right {
-      width: 240px;
-      background-color: #ffffff;
-      padding: 24px 16px;
-      border-radius: 24px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.05);
-      font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    .sidebar-left {
-      border-right: 1px solid #f3f4f6;
-      margin: 20px 10px 20px 20px;
-    }
-
-    .sidebar-right {
-      border-left: 1px solid #f3f4f6;
-      margin: 20px 20px 20px 10px;
-    }
-
-    .sidebar-left .logo {
-      font-weight: 700;
-      font-size: 20px;
-      margin-bottom: 30px;
-      color: #1e3a8a;
-    }
-
-    .sidebar-left ul {
-      list-style: none;
-      padding: 0;
-    }
-
-    .sidebar-left ul li {
-      margin: 12px 0;
-      padding: 12px 18px;
-      border-radius: 12px;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      font-size: 14.5px;
-      color: #2e2e2e;
-      background-color: #f9fafb;
-      font-weight: 500;
-    }
-
-    .sidebar-left ul li:hover {
-      background-color: #eef4ff;
-      color: #1d4ed8;
-    }
-
-    /* Removed .sidebar-left ul li::before */
-
-    .sidebar-right h3 {
-      margin-top: 0;
-      font-size: 16px;
-      color: #1f2937;
-      font-weight: 600;
-    }
-
-    .sidebar-right p {
-      font-size: 14px;
-      color: #4b5563;
-      margin-bottom: 20px;
-    }
-
-    .main-content {
-      flex: 1;
-      padding: 30px 40px;
-      box-sizing: border-box;
-    }
-
-    .calendar-section {
-      margin-top: 16px;
-    }
-
-    .calendar-day {
-      font-weight: 600;
-      color: #4b5563;
-      font-size: 14px;
-      margin-bottom: 8px;
-      margin-top: 24px;
-    }
-
-    .calendar-entry {
-      display: flex;
-      align-items: flex-start;
-      margin-bottom: 16px;
-      gap: 8px;
-      font-size: 13px;
-    }
-
-    .calendar-time {
-      font-weight: 700;
-      font-size: 14px;
-      width: 42px;
-      color: #1f2937;
-    }
-
-    .calendar-bar {
-      width: 3px;
-      border-radius: 4px;
-      margin-top: 2px;
-      height: 100%;
-    }
-
-    .calendar-content {
-      flex: 1;
-      line-height: 1.2;
-    }
-
-    .calendar-content .title {
-      font-weight: 600;
-      color: #111827;
-    }
-
-    .calendar-content .sub {
-      font-size: 12px;
-      color: #6b7280;
-    }
-    .sidebar-left.collapsed,
-    .sidebar-right.collapsed {
-      width: 60px;
-      overflow: hidden;
-      padding: 24px 8px;
-    }
-
-    .sidebar-right.collapsed h3 span.material-icons {
-      display: inline-block;
-    }
-
-    .sidebar-right.collapsed h3 {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      margin-bottom: 16px;
-    }
-
-    .sidebar-right.collapsed h3 span.material-icons {
-      margin-right: 0;
-    }
-
-    .sidebar-right.collapsed h3 span + span {
-      display: none;
-    }
-
-    .sidebar-right.collapsed p {
-      display: none;
-    }
-
-    .sidebar-right.collapsed button {
-      display: block;
-      margin: 0 auto;
-    }
-
-    .sidebar-left.collapsed ul li::before,
-    .sidebar-left.collapsed ul li {
-      justify-content: center;
-      font-size: 18px;
-      flex-direction: column;
-      text-align: center;
-    }
-
-    .sidebar-left.collapsed .logo,
-    .sidebar-left.collapsed ul li span {
-      display: none;
-    }
-
-    .sidebar-left ul li .icon {
-      margin-right: 10px;
-      font-size: 20px;
-      color: #1e3a8a;
-    }
-
-    .sidebar-left.collapsed ul li .icon {
-      margin-right: 0;
-      display: flex;
-      justify-content: center;
-      width: 100%;
-    }
-
-    .sidebar-left button:hover,
-    .sidebar-right button:hover {
-      background-color: rgba(0, 0, 0, 0.1);
-    }
-
-    .sidebar-right.collapsed button span.material-icons {
-      display: flex;
-      justify-content: center;
-    }
-
-    .sidebar-right.collapsed .sidebar-right-nav li {
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .sidebar-right.collapsed .sidebar-right-nav li span:not(.icon-emboss) {
-      display: none;
-    }
-
-    .sidebar-right.collapsed .sidebar-right-nav li .icon-emboss {
-      margin: 0 auto;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .calendar-item {
-      
-      
-      border-radius: 8px;
-      background-color: #f9fafb;
-      display: flex;
-      align-items: center;
-      font-size: 14.5px;
-      color: #2e2e2e;
-      font-weight: 500;
-      height: 48px;
-      line-height: 1;
-    }
-
-    .calendar-item .label {
-      line-height: 1;
-    }
-
-    /* Hide calendar text details when sidebar is collapsed */
-    .sidebar-right.collapsed .calendar-section .calendar-day,
-    .sidebar-right.collapsed .calendar-section .calendar-entry .calendar-time,
-    .sidebar-right.collapsed .calendar-section .calendar-entry .calendar-content {
-      display: none;
-    }
-
-    .sidebar-right.collapsed .calendar-box {
-      background-color: transparent;
-      box-shadow: none;
-    }
-
-    .sidebar-right.collapsed .calendar-item .label {
-      display: none;
-    }
-  </style>
-
-  <!-- Google Fonts: Inter -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet">
-  <!-- Google Material Icons -->
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
-  <!-- Firebase SDK compat -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-
-  <!-- Firebase config -->
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyBVO4ajDwkbcTGL33SVMxIoev4veB8itgI",
-      authDomain: "queens-academy-icoding.firebaseapp.com",
-      projectId: "queens-academy-icoding",
-      storageBucket: "queens-academy-icoding.firebasestorage.app",
-      messagingSenderId: "1048549258959",
-      appId: "1:1048549258959:web:f8dc1c104bb170d7ff69ba",
-      measurementId: "G-RJCXM1YL7E"
-    };
-    firebase.initializeApp(firebaseConfig);
-  </script>
-
-  <!-- User Info JS -->
-  <script src="userInfo.js"></script>
-  <!-- Guru JS -->
-  <script defer src="/elearn/guru.js"></script>
-  <script>
-    function toggleSidebar(side) {
-      const element = document.querySelector(`.sidebar-${side}`);
-      element.classList.toggle('collapsed');
-    }
-
-    // Validasi user dan fungsi logout
-    const user = getUserInfo();
-    if (!user || user.role !== "guru") {
-      alert("❌ Akses tidak sah. Silakan login ulang.");
-      window.location.href = "/elearn/login-elearning.html";
-    }
-
-    function logout() {
-      firebase.auth().signOut().then(() => {
-        sessionStorage.clear();
-        window.location.href = "/elearn/login-elearning.html";
-      }).catch((error) => {
-        alert("❌ Gagal logout. Coba lagi.");
-      });
-    }
-  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Guru - Queen's Academy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/elearn/guru.css">
 </head>
 <body>
-  <header>
-    <h1>Queen's Academy</h1>
-    <button onclick="logout()">Logout</button>
+  <header class="header">
+    <div class="header-left">
+      <span class="logo-text">Queen's Academy</span>
+    </div>
+    <div class="header-right">
+      <button id="editorBtn" class="btn editor">🧩 Masuk Editor Kelas</button>
+      <span id="namaGuru" class="teacher-name"></span>
+      <button id="logoutBtn" class="btn">Logout</button>
+    </div>
   </header>
-
   <div class="layout">
-    <aside class="sidebar-left">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <div class="logo">Dashboard</div>
-        <button onclick="toggleSidebar('left')" title="Sembunyikan Sidebar Kiri" style="background-color: rgba(0,0,0,0.04); border: none; font-size: 20px; cursor: pointer; padding: 6px; border-radius: 8px;">
-          <span class="material-icons" style="color:#1e3a8a;">chevron_left</span>
-        </button>
-      </div>
-      <nav>
-        <ul>
-          <li><span class="material-icons icon icon-emboss">dashboard</span> <span>Dashboard</span></li>
-          <li><span class="material-icons icon icon-emboss">menu_book</span> <span>Kelas</span></li>
-          <li><span class="material-icons icon icon-emboss">article</span> <span>Modul</span></li>
-          <li onclick="window.location.href='/elearn/guru-progress.html'"><span class="material-icons icon icon-emboss">bar_chart</span> <span>Laporan</span></li>
-        </ul>
-      </nav>
+    <aside class="sidebar" id="sidebar-nav">
+      <ul>
+        <li id="btn-dashboard" data-section="dashboard" class="active"><i class="fa fa-home"></i> Dashboard Utama</li>
+        <li id="btn-jadwal" data-section="jadwal"><i class="fa fa-calendar"></i> Jadwal Kelas</li>
+        <li id="btn-progress" data-section="progress"><i class="fa fa-chart-line"></i> Report Progress</li>
+        <li id="btn-catatan" data-section="catatan"><i class="fa fa-book"></i> Modul & Catatan</li>
+        <li id="btn-lab" data-section="lab"><i class="fa fa-flask"></i> Lab Interaktif</li>
+        <li><a href="/editor-kelas.html" id="sidebarEditor"><i class="fa fa-puzzle-piece"></i> Editor Kelas</a></li>
+        <li id="btn-murid" data-section="murid"><i class="fa fa-user-graduate"></i> Lihat Dashboard Murid</li>
+        <li id="btn-assist" data-section="assist"><i class="fa fa-lightbulb"></i> Alat Bantu Guru</li>
+      </ul>
     </aside>
-
-    <main class="main-content">
-      <section id="jadwal-kelas">
-        <h2>Jadwal Kelas Anda</h2>
-        <ul id="kelas-list"></ul>
+    <main id="mainContent">
+      <section id="dashboard" class="page-section active">
+        <h2>Selamat Datang, <span id="teacherName">Guru</span></h2>
+        <p>Pilih menu di sebelah kiri untuk memulai.</p>
       </section>
-
-      <section id="modul-kelas" style="display:none;">
-        <h2>Detail Kelas & Modul</h2>
-        <div id="detail-kelas"></div>
-        <button onclick="tutupDetail()">Tutup</button>
+      <section id="jadwal" class="page-section">
+        <h2>Jadwal Kelas</h2>
+        <a class="btn" href="/elearn/guru-jadwal.html" target="_blank">Buka Halaman Penuh</a>
+        <div class="jadwal-group">
+          <h3>Hari Ini</h3>
+          <div id="jadwal-hari-ini" class="jadwal-list"></div>
+        </div>
+        <div class="jadwal-group">
+          <h3>Minggu Ini</h3>
+          <div id="jadwal-minggu-ini" class="jadwal-list"></div>
+        </div>
       </section>
-
-      <section id="grafik-performa" style="margin-top: 32px;">
-        <h2>Grafik Performa Kelas</h2>
-        <div style="height: 260px; background: linear-gradient(to top, #e0f2fe, #ffffff); border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; justify-content: center; align-items: center; color: #60a5fa; font-size: 18px; font-weight: 500;">
-          [ Grafik performa kelas akan ditampilkan di sini ]
+      <section id="progress" class="page-section">
+        <h2>Progress Murid</h2>
+        <a class="btn" href="/elearn/guru-progress.html" target="_blank">Buka Halaman Penuh</a>
+        <div class="progress-tools">
+          <select id="progress-filter"></select>
+          <button id="export-progress" class="btn">Export CSV</button>
+        </div>
+        <div id="progress-container" class="progress-container"></div>
+      </section>
+      <section id="catatan" class="page-section">
+        <h2>Catatan Modul</h2>
+        <a class="btn" href="/elearn/guru-catatan.html" target="_blank">Buka Halaman Penuh</a>
+        <select id="modul-select"></select>
+        <textarea id="catatan-text" rows="6" placeholder="Tulis catatan di sini..."></textarea>
+        <button id="simpan-catatan" class="btn">Simpan Catatan</button>
+      </section>
+      <section id="lab" class="page-section">
+        <h2>Lab Interaktif</h2>
+        <a class="btn" href="/elearn/guru-lab.html" target="_blank">Buka Halaman Penuh</a>
+        <select id="lab-template">
+          <option value="print('Hello')">print('Hello')</option>
+          <option value="for i in range(3):\n    print(i)">Loop 3x</option>
+        </select>
+        <textarea id="lab-code" rows="6"></textarea>
+        <button id="run-code" class="btn">Jalankan</button>
+        <pre id="lab-output"></pre>
+      </section>
+      <section id="murid" class="page-section">
+        <h2>Dashboard Murid</h2>
+        <ul id="murid-list" class="murid-list"></ul>
+      </section>
+      <section id="assist" class="page-section">
+        <h2>Alat Bantu Guru</h2>
+        <div class="ai-box">
+          <h3>Ide Materi dari AI</h3>
+          <input id="ai-input" type="text" placeholder="Masukkan topik" />
+          <button id="ai-run" class="btn">Cari Ide</button>
+          <ul id="ai-result"></ul>
+        </div>
+        <div class="search-box">
+          <h3>Cari Referensi</h3>
+          <input id="search-input" type="text" placeholder="Kata kunci" />
+          <button id="search-run" class="btn">Cari</button>
+          <ul id="search-result"></ul>
+        </div>
+        <div class="template-box">
+          <h3>Template Modul</h3>
+          <div id="template-list" class="template-list"></div>
+        </div>
+        <div class="notif-box">
+          <h3>Notifikasi</h3>
+          <ul id="notif-list"></ul>
         </div>
       </section>
     </main>
-
-    <aside class="sidebar-right">
-      <div style="display: flex; justify-content: flex-start; align-items: center; margin-bottom: 16px;">
-        <button onclick="document.querySelector('.sidebar-right').classList.toggle('collapsed');"
-          title="Sembunyikan Sidebar Kanan"
-          style="background-color: rgba(0,0,0,0.04); border: none; font-size: 20px; cursor: pointer; padding: 6px; border-radius: 8px;">
-          <span class="material-icons" style="color:#1e3a8a;">chevron_right</span>
-        </button>
-      </div>
-      <ul class="sidebar-right-nav" style="list-style: none; padding: 0; margin: 0;">
-        <li class="calendar-item calendar-box">
-          <span class="material-icons icon icon-emboss">calendar_today</span>
-          <span class="label">Calendar</span>
-        </li>
-      </ul>
-      <div class="calendar-section">
-        <div class="calendar-day">Oct 20, 2021</div>
-        <div class="calendar-entry">
-          <div class="calendar-time">10:00</div>
-          <div class="calendar-bar" style="background-color: #3b82f6;"></div>
-          <div class="calendar-content">
-            <div class="sub">Dribbble shot</div>
-            <div class="title">Facebook Brand</div>
-          </div>
-        </div>
-        <div class="calendar-entry">
-          <div class="calendar-time">13:20</div>
-          <div class="calendar-bar" style="background-color: #f97316;"></div>
-          <div class="calendar-content">
-            <div class="sub">Design</div>
-            <div class="title">Task Management</div>
-          </div>
-        </div>
-
-        <div class="calendar-day">Oct 21, 2021</div>
-        <div class="calendar-entry">
-          <div class="calendar-time">10:00</div>
-          <div class="calendar-bar" style="background-color: #8b5cf6;"></div>
-          <div class="calendar-content">
-            <div class="sub">UX Research</div>
-            <div class="title">Sleep App</div>
-          </div>
-        </div>
-        <div class="calendar-entry">
-          <div class="calendar-time">13:20</div>
-          <div class="calendar-bar" style="background-color: #f97316;"></div>
-          <div class="calendar-content">
-            <div class="sub">Design</div>
-            <div class="title">Task Management</div>
-          </div>
-        </div>
-        <div class="calendar-entry">
-          <div class="calendar-time">10:00</div>
-          <div class="calendar-bar" style="background-color: #0ea5e9;"></div>
-          <div class="calendar-content">
-            <div class="sub">Dribbble Shot</div>
-            <div class="title">Meet Up</div>
-          </div>
-        </div>
-      </div>
-    </aside>
   </div>
+  <script src="/elearn/userInfo.js"></script>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
+  <script src="/elearn/guru.js"></script>
 </body>
 </html>
-
-    
