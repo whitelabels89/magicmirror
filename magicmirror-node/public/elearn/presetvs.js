@@ -116,22 +116,27 @@ function setupVscodeTypingBox(container) {
     renderCode();
   });
 
-  // Add Run button and output
-  const runBtn = document.createElement('button');
-  runBtn.textContent = 'Jalankan';
-  runBtn.style.marginTop = '1rem';
-  runBtn.style.display = 'block';
-
-  const outputEl = document.createElement('pre');
-  outputEl.className = 'python-output';
-  outputEl.style.background = '#222';
-  outputEl.style.color = '#fff';
-  outputEl.style.borderRadius = '6px';
-  outputEl.style.padding = '0.5rem';
-  outputEl.style.marginTop = '0.5rem';
-
-  container.appendChild(runBtn);
-  container.appendChild(outputEl);
+  // Find or create Run button and output box near this container
+  let runBtn = container.parentElement.querySelector('.run-button');
+  let outputEl = container.parentElement.querySelector('.output-box');
+  if (!runBtn) {
+    runBtn = document.createElement('button');
+    runBtn.className = 'run-button';
+    runBtn.textContent = 'Jalankan';
+    runBtn.style.marginTop = '1rem';
+    runBtn.style.display = 'block';
+    container.parentElement.appendChild(runBtn);
+  }
+  if (!outputEl) {
+    outputEl = document.createElement('pre');
+    outputEl.className = 'output-box';
+    outputEl.style.background = '#222';
+    outputEl.style.color = '#fff';
+    outputEl.style.borderRadius = '6px';
+    outputEl.style.padding = '0.5rem';
+    outputEl.style.marginTop = '0.5rem';
+    container.parentElement.appendChild(outputEl);
+  }
 
   // Disable button until pyodide ready
   runBtn.disabled = true;
