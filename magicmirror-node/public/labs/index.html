@@ -9,6 +9,26 @@
   <style>
     body { font-family: 'Baloo 2', cursive; background:#e0f2fe; margin:0; height:100vh; display:flex; }
     .page-container { display:flex; width:calc(100% - 60px); height:calc(100% - 60px); margin:30px; border-radius:40px; overflow:hidden; outline:12px solid #111827; }
+    .sidebar {
+      background:#111827;
+      color:#fff;
+      width:220px;
+      display:flex;
+      flex-direction:column;
+      padding:20px;
+      transition:width 0.3s ease;
+      border-radius:40px 0 0 40px;
+      min-height: calc(100vh - 60px);
+    }
+    .sidebar.collapsed { width:60px; }
+    .sidebar.collapsed .sidebar-menu span:not(.material-icons){display:none;}
+    .sidebar.collapsed .sidebar-menu a{justify-content:center;}
+    .toggle-btn{background:#374151;color:#fff;border:none;padding:4px;height:36px;border-radius:10px;margin-bottom:20px;cursor:pointer;align-self:center;display:flex;align-items:center;justify-content:center;}
+    .sidebar .toggle-btn{align-self:center;}
+    .sidebar:not(.collapsed) .toggle-btn{width:100%;}
+    .sidebar-menu a{display:flex;align-items:center;gap:10px;padding:10px;color:#e5e7eb;text-decoration:none;border-radius:10px;margin-bottom:10px;transition:background .2s ease;}
+    .sidebar-menu a:hover{background:#1f2937;}
+    .material-icons.icon-emboss{background:#374151;padding:6px;border-radius:8px;font-size:20px;box-shadow:inset -2px -2px 4px rgba(255,255,255,0.15),inset 2px 2px 4px rgba(0,0,0,0.25),0 2px 4px rgba(0,0,0,0.4);}
     .main-content { flex:1; background:#fff; padding:30px; border-radius:40px 0 0 40px; overflow-y:auto; }
     ul { list-style:none; padding:0; }
     li { margin:12px 0; }
