@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Interaktif - Queen's Academy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/elearn/guru.css" />
+</head>
+<body>
+  <header class="header">
+    <h1>Lab Interaktif</h1>
+  </header>
+  <main class="layout">
+    <section class="page-section active" id="lab-page">
+      <select id="lab-template">
+        <option value="print('Hello')">print('Hello')</option>
+        <option value="for i in range(3):\n    print(i)">Loop 3x</option>
+      </select>
+      <textarea id="lab-code" rows="6"></textarea>
+      <button id="run-code" class="btn">Jalankan</button>
+      <pre id="lab-output"></pre>
+    </section>
+  </main>
+  <script src="/elearn/userInfo.js"></script>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
+  <script src="/elearn/guru.js"></script>
+</body>
+</html>
