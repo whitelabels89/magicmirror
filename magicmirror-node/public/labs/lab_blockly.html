@@ -26,8 +26,6 @@
   <pre id="code"></pre>
   <pre id="output" style="color:red"></pre>
 
-  <pre id="code"></pre>
-
   <xml id="toolbox" style="display:none">
     <category name="Logic" colour="210">
       <block type="controls_if"></block>
@@ -48,14 +46,6 @@
   </xml>
 
   <script src="lab_blockly.js"></script>
-
-  <script>
-    const workspace = Blockly.inject('blocklyDiv', {toolbox: document.getElementById('toolbox')});
-    function showCode(){
-      const code = Blockly.Python.workspaceToCode(workspace);
-      document.getElementById('code').textContent = code;
-    }
-  </script>
 
 </body>
 </html>
