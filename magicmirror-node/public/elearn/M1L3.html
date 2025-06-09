@@ -1,3 +1,4 @@
+
 <link rel="stylesheet" href="presetvs.css" />
 <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
 <script src="presetvs.js"></script>
@@ -121,7 +122,7 @@
     <div class="progress-bar"><div class="progress" id="progressBar"></div></div>
   </div>
   <div style="margin-top:10px;">
-    <a href="/elearn/modul1.html" class="back-btn">⟵ Kembali ke Modul</a>
+    <a href="/elearn/modul.html" class="back-btn">⟵ Kembali ke Modul</a>
   </div>
 </div>
 
@@ -131,73 +132,133 @@
       <li data-step="1" class="active">1. Warm-Up</li>
       <li data-step="3">2. Praktik</li>
       <li data-step="6">3. Teori</li>
-      <li data-step="9">4. Eksperimen</li>
-      <li data-step="12">5. Quiz</li>
-      <li data-step="14">6. Wrap-Up</li>
+      <li data-step="10">4. Eksperimen</li>
+      <li data-step="12">5. Quiz 1</li>
+      <li data-step="14">6. Quiz 2</li>
+      <li data-step="17">7. Wrap-Up</li>
     </ul>
   </div>
   <div class="main">
     <div id="panel-1" class="step-content">
-      <h2>Apa Makanan Favoritmu?</h2>
-      <p>Pikirkan jawabannya. Itu adalah contoh <em>string</em> atau teks.</p>
+      <h2>Kenalan dengan String</h2>
+      <p>String adalah kumpulan huruf, angka, atau simbol di antara tanda kutip.</p>
     </div>
     <div id="panel-2" class="step-content">
-      <h2>Apa Itu String?</h2>
-      <p>String adalah kalimat yang bisa kita tulis ke komputer.</p>
+      <h2>Contoh Sederhana</h2>
+      <div class="typingBox-vscode" data-hint="nama = &quot;Nina&quot;&#10;kalimat = &quot;Halo semua!&quot;&#10;print(nama)&#10;print(kalimat)"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-3" class="step-content">
-      <h2>Menuliskan Nama</h2>
-      <p>Ayo ketik kode di bawah untuk menyimpan nama dan menampilkannya.</p>
+      <h2>Ukur Panjang Teks</h2>
+      <p>Fungsi <code>len()</code> menghitung jumlah karakter.</p>
+      <div class="typingBox-vscode" data-hint="kalimat = &quot;Selamat pagi!&quot;&#10;print(len(kalimat))"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-4" class="step-content">
-      <div class="typingBox-vscode" data-hint="nama = &quot;Nina&quot;&#10;print(nama)"></div>
+      <h2>Ambil Huruf Pertama</h2>
+      <p>Huruf pada posisi 0 adalah huruf pertama.</p>
+      <div class="typingBox-vscode" data-hint="kata = &quot;Python&quot;&#10;print(kata[0])"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-5" class="step-content">
-      <h2>String Pakai Tanda Kutip</h2>
-      <p>Kita menulis teks di dalam tanda kutip, bisa &quot; atau '."</p>
+      <h2>Potong Teks</h2>
+      <p>Gunakan <code>[mulai:akhir]</code> untuk mengambil sebagian teks.</p>
+      <div class="typingBox-vscode" data-hint="sapaan = &quot;Selamat malam&quot;&#10;print(sapaan[0:7])"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-6" class="step-content">
-      <h2>Kenapa String Penting?</h2>
-      <p>String menyimpan teks seperti nama, alamat, atau pesan.</p>
+      <h2>Cari Kata</h2>
+      <p>Metode <code>.find()</code> memberi posisi kata di dalam kalimat.</p>
+      <div class="typingBox-vscode" data-hint="kalimat = &quot;Ini pancake terenak!&quot;&#10;print(kalimat.find(&quot;pancake&quot;))"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-7" class="step-content">
-      <h2>Menggabungkan String</h2>
-      <p>Kita bisa memakai tanda + untuk menggabungkan dua string.</p>
+      <h2>Huruf Kecil Semua</h2>
+      <p><code>.lower()</code> mengubah seluruh teks jadi huruf kecil.</p>
+      <div class="typingBox-vscode" data-hint="pesan = &quot;HELLO&quot;&#10;print(pesan.lower())"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-8" class="step-content">
-      <div class="typingBox-vscode" data-hint="sapa = &quot;Halo, &quot;&#10;nama = &quot;Nina&quot;&#10;print(sapa + nama)"></div>
+      <h2>Gabungkan Teks</h2>
+      <div class="typingBox-vscode" data-hint="print(&quot;Halo &quot; + &quot;Dunia&quot;)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-9" class="step-content">
-      <h2>Susun Kalimat Sendiri</h2>
-      <p>Buat dua potongan kalimat lalu gabungkan.</p>
+      <h2>Ulangi Teks</h2>
+      <div class="typingBox-vscode" data-hint="print(&quot;Yay! &quot; * 3)"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-10" class="step-content">
-      <div class="typingBox-vscode" data-hint="bagian1 = &quot;Aku suka &quot;&#10;bagian2 = &quot;es krim&quot;&#10;print(bagian1 + bagian2)"></div>
+      <h2>Gabungkan Angka dan String</h2>
+      <p>Gunakan <code>str()</code> supaya angka bisa digabung.</p>
+      <div class="typingBox-vscode" data-hint="tanggal = 5&#10;bulan = 6&#10;print(&quot;Birthday: &quot; + str(tanggal) + &quot;/&quot; + str(bulan))"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-11" class="step-content">
-      <h2>Ubah Kata dan Coba Lagi</h2>
-      <p>Coba ganti kata pada variabel dan lihat hasilnya.</p>
+      <h2>Ubah Teks ke Angka</h2>
+      <p>Pakai <code>int()</code> jika ingin melakukan perhitungan.</p>
+      <div class="typingBox-vscode" data-hint="teks_angka = &quot;7&quot;&#10;print(int(teks_angka) + 3)"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-12" class="step-content">
-      <h2>Quiz 1</h2>
-      <p>Apa hasil dari <code>print(&quot;Kucing&quot; + &quot;Lucu&quot;)</code>?</p>
+      <h2>Quiz 1: Dasar Teori</h2>
+      <ol>
+        <li>Apa itu <em>string</em>?</li>
+        <li>Untuk apa fungsi <code>len()</code>?</li>
+        <li>Apa peran interpreter di Python?</li>
+        <li>Apa bedanya <code>+</code> pada string dan angka?</li>
+      </ol>
     </div>
     <div id="panel-13" class="step-content">
-      <h2>Quiz 2 &amp; 3</h2>
-      <ol>
-        <li>Kenapa string harus pakai tanda kutip?</li>
-        <li>Apa beda string dan angka?</li>
+      <h2>Quiz 1 Lanjutan</h2>
+      <ol start="5">
+        <li>Bisakah string dikali angka?</li>
+        <li>Apa gunanya metode <code>.lower()</code>?</li>
+        <li>Mengapa memakai <code>str()</code> atau <code>int()</code>?</li>
       </ol>
     </div>
     <div id="panel-14" class="step-content">
-      <h2>Wrap-Up 🎉</h2>
-      <p>String adalah teks yang bisa digabung memakai + dan disimpan ke variabel. Lesson berikutnya, kita akan belajar cara menyusun kode lebih rapi dengan struktur bersarang! 🎈</p>
+      <h2>Quiz 2: Tantangan</h2>
+      <ol>
+        <li>Hitung panjang variabel <code>review</code>.</li>
+        <li>Ambil huruf pertama dari sebuah kata.</li>
+        <li>Slice "Good morning, sunshine!" menjadi "Good morning".</li>
+      </ol>
+    </div>
+    <div id="panel-15" class="step-content">
+      <h2>Quiz 2 Lanjutan</h2>
+      <ol start="4">
+        <li>Temukan sebuah kata di dalam kalimat.</li>
+        <li>Ubah teks ke huruf kecil dan cari kata tersebut.</li>
+        <li>Gabungkan kalimat "Thank you, ___!" dengan namamu.</li>
+        <li>Cetak "Yay! Yay!" memakai <code>*</code>.</li>
+      </ol>
+    </div>
+    <div id="panel-16" class="step-content">
+      <h2>Quiz 2 Terakhir</h2>
+      <ol start="8">
+        <li>Gabungkan tanggal lahir memakai <code>str()</code>.</li>
+        <li>Gabungkan kata "Jungle" dan "Quest".</li>
+        <li>Perbaiki error jika ada penjumlahan string dan angka.</li>
+      </ol>
+    </div>
+    <div id="panel-17" class="step-content">
+      <h2>Ringkasan</h2>
+      <p>String adalah teks di dalam tanda kutip. Kita bisa menghitung panjangnya dengan <code>len()</code>, mencari kata, mengubah huruf, menggabungkan dengan <code>+</code>, dan mengulang dengan <code>*</code>.</p>
+    </div>
+    <div id="panel-18" class="step-content">
+      <h2>Wrap-Up 🎉🧠💬</h2>
+      <p>Gunakan <code>str()</code> atau <code>int()</code> untuk konversi data. Lesson berikutnya: kita akan belajar menyusun kode lebih rapi dengan struktur bersarang!</p>
     </div>
     <div class="nav-controls">
       <button onclick="prevPanel()">⟵ Sebelumnya</button>
@@ -216,7 +277,7 @@
 
 <script>
   let currentPanel = 1;
-  const totalPanels = 14;
+  const totalPanels = 18;
   function showPanel(n) {
     if (n < 1 || n > totalPanels) return;
     document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
