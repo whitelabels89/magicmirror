@@ -1,0 +1,343 @@
+<link rel="stylesheet" href="presetvs.css" />
+<script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+<script src="presetvs.js"></script>
+<style>
+  body {
+    font-family: 'Fredoka', sans-serif;
+    margin: 0;
+    background: #f0f7ff;
+    color: #333;
+  }
+  .header {
+    text-align: center;
+    padding: 20px;
+    background: #4f46e5;
+    color: #fff;
+  }
+  .header h1 {
+    margin-bottom: 10px;
+    font-size: 2.2rem;
+  }
+  .header p {
+    margin-bottom: 20px;
+  }
+  .progress-container {
+    margin-top: 20px;
+    width: 80%;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .progress-bar {
+    height: 12px;
+    background: #fff;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .progress {
+    width: 0%;
+    height: 100%;
+    background: #facc15;
+  }
+  .back-btn {
+    display: inline-block;
+    margin-top: 8px;
+    color: #fff;
+    background: #22c55e;
+    padding: 6px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  .container {
+    display: flex;
+    padding: 20px;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .sidebar {
+    flex: 1 1 180px;
+    max-width: 200px;
+    background: #fde68a;
+    padding: 20px;
+    border-radius: 20px;
+  }
+  .sidebar ul {
+    list-style: none;
+    padding: 0;
+  }
+  .sidebar li {
+    margin-bottom: 10px;
+    background: #fcd34d;
+    padding: 8px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .sidebar li.active {
+    background: #fbbf24;
+  }
+  .main {
+    flex: 3 1 300px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 20px;
+  }
+  .lab-column {
+    flex: 1 1 260px;
+    background: #111827;
+    padding: 20px;
+    border-radius: 20px;
+    color: #a7f3d0;
+    min-width: 260px;
+  }
+  .whiteboard-container {
+    margin-top: 1rem;
+    text-align: center;
+  }
+  #whiteboardCanvas {
+    border: 1px solid #ccc;
+    width: 100%;
+    height: 300px;
+    display: none;
+    touch-action: none;
+    background: #fff;
+  }
+  .step-content {
+    display: none;
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+  }
+  .step-content.active { display: block; }
+  .nav-controls { text-align: center; margin-top: 20px; }
+</style>
+
+<div class="header">
+  <h1>Modul 2 - Lesson 1: Conditional Statements</h1>
+  <p>Belajar membuat keputusan dengan if dan else</p>
+  <div class="progress-container">
+    <div class="progress-bar"><div class="progress" id="progressBar"></div></div>
+  </div>
+  <div style="margin-top:10px;">
+    <a href="/elearn/modul.html" class="back-btn">⟵ Kembali ke Modul</a>
+  </div>
+</div>
+
+<div class="container">
+  <div class="sidebar">
+    <ul id="lesson-nav">
+      <li data-step="1" class="active">1. Apa itu Pernyataan Logika?</li>
+      <li data-step="2">2. Tipe Data Boolean</li>
+      <li data-step="3">3. Tipe Data Lainnya</li>
+      <li data-step="4">4. Perbandingan dan Matematika</li>
+      <li data-step="5">5. Menyimpan Nilai Logika</li>
+      <li data-step="6">6. Operator Perbandingan</li>
+      <li data-step="7">7. Logika Gabungan</li>
+      <li data-step="8">8. Kesimpulan</li>
+      <li data-step="9">9. Task di Platform</li>
+      <li data-step="10">10. Apa itu Conditional Statements?</li>
+      <li data-step="11">11. Perintah if dan else</li>
+      <li data-step="12">12. Contoh Rasa</li>
+      <li data-step="13">13. Contoh Hewan Favorit</li>
+      <li data-step="14">14. Contoh Cek Umur</li>
+      <li data-step="15">15. Contoh Tebak Angka</li>
+      <li data-step="16">16. Aturan Penting</li>
+      <li data-step="17">17. Kenapa Penting?</li>
+      <li data-step="18">18. Kesimpulan Akhir</li>
+      <li data-step="19">19. Task di Platform</li>
+      <li data-step="20">20. Quiz Part 1</li>
+      <li data-step="21">21. Quiz Part 2</li>
+      <li data-step="22">22. Q&A</li>
+      <li data-step="23">23. Terima Kasih</li>
+    </ul>
+  </div>
+  <div class="main">
+    <div id="panel-1" class="step-content">
+      <h2>Apa itu Pernyataan Logika?</h2>
+      <p>Pernyataan logika adalah ekspresi yang bisa bernilai <code>True</code> atau <code>False</code>.</p>
+    </div>
+    <div id="panel-2" class="step-content">
+      <h2>Tipe Data Boolean</h2>
+      <p>Boolean hanya memiliki dua nilai: <code>True</code> dan <code>False</code>.</p>
+      <div class="typingBox-vscode" data-hint="is_hot = True\nprint(is_hot)"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-3" class="step-content">
+      <h2>Tipe Data Lainnya</h2>
+      <p>Selain boolean, kita mengenal tipe <code>int</code>, <code>float</code>, dan <code>str</code>.</p>
+      <div class="typingBox-vscode" data-hint="umur = 12\npi = 3.14\nnama = 'Luna'\nprint(umur, pi, nama)"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-4" class="step-content">
+      <h2>Perbandingan dan Matematika</h2>
+      <p>Operator perbandingan mengevaluasi hasil matematika.</p>
+      <div class="typingBox-vscode" data-hint="print(5 > 3)\nprint(2 + 2 == 4)"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-5" class="step-content">
+      <h2>Menyimpan Nilai Logika</h2>
+      <p>Kita dapat menyimpan hasil perbandingan ke variabel.</p>
+      <div class="typingBox-vscode" data-hint="lebih_besar = 7 > 5\nprint(lebih_besar)"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-6" class="step-content">
+      <h2>Operator Perbandingan</h2>
+      <p>Gunakan <code>&gt;</code>, <code>&lt;</code>, <code>==</code>, <code>!=</code>, <code>&gt;=</code>, dan <code>&lt;=</code>.</p>
+      <div class="typingBox-vscode" data-hint="print(3 != 2)\nprint(4 <= 4)"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-7" class="step-content">
+      <h2>Logika Gabungan: and, or</h2>
+      <p>Kita bisa menggabungkan beberapa perbandingan.</p>
+      <div class="typingBox-vscode" data-hint="print(True and False)\nprint(5 > 3 or 2 > 4)"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-8" class="step-content">
+      <h2>Kesimpulan</h2>
+      <p>Pernyataan logika membantu kita memeriksa kondisi dalam program.</p>
+    </div>
+    <div id="panel-9" class="step-content">
+      <h2>Task di Platform</h2>
+      <p>Coba selesaikan latihan logika di platform pembelajaran.</p>
+    </div>
+    <div id="panel-10" class="step-content">
+      <h2>Apa itu Conditional Statements?</h2>
+      <p>Conditional statements menjalankan kode berbeda berdasarkan kondisi tertentu.</p>
+    </div>
+    <div id="panel-11" class="step-content">
+      <h2>Perintah if dan else</h2>
+      <div class="typingBox-vscode" data-hint="angka = 7\nif angka > 5:\n    print('Besar')\nelse:\n    print('Kecil')"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-12" class="step-content">
+      <h2>Contoh Rasa (Bakery)</h2>
+      <div class="typingBox-vscode" data-hint="rasa = 'coklat'\nif rasa == 'coklat':\n    print('Enak!')\nelse:\n    print('Coba lagi')"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-13" class="step-content">
+      <h2>Contoh Hewan Favorit</h2>
+      <div class="typingBox-vscode" data-hint="hewan = 'kucing'\nif hewan == 'anjing':\n    print('Dog lover!')\nelse:\n    print('Bukan anjing')"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-14" class="step-content">
+      <h2>Contoh Cek Umur</h2>
+      <div class="typingBox-vscode" data-hint="umur = 18\nif umur >= 17:\n    print('Boleh SIM')\nelse:\n    print('Belum boleh')"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-15" class="step-content">
+      <h2>Contoh Tebak Angka</h2>
+      <div class="typingBox-vscode" data-hint="tebakan = 5\nif tebakan == 5:\n    print('Tepat!')\nelse:\n    print('Salah')"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-16" class="step-content">
+      <h2>Aturan Penting If-Else</h2>
+      <p>Gunakan indentasi yang konsisten dan pastikan kondisi bernilai boolean.</p>
+    </div>
+    <div id="panel-17" class="step-content">
+      <h2>Kenapa Ini Penting?</h2>
+      <p>Dengan if-else kita bisa membuat program yang responsif terhadap berbagai situasi.</p>
+    </div>
+    <div id="panel-18" class="step-content">
+      <h2>Kesimpulan Akhir</h2>
+      <p>Conditional statements adalah dasar pembuatan alur logika program.</p>
+    </div>
+    <div id="panel-19" class="step-content">
+      <h2>Task di Platform</h2>
+      <p>Kerjakan soal tambahan tentang if-else di platform.</p>
+    </div>
+    <div id="panel-20" class="step-content">
+      <h2>Quiz Part 1</h2>
+      <ol>
+        <li>Apa hasil dari <code>5 > 3</code>?</li>
+        <ul>
+          <li>a) 8</li>
+          <li>b) True ✅</li>
+          <li>c) False</li>
+        </ul>
+        <li>Boolean memiliki nilai ...</li>
+      </ol>
+    </div>
+    <div id="panel-21" class="step-content">
+      <h2>Quiz Part 2</h2>
+      <ol>
+        <li>Tuliskan contoh sederhana penggunaan <code>if</code>.</li>
+        <li>Apa fungsi operator <code>and</code>?</li>
+      </ol>
+    </div>
+    <div id="panel-22" class="step-content">
+      <h2>Q&A</h2>
+      <p>Punya pertanyaan? Catat dan diskusikan bersama mentor.</p>
+    </div>
+    <div id="panel-23" class="step-content">
+      <h2>Terima Kasih</h2>
+      <p>Sampai jumpa di lesson berikutnya!</p>
+    </div>
+    <div class="nav-controls">
+      <button onclick="prevPanel()">⟵ Sebelumnya</button>
+      <span id="indicator"></span>
+      <button onclick="nextPanel()">Selanjutnya ⟶</button>
+    </div>
+  </div>
+  <div class="lab-column">
+    <div class="whiteboard-container">
+      <button id="toggleWhiteboard">Tampilkan Whiteboard</button>
+      <button id="clearWhiteboard">Clear</button>
+      <canvas id="whiteboardCanvas"></canvas>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentPanel = 1;
+  const totalPanels = 23;
+  function showPanel(n) {
+    if (n < 1 || n > totalPanels) return;
+    document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+    const panel = document.getElementById('panel-' + n);
+    if (panel) panel.classList.add('active');
+    currentPanel = n;
+    updateIndicator();
+  }
+  function nextPanel() { if (currentPanel < totalPanels) showPanel(currentPanel + 1); }
+  function prevPanel() { if (currentPanel > 1) showPanel(currentPanel - 1); }
+  function updateIndicator() { document.getElementById('indicator').textContent = 'Slide ' + currentPanel + ' / ' + totalPanels; }
+  document.getElementById('lesson-nav').addEventListener('click', function(e) {
+    if(e.target.matches('li[data-step]')) {
+      document.querySelectorAll('#lesson-nav li').forEach(li => li.classList.remove('active'));
+      e.target.classList.add('active');
+      showPanel(Number(e.target.getAttribute('data-step')));
+    }
+  });
+  document.addEventListener('DOMContentLoaded', () => showPanel(1));
+</script>
+<!-- Firebase and Whiteboard -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script src="whiteboard.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBVO4ajDwkbcTGL33SVMxIoev4veB8itgI",
+    authDomain: "queens-academy-icoding.firebaseapp.com",
+    projectId: "queens-academy-icoding",
+    storageBucket: "queens-academy-icoding.appspot.com",
+    messagingSenderId: "1048549258959",
+    appId: "1:1048549258959:web:f8dc1c104bb170d7ff69ba",
+  };
+  firebase.initializeApp(firebaseConfig);
+  window.kelasId = 'demo';
+  window.lessonId = 'M2L1';
+  initWhiteboard();
+</script>
