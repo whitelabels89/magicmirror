@@ -102,6 +102,20 @@
           <h3>Notifikasi</h3>
           <ul id="notif-list"></ul>
         </div>
+        <div class="upload-box">
+          <h3>Upload Modul PDF</h3>
+          <form id="modulForm" action="/api/upload-modul" method="POST" enctype="multipart/form-data">
+            <input type="text" name="modul_name" placeholder="Nama Modul" required />
+            <input type="text" name="lesson_name" placeholder="Nama Lesson" required />
+            <input type="text" name="lesson_id" placeholder="ID Lesson (contoh: M1L3)" required />
+            <input type="file" name="materi_pdf" accept="application/pdf" required />
+            <input type="file" name="contoh_pdf" accept="application/pdf" required />
+            <input type="file" name="soal_pdf" accept="application/pdf" required />
+            <button type="submit" class="btn">Upload & Generate Lesson</button>
+          </form>
+          <div id="download-area"></div>
+          <ul id="lesson-list"></ul>
+        </div>
       </section>
     </main>
   </div>
