@@ -6,12 +6,15 @@ const http = require('http').createServer(app);
 const io = require('socket.io')(http, { cors: { origin: "*" } });
 const path = require('path');
 const { google } = require('googleapis');
+const uploadModulRouter = require('./uploadModul');
 
 const PORT = process.env.PORT || 3000;
 
 // Serve static files from /public
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json({ limit: '10mb' })); // untuk terima JSON besar (seperti foto)
+app.use('/generated_lessons', express.static(path.join(__dirname, '..', 'generated_lessons')));
+app.use(uploadModulRouter);
 
 // Endpoint: Sinkronisasi data Form Responses 1 ke PROFILE_ANAK berdasarkan CID
 app.get("/sync-profile-anak", async (req, res) => {
