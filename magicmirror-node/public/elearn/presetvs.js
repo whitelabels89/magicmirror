@@ -89,6 +89,7 @@ function setupVscodeTypingBox(container) {
     const line = lines[container._lineIndex];
 
     if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      e.preventDefault();
       if (container._typed[container._lineIndex].length < line.length) {
         container._typed[container._lineIndex] += e.key;
         container._charIndex++;
@@ -98,6 +99,7 @@ function setupVscodeTypingBox(container) {
         }
       }
     } else if (e.key === 'Backspace') {
+      e.preventDefault();
       if (container._charIndex > 0) {
         container._typed[container._lineIndex] = container._typed[container._lineIndex].slice(0, -1);
         container._charIndex--;
