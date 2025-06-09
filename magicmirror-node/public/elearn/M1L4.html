@@ -115,8 +115,8 @@
 </style>
 
 <div class="header">
-  <h1>Modul 1 - Lesson 4: Nested Structure</h1>
-  <p>Simplifying Code with Nested Constructs</p>
+  <h1>Modul 1 - Lesson 4: Nested Constructions</h1>
+  <p>Simplifying Code with Nested Constructions</p>
   <div class="progress-container">
     <div class="progress-bar"><div class="progress" id="progressBar"></div></div>
   </div>
@@ -132,73 +132,106 @@
       <li data-step="3">2. Praktik</li>
       <li data-step="6">3. Teori</li>
       <li data-step="9">4. Eksperimen</li>
-      <li data-step="12">5. Quiz</li>
-      <li data-step="14">6. Wrap-Up</li>
+      <li data-step="12">5. Quiz 1</li>
+      <li data-step="14">6. Quiz 2</li>
+      <li data-step="17">7. Wrap-Up</li>
     </ul>
   </div>
   <div class="main">
     <div id="panel-1" class="step-content">
-      <h2>Instruksi untuk Robot</h2>
-      <p>Bayangkan kamu ingin memberi 3 instruksi ke robot, dan robot harus melakukan semuanya berurutan dan terstruktur.</p>
+      <h2>Kode Bisa Ditumpuk</h2>
+      <p>Kode yang panjang dapat diringkas dengan menaruh perintah di dalam perintah. Ini disebut <em>nested</em>.</p>
     </div>
     <div id="panel-2" class="step-content">
-      <h2>Tulislah Dengan Rapi</h2>
-      <p>Apa yang terjadi kalau instruksi ditulis sembarangan?</p>
+      <h2>Balok LEGO</h2>
+      <p>Bayangkan seperti menyusun balok LEGO secara bertingkat untuk membuat bentuk baru.</p>
     </div>
     <div id="panel-3" class="step-content">
-      <h2>Ketik Beberapa Print</h2>
-      <p>Yuk tulis tiga baris print sederhana.</p>
+      <h2>Kode Versi Panjang</h2>
+      <p>Contoh menuliskan input dan konversi secara terpisah.</p>
     </div>
     <div id="panel-4" class="step-content">
-      <div class="typingBox-vscode" data-hint="print(&quot;Hari ini belajar Python&quot;)&#10;print(&quot;Belajar tentang struktur&quot;)&#10;print(&quot;Ayo kita mulai!&quot;)"></div>
+      <div class="typingBox-vscode" data-hint="berat = input(&quot;Berat tas? &quot;)&#10;berat = int(berat)&#10;print(berat)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-5" class="step-content">
-      <h2>Kenapa Harus Rapih?</h2>
-      <p>Kalau banyak <code>print()</code>, kita perlu menulisnya terstruktur agar mudah dibaca.</p>
+      <h2>Kode Versi Singkat</h2>
+      <div class="typingBox-vscode" data-hint="berat = int(input(&quot;Berat tas? &quot;))&#10;print(berat)"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-6" class="step-content">
-      <h2>Indentasi Itu Penting</h2>
-      <p>Gunakan spasi atau tab untuk menandakan kode berada di dalam kelompok.</p>
+      <h2>Panjang tapi Jelas</h2>
+      <p>Terkadang menulis beberapa baris membuat kode lebih mudah dipahami.</p>
     </div>
     <div id="panel-7" class="step-content">
-      <h2>Contoh Struktur Bersarang</h2>
-      <p>Kode yang diindent artinya bagian dari proses tertentu.</p>
+      <h2>Terlalu Singkat?</h2>
+      <p>Jika terlalu banyak nested, orang lain bisa bingung membacanya.</p>
     </div>
     <div id="panel-8" class="step-content">
-      <div class="typingBox-vscode" data-hint="print(&quot;Mulai belajar&quot;)&#10;print(&quot;  → print yang diindent artinya bagian dari proses&quot;)"></div>
-      <button class="run-button">Jalankan</button>
-      <pre class="output-box">// Hasil akan muncul di sini</pre>
+      <h2>Tips Membaca Kode</h2>
+      <p>Gunakan nama variabel yang jelas dan tambahkan komentar singkat.</p>
     </div>
     <div id="panel-9" class="step-content">
-      <h2>Buat Struktur Sendiri</h2>
-      <p>Cobalah membuat teks bertingkat seperti contoh.</p>
+      <h2>Menulis Komentar</h2>
+      <p>Gunakan <code>#</code> untuk komentar pendek dan tiga tanda kutip untuk komentar panjang.</p>
     </div>
     <div id="panel-10" class="step-content">
-      <div class="typingBox-vscode" data-hint="print(&quot;Halo&quot;)&#10;print(&quot;  → Nama saya Nina&quot;)&#10;print(&quot;  → Umur saya 10 tahun&quot;)"></div>
+      <pre><code># Ini komentar pendek
+'''
+Ini komentar panjang
+menjelaskan seluruh bagian kode
+'''
+print(&quot;Halo&quot;)</code></pre>
+    </div>
+    <div id="panel-11" class="step-content">
+      <div class="typingBox-vscode" data-hint="angka = 5&#10;# tulis komentarmu di sini&#10;print(angka)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
-    <div id="panel-11" class="step-content">
-      <h2>Ubah dan Lihat Hasil</h2>
-      <p>Ganti teks pada baris kedua atau ketiga lalu jalankan lagi.</p>
-    </div>
     <div id="panel-12" class="step-content">
-      <h2>Quiz</h2>
+      <h2>Quiz Part 1</h2>
       <ol>
-        <li>Apa gunanya indentasi?</li>
-        <li>Apa yang terjadi jika kita salah spasi?</li>
-        <li>Manakah yang nested, manakah yang tidak?</li>
+        <li>Apa itu nested constructions?</li>
+        <li>Mengapa kita menulis kode secara nested?</li>
+        <li>Berikan contoh nested yang baik.</li>
+        <li>Mengapa komentar penting?</li>
+        <li>Bagaimana menulis komentar di Python?</li>
+        <li>Apa pengaruh komentar bagi komputer?</li>
+        <li>Tips agar kode tetap mudah dibaca?</li>
       </ol>
     </div>
     <div id="panel-13" class="step-content">
-      <h2>Jawabanmu?</h2>
-      <p>Coba jawab pertanyaan tadi sebelum melanjutkan.</p>
+      <p>Catat jawabanmu di buku latihan lalu bandingkan dengan teman.</p>
     </div>
     <div id="panel-14" class="step-content">
-      <h2>Wrap-Up 🚀🧠</h2>
-      <p>Struktur bersarang berarti menyusun kode dalam kelompok. Setelah ini kamu akan belajar membuat program yang bisa memilih – masuk ke modul Control Structures!</p>
+      <h2>Quiz Coding 1</h2>
+      <div class="typingBox-vscode" data-hint="berat = input(&quot;Berat tas? &quot;)&#10;berat = input(&quot;Berat tas? &quot;)"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+      <p>Perbaiki agar hanya menulis input sekali dan langsung menjadi angka.</p>
+    </div>
+    <div id="panel-15" class="step-content">
+      <h2>Quiz Coding 2</h2>
+      <div class="typingBox-vscode" data-hint="total = 100000&#10;if total &gt; 50000:&#10;    cashback = 5000&#10;print(cashback)"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+      <p>Tambahkan komentar pendek yang menjelaskan kode di atas.</p>
+    </div>
+    <div id="panel-16" class="step-content">
+      <h2>Quiz Coding 3</h2>
+      <div class="typingBox-vscode" data-hint="angka = input(&quot;Masukkan angka: &quot;)&#10;hasil = angka + 5&#10;print(hasil)"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+      <p>Perbaiki agar program bekerja dan lebih singkat.</p>
+    </div>
+    <div id="panel-17" class="step-content">
+      <h2>Ringkasan</h2>
+      <p>Nested berarti menaruh perintah di dalam perintah agar kode lebih singkat namun tetap jelas. Komentar membantu siapa pun memahami kode.</p>
+    </div>
+    <div id="panel-18" class="step-content">
+      <p>Selanjutnya kita akan belajar membuat program yang bisa memilih: Control Structures! 💻🧱✍️</p>
     </div>
     <div class="nav-controls">
       <button onclick="prevPanel()">⟵ Sebelumnya</button>
@@ -217,7 +250,7 @@
 
 <script>
   let currentPanel = 1;
-  const totalPanels = 14;
+  const totalPanels = 18;
   function showPanel(n) {
     if (n < 1 || n > totalPanels) return;
     document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
