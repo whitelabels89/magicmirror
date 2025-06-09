@@ -2,6 +2,9 @@
 <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
 <script src="presetvs.js"></script>
 <style>
+  .typingBox-vscode {
+    overflow-anchor: none;
+  }
   body {
     font-family: 'Fredoka', sans-serif;
     margin: 0;
@@ -157,102 +160,214 @@
     <div id="panel-1" class="step-content">
       <h2>Apa itu Pernyataan Logika?</h2>
       <p>Pernyataan logika adalah ekspresi yang bisa bernilai <code>True</code> atau <code>False</code>.</p>
+      <p>Kadang kita bertanya hal yang jawabannya hanya "ya" atau "tidak". <br>
+      Dalam pemrograman, ini disebut pernyataan logika.<br>
+      Contoh:<br>
+      - Apakah lampu menyala? → Ya atau Tidak<br>
+      - Apakah 2 + 2 sama dengan 5? → Tidak (False)<br>
+      - Apakah kamu sudah sarapan hari ini? → Ya (True)</p>
     </div>
     <div id="panel-2" class="step-content">
       <h2>Tipe Data Boolean</h2>
       <p>Boolean hanya memiliki dua nilai: <code>True</code> dan <code>False</code>.</p>
-      <div class="typingBox-vscode" data-hint="is_hot = True\nprint(is_hot)"></div>
+      <div class="typingBox-vscode" data-hint="is_hot = True
+print(is_hot)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-3" class="step-content">
       <h2>Tipe Data Lainnya</h2>
       <p>Selain boolean, kita mengenal tipe <code>int</code>, <code>float</code>, dan <code>str</code>.</p>
-      <div class="typingBox-vscode" data-hint="umur = 12\npi = 3.14\nnama = 'Luna'\nprint(umur, pi, nama)"></div>
+      <div class="typingBox-vscode" data-hint="umur = 12
+pi = 3.14
+nama = 'Luna'
+print(umur, pi, nama)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-4" class="step-content">
       <h2>Perbandingan dan Matematika</h2>
-      <p>Operator perbandingan mengevaluasi hasil matematika.</p>
-      <div class="typingBox-vscode" data-hint="print(5 > 3)\nprint(2 + 2 == 4)"></div>
+      <p>Operator perbandingan mengevaluasi hasil matematika dan menghasilkan nilai boolean.</p>
+      <div class="typingBox-vscode" data-hint="print(5 > 3)
+print(2 + 2 == 4)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-5" class="step-content">
       <h2>Menyimpan Nilai Logika</h2>
-      <p>Kita dapat menyimpan hasil perbandingan ke variabel.</p>
-      <div class="typingBox-vscode" data-hint="lebih_besar = 7 > 5\nprint(lebih_besar)"></div>
+      <p>Kita dapat menyimpan hasil perbandingan ke variabel untuk digunakan kembali.</p>
+      <div class="typingBox-vscode" data-hint="lebih_besar = 7 > 5
+print(lebih_besar)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-6" class="step-content">
       <h2>Operator Perbandingan</h2>
-      <p>Gunakan <code>&gt;</code>, <code>&lt;</code>, <code>==</code>, <code>!=</code>, <code>&gt;=</code>, dan <code>&lt;=</code>.</p>
-      <div class="typingBox-vscode" data-hint="print(3 != 2)\nprint(4 <= 4)"></div>
+      <p>Gunakan <code>&gt;</code>, <code>&lt;</code>, <code>==</code>, <code>!=</code>, <code>&gt;=</code>, dan <code>&lt;=</code> untuk membandingkan nilai.</p>
+      <table style="margin-top: 1rem; border-collapse: collapse;">
+        <thead>
+          <tr>
+            <th style="border-bottom: 2px solid #ddd; padding: 4px 8px;">Symbol</th>
+            <th style="border-bottom: 2px solid #ddd; padding: 4px 8px;">Meaning</th>
+            <th style="border-bottom: 2px solid #ddd; padding: 4px 8px;">Example</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding: 4px 8px;">&gt;</td>
+            <td style="padding: 4px 8px;">Greater than</td>
+            <td style="padding: 4px 8px;">5 &gt; 2 → True</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 8px;">&lt;</td>
+            <td style="padding: 4px 8px;">Less than</td>
+            <td style="padding: 4px 8px;">3 &lt; 7 → True</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 8px;">==</td>
+            <td style="padding: 4px 8px;">Equal to</td>
+            <td style="padding: 4px 8px;">4 == 4 → True</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 8px;">!=</td>
+            <td style="padding: 4px 8px;">Not equal to</td>
+            <td style="padding: 4px 8px;">5 != 5 → False</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 8px;">&gt;=</td>
+            <td style="padding: 4px 8px;">Greater than or equal</td>
+            <td style="padding: 4px 8px;">5 &gt;= 5 → True</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 8px;">&lt;=</td>
+            <td style="padding: 4px 8px;">Less than or equal</td>
+            <td style="padding: 4px 8px;">4 &lt;= 3 → False</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="typingBox-vscode" data-hint="print(3 != 2)
+print(4 <= 4)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-7" class="step-content">
       <h2>Logika Gabungan: and, or</h2>
-      <p>Kita bisa menggabungkan beberapa perbandingan.</p>
-      <div class="typingBox-vscode" data-hint="print(True and False)\nprint(5 > 3 or 2 > 4)"></div>
+      <p>Kita bisa menggabungkan dua kondisi menggunakan <code>and</code> (dan) atau <code>or</code> (atau).</p>
+      <p>Contoh:</p>
+      <div class="typingBox-vscode" data-hint="cuaca_panas = True
+ada_matahari = False
+pergi_berenang = cuaca_panas and ada_matahari
+print(pergi_berenang)  # False"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+
+      <p>Contoh lain:</p>
+      <div class="typingBox-vscode" data-hint="pergi_ke_taman = cuaca_panas or ada_matahari
+print(pergi_ke_taman)  # True"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-8" class="step-content">
       <h2>Kesimpulan</h2>
-      <p>Pernyataan logika membantu kita memeriksa kondisi dalam program.</p>
+      <p>Pernyataan logika membantu kita memeriksa kondisi dalam program dan membuat keputusan.</p>
+      <ul>
+        <li>Nilai logika hanya bisa True atau False.</li>
+        <li>Kita bisa membandingkan hal menggunakan simbol seperti <code>==</code>, <code>></code>, <code>!=</code>.</li>
+        <li>Kita bisa menggabungkan ide dengan <code>and</code> atau <code>or</code>.</li>
+        <li>Semua ini membantu komputer membuat keputusan dalam program kita.</li>
+      </ul>
     </div>
     <div id="panel-9" class="step-content">
       <h2>Task di Platform</h2>
-      <p>Coba selesaikan latihan logika di platform pembelajaran.</p>
+      <p>Coba selesaikan latihan logika di platform pembelajaran untuk memperkuat pemahaman.</p>
     </div>
     <div id="panel-10" class="step-content">
       <h2>Apa itu Conditional Statements?</h2>
       <p>Conditional statements menjalankan kode berbeda berdasarkan kondisi tertentu.</p>
+      <p>Pernyataan kondisional itu seperti bertanya: <strong>"Jika ini benar, haruskah saya melakukan sesuatu?"</strong></p>
+      <ul>
+        <li>Komputer akan melakukan sesuatu hanya jika kondisinya <code>True</code>.</li>
+        <li>Atau melakukan hal lain jika kondisinya <code>False</code>.</li>
+      </ul>
     </div>
     <div id="panel-11" class="step-content">
       <h2>Perintah if dan else</h2>
-      <div class="typingBox-vscode" data-hint="angka = 7\nif angka > 5:\n    print('Besar')\nelse:\n    print('Kecil')"></div>
+      <div class="typingBox-vscode" data-hint="angka = 7
+if angka > 5:
+    print('Besar')
+else:
+    print('Kecil')"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-12" class="step-content">
       <h2>Contoh Rasa (Bakery)</h2>
-      <div class="typingBox-vscode" data-hint="rasa = 'coklat'\nif rasa == 'coklat':\n    print('Enak!')\nelse:\n    print('Coba lagi')"></div>
+      <div class="typingBox-vscode" data-hint="rasa = 'coklat'
+if rasa == 'coklat':
+    print('Enak!')
+else:
+    print('Coba lagi')"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-13" class="step-content">
       <h2>Contoh Hewan Favorit</h2>
-      <div class="typingBox-vscode" data-hint="hewan = 'kucing'\nif hewan == 'anjing':\n    print('Dog lover!')\nelse:\n    print('Bukan anjing')"></div>
+      <div class="typingBox-vscode" data-hint="hewan = 'kucing'
+if hewan == 'anjing':
+    print('Dog lover!')
+else:
+    print('Bukan anjing')"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-14" class="step-content">
       <h2>Contoh Cek Umur</h2>
-      <div class="typingBox-vscode" data-hint="umur = 18\nif umur >= 17:\n    print('Boleh SIM')\nelse:\n    print('Belum boleh')"></div>
+      <div class="typingBox-vscode" data-hint="umur = 18
+if umur >= 17:
+    print('Boleh SIM')
+else:
+    print('Belum boleh')"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-15" class="step-content">
       <h2>Contoh Tebak Angka</h2>
-      <div class="typingBox-vscode" data-hint="tebakan = 5\nif tebakan == 5:\n    print('Tepat!')\nelse:\n    print('Salah')"></div>
+      <div class="typingBox-vscode" data-hint="tebakan = 5
+if tebakan == 5:
+    print('Tepat!')
+else:
+    print('Salah')"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-16" class="step-content">
       <h2>Aturan Penting If-Else</h2>
       <p>Gunakan indentasi yang konsisten dan pastikan kondisi bernilai boolean.</p>
+      <ul>
+        <li>Gunakan <code>if</code> untuk memeriksa sesuatu.</li>
+        <li>Gunakan <code>else</code> jika kondisi <code>if</code> tidak terpenuhi.</li>
+        <li>Selalu akhiri <code>if</code> dan <code>else</code> dengan titik dua <code>:</code>.</li>
+        <li>Selalu gunakan indentasi (spasi masuk) 4 spasi untuk perintah di dalamnya.</li>
+      </ul>
     </div>
     <div id="panel-17" class="step-content">
       <h2>Kenapa Ini Penting?</h2>
       <p>Dengan if-else kita bisa membuat program yang responsif terhadap berbagai situasi.</p>
+      <ul>
+        <li>Membantu komputer mengambil keputusan.</li>
+        <li>Mengubah apa yang terjadi berdasarkan input pengguna.</li>
+        <li>Memberikan respons yang berbeda untuk jawaban yang berbeda.</li>
+      </ul>
     </div>
     <div id="panel-18" class="step-content">
       <h2>Kesimpulan Akhir</h2>
       <p>Conditional statements adalah dasar pembuatan alur logika program.</p>
+      <ul>
+        <li>Pernyataan kondisional memungkinkan komputer memilih apa yang harus dilakukan.</li>
+        <li>Kode hanya dijalankan jika kondisinya <code>True</code>.</li>
+        <li>Kita menggunakan <code>if</code> dan <code>else</code> untuk membuat pilihan.</li>
+        <li>Ingat: gunakan titik dua <code>:</code> dan indentasi 4 spasi!</li>
+      </ul>
     </div>
     <div id="panel-19" class="step-content">
       <h2>Task di Platform</h2>
@@ -322,6 +437,17 @@
     }
   });
   document.addEventListener('DOMContentLoaded', () => showPanel(1));
+</script>
+<script>
+  // Prevent scroll on space or character in typingBox-vscode
+  document.querySelectorAll('.typingBox-vscode').forEach(box => {
+    box.addEventListener('keydown', (e) => {
+      if (e.key === ' ' || e.code === 'Space') {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    });
+  });
 </script>
 <!-- Firebase and Whiteboard -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
