@@ -1,0 +1,258 @@
+<link rel="stylesheet" href="presetvs.css" />
+<script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+<script src="presetvs.js"></script>
+<style>
+  body {
+    font-family: 'Fredoka', sans-serif;
+    margin: 0;
+    background: #f0f7ff;
+    color: #333;
+  }
+  .header {
+    text-align: center;
+    padding: 20px;
+    background: #4f46e5;
+    color: #fff;
+  }
+  .header h1 {
+    margin-bottom: 10px;
+    font-size: 2.2rem;
+  }
+  .header p {
+    margin-bottom: 20px;
+  }
+  .progress-container {
+    margin-top: 20px;
+    width: 80%;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .progress-bar {
+    height: 12px;
+    background: #fff;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .progress {
+    width: 0%;
+    height: 100%;
+    background: #facc15;
+  }
+  .back-btn {
+    display: inline-block;
+    margin-top: 8px;
+    color: #fff;
+    background: #22c55e;
+    padding: 6px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  .container {
+    display: flex;
+    padding: 20px;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .sidebar {
+    flex: 1 1 180px;
+    max-width: 200px;
+    background: #fde68a;
+    padding: 20px;
+    border-radius: 20px;
+  }
+  .sidebar ul {
+    list-style: none;
+    padding: 0;
+  }
+  .sidebar li {
+    margin-bottom: 10px;
+    background: #fcd34d;
+    padding: 8px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .sidebar li.active {
+    background: #fbbf24;
+  }
+  .main {
+    flex: 3 1 300px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 20px;
+  }
+  .lab-column {
+    flex: 1 1 260px;
+    background: #111827;
+    padding: 20px;
+    border-radius: 20px;
+    color: #a7f3d0;
+    min-width: 260px;
+  }
+  .whiteboard-container {
+    margin-top: 1rem;
+    text-align: center;
+  }
+  #whiteboardCanvas {
+    border: 1px solid #ccc;
+    width: 100%;
+    height: 300px;
+    display: none;
+    touch-action: none;
+    background: #fff;
+  }
+  .step-content {
+    display: none;
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+  }
+  .step-content.active { display: block; }
+  .nav-controls { text-align: center; margin-top: 20px; }
+</style>
+
+<div class="header">
+  <h1>Modul 1 - Lesson 4: Nested Structure</h1>
+  <p>Simplifying Code with Nested Constructs</p>
+  <div class="progress-container">
+    <div class="progress-bar"><div class="progress" id="progressBar"></div></div>
+  </div>
+  <div style="margin-top:10px;">
+    <a href="/elearn/modul.html" class="back-btn">⟵ Kembali ke Modul</a>
+  </div>
+</div>
+
+<div class="container">
+  <div class="sidebar">
+    <ul id="lesson-nav">
+      <li data-step="1" class="active">1. Warm-Up</li>
+      <li data-step="3">2. Praktik</li>
+      <li data-step="6">3. Teori</li>
+      <li data-step="9">4. Eksperimen</li>
+      <li data-step="12">5. Quiz</li>
+      <li data-step="14">6. Wrap-Up</li>
+    </ul>
+  </div>
+  <div class="main">
+    <div id="panel-1" class="step-content">
+      <h2>Instruksi untuk Robot</h2>
+      <p>Bayangkan kamu ingin memberi 3 instruksi ke robot, dan robot harus melakukan semuanya berurutan dan terstruktur.</p>
+    </div>
+    <div id="panel-2" class="step-content">
+      <h2>Tulislah Dengan Rapi</h2>
+      <p>Apa yang terjadi kalau instruksi ditulis sembarangan?</p>
+    </div>
+    <div id="panel-3" class="step-content">
+      <h2>Ketik Beberapa Print</h2>
+      <p>Yuk tulis tiga baris print sederhana.</p>
+    </div>
+    <div id="panel-4" class="step-content">
+      <div class="typingBox-vscode" data-hint="print(&quot;Hari ini belajar Python&quot;)&#10;print(&quot;Belajar tentang struktur&quot;)&#10;print(&quot;Ayo kita mulai!&quot;)"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-5" class="step-content">
+      <h2>Kenapa Harus Rapih?</h2>
+      <p>Kalau banyak <code>print()</code>, kita perlu menulisnya terstruktur agar mudah dibaca.</p>
+    </div>
+    <div id="panel-6" class="step-content">
+      <h2>Indentasi Itu Penting</h2>
+      <p>Gunakan spasi atau tab untuk menandakan kode berada di dalam kelompok.</p>
+    </div>
+    <div id="panel-7" class="step-content">
+      <h2>Contoh Struktur Bersarang</h2>
+      <p>Kode yang diindent artinya bagian dari proses tertentu.</p>
+    </div>
+    <div id="panel-8" class="step-content">
+      <div class="typingBox-vscode" data-hint="print(&quot;Mulai belajar&quot;)&#10;print(&quot;  → print yang diindent artinya bagian dari proses&quot;)"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-9" class="step-content">
+      <h2>Buat Struktur Sendiri</h2>
+      <p>Cobalah membuat teks bertingkat seperti contoh.</p>
+    </div>
+    <div id="panel-10" class="step-content">
+      <div class="typingBox-vscode" data-hint="print(&quot;Halo&quot;)&#10;print(&quot;  → Nama saya Nina&quot;)&#10;print(&quot;  → Umur saya 10 tahun&quot;)"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-11" class="step-content">
+      <h2>Ubah dan Lihat Hasil</h2>
+      <p>Ganti teks pada baris kedua atau ketiga lalu jalankan lagi.</p>
+    </div>
+    <div id="panel-12" class="step-content">
+      <h2>Quiz</h2>
+      <ol>
+        <li>Apa gunanya indentasi?</li>
+        <li>Apa yang terjadi jika kita salah spasi?</li>
+        <li>Manakah yang nested, manakah yang tidak?</li>
+      </ol>
+    </div>
+    <div id="panel-13" class="step-content">
+      <h2>Jawabanmu?</h2>
+      <p>Coba jawab pertanyaan tadi sebelum melanjutkan.</p>
+    </div>
+    <div id="panel-14" class="step-content">
+      <h2>Wrap-Up 🚀🧠</h2>
+      <p>Struktur bersarang berarti menyusun kode dalam kelompok. Setelah ini kamu akan belajar membuat program yang bisa memilih – masuk ke modul Control Structures!</p>
+    </div>
+    <div class="nav-controls">
+      <button onclick="prevPanel()">⟵ Sebelumnya</button>
+      <span id="indicator"></span>
+      <button onclick="nextPanel()">Selanjutnya ⟶</button>
+    </div>
+  </div>
+  <div class="lab-column">
+    <div class="whiteboard-container">
+      <button id="toggleWhiteboard">Tampilkan Whiteboard</button>
+      <button id="clearWhiteboard">Clear</button>
+      <canvas id="whiteboardCanvas"></canvas>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentPanel = 1;
+  const totalPanels = 14;
+  function showPanel(n) {
+    if (n < 1 || n > totalPanels) return;
+    document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+    const panel = document.getElementById('panel-' + n);
+    if (panel) panel.classList.add('active');
+    currentPanel = n;
+    updateIndicator();
+  }
+  function nextPanel() { if (currentPanel < totalPanels) showPanel(currentPanel + 1); }
+  function prevPanel() { if (currentPanel > 1) showPanel(currentPanel - 1); }
+  function updateIndicator() { document.getElementById('indicator').textContent = 'Slide ' + currentPanel + ' / ' + totalPanels; }
+  document.getElementById('lesson-nav').addEventListener('click', function(e) {
+    if(e.target.matches('li[data-step]')) {
+      document.querySelectorAll('#lesson-nav li').forEach(li => li.classList.remove('active'));
+      e.target.classList.add('active');
+      showPanel(Number(e.target.getAttribute('data-step')));
+    }
+  });
+  document.addEventListener('DOMContentLoaded', () => showPanel(1));
+</script>
+<!-- Firebase and Whiteboard -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script src="whiteboard.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBVO4ajDwkbcTGL33SVMxIoev4veB8itgI",
+    authDomain: "queens-academy-icoding.firebaseapp.com",
+    projectId: "queens-academy-icoding",
+    storageBucket: "queens-academy-icoding.appspot.com",
+    messagingSenderId: "1048549258959",
+    appId: "1:1048549258959:web:f8dc1c104bb170d7ff69ba",
+  };
+  firebase.initializeApp(firebaseConfig);
+  window.kelasId = 'demo';
+  window.lessonId = 'M1L4';
+  initWhiteboard();
+</script>
