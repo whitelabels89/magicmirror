@@ -245,11 +245,14 @@ function prepareLab() {
   runBtn.addEventListener('click', async () => {
     await initPyodide();
     const code = document.getElementById('lab-code').value;
+    const outEl = document.getElementById('lab-output');
+    outEl.textContent = 'Menjalankan...';
     try {
-      const result = await window.pyodide.runPythonAsync(code);
-      document.getElementById('lab-output').textContent = result ?? '';
+      const script = `import sys, io\n_buffer = io.StringIO()\nsys.stdout = _buffer\nsys.stderr = _buffer\n${code}\nsys.stdout = sys.__stdout__\nsys.stderr = sys.__stderr__\n_buffer.getvalue()`;
+      const result = await window.pyodide.runPythonAsync(script);
+      outEl.textContent = result ?? '';
     } catch(e) {
-      document.getElementById('lab-output').textContent = e;
+      outEl.textContent = e;
     }
   });
   document.getElementById('lab-template').addEventListener('change', e => {

@@ -797,8 +797,13 @@ print(10 - 2)'>
 
     // Updated keydown logic for multi-line typing
     container.addEventListener('keydown', (e) => {
-      if (!container.classList.contains('active')) return;
       if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+      // Prevent page scrolling even if the box isn't active yet
+      if (!container.classList.contains('active')) {
+        e.preventDefault();
+        return;
+      }
 
       e.preventDefault();
 
