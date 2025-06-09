@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Petualangan Kody di Dunia Digital</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600&display=swap" rel="stylesheet">
+<style>
+  body {
+    margin: 0;
+    font-family: 'Baloo 2', cursive;
+    background: #f0f8ff;
+    color: #333;
+  }
+  h2 { font-size: 2em; text-align:center; }
+  p { font-size: 1.2em; }
+  .world { display:none; padding:20px; min-height:100vh; box-sizing:border-box; }
+  .active { display:block; animation:fadeIn 0.7s; }
+  @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
+  .nav-btn { display:block; margin:30px auto; padding:10px 20px; font-size:1.2em; background:#ffcc00; border:none; border-radius:8px; cursor:pointer; }
+  .tool-grid { display:flex; justify-content:space-around; flex-wrap:wrap; margin-top:20px; }
+  .tool-grid img { width:120px; cursor:pointer; margin:10px; }
+  #preview { border:1px solid #ccc; padding:20px; margin-top:20px; }
+  #grid { width:250px; height:250px; border:1px solid #333; margin:20px auto; position:relative; background-size:50px 50px; background-image:linear-gradient(#ccc 1px, transparent 1px), linear-gradient(90deg,#ccc 1px,transparent 1px); }
+  #robot { width:48px; height:48px; background:url('img/KODY.png') center/contain no-repeat; position:absolute; transition:0.3s; }
+  .controls button { margin:5px; padding:10px 15px; font-size:1em; }
+  #musicToggle { position:fixed; top:10px; right:10px; }
+</style>
+</head>
+<body>
+<button id="musicToggle" class="nav-btn" style="position:fixed;top:10px;right:10px;">Nyalakan Musik</button>
+<audio id="bgMusic" loop>
+  <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_848c0efd9f.mp3?filename=soft-breeze-121974.mp3" type="audio/mpeg">
+</audio>
+<section id="digital" class="world active">
+  <h2>Selamat Datang di Dunia Digital</h2>
+  <p>Kody butuh bantuan mengenali alat digital.</p>
+  <div class="tool-grid">
+    <img src="https://cdn-icons-png.flaticon.com/512/1231/1231893.png" alt="mouse" onclick="showInfo('Mouse adalah alat untuk menggerakkan pointer di layar komputer.')">
+    <img src="https://cdn-icons-png.flaticon.com/512/2621/2621098.png" alt="keyboard" onclick="showInfo('Keyboard digunakan untuk mengetik huruf dan angka.')">
+    <img src="https://cdn-icons-png.flaticon.com/512/3303/3303893.png" alt="monitor" onclick="showInfo('Monitor menampilkan gambar dari komputer.')">
+    <img src="https://cdn-icons-png.flaticon.com/512/214/214319.png" alt="tablet" onclick="showInfo('Tablet adalah komputer layar sentuh yang bisa dibawa ke mana saja.')">
+  </div>
+  <button class="nav-btn" onclick="nextSection(1)">Lanjut ke Dunia Berikutnya</button>
+</section>
+<section id="pythonia" class="world">
+  <h2>Kody Belajar Ngoding</h2>
+  <p>Kody ingin membuat lampunya menyala dengan kode Python.</p>
+  <textarea id="code" rows="4" style="width:100%;font-size:1.2em;">print(&quot;Halo Dunia&quot;)</textarea><br>
+  <button class="nav-btn" onclick="runCode()">Jalankan</button>
+  <pre id="output" style="background:#eee;padding:10px;margin-top:10px;min-height:40px;"></pre>
+  <button class="nav-btn" onclick="nextSection(2)">Lanjut ke Dunia Berikutnya</button>
+</section>
+<section id="webtopia" class="world">
+  <h2>Bikin Website Profil Kody</h2>
+  <p>Kody ingin punya halaman web.</p>
+  <input id="titleInput" type="text" placeholder="Judul H1" style="font-size:1.1em;margin:5px;"/>
+  <input id="paraInput" type="text" placeholder="Isi paragraf" style="font-size:1.1em;margin:5px;"/>
+  <input id="bgInput" type="color" value="#ffffff" style="margin:5px;"/>
+  <button class="nav-btn" onclick="updatePreview()">Tampilkan</button>
+  <div id="preview"></div>
+  <button class="nav-btn" onclick="nextSection(3)">Lanjut ke Dunia Berikutnya</button>
+</section>
+<section id="applandia" class="world">
+  <h2>Desain Aplikasi Bangun Tidur Kody</h2>
+  <p>Anak membuat tombol alarm.</p>
+  <input id="btnText" type="text" placeholder="Teks Tombol" style="font-size:1.1em;margin:5px;"/>
+  <input id="btnColor" type="color" value="#ff0000" style="margin:5px;"/>
+  <button class="nav-btn" onclick="createAlarm()">Buat Tombol</button>
+  <div id="alarmArea" style="margin-top:20px;"></div>
+  <button class="nav-btn" onclick="nextSection(4)">Lanjut ke Dunia Berikutnya</button>
+</section>
+<section id="robotron" class="world">
+  <h2>Program Robot Mini</h2>
+  <p>Kody harus keluar dari labirin.</p>
+  <div id="grid"><div id="robot"></div></div>
+  <div class="controls" style="text-align:center;">
+    <button onclick="move('kiri')">Kiri</button>
+    <button onclick="move('maju')">Maju</button>
+    <button onclick="move('kanan')">Kanan</button>
+  </div>
+  <p id="motivasi" style="text-align:center;font-size:1.5em;margin-top:20px;"></p>
+  <button id="downloadBtn" class="nav-btn" style="display:none;" onclick="downloadCert()">Download Sertifikat</button>
+</section>
+<script>
+let current=1;
+function nextSection(n){
+  document.getElementById(sectionId(n)).classList.remove('active');
+  current=n+1;
+  const next=document.getElementById(sectionId(current));
+  if(next){ next.classList.add('active'); window.scrollTo(0,0); }
+}
+function sectionId(i){
+  return ['digital','pythonia','webtopia','applandia','robotron'][i-1];
+}
+function showInfo(text){ alert(text); }
+function runCode(){
+  const code=document.getElementById('code').value.trim();
+  const out=document.getElementById('output');
+  if(code==="print('Halo Dunia')"||code==="print(\"Halo Dunia\")"){
+    out.textContent='Halo Dunia';
+  }else{
+    out.textContent='Coba lagi!';
+  }
+}
+function updatePreview(){
+  const h=document.getElementById('titleInput').value;
+  const p=document.getElementById('paraInput').value;
+  const bg=document.getElementById('bgInput').value;
+  const preview=document.getElementById('preview');
+  preview.style.backgroundColor=bg;
+  preview.innerHTML=`<h1>${h}</h1><p>${p}</p>`;
+}
+function createAlarm(){
+  const txt=document.getElementById('btnText').value||'Alarm';
+  const clr=document.getElementById('btnColor').value;
+  const area=document.getElementById('alarmArea');
+  area.innerHTML='';
+  const b=document.createElement('button');
+  b.textContent=txt;
+  b.style.backgroundColor=clr;
+  b.style.padding='10px 20px';
+  b.style.fontSize='1.2em';
+  b.onclick=()=>{alert('Beep beep! Saatnya bangun!');};
+  area.appendChild(b);
+}
+let row=0,col=0;
+function updateRobot(){
+  const robot=document.getElementById('robot');
+  robot.style.left=col*50+'px';
+  robot.style.top=row*50+'px';
+  if(row===4&&col===4){
+    document.getElementById('motivasi').textContent='Kamu Hebat! Dunia Digital Selamat Berkat Kamu!';
+    document.getElementById('downloadBtn').style.display='block';
+  }
+}
+function move(dir){
+  if(dir==='maju' && row<4) row++;
+  if(dir==='kanan' && col<4) col++;
+  if(dir==='kiri' && col>0) col--;
+  updateRobot();
+}
+updateRobot();
+function downloadCert(){
+  const link=document.createElement('a');
+  link.href='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/5cAAwMBg+3VmgAAAABJRU5ErkJggg==';
+  link.download='sertifikat.png';
+  link.click();
+}
+function toggleMusic(){
+  const audio=document.getElementById('bgMusic');
+  const btn=document.getElementById('musicToggle');
+  if(audio.paused){ audio.play(); btn.textContent='Matikan Musik'; }
+  else{ audio.pause(); btn.textContent='Nyalakan Musik'; }
+}
+document.getElementById('musicToggle').onclick=toggleMusic;
+</script>
+</body>
+</html>
