@@ -1,0 +1,304 @@
+<link rel="stylesheet" href="presetvs.css" />
+<script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+<script src="presetvs.js"></script>
+<style>
+  body {
+    font-family: 'Fredoka', sans-serif;
+    margin: 0;
+    background: #f0f7ff;
+    color: #333;
+  }
+  .header {
+    text-align: center;
+    padding: 20px;
+    background: #4f46e5;
+    color: #fff;
+  }
+  .header h1 {
+    margin-bottom: 10px;
+    font-size: 2.2rem;
+  }
+  .header p {
+    margin-bottom: 20px;
+  }
+  .progress-container {
+    margin-top: 20px;
+    width: 80%;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .progress-bar {
+    height: 12px;
+    background: #fff;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .progress {
+    width: 0%;
+    height: 100%;
+    background: #facc15;
+  }
+  .back-btn {
+    display: inline-block;
+    margin-top: 8px;
+    color: #fff;
+    background: #22c55e;
+    padding: 6px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  .container {
+    display: flex;
+    padding: 20px;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .sidebar {
+    flex: 1 1 180px;
+    max-width: 200px;
+    background: #fde68a;
+    padding: 20px;
+    border-radius: 20px;
+  }
+  .sidebar ul {
+    list-style: none;
+    padding: 0;
+  }
+  .sidebar li {
+    margin-bottom: 10px;
+    background: #fcd34d;
+    padding: 8px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .sidebar li.active {
+    background: #fbbf24;
+  }
+  .main {
+    flex: 3 1 300px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 20px;
+  }
+  .lab-column {
+    flex: 1 1 260px;
+    background: #111827;
+    padding: 20px;
+    border-radius: 20px;
+    color: #a7f3d0;
+    min-width: 260px;
+  }
+  .whiteboard-container {
+    margin-top: 1rem;
+    text-align: center;
+  }
+  #whiteboardCanvas {
+    border: 1px solid #ccc;
+    width: 100%;
+    height: 300px;
+    display: none;
+    touch-action: none;
+    background: #fff;
+  }
+  .step-content {
+    display: none;
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+  }
+  .step-content.active { display: block; }
+  .nav-controls { text-align: center; margin-top: 20px; }
+</style>
+
+<div class="header">
+  <h1>Modul 2 - Lesson 3: Loops</h1>
+  <p>Memahami perulangan menggunakan while dan counter</p>
+  <div class="progress-container">
+    <div class="progress-bar"><div class="progress" id="progressBar"></div></div>
+  </div>
+  <div style="margin-top:10px;">
+    <a href="/elearn/modul.html" class="back-btn">⟵ Kembali ke Modul</a>
+  </div>
+</div>
+
+<div class="container">
+  <div class="sidebar">
+    <ul id="lesson-nav">
+      <li data-step="1" class="active">1. Apa itu Loop?</li>
+      <li data-step="2">2. Apa Arti while?</li>
+      <li data-step="3">3. Contoh Loop</li>
+      <li data-step="4">4. Menjumlahkan Harga</li>
+      <li data-step="5">5. Kesimpulan Loop</li>
+      <li data-step="6">6. Task: Harga</li>
+      <li data-step="7">7. Apa itu Counter?</li>
+      <li data-step="8">8. Counter: Kode Promo</li>
+      <li data-step="9">9. Kesimpulan Counter</li>
+      <li data-step="10">10. Task Counter</li>
+      <li data-step="11">11. Quiz Part 1</li>
+      <li data-step="12">12. Q&A</li>
+      <li data-step="13">13. Terima Kasih</li>
+    </ul>
+  </div>
+  <div class="main">
+    <div id="panel-1" class="step-content">
+      <h2>Apa itu Loop?</h2>
+      <p>Loop adalah cara menjalankan kode berulang kali hingga kondisi tertentu terpenuhi.</p>
+    </div>
+    <div id="panel-2" class="step-content">
+      <h2>Apa Arti while?</h2>
+      <p>while berarti "selama". Program akan terus mengulang blok kode selama kondisinya bernilai <code>True</code>.</p>
+    </div>
+    <div id="panel-3" class="step-content">
+      <h2>Contoh Loop: Terima Kasih Feedback</h2>
+      <div class="typingBox-vscode" data-hint="feedback = ''
+while feedback != 'off':
+    feedback = input('Kritikmu? ')
+    print('Terima kasih!')"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-4" class="step-content">
+      <h2>Loop Menjumlahkan Harga</h2>
+      <div class="typingBox-vscode" data-hint="total = 0
+harga = 10000
+jumlah = 3
+while jumlah > 0:
+    total += harga
+    jumlah -= 1
+print(total)"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-5" class="step-content">
+      <h2>Kesimpulan Loop & Harga</h2>
+      <p>Dengan loop kita bisa menambahkan harga berkali-kali tanpa menulis kode berulang.</p>
+    </div>
+    <div id="panel-6" class="step-content">
+      <h2>Task di Platform</h2>
+      <p>Coba kerjakan latihan loop menghitung total harga di platform pembelajaran.</p>
+    </div>
+    <div id="panel-7" class="step-content">
+      <h2>Apa itu Counter?</h2>
+      <p>Counter adalah variabel yang bertambah setiap kali loop berjalan untuk menghitung jumlah perulangan.</p>
+    </div>
+    <div id="panel-8" class="step-content">
+      <h2>Contoh Counter: Kode Promo</h2>
+      <div class="typingBox-vscode" data-hint="kode = 'PY'
+masukan = ''
+percobaan = 0
+while masukan != kode:
+    masukan = input('Masukkan kode: ')
+    percobaan += 1
+print('Berhasil dalam', percobaan, 'kali')"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-9" class="step-content">
+      <h2>Kesimpulan Counter & Loop</h2>
+      <p>Counter membantu kita mengetahui berapa kali sebuah loop sudah dijalankan.</p>
+    </div>
+    <div id="panel-10" class="step-content">
+      <h2>Task di Platform</h2>
+      <p>Latih kemampuanmu dengan soal tentang counter pada platform pembelajaran.</p>
+    </div>
+    <div id="panel-11" class="step-content">
+      <h2>Quiz Part 1</h2>
+      <ol>
+        <li>Apa kegunaan loop dalam program?
+          <ul>
+            <li>a) Menyimpan data</li>
+            <li>b) Menjalankan kode berulang kali ✅</li>
+            <li>c) Menghentikan program</li>
+            <li>d) Membuat variabel</li>
+          </ul>
+        </li>
+        <li>Apa arti kata <code>while</code>?</li>
+        <li>Bagaimana cara keluar dari loop <code>while</code>?</li>
+        <li>Apa fungsi counter?</li>
+        <li>Berapa hasil dari kode jika jumlah = 5 dan harga = 2?</li>
+        <li>Kapan loop berhenti pada contoh kode promo?</li>
+        <li>Bagaimana menambah nilai counter?</li>
+        <li>Mengapa penting mengecek kondisi di dalam loop?</li>
+        <li>Contoh input untuk menghentikan loop feedback?</li>
+        <li>Jenis loop apa yang kita pakai di lesson ini?</li>
+      </ol>
+    </div>
+    <div id="panel-12" class="step-content">
+      <h2>Q&A</h2>
+      <p>Tulis pertanyaanmu dan diskusikan bersama mentor.</p>
+    </div>
+    <div id="panel-13" class="step-content">
+      <h2>Terima Kasih</h2>
+      <p>Sampai jumpa di lesson berikutnya!</p>
+    </div>
+    <div class="nav-controls">
+      <button onclick="prevPanel()">⟵ Sebelumnya</button>
+      <span id="indicator"></span>
+      <button onclick="nextPanel()">Selanjutnya ⟶</button>
+    </div>
+  </div>
+  <div class="lab-column">
+    <div class="whiteboard-container">
+      <button id="toggleWhiteboard">Tampilkan Whiteboard</button>
+      <button id="clearWhiteboard">Clear</button>
+      <canvas id="whiteboardCanvas"></canvas>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentPanel = 1;
+  const totalPanels = 13;
+  function showPanel(n) {
+    if (n < 1 || n > totalPanels) return;
+    document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+    const panel = document.getElementById('panel-' + n);
+    if (panel) panel.classList.add('active');
+    currentPanel = n;
+    updateIndicator();
+  }
+  function nextPanel() { if (currentPanel < totalPanels) showPanel(currentPanel + 1); }
+  function prevPanel() { if (currentPanel > 1) showPanel(currentPanel - 1); }
+  function updateIndicator() { document.getElementById('indicator').textContent = 'Slide ' + currentPanel + ' / ' + totalPanels; }
+  document.getElementById('lesson-nav').addEventListener('click', function(e) {
+    if(e.target.matches('li[data-step]')) {
+      document.querySelectorAll('#lesson-nav li').forEach(li => li.classList.remove('active'));
+      e.target.classList.add('active');
+      showPanel(Number(e.target.getAttribute('data-step')));
+    }
+  });
+  document.addEventListener('DOMContentLoaded', () => showPanel(1));
+</script>
+<script>
+  // Prevent scroll on space or character in typingBox-vscode
+  document.querySelectorAll('.typingBox-vscode').forEach(box => {
+    box.addEventListener('keydown', (e) => {
+      if (e.key === ' ' || e.code === 'Space') {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    });
+  });
+</script>
+<!-- Firebase and Whiteboard -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script src="whiteboard.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBVO4ajDwkbcTGL33SVMxIoev4veB8itgI",
+    authDomain: "queens-academy-icoding.firebaseapp.com",
+    projectId: "queens-academy-icoding",
+    storageBucket: "queens-academy-icoding.appspot.com",
+    messagingSenderId: "1048549258959",
+    appId: "1:1048549258959:web:f8dc1c104bb170d7ff69ba",
+  };
+  firebase.initializeApp(firebaseConfig);
+  window.kelasId = 'demo';
+  window.lessonId = 'M2L3';
+  initWhiteboard();
+</script>
