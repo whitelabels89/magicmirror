@@ -21,26 +21,26 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 router.post('/api/upload-modul', upload.fields([
-  { name: 'materi_pdf', maxCount: 1 },
-  { name: 'contoh_pdf', maxCount: 1 },
-  { name: 'soal_pdf', maxCount: 1 }
+  { name: 'materi_pdf', maxCount: 1 }, // materi + example
+  { name: 'soal_pdf', maxCount: 1 },   // question
+  { name: 'contoh_pdf', maxCount: 1 }  // answer
 ]), (req, res) => {
   const { modul_name, lesson_name, lesson_id } = req.body;
   if(!modul_name || !lesson_name || !lesson_id){
     return res.status(400).send('Data tidak lengkap');
   }
-  if(!req.files || !req.files.materi_pdf || !req.files.contoh_pdf || !req.files.soal_pdf){
+  if(!req.files || !req.files.materi_pdf || !req.files.soal_pdf || !req.files.contoh_pdf){
     return res.status(400).send('File belum lengkap');
   }
   const materiPath = req.files['materi_pdf'][0].path;
-  const contohPath = req.files['contoh_pdf'][0].path;
   const soalPath = req.files['soal_pdf'][0].path;
+  const answerPath = req.files['contoh_pdf'][0].path;
 
   const py = path.join(__dirname, '..', 'parse_pdf_to_json.py');
-  execFile('python3', [py, materiPath, contohPath, soalPath, lesson_id, lesson_name], { maxBuffer: 1024*500 }, (err, stdout, stderr) => {
+  execFile('python3', [py, materiPath, soalPath, answerPath, lesson_id, lesson_name], { maxBuffer: 1024*500 }, (err, stdout, stderr) => {
     if (err) {
-      console.error(stderr);
-      return res.status(500).send('Gagal memproses PDF');
+      console.error('Python error:', stderr || err);
+      return res.status(500).send('Gagal memproses PDF: ' + (stderr || err.message));
     }
     let data;
     try {
