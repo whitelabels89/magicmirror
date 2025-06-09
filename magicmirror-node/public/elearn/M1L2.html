@@ -115,8 +115,8 @@
 </style>
 
 <div class="header">
-  <h1>Modul 1 - Lesson 2: Variabel</h1>
-  <p>Memahami Variabel dengan cara seru</p>
+  <h1>Modul 1 - Lesson 2: Variabel &amp; Input</h1>
+  <p>Memahami variabel serta cara mengambil data dari pengguna</p>
   <div class="progress-container">
     <div class="progress-bar"><div class="progress" id="progressBar"></div></div>
   </div>
@@ -129,25 +129,27 @@
   <div class="sidebar">
     <ul id="lesson-nav">
       <li data-step="1" class="active">1. Warm-Up</li>
-      <li data-step="3">2. Praktik Pertama</li>
-      <li data-step="6">3. Teori Tipe Data</li>
-      <li data-step="10">4. Eksperimen</li>
-      <li data-step="13">5. Quiz</li>
-      <li data-step="15">6. Wrap-Up</li>
+      <li data-step="3">2. Praktik</li>
+      <li data-step="6">3. Teori</li>
+      <li data-step="9">4. Eksperimen</li>
+      <li data-step="11">5. Quiz 1</li>
+      <li data-step="14">6. Input</li>
+      <li data-step="18">7. Quiz 2</li>
+      <li data-step="21">8. Wrap-Up</li>
     </ul>
   </div>
   <div class="main">
     <div id="panel-1" class="step-content">
-      <h2>Kotak Rahasia</h2>
-      <p>Bayangkan kamu punya kotak rahasia. Kamu bisa memasukkan angka, nama, atau benda ke dalamnya.</p>
+      <h2>Variabel itu Kotak Ajaib</h2>
+      <p>Variabel seperti kotak yang bisa menyimpan data apa saja.</p>
     </div>
     <div id="panel-2" class="step-content">
-      <h2>Apa itu Variabel?</h2>
-      <p>Di Python, kotak ajaib itu disebut <em>variabel</em>. Ia menyimpan apa pun yang kamu masukkan.</p>
+      <h2>Bisa Isi Apa Saja</h2>
+      <p>Angka, teks, dan data lain bisa dimasukkan ke dalam variabel.</p>
     </div>
     <div id="panel-3" class="step-content">
-      <h2>Membuat Variabel Pertama</h2>
-      <p>Yuk coba menulis kode sederhana.</p>
+      <h2>Praktik: Membuat Variabel</h2>
+      <p>Ketik kode di bawah ini.</p>
     </div>
     <div id="panel-4" class="step-content">
       <div class="typingBox-vscode" data-hint="nama = &quot;Nina&quot;&#10;umur = 10&#10;print(nama)&#10;print(umur)"></div>
@@ -155,16 +157,16 @@
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-5" class="step-content">
-      <h2>Apa Arti Tanda = ?</h2>
-      <p>Tanda sama dengan berarti kita menyimpan nilai ke dalam variabel.</p>
+      <h2>Tanda Sama Dengan</h2>
+      <p>Tanda <code>=</code> berarti kita menyimpan nilai ke variabel.</p>
     </div>
     <div id="panel-6" class="step-content">
-      <h2>Jenis Isi Kotak</h2>
-      <p>Variabel bisa berisi teks, angka bulat, atau angka desimal.</p>
+      <h2>Kenali Tipe Data</h2>
+      <p>Variabel memiliki tipe data yang berbeda.</p>
     </div>
     <div id="panel-7" class="step-content">
-      <h2>Nama Tipe Data</h2>
-      <p>Teks disebut <code>str</code>, angka bulat <code>int</code>, dan angka desimal <code>float</code>.</p>
+      <h2>Tipe Data Umum</h2>
+      <p><code>int</code> = angka bulat, <code>float</code> = angka desimal, <code>str</code> = teks.</p>
     </div>
     <div id="panel-8" class="step-content">
       <div class="typingBox-vscode" data-hint="tinggi = 135.5&#10;print(tinggi)"></div>
@@ -172,40 +174,88 @@
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-9" class="step-content">
-      <h2>Pilih Nama yang Jelas</h2>
-      <p>Gunakan nama variabel yang mudah dibaca agar tidak membingungkan.</p>
+      <h2>Mengubah Nilai</h2>
+      <p>Kita bisa mengganti isi variabel kapan saja.</p>
     </div>
     <div id="panel-10" class="step-content">
-      <h2>Ubah Isi Variabel</h2>
-      <p>Coba ganti isi variabel dan lihat hasilnya.</p>
-    </div>
-    <div id="panel-11" class="step-content">
       <div class="typingBox-vscode" data-hint="buah = &quot;Apel&quot;&#10;print(buah)&#10;buah = &quot;Jeruk&quot;&#10;print(buah)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
+    <div id="panel-11" class="step-content">
+      <h2>Quiz: Apa Itu Variabel?</h2>
+      <p>Pilih jawaban yang benar:</p>
+      <ul>
+        <li>a) Sebuah angka acak</li>
+        <li>b) Tempat menyimpan game</li>
+        <li>c) Nama yang menyimpan data ✅</li>
+      </ul>
+    </div>
     <div id="panel-12" class="step-content">
-      <h2>Bisa Berubah-ubah</h2>
-      <p>Lihat? Isi variabel bisa berubah kapan saja sesuai perintahmu.</p>
+      <h2>Quiz: Nama Variabel</h2>
+      <p>Manakah contoh nama variabel yang baik?</p>
+      <ul>
+        <li>a) 123toy</li>
+        <li>b) toy_price ✅</li>
+        <li>c) harga-mainan!</li>
+      </ul>
     </div>
     <div id="panel-13" class="step-content">
-      <h2>Quiz: Apa Hasilnya?</h2>
-      <pre><code>warna = "Biru"
-warna = "Merah"
-print(warna)</code></pre>
-    </div>
-    <div id="panel-14" class="step-content">
-      <h2>Pilih Jawaban Benar</h2>
+      <h2>Quiz Lanjutan</h2>
       <ol>
-        <li>Apa isi variabel <code>warna</code> yang dicetak?</li>
-        <ul><li>a) Biru</li><li>b) Merah ✅</li></ul>
-        <li>Manakah pernyataan benar tentang variabel?</li>
-        <ul><li>a) Tidak bisa diubah</li><li>b) Harus huruf besar</li><li>c) Menyimpan nilai yang bisa digunakan lagi ✅</li></ul>
+        <li>Cocokkan tipe data:<br>a) String → "Hello"<br>b) Int → 10<br>c) Float → 7.5</li>
+        <li>Urutan membuat variabel: (1) Buat variabel (2) Set nilai (3) Cetak variabel</li>
+        <li>Isian singkat: apa beda string dan integer?</li>
       </ol>
     </div>
+    <div id="panel-14" class="step-content">
+      <h2>Mengenal input()</h2>
+      <p>Fungsi <code>input()</code> meminta data dari pengguna.</p>
+    </div>
     <div id="panel-15" class="step-content">
+      <div class="typingBox-vscode" data-hint="nama = input(&quot;Siapa namamu? &quot;)&#10;print(&quot;Halo, &quot; + nama)"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-16" class="step-content">
+      <h2>Semua Input Berupa String</h2>
+      <p>Kita bisa mengubahnya menjadi angka dengan <code>int()</code>.</p>
+    </div>
+    <div id="panel-17" class="step-content">
+      <div class="typingBox-vscode" data-hint="umur = int(input(&quot;Berapa umurmu? &quot;))&#10;print(umur * 2)"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-18" class="step-content">
+      <h2>Quiz Part 2</h2>
+      <p>Kerjakan soal pemrograman berikut:</p>
+      <ol>
+        <li>Hitung total tour guide di Paris &amp; Rome.</li>
+        <li>Hitung total snack untuk 8 tamu × 2.</li>
+        <li>Hitung total harga notebook.</li>
+        <li>Rata-rata umur 2 siswa.</li>
+      </ol>
+    </div>
+    <div id="panel-19" class="step-content">
+      <h2>Quiz Program dengan Input</h2>
+      <ol>
+        <li>Minta nama pengguna lalu sapa dengan <code>print()</code>.</li>
+        <li>Hitung total harga tiket anak: harga × jumlah.</li>
+        <li>Kurangi harga tiket dengan poin loyalti.</li>
+        <li>Jumlah pengunjung 5 cabang.</li>
+      </ol>
+    </div>
+    <div id="panel-20" class="step-content">
+      <h2>Kerjakan di Editor</h2>
+      <p>Tulis kode jawabanmu di editor favorit dan jalankan.</p>
+    </div>
+    <div id="panel-21" class="step-content">
       <h2>Wrap-Up</h2>
-      <p>Variabel itu seperti kotak ajaib. Gunakan tanda <code>=</code> untuk menyimpan dan cetak dengan <code>print()</code>. Lesson berikutnya kita belajar bermain dengan teks. Sekarang kamu punya kotak sakti di Python!</p>
+      <p>Variabel bisa menyimpan teks atau angka. <code>input()</code> mengambil data dari user dan <code>int()</code> mengubah teks menjadi angka.</p>
+    </div>
+    <div id="panel-22" class="step-content">
+      <h2>Sampai Jumpa!</h2>
+      <p>Kita akan bermain dengan teks di lesson berikutnya. Semangat belajar! 🎈🎉</p>
     </div>
     <div class="nav-controls">
       <button onclick="prevPanel()">⟵ Sebelumnya</button>
@@ -224,7 +274,7 @@ print(warna)</code></pre>
 
 <script>
   let currentPanel = 1;
-  const totalPanels = 15;
+  const totalPanels = 22;
   function showPanel(n) {
     if (n < 1 || n > totalPanels) return;
     document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
