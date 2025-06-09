@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Petualangan Kody di Dunia Digital</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  body {font-family:'Baloo 2', sans-serif;margin:0;font-size:20px;line-height:1.4;background:#f8f8f8;}
+  section{display:none;padding:20px;height:100vh;box-sizing:border-box;position:relative;}
+  section.active{display:block;animation:fade 0.5s;}
+  h2{margin-top:0;}
+  button{font-size:18px;padding:10px 20px;border:none;border-radius:8px;background:#ffcc00;cursor:pointer;}
+  .next{position:absolute;bottom:20px;right:20px;}
+  .device{display:inline-block;width:120px;margin:10px;cursor:pointer;}
+  .preview{border:1px solid #ccc;padding:10px;margin-top:10px;min-height:100px;}
+  .grid{display:grid;grid-template-columns:repeat(5,60px);grid-template-rows:repeat(5,60px);gap:2px;margin-bottom:10px;}
+  .cell{width:60px;height:60px;border:1px solid #ccc;background:#fff;}
+  .robot{background:#4caf50;}
+  @keyframes fade{from{opacity:0;}to{opacity:1;}}
+  .toggle-music{position:fixed;top:10px;right:10px;z-index:10;}
+</style>
+</head>
+<body>
+<button class="toggle-music">🔊 Musik</button>
+<section id="s1" class="active">
+  <h2>Selamat Datang di Dunia Digital</h2>
+  <p>Kody butuh bantuan mengenali alat digital.</p>
+  <div id="devices"></div>
+  <button class="next" onclick="next(1)">Lanjut ke Dunia Berikutnya</button>
+</section>
+<section id="s2">
+  <h2>Kody Belajar Ngoding</h2>
+  <p>Kody ingin membuat lampunya menyala dengan kode Python.</p>
+  <textarea id="pyin" rows="4" cols="40"></textarea><br>
+  <button onclick="runCode()">Jalankan</button>
+  <pre id="pyout"></pre>
+  <button class="next" onclick="next(2)">Lanjut ke Dunia Berikutnya</button>
+</section>
+<section id="s3">
+  <h2>Bikin Website Profil Kody</h2>
+  <p>Kody ingin punya halaman web.</p>
+  <label>Judul (h1): <input id="wtitle"></label><br>
+  <label>Paragraf: <input id="wpara"></label><br>
+  <label>Warna Latar: <input type="color" id="wbg" value="#ffffff"></label><br>
+  <button onclick="updatePreview()">Tampilkan</button>
+  <div id="preview" class="preview"></div>
+  <button class="next" onclick="next(3)">Lanjut ke Dunia Berikutnya</button>
+</section>
+<section id="s4">
+  <h2>Desain Aplikasi Bangun Tidur Kody</h2>
+  <p>Anak membuat tombol alarm.</p>
+  <label>Teks Tombol: <input id="atext"></label><br>
+  <label>Warna Tombol: <input type="color" id="acolor" value="#ff0000"></label><br>
+  <button onclick="createAlarm()">Buat Tombol Alarm</button>
+  <div id="alarm"></div>
+  <button class="next" onclick="next(4)">Lanjut ke Dunia Berikutnya</button>
+</section>
+<section id="s5">
+  <h2>Program Robot Mini</h2>
+  <p>Kody harus keluar dari labirin.</p>
+  <div class="grid" id="grid"></div>
+  <div>
+    <button onclick="move('forward')">Maju</button>
+    <button onclick="move('left')">Kiri</button>
+    <button onclick="move('right')">Kanan</button>
+  </div>
+  <p id="final" style="display:none;font-size:24px;font-weight:bold;">Kamu Hebat! Dunia Digital Selamat Berkat Kamu!</p>
+  <a id="cert" href="" download="sertifikat.png" style="display:none;">Download Sertifikat</a>
+</section>
+<script>
+const sections=document.querySelectorAll('section');
+function next(i){sections[i-1].classList.remove('active');sections[i].classList.add('active');}
+// Section1 devices
+const devices=[
+  {name:'Mouse',desc:'Alat untuk menggerakkan pointer.',svg:`<svg width="100" height="120" viewBox="0 0 100 120"><rect x="30" y="10" width="40" height="100" rx="20" fill="#ddd" stroke="#555"/><line x1="50" y1="10" x2="50" y2="60" stroke="#555"/></svg>`},
+  {name:'Keyboard',desc:'Alat untuk mengetik.',svg:`<svg width="120" height="60" viewBox="0 0 120 60"><rect width="120" height="60" rx="5" fill="#eee" stroke="#555"/><g fill="#ccc">${Array(12).fill('<rect width="8" height="8" x="5" y="5" rx="1"></rect>').join('')}</g></svg>`},
+  {name:'Monitor',desc:'Menampilkan informasi dari komputer.',svg:`<svg width="120" height="90" viewBox="0 0 120 90"><rect width="100" height="60" x="10" y="10" fill="#222" stroke="#555"/><rect width="60" height="10" x="30" y="70" fill="#555"/><rect width="40" height="10" x="40" y="80" fill="#777"/></svg>`},
+  {name:'Tablet',desc:'Komputer layar sentuh portabel.',svg:`<svg width="80" height="120" viewBox="0 0 80 120"><rect width="80" height="120" rx="10" fill="#222" stroke="#555"/><rect width="60" height="90" x="10" y="10" fill="#fff"/><circle cx="40" cy="110" r="3" fill="#555"/></svg>`}
+];
+const devDiv=document.getElementById('devices');
+devices.forEach(d=>{const div=document.createElement('div');div.className='device';div.innerHTML=d.svg;div.onclick=()=>alert(d.name+': '+d.desc);devDiv.appendChild(div);});
+// Section2 python
+function runCode(){const v=document.getElementById('pyin').value.trim();const out=document.getElementById('pyout');if(v==="print(\"Halo Dunia\")"||v==="print('Halo Dunia')"){out.textContent='Halo Dunia';}else{out.textContent='Coba ketik print("Halo Dunia")';}}
+// Section3 web
+function updatePreview(){const t=document.getElementById('wtitle').value;const p=document.getElementById('wpara').value;const bg=document.getElementById('wbg').value;document.getElementById('preview').innerHTML=`<div style="background:${bg};padding:10px"><h1>${t}</h1><p>${p}</p></div>`;}
+// Section4 app
+function createAlarm(){const txt=document.getElementById('atext').value||'Alarm!';const col=document.getElementById('acolor').value;const btn=document.createElement('button');btn.textContent=txt;btn.style.background=col;btn.onclick=()=>{btn.style.transform='scale(1.2)';setTimeout(()=>btn.style.transform='scale(1)',300);alert('Bangun!');};const area=document.getElementById('alarm');area.innerHTML='';area.appendChild(btn);}
+// Section5 robot
+let pos={x:0,y:4};
+function initGrid(){const g=document.getElementById('grid');for(let i=0;i<25;i++){const c=document.createElement('div');c.className='cell';g.appendChild(c);}updateRobot();}
+function updateRobot(){const cells=document.querySelectorAll('#grid .cell');cells.forEach(c=>c.classList.remove('robot'));const idx=pos.y*5+pos.x;if(cells[idx])cells[idx].classList.add('robot');if(pos.x===4&&pos.y===0){document.getElementById('final').style.display='block';document.getElementById('cert').style.display='inline-block';}}
+function move(dir){if(dir==='forward'&&pos.y>0)pos.y--;if(dir==='left'&&pos.x>0)pos.x--;if(dir==='right'&&pos.x<4)pos.x++;updateRobot();}
+initGrid();
+// music
+let ctx,osc,playing=false;document.querySelector('.toggle-music').onclick=()=>{if(!playing){ctx=new(window.AudioContext||window.webkitAudioContext)();osc=ctx.createOscillator();osc.frequency.value=220;osc.type='square';osc.connect(ctx.destination);osc.start();playing=true;}else{osc.stop();playing=false;}};
+</script>
+</body>
+</html>
