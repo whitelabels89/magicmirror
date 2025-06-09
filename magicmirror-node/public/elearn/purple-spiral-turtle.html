@@ -82,7 +82,8 @@
       <div id="panel-2" class="step-content">
         <h2>Praktik Coding</h2>
         <p>Ketik kode berikut dan jalankan untuk melihat kura-kura berputar.</p>
-        <div class="typingBox-vscode" data-hint="from turtle import *&#10;&#10;penup()&#10;goto(-200,100)&#10;pendown()&#10;&#10;bgcolor('black')&#10;color('purple')&#10;speed(0)&#10;b = 200&#10;while b > 0:&#10;    left(b)&#10;    forward(b*2)&#10;    b = b - 1"></div>
+        <div class="typingBox-vscode" data-hint="import turtle as t&#10;&#10;t.penup()&#10;t.goto(-200,100)&#10;t.pendown()&#10;&#10;t.bgcolor('black')&#10;t.pencolor('purple')&#10;t.speed(0)&#10;b = 200&#10;while b > 0:&#10;    t.left(b)&#10;    t.forward(b*2)&#10;    b = b - 1"></div>
+
         <button class="run-button">Jalankan</button>
         <pre class="output-box">// Hasil akan muncul di sini</pre>
       </div>
@@ -91,15 +92,15 @@
         <ul>
           <li><code>penup()</code> dan <code>pendown()</code> mengangkat dan menurunkan pena.</li>
           <li><code>goto(x, y)</code> memindahkan kura-kura ke posisi tertentu.</li>
-          <li><code>bgcolor()</code> mengubah warna latar belakang.</li>
-          <li><code>color()</code> memberi warna pada garis yang digambar.</li>
+          <li><code>bgcolor()</code> mengubah warna latar belakang jendela.</li>
+          <li><code>pencolor()</code> memberi warna pada garis yang digambar.</li>
           <li><code>left()</code> memutar kura-kura ke kiri, sedangkan <code>forward()</code> membuatnya bergerak maju.</li>
         </ul>
       </div>
       <div id="panel-4" class="step-content">
         <h2>Eksperimen</h2>
         <p>Coba ubah warna, kecepatan, atau arah spiral pada kode sebelumnya.</p>
-        <div class="typingBox-vscode" data-hint="# Contoh eksperimen&#10;color('blue')&#10;speed(5)"></div>
+        <div class="typingBox-vscode" data-hint="# Contoh eksperimen&#10;t.pencolor('blue')&#10;t.speed(5)"></div>
         <button class="run-button">Jalankan</button>
         <pre class="output-box">// Hasil akan muncul di sini</pre>
       </div>
@@ -108,7 +109,7 @@
         <p><strong>Part 1:</strong> Pilih jawaban yang benar.</p>
         <ol>
           <li>Apa fungsi <code>penup()</code>? a) Menggerakkan kura-kura b) Mengangkat pena c) Memutar layar</li>
-          <li>Perintah apa yang digunakan untuk memberi warna garis? a) <code>speed()</code> b) <code>color()</code> c) <code>goto()</code></li>
+          <li>Perintah apa yang digunakan untuk memberi warna garis? a) <code>speed()</code> b) <code>pencolor()</code> c) <code>goto()</code></li>
         </ol>
         <p><strong>Part 2:</strong> Ketik kode untuk menggambar spiral berwarna berbeda.</p>
         <div class="typingBox-vscode" data-hint=""></div>
