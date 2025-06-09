@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 3 – Robot Deteksi Warna</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body{font-family:'Fredoka',sans-serif;margin:0;background:#e0f7ff;color:#333;}
+    .container{max-width:900px;margin:0 auto;padding:20px;}
+    h1{text-align:center;}
+    .story{background:#bae6fd;padding:15px;border-radius:12px;margin-bottom:20px;}
+    .step{background:#fff;border-radius:12px;padding:15px;margin-bottom:20px;}
+    .step h2{color:#0284c7;margin-top:0;}
+    iframe{width:100%;border:none;border-radius:10px;}
+    #robot-output{background:#f3f4f6;border:1px dashed #aaa;padding:10px;border-radius:8px;margin-top:10px;min-height:40px;}
+    button.run{background:#0284c7;color:#fff;border:none;padding:10px 16px;border-radius:8px;cursor:pointer;}
+    form{display:flex;flex-direction:column;gap:10px;}
+    input,textarea{padding:8px;border-radius:8px;border:1px solid #ccc;}
+    .badge{font-size:2rem;}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Lesson 3 – Robot Deteksi Warna</h1>
+    <p class="story">Robot akan mencari bola merah. Saat melihat warna tertentu, robot akan merespons.</p>
+    <div class="step">
+      <h2>STEP 1: Briefing Misi</h2>
+      <p>Gunakan sensor warna untuk mendeteksi bola berwarna merah dan berhenti di depannya.</p>
+    </div>
+    <div class="step">
+      <h2>STEP 2: Tonton Demo</h2>
+      <iframe height="200" src="https://www.youtube.com/embed/dQw4w9WgXcQ" allowfullscreen></iframe>
+      <p>Lihat bagaimana robot mengenali warna merah.</p>
+    </div>
+    <div class="step">
+      <h2>STEP 3: Coba Coding</h2>
+      <iframe height="300" src="https://makecode.microbit.org/#editor"></iframe>
+      <p>Program agar robot merespon ketika sensor mendeteksi warna tertentu.</p>
+    </div>
+    <div class="step">
+      <h2>STEP 4: Jalankan Robot</h2>
+      <button class="run" onclick="document.getElementById('robot-output').textContent='Robot menemukan warna!';">Jalankan Robot</button>
+      <div id="robot-output"></div>
+    </div>
+    <div class="step">
+      <h2>STEP 5: Tantangan Kreatif</h2>
+      <p>Tambahkan 3 respon berbeda untuk 3 warna berbeda.</p>
+    </div>
+    <div class="step">
+      <h2>STEP 6: Upload Karya + Reward Badge</h2>
+      <form>
+        <input type="text" placeholder="Link video atau foto karya" />
+        <button type="submit">Kirim Karyaku</button>
+      </form>
+      <div class="badge">🏅</div>
+    </div>
+  </div>
+</body>
+</html>
