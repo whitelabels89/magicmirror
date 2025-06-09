@@ -115,8 +115,8 @@
 </style>
 
 <div class="header">
-  <h1>Modul 1 - Lesson 3: Strings</h1>
-  <p>Working with String Data Types</p>
+  <h1>Modul 2 - Lesson 1: Conditional Statements</h1>
+  <p>Belajar membuat keputusan dengan if dan else</p>
   <div class="progress-container">
     <div class="progress-bar"><div class="progress" id="progressBar"></div></div>
   </div>
@@ -128,153 +128,162 @@
 <div class="container">
   <div class="sidebar">
     <ul id="lesson-nav">
-      <li data-step="1" class="active">1. Apa itu String</li>
-      <li data-step="2">2. Mengukur String</li>
-      <li data-step="3">3. Mengambil Karakter</li>
-      <li data-step="4">4. Slicing String</li>
-      <li data-step="5">5. Mencari Kata</li>
-      <li data-step="6">6. Huruf Besar vs Kecil</li>
-      <li data-step="7">7. Ringkasan</li>
-      <li data-step="8">8. Coba Sendiri</li>
-      <li data-step="9">9. Komputer & Bahasa Mesin</li>
-      <li data-step="10">10. Quiz Part 1</li>
-      <li data-step="11">11. Interpreter</li>
-      <li data-step="12">12. Tambah Angka & Teks</li>
-      <li data-step="13">13. Ulangi Teks</li>
-      <li data-step="14">14. str() dan int()</li>
-      <li data-step="15">15. Quiz Part 2</li>
-      <li data-step="16">16. Q&amp;A</li>
-      <li data-step="17">17. Terima Kasih</li>
-      <li data-step="18">18. Wrap-Up: Next Lesson Preview</li>
+      <li data-step="1" class="active">1. Apa itu Pernyataan Logika?</li>
+      <li data-step="2">2. Tipe Data Boolean</li>
+      <li data-step="3">3. Tipe Data Lainnya</li>
+      <li data-step="4">4. Perbandingan dan Matematika</li>
+      <li data-step="5">5. Menyimpan Nilai Logika</li>
+      <li data-step="6">6. Operator Perbandingan</li>
+      <li data-step="7">7. Logika Gabungan</li>
+      <li data-step="8">8. Kesimpulan</li>
+      <li data-step="9">9. Task di Platform</li>
+      <li data-step="10">10. Apa itu Conditional Statements?</li>
+      <li data-step="11">11. Perintah if dan else</li>
+      <li data-step="12">12. Contoh Rasa</li>
+      <li data-step="13">13. Contoh Hewan Favorit</li>
+      <li data-step="14">14. Contoh Cek Umur</li>
+      <li data-step="15">15. Contoh Tebak Angka</li>
+      <li data-step="16">16. Aturan Penting</li>
+      <li data-step="17">17. Kenapa Penting?</li>
+      <li data-step="18">18. Kesimpulan Akhir</li>
+      <li data-step="19">19. Task di Platform</li>
+      <li data-step="20">20. Quiz Part 1</li>
+      <li data-step="21">21. Quiz Part 2</li>
+      <li data-step="22">22. Q&A</li>
+      <li data-step="23">23. Terima Kasih</li>
     </ul>
   </div>
   <div class="main">
     <div id="panel-1" class="step-content">
-      <h2>Say Hello to Strings!</h2>
-      <p>String adalah kumpulan huruf, angka, spasi, atau simbol. String selalu berada dalam tanda kutip.</p>
-      <div class="typingBox-vscode" data-hint="kalimat = &quot;Selamat datang!&quot;&#10;nama = &quot;Nina&quot;&#10;print(kalimat)&#10;print(nama)"></div>
-      <button class="run-button">Jalankan</button>
-      <pre class="output-box">// Hasil akan muncul di sini</pre>
+      <h2>Apa itu Pernyataan Logika?</h2>
+      <p>Pernyataan logika adalah ekspresi yang bisa bernilai <code>True</code> atau <code>False</code>.</p>
     </div>
     <div id="panel-2" class="step-content">
-      <h2>Measuring Strings</h2>
-      <p>Fungsi <code>len()</code> menghitung jumlah karakter dalam string (termasuk spasi dan tanda baca).</p>
-      <div class="typingBox-vscode" data-hint="review = &quot;Saya suka belajar Python!&quot;&#10;print(len(review))"></div>
+      <h2>Tipe Data Boolean</h2>
+      <p>Boolean hanya memiliki dua nilai: <code>True</code> dan <code>False</code>.</p>
+      <div class="typingBox-vscode" data-hint="is_hot = True\nprint(is_hot)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-3" class="step-content">
-      <h2>Finding One Character</h2>
-      <p>Setiap karakter di string memiliki indeks, dimulai dari 0.</p>
-      <div class="typingBox-vscode" data-hint="kata = &quot;PUPPY&quot;&#10;print(kata[0])  # hasil: P&#10;print(kata[2])  # hasil: P"></div>
+      <h2>Tipe Data Lainnya</h2>
+      <p>Selain boolean, kita mengenal tipe <code>int</code>, <code>float</code>, dan <code>str</code>.</p>
+      <div class="typingBox-vscode" data-hint="umur = 12\npi = 3.14\nnama = 'Luna'\nprint(umur, pi, nama)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-4" class="step-content">
-      <h2>Take a Slice of a String</h2>
-      <p>Gunakan <code>[awal:akhir]</code> untuk memotong bagian dari string. Awal termasuk, akhir tidak termasuk.</p>
-      <div class="typingBox-vscode" data-hint="kalimat = &quot;Selamat pagi!&quot;&#10;potongan = kalimat[0:7]&#10;print(potongan)"></div>
+      <h2>Perbandingan dan Matematika</h2>
+      <p>Operator perbandingan mengevaluasi hasil matematika.</p>
+      <div class="typingBox-vscode" data-hint="print(5 > 3)\nprint(2 + 2 == 4)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-5" class="step-content">
-      <h2>Find Something in a String</h2>
-      <p>Gunakan <code>.find()</code> untuk mengetahui posisi awal sebuah kata di string.</p>
-      <div class="typingBox-vscode" data-hint="kalimat = &quot;Ini pancake terenak!&quot;&#10;print(kalimat.find(&quot;pancake&quot;))  # hasil: 4"></div>
+      <h2>Menyimpan Nilai Logika</h2>
+      <p>Kita dapat menyimpan hasil perbandingan ke variabel.</p>
+      <div class="typingBox-vscode" data-hint="lebih_besar = 7 > 5\nprint(lebih_besar)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-6" class="step-content">
-      <h2>Case Sensitivity</h2>
-      <p>Python membedakan huruf besar dan kecil. Gunakan <code>.lower()</code> untuk menyeragamkan.</p>
-      <div class="typingBox-vscode" data-hint="pesan = &quot;HELLO Teman&quot;&#10;print(pesan.lower())&#10;print(pesan.lower().find(&quot;hello&quot;))"></div>
+      <h2>Operator Perbandingan</h2>
+      <p>Gunakan <code>&gt;</code>, <code>&lt;</code>, <code>==</code>, <code>!=</code>, <code>&gt;=</code>, dan <code>&lt;=</code>.</p>
+      <div class="typingBox-vscode" data-hint="print(3 != 2)\nprint(4 <= 4)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-7" class="step-content">
-      <h2>What Did We Learn?</h2>
-      <ul>
-        <li>String adalah teks dalam tanda kutip</li>
-        <li><code>len()</code> menghitung jumlah karakter</li>
-        <li><code>[0]</code> mengambil huruf</li>
-        <li><code>[awal:akhir]</code> mengambil sebagian</li>
-        <li><code>.find()</code> mencari kata</li>
-        <li><code>.lower()</code> ubah ke huruf kecil</li>
-      </ul>
-    </div>
-    <div id="panel-8" class="step-content">
-      <h2>Try It Yourself!</h2>
-      <p>Tebak hasil slicing berikut:</p>
-      <div class="typingBox-vscode" data-hint="teks = &quot;Python Seru!&quot;&#10;print(teks[0:6])"></div>
+      <h2>Logika Gabungan: and, or</h2>
+      <p>Kita bisa menggabungkan beberapa perbandingan.</p>
+      <div class="typingBox-vscode" data-hint="print(True and False)\nprint(5 > 3 or 2 > 4)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
+    <div id="panel-8" class="step-content">
+      <h2>Kesimpulan</h2>
+      <p>Pernyataan logika membantu kita memeriksa kondisi dalam program.</p>
+    </div>
     <div id="panel-9" class="step-content">
-      <h2>Komputer &amp; Bahasa Mesin</h2>
-      <p>Komputer hanya memahami 0 dan 1 (kode biner). Python membantu kita menulis instruksi dengan bahasa yang mudah dimengerti manusia.</p>
+      <h2>Task di Platform</h2>
+      <p>Coba selesaikan latihan logika di platform pembelajaran.</p>
     </div>
     <div id="panel-10" class="step-content">
-      <h2>Quiz Part 1</h2>
-      <ol>
-        <li>Apa itu string?</li>
-        <li>Bagaimana cara menghitung jumlah karakter dalam string?</li>
-        <li>Bagaimana mengambil satu karakter dari string?</li>
-        <li>Apa fungsi <code>.lower()</code>?</li>
-        <li>Apa itu slicing pada string?</li>
-      </ol>
+      <h2>Apa itu Conditional Statements?</h2>
+      <p>Conditional statements menjalankan kode berbeda berdasarkan kondisi tertentu.</p>
     </div>
     <div id="panel-11" class="step-content">
-      <h2>Interpreter</h2>
-      <p>Interpreter menerjemahkan kode Python baris per baris agar komputer bisa menjalankan instruksi dari manusia.</p>
+      <h2>Perintah if dan else</h2>
+      <div class="typingBox-vscode" data-hint="angka = 7\nif angka > 5:\n    print('Besar')\nelse:\n    print('Kecil')"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-12" class="step-content">
-      <h2>Adding Numbers vs. Words</h2>
-      <p>Tanda <code>+</code> bisa digunakan untuk menjumlahkan angka atau menggabungkan string (kata).</p>
-      <div class="typingBox-vscode" data-hint="print(2 + 3)&#10;print(&quot;Hello &quot; + &quot;World&quot;)"></div>
+      <h2>Contoh Rasa (Bakery)</h2>
+      <div class="typingBox-vscode" data-hint="rasa = 'coklat'\nif rasa == 'coklat':\n    print('Enak!')\nelse:\n    print('Coba lagi')"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-13" class="step-content">
-      <h2>Repeating Strings</h2>
-      <p>Kita bisa mengulang string dengan tanda <code>*</code>.</p>
-      <div class="typingBox-vscode" data-hint="print(&quot;Yay! &quot; * 3)"></div>
+      <h2>Contoh Hewan Favorit</h2>
+      <div class="typingBox-vscode" data-hint="hewan = 'kucing'\nif hewan == 'anjing':\n    print('Dog lover!')\nelse:\n    print('Bukan anjing')"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-14" class="step-content">
-      <h2>str() dan int()</h2>
-      <p>Kita bisa mengubah angka ke string dengan <code>str()</code> dan string ke angka dengan <code>int()</code>.</p>
-      <div class="typingBox-vscode" data-hint="hari = 3&#10;bulan = 9&#10;print(&quot;Birthday: &quot; + str(hari) + &quot;/&quot; + str(bulan))"></div>
+      <h2>Contoh Cek Umur</h2>
+      <div class="typingBox-vscode" data-hint="umur = 18\nif umur >= 17:\n    print('Boleh SIM')\nelse:\n    print('Belum boleh')"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-15" class="step-content">
-      <h2>Quiz Part 2</h2>
-      <ol>
-        <li>Buat variabel <code>teks</code> berisi "Coding Asyik". Cetak panjangnya.</li>
-        <li>Cetak huruf ke-2 dari <code>teks</code>.</li>
-        <li>Ambil kata "Asyik" dari <code>teks</code> dengan slicing.</li>
-        <li>Cari posisi "Co" pada <code>teks</code>.</li>
-        <li>Ubah <code>teks</code> ke huruf kecil semua.</li>
-        <li>Gabungkan string "Hello" dan "World" dengan <code>+</code>.</li>
-        <li>Ulangi kata "Seru! " sebanyak 2 kali.</li>
-      </ol>
+      <h2>Contoh Tebak Angka</h2>
+      <div class="typingBox-vscode" data-hint="tebakan = 5\nif tebakan == 5:\n    print('Tepat!')\nelse:\n    print('Salah')"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-16" class="step-content">
-      <h2>Q&amp;A</h2>
-      <p>Ada pertanyaan? Diskusi bersama instruktur atau temanmu!</p>
+      <h2>Aturan Penting If-Else</h2>
+      <p>Gunakan indentasi yang konsisten dan pastikan kondisi bernilai boolean.</p>
     </div>
     <div id="panel-17" class="step-content">
-      <h2>Thank You!</h2>
-      <p>Terima kasih sudah belajar bersama hari ini! Sampai jumpa di pelajaran berikutnya.</p>
+      <h2>Kenapa Ini Penting?</h2>
+      <p>Dengan if-else kita bisa membuat program yang responsif terhadap berbagai situasi.</p>
     </div>
     <div id="panel-18" class="step-content">
-      <h2>Wrap-Up: Next Lesson Preview</h2>
-      <p>Selamat! Kamu sudah mengenal string di Python. Selanjutnya, kita akan belajar membuat program lebih seru dengan struktur kode seperti <strong>percabangan</strong> dan <strong>pengulangan</strong>!</p>
+      <h2>Kesimpulan Akhir</h2>
+      <p>Conditional statements adalah dasar pembuatan alur logika program.</p>
     </div>
     <div id="panel-19" class="step-content">
-      <h2>Wrap-Up: Next Lesson Preview</h2>
-      <p>Selamat! Kamu sudah mengenal string di Python. Selanjutnya, kita akan belajar membuat program lebih seru dengan struktur kode seperti <strong>percabangan</strong> dan <strong>pengulangan</strong>!</p>
+      <h2>Task di Platform</h2>
+      <p>Kerjakan soal tambahan tentang if-else di platform.</p>
+    </div>
+    <div id="panel-20" class="step-content">
+      <h2>Quiz Part 1</h2>
+      <ol>
+        <li>Apa hasil dari <code>5 > 3</code>?</li>
+        <ul>
+          <li>a) 8</li>
+          <li>b) True ✅</li>
+          <li>c) False</li>
+        </ul>
+        <li>Boolean memiliki nilai ...</li>
+      </ol>
+    </div>
+    <div id="panel-21" class="step-content">
+      <h2>Quiz Part 2</h2>
+      <ol>
+        <li>Tuliskan contoh sederhana penggunaan <code>if</code>.</li>
+        <li>Apa fungsi operator <code>and</code>?</li>
+      </ol>
+    </div>
+    <div id="panel-22" class="step-content">
+      <h2>Q&A</h2>
+      <p>Punya pertanyaan? Catat dan diskusikan bersama mentor.</p>
+    </div>
+    <div id="panel-23" class="step-content">
+      <h2>Terima Kasih</h2>
+      <p>Sampai jumpa di lesson berikutnya!</p>
     </div>
     <div class="nav-controls">
       <button onclick="prevPanel()">⟵ Sebelumnya</button>
@@ -293,7 +302,7 @@
 
 <script>
   let currentPanel = 1;
-  const totalPanels = 19;
+  const totalPanels = 23;
   function showPanel(n) {
     if (n < 1 || n > totalPanels) return;
     document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
@@ -329,6 +338,6 @@
   };
   firebase.initializeApp(firebaseConfig);
   window.kelasId = 'demo';
-  window.lessonId = 'M1L3';
+  window.lessonId = 'M2L1';
   initWhiteboard();
 </script>

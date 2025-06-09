@@ -318,6 +318,7 @@
       if (lineIndex2 < 0 || lineIndex2 >= placeholderLines2.length) return;
       const line = placeholderLines2[lineIndex2];
       if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
         if (typed2[lineIndex2].length < line.length) {
           typed2[lineIndex2] += e.key;
           charIndex2++;
@@ -327,6 +328,7 @@
           }
         }
       } else if (e.key === 'Backspace') {
+        e.preventDefault();
         if (charIndex2 > 0) {
           typed2[lineIndex2] = typed2[lineIndex2].slice(0, -1);
           charIndex2--;
@@ -420,6 +422,7 @@
       if (lineIndex3 < 0 || lineIndex3 >= placeholderLines3.length) return;
       const line = placeholderLines3[lineIndex3];
       if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
         if (typed3[lineIndex3].length < line.length) {
           typed3[lineIndex3] += e.key;
           charIndex3++;
@@ -429,6 +432,7 @@
           }
         }
       } else if (e.key === 'Backspace') {
+        e.preventDefault();
         if (charIndex3 > 0) {
           typed3[lineIndex3] = typed3[lineIndex3].slice(0, -1);
           charIndex3--;
@@ -525,6 +529,7 @@
       if (lineIndex4 < 0 || lineIndex4 >= placeholderLines4.length) return;
       const line = placeholderLines4[lineIndex4];
       if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
         if (typed4[lineIndex4].length < line.length) {
           typed4[lineIndex4] += e.key;
           charIndex4++;
@@ -534,6 +539,7 @@
           }
         }
       } else if (e.key === 'Backspace') {
+        e.preventDefault();
         if (charIndex4 > 0) {
           typed4[lineIndex4] = typed4[lineIndex4].slice(0, -1);
           charIndex4--;
@@ -627,6 +633,7 @@
       if (lineIndex5 < 0 || lineIndex5 >= placeholderLines5.length) return;
       const line = placeholderLines5[lineIndex5];
       if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
         if (typed5[lineIndex5].length < line.length) {
           typed5[lineIndex5] += e.key;
           charIndex5++;
@@ -636,6 +643,7 @@
           }
         }
       } else if (e.key === 'Backspace') {
+        e.preventDefault();
         if (charIndex5 > 0) {
           typed5[lineIndex5] = typed5[lineIndex5].slice(0, -1);
           charIndex5--;
