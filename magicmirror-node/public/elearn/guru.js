@@ -304,4 +304,42 @@ window.addEventListener('load', () => {
   prepareLab();
   prepareAI();
   prepareSearch();
+  prepareUpload();
+  loadLessonList();
 });
+
+function prepareUpload(){
+  const form=document.getElementById('modulForm');
+  if(!form) return;
+  form.addEventListener('submit', async e=>{
+    e.preventDefault();
+    const fd=new FormData(form);
+    const res=await fetch('/api/upload-modul',{method:'POST',body:fd});
+    if(!res.ok){alert('Gagal upload');return;}
+    const blob=await res.blob();
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=fd.get('lesson_id')+'.html';
+    a.click();
+    loadLessonList();
+  });
+}
+
+async function loadLessonList(){
+  const list=document.getElementById('lesson-list');
+  if(!list) return;
+  try{
+    const res=await fetch('/api/list-lessons');
+    const data=await res.json();
+    list.innerHTML=data.map(f=>`<li><button onclick="downloadLesson('${f}')">⬇️ ${f}</button></li>`).join('');
+  }catch(e){list.innerHTML='';}
+}
+
+function downloadLesson(name){
+  fetch('/generated_lessons/'+name).then(r=>r.blob()).then(b=>{
+    const url=URL.createObjectURL(b);
+    const a=document.createElement('a');
+    a.href=url; a.download=name; a.click();
+  });
+}
