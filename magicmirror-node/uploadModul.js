@@ -26,6 +26,12 @@ router.post('/api/upload-modul', upload.fields([
   { name: 'soal_pdf', maxCount: 1 }
 ]), (req, res) => {
   const { modul_name, lesson_name, lesson_id } = req.body;
+  if(!modul_name || !lesson_name || !lesson_id){
+    return res.status(400).send('Data tidak lengkap');
+  }
+  if(!req.files || !req.files.materi_pdf || !req.files.contoh_pdf || !req.files.soal_pdf){
+    return res.status(400).send('File belum lengkap');
+  }
   const materiPath = req.files['materi_pdf'][0].path;
   const contohPath = req.files['contoh_pdf'][0].path;
   const soalPath = req.files['soal_pdf'][0].path;
@@ -34,14 +40,14 @@ router.post('/api/upload-modul', upload.fields([
   execFile('python3', [py, materiPath, contohPath, soalPath, lesson_id, lesson_name], { maxBuffer: 1024*500 }, (err, stdout, stderr) => {
     if (err) {
       console.error(stderr);
-      return res.status(500).json({ error: 'Failed parse PDF' });
+      return res.status(500).send('Gagal memproses PDF');
     }
     let data;
     try {
       data = JSON.parse(stdout);
     } catch(e){
       console.error('JSON parse error', e);
-      return res.status(500).json({ error: 'Invalid output' });
+      return res.status(500).send('Output tidak valid');
     }
     try {
       const html = generateHTML(data);
@@ -52,7 +58,7 @@ router.post('/api/upload-modul', upload.fields([
       res.send(html);
     } catch(e){
       console.error('Generate error', e);
-      res.status(500).json({ error: 'Failed generate HTML' });
+      res.status(500).send('Gagal membuat HTML');
     }
   });
 });

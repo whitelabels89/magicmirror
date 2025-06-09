@@ -194,6 +194,19 @@ body {
 .template-card:hover {background:#c7d7ff;}
 #lab-code {width:100%; margin:0.5rem 0;}
 #lab-output {background:#000; color:#0f0; padding:0.5rem; min-height:40px;}
+.upload-form{
+  display:grid;
+  gap:0.5rem;
+  margin-bottom:1rem;
+}
+.upload-form .form-row{
+  display:flex;
+  align-items:center;
+  gap:0.5rem;
+}
+.upload-form label{
+  width:150px;
+}
 @media(max-width:768px){
   .layout {flex-direction: column;}
   .sidebar {width: 100%; display:flex; overflow-x:auto; min-height:auto;}

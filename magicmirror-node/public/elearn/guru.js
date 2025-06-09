@@ -315,7 +315,11 @@ function prepareUpload(){
     e.preventDefault();
     const fd=new FormData(form);
     const res=await fetch('/api/upload-modul',{method:'POST',body:fd});
-    if(!res.ok){alert('Gagal upload');return;}
+    if(!res.ok){
+      const txt = await res.text();
+      alert('Gagal upload: '+txt);
+      return;
+    }
     const blob=await res.blob();
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');
