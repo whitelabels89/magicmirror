@@ -4,6 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>iCoding Playground</title>
+  <!-- Preload key images so the dashboard appears faster -->
+  <link rel="preload" href="img/bghr.png" as="image">
+  <link rel="preload" href="img/fbar.png" as="image">
+  <link rel="preload" href="img/fillbar.png" as="image">
+  <link rel="preload" href="img/s.png" as="image">
+  <link rel="preload" href="img/t.png" as="image">
+  <link rel="preload" href="img/e.png" as="image">
+  <link rel="preload" href="img/m.png" as="image">
+  <link rel="preload" href="img/a.png" as="image">
+  <link rel="preload" href="img/unv.png" as="image">
+  <link rel="preload" href="img/exp.png" as="image">
+  <link rel="preload" href="img/adv.png" as="image">
   <link href="https://fonts.googleapis.com/css2?family=Fredoka&display=swap" rel="stylesheet">
   <style>
     * {
@@ -203,6 +215,47 @@
       object-fit: fill;
     }
 
+    /* Responsive adjustments for smaller screens */
+    @media (max-width: 600px) {
+      body {
+        height: auto;
+        overflow-y: auto;
+      }
+      .judul {
+        font-size: 1.5rem;
+        margin-bottom: 200px;
+        padding-right: 0;
+      }
+      .subject-buttons.top-row,
+      .subject-buttons.bottom-row {
+        position: static;
+        transform: none;
+        flex-wrap: wrap;
+      }
+      .subject-wrapper {
+        top: 0;
+        margin: 5px;
+      }
+      .subject-wrapper img.overlay {
+        width: 90px;
+        height: 90px;
+      }
+      .subject-buttons.bottom-row .subject-wrapper img.overlay,
+      .unv-button.overlay {
+        width: 100px !important;
+        height: 100px !important;
+      }
+      .progress-bar-container {
+        position: static;
+        transform: none;
+        width: 80%;
+        margin: 20px auto;
+      }
+      .progress-bar-image {
+        width: 100%;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -211,36 +264,36 @@
     <div class="judul">Welcome to<br>Nina's Learning Adventure</div>
     <div class="subject-buttons top-row">
       <div class="subject-wrapper">
-        <img src="img/s.png" class="overlay" />
+        <img src="img/s.png" class="overlay" width="135" height="135" />
       </div>
       <div class="subject-wrapper">
-        <img src="img/t.png" class="overlay" style="width: 146px; height: 146px; top: -5px;"/>
+        <img src="img/t.png" class="overlay" width="146" height="146" style="top: -5px;" />
       </div>
       <div class="subject-wrapper">
-        <img src="img/e.png" class="overlay" style="top: 1.2px;"/>
+        <img src="img/e.png" class="overlay" width="135" height="135" style="top: 1.2px;" />
       </div>
       <div class="subject-wrapper">
-        <img src="img/m.png" class="overlay" style="width: 130px; height: 130px; top: 2px;"/>
+        <img src="img/m.png" class="overlay" width="130" height="130" style="top: 2px;" />
       </div>
       <div class="subject-wrapper">
-        <img src="img/a.png" class="overlay" />
+        <img src="img/a.png" class="overlay" width="135" height="135" />
       </div>
     </div>
     <div class="progress-bar-container">
-      <img src="img/fbar.png" class="progress-bar-image" />
+      <img src="img/fbar.png" class="progress-bar-image" width="440" height="50" />
       <div class="progress-fill-container">
-        <img src="img/fillbar.png" class="fillbar" />
+        <img src="img/fillbar.png" class="fillbar" width="440" height="50" />
       </div>
     </div>
     <div class="subject-buttons bottom-row">
       <div class="subject-wrapper">
-        <img src="img/unv.png" class="unv-button overlay" onclick="alert('Kelas Universe diklik!')" />
+        <img src="img/unv.png" class="unv-button overlay" width="175" height="175" onclick="alert('Kelas Universe diklik!')" />
       </div>
       <div class="subject-wrapper">
-        <img src="img/exp.png" class="overlay" onclick="window.location.href='/elearn/experience.html'" />
+        <img src="img/exp.png" class="overlay" width="160" height="160" onclick="window.location.href='/elearn/experience.html'" />
       </div>
       <div class="subject-wrapper">
-        <img src="img/adv.png" class="overlay" onclick="window.location.href='murid.html'" />
+        <img src="img/adv.png" class="overlay" width="160" height="160" onclick="window.location.href='murid.html'" />
       </div>
     </div>
   </div>
