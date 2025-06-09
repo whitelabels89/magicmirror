@@ -115,8 +115,8 @@
 </style>
 
 <div class="header">
-  <h1>Modul 1 - Lesson 4: Nested Constructions</h1>
-  <p>Simplifying Code with Nested Constructions</p>
+  <h1>Modul 1 - Lesson 4: Nested Constructions & Comments</h1>
+  <p>Memahami Nested dan Komentar dalam Python</p>
   <div class="progress-container">
     <div class="progress-bar"><div class="progress" id="progressBar"></div></div>
   </div>
@@ -128,110 +128,177 @@
 <div class="container">
   <div class="sidebar">
     <ul id="lesson-nav">
-      <li data-step="1" class="active">1. Warm-Up</li>
-      <li data-step="3">2. Praktik</li>
-      <li data-step="6">3. Teori</li>
-      <li data-step="9">4. Eksperimen</li>
-      <li data-step="12">5. Quiz 1</li>
-      <li data-step="14">6. Quiz 2</li>
-      <li data-step="17">7. Wrap-Up</li>
+      <li data-step="1" class="active">1. Apa itu Nested Constructions?</li>
+      <li data-step="2">2. Kenapa Belajar Nested?</li>
+      <li data-step="3">3. Cara Nesting</li>
+      <li data-step="4">4. Contoh Nesting: Berat</li>
+      <li data-step="5">5. Sebelum Nesting</li>
+      <li data-step="6">6. Setelah Nesting</li>
+      <li data-step="7">7. Tugas: Panjang Jawaban</li>
+      <li data-step="8">8. Langkah 1: Cara Panjang</li>
+      <li data-step="9">9. Langkah 2: Gunakan Nested</li>
+      <li data-step="10">10. Langkah 3: Terlalu Ribet?</li>
+      <li data-step="11">11. Apa yang Kita Pelajari</li>
+      <li data-step="12">12. Task di Platform</li>
+      <li data-step="13">13. Cara Membuat Kode Mudah Dibaca</li>
+      <li data-step="14">14. Apa itu Komentar?</li>
+      <li data-step="15">15. Bentuk Komentar</li>
+      <li data-step="16">16. Contoh Komentar Pendek</li>
+      <li data-step="17">17. Apa yang Terjadi dengan Komentar?</li>
+      <li data-step="18">18. Contoh Komentar Panjang</li>
+      <li data-step="19">19. Kenapa Pakai Komentar?</li>
+      <li data-step="20">20. Kode yang Baik = Cerita</li>
+      <li data-step="21">21. Quiz Part 1</li>
+      <li data-step="22">22. Quiz Part 2</li>
+      <li data-step="23">23. Q&amp;A</li>
+      <li data-step="24">24. Terima Kasih</li>
     </ul>
   </div>
   <div class="main">
     <div id="panel-1" class="step-content">
-      <h2>Kode Bisa Ditumpuk</h2>
-      <p>Kode yang panjang dapat diringkas dengan menaruh perintah di dalam perintah. Ini disebut <em>nested</em>.</p>
+      <h2>Apa itu Nested Constructions?</h2>
+      <p>Nested constructions adalah struktur kode yang berada di dalam struktur kode lain, seperti fungsi di dalam fungsi, atau perintah input di dalam fungsi konversi tipe data.</p>
+      <p>Contoh sederhana: menggunakan <code>int(input())</code> yang menggabungkan fungsi <code>input()</code> dan <code>int()</code> secara bersarang.</p>
     </div>
     <div id="panel-2" class="step-content">
-      <h2>Balok LEGO</h2>
-      <p>Bayangkan seperti menyusun balok LEGO secara bertingkat untuk membuat bentuk baru.</p>
+      <h2>Kenapa Belajar Nested?</h2>
+      <p>Nested membantu membuat kode lebih ringkas dan efisien. Dengan nesting, kita dapat menggabungkan beberapa operasi dalam satu baris kode.</p>
+      <p>Ini memudahkan dalam menulis dan membaca kode, serta mengurangi variabel sementara yang tidak perlu.</p>
     </div>
     <div id="panel-3" class="step-content">
-      <h2>Kode Versi Panjang</h2>
-      <p>Contoh menuliskan input dan konversi secara terpisah.</p>
+      <h2>Cara Nesting</h2>
+      <p>Untuk membuat nested, kita letakkan satu fungsi atau operasi di dalam fungsi lain. Misalnya, memasukkan hasil <code>input()</code> langsung ke dalam fungsi <code>int()</code>.</p>
+      <p>Contoh: <code>berat = int(input('Berapa berat tasmu? '))</code></p>
     </div>
     <div id="panel-4" class="step-content">
-      <div class="typingBox-vscode" data-hint="berat = input(&quot;Berat tas? &quot;)&#10;berat = int(berat)&#10;print(berat)"></div>
+      <h2>Contoh Nesting: Berat</h2>
+      <div class="typingBox-vscode" data-hint="berat = int(input('Berapa berat tasmu? '))\nprint(berat)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-5" class="step-content">
-      <h2>Kode Versi Singkat</h2>
-      <div class="typingBox-vscode" data-hint="berat = int(input(&quot;Berat tas? &quot;))&#10;print(berat)"></div>
+      <h2>Sebelum Nesting</h2>
+      <p>Kita bisa melakukan input dan konversi tipe data secara terpisah.</p>
+      <div class="typingBox-vscode" data-hint="berat = input('Berapa berat tasmu?')\nberat = int(berat)\nprint(berat)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-6" class="step-content">
-      <h2>Panjang tapi Jelas</h2>
-      <p>Terkadang menulis beberapa baris membuat kode lebih mudah dipahami.</p>
+      <h2>Setelah Nesting</h2>
+      <p>Dengan nested, kita gabungkan input dan konversi dalam satu baris kode.</p>
+      <div class="typingBox-vscode" data-hint="berat = int(input('Berapa berat tasmu?'))\nprint(berat)"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-7" class="step-content">
-      <h2>Terlalu Singkat?</h2>
-      <p>Jika terlalu banyak nested, orang lain bisa bingung membacanya.</p>
+      <h2>Tugas: Panjang Jawaban</h2>
+      <p>Kita ingin menghitung panjang jawaban yang diberikan pengguna. Bagaimana cara melakukannya?</p>
+      <p>Jawaban biasanya berupa string, dan kita bisa menggunakan fungsi <code>len()</code> untuk menghitung panjangnya.</p>
     </div>
     <div id="panel-8" class="step-content">
-      <h2>Tips Membaca Kode</h2>
-      <p>Gunakan nama variabel yang jelas dan tambahkan komentar singkat.</p>
+      <h2>Langkah 1: Cara Panjang</h2>
+      <p>Langkah awal: simpan input pengguna ke variabel, lalu gunakan <code>len()</code> untuk menghitung panjangnya.</p>
+      <p>Contoh:</p>
+      <pre>jawaban = input('Tuliskan jawabanmu: ')\npanjang = len(jawaban)\nprint(panjang)</pre>
     </div>
     <div id="panel-9" class="step-content">
-      <h2>Menulis Komentar</h2>
-      <p>Gunakan <code>#</code> untuk komentar pendek dan tiga tanda kutip untuk komentar panjang.</p>
+      <h2>Langkah 2: Gunakan Nested</h2>
+      <p>Kita bisa menggabungkan <code>input()</code> dan <code>len()</code> dalam satu baris dengan nested.</p>
+      <p>Contoh:</p>
+      <pre>print(len(input('Tuliskan jawabanmu: ')))</pre>
     </div>
     <div id="panel-10" class="step-content">
-      <pre><code># Ini komentar pendek
-'''
-Ini komentar panjang
-menjelaskan seluruh bagian kode
-'''
-print(&quot;Halo&quot;)</code></pre>
+      <h2>Langkah 3: Terlalu Ribet?</h2>
+      <p>Meskipun nested membuat kode lebih singkat, kadang membuat kode sulit dibaca.</p>
+      <p>Gunakan nested dengan bijak agar kode tetap mudah dipahami dan dipelihara.</p>
     </div>
     <div id="panel-11" class="step-content">
-      <div class="typingBox-vscode" data-hint="angka = 5&#10;# tulis komentarmu di sini&#10;print(angka)"></div>
-      <button class="run-button">Jalankan</button>
-      <pre class="output-box">// Hasil akan muncul di sini</pre>
+      <h2>Apa yang Kita Pelajari</h2>
+      <ul>
+        <li>Pemahaman nested constructions</li>
+        <li>Manfaat dan cara membuat nested</li>
+        <li>Membandingkan kode sebelum dan sesudah nested</li>
+        <li>Menggunakan nested untuk menghitung panjang input</li>
+        <li>Memahami pentingnya keterbacaan kode</li>
+      </ul>
     </div>
     <div id="panel-12" class="step-content">
-      <h2>Quiz Part 1</h2>
-      <ol>
-        <li>Apa itu nested constructions?</li>
-        <li>Mengapa kita menulis kode secara nested?</li>
-        <li>Berikan contoh nested yang baik.</li>
-        <li>Mengapa komentar penting?</li>
-        <li>Bagaimana menulis komentar di Python?</li>
-        <li>Apa pengaruh komentar bagi komputer?</li>
-        <li>Tips agar kode tetap mudah dibaca?</li>
-      </ol>
+      <h2>Task di Platform</h2>
+      <p>Kerjakan tugas latihan di platform untuk memperkuat pemahaman nested dan input.</p>
+      <p>Ikuti instruksi dan gunakan nested jika diperlukan.</p>
     </div>
     <div id="panel-13" class="step-content">
-      <p>Catat jawabanmu di buku latihan lalu bandingkan dengan teman.</p>
+      <h2>Cara Membuat Kode Mudah Dibaca</h2>
+      <p>Kode yang mudah dibaca membantu programmer lain (atau diri sendiri di masa depan) memahami maksud kode dengan cepat.</p>
+      <p>Salah satu caranya adalah dengan menambahkan komentar.</p>
     </div>
     <div id="panel-14" class="step-content">
-      <h2>Quiz Coding 1</h2>
-      <div class="typingBox-vscode" data-hint="berat = input(&quot;Berat tas? &quot;)&#10;berat = input(&quot;Berat tas? &quot;)"></div>
-      <button class="run-button">Jalankan</button>
-      <pre class="output-box">// Hasil akan muncul di sini</pre>
-      <p>Perbaiki agar hanya menulis input sekali dan langsung menjadi angka.</p>
+      <h2>Apa itu Komentar?</h2>
+      <p>Komentar adalah catatan dalam kode yang tidak dijalankan oleh komputer, tapi membantu manusia memahami kode.</p>
     </div>
     <div id="panel-15" class="step-content">
-      <h2>Quiz Coding 2</h2>
-      <div class="typingBox-vscode" data-hint="total = 100000&#10;if total &gt; 50000:&#10;    cashback = 5000&#10;print(cashback)"></div>
-      <button class="run-button">Jalankan</button>
-      <pre class="output-box">// Hasil akan muncul di sini</pre>
-      <p>Tambahkan komentar pendek yang menjelaskan kode di atas.</p>
+      <h2>Bentuk Komentar</h2>
+      <p>Komentar bisa berupa satu baris atau beberapa baris.</p>
+      <p>Komentar satu baris diawali dengan tanda <code>#</code>.</p>
+      <p>Komentar beberapa baris menggunakan tanda <code>''' ... '''</code> atau <code>""" ... """</code>.</p>
     </div>
     <div id="panel-16" class="step-content">
-      <h2>Quiz Coding 3</h2>
-      <div class="typingBox-vscode" data-hint="angka = input(&quot;Masukkan angka: &quot;)&#10;hasil = angka + 5&#10;print(hasil)"></div>
+      <h2>Contoh Komentar Pendek</h2>
+      <div class="typingBox-vscode" data-hint="# Ini komentar pendek"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
-      <p>Perbaiki agar program bekerja dan lebih singkat.</p>
     </div>
     <div id="panel-17" class="step-content">
-      <h2>Ringkasan</h2>
-      <p>Nested berarti menaruh perintah di dalam perintah agar kode lebih singkat namun tetap jelas. Komentar membantu siapa pun memahami kode.</p>
+      <h2>Apa yang Terjadi dengan Komentar?</h2>
+      <p>Python mengabaikan komentar saat menjalankan kode. Komentar hanya untuk membantu manusia.</p>
     </div>
     <div id="panel-18" class="step-content">
-      <p>Selanjutnya kita akan belajar membuat program yang bisa memilih: Control Structures! 💻🧱✍️</p>
+      <h2>Contoh Komentar Panjang</h2>
+      <div class="typingBox-vscode" data-hint="'''\nIni komentar panjang.\nDigunakan untuk menjelaskan bagian kode.\n'''"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-19" class="step-content">
+      <h2>Kenapa Pakai Komentar?</h2>
+      <ul>
+        <li>Memudahkan pemahaman kode</li>
+        <li>Membantu debugging</li>
+        <li>Dokumentasi kode untuk programmer lain</li>
+        <li>Membuat kode lebih terstruktur dan rapi</li>
+      </ul>
+    </div>
+    <div id="panel-20" class="step-content">
+      <h2>Kode yang Baik = Cerita</h2>
+      <p>Kode yang baik seperti cerita yang mudah dimengerti. Komentar membantu menceritakan maksud kode.</p>
+      <p>Selalu tambahkan komentar yang jelas dan relevan untuk membuat kode lebih bermakna.</p>
+    </div>
+    <div id="panel-21" class="step-content">
+      <h2>Quiz Part 1</h2>
+      <ol>
+        <li>Apa itu nested constructions dalam Python?</li>
+        <li>Sebutkan keuntungan menggunakan nested dalam kode.</li>
+        <li>Bagaimana cara membuat nested dengan input dan konversi tipe data?</li>
+        <li>Apa fungsi dari komentar dalam kode?</li>
+        <li>Sebutkan dua bentuk komentar di Python.</li>
+      </ol>
+    </div>
+    <div id="panel-22" class="step-content">
+      <h2>Quiz Part 2</h2>
+      <ol>
+        <li>Tulis kode untuk meminta input berat tas dan langsung mengkonversinya ke integer dengan nested.</li>
+        <li>Berikan contoh komentar pendek dalam kode Python.</li>
+        <li>Jelaskan mengapa penting untuk menambahkan komentar dalam kode.</li>
+        <li>Bagaimana nested dapat membantu membuat kode lebih ringkas?</li>
+        <li>Apa saja yang harus diperhatikan agar kode dengan nested tetap mudah dibaca?</li>
+      </ol>
+    </div>
+    <div id="panel-23" class="step-content">
+      <h2>Q&amp;A</h2>
+      <p>Ada pertanyaan? Silakan diskusi dengan instruktur atau temanmu untuk memperjelas materi ini.</p>
+    </div>
+    <div id="panel-24" class="step-content">
+      <h2>Terima Kasih</h2>
+      <p>Terima kasih sudah belajar bersama hari ini! Sampai jumpa di pelajaran berikutnya.</p>
     </div>
     <div class="nav-controls">
       <button onclick="prevPanel()">⟵ Sebelumnya</button>
@@ -250,7 +317,7 @@ print(&quot;Halo&quot;)</code></pre>
 
 <script>
   let currentPanel = 1;
-  const totalPanels = 18;
+  const totalPanels = 24;
   function showPanel(n) {
     if (n < 1 || n > totalPanels) return;
     document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
@@ -258,14 +325,15 @@ print(&quot;Halo&quot;)</code></pre>
     if (panel) panel.classList.add('active');
     currentPanel = n;
     updateIndicator();
+    document.querySelectorAll('#lesson-nav li').forEach(li => li.classList.remove('active'));
+    const activeLi = document.querySelector('#lesson-nav li[data-step="' + n + '"]');
+    if (activeLi) activeLi.classList.add('active');
   }
   function nextPanel() { if (currentPanel < totalPanels) showPanel(currentPanel + 1); }
   function prevPanel() { if (currentPanel > 1) showPanel(currentPanel - 1); }
   function updateIndicator() { document.getElementById('indicator').textContent = 'Slide ' + currentPanel + ' / ' + totalPanels; }
   document.getElementById('lesson-nav').addEventListener('click', function(e) {
     if(e.target.matches('li[data-step]')) {
-      document.querySelectorAll('#lesson-nav li').forEach(li => li.classList.remove('active'));
-      e.target.classList.add('active');
       showPanel(Number(e.target.getAttribute('data-step')));
     }
   });
