@@ -146,36 +146,46 @@
   <div class="main">
     <div id="panel-1" class="step-content">
       <h2>Apa itu Loop?</h2>
-      <p>Loop adalah cara menjalankan kode berulang kali hingga kondisi tertentu terpenuhi.</p>
+      <p>Loop adalah cara menjalankan kode berulang kali hingga kondisi tertentu terpenuhi.<br>
+      Loop digunakan saat kita ingin komputer melakukan hal yang sama berulang kali, seperti menghitung, mengecek, atau menampilkan pesan.
+      </p>
     </div>
     <div id="panel-2" class="step-content">
       <h2>Apa Arti while?</h2>
-      <p>while berarti "selama". Program akan terus mengulang blok kode selama kondisinya bernilai <code>True</code>.</p>
+      <p>while berarti "selama". Program akan terus mengulang blok kode selama kondisinya bernilai <code>True</code>.<br>
+      Misalnya, selama kita belum mengetik 'selesai', maka program akan terus bertanya sesuatu.
+      </p>
     </div>
     <div id="panel-3" class="step-content">
-      <h2>Contoh Loop: Terima Kasih Feedback</h2>
-      <div class="typingBox-vscode" data-hint="feedback = ''
-while feedback != 'off':
-    feedback = input('Kritikmu? ')
-    print('Terima kasih!')"></div>
+      <h2>Contoh Loop: Minta Pendapatmu!</h2>
+      <div class="typingBox-vscode" data-hint="# Minta pendapat terus sampai anak mengetik &quot;selesai&quot;
+pendapat = input('Tulis pendapatmu (ketik &quot;selesai&quot; untuk berhenti): ')
+while pendapat != 'selesai':
+print('Terima kasih atas pendapatmu!')
+pendapat = input('Tulis pendapatmu (ketik &quot;selesai&quot; untuk berhenti): ')
+"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-4" class="step-content">
-      <h2>Loop Menjumlahkan Harga</h2>
-      <div class="typingBox-vscode" data-hint="total = 0
-harga = 10000
-jumlah = 3
-while jumlah > 0:
-    total += harga
-    jumlah -= 1
-print(total)"></div>
+      <h2>Hitung Total Belanja dengan Loop</h2>
+      <div class="typingBox-vscode" data-hint="total = 0  # Untuk menjumlahkan semua harga
+harga = int(input('Masukkan harga barang (0 untuk selesai): '))
+while harga != 0:
+total = total + harga  # Tambahkan ke total
+harga = int(input('Masukkan harga barang (0 untuk selesai): '))
+print('Total sebelum diskon:', total)
+total_diskon = total * 0.9  # Diskon 10%!
+print('Total setelah diskon:', total_diskon)
+"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-5" class="step-content">
       <h2>Kesimpulan Loop & Harga</h2>
-      <p>Dengan loop kita bisa menambahkan harga berkali-kali tanpa menulis kode berulang.</p>
+      <p>Dengan loop kita bisa menambahkan harga berkali-kali tanpa menulis kode berulang.<br>
+      Loop membantu menghemat waktu dan membuat kode lebih ringkas.
+      </p>
     </div>
     <div id="panel-6" class="step-content">
       <h2>Task di Platform</h2>
@@ -183,23 +193,28 @@ print(total)"></div>
     </div>
     <div id="panel-7" class="step-content">
       <h2>Apa itu Counter?</h2>
-      <p>Counter adalah variabel yang bertambah setiap kali loop berjalan untuk menghitung jumlah perulangan.</p>
+      <p>Counter adalah variabel yang bertambah setiap kali loop berjalan untuk menghitung jumlah perulangan.<br>
+      Misalnya, kamu ingin tahu berapa kali temanmu mencoba menebak kata rahasia.
+      </p>
     </div>
     <div id="panel-8" class="step-content">
-      <h2>Contoh Counter: Kode Promo</h2>
-      <div class="typingBox-vscode" data-hint="kode = 'PY'
-masukan = ''
-percobaan = 0
-while masukan != kode:
-    masukan = input('Masukkan kode: ')
-    percobaan += 1
-print('Berhasil dalam', percobaan, 'kali')"></div>
+      <h2>Berapa Kali Kamu Menebak Kode Promo?</h2>
+      <div class="typingBox-vscode" data-hint="percobaan = 1  # Mulai hitung percobaan
+kode = input('Masukkan kode promo: ')
+while kode != 'tahun baru':
+print('Ups! Belum tepat, coba lagi ya.')
+percobaan = percobaan + 1  # Tambah jumlah percobaan
+kode = input('Masukkan kode promo: ')
+print('Hore! Kamu berhasil pada percobaan ke-', percobaan)
+"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-9" class="step-content">
       <h2>Kesimpulan Counter & Loop</h2>
-      <p>Counter membantu kita mengetahui berapa kali sebuah loop sudah dijalankan.</p>
+      <p>Counter membantu kita mengetahui berapa kali sebuah loop sudah dijalankan.<br>
+      Ini penting untuk pelacakan, statistik, dan logika program.
+      </p>
     </div>
     <div id="panel-10" class="step-content">
       <h2>Task di Platform</h2>

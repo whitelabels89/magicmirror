@@ -153,10 +153,33 @@
     <div id="panel-1" class="step-content">
       <h2>Apa itu Pernyataan Kondisional Bersarang?</h2>
       <p>Pernyataan bersarang terjadi ketika kita menuliskan <code>if</code> di dalam blok <code>if</code> lainnya. Cara ini membantu kita memeriksa kondisi yang lebih dari satu tingkat.</p>
+      <p>Bayangkan kamu sedang memilih menu makan siang:</p>
+      <ul>
+        <li>Jika kamu lapar, cek apakah kamu ingin makanan berat atau ringan.</li>
+        <li>Jika makanan berat, pilih nasi atau mie.</li>
+        <li>Jika makanan ringan, pilih roti atau buah.</li>
+      </ul>
+      <p>Ini sama seperti nested conditional, di mana keputusan di dalam keputusan lain.</p>
+      <pre><code>if lapar:
+    if ingin_makanan_berat:
+        pilih nasi atau mie
+    else:
+        pilih roti atau buah
+</code></pre>
     </div>
     <div id="panel-2" class="step-content">
       <h2>Kenapa Pakai Nested, Bukan Kondisi Panjang?</h2>
       <p>Dengan menulis kondisi di dalam kondisi, kode menjadi lebih rapi dan mudah dibaca daripada menulis kondisi yang panjang pada satu baris.</p>
+      <p>Selain itu, nested conditional membantu mengelompokkan logika yang terkait, sehingga lebih mudah dipahami dan dikelola.</p>
+      <p>Contoh:</p>
+      <pre><code>if usia &gt;= 18:
+    if punya_ktp:
+        boleh_mengemudi = True
+    else:
+        boleh_mengemudi = False
+else:
+    boleh_mengemudi = False
+</code></pre>
     </div>
     <div id="panel-3" class="step-content">
       <h2>Aturan Menulis Nested Conditional</h2>
@@ -164,29 +187,56 @@
         <li>Gunakan indentasi 4 spasi untuk setiap tingkat.</li>
         <li>Pastikan setiap <code>if</code> diakhiri dengan tanda titik dua <code>:</code>.</li>
         <li>Tulis kondisi dari yang paling umum ke yang lebih spesifik.</li>
+        <li>Jangan lupa untuk menuliskan <code>else</code> atau <code>elif</code> jika diperlukan agar semua kemungkinan tertangani.</li>
       </ul>
+      <p>Contoh:</p>
+      <pre><code>if cuaca == 'hujan':
+    if bawa_payung:
+        keluar = True
+    else:
+        keluar = False
+else:
+    keluar = True
+</code></pre>
     </div>
     <div id="panel-4" class="step-content">
       <h2>Coba Contoh Ini</h2>
-      <div class="typingBox-vscode" data-hint="x = 7\nif x > 5:\n    if x < 10:\n        print('Di antara 5 dan 10')"></div>
+      <div class="typingBox-vscode" data-hint="umur = 10
+if umur > 5:
+    if umur < 13:
+        print(&quot;Kamu anak-anak keren!&quot;)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-5" class="step-content">
       <h2>Apa Output dari Program Ini?</h2>
-      <div class="typingBox-vscode" data-hint="nilai = 85\nif nilai >= 80:\n    if nilai >= 90:\n        print('A')\n    else:\n        print('B')\nelse:\n    print('C')"></div>
+      <div class="typingBox-vscode" data-hint="nilai = 85
+if nilai >= 80:
+    if nilai >= 90:
+        print(&quot;Kamu dapat A, hebat!&quot;)
+    else:
+        print(&quot;Bagus! Nilaimu B&quot;)
+else:
+    print(&quot;Semangat belajar lagi ya&quot;)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-6" class="step-content">
       <h2>Contoh Output Tambahan</h2>
-      <div class="typingBox-vscode" data-hint="umur = 20\nif umur >= 13:\n    if umur < 18:\n        print('Remaja')\n    else:\n        print('Dewasa')"></div>
+      <div class="typingBox-vscode" data-hint="umur = 14
+if umur >= 13:
+    if umur < 18:
+        print(&quot;Kamu remaja keren!&quot;)
+    else:
+        print(&quot;Kamu sudah dewasa&quot;)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-7" class="step-content">
       <h2>Kesimpulan Nested</h2>
-      <p>Nested conditional membuat kita bisa memeriksa beberapa kondisi secara berurutan. Pastikan indentasi tepat agar alur program jelas.</p>
+      <p>Nested conditional memungkinkan kita untuk membuat keputusan yang lebih kompleks dengan mengecek kondisi bertingkat secara berurutan.</p>
+      <p>Pastikan indentasi benar agar program berjalan sesuai harapan dan mudah dibaca.</p>
+      <p>Gunakan nested conditional untuk mengelompokkan logika yang saling terkait dan memudahkan debugging.</p>
     </div>
     <div id="panel-8" class="step-content">
       <h2>Tugas di Platform</h2>
@@ -195,32 +245,64 @@
     <div id="panel-9" class="step-content">
       <h2>Kondisional dengan Banyak Cabang</h2>
       <p>Kita bisa menggunakan <code>elif</code> untuk menambah cabang keputusan selain <code>if</code> dan <code>else</code>.</p>
+      <p>Ini berguna saat ada banyak kondisi yang harus diperiksa secara berurutan.</p>
+      <p>Contoh:</p>
+      <pre><code>if nilai &gt;= 90:
+    print('A')
+elif nilai &gt;= 80:
+    print('B')
+elif nilai &gt;= 70:
+    print('C')
+else:
+    print('D')</code></pre>
+      <p>Dengan <code>elif</code>, kode menjadi lebih bersih dan mudah dibaca daripada menulis nested <code>if</code> bertingkat.</p>
     </div>
     <div id="panel-10" class="step-content">
       <h2>Contoh "Happy Hours"</h2>
-      <div class="typingBox-vscode" data-hint="jam = 17\nif 16 <= jam <= 18:\n    print('Diskon minuman!')\nelse:\n    print('Harga normal')"></div>
+      <div class="typingBox-vscode" data-hint="jam = 17
+if 16 &lt;= jam &lt;= 18:
+    print(&quot;Waktunya Happy Hour! Diskon jajan~&quot;)
+else:
+    print(&quot;Jam biasa, tetap semangat!&quot;)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-11" class="step-content">
       <h2>Coba Uji Outputnya</h2>
-      <div class="typingBox-vscode" data-hint="waktu = 20\nif waktu < 12:\n    print('Selamat pagi')\nelif waktu < 18:\n    print('Selamat siang')\nelse:\n    print('Selamat malam')"></div>
+      <div class="typingBox-vscode" data-hint="waktu = 9
+if waktu &lt; 12:
+    print(&quot;Selamat pagi, pejuang coding!&quot;)
+elif waktu &lt; 18:
+    print(&quot;Selamat siang, semangat terus~&quot;)
+else:
+    print(&quot;Selamat malam, waktunya istirahat&quot;)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-12" class="step-content">
       <h2>Kenapa Pakai elif dan else?</h2>
       <p><code>elif</code> dan <code>else</code> membantu menangani berbagai kemungkinan tanpa harus menulis banyak <code>if</code> terpisah.</p>
+      <p>Ini membuat kode lebih efisien dan mudah dipahami.</p>
+      <p>Selain itu, penggunaan <code>elif</code> mencegah pengecekan kondisi yang tidak perlu setelah kondisi sebelumnya terpenuhi.</p>
     </div>
     <div id="panel-13" class="step-content">
       <h2>Coba Prediksi Output</h2>
-      <div class="typingBox-vscode" data-hint="angka = 3\nif angka > 0:\n    if angka % 2 == 0:\n        print('Genap positif')\n    else:\n        print('Ganjil positif')\nelse:\n    print('Negatif atau nol')"></div>
+      <div class="typingBox-vscode" data-hint="angka = 3
+if angka &gt; 0:
+    if angka % 2 == 0:
+        print(&quot;Angka ini genap dan positif&quot;)
+    else:
+        print(&quot;Angka ini ganjil dan positif&quot;)
+else:
+    print(&quot;Angkanya negatif atau nol&quot;)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-14" class="step-content">
       <h2>Kesimpulan Akhir</h2>
       <p>Dengan nested conditional dan <code>elif</code>, kita dapat membuat program yang menangani banyak situasi berbeda secara terstruktur.</p>
+      <p>Penggunaan struktur ini membantu membuat kode lebih bersih, mudah dibaca, dan mudah dipelihara.</p>
+      <p>Selalu perhatikan indentasi dan logika agar program berjalan sesuai yang diharapkan.</p>
     </div>
     <div id="panel-15" class="step-content">
       <h2>Tugas di Platform</h2>
