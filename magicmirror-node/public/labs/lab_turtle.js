@@ -28,8 +28,8 @@ function drawLine(x1, y1, x2, y2) {
 }
 
 async function runTurtle() {
-  const output = document.getElementById("output");
-  output.textContent = "Menjalankan...";
+  const status = document.getElementById("status");
+  status.textContent = "Menjalankan...";
   const code = document.getElementById("code").value;
 
   await pyReady;
@@ -63,8 +63,9 @@ t = SimTurtle()
   try {
     clearCanvas();
     await pyodide.runPythonAsync(script, { globals: namespace });
-    output.textContent = "✅ Selesai!";
+    status.textContent = "✅ Selesai!";
+    namespace.destroy && namespace.destroy();
   } catch (err) {
-    output.textContent = "❌ Error: " + err;
+    status.textContent = "❌ Error: " + err;
   }
 }
