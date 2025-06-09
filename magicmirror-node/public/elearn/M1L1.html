@@ -36,6 +36,16 @@
     height: 100%;
     background: #facc15;
   }
+  .back-btn {
+    display: inline-block;
+    margin-top: 8px;
+    color: #fff;
+    background: #22c55e;
+    padding: 6px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+  }
   .container {
     display: flex;
     padding: 20px;
@@ -77,6 +87,18 @@
     color: #a7f3d0;
     min-width: 260px;
   }
+  .whiteboard-container {
+    margin-top: 1rem;
+    text-align: center;
+  }
+  #whiteboardCanvas {
+    border: 1px solid #ccc;
+    width: 100%;
+    height: 300px;
+    display: none;
+    touch-action: none;
+    background: #fff;
+  }
   .step-content {
     display: none;
     background: #fff;
@@ -94,6 +116,9 @@
   <p>Introduction to the Python Programming Language</p>
   <div class="progress-container">
     <div class="progress-bar"><div class="progress" id="progressBar"></div></div>
+  </div>
+  <div style="margin-top:10px;">
+    <a href="/elearn/modul.html" class="back-btn">⟵ Kembali ke Dashboard</a>
   </div>
 </div>
 
@@ -160,7 +185,9 @@
     <div id="panel-13" class="step-content">
       <h2>Praktik 1</h2>
       <p>Coba ketik kode berikut.</p>
-      <div class="typingBox-vscode" data-hint="print(&quot;Halo, dunia!&quot;)\nprint(5 + 3)"></div>
+      <div class="typingBox-vscode" data-hint="print(&quot;Halo, dunia!&quot;)&#10;print(5 + 3)"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-14" class="step-content">
       <h2>Apa yang Terjadi?</h2>
@@ -186,7 +213,9 @@
     </div>
     <div id="panel-19" class="step-content">
       <h2>Praktik 2</h2>
-      <div class="typingBox-vscode" data-hint="print(&quot;Total pembayaran:&quot;)\nprint(3 * 12 + 10 * 45)"></div>
+      <div class="typingBox-vscode" data-hint="print(&quot;Total pembayaran:&quot;)&#10;print(3 * 12 + 10 * 45)"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-20" class="step-content">
       <h2>Quiz Singkat</h2>
@@ -233,7 +262,11 @@
     </div>
   </div>
   <div class="lab-column">
-    <p>Whiteboard feature coming soon.</p>
+    <div class="whiteboard-container">
+      <button id="toggleWhiteboard">Tampilkan Whiteboard</button>
+      <button id="clearWhiteboard">Clear</button>
+      <canvas id="whiteboardCanvas"></canvas>
+    </div>
   </div>
 </div>
 
@@ -259,4 +292,22 @@
     }
   });
   document.addEventListener('DOMContentLoaded', () => showPanel(1));
+</script>
+<!-- Firebase and Whiteboard -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script src="whiteboard.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBVO4ajDwkbcTGL33SVMxIoev4veB8itgI",
+    authDomain: "queens-academy-icoding.firebaseapp.com",
+    projectId: "queens-academy-icoding",
+    storageBucket: "queens-academy-icoding.appspot.com",
+    messagingSenderId: "1048549258959",
+    appId: "1:1048549258959:web:f8dc1c104bb170d7ff69ba",
+  };
+  firebase.initializeApp(firebaseConfig);
+  window.kelasId = 'demo';
+  window.lessonId = 'M1L1';
+  initWhiteboard();
 </script>
