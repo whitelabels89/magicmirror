@@ -18,10 +18,21 @@
   .robot{background:#4caf50;}
   @keyframes fade{from{opacity:0;}to{opacity:1;}}
   .toggle-music{position:fixed;top:10px;right:10px;z-index:10;}
+  .kody{text-align:center;margin-top:10px;}
+  .kody svg{width:120px;height:auto;}
 </style>
 </head>
 <body>
 <button class="toggle-music">🔊 Musik</button>
+<div class="kody">
+  <svg viewBox="0 0 100 120">
+    <rect x="20" y="40" width="60" height="60" rx="10" fill="#4caf50" stroke="#333"/>
+    <circle cx="50" cy="30" r="15" fill="#4caf50" stroke="#333"/>
+    <rect x="35" y="60" width="10" height="20" fill="#fff"/>
+    <rect x="55" y="60" width="10" height="20" fill="#fff"/>
+    <rect x="45" y="90" width="10" height="20" fill="#333"/>
+  </svg>
+</div>
 <section id="s1" class="active">
   <h2>Selamat Datang di Dunia Digital</h2>
   <p>Kody butuh bantuan mengenali alat digital.</p>
@@ -88,7 +99,18 @@ function createAlarm(){const txt=document.getElementById('atext').value||'Alarm!
 // Section5 robot
 let pos={x:0,y:4};
 function initGrid(){const g=document.getElementById('grid');for(let i=0;i<25;i++){const c=document.createElement('div');c.className='cell';g.appendChild(c);}updateRobot();}
-function updateRobot(){const cells=document.querySelectorAll('#grid .cell');cells.forEach(c=>c.classList.remove('robot'));const idx=pos.y*5+pos.x;if(cells[idx])cells[idx].classList.add('robot');if(pos.x===4&&pos.y===0){document.getElementById('final').style.display='block';document.getElementById('cert').style.display='inline-block';}}
+function updateRobot(){
+  const cells=document.querySelectorAll('#grid .cell');
+  cells.forEach(c=>c.classList.remove('robot'));
+  const idx=pos.y*5+pos.x;
+  if(cells[idx]) cells[idx].classList.add('robot');
+  if(pos.x===4&&pos.y===0){
+    document.getElementById('final').style.display='block';
+    const cert=document.getElementById('cert');
+    cert.style.display='inline-block';
+    cert.href='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/5cAAwMBg+3VmgAAAABJRU5ErkJggg==';
+  }
+}
 function move(dir){if(dir==='forward'&&pos.y>0)pos.y--;if(dir==='left'&&pos.x>0)pos.x--;if(dir==='right'&&pos.x<4)pos.x++;updateRobot();}
 initGrid();
 // music
