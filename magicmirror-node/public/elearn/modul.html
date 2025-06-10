@@ -232,6 +232,46 @@
       margin-top: -40px;   /* Atur jarak dari atas */
       margin-bottom: 50px; /* Atur jarak dari bawah */
     }
+
+    /* Responsiveness */
+    @media (max-width: 768px) {
+      .page-container {
+        flex-direction: column;
+        height: auto;
+        width: calc(100% - 20px);
+        margin: 10px;
+      }
+
+      .sidebar,
+      .panel-ungu,
+      .main-content {
+        width: 100%;
+        left: 0;
+        position: relative;
+        height: auto;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        overflow-y: auto !important;
+      }
+
+      .header {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .status-box {
+        flex-wrap: wrap;
+      }
+
+      .game-style-cards {
+        justify-content: center;
+      }
+
+      .lesson-card {
+        width: 100%;
+        height: auto;
+      }
+    }
 </style>
   <!-- Firebase App & Auth SDKs (compat) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
