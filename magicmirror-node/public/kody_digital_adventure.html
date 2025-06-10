@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Petualangan Digital Kody</title>
+<style>
+  body{font-family:sans-serif;margin:0;background:#f5f5f5;line-height:1.4}
+  section{display:none;padding:20px;height:100vh;box-sizing:border-box;position:relative}
+  section.active{display:block;animation:fade 0.5s}
+  .next{position:absolute;bottom:20px;right:20px;padding:10px 20px;background:#4caf50;color:#fff;border:none;border-radius:6px;cursor:pointer}
+  .pieces{display:flex;gap:10px;margin-top:10px}
+  .piece{padding:8px 12px;background:#fff;border:1px solid #ccc;cursor:grab}
+  .robot-area{margin-top:20px;display:flex;gap:20px;justify-content:center;align-items:center}
+  .drop{width:100px;height:100px;border:2px dashed #999;display:flex;align-items:center;justify-content:center}
+  .drop.filled{background:#c8e6c9;border-color:#4caf50}
+  textarea{width:100%;height:120px;font-family:monospace;margin-top:10px}
+  .preview{border:1px solid #ccc;padding:10px;margin-top:10px;min-height:100px}
+  .grid{display:grid;grid-template-columns:repeat(5,60px);grid-template-rows:repeat(5,60px);gap:2px;margin-bottom:10px}
+  .cell{width:60px;height:60px;border:1px solid #ccc;background:#fff}
+  .robot{background:#4caf50}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+</style>
+</head>
+<body>
+<section id="lvl1" class="active">
+  <h2>Cari Tombol Rahasia Kody</h2>
+  <p>Seret bagian robot ke tempatnya:</p>
+  <div class="pieces">
+    <div class="piece" draggable="true" data-part="button">Tombol</div>
+    <div class="piece" draggable="true" data-part="screen">Layar</div>
+    <div class="piece" draggable="true" data-part="cable">Charger</div>
+  </div>
+  <div class="robot-area">
+    <div class="drop" data-accept="button">Tombol?</div>
+    <div class="drop" data-accept="screen">Layar?</div>
+    <div class="drop" data-accept="cable">Charger?</div>
+  </div>
+  <p id="lvl1-status"></p>
+  <button class="next" onclick="next(1)" disabled id="b1">Lanjut</button>
+</section>
+<section id="lvl2">
+  <h2>Ajari Kody Bahasa Mesin</h2>
+  <p>Ketik instruksi Python agar Kody hidup:</p>
+  <textarea id="pycode">power = "on"
+if power == "on":
+    print("Kody aktif!")
+</textarea>
+  <button onclick="runCode()">Jalankan</button>
+  <pre id="pyout"></pre>
+  <button class="next" onclick="next(2)" id="b2" disabled>Lanjut</button>
+</section>
+<section id="lvl3">
+  <h2>Pasang Wajah Kody di Layar</h2>
+  <label>Nama: <input id="name" value="Kody"></label>
+  <label>Emoji: <input id="emoji" value="😊"></label>
+  <label>Warna Latar: <input type="color" id="bg" value="#ffffff"></label>
+  <button onclick="updateFace()">Tampilkan</button>
+  <div id="face" class="preview"></div>
+  <button class="next" onclick="next(3)">Lanjut</button>
+</section>
+<section id="lvl4">
+  <h2>Bikin Tombol Ajaib Kody</h2>
+  <label>Perintah 1: <input id="cmd1" value="Halo!"></label>
+  <label>Perintah 2: <input id="cmd2" value="Tersenyum"></label>
+  <label>Perintah 3: <input id="cmd3" value="Jalan"></label>
+  <button onclick="makeButtons()">Buat Tombol</button>
+  <div id="btnarea" style="margin-top:10px"></div>
+  <button class="next" onclick="next(4)">Lanjut</button>
+</section>
+<section id="lvl5">
+  <h2>Saatnya Kody Bergerak!</h2>
+  <div class="grid" id="grid"></div>
+  <div>
+    <button onclick="move('forward')">Maju</button>
+    <button onclick="move('left')">Kiri</button>
+    <button onclick="move('right')">Kanan</button>
+  </div>
+  <p id="final" style="display:none;font-weight:bold">KODY TELAH HIDUP KEMBALI!</p>
+</section>
+<script>
+const sections=document.querySelectorAll('section');
+function next(n){sections[n-1].classList.remove('active');sections[n].classList.add('active');}
+// drag drop puzzle
+const pieces=document.querySelectorAll('.piece');
+const drops=document.querySelectorAll('.drop');
+let placed=0;
+pieces.forEach(p=>{p.addEventListener('dragstart',e=>{e.dataTransfer.setData('text',p.dataset.part);});});
+drops.forEach(d=>{d.addEventListener('dragover',e=>e.preventDefault());d.addEventListener('drop',e=>{e.preventDefault();const part=e.dataTransfer.getData('text');if(part===d.dataset.accept){d.textContent=part;d.classList.add('filled');placed++;if(placed===3){document.getElementById('lvl1-status').textContent='Kody on... beep!';document.getElementById('b1').disabled=false;}}});});
+// python
+function runCode(){const code=document.getElementById('pycode').value;const out=document.getElementById('pyout');if(code.includes('power')&&code.includes('print')){out.textContent='Kody aktif!';document.getElementById('b2').disabled=false;}else{out.textContent='Coba lagi';}}
+// face
+function updateFace(){const n=document.getElementById('name').value;const e=document.getElementById('emoji').value;const bg=document.getElementById('bg').value;document.getElementById('face').innerHTML=`<div style="background:${bg};padding:10px"><h1>Halo, aku ${n} ${e}</h1></div>`;}
+// buttons
+function makeButtons(){const a=document.getElementById('btnarea');a.innerHTML='';[1,2,3].forEach(i=>{const t=document.getElementById('cmd'+i).value;const b=document.createElement('button');b.textContent=t;b.style.marginRight='10px';b.onclick=()=>alert(t);a.appendChild(b);});}
+// grid robot
+let pos={x:0,y:4};
+function initGrid(){const g=document.getElementById('grid');for(let i=0;i<25;i++){const c=document.createElement('div');c.className='cell';g.appendChild(c);}update();}
+function update(){const cells=document.querySelectorAll('.cell');cells.forEach(c=>c.classList.remove('robot'));cells[pos.y*5+pos.x].classList.add('robot');if(pos.x===4&&pos.y===0)document.getElementById('final').style.display='block';}
+function move(dir){if(dir==='forward'&&pos.y>0)pos.y--;if(dir==='left'&&pos.x>0)pos.x--;if(dir==='right'&&pos.x<4)pos.x++;update();}
+initGrid();
+</script>
+</body>
+</html>
