@@ -238,18 +238,40 @@
       .page-container {
         flex-direction: column;
         height: auto;
+
+        width: calc(100% - 20px);
+        margin: 10px;
       }
 
       .sidebar,
       .panel-ungu,
       .main-content {
-        width: 100vw;
+
+        width: 100%;
         left: 0;
         position: relative;
         height: auto;
         min-width: 0 !important;
-        max-width: 100vw !important;
+        max-width: 100% !important;
         overflow-y: auto !important;
+      }
+
+      .header {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .status-box {
+        flex-wrap: wrap;
+      }
+
+      .game-style-cards {
+        justify-content: center;
+      }
+
+      .lesson-card {
+        width: 100%;
+        height: auto;
       }
     }
 </style>
