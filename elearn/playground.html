@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game & Robotic Playground</title>
+  <link rel="stylesheet" href="playground-style.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+</head>
+<body>
+  <header>
+    <h1>🏕️ Game & Robotic Playground</h1>
+    <button id="back-btn">&lt;&lt; Kembali ke Dashboard</button>
+  </header>
+  <aside id="sidebar">
+    <button class="lab-btn" data-lab="game-maker">Game Maker Kids</button>
+    <button class="lab-btn" data-lab="robot-sim">Simulasi Robotik</button>
+    <button class="lab-btn" data-lab="python-editor">Python Editor</button>
+    <button class="lab-btn" data-lab="puzzle-coding">Puzzle Coding</button>
+    <div id="badges"></div>
+  </aside>
+  <main id="lab-content"></main>
+  <script src="playground-script.js"></script>
+</body>
+</html>
+
