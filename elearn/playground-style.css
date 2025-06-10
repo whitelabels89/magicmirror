@@ -1,0 +1,58 @@
+body {
+  display: flex;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #1e1e2f;
+  color: #fff;
+}
+header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #29294d;
+  padding: 10px;
+  text-align: center;
+  z-index: 1000;
+}
+header h1 {
+  margin: 0;
+  font-size: 24px;
+}
+#back-btn {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+}
+#sidebar {
+  margin-top: 60px;
+  width: 200px;
+  background: #2d2d50;
+  padding: 20px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.lab-btn {
+  padding: 10px;
+  background: #4b4ba8;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.3s;
+  font-size: 16px;
+}
+.lab-btn:hover {
+  background: #6a6ad6;
+}
+#lab-content {
+  margin-top: 60px;
+  flex: 1;
+  padding: 20px;
+}
+.badge {
+  font-size: 32px;
+  margin: 5px;
+  color: gold;
+}
+
