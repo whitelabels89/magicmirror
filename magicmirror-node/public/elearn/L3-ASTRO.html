@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Planetarium Lesson 2: Perakitan Mesin Navigasi</title>
+  <script src="/elearn/userInfo.js"></script>
   <style>
     body {
       margin: 0;
@@ -200,6 +201,14 @@
   </div>
 
 <script>
+  // Validasi session user
+  const user = getUserInfo();
+  // Ijinkan akses jika setidaknya terdapat CID atau UID terdeteksi
+  if (!user || (!user.cid && !user.uid)) {
+    alert("❌ Akses tidak sah. Silakan login ulang.");
+    window.location.href = "/elearn/login-elearning.html";
+  }
+
   // Step navigation logic
   function showStep(n) {
     for (let i = 1; i <= 6; i++) {
