@@ -4,7 +4,8 @@
 
 window.addEventListener("DOMContentLoaded", () => {
   const user = getUserInfo();
-  if (!user || user.role !== "anak") {
+  // Ijinkan akses jika CID atau UID tersedia
+  if (!user || (!user.cid && !user.uid)) {
     alert("❌ Akses tidak sah. Silakan login ulang.");
     window.location.href = "/elearn/login-elearning.html";
     return;
@@ -28,9 +29,10 @@ window.addEventListener("DOMContentLoaded", () => {
 
 function getUserInfo() {
   return {
-    email: sessionStorage.getItem("email"),
-    role: sessionStorage.getItem("role"),
-    nama: sessionStorage.getItem("nama"),
-    uid: sessionStorage.getItem("uid_custom")
+    email: localStorage.getItem("email"),
+    role: localStorage.getItem("role"),
+    nama: localStorage.getItem("nama"),
+    uid: localStorage.getItem("uid"),
+    cid: localStorage.getItem("cid")
   };
 }

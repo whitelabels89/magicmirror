@@ -208,7 +208,8 @@
 <script>
   // Validasi session user
   const user = getUserInfo();
-  if (!user || user.role !== "anak") {
+  // Ijinkan akses jika setidaknya terdapat CID atau UID terdeteksi
+  if (!user || (!user.cid && !user.uid)) {
     alert("❌ Akses tidak sah. Silakan login ulang.");
     window.location.href = "/elearn/login-elearning.html";
   }
