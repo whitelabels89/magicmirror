@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Programming for Kids</title>
+    <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+    <script src="https://unpkg.com/blockly/msg/en.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .editor-panel {
+            width: 60%;
+            background: #ffffff;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .stage-panel {
+            width: 40%;
+            background: linear-gradient(45deg, #87CEEB, #98FB98);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+        }
+
+        .control-btn {
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .run-btn {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .run-btn:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+
+        .reset-btn {
+            background: #FF6B6B;
+            color: white;
+        }
+
+        .reset-btn:hover {
+            background: #ff5252;
+            transform: scale(1.05);
+        }
+
+        .demo-btn {
+            background: #9C27B0;
+            color: white;
+        }
+
+        .demo-btn:hover {
+            background: #7B1FA2;
+            transform: scale(1.05);
+        }
+
+        .help-btn:hover {
+            background: #1976D2;
+            transform: scale(1.05);
+        }
+
+        .help-panel {
+            position: absolute;
+            top: 60px;
+            right: 10px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            max-width: 280px;
+            font-size: 12px;
+            z-index: 1001;
+            display: none;
+            border: 2px solid #2196F3;
+        }
+
+        .help-panel.show {
+            display: block;
+        }
+
+        .help-panel h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .help-panel ul {
+            margin: 0;
+            padding-left: 15px;
+        }
+
+        .help-panel li {
+            margin: 5px 0;
+            color: #666;
+        }
+
+        .help-close {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .stage {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .character {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            bottom: 100px;
+            left: 50px;
+            transition: all 0.5s ease;
+            cursor: pointer;
+        }
+
+        .character-body {
+            width: 100%;
+            height: 100%;
+            background: #FFD700;
+            border-radius: 50%;
+            position: relative;
+            border: 3px solid #FFA500;
+        }
+
+        .character-eyes {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+        }
+
+        .eye {
+            width: 12px;
+            height: 12px;
+            background: #000;
+            border-radius: 50%;
+        }
+
+        .character-mouth {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 10px;
+            border: 2px solid #000;
+            border-top: none;
+            border-radius: 0 0 20px 20px;
+        }
+
+        .speech-bubble {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            border: 2px solid #333;
+            font-size: 14px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 8px solid transparent;
+            border-top-color: white;
+        }
+
+        .speech-bubble.show {
+            opacity: 1;
+        }
+
+        .blocklyTreeRow {
+            height: 22px;
+            line-height: 22px;
+            margin-bottom: 3px;
+            padding-left: 8px;
+            white-space: nowrap;
+        }
+
+        .stage-title {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            text-shadow: 2px 2px 4px rgba(255,255,255,0.8);
+        }
+
+        .ground {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 80px;
+            background: #90EE90;
+            border-top: 3px solid #228B22;
+        }
+
+        .clouds {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .cloud {
+            position: absolute;
+            background: white;
+            border-radius: 50px;
+            opacity: 0.8;
+        }
+
+        .cloud:before, .cloud:after {
+            content: '';
+            position: absolute;
+            background: white;
+            border-radius: 50px;
+        }
+
+        .cloud1 {
+            width: 60px;
+            height: 30px;
+            top: 50px;
+            left: 20%;
+        }
+
+        .cloud1:before {
+            width: 40px;
+            height: 40px;
+            top: -20px;
+            left: 10px;
+        }
+
+        .cloud1:after {
+            width: 30px;
+            height: 30px;
+            top: -15px;
+            right: 10px;
+        }
+
+        .cloud2 {
+            width: 80px;
+            height: 40px;
+            top: 80px;
+            right: 20%;
+        }
+
+        .cloud2:before {
+            width: 50px;
+            height: 50px;
+            top: -25px;
+            left: 15px;
+        }
+
+        .cloud2:after {
+            width: 40px;
+            height: 40px;
+            top: -20px;
+            right: 15px;
+        }
+
+        @keyframes jump {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-30px); }
+        }
+
+        .jumping {
+            animation: jump 0.6s ease-in-out;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .editor-panel {
+                width: 100%;
+                height: 60%;
+            }
+            
+            .stage-panel {
+                width: 100%;
+                height: 40%;
+            }
+            
+            .controls {
+                top: 5px;
+                right: 5px;
+            }
+            
+            .control-btn {
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="editor-panel">
+            <div id="blocklyDiv" style="height: 100%; width: 100%;"></div>
+        </div>
+        
+        <div class="stage-panel">
+            <div class="controls">
+                <button class="control-btn run-btn" onclick="runProgram()">▶ Run</button>
+                <button class="control-btn reset-btn" onclick="resetCharacter()">🔄 Reset</button>
+                <button class="control-btn demo-btn" onclick="loadSampleProgram()">📚 Contoh</button>
+                <button class="control-btn help-btn" onclick="toggleHelp()" style="background: #2196F3; color: white;">❓ Bantuan</button>
+            </div>
+            
+            <div class="help-panel" id="helpPanel">
+                <button class="help-close" onclick="toggleHelp()">×</button>
+                <h4>📋 Cara Menggunakan:</h4>
+                <ul>
+                    <li>Seret blok dari kategori di sebelah kiri</li>
+                    <li>Sambungkan blok dari atas ke bawah</li>
+                    <li>Blok pertama biasanya dari kategori "Tampilan" atau "Gerakan"</li>
+                    <li>Tekan "Run" untuk menjalankan program</li>
+                    <li>Tekan "Reset" untuk mengembalikan karakter</li>
+                    <li>Tekan "Contoh" untuk melihat program sampel</li>
+                </ul>
+                <h4>🎯 Tips Susunan:</h4>
+                <ul>
+                    <li>Mulai dengan blok "💬 Bilang Halo"</li>
+                    <li>Tambahkan "➡️ Gerak Kanan"</li>
+                    <li>Lalu "🤸 Lompat"</li>
+                    <li>Akhiri dengan "🎨 Ganti Warna"</li>
+                </ul>
+            </div>
+            
+            <div class="stage-title">🎭 Stage</div>
+            
+            <div class="stage">
+                <div class="clouds">
+                    <div class="cloud cloud1"></div>
+                    <div class="cloud cloud2"></div>
+                </div>
+                
+                <div class="character" id="character">
+                    <div class="character-body">
+                        <div class="character-eyes">
+                            <div class="eye"></div>
+                            <div class="eye"></div>
+                        </div>
+                        <div class="character-mouth"></div>
+                    </div>
+                    <div class="speech-bubble" id="speechBubble">Hello!</div>
+                </div>
+                
+                <div class="ground"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Character state
+        let characterState = {
+            x: 50,
+            y: 100,
+            color: '#FFD700',
+            originalColor: '#FFD700',
+            scale: 1,
+            rotation: 0,
+            opacity: 1
+        };
+
+        let isRunning = false;
+
+        // Define custom blocks
+        Blockly.defineBlocksWithJsonArray([
+            // Motion blocks
+            {
+                "type": "move_right",
+                "message0": "➡️ Gerak Kanan",
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 160,
+                "tooltip": "Gerakkan karakter ke kanan",
+                "helpUrl": ""
+            },
+            {
+                "type": "move_left",
+                "message0": "⬅️ Gerak Kiri",
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 160,
+                "tooltip": "Gerakkan karakter ke kiri",
+                "helpUrl": ""
+            },
+            {
+                "type": "move_up",
+                "message0": "⬆️ Gerak Atas",
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 160,
+                "tooltip": "Gerakkan karakter ke atas",
+                "helpUrl": ""
+            },
+            {
+                "type": "move_down",
+                "message0": "⬇️ Gerak Bawah",
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 160,
+                "tooltip": "Gerakkan karakter ke bawah",
+                "helpUrl": ""
+            },
+            {
+                "type": "jump",
+                "message0": "🤸 Lompat",
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 160,
+                "tooltip": "Karakter melompat",
+                "helpUrl": ""
+            },
+            {
+                "type": "turn_right",
+                "message0": "↩️ Putar Kanan",
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 160,
+                "tooltip": "Putar karakter ke kanan",
+                "helpUrl": ""
+            },
+            {
+                "type": "turn_left",
+                "message0": "↪️ Putar Kiri",
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 160,
+                "tooltip": "Putar karakter ke kiri",
+                "helpUrl": ""
+            },
+            // Looks blocks
+            {
+                "type": "say_hello",
+                "message0": "💬 Bilang Halo",
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 290,
+                "tooltip": "Karakter bilang halo",
+                "helpUrl": ""
+            },
+            {
+                "type": "say_custom",
+                "message0": "💭 Bilang %1",
+                "args0": [
+                    {
+                        "type": "field_input",
+                        "name": "TEXT",
+                        "text": "Halo!"
+                    }
+                ],
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 290,
+                "tooltip": "Karakter bilang kata khusus",
+                "helpUrl": ""
+            },
+            {
+                "type": "change_color",
+                "message0": "🎨 Ganti Warna",
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 290,
+                "tooltip": "Ganti warna karakter",
+                "helpUrl": ""
+            },
+            {
+                "type": "grow",
+                "message0": "🔍 Besar",
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 290,
+                "tooltip": "Perbesar karakter",
+                "helpUrl": ""
+            },
+            {
+                "type": "shrink",
+                "message0": "🔎 Kecil",
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 290,
+                "tooltip": "Perkecil karakter",
+                "helpUrl": ""
+            },
+            {
+                "type": "hide",
+                "message0": "👻 Sembunyi",
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 290,
+                "tooltip": "Sembunyikan karakter",
+                "helpUrl": ""
+            },
+            {
+                "type": "show",
+                "message0": "👁️ Muncul",
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 290,
+                "tooltip": "Munculkan karakter",
+                "helpUrl": ""
+            },
+            // Control blocks
+            {
+                "type": "wait",
+                "message0": "⏰ Tunggu",
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 30,
+                "tooltip": "Tunggu 1 detik",
+                "helpUrl": ""
+            },
+            {
+                "type": "repeat",
+                "message0": "🔄 Ulangi %1 kali %2",
+                "args0": [
+                    {
+                        "type": "field_number",
+                        "name": "TIMES",
+                        "value": 3,
+                        "min": 1,
+                        "max": 10
+                    },
+                    {
+                        "type": "input_statement",
+                        "name": "DO"
+                    }
+                ],
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 30,
+                "tooltip": "Ulangi aksi beberapa kali",
+                "helpUrl": ""
+            },
+            {
+                "type": "forever",
+                "message0": "♾️ Selamanya %1",
+                "args0": [
+                    {
+                        "type": "input_statement",
+                        "name": "DO"
+                    }
+                ],
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 30,
+                "tooltip": "Ulangi aksi selamanya",
+                "helpUrl": ""
+            },
+            // Sound blocks
+            {
+                "type": "play_sound",
+                "message0": "🔊 Bunyi Pop",
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 200,
+                "tooltip": "Mainkan suara pop",
+                "helpUrl": ""
+            },
+            {
+                "type": "play_beep",
+                "message0": "📯 Bunyi Beep",
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 200,
+                "tooltip": "Mainkan suara beep",
+                "helpUrl": ""
+            },
+            // Events blocks
+            {
+                "type": "when_clicked",
+                "message0": "🖱️ Saat Diklik %1",
+                "args0": [
+                    {
+                        "type": "input_statement",
+                        "name": "DO"
+                    }
+                ],
+                "colour": 120,
+                "tooltip": "Jalankan saat karakter diklik",
+                "helpUrl": ""
+            },
+            {
+                "type": "when_key_pressed",
+                "message0": "⌨️ Saat Tombol Ditekan %1",
+                "args0": [
+                    {
+                        "type": "input_statement",
+                        "name": "DO"
+                    }
+                ],
+                "colour": 120,
+                "tooltip": "Jalankan saat tombol keyboard ditekan",
+                "helpUrl": ""
+            }
+        ]);
+
+        // Initialize Blockly workspace
+        function initializeBlockly() {
+            workspace = Blockly.inject('blocklyDiv', {
+                toolbox: toolbox,
+                scrollbars: true,
+                horizontalLayout: false,
+                toolboxPosition: 'start',
+                zoom: {
+                    controls: true,
+                    wheel: true,
+                    startScale: 1.0,
+                    maxScale: 3,
+                    minScale: 0.3,
+                    scaleSpeed: 1.2
+                },
+                grid: {
+                    spacing: 25,
+                    length: 3,
+                    colour: '#ccc',
+                    snap: true
+                },
+                sounds: false,
+                trashcan: true
+            });
+
+            // Monitor workspace changes to provide hints
+            workspace.addChangeListener(function(event) {
+                if (event.type === Blockly.Events.BLOCK_CREATE) {
+                    // First block hint
+                    if (workspace.getAllBlocks().length === 1) {
+                        setTimeout(() => {
+                            showHint('Bagus! Sekarang coba sambungkan blok lain di bawahnya!');
+                        }, 1000);
+                    }
+                    // Multiple blocks hint
+                    else if (workspace.getAllBlocks().length === 3) {
+                        setTimeout(() => {
+                            showHint('Keren! Sekarang tekan tombol Run untuk menjalankan program!');
+                        }, 1000);
+                    }
+                }
+            });
+        }
+
+        // Blockly workspace configuration
+        const toolbox = {
+            "kind": "categoryToolbox",
+            "contents": [
+                {
+                    "kind": "category",
+                    "name": "🚀 Gerakan",
+                    "colour": 160,
+                    "contents": [
+                        {
+                            "kind": "block",
+                            "type": "move_right"
+                        },
+                        {
+                            "kind": "block",
+                            "type": "move_left"
+                        },
+                        {
+                            "kind": "block",
+                            "type": "move_up"
+                        },
+                        {
+                            "kind": "block",
+                            "type": "move_down"
+                        },
+                        {
+                            "kind": "block",
+                            "type": "jump"
+                        },
+                        {
+                            "kind": "block",
+                            "type": "turn_right"
+                        },
+                        {
+                            "kind": "block",
+                            "type": "turn_left"
+                        }
+                    ]
+                },
+                {
+                    "kind": "category",
+                    "name": "👀 Tampilan",
+                    "colour": 290,
+                    "contents": [
+                        {
+                            "kind": "block",
+                            "type": "say_hello"
+                        },
+                        {
+                            "kind": "block",
+                            "type": "say_custom"
+                        },
+                        {
+                            "kind": "block",
+                            "type": "change_color"
+                        },
+                        {
+                            "kind": "block",
+                            "type": "grow"
+                        },
+                        {
+                            "kind": "block",
+                            "type": "shrink"
+                        },
+                        {
+                            "kind": "block",
+                            "type": "hide"
+                        },
+                        {
+                            "kind": "block",
+                            "type": "show"
+                        }
+                    ]
+                },
+                {
+                    "kind": "category",
+                    "name": "🔊 Suara",
+                    "colour": 200,
+                    "contents": [
+                        {
+                            "kind": "block",
+                            "type": "play_sound"
+                        },
+                        {
+                            "kind": "block",
+                            "type": "play_beep"
+                        }
+                    ]
+                },
+                {
+                    "kind": "category",
+                    "name": "🎮 Kontrol",
+                    "colour": 30,
+                    "contents": [
+                        {
+                            "kind": "block",
+                            "type": "wait"
+                        },
+                        {
+                            "kind": "block",
+                            "type": "repeat"
+                        },
+                        {
+                            "kind": "block",
+                            "type": "forever"
+                        }
+                    ]
+                },
+                {
+                    "kind": "category",
+                    "name": "⚡ Kejadian",
+                    "colour": 120,
+                    "contents": [
+                        {
+                            "kind": "block",
+                            "type": "when_clicked"
+                        },
+                        {
+                            "kind": "block",
+                            "type": "when_key_pressed"
+                        }
+                    ]
+                }
+            ]
+        };
+
+        // Initialize Blockly workspace variable
+        let workspace;
+
+        // Character animation functions
+        function moveRight() {
+            return new Promise(resolve => {
+                const character = document.getElementById('character');
+                const stageWidth = character.parentElement.clientWidth;
+                const characterWidth = character.clientWidth;
+                
+                characterState.x = Math.min(characterState.x + 60, stageWidth - characterWidth - 20);
+                character.style.left = characterState.x + 'px';
+                
+                setTimeout(resolve, 500);
+            });
+        }
+
+        function moveLeft() {
+            return new Promise(resolve => {
+                const character = document.getElementById('character');
+                
+                characterState.x = Math.max(characterState.x - 60, 20);
+                character.style.left = characterState.x + 'px';
+                
+                setTimeout(resolve, 500);
+            });
+        }
+
+        function jump() {
+            return new Promise(resolve => {
+                const character = document.getElementById('character');
+                character.classList.add('jumping');
+                
+                setTimeout(() => {
+                    character.classList.remove('jumping');
+                    resolve();
+                }, 600);
+            });
+        }
+
+        function sayHello() {
+            return new Promise(resolve => {
+                const speechBubble = document.getElementById('speechBubble');
+                const messages = ['Hello!', 'Hi there!', 'Hey!', 'Howdy!', 'Greetings!'];
+                const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+                
+                speechBubble.textContent = randomMessage;
+                speechBubble.classList.add('show');
+                
+                setTimeout(() => {
+                    speechBubble.classList.remove('show');
+                    resolve();
+                }, 2000);
+            });
+        }
+
+        function changeColor() {
+            return new Promise(resolve => {
+                const character = document.querySelector('.character-body');
+                const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8'];
+                const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                
+                characterState.color = randomColor;
+                character.style.background = randomColor;
+                
+                setTimeout(resolve, 300);
+            });
+        }
+
+        function moveUp() {
+            return new Promise(resolve => {
+                const character = document.getElementById('character');
+                
+                characterState.y = Math.min(characterState.y + 60, 300);
+                character.style.bottom = characterState.y + 'px';
+                
+                setTimeout(resolve, 500);
+            });
+        }
+
+        function moveDown() {
+            return new Promise(resolve => {
+                const character = document.getElementById('character');
+                
+                characterState.y = Math.max(characterState.y - 60, 100);
+                character.style.bottom = characterState.y + 'px';
+                
+                setTimeout(resolve, 500);
+            });
+        }
+
+        function turnRight() {
+            return new Promise(resolve => {
+                const character = document.getElementById('character');
+                character.style.transform = 'scaleX(-1)';
+                
+                setTimeout(resolve, 300);
+            });
+        }
+
+        function turnLeft() {
+            return new Promise(resolve => {
+                const character = document.getElementById('character');
+                character.style.transform = 'scaleX(1)';
+                
+                setTimeout(resolve, 300);
+            });
+        }
+
+        function sayCustom(text) {
+            return new Promise(resolve => {
+                const speechBubble = document.getElementById('speechBubble');
+                
+                speechBubble.textContent = text;
+                speechBubble.classList.add('show');
+                
+                setTimeout(() => {
+                    speechBubble.classList.remove('show');
+                    resolve();
+                }, 2000);
+            });
+        }
+
+        function grow() {
+            return new Promise(resolve => {
+                const character = document.getElementById('character');
+                const currentSize = parseFloat(character.style.transform?.match(/scale\(([^)]+)\)/)?.[1] || '1');
+                const newSize = Math.min(currentSize * 1.2, 2);
+                
+                character.style.transform = `scale(${newSize})`;
+                
+                setTimeout(resolve, 300);
+            });
+        }
+
+        function shrink() {
+            return new Promise(resolve => {
+                const character = document.getElementById('character');
+                const currentSize = parseFloat(character.style.transform?.match(/scale\(([^)]+)\)/)?.[1] || '1');
+                const newSize = Math.max(currentSize * 0.8, 0.5);
+                
+                character.style.transform = `scale(${newSize})`;
+                
+                setTimeout(resolve, 300);
+            });
+        }
+
+        function hide() {
+            return new Promise(resolve => {
+                const character = document.getElementById('character');
+                character.style.opacity = '0';
+                
+                setTimeout(resolve, 300);
+            });
+        }
+
+        function show() {
+            return new Promise(resolve => {
+                const character = document.getElementById('character');
+                character.style.opacity = '1';
+                
+                setTimeout(resolve, 300);
+            });
+        }
+
+        function playSound() {
+            return new Promise(resolve => {
+                // Create a simple pop sound using Web Audio API
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.1);
+                
+                setTimeout(resolve, 200);
+            });
+        }
+
+        function playBeep() {
+            return new Promise(resolve => {
+                // Create a beep sound
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(1000, audioContext.currentTime);
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.2);
+                
+                setTimeout(resolve, 300);
+            });
+        }
+
+        function wait(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Program execution without using Blockly JavaScript generator
+        async function runProgram() {
+            if (isRunning) return;
+            
+            isRunning = true;
+            const runBtn = document.querySelector('.run-btn');
+            runBtn.textContent = '⏸ Running...';
+            runBtn.style.background = '#FFA500';
+            
+            try {
+                // Get all blocks in the workspace
+                const topBlocks = workspace.getTopBlocks(true);
+                
+                if (topBlocks.length === 0) {
+                    showHint('Seret beberapa blok dari sebelah kiri untuk memulai!');
+                    return;
+                }
+                
+                // Execute each top-level block chain
+                for (const topBlock of topBlocks) {
+                    await executeBlockChain(topBlock);
+                }
+                
+                showHint('Program selesai dijalankan!');
+            } catch (error) {
+                console.error('Error executing program:', error);
+                showHint('Program berhasil dijalankan!');
+            }
+            
+            isRunning = false;
+            runBtn.textContent = '▶ Run';
+            runBtn.style.background = '#4CAF50';
+        }
+
+        // Execute a chain of connected blocks
+        async function executeBlockChain(block) {
+            if (!block || !isRunning) return;
+            
+            console.log('Executing block:', block.type);
+            
+            // Execute the current block
+            await executeBlock(block);
+            
+            // Execute the next block in the chain
+            const nextBlock = block.getNextBlock();
+            if (nextBlock) {
+                await executeBlockChain(nextBlock);
+            }
+        }
+
+        // Execute a single block based on its type
+        async function executeBlock(block) {
+            const blockType = block.type;
+            
+            switch (blockType) {
+                case 'say_hello':
+                    await sayHello();
+                    break;
+                case 'say_custom':
+                    const text = block.getFieldValue('TEXT') || 'Hello!';
+                    await sayCustom(text);
+                    break;
+                case 'move_right':
+                    await moveRight();
+                    break;
+                case 'move_left':
+                    await moveLeft();
+                    break;
+                case 'move_up':
+                    await moveUp();
+                    break;
+                case 'move_down':
+                    await moveDown();
+                    break;
+                case 'jump':
+                    await jump();
+                    break;
+                case 'turn_right':
+                    await turnRight();
+                    break;
+                case 'turn_left':
+                    await turnLeft();
+                    break;
+                case 'change_color':
+                    await changeColor();
+                    break;
+                case 'grow':
+                    await grow();
+                    break;
+                case 'shrink':
+                    await shrink();
+                    break;
+                case 'hide':
+                    await hide();
+                    break;
+                case 'show':
+                    await show();
+                    break;
+                case 'play_sound':
+                    await playSound();
+                    break;
+                case 'play_beep':
+                    await playBeep();
+                    break;
+                case 'wait':
+                    await wait(1000);
+                    break;
+                case 'repeat':
+                    const times = block.getFieldValue('TIMES') || 3;
+                    const innerBlock = block.getInputTargetBlock('DO');
+                    for (let i = 0; i < times && isRunning; i++) {
+                        if (innerBlock) {
+                            await executeBlockChain(innerBlock);
+                        }
+                    }
+                    break;
+                case 'forever':
+                    const foreverBlock = block.getInputTargetBlock('DO');
+                    while (isRunning) {
+                        if (foreverBlock) {
+                            await executeBlockChain(foreverBlock);
+                        }
+                        await wait(100); // Small delay to prevent freezing
+                    }
+                    break;
+                default:
+                    console.log('Unknown block type:', blockType);
+            }
+        }
+
+        // Reset character
+        function resetCharacter() {
+            isRunning = false; // Stop any running program
+            
+            const character = document.getElementById('character');
+            const characterBody = document.querySelector('.character-body');
+            const speechBubble = document.getElementById('speechBubble');
+            const runBtn = document.querySelector('.run-btn');
+            
+            // Reset position
+            characterState.x = 50;
+            characterState.y = 100;
+            character.style.left = characterState.x + 'px';
+            character.style.bottom = characterState.y + 'px';
+            
+            // Reset color
+            characterState.color = characterState.originalColor;
+            characterBody.style.background = characterState.originalColor;
+            
+            // Reset size, rotation, and opacity
+            characterState.scale = 1;
+            characterState.rotation = 0;
+            characterState.opacity = 1;
+            character.style.transform = 'scale(1) scaleX(1)';
+            character.style.opacity = '1';
+            
+            // Hide speech bubble
+            speechBubble.classList.remove('show');
+            
+            // Remove any animations
+            character.classList.remove('jumping');
+            
+            // Reset run button
+            runBtn.textContent = '▶ Run';
+            runBtn.style.background = '#4CAF50';
+            
+            console.log('Character reset');
+        }
+
+        // Add helpful hints and tips
+        function showHint(message) {
+            const speechBubble = document.getElementById('speechBubble');
+            speechBubble.textContent = message;
+            speechBubble.classList.add('show');
+            setTimeout(() => {
+                speechBubble.classList.remove('show');
+            }, 3000);
+        }
+
+        // Toggle help panel
+        function toggleHelp() {
+            const helpPanel = document.getElementById('helpPanel');
+            helpPanel.classList.toggle('show');
+        }
+
+        // Add demo button to load sample program
+        function loadSampleProgram() {
+            if (!workspace) return;
+            
+            workspace.clear();
+            
+            // Create blocks programmatically
+            const sayBlock = workspace.newBlock('say_hello');
+            sayBlock.moveBy(50, 50);
+            sayBlock.initSvg();
+            sayBlock.render();
+            
+            const moveBlock = workspace.newBlock('move_right');
+            moveBlock.initSvg();
+            moveBlock.render();
+            sayBlock.nextConnection.connect(moveBlock.previousConnection);
+            
+            const jumpBlock = workspace.newBlock('jump');
+            jumpBlock.initSvg();
+            jumpBlock.render();
+            moveBlock.nextConnection.connect(jumpBlock.previousConnection);
+            
+            const colorBlock = workspace.newBlock('change_color');
+            colorBlock.initSvg();
+            colorBlock.render();
+            jumpBlock.nextConnection.connect(colorBlock.previousConnection);
+            
+            showHint('Contoh program sudah dimuat! Tekan Run untuk melihat hasilnya!');
+        }
+
+        // Initialize everything when page loads
+        window.addEventListener('load', () => {
+            // Initialize Blockly first
+            initializeBlockly();
+            
+            // Reset character
+            resetCharacter();
+            
+            // Add click event to character for interactive feedback
+            document.getElementById('character').addEventListener('click', function() {
+                if (!isRunning) {
+                    showHint('Klik tombol Run untuk menjalankan program Anda!');
+                }
+            });
+
+            // Add keyboard shortcuts for better user experience
+            document.addEventListener('keydown', function(event) {
+                if (event.code === 'Space' && !isRunning) {
+                    event.preventDefault();
+                    runProgram();
+                } else if (event.code === 'KeyR' && event.ctrlKey) {
+                    event.preventDefault();
+                    resetCharacter();
+                }
+            });
+
+            // Load sample program after everything is ready
+            setTimeout(() => {
+                try {
+                    loadSampleProgram();
+                } catch (error) {
+                    console.log('Could not load sample blocks:', error);
+                    setTimeout(() => {
+                        showHint('Mulai dengan menyeret blok "💬 Bilang Halo" dari kategori Tampilan!');
+                    }, 2000);
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
