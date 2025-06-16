@@ -29,3 +29,14 @@ html,body{
   z-index:90;
   display:none;
 }
+.blink-red {
+  stroke: red !important;
+  stroke-width: 2px;
+  animation: blink 0.5s ease-in-out 2;
+}
+
+@keyframes blink {
+  0%   { stroke-opacity: 1; }
+  50%  { stroke-opacity: 0; }
+  100% { stroke-opacity: 1; }
+}

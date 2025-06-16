@@ -144,7 +144,7 @@ Blockly.defineBlocksWithJsonArray([
   },
   {
     "type": "hewan_kura",
-    "message0": "kura-kura",
+    "message0": "kura",
     "message1": "gambar %1",
     "args1": [
       {"type": "input_value", "name": "GAMBAR", "check": "GAMBAR"}

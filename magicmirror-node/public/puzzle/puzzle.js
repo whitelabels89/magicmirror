@@ -6,7 +6,7 @@ const ANIMALS = {
   },
   lebah: {
     image: "/img/lebah.png",
-    legs: '4',
+    legs: '6',
     ciri: ['menghasilkan madu', 'dapat menyengat']
   },
   bebek: {
@@ -22,7 +22,20 @@ const ANIMALS = {
 };
 
 const workspace = Blockly.inject('blocklyDiv', {
-  toolbox: document.getElementById('toolbox')
+  toolbox: null,
+  zoom: {
+    controls: true,
+    wheel: true,
+    startScale: 0.8,
+    maxScale: 2,
+    minScale: 0.3,
+    scaleSpeed: 1.2
+  },
+  move: {
+    scrollbars: true,
+    drag: true,
+    wheel: true
+  }
 });
 
 // Hide preview canvas until needed
@@ -58,11 +71,7 @@ function createBlock(type, fields = {}) {
 function init() {
   Object.entries(ANIMALS).forEach(([name, data]) => {
     createBlock('hewan_' + name);
-    if (name === 'kucing') {
-      createBlock('gambar_kucing');
-    } else {
-      createBlock('gambar', {SRC: data.image});
-    }
+    createBlock('gambar_' + name);
     createBlock('kaki', {NUM: data.legs});
     data.ciri.forEach(text => createBlock('ciri', {TEXT: text}));
   });
@@ -81,33 +90,80 @@ function getCiriTexts(block) {
 function checkAnswer() {
   let correct = true;
   let imageCorrect = true;
+  let firstIncorrectBlock = null;
+
+  // Helper function to add blinking red border to a block's SVG group
+  function blinkBlock(block) {
+    const svgRoot = block.getSvgRoot();
+    if (!svgRoot) return;
+    svgRoot.classList.add('blink-red');
+    setTimeout(() => {
+      svgRoot.classList.remove('blink-red');
+    }, 3000); // duration should match animation duration * iterations
+  }
+
   for (const [name, data] of Object.entries(ANIMALS)) {
     const animalBlock = workspace.getBlocksByType('hewan_' + name, false)[0];
-    if (!animalBlock) { correct = false; imageCorrect = false; break; }
-    const imgBlock = animalBlock.getInputTargetBlock('GAMBAR');
-    let url = '';
-    if (imgBlock) {
-      url = imgBlock.getFieldValue('SRC');
-    }
-    if (!imgBlock || url.trim() !== data.image || (name === 'kucing' && imgBlock.type !== 'gambar_kucing')) {
+    if (!animalBlock) {
       correct = false;
       imageCorrect = false;
-    } else {
-      drawImage(url);
+      if (!firstIncorrectBlock) firstIncorrectBlock = null; // no block to draw image from
+      continue;
+    }
+    const imgBlock = animalBlock.getInputTargetBlock('GAMBAR');
+    let url = '';
+    let imgCorrect = false;
+    if (imgBlock) {
+      url = imgBlock.getFieldValue('SRC');
+      imgCorrect = (url.trim() === data.image && imgBlock.type === 'gambar_' + name);
+    }
+    if (!imgBlock || !imgCorrect) {
+      correct = false;
+      imageCorrect = false;
+      if (!firstIncorrectBlock) firstIncorrectBlock = animalBlock;
+      blinkBlock(animalBlock);
     }
     const legBlock = animalBlock.getInputTargetBlock('KAKI');
     if (!legBlock || legBlock.getFieldValue('NUM') !== data.legs) {
       correct = false;
+      if (!firstIncorrectBlock) firstIncorrectBlock = animalBlock;
+      blinkBlock(animalBlock);
     }
     const ciris = getCiriTexts(animalBlock).sort();
     const expected = data.ciri.slice().sort();
     if (ciris.length !== expected.length || ciris.some((c,i) => c !== expected[i])) {
       correct = false;
+      if (!firstIncorrectBlock) firstIncorrectBlock = animalBlock;
+      blinkBlock(animalBlock);
     }
   }
+
   const topBlocks = workspace.getTopBlocks(false);
   const allowed = Object.keys(ANIMALS).map(a => 'hewan_' + a);
-  if (topBlocks.some(b => !allowed.includes(b.type))) correct = false;
+  if (topBlocks.some(b => !allowed.includes(b.type))) {
+    correct = false;
+    // Blink all top blocks that are not allowed
+    topBlocks.forEach(b => {
+      if (!allowed.includes(b.type)) {
+        blinkBlock(b);
+        if (!firstIncorrectBlock) firstIncorrectBlock = b;
+      }
+    });
+  }
+
+  if (firstIncorrectBlock) {
+    const imgBlock = firstIncorrectBlock.getInputTargetBlock('GAMBAR');
+    if (imgBlock) {
+      const url = imgBlock.getFieldValue('SRC');
+      drawImage(url);
+    } else {
+      previewCanvas.style.display = 'none';
+    }
+  } else if (imageCorrect) {
+    // If all images correct, draw last image (or hide canvas if none)
+    previewCanvas.style.display = 'none';
+  }
+
   alert(imageCorrect ? '✅ Gambar benar' : '❌ Gambar salah');
   alert(correct ? '✅ Semua benar!' : '❌ Masih ada yang salah');
 }
