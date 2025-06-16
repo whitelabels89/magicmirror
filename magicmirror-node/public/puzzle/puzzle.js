@@ -25,6 +25,16 @@ const workspace = Blockly.inject('blocklyDiv', {
   toolbox: document.getElementById('toolbox')
 });
 
+function drawImage(url) {
+  const ctx = document.getElementById('previewCanvas').getContext('2d');
+  const img = new Image();
+  img.onload = () => {
+    ctx.clearRect(0, 0, 400, 400);
+    ctx.drawImage(img, 50, 50, 200, 200);
+  };
+  img.src = url;
+}
+
 function createBlock(type, fields = {}) {
   const block = workspace.newBlock(type);
   for (const [name, value] of Object.entries(fields)) {
@@ -60,27 +70,32 @@ function getCiriTexts(block) {
 
 function checkAnswer() {
   let correct = true;
+  let imageCorrect = true;
   for (const [name, data] of Object.entries(ANIMALS)) {
     const animalBlock = workspace.getBlocksByType('hewan_' + name, false)[0];
-    if (!animalBlock) { correct = false; break; }
+    if (!animalBlock) { correct = false; imageCorrect = false; break; }
     const imgBlock = animalBlock.getInputTargetBlock('GAMBAR');
-    if (!imgBlock || imgBlock.getFieldValue('SRC').trim() !== data.image) {
-      correct = false; break;
+    const url = imgBlock ? imgBlock.getFieldValue('SRC').trim() : '';
+    if (!imgBlock || url !== data.image) {
+      correct = false;
+      imageCorrect = false;
+    } else {
+      drawImage(url);
     }
     const legBlock = animalBlock.getInputTargetBlock('KAKI');
     if (!legBlock || legBlock.getFieldValue('NUM') !== data.legs) {
-      correct = false; break;
+      correct = false;
     }
     const ciris = getCiriTexts(animalBlock).sort();
     const expected = data.ciri.slice().sort();
     if (ciris.length !== expected.length || ciris.some((c,i) => c !== expected[i])) {
-      correct = false; break;
+      correct = false;
     }
   }
-  // ensure no leftover blocks
   const topBlocks = workspace.getTopBlocks(false);
   const allowed = Object.keys(ANIMALS).map(a => 'hewan_' + a);
   if (topBlocks.some(b => !allowed.includes(b.type))) correct = false;
+  alert(imageCorrect ? '✅ Gambar benar' : '❌ Gambar salah');
   alert(correct ? '✅ Semua benar!' : '❌ Masih ada yang salah');
 }
 
