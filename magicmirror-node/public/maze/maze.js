@@ -5,15 +5,32 @@ let finish = {x:0,y:0};
 const CELL=40;
 const canvas = document.getElementById('maze');
 const ctx = canvas.getContext('2d');
-const workspace = Blockly.inject('blocklyDiv',{toolbox: document.getElementById('toolbox')});
+const workspace = Blockly.inject('blocklyDiv', {
+  toolbox: document.getElementById('toolbox')
+});
+// Temporary shim for deprecated API usage in Blockly's math blocks
+// Silence deprecation warning by redirecting to the new API
+Blockly.Workspace.prototype.getAllVariables = function() {
+  return this.getVariableMap().getAllVariables();
+};
 let actions = [];
 
-function loadLevel(){
-  grid = MAZE_LEVELS[levelIndex];
-  for(let r=0;r<grid.length;r++){
-    for(let c=0;c<grid[r].length;c++){
-      if(grid[r][c]==2){player.x=c;player.y=r;player.dir=1;}
-      if(grid[r][c]==3){finish.x=c;finish.y=r;}
+function loadLevel() {
+  // Clone level map so player movement doesn't modify originals
+  grid = MAZE_LEVELS[levelIndex].map(row => row.slice());
+  document.getElementById('level-label').innerText = 'Level: ' + (levelIndex + 1);
+  actions = [];
+  for (let r = 0; r < grid.length; r++) {
+    for (let c = 0; c < grid[r].length; c++) {
+      if (grid[r][c] === 2) {
+        player.x = c;
+        player.y = r;
+        player.dir = 1;
+      }
+      if (grid[r][c] === 3) {
+        finish.x = c;
+        finish.y = r;
+      }
     }
   }
   draw();
@@ -95,3 +112,15 @@ function checkResult(){
 
 loadLevel();
 document.getElementById('run-btn').addEventListener('click',runCode);
+document.getElementById('next-level').addEventListener('click',()=>{
+  if(levelIndex < MAZE_LEVELS.length - 1){
+    levelIndex++;
+    loadLevel();
+  }
+});
+document.getElementById('prev-level').addEventListener('click',()=>{
+  if(levelIndex > 0){
+    levelIndex--;
+    loadLevel();
+  }
+});

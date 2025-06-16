@@ -324,6 +324,34 @@
             animation: jump 0.6s ease-in-out;
         }
 
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        @keyframes wave {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-15deg); }
+            75% { transform: rotate(15deg); }
+        }
+
+        @keyframes fall {
+            0% { 
+                transform: translateY(-100px); 
+                opacity: 1; 
+            }
+            100% { 
+                transform: translateY(400px); 
+                opacity: 0; 
+            }
+        }
+
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
@@ -652,6 +680,227 @@
                 "colour": 120,
                 "tooltip": "Jalankan saat tombol keyboard ditekan",
                 "helpUrl": ""
+            },
+            // Educational Math blocks
+            {
+                "type": "count_numbers",
+                "message0": "🔢 Hitung %1 sampai %2",
+                "args0": [
+                    {
+                        "type": "field_number",
+                        "name": "START",
+                        "value": 1,
+                        "min": 1,
+                        "max": 10
+                    },
+                    {
+                        "type": "field_number",
+                        "name": "END",
+                        "value": 5,
+                        "min": 1,
+                        "max": 10
+                    }
+                ],
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 60,
+                "tooltip": "Hitung angka dari start sampai end",
+                "helpUrl": ""
+            },
+            {
+                "type": "draw_shape",
+                "message0": "✏️ Gambar %1",
+                "args0": [
+                    {
+                        "type": "field_dropdown",
+                        "name": "SHAPE",
+                        "options": [
+                            ["Kotak", "square"],
+                            ["Segitiga", "triangle"],
+                            ["Lingkaran", "circle"],
+                            ["Bintang", "star"]
+                        ]
+                    }
+                ],
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 60,
+                "tooltip": "Gambar bentuk di layar",
+                "helpUrl": ""
+            },
+            {
+                "type": "learn_colors",
+                "message0": "🎨 Belajar Warna %1",
+                "args0": [
+                    {
+                        "type": "field_dropdown",
+                        "name": "COLOR",
+                        "options": [
+                            ["Merah", "red"],
+                            ["Biru", "blue"],
+                            ["Hijau", "green"],
+                            ["Kuning", "yellow"],
+                            ["Ungu", "purple"],
+                            ["Orange", "orange"]
+                        ]
+                    }
+                ],
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 60,
+                "tooltip": "Belajar nama warna",
+                "helpUrl": ""
+            },
+            {
+                "type": "animal_sound",
+                "message0": "🐾 Suara %1",
+                "args0": [
+                    {
+                        "type": "field_dropdown",
+                        "name": "ANIMAL",
+                        "options": [
+                            ["Kucing", "cat"],
+                            ["Anjing", "dog"],
+                            ["Sapi", "cow"],
+                            ["Ayam", "chicken"],
+                            ["Bebek", "duck"]
+                        ]
+                    }
+                ],
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 60,
+                "tooltip": "Mainkan suara hewan",
+                "helpUrl": ""
+            },
+            {
+                "type": "tell_time",
+                "message0": "⏰ Jam Sekarang",
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 60,
+                "tooltip": "Beritahu jam sekarang",
+                "helpUrl": ""
+            },
+            {
+                "type": "random_fact",
+                "message0": "🧠 Fakta Menarik",
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 60,
+                "tooltip": "Berikan fakta menarik untuk anak",
+                "helpUrl": ""
+            },
+            // Interactive blocks
+            {
+                "type": "dance_move",
+                "message0": "💃 Gerakan %1",
+                "args0": [
+                    {
+                        "type": "field_dropdown",
+                        "name": "DANCE",
+                        "options": [
+                            ["Berputar", "spin"],
+                            ["Goyang", "shake"],
+                            ["Melambai", "wave"],
+                            ["Berkedip", "blink"]
+                        ]
+                    }
+                ],
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 330,
+                "tooltip": "Gerakan dance yang lucu",
+                "helpUrl": ""
+            },
+            {
+                "type": "change_weather",
+                "message0": "🌤️ Cuaca %1",
+                "args0": [
+                    {
+                        "type": "field_dropdown",
+                        "name": "WEATHER",
+                        "options": [
+                            ["Cerah", "sunny"],
+                            ["Hujan", "rainy"],
+                            ["Berawan", "cloudy"],
+                            ["Salju", "snowy"]
+                        ]
+                    }
+                ],
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 330,
+                "tooltip": "Ubah cuaca di latar belakang",
+                "helpUrl": ""
+            },
+            {
+                "type": "celebration",
+                "message0": "🎉 Perayaan!",
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 330,
+                "tooltip": "Efek perayaan dengan konfetti",
+                "helpUrl": ""
+            },
+            {
+                "type": "change_shape",
+                "message0": "🔄 Ubah Bentuk %1",
+                "args0": [
+                    {
+                        "type": "field_dropdown",
+                        "name": "SHAPE",
+                        "options": [
+                            ["Kotak", "square"],
+                            ["Lingkaran", "circle"],
+                            ["Segitiga", "triangle"],
+                            ["Bintang", "star"],
+                            ["Hati", "heart"],
+                            ["Normal", "normal"]
+                        ]
+                    }
+                ],
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 180,
+                "tooltip": "Ubah bentuk karakter",
+                "helpUrl": ""
+            },
+            {
+                "type": "make_bigger",
+                "message0": "🔍 Perbesar",
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 180,
+                "tooltip": "Perbesar ukuran karakter",
+                "helpUrl": ""
+            },
+            {
+                "type": "make_smaller",
+                "message0": "🔎 Perkecil",
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 180,
+                "tooltip": "Perkecil ukuran karakter",
+                "helpUrl": ""
+            },
+            {
+                "type": "rotate_character",
+                "message0": "↩️ Putar %1 derajat",
+                "args0": [
+                    {
+                        "type": "field_number",
+                        "name": "DEGREES",
+                        "value": 90,
+                        "min": -360,
+                        "max": 360
+                    }
+                ],
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 180,
+                "tooltip": "Putar karakter dengan sudut tertentu",
+                "helpUrl": ""
             }
         ]);
 
@@ -819,6 +1068,79 @@
                         {
                             "kind": "block",
                             "type": "when_key_pressed"
+                        }
+                    ]
+                },
+                {
+                    "kind": "category",
+                    "name": "📚 Belajar",
+                    "colour": 60,
+                    "contents": [
+                        {
+                            "kind": "block",
+                            "type": "count_numbers"
+                        },
+                        {
+                            "kind": "block",
+                            "type": "draw_shape"
+                        },
+                        {
+                            "kind": "block",
+                            "type": "learn_colors"
+                        },
+                        {
+                            "kind": "block",
+                            "type": "animal_sound"
+                        },
+                        {
+                            "kind": "block",
+                            "type": "tell_time"
+                        },
+                        {
+                            "kind": "block",
+                            "type": "random_fact"
+                        }
+                    ]
+                },
+                {
+                    "kind": "category",
+                    "name": "🎪 Interaktif",
+                    "colour": 330,
+                    "contents": [
+                        {
+                            "kind": "block",
+                            "type": "dance_move"
+                        },
+                        {
+                            "kind": "block",
+                            "type": "change_weather"
+                        },
+                        {
+                            "kind": "block",
+                            "type": "celebration"
+                        }
+                    ]
+                },
+                {
+                    "kind": "category",
+                    "name": "🔧 Transform",
+                    "colour": 180,
+                    "contents": [
+                        {
+                            "kind": "block",
+                            "type": "change_shape"
+                        },
+                        {
+                            "kind": "block",
+                            "type": "make_bigger"
+                        },
+                        {
+                            "kind": "block",
+                            "type": "make_smaller"
+                        },
+                        {
+                            "kind": "block",
+                            "type": "rotate_character"
                         }
                     ]
                 }
@@ -1039,6 +1361,440 @@
             return new Promise(resolve => setTimeout(resolve, ms));
         }
 
+        // Educational functions
+        function countNumbers(start, end) {
+            return new Promise(resolve => {
+                const speechBubble = document.getElementById('speechBubble');
+                let current = start;
+                
+                const countInterval = setInterval(() => {
+                    speechBubble.textContent = current;
+                    speechBubble.classList.add('show');
+                    current++;
+                    
+                    if (current > end) {
+                        clearInterval(countInterval);
+                        setTimeout(() => {
+                            speechBubble.textContent = `Selesai! Kita sudah hitung dari ${start} sampai ${end}!`;
+                            setTimeout(() => {
+                                speechBubble.classList.remove('show');
+                                resolve();
+                            }, 2000);
+                        }, 1000);
+                    }
+                }, 800);
+            });
+        }
+
+        function drawShape(shape) {
+            return new Promise(resolve => {
+                const stage = document.querySelector('.stage');
+                const shapeElement = document.createElement('div');
+                
+                shapeElement.style.position = 'absolute';
+                shapeElement.style.width = '60px';
+                shapeElement.style.height = '60px';
+                shapeElement.style.left = Math.random() * 200 + 100 + 'px';
+                shapeElement.style.top = Math.random() * 200 + 100 + 'px';
+                shapeElement.style.zIndex = '5';
+                shapeElement.style.opacity = '0';
+                shapeElement.style.transition = 'opacity 0.5s ease';
+                
+                switch (shape) {
+                    case 'square':
+                        shapeElement.style.backgroundColor = '#FF6B6B';
+                        shapeElement.style.border = '3px solid #333';
+                        break;
+                    case 'triangle':
+                        shapeElement.style.width = '0';
+                        shapeElement.style.height = '0';
+                        shapeElement.style.borderLeft = '30px solid transparent';
+                        shapeElement.style.borderRight = '30px solid transparent';
+                        shapeElement.style.borderBottom = '60px solid #4ECDC4';
+                        break;
+                    case 'circle':
+                        shapeElement.style.backgroundColor = '#45B7D1';
+                        shapeElement.style.borderRadius = '50%';
+                        shapeElement.style.border = '3px solid #333';
+                        break;
+                    case 'star':
+                        shapeElement.innerHTML = '⭐';
+                        shapeElement.style.fontSize = '60px';
+                        shapeElement.style.lineHeight = '60px';
+                        shapeElement.style.textAlign = 'center';
+                        break;
+                }
+                
+                stage.appendChild(shapeElement);
+                
+                setTimeout(() => {
+                    shapeElement.style.opacity = '1';
+                }, 100);
+                
+                sayCustom(`Ini adalah ${shape === 'square' ? 'kotak' : shape === 'triangle' ? 'segitiga' : shape === 'circle' ? 'lingkaran' : 'bintang'}!`);
+                
+                setTimeout(() => {
+                    shapeElement.style.opacity = '0';
+                    setTimeout(() => {
+                        stage.removeChild(shapeElement);
+                        resolve();
+                    }, 500);
+                }, 3000);
+            });
+        }
+
+        function learnColors(color) {
+            return new Promise(resolve => {
+                const character = document.querySelector('.character-body');
+                const originalColor = character.style.backgroundColor || '#FFD700';
+                
+                const colorMap = {
+                    'red': '#FF0000',
+                    'blue': '#0000FF',
+                    'green': '#00FF00',
+                    'yellow': '#FFFF00',
+                    'purple': '#800080',
+                    'orange': '#FFA500'
+                };
+                
+                const colorNames = {
+                    'red': 'Merah',
+                    'blue': 'Biru', 
+                    'green': 'Hijau',
+                    'yellow': 'Kuning',
+                    'purple': 'Ungu',
+                    'orange': 'Orange'
+                };
+                
+                character.style.backgroundColor = colorMap[color];
+                
+                sayCustom(`Ini warna ${colorNames[color]}! Bagus sekali!`).then(() => {
+                    setTimeout(() => {
+                        character.style.backgroundColor = originalColor;
+                        resolve();
+                    }, 1000);
+                });
+            });
+        }
+
+        function animalSound(animal) {
+            return new Promise(resolve => {
+                const sounds = {
+                    'cat': 'Meong meong! 🐱',
+                    'dog': 'Guk guk! 🐶',
+                    'cow': 'Mooo! 🐄',
+                    'chicken': 'Kukuruyuk! 🐓',
+                    'duck': 'Kwek kwek! 🦆'
+                };
+                
+                sayCustom(sounds[animal] || 'Suara hewan!').then(() => {
+                    // Create simple sound effect
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    const frequencies = {
+                        'cat': [400, 600],
+                        'dog': [200, 300],
+                        'cow': [150, 200],
+                        'chicken': [800, 1000],
+                        'duck': [300, 500]
+                    };
+                    
+                    const freq = frequencies[animal] || [400, 600];
+                    oscillator.frequency.setValueAtTime(freq[0], audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(freq[1], audioContext.currentTime + 0.3);
+                    
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.3);
+                    
+                    resolve();
+                });
+            });
+        }
+
+        function tellTime() {
+            return new Promise(resolve => {
+                const now = new Date();
+                const hours = now.getHours();
+                const minutes = now.getMinutes();
+                const timeString = `Sekarang jam ${hours}:${minutes.toString().padStart(2, '0')}`;
+                
+                sayCustom(timeString).then(resolve);
+            });
+        }
+
+        function randomFact() {
+            return new Promise(resolve => {
+                const facts = [
+                    'Tahukah kamu? Paus biru adalah hewan terbesar di dunia! 🐋',
+                    'Kupu-kupu merasakan makanan dengan kaki mereka! 🦋',
+                    'Satu hari di Venus sama dengan 243 hari di Bumi! 🪐',
+                    'Lumba-lumba memiliki nama untuk satu sama lain! 🐬',
+                    'Burung kolibri adalah satu-satunya burung yang bisa terbang mundur! 🐦',
+                    'Gajah takut pada lebah! 🐘',
+                    'Gurita memiliki tiga jantung! 🐙',
+                    'Jerapah tidur hanya 30 menit sampai 2 jam per hari! 🦒'
+                ];
+                
+                const randomIndex = Math.floor(Math.random() * facts.length);
+                sayCustom(facts[randomIndex]).then(resolve);
+            });
+        }
+
+        // Interactive functions
+        function danceMove(dance) {
+            return new Promise(resolve => {
+                const character = document.getElementById('character');
+                
+                switch (dance) {
+                    case 'spin':
+                        character.style.animation = 'spin 1s ease-in-out';
+                        setTimeout(() => {
+                            character.style.animation = '';
+                            resolve();
+                        }, 1000);
+                        break;
+                    case 'shake':
+                        character.style.animation = 'shake 0.8s ease-in-out';
+                        setTimeout(() => {
+                            character.style.animation = '';
+                            resolve();
+                        }, 800);
+                        break;
+                    case 'wave':
+                        character.style.animation = 'wave 1.5s ease-in-out';
+                        setTimeout(() => {
+                            character.style.animation = '';
+                            resolve();
+                        }, 1500);
+                        break;
+                    case 'blink':
+                        const eyes = document.querySelectorAll('.eye');
+                        let blinkCount = 0;
+                        const blinkInterval = setInterval(() => {
+                            eyes.forEach(eye => {
+                                eye.style.transform = blinkCount % 2 === 0 ? 'scaleY(0.1)' : 'scaleY(1)';
+                            });
+                            blinkCount++;
+                            if (blinkCount >= 6) {
+                                clearInterval(blinkInterval);
+                                eyes.forEach(eye => eye.style.transform = 'scaleY(1)');
+                                resolve();
+                            }
+                        }, 200);
+                        break;
+                }
+            });
+        }
+
+        function changeWeather(weather) {
+            return new Promise(resolve => {
+                const stage = document.querySelector('.stage');
+                const clouds = document.querySelector('.clouds');
+                
+                // Remove existing weather effects
+                const existingEffects = stage.querySelectorAll('.weather-effect');
+                existingEffects.forEach(effect => effect.remove());
+                
+                switch (weather) {
+                    case 'sunny':
+                        clouds.style.opacity = '0.3';
+                        stage.style.background = 'linear-gradient(45deg, #87CEEB, #FFD700)';
+                        sayCustom('Hari ini cerah sekali! ☀️');
+                        break;
+                    case 'rainy':
+                        clouds.style.opacity = '0.8';
+                        stage.style.background = 'linear-gradient(45deg, #708090, #B0C4DE)';
+                        createRainEffect(stage);
+                        sayCustom('Hujan deras nih! ☔');
+                        break;
+                    case 'cloudy':
+                        clouds.style.opacity = '1';
+                        stage.style.background = 'linear-gradient(45deg, #D3D3D3, #B0C4DE)';
+                        sayCustom('Hari ini berawan ya! ☁️');
+                        break;
+                    case 'snowy':
+                        clouds.style.opacity = '0.6';
+                        stage.style.background = 'linear-gradient(45deg, #F0F8FF, #E6E6FA)';
+                        createSnowEffect(stage);
+                        sayCustom('Wah, turun salju! ❄️');
+                        break;
+                }
+                
+                setTimeout(() => {
+                    // Reset to default after 5 seconds
+                    clouds.style.opacity = '0.8';
+                    stage.style.background = 'linear-gradient(45deg, #87CEEB, #98FB98)';
+                    const weatherEffects = stage.querySelectorAll('.weather-effect');
+                    weatherEffects.forEach(effect => effect.remove());
+                    resolve();
+                }, 5000);
+            });
+        }
+
+        function createRainEffect(stage) {
+            for (let i = 0; i < 20; i++) {
+                const raindrop = document.createElement('div');
+                raindrop.className = 'weather-effect';
+                raindrop.style.position = 'absolute';
+                raindrop.style.width = '2px';
+                raindrop.style.height = '15px';
+                raindrop.style.background = '#4169E1';
+                raindrop.style.left = Math.random() * 100 + '%';
+                raindrop.style.top = '-15px';
+                raindrop.style.animation = 'fall 1s linear infinite';
+                raindrop.style.animationDelay = Math.random() * 1 + 's';
+                stage.appendChild(raindrop);
+            }
+        }
+
+        function createSnowEffect(stage) {
+            for (let i = 0; i < 15; i++) {
+                const snowflake = document.createElement('div');
+                snowflake.className = 'weather-effect';
+                snowflake.innerHTML = '❄️';
+                snowflake.style.position = 'absolute';
+                snowflake.style.fontSize = '20px';
+                snowflake.style.left = Math.random() * 100 + '%';
+                snowflake.style.top = '-30px';
+                snowflake.style.animation = 'fall 3s linear infinite';
+                snowflake.style.animationDelay = Math.random() * 3 + 's';
+                stage.appendChild(snowflake);
+            }
+        }
+
+        function celebration() {
+            return new Promise(resolve => {
+                const stage = document.querySelector('.stage');
+                sayCustom('Selamat! Kamu hebat! 🎉');
+                
+                // Create confetti effect
+                for (let i = 0; i < 30; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'weather-effect';
+                    confetti.innerHTML = ['🎉', '🎊', '⭐', '🌟', '✨'][Math.floor(Math.random() * 5)];
+                    confetti.style.position = 'absolute';
+                    confetti.style.fontSize = '25px';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.top = '-30px';
+                    confetti.style.animation = 'fall 2s ease-out forwards';
+                    confetti.style.animationDelay = Math.random() * 1 + 's';
+                    stage.appendChild(confetti);
+                }
+                
+                setTimeout(() => {
+                    const confettiElements = stage.querySelectorAll('.weather-effect');
+                    confettiElements.forEach(element => element.remove());
+                    resolve();
+                }, 3000);
+            });
+        }
+
+        // Character transformation functions
+        function changeShape(shape) {
+            return new Promise(resolve => {
+                const characterBody = document.querySelector('.character-body');
+                const characterMouth = document.querySelector('.mouth');
+                const characterEyes = document.querySelectorAll('.eye');
+                
+                // Reset to normal first
+                characterBody.style.borderRadius = '';
+                characterBody.style.clipPath = '';
+                characterBody.style.transform = characterBody.style.transform.replace(/rotate\([^)]*\)/, '');
+                
+                switch (shape) {
+                    case 'square':
+                        characterBody.style.borderRadius = '10px';
+                        sayCustom('Sekarang aku kotak! 📦');
+                        break;
+                    case 'circle':
+                        characterBody.style.borderRadius = '50%';
+                        sayCustom('Sekarang aku lingkaran bulat! ⭕');
+                        break;
+                    case 'triangle':
+                        characterBody.style.borderRadius = '0';
+                        characterBody.style.clipPath = 'polygon(50% 0%, 0% 100%, 100% 100%)';
+                        sayCustom('Sekarang aku segitiga! 🔺');
+                        break;
+                    case 'star':
+                        characterBody.style.borderRadius = '0';
+                        characterBody.style.clipPath = 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)';
+                        sayCustom('Sekarang aku bintang! ⭐');
+                        break;
+                    case 'heart':
+                        characterBody.style.borderRadius = '0';
+                        characterBody.style.clipPath = 'path("M12,21.35l-1.45-1.32C5.4,15.36,2,12.28,2,8.5 C2,5.42,4.42,3,7.5,3c1.74,0,3.41,0.81,4.5,2.09C13.09,3.81,14.76,3,16.5,3 C19.58,3,22,5.42,22,8.5c0,3.78-3.4,6.86-8.55,11.54L12,21.35z")';
+                        sayCustom('Sekarang aku hati! ❤️');
+                        break;
+                    case 'normal':
+                    default:
+                        characterBody.style.borderRadius = '50%';
+                        characterBody.style.clipPath = '';
+                        sayCustom('Kembali ke bentuk normal! 😊');
+                        break;
+                }
+                
+                setTimeout(resolve, 2000);
+            });
+        }
+
+        function makeBigger() {
+            return new Promise(resolve => {
+                const character = document.getElementById('character');
+                const currentScale = characterState.scale || 1;
+                const newScale = Math.min(currentScale * 1.3, 3); // Max 3x size
+                
+                characterState.scale = newScale;
+                updateCharacterTransform();
+                
+                sayCustom(`Wow, aku jadi lebih besar! Ukuran ${Math.round(newScale * 100)}%`);
+                setTimeout(resolve, 1500);
+            });
+        }
+
+        function makeSmaller() {
+            return new Promise(resolve => {
+                const character = document.getElementById('character');
+                const currentScale = characterState.scale || 1;
+                const newScale = Math.max(currentScale * 0.7, 0.3); // Min 30% size
+                
+                characterState.scale = newScale;
+                updateCharacterTransform();
+                
+                sayCustom(`Sekarang aku lebih kecil! Ukuran ${Math.round(newScale * 100)}%`);
+                setTimeout(resolve, 1500);
+            });
+        }
+
+        function rotateCharacter(degrees) {
+            return new Promise(resolve => {
+                const currentRotation = characterState.rotation || 0;
+                const newRotation = currentRotation + degrees;
+                
+                characterState.rotation = newRotation;
+                updateCharacterTransform();
+                
+                sayCustom(`Berputar ${degrees} derajat! Wheee! 🌪️`);
+                setTimeout(resolve, 1500);
+            });
+        }
+
+        function updateCharacterTransform() {
+            const character = document.getElementById('character');
+            const scale = characterState.scale || 1;
+            const rotation = characterState.rotation || 0;
+            const scaleX = characterState.facingLeft ? -1 : 1;
+            
+            character.style.transform = `scale(${scale}) scaleX(${scaleX}) rotate(${rotation}deg)`;
+        }
+
         // Program execution without using Blockly JavaScript generator
         async function runProgram() {
             if (isRunning) return;
@@ -1164,6 +1920,54 @@
                         await wait(100); // Small delay to prevent freezing
                     }
                     break;
+                case 'count_numbers':
+                    const start = block.getFieldValue('START') || 1;
+                    const end = block.getFieldValue('END') || 5;
+                    await countNumbers(parseInt(start), parseInt(end));
+                    break;
+                case 'draw_shape':
+                    const drawShapeType = block.getFieldValue('SHAPE') || 'square';
+                    await drawShape(drawShapeType);
+                    break;
+                case 'learn_colors':
+                    const color = block.getFieldValue('COLOR') || 'red';
+                    await learnColors(color);
+                    break;
+                case 'animal_sound':
+                    const animal = block.getFieldValue('ANIMAL') || 'cat';
+                    await animalSound(animal);
+                    break;
+                case 'tell_time':
+                    await tellTime();
+                    break;
+                case 'random_fact':
+                    await randomFact();
+                    break;
+                case 'dance_move':
+                    const dance = block.getFieldValue('DANCE') || 'spin';
+                    await danceMove(dance);
+                    break;
+                case 'change_weather':
+                    const weather = block.getFieldValue('WEATHER') || 'sunny';
+                    await changeWeather(weather);
+                    break;
+                case 'celebration':
+                    await celebration();
+                    break;
+                case 'change_shape':
+                    const characterShape = block.getFieldValue('SHAPE') || 'normal';
+                    await changeShape(characterShape);
+                    break;
+                case 'make_bigger':
+                    await makeBigger();
+                    break;
+                case 'make_smaller':
+                    await makeSmaller();
+                    break;
+                case 'rotate_character':
+                    const degrees = parseInt(block.getFieldValue('DEGREES')) || 90;
+                    await rotateCharacter(degrees);
+                    break;
                 default:
                     console.log('Unknown block type:', blockType);
             }
@@ -1195,11 +1999,26 @@
             character.style.transform = 'scale(1) scaleX(1)';
             character.style.opacity = '1';
             
+            // Reset character shape
+            characterBody.style.borderRadius = '50%';
+            characterBody.style.clipPath = '';
+            
             // Hide speech bubble
             speechBubble.classList.remove('show');
             
             // Remove any animations
             character.classList.remove('jumping');
+            character.style.animation = '';
+            
+            // Clear any weather effects
+            const stage = document.querySelector('.stage');
+            const weatherEffects = stage.querySelectorAll('.weather-effect');
+            weatherEffects.forEach(effect => effect.remove());
+            
+            // Reset stage background
+            stage.style.background = 'linear-gradient(45deg, #87CEEB, #98FB98)';
+            const clouds = document.querySelector('.clouds');
+            if (clouds) clouds.style.opacity = '0.8';
             
             // Reset run button
             runBtn.textContent = '▶ Run';
@@ -1246,12 +2065,25 @@
             jumpBlock.render();
             moveBlock.nextConnection.connect(jumpBlock.previousConnection);
             
-            const colorBlock = workspace.newBlock('change_color');
-            colorBlock.initSvg();
-            colorBlock.render();
-            jumpBlock.nextConnection.connect(colorBlock.previousConnection);
+            const countBlock = workspace.newBlock('count_numbers');
+            countBlock.setFieldValue(1, 'START');
+            countBlock.setFieldValue(3, 'END');
+            countBlock.initSvg();
+            countBlock.render();
+            jumpBlock.nextConnection.connect(countBlock.previousConnection);
             
-            showHint('Contoh program sudah dimuat! Tekan Run untuk melihat hasilnya!');
+            const animalBlock = workspace.newBlock('animal_sound');
+            animalBlock.setFieldValue('cat', 'ANIMAL');
+            animalBlock.initSvg();
+            animalBlock.render();
+            countBlock.nextConnection.connect(animalBlock.previousConnection);
+            
+            const celebrationBlock = workspace.newBlock('celebration');
+            celebrationBlock.initSvg();
+            celebrationBlock.render();
+            animalBlock.nextConnection.connect(celebrationBlock.previousConnection);
+            
+            showHint('Program edukatif baru! Lihat kategori Belajar dan Interaktif di panel kiri!');
         }
 
         // Initialize everything when page loads
