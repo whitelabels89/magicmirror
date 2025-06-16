@@ -5,18 +5,18 @@ const ANIMALS = {
     ciri: ['memiliki kumis', 'suka susu']
   },
   lebah: {
-    image: "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2072%2072'%3E%0A%20%3Cellipse%20cx%3D'36'%20cy%3D'40'%20rx%3D'20'%20ry%3D'12'%20fill%3D'%23FFD700'%20stroke%3D'%23000'%20stroke-width%3D'2'%2F%3E%0A%20%3Cline%20x1%3D'22'%20y1%3D'36'%20x2%3D'50'%20y2%3D'36'%20stroke%3D'%23000'%20stroke-width%3D'4'%2F%3E%0A%20%3Cline%20x1%3D'22'%20y1%3D'44'%20x2%3D'50'%20y2%3D'44'%20stroke%3D'%23000'%20stroke-width%3D'4'%2F%3E%0A%20%3Ccircle%20cx%3D'26'%20cy%3D'28'%20r%3D'8'%20fill%3D'%23fff'%20stroke%3D'%23000'%20stroke-width%3D'2'%2F%3E%0A%20%3Ccircle%20cx%3D'46'%20cy%3D'28'%20r%3D'8'%20fill%3D'%23fff'%20stroke%3D'%23000'%20stroke-width%3D'2'%2F%3E%0A%3C%2Fsvg%3E",
-    legs: '6',
+    image: "/img/lebah.png",
+    legs: '4',
     ciri: ['menghasilkan madu', 'dapat menyengat']
   },
   bebek: {
-    image: "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2072%2072'%3E%0A%20%3Ccircle%20cx%3D'36'%20cy%3D'36'%20r%3D'20'%20fill%3D'%23FFD93B'%20stroke%3D'%23000'%20stroke-width%3D'2'%2F%3E%0A%20%3Crect%20x%3D'36'%20y%3D'30'%20width%3D'16'%20height%3D'8'%20fill%3D'%23FFA500'%20stroke%3D'%23000'%20stroke-width%3D'1'%2F%3E%0A%20%3Ccircle%20cx%3D'28'%20cy%3D'32'%20r%3D'4'%20fill%3D'%23000'%2F%3E%0A%3C%2Fsvg%3E",
+    image: "/img/bebek.png",
     legs: '2',
     ciri: ['bisa berenang', 'mengeluarkan suara kwek']
   },
-  siput: {
-    image: "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2072%2072'%3E%0A%20%3Ccircle%20cx%3D'28'%20cy%3D'44'%20r%3D'12'%20fill%3D'%23B5651D'%20stroke%3D'%23000'%20stroke-width%3D'2'%2F%3E%0A%20%3Cpath%20d%3D'M40%2044c8%200%2012%208%2012%208h8'%20stroke%3D'%23000'%20stroke-width%3D'4'%20fill%3D'none'%2F%3E%0A%20%3Ccircle%20cx%3D'48'%20cy%3D'32'%20r%3D'4'%20fill%3D'%239C9C9C'%20stroke%3D'%23000'%20stroke-width%3D'2'%2F%3E%0A%20%3Ccircle%20cx%3D'56'%20cy%3D'32'%20r%3D'4'%20fill%3D'%239C9C9C'%20stroke%3D'%23000'%20stroke-width%3D'2'%2F%3E%0A%3C%2Fsvg%3E",
-    legs: '0',
+  kura: {
+    image: "/img/kura.png",
+    legs: '4',
     ciri: ['bergerak lambat', 'memiliki cangkang']
   }
 };

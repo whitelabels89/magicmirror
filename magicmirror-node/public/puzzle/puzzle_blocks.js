@@ -44,6 +44,54 @@ Blockly.defineBlocksWithJsonArray([
     "colour": 175
   },
   {
+    "type": "gambar_lebah",
+    "message0": " %1",
+    "args0": [
+      {
+        "type": "field_image",
+        "name": "SRC",
+        "src": "/img/lebah.png",
+        "width": 200,
+        "height": 200,
+        "alt": "lebah"
+      }
+    ],
+    "output": "GAMBAR",
+    "colour": 175
+  },
+  {
+    "type": "gambar_bebek",
+    "message0": " %1",
+    "args0": [
+      {
+        "type": "field_image",
+        "name": "SRC",
+        "src": "/img/bebek.png",
+        "width": 200,
+        "height": 200,
+        "alt": "bebek"
+      }
+    ],
+    "output": "GAMBAR",
+    "colour": 175
+  },
+  {
+    "type": "gambar_kura",
+    "message0": " %1",
+    "args0": [
+      {
+        "type": "field_image",
+        "name": "SRC",
+        "src": "/img/kura.png",
+        "width": 200,
+        "height": 200,
+        "alt": "kura"
+      }
+    ],
+    "output": "GAMBAR",
+    "colour": 175
+  },
+  {
     "type": "hewan_kucing",
     "message0": "kucing",
     "message1": "gambar %1",
@@ -95,8 +143,8 @@ Blockly.defineBlocksWithJsonArray([
     "colour": 100
   },
   {
-    "type": "hewan_siput",
-    "message0": "siput",
+    "type": "hewan_kura",
+    "message0": "kura-kura",
     "message1": "gambar %1",
     "args1": [
       {"type": "input_value", "name": "GAMBAR", "check": "GAMBAR"}
