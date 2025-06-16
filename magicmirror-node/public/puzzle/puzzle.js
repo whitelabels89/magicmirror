@@ -1,6 +1,6 @@
 const ANIMALS = {
   kucing: {
-    image: "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2072%2072'%3E%0A%20%3Ccircle%20cx%3D'36'%20cy%3D'36'%20r%3D'20'%20fill%3D'%23FFCC00'%20stroke%3D'%23000'%20stroke-width%3D'2'%2F%3E%0A%20%3Cpolygon%20points%3D'20%2C20%2026%2C8%2032%2C20'%20fill%3D'%23FFCC00'%20stroke%3D'%23000'%20stroke-width%3D'2'%2F%3E%0A%20%3Cpolygon%20points%3D'52%2C20%2046%2C8%2040%2C20'%20fill%3D'%23FFCC00'%20stroke%3D'%23000'%20stroke-width%3D'2'%2F%3E%0A%20%3Ccircle%20cx%3D'28'%20cy%3D'36'%20r%3D'4'%20fill%3D'%23000'%2F%3E%0A%20%3Ccircle%20cx%3D'44'%20cy%3D'36'%20r%3D'4'%20fill%3D'%23000'%2F%3E%0A%20%3Cpath%20d%3D'M30%2044%20Q36%2050%2042%2044'%20stroke%3D'%23000'%20stroke-width%3D'2'%20fill%3D'none'%2F%3E%0A%3C%2Fsvg%3E",
+    image: "/img/kucing.png",
     legs: '4',
     ciri: ['memiliki kumis', 'suka susu']
   },
