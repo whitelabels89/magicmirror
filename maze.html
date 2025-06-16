@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Blockly Maze</title>
+<style>
+body{font-family:sans-serif;margin:0;display:flex;height:100vh;overflow:hidden}
+#blocklyDiv{height:100%;width:50%;}
+#canvasWrap{position:relative;width:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+#level-menu{display:flex;gap:10px;align-items:center;margin:10px;}
+#maze{border:1px solid #ccc;}
+button{margin:10px;padding:8px 16px;font-size:16px;}
+</style>
+<script src="https://unpkg.com/blockly/blockly.min.js"></script>
+<script src="maze_blocks.js"></script>
+<script src="levels/mazeLevels.js"></script>
+<script defer src="maze.js"></script>
+</head>
+<body>
+  <div id="blocklyDiv"></div>
+  <div id="canvasWrap">
+    <div id="level-menu">
+      <button id="prev-level">Sebelumnya</button>
+      <span id="level-label">Level: 1</span>
+      <button id="next-level">Berikutnya</button>
+    </div>
+    <button id="run-btn">Jalankan Program</button>
+    <canvas id="maze" width="400" height="400"></canvas>
+  </div>
+  <xml id="toolbox" style="display:none">
+    <block type="move_forward"></block>
+    <block type="turn_left"></block>
+    <block type="turn_right"></block>
+    <block type="controls_repeat_ext">
+      <value name="TIMES">
+        <block type="math_number">
+          <field name="NUM">2</field>
+        </block>
+      </value>
+    </block>
+    <block type="math_number"></block>
+  </xml>
+</body>
+</html>
