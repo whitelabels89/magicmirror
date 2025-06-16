@@ -29,19 +29,19 @@ Blockly.defineBlocksWithJsonArray([
   },
   {
     "type": "gambar_kucing",
-    "message0": "gambar %1",
+    "message0": " %1",
     "args0": [
       {
         "type": "field_image",
         "name": "SRC",
         "src": "/img/kucing.png",
-        "width": 40,
-        "height": 40,
+        "width": 200,
+        "height": 200,
         "alt": "kucing"
       }
     ],
     "output": "GAMBAR",
-    "colour": 20
+    "colour": 175
   },
   {
     "type": "hewan_kucing",
