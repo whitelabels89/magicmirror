@@ -24,7 +24,7 @@ Blockly.defineBlocksWithJsonArray([
     "args0": [
       {"type": "field_input", "name": "SRC", "text": "url"}
     ],
-    "output": "String",
+    "output": "GAMBAR",
     "colour": 20
   },
   {
@@ -32,7 +32,7 @@ Blockly.defineBlocksWithJsonArray([
     "message0": "kucing",
     "message1": "gambar %1",
     "args1": [
-      {"type": "input_value", "name": "GAMBAR", "check": "String"}
+      {"type": "input_value", "name": "GAMBAR", "check": "GAMBAR"}
     ],
     "message2": "kaki %1",
     "args2": [
@@ -49,7 +49,7 @@ Blockly.defineBlocksWithJsonArray([
     "message0": "lebah",
     "message1": "gambar %1",
     "args1": [
-      {"type": "input_value", "name": "GAMBAR", "check": "String"}
+      {"type": "input_value", "name": "GAMBAR", "check": "GAMBAR"}
     ],
     "message2": "kaki %1",
     "args2": [
@@ -66,7 +66,7 @@ Blockly.defineBlocksWithJsonArray([
     "message0": "bebek",
     "message1": "gambar %1",
     "args1": [
-      {"type": "input_value", "name": "GAMBAR", "check": "String"}
+      {"type": "input_value", "name": "GAMBAR", "check": "GAMBAR"}
     ],
     "message2": "kaki %1",
     "args2": [
@@ -83,7 +83,7 @@ Blockly.defineBlocksWithJsonArray([
     "message0": "siput",
     "message1": "gambar %1",
     "args1": [
-      {"type": "input_value", "name": "GAMBAR", "check": "String"}
+      {"type": "input_value", "name": "GAMBAR", "check": "GAMBAR"}
     ],
     "message2": "kaki %1",
     "args2": [

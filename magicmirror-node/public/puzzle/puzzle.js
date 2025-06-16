@@ -1,6 +1,6 @@
 const ANIMALS = {
   kucing: {
-    image: 'https://twemoji.maxcdn.com/v/latest/72x72/1f431.png',
+    image: 'https://twemoji.maxcdn.com/v/latest/72x72/1f408.png',
     legs: '4',
     ciri: ['memiliki kumis', 'suka susu']
   },
