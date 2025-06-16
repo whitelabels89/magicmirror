@@ -58,6 +58,7 @@ turtle.left(90)
 turtle.forward(100)
   </textarea>
   <button id="runBtn">Jalankan Kode</button>
+  <div id="status" style="margin-top:10px;color:red"></div>
   <canvas id="turtleCanvas" width="500" height="500"></canvas>
 
   <script>
@@ -65,11 +66,16 @@ turtle.forward(100)
     const turtle = new Turtle(canvas);
 
     document.getElementById('runBtn').onclick = function () {
+      const status = document.getElementById('status');
+      status.textContent = '';
       turtle.reset();
       try {
         eval(document.getElementById('editor').value);
+        status.style.color = 'green';
+        status.textContent = '✅ Program selesai';
       } catch (e) {
-        alert("Ada error di kode kamu:\n" + e.message);
+        status.style.color = 'red';
+        status.textContent = '❌ ' + e.message;
       }
     };
   </script>
