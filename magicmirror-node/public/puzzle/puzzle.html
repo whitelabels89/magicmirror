@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Puzzle Blockly</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+  <script src="puzzle_blocks.js"></script>
+  <script src="puzzle.js" defer></script>
+</head>
+<body>
+  <button id="check-btn" class="check-btn">Periksa Jawaban</button>
+  <canvas id="previewCanvas" width="200" height="200" class="preview-canvas"></canvas>
+  <div id="blocklyDiv" class="blockly-container"></div>
+  <xml id="toolbox" style="display:none">
+    <block type="ciri"></block>
+    <block type="kaki"></block>
+    <block type="gambar"></block>
+    <block type="gambar_kucing"></block>
+    <block type="hewan_kucing"></block>
+    <block type="hewan_lebah"></block>
+    <block type="hewan_bebek"></block>
+    <block type="hewan_siput"></block>
+  </xml>
+</body>
+</html>
