@@ -28,6 +28,22 @@ Blockly.defineBlocksWithJsonArray([
     "colour": 20
   },
   {
+    "type": "gambar_kucing",
+    "message0": "gambar %1",
+    "args0": [
+      {
+        "type": "field_image",
+        "name": "SRC",
+        "src": "https://twemoji.maxcdn.com/v/latest/72x72/1f408.png",
+        "width": 40,
+        "height": 40,
+        "alt": "kucing"
+      }
+    ],
+    "output": "GAMBAR",
+    "colour": 20
+  },
+  {
     "type": "hewan_kucing",
     "message0": "kucing",
     "message1": "gambar %1",

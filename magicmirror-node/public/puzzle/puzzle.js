@@ -1,6 +1,6 @@
 const ANIMALS = {
   kucing: {
-    image: '/img/kucing.png',
+    image: 'https://twemoji.maxcdn.com/v/latest/72x72/1f408.png',
     legs: '4',
     ciri: ['memiliki kumis', 'suka susu']
   },
@@ -25,8 +25,14 @@ const workspace = Blockly.inject('blocklyDiv', {
   toolbox: document.getElementById('toolbox')
 });
 
+// Hide preview canvas until needed
+const previewCanvas = document.getElementById('previewCanvas');
+previewCanvas.style.display = 'none';
+
 function drawImage(url) {
-  const ctx = document.getElementById('previewCanvas').getContext('2d');
+  const canvas = document.getElementById('previewCanvas');
+  canvas.style.display = 'block';
+  const ctx = canvas.getContext('2d');
   const img = new Image();
   img.onload = () => {
     ctx.clearRect(0, 0, 400, 400);
@@ -52,7 +58,11 @@ function createBlock(type, fields = {}) {
 function init() {
   Object.entries(ANIMALS).forEach(([name, data]) => {
     createBlock('hewan_' + name);
-    createBlock('gambar', {SRC: data.image});
+    if (name === 'kucing') {
+      createBlock('gambar_kucing');
+    } else {
+      createBlock('gambar', {SRC: data.image});
+    }
     createBlock('kaki', {NUM: data.legs});
     data.ciri.forEach(text => createBlock('ciri', {TEXT: text}));
   });
@@ -75,8 +85,11 @@ function checkAnswer() {
     const animalBlock = workspace.getBlocksByType('hewan_' + name, false)[0];
     if (!animalBlock) { correct = false; imageCorrect = false; break; }
     const imgBlock = animalBlock.getInputTargetBlock('GAMBAR');
-    const url = imgBlock ? imgBlock.getFieldValue('SRC').trim() : '';
-    if (!imgBlock || url !== data.image) {
+    let url = '';
+    if (imgBlock) {
+      url = imgBlock.getFieldValue('SRC');
+    }
+    if (!imgBlock || (name === 'kucing' ? imgBlock.type !== 'gambar_kucing' : url.trim() !== data.image)) {
       correct = false;
       imageCorrect = false;
     } else {
