@@ -10,7 +10,6 @@ let actions = [];
 
 function loadLevel(){
   grid = MAZE_LEVELS[levelIndex];
-  document.getElementById('level-label').innerText = 'Level: ' + (levelIndex + 1);
   for(let r=0;r<grid.length;r++){
     for(let c=0;c<grid[r].length;c++){
       if(grid[r][c]==2){player.x=c;player.y=r;player.dir=1;}
@@ -96,18 +95,3 @@ function checkResult(){
 
 loadLevel();
 document.getElementById('run-btn').addEventListener('click',runCode);
-<<<<<<< mgx0qx-codex/buat-ulang-game-blockly-maze
-document.getElementById('next-level').addEventListener('click',()=>{
-  if(levelIndex < MAZE_LEVELS.length - 1){
-    levelIndex++;
-    loadLevel();
-  }
-});
-document.getElementById('prev-level').addEventListener('click',()=>{
-  if(levelIndex > 0){
-    levelIndex--;
-    loadLevel();
-  }
-});
-=======
->>>>>>> main
