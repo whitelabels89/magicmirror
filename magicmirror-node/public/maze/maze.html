@@ -13,8 +13,75 @@ button{margin:10px;padding:8px 16px;font-size:16px;}
 </style>
 <script src="https://unpkg.com/blockly/blockly.min.js"></script>
 <script src="/maze/maze_blocks.js"></script>
-<script src="/maze/levels/mazeLevels.js"></script>
 <script defer src="/maze/maze.js"></script>
+<script src="/maze/levels/mazeLevels.js"></script>
+<script>
+  Blockly.defineBlocksWithJsonArray([
+    {
+      "type": "move_forward",
+      "message0": "maju",
+      "previousStatement": null,
+      "nextStatement": null,
+      "colour": 160,
+      "tooltip": "Bergerak maju satu langkah ke depan",
+      "helpUrl": ""
+    },
+    {
+      "type": "turn_left",
+      "message0": "belok kiri",
+      "previousStatement": null,
+      "nextStatement": null,
+      "colour": 195,
+      "tooltip": "Belok ke kiri",
+      "helpUrl": ""
+    },
+    {
+      "type": "turn_right",
+      "message0": "belok kanan",
+      "previousStatement": null,
+      "nextStatement": null,
+      "colour": 195,
+      "tooltip": "Belok ke kanan",
+      "helpUrl": ""
+    }
+  ]);
+
+  Blockly.Blocks['controls_repeat_ext'] = {
+    init: function () {
+      this.appendDummyInput()
+          .appendField("ulangi sebanyak")
+          .appendField(new Blockly.FieldNumber(2, 1), "TIMES");
+      this.appendStatementInput("DO")
+          .appendField("lakukan");
+      this.setPreviousStatement(true, null);
+      this.setNextStatement(true, null);
+      this.setColour(120);
+      this.setTooltip("Ulangi sejumlah langkah yang ditentukan");
+      this.setHelpUrl("");
+    }
+  };
+
+  Blockly.JavaScript['move_forward'] = function () {
+    return 'moveForward();\n';
+  };
+  Blockly.JavaScript['turn_left'] = function () {
+    return 'turnLeft();\n';
+  };
+  Blockly.JavaScript['turn_right'] = function () {
+    return 'turnRight();\n';
+  };
+
+  Blockly.JavaScript['controls_repeat_ext'] = function(block) {
+    const repeats = block.getFieldValue('TIMES');
+    const branch = Blockly.JavaScript.statementToCode(block, 'DO');
+    return `for (let i = 0; i < ${repeats}; i++) {\n${branch}}\n`;
+  };
+
+  Blockly.JavaScript.forBlock['move_forward'] = Blockly.JavaScript['move_forward'];
+  Blockly.JavaScript.forBlock['turn_left'] = Blockly.JavaScript['turn_left'];
+  Blockly.JavaScript.forBlock['turn_right'] = Blockly.JavaScript['turn_right'];
+  Blockly.JavaScript.forBlock['controls_repeat_ext'] = Blockly.JavaScript['controls_repeat_ext'];
+</script>
 </head>
 <body>
   <div id="blocklyDiv"></div>
@@ -31,14 +98,10 @@ button{margin:10px;padding:8px 16px;font-size:16px;}
     <block type="move_forward"></block>
     <block type="turn_left"></block>
     <block type="turn_right"></block>
-    <block type="controls_repeat_ext">
-      <value name="TIMES">
-        <block type="math_number">
-          <field name="NUM">2</field>
-        </block>
-      </value>
-    </block>
+    <block type="controls_repeat_ext"></block>
     <block type="math_number"></block>
   </xml>
+</div>
+  <div id="notif" style="position:absolute;top:10px;left:50%;transform:translateX(-50%);background:#4caf50;color:white;padding:10px 20px;border-radius:5px;display:none;z-index:1000;">Level Selesai!</div>
 </body>
 </html>

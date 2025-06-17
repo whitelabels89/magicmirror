@@ -4,21 +4,27 @@ Blockly.defineBlocksWithJsonArray([
     "message0": "maju",
     "previousStatement": null,
     "nextStatement": null,
-    "colour": 160
+    "colour": 160,
+    "tooltip": "Bergerak maju satu langkah ke depan",
+    "helpUrl": ""
   },
   {
     "type": "turn_left",
     "message0": "belok kiri",
     "previousStatement": null,
     "nextStatement": null,
-    "colour": 195
+    "colour": 195,
+    "tooltip": "Belok ke kiri",
+    "helpUrl": ""
   },
   {
     "type": "turn_right",
     "message0": "belok kanan",
     "previousStatement": null,
     "nextStatement": null,
-    "colour": 195
+    "colour": 195,
+    "tooltip": "Belok ke kanan",
+    "helpUrl": ""
   }
 ]);
 

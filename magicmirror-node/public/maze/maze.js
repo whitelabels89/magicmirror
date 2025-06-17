@@ -5,8 +5,12 @@ let finish = {x:0,y:0};
 const CELL=40;
 const canvas = document.getElementById('maze');
 const ctx = canvas.getContext('2d');
-const workspace = Blockly.inject('blocklyDiv', {
-  toolbox: document.getElementById('toolbox')
+let workspace;
+window.addEventListener('load', () => {
+  workspace = Blockly.inject('blocklyDiv', {
+    toolbox: document.getElementById('toolbox')
+  });
+  window.workspace = workspace;
 });
 // Temporary shim for deprecated API usage in Blockly's math blocks
 // Silence deprecation warning by redirecting to the new API
@@ -77,14 +81,13 @@ function turnRight(){actions.push('R');}
 
 function runCode(){
   actions = [];
-  const code = Blockly.JavaScript.workspaceToCode(workspace);
+  const code = Blockly.JavaScript.workspaceToCode(window.workspace);
   console.log("Generated code:", code);
   try {
     eval(code);
   } catch (e) {
     console.error("❌ Error saat mengeksekusi kode Blockly:", e);
-    alert('Terjadi kesalahan saat menjalankan kode: ' + e.message);
-    return;
+    // alert('Terjadi kesalahan saat menjalankan kode: ' + e.message);
   }
   execute();
 }
@@ -98,7 +101,8 @@ function execute(){
     const nx=player.x+(player.dir===1?1:player.dir===3?-1:0);
     const ny=player.y+(player.dir===2?1:player.dir===0?-1:0);
     if(nx<0||ny<0||nx>=10||ny>=10||grid[ny][nx]===1){
-      alert('Coba lagi');
+      console.log('Coba lagi');
+      // alert('Coba lagi');
       loadLevel();
       return;
     }
@@ -107,13 +111,26 @@ function execute(){
   }
 }
 
+function showNotification(text) {
+  const notif = document.getElementById('notif');
+  notif.innerText = text;
+  notif.style.display = 'block';
+  setTimeout(() => notif.style.display = 'none', 1000);
+}
+
 function checkResult(){
   if(player.x===finish.x && player.y===finish.y){
-    alert('Selamat!');
-    levelIndex++;
-    if(levelIndex<MAZE_LEVELS.length) loadLevel();
-  }else{
-    alert('Coba lagi');
+    showNotification('🎉 Level selesai!');
+    setTimeout(() => {
+      levelIndex++;
+      if(levelIndex < MAZE_LEVELS.length) {
+        loadLevel();
+      } else {
+        showNotification('🎉 Semua level selesai!');
+      }
+    }, 1000);
+  } else {
+    showNotification('Coba lagi');
   }
 }
 
