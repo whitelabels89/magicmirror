@@ -76,9 +76,16 @@ function turnLeft(){actions.push('L');}
 function turnRight(){actions.push('R');}
 
 function runCode(){
-  actions=[];
+  actions = [];
   const code = Blockly.JavaScript.workspaceToCode(workspace);
-  try{eval(code);}catch(e){alert('Kode salah');return;}
+  console.log("Generated code:", code);
+  try {
+    eval(code);
+  } catch (e) {
+    console.error("❌ Error saat mengeksekusi kode Blockly:", e);
+    alert('Terjadi kesalahan saat menjalankan kode: ' + e.message);
+    return;
+  }
   execute();
 }
 
