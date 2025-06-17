@@ -32,13 +32,25 @@
     </a>
     -->
 
-    <a href="https://blockly-playground.onrender.com" target="_blank">
-      <span class="material-icons icon icon-emboss">extension</span>
-      <span>Blockly Playground</span>
-    </a>
+    <div class="submenu-parent">
+      <a href="javascript:void(0);" class="submenu-toggle" onclick="toggleSubmenu('blockly-submenu')">
+        <span class="material-icons icon icon-emboss">extension</span>
+        <span>Blockly Playground ▾</span>
+      </a>
+      <div id="blockly-submenu" class="submenu">
+        <a href="https://queensacademy.id/puzzle/puzzle.html" target="_blank">Puzzle</a>
+        <a href="https://queensacademy.id/blockly/blockly.html" target="_blank">Blockly</a>
+        <a href="https://queensacademy.id/maze/maze.html" target="_blank">Maze</a>
+        <a href="https://blockly-playground.onrender.com/" target="_blank">Playground</a>
+      </div>
+    </div>
     <a href="javascript:void(0);" onclick="handleLogout()">
       <span class="material-icons icon icon-emboss">logout</span>
       <span>Logout</span>
     </a>
   </nav>
 </div>
+<style>
+  .submenu { display: none; flex-direction: column; }
+  .submenu a { margin-left: 32px; }
+</style>
