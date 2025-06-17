@@ -15,6 +15,13 @@ function toggleSidebar() {
   if (sidebar) sidebar.classList.toggle('collapsed');
 }
 
+function toggleSubmenu(id) {
+  const submenu = document.getElementById(id);
+  if (submenu) {
+    submenu.style.display = submenu.style.display === 'flex' ? 'none' : 'flex';
+  }
+}
+
 function handleLogout() {
   firebase.auth().signOut().then(() => {
     sessionStorage.clear();
