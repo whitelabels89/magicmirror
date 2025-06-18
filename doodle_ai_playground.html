@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Playground Doodle AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap" rel="stylesheet">
+<!-- Library TensorFlow.js dan model DoodleNet -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.9.0/dist/tf.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/doodle@latest/dist/doodle.min.js" defer></script>
+<style>
+  /* Gaya latar ceria dengan gradasi pastel */
+  body {
+    font-family: 'Baloo 2', cursive;
+    margin: 0;
+    padding: 20px;
+    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+    text-align: center;
+  }
+  h1 {
+    font-size: 32px;
+    margin-bottom: 10px;
+  }
+  /* Bingkai kanvas ala papan gambar */
+  #canvas-wrapper {
+    display: inline-block;
+    border: 8px solid #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    background: #fff;
+    padding: 8px;
+  }
+  canvas {
+    background: #fff;
+    touch-action: none; /* agar menggambar di ponsel lancar */
+  }
+  button {
+    font-size: 20px;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    margin: 10px 5px;
+    cursor: pointer;
+    color: #fff;
+  }
+  #guess {background: #34d399;}   /* hijau */
+  #clear {background: #60a5fa;}   /* biru */
+  #result {
+    margin-top: 20px;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    animation: fade 0.5s forwards;
+  }
+  #avatar {
+    margin-right: 10px;
+  }
+  @keyframes fade {
+    to {opacity: 1; transform: translateY(-5px);}
+  }
+</style>
+</head>
+<body>
+  <h1>🎨 Playground Doodle AI</h1>
+  <div id="canvas-wrapper">
+    <canvas id="draw" width="300" height="300"></canvas>
+  </div>
+  <div>
+    <button id="guess">Tebak Gambar Saya</button>
+    <button id="clear">Hapus Gambar</button>
+  </div>
+  <div id="result" style="display:none;">
+    <div id="avatar">
+      <!-- Maskot robot lucu -->
+      <svg width="80" height="80" viewBox="0 0 100 120">
+        <rect x="20" y="40" width="60" height="60" rx="10" fill="#60a5fa" stroke="#333"/>
+        <circle cx="50" cy="30" r="15" fill="#60a5fa" stroke="#333"/>
+        <rect x="35" y="60" width="10" height="20" fill="#fff"/>
+        <rect x="55" y="60" width="10" height="20" fill="#fff"/>
+        <rect x="45" y="90" width="10" height="20" fill="#333"/>
+      </svg>
+    </div>
+    <span id="prediction"></span>
+  </div>
+<script>
+// Inisialisasi kanvas menggambar
+const canvas = document.getElementById('draw');
+const ctx = canvas.getContext('2d');
+ctx.lineWidth = 12;
+ctx.lineCap = 'round';
+ctx.strokeStyle = '#000';
+let drawing = false;
+
+function getPos(e, type){
+  const rect = canvas.getBoundingClientRect();
+  if(e.touches){
+    return e.touches[0][type] - rect[type === 'clientX' ? 'left' : 'top'];
+  }
+  return e[type] - rect[type === 'clientX' ? 'left' : 'top'];
+}
+
+function start(e){
+  drawing = true;
+  ctx.beginPath();
+  ctx.moveTo(getPos(e, 'clientX'), getPos(e, 'clientY'));
+  e.preventDefault();
+}
+function draw(e){
+  if(!drawing) return;
+  ctx.lineTo(getPos(e, 'clientX'), getPos(e, 'clientY'));
+  ctx.stroke();
+  e.preventDefault();
+}
+function end(e){
+  drawing = false;
+  e.preventDefault();
+}
+
+canvas.addEventListener('mousedown', start);
+canvas.addEventListener('mousemove', draw);
+canvas.addEventListener('mouseup', end);
+canvas.addEventListener('mouseleave', end);
+canvas.addEventListener('touchstart', start);
+canvas.addEventListener('touchmove', draw);
+canvas.addEventListener('touchend', end);
+canvas.addEventListener('touchcancel', end);
+
+// Hapus kanvas
+const clearBtn = document.getElementById('clear');
+clearBtn.addEventListener('click', () => {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  document.getElementById('result').style.display = 'none';
+});
+
+let model;
+async function loadModel(){
+  // Pastikan library doodle sudah tersedia
+  if (window.doodle && doodle.load) {
+    try {
+      model = await doodle.load();
+    } catch (err) {
+      console.error('Gagal memuat model:', err);
+    }
+  } else {
+    console.error('Library doodle tidak ditemukan.');
+  }
+}
+loadModel();
+
+// Fungsi tebak gambar
+const guessBtn = document.getElementById('guess');
+const resultEl = document.getElementById('result');
+const predText = document.getElementById('prediction');
+
+guessBtn.addEventListener('click', async () => {
+  if(!model){
+    alert('Model belum siap. Pastikan koneksi internet aktif.');
+    return;
+  }
+  const predictions = await model.predict(canvas);
+  const top = predictions[0];
+  const label = top.className || top.label;
+  const score = top.probability || top.score || 0;
+  let text;
+  if(score < 0.5){
+    text = 'Hmm... AI-nya bingung nih. Coba gambar yang lebih jelas ya!';
+  } else {
+    text = `Sepertinya kamu menggambar: ${label}!`;
+  }
+  predText.textContent = text;
+  resultEl.style.display = 'flex';
+  resultEl.style.opacity = 0;
+  // munculkan dengan animasi
+  requestAnimationFrame(() => {
+    resultEl.style.animation = 'none';
+    void resultEl.offsetWidth; // restart animation
+    resultEl.style.animation = 'fade 0.5s forwards';
+  });
+
+  // Baca dengan suara
+  const utter = new SpeechSynthesisUtterance(text);
+  speechSynthesis.speak(utter);
+});
+</script>
+</body>
+</html>
