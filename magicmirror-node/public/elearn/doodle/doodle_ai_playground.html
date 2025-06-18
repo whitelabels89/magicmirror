@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Playground Doodle AI</title>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap" rel="stylesheet">
-<!-- Library TensorFlow.js dan model DoodleNet -->
+<!-- Library TensorFlow.js dan model MobileNet -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.9.0/dist/tf.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/doodle@latest/dist/doodle.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.0/dist/mobilenet.min.js" defer></script>
 <style>
   /* Gaya latar ceria dengan gradasi pastel */
   body {
@@ -135,16 +135,16 @@ clearBtn.addEventListener('click', () => {
 });
 
 let model;
+// Memuat model MobileNet dari CDN
 async function loadModel(){
-  // Pastikan library doodle sudah tersedia
-  if (window.doodle && doodle.load) {
+  if (window.mobilenet && mobilenet.load) {
     try {
-      model = await doodle.load();
+      model = await mobilenet.load();
     } catch (err) {
       console.error('Gagal memuat model:', err);
     }
   } else {
-    console.error('Library doodle tidak ditemukan.');
+    console.error('Library mobilenet tidak ditemukan.');
   }
 }
 loadModel();
@@ -159,7 +159,8 @@ guessBtn.addEventListener('click', async () => {
     alert('Model belum siap. Pastikan koneksi internet aktif.');
     return;
   }
-  const predictions = await model.predict(canvas);
+  // Klasifikasikan gambar yang digambar pengguna
+  const predictions = await model.classify(canvas);
   const top = predictions[0];
   const label = top.className || top.label;
   const score = top.probability || top.score || 0;
