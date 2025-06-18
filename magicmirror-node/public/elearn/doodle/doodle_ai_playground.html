@@ -135,7 +135,7 @@ clearBtn.addEventListener('click', () => {
 });
 
 let model;
-// Memuat model MobileNet dari CDN
+// Memuat model MobileNet asli dari TensorFlow.js
 async function loadModel(){
   if (window.mobilenet && mobilenet.load) {
     try {
@@ -147,7 +147,10 @@ async function loadModel(){
     console.error('Library mobilenet tidak ditemukan.');
   }
 }
-loadModel();
+
+window.onload = () => {
+  loadModel();
+};
 
 // Fungsi tebak gambar
 const guessBtn = document.getElementById('guess');
