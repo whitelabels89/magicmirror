@@ -5,8 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Playground Doodle AI</title>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.9.0"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/doodle"></script>
+<!-- Library TensorFlow.js dan model DoodleNet -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.9.0/dist/tf.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/doodle@latest/dist/doodle.min.js" defer></script>
 <style>
   /* Gaya latar ceria dengan gradasi pastel */
   body {
@@ -135,7 +136,16 @@ clearBtn.addEventListener('click', () => {
 
 let model;
 async function loadModel(){
-  model = await doodle.load();
+  // Pastikan library doodle sudah tersedia
+  if (window.doodle && doodle.load) {
+    try {
+      model = await doodle.load();
+    } catch (err) {
+      console.error('Gagal memuat model:', err);
+    }
+  } else {
+    console.error('Library doodle tidak ditemukan.');
+  }
 }
 loadModel();
 
@@ -145,7 +155,10 @@ const resultEl = document.getElementById('result');
 const predText = document.getElementById('prediction');
 
 guessBtn.addEventListener('click', async () => {
-  if(!model) return;
+  if(!model){
+    alert('Model belum siap. Pastikan koneksi internet aktif.');
+    return;
+  }
   const predictions = await model.predict(canvas);
   const top = predictions[0];
   const label = top.className || top.label;
