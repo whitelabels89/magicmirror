@@ -1,0 +1,399 @@
+<link rel="stylesheet" href="presetvs.css" />
+<script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+<script src="presetvs.js"></script>
+<style>
+  body {
+    font-family: 'Fredoka', sans-serif;
+    margin: 0;
+    background: #f0f7ff;
+    color: #333;
+  }
+  .header {
+    text-align: center;
+    padding: 20px;
+    background: #4f46e5;
+    color: #fff;
+  }
+  .header h1 {
+    margin-bottom: 10px;
+    font-size: 2.2rem;
+  }
+  .header p {
+    margin-bottom: 20px;
+  }
+  .progress-container {
+    margin-top: 20px;
+    width: 80%;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .progress-bar {
+    height: 12px;
+    background: #fff;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .progress {
+    width: 0%;
+    height: 100%;
+    background: #facc15;
+  }
+  .back-btn {
+    display: inline-block;
+    margin-top: 8px;
+    color: #fff;
+    background: #22c55e;
+    padding: 6px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  .container {
+    display: flex;
+    padding: 20px;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .sidebar {
+    flex: 1 1 180px;
+    max-width: 200px;
+    background: #fde68a;
+    padding: 20px;
+    border-radius: 20px;
+  }
+  .sidebar ul {
+    list-style: none;
+    padding: 0;
+  }
+  .sidebar li {
+    margin-bottom: 10px;
+    background: #fcd34d;
+    padding: 8px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .sidebar li.active {
+    background: #fbbf24;
+  }
+  .main {
+    flex: 3 1 300px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 20px;
+  }
+  .lab-column {
+    flex: 1 1 260px;
+    background: #111827;
+    padding: 20px;
+    border-radius: 20px;
+    color: #a7f3d0;
+    min-width: 260px;
+  }
+  .whiteboard-container {
+    margin-top: 1rem;
+    text-align: center;
+  }
+  #whiteboardCanvas {
+    border: 1px solid #ccc;
+    width: 100%;
+    height: 300px;
+    display: none;
+    touch-action: none;
+    background: #fff;
+  }
+  .step-content {
+    display: none;
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+  }
+  .step-content.active { display: block; }
+  .nav-controls { text-align: center; margin-top: 20px; }
+  .typingBox-vscode {
+    white-space: pre-wrap;
+    font-family: monospace;
+    min-height: 80px;
+    border: 1px solid #ccc;
+    padding: 8px;
+    border-radius: 6px;
+    background: #f9f9f9;
+    outline: none;
+    overflow-y: auto;
+  }
+  .run-button {
+    margin-top: 8px;
+    background-color: #4f46e5;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  .output-box {
+    background: #1e293b;
+    color: #a7f3d0;
+    padding: 10px;
+    border-radius: 6px;
+    margin-top: 8px;
+    min-height: 60px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+  }
+</style>
+
+<div class="header">
+  <h1>Modul 5 - Pelajaran 5: Inheritance in Python</h1>
+  <p>Versi game anak laki-laki</p>
+  <div class="progress-container">
+    <div class="progress-bar"><div class="progress" id="progressBar"></div></div>
+  </div>
+  <div style="margin-top:10px;">
+    <a href="/elearn/modul.html" class="back-btn">⟵ Kembali ke Modul</a>
+  </div>
+</div>
+
+<div class="container">
+  <div class="sidebar">
+    <ul id="lesson-nav">
+      <li data-step="1" class="active">1. Mobil & Truk = Saudaraan?</li>
+      <li data-step="2">2. Apa Itu Inheritance?</li>
+      <li data-step="3">3. Method yang Bisa Diubah</li>
+      <li data-step="4">4. Tambahkan Aksi Unik di Class Anak</li>
+      <li data-step="5">5. Tes Semua!</li>
+      <li data-step="6">6. Proyekmu!</li>
+      <li data-step="7">7. Kenapa Pakai Inheritance?</li>
+      <li data-step="8">8. Terima Kasih!</li>
+      <li data-step="9">9. Quiz Part 1</li>
+      <li data-step="10">10. Quiz Part 2</li>
+    </ul>
+  </div>
+  <div class="main">
+    <div id="panel-1" class="step-content">
+      <h2>Mobil & Truk = Saudaraan?</h2>
+      <p>Bayangin bikin class Kendaraan → class Mobil & Truk bisa mewarisi kemampuan dasar seperti jalan. Itulah inheritance!</p>
+    </div>
+    <div id="panel-2" class="step-content">
+      <h2>Apa Itu Inheritance?</h2>
+      <div class="typingBox-vscode" contenteditable="true" data-hint="class Kendaraan:
+    def jalan(self):
+        print("Kendaraan bergerak")
+
+class Motor(Kendaraan):
+    pass"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-3" class="step-content">
+      <h2>Method yang Bisa Diubah</h2>
+      <div class="typingBox-vscode" contenteditable="true" data-hint="class Motor(Kendaraan):
+    def jalan(self):
+        print("Motor melaju kencang!")"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-4" class="step-content">
+      <h2>Tambahkan Aksi Unik di Class Anak</h2>
+      <div class="typingBox-vscode" contenteditable="true" data-hint="class Truk(Kendaraan):
+    def muat(self):
+        print("Truk mengangkut barang berat")"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-5" class="step-content">
+      <h2>Tes Semua!</h2>
+      <div class="typingBox-vscode" contenteditable="true" data-hint="m = Motor()
+t = Truk()
+
+m.jalan()  # Override
+t.jalan()  # Dari class induk
+t.muat()   # Method khusus Truk"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-6" class="step-content">
+      <h2>Proyekmu!</h2>
+      <p>Coba buat:</p>
+      <ul>
+        <li><code>class Karakter</code> → <code>class Petarung</code>, <code>class Penembak</code></li>
+        <li><code>class Kendaraan</code> → <code>class Sepeda</code>, <code>class Mobil</code></li>
+        <li>Tiap class anak boleh override atau punya method unik.</li>
+      </ul>
+    </div>
+    <div id="panel-7" class="step-content">
+      <h2>Kenapa Pakai Inheritance?</h2>
+      <ul>
+        <li>Menghindari kode berulang</li>
+        <li>Class anak langsung punya kemampuan dasar</li>
+        <li>Bikin struktur "keluarga" yang rapi</li>
+      </ul>
+    </div>
+    <div id="panel-8" class="step-content">
+      <h2>Terima Kasih!</h2>
+      <p>Kamu belajar:</p>
+      <ul>
+        <li>Cara buat class anak dari class induk</li>
+        <li>Cara mewariskan & override method</li>
+        <li>Mendesain struktur pewarisan kayak keluarga/tim</li>
+      </ul>
+      <p>Siap bikin dunia Python yang saling terhubung?</p>
+    </div>
+    <div id="panel-9" class="step-content">
+      <h2>Quiz Part 1 – Teori</h2>
+      <ol>
+        <li>Apa itu inheritance? Jelaskan dengan analogi. <input type="text"></li>
+        <li>Manfaat class induk & anak. <input type="text"></li>
+        <li>Arti sintaks <code>class Mobil(Kendaraan):</code>. <input type="text"></li>
+        <li>Bedakan method diwarisi vs dioverride. <input type="text"></li>
+        <li>Apa yang terjadi kalau class anak tidak punya method yang ada di induk? <input type="text"></li>
+        <li>Apa itu <code>super()</code> & kapan digunakan? <input type="text"></li>
+        <li>Contoh class Hewan & Kucing yang override method suara(). <input type="text"></li>
+        <li>Kenapa class anak bisa punya method sendiri? <input type="text"></li>
+        <li>Jika 2 class turunan override method sama, apa yang terjadi? <input type="text"></li>
+        <li>Bagaimana inheritance bikin kode lebih rapi & hemat? <input type="text"></li>
+      </ol>
+      </div>
+    <div id="panel-10" class="step-content">
+      <h2>Quiz Part 2 – Praktik</h2>
+      <p>Tugas:</p>
+      <ol>
+        <li>Buat class dengan atribut nama &amp; warna, method mencetak keduanya.</li>
+        <li>Tambah method aksi berdasarkan warna (misal: merah=ngebut, biru=santai).</li>
+        <li>Buat 2 object dengan warna berbeda &amp; panggil semua method.</li>
+        <li>Buat class lain dengan atribut &amp; method yang berubah sesuai warna.</li>
+        <li>Modifikasi class agar method juga mencetak warna saat dipanggil.</li>
+        <li>Buat class dengan atribut &amp; method mengubah gaya bicara sesuai warna.</li>
+        <li>Buat object hitam &amp; putih, panggil method keduanya.</li>
+        <li>Buat class dengan method cetak gaya cahaya sesuai warna.</li>
+        <li>Tambah fitur: object menyebutkan dirinya → "Saya [class] berwarna [warna]".</li>
+        <li>Desain class bebas (peri, robot, kendaraan, buah) dengan atribut warna &amp; method unik + komentar.</li>
+      </ol>
+      <div class="typingBox-vscode" contenteditable="true" data-hint=""></div>
+      <div class="typingBox-vscode" contenteditable="true" data-hint=""></div>
+    </div>
+    <div class="nav-controls">
+      <button onclick="prevPanel()">⟵ Sebelumnya</button>
+      <span id="indicator"></span>
+      <button onclick="nextPanel()">Selanjutnya ⟶</button>
+    </div>
+  </div>
+  <div class="lab-column">
+    <div class="whiteboard-container">
+      <button id="toggleWhiteboard">Tampilkan Whiteboard</button>
+      <button id="clearWhiteboard">Clear</button>
+      <canvas id="whiteboardCanvas"></canvas>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentPanel = 1;
+  const totalPanels = 10;
+  function showPanel(n) {
+    if (n < 1 || n > totalPanels) return;
+    document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+    const panel = document.getElementById('panel-' + n);
+    if (panel) panel.classList.add('active');
+    currentPanel = n;
+    updateIndicator();
+  }
+  function nextPanel() { if (currentPanel < totalPanels) showPanel(currentPanel + 1); }
+  function prevPanel() { if (currentPanel > 1) showPanel(currentPanel - 1); }
+  function updateIndicator() { document.getElementById('indicator').textContent = 'Slide ' + currentPanel + ' / ' + totalPanels; }
+  document.getElementById('lesson-nav').addEventListener('click', function(e) {
+    if(e.target.matches('li[data-step]')) {
+      document.querySelectorAll('#lesson-nav li').forEach(li => li.classList.remove('active'));
+      e.target.classList.add('active');
+      showPanel(Number(e.target.getAttribute('data-step')));
+    }
+  });
+  document.addEventListener('DOMContentLoaded', () => showPanel(1));
+</script>
+<script>
+  document.querySelectorAll('.typingBox-vscode').forEach(box => {
+    box.addEventListener('keydown', (e) => {
+      if (e.key === ' ' || e.code === 'Space') {
+        e.preventDefault();
+        e.stopPropagation();
+        document.execCommand('insertText', false, ' ');
+      }
+    });
+  });
+</script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script src="whiteboard.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBVO4ajDwkbcTGL33SVMxIoev4veB8itgI",
+    authDomain: "queens-academy-icoding.firebaseapp.com",
+    projectId: "queens-academy-icoding",
+    storageBucket: "queens-academy-icoding.appspot.com",
+    messagingSenderId: "1048549258959",
+    appId: "1:1048549258959:web:f8dc1c104bb170d7ff69ba",
+  };
+  firebase.initializeApp(firebaseConfig);
+  window.kelasId = 'demo';
+  window.lessonId = 'M5L5';
+  initWhiteboard();
+</script>
+<script>
+  // Append lesson card to modul.html
+  const cardContainer = parent.document ? parent.document.querySelector('#container-M5L5') : null;
+  if (cardContainer) {
+    cardContainer.innerHTML = '<a href="/elearn/M5L5.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M5 L5</span><h3>Inheritance</h3><p>Inheritance in Python</p></div></a>';
+  }
+</script>
+<script>
+  function getCodeFromTypingBox(el) {
+    let html = el.innerHTML;
+    html = html.replace(/<div>/gi, '\n').replace(/<\/div>/gi, '');
+    html = html.replace(/<br>/gi, '\n');
+    html = html.replace(/&nbsp;/gi, ' ');
+    return html.trim();
+  }
+
+  async function runPythonCode(code, outputEl) {
+    outputEl.textContent = 'Loading...';
+    if (!window.pyodide) {
+      window.pyodide = await loadPyodide();
+    }
+    try {
+      let output = '';
+      let error = '';
+      const stdout = {
+        write: (s) => { output += s; },
+        flush: () => {}
+      };
+      const stderr = {
+        write: (s) => { error += s; },
+        flush: () => {}
+      };
+      await window.pyodide.runPythonAsync(`
+import sys
+from js import stdout, stderr
+sys.stdout = stdout
+sys.stderr = stderr
+      `, { stdout, stderr });
+      await window.pyodide.runPythonAsync(code, { stdout, stderr });
+      outputEl.textContent = output || '(No output)';
+      if (error) outputEl.textContent += '\nError:\n' + error;
+    } catch (e) {
+      outputEl.textContent = 'Error: ' + e.message;
+    }
+  }
+
+  document.querySelectorAll('.run-button').forEach(button => {
+    button.addEventListener('click', () => {
+      const panel = button.closest('.step-content');
+      const typingBox = panel.querySelector('.typingBox-vscode');
+      const outputBox = panel.querySelector('.output-box');
+      if (!typingBox || !outputBox) return;
+      const code = getCodeFromTypingBox(typingBox);
+      runPythonCode(code, outputBox);
+    });
+  });
+</script>
