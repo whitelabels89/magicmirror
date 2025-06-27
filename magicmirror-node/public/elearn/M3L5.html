@@ -159,21 +159,33 @@
     </div>
     <div id="panel-3" class="step-content">
       <h2>Buat Modul</h2>
-      <div class="typingBox-vscode" data-hint="def intro(nama):\n    print('Selamat datang,', nama)\n\ndef lari():\n    print('Berlari ke sisi kiri dungeon...')\n\ndef serang():\n    print('Serangan Pedang Api diluncurkan!')"></div>
+      <div class="typingBox-vscode" data-hint="def intro(nama):
+    print('Selamat datang,', nama)
+def lari():
+    print('Berlari ke sisi kiri dungeon...')
+def serang():
+    print('Serangan Pedang Api diluncurkan!')"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
       <p>Simpan dengan nama <code>karakter.py</code>.</p>
     </div>
     <div id="panel-4" class="step-content">
       <h2>File Utama</h2>
-      <div class="typingBox-vscode" data-hint="import karakter\n\nkarakter.intro('Zeno')\nkarakter.lari()\nkarakter.serang()"></div>
+      <div class="typingBox-vscode" data-hint="import karakter
+karakter.intro('Zeno')
+karakter.lari()
+karakter.serang()"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
       <p>Jalankan file utama untuk memulai gamemu!</p>
     </div>
     <div id="panel-5" class="step-content">
       <h2>Tambahkan Interaksi Lebih Dalam</h2>
-      <div class="typingBox-vscode" data-hint="def upgrade(level):\n    return level + 1\n\n# Di main.py\nlevel_baru = karakter.upgrade(2)\nprint('Level naik jadi:', level_baru)"></div>
+      <div class="typingBox-vscode" data-hint="def upgrade(level):
+    return level + 1
+# Di main.py
+level_baru = karakter.upgrade(2)
+print('Level naik jadi:', level_baru)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
       <p>Tambahkan fungsi <code>upgrade(level)</code> di modul dan cetak level baru di file utama.</p>
@@ -181,7 +193,8 @@
     <div id="panel-6" class="step-content">
       <h2>Proyekmu Sendiri – Sesuai Imajinasi!</h2>
       <p>Mau buat sistem misi, XP, efek spesial? Bebas! Modul buatanmu bisa kamu susun seseru mungkin. Contoh tambahan:</p>
-      <div class="typingBox-vscode" data-hint="def efek():\n    print('\ud83d\udca5 Ledakan terjadi di ruangan rahasia!')"></div>
+      <div class="typingBox-vscode" data-hint="def efek():
+    print('💥 Ledakan terjadi di ruangan rahasia!')"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
@@ -259,13 +272,21 @@
       }
     });
   });
-  document.querySelectorAll('.run-button').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const box = btn.previousElementSibling;
-      if (!box || !box.classList.contains('typingBox-vscode')) return;
-      const lines = Array.from(box.querySelectorAll('.code-line')).map(div => div.textContent);
-      box._typed = lines;
-    }, { capture: true });
+
+  function getCodeFromTypingBox(el) {
+    let html = el.innerHTML;
+    html = html.replace(/<div>/gi, '\n').replace(/<\/div>/gi, '');
+    html = html.replace(/<br>/gi, '\n');
+    return html.replace(/&nbsp;/gi, ' ');
+  }
+
+  document.querySelectorAll('.run-button').forEach(button => {
+    button.addEventListener('click', () => {
+      const panel = button.closest('.step-content');
+      const typingBox = panel.querySelector('.typingBox-vscode');
+      const code = getCodeFromTypingBox(typingBox);
+      runPythonCode(code, panel.querySelector('.output-box'));
+    });
   });
 </script>
 <!-- Firebase and Whiteboard -->
