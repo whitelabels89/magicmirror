@@ -116,6 +116,38 @@
     white-space: pre-wrap;
     font-family: monospace;
   }
+  .output-box {
+    background-color: #1e293b;
+    color: #a7f3d0;
+    padding: 10px;
+    border-radius: 8px;
+    min-height: 50px;
+    white-space: pre-wrap;
+    font-family: monospace;
+    margin-top: 8px;
+  }
+  .quiz-textarea {
+    width: 100%;
+    min-height: 100px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    padding: 8px;
+    font-family: monospace;
+    margin-top: 6px;
+  }
+  .run-button-quiz {
+    margin-top: 6px;
+    background-color: #22c55e;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  .run-button-quiz:hover {
+    background-color: #16a34a;
+  }
 </style>
 
 <div class="header">
@@ -259,15 +291,56 @@ info_item('Pedang Naga', 'Senjata', 'Langka')"></div>
     </div>
     <div id="panel-10" class="step-content">
       <h2>Quiz Part 2</h2>
-      <p>Isi kode Python sesuai instruksi soal.</p>
-      <div class="typingBox-vscode" data-hint=""></div>
-      <div class="typingBox-vscode" data-hint=""></div>
-      <div class="typingBox-vscode" data-hint=""></div>
-      <div class="typingBox-vscode" data-hint=""></div>
-      <div class="typingBox-vscode" data-hint=""></div>
-      <div class="typingBox-vscode" data-hint=""></div>
-      <div class="typingBox-vscode" data-hint=""></div>
-      <div class="typingBox-vscode" data-hint=""></div>
+      <ol>
+        <li>
+          Buat fungsi sapa() dengan parameter default nama="teman" yang mencetak sapaan.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat fungsi kenalan(nama, asal="Dunia Fantasi") dan panggil dengan dan tanpa argumen asal.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat fungsi profil(nama, level, hobi) dan panggil menggunakan keyword argument acak.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat fungsi buka_hadiah(jumlah) yang mengembalikan jumlah * 3, simpan dan tampilkan hasilnya.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat fungsi buka_kotak_misteri() yang mengembalikan 3 hadiah, tampilkan satu per satu.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat fungsi penampilan_karakter(nama, gaya, efek="biasa") yang mengubah deskripsi sesuai efek.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat fungsi info_item(nama_item, tipe, tingkat="Umum") yang mencetak detail item.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat dua versi fungsi: satu pakai print(), satu pakai return(), jelaskan perbedaannya.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+      </ol>
     </div>
     <div id="panel-11" class="step-content">
       <h2>Sesi Tanya Jawab Refleksi</h2>
@@ -363,4 +436,50 @@ info_item('Pedang Naga', 'Senjata', 'Langka')"></div>
   window.kelasId = 'demo';
   window.lessonId = 'M3L2';
   initWhiteboard();
+</script>
+
+<script>
+  // Initialize Pyodide once
+  let pyodideReadyPromise = loadPyodide();
+
+  async function runPythonCodeQuiz(code, outputElement) {
+    outputElement.textContent = '// Loading...';
+    const pyodide = await pyodideReadyPromise;
+    try {
+      let output = '';
+      let error = '';
+
+      // Redirect stdout and stderr
+      pyodide.setStdout({
+        batched: (s) => { output += s; }
+      });
+      pyodide.setStderr({
+        batched: (s) => { error += s; }
+      });
+
+      await pyodide.runPythonAsync(code);
+
+      if (error) {
+        outputElement.textContent = error;
+      } else {
+        outputElement.textContent = output || '// Tidak ada output';
+      }
+    } catch (err) {
+      outputElement.textContent = err;
+    } finally {
+      // Reset stdout and stderr to default
+      pyodide.setStdout();
+      pyodide.setStderr();
+    }
+  }
+
+  document.querySelectorAll('.run-button-quiz').forEach(button => {
+    button.addEventListener('click', () => {
+      const li = button.closest('li');
+      const textarea = li.querySelector('textarea');
+      const outputBox = li.querySelector('.output-box');
+      const code = textarea.value;
+      runPythonCodeQuiz(code, outputBox);
+    });
+  });
 </script>

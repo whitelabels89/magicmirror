@@ -112,6 +112,16 @@
   }
   .step-content.active { display: block; }
   .nav-controls { text-align: center; margin-top: 20px; }
+  .output-box {
+    background-color: #1e293b !important;
+    color: #a7f3d0 !important;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 8px;
+    white-space: pre-wrap;
+    font-family: monospace;
+    min-height: 50px;
+  }
 </style>
 
 <div class="header">
@@ -139,8 +149,9 @@
       <li data-step="9">9. Kesimpulan Counter</li>
       <li data-step="10">10. Task Counter</li>
       <li data-step="11">11. Quiz Part 1</li>
-      <li data-step="12">12. Q&A</li>
-      <li data-step="13">13. Terima Kasih</li>
+      <li data-step="12">14. Quiz Part 2</li>
+      <li data-step="13">12. Q&A</li>
+      <li data-step="14">13. Terima Kasih</li>
     </ul>
   </div>
   <div class="main">
@@ -223,30 +234,118 @@ print('Hore! Kamu berhasil pada percobaan ke-', percobaan)
     <div id="panel-11" class="step-content">
       <h2>Quiz Part 1</h2>
       <ol>
-        <li>Apa kegunaan loop dalam program?
-          <ul>
-            <li>a) Menyimpan data</li>
-            <li>b) Menjalankan kode berulang kali ✅</li>
-            <li>c) Menghentikan program</li>
-            <li>d) Membuat variabel</li>
-          </ul>
+        <li>
+          Apa itu loop? Jelaskan apa yang dilakukan loop dalam program komputer.
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
         </li>
-        <li>Apa arti kata <code>while</code>?</li>
-        <li>Bagaimana cara keluar dari loop <code>while</code>?</li>
-        <li>Apa fungsi counter?</li>
-        <li>Berapa hasil dari kode jika jumlah = 5 dan harga = 2?</li>
-        <li>Kapan loop berhenti pada contoh kode promo?</li>
-        <li>Bagaimana menambah nilai counter?</li>
-        <li>Mengapa penting mengecek kondisi di dalam loop?</li>
-        <li>Contoh input untuk menghentikan loop feedback?</li>
-        <li>Jenis loop apa yang kita pakai di lesson ini?</li>
+        <li>
+          Apa arti kata “while” dalam pemrograman? Mengapa while loop berguna?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Kapan loop while berhenti berjalan? Jelaskan kondisinya.
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Apa yang dilakukan baris ini dalam loop: <code>while feedback != 'off':</code>?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Mengapa kita menggunakan loop untuk meminta feedback berulang kali dibanding menulis pertanyaan berkali-kali?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Dalam contoh belanja, apa yang terjadi saat pengguna memasukkan “0”?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Apa arti diskon 10% saat menghitung total harga?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Mengapa lebih baik menambahkan harga di dalam loop daripada terpisah?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Sebutkan beberapa hal yang bisa dibantu loop dalam program.
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Apa ide utama dari kesimpulan di bagian pertama slide?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
       </ol>
     </div>
     <div id="panel-12" class="step-content">
+      <h2>Quiz Part 2</h2>
+      <ol>
+        <li>
+          Buat program yang terus meminta nama sampai kamu ketik “stop”.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Ubah program feedback agar mengucapkan terima kasih untuk setiap komentar kecuali saat mengetik “exit”.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Jelaskan apa yang terjadi jika pengguna tidak pernah mengetik “0” dalam program penjumlahan harga.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Modifikasi program kode promo agar menerima “happy2025” alih-alih “new year”.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Jelaskan cara kerja loop pada program kode promo.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Bagaimana counter berguna dalam permainan tebak angka?
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat kondisi untuk menghentikan loop input angka saat angka 0 dimasukkan.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat program yang meminta warna favorit sampai mengetik “done” dan cetak “Pilihan bagus!” setiap kali.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Bagaimana cara menghentikan loop tak terbatas yang tidak pernah berhenti?
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat loop yang menghitung dari 1 sampai 5 dan mencetak setiap angka.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+      </ol>
+    </div>
+    <div id="panel-13" class="step-content">
       <h2>Q&A</h2>
       <p>Tulis pertanyaanmu dan diskusikan bersama mentor.</p>
     </div>
-    <div id="panel-13" class="step-content">
+    <div id="panel-14" class="step-content">
       <h2>Terima Kasih</h2>
       <p>Sampai jumpa di lesson berikutnya!</p>
     </div>
@@ -267,7 +366,7 @@ print('Hore! Kamu berhasil pada percobaan ke-', percobaan)
 
 <script>
   let currentPanel = 1;
-  const totalPanels = 13;
+  const totalPanels = 14;
   function showPanel(n) {
     if (n < 1 || n > totalPanels) return;
     document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
@@ -296,6 +395,50 @@ print('Hore! Kamu berhasil pada percobaan ke-', percobaan)
         e.preventDefault();
         e.stopPropagation();
       }
+    });
+  });
+
+  // Pyodide for Quiz Part 2
+  let pyodideReadyPromise = null;
+  function ensurePyodide() {
+    if (!window.pyodide) {
+      if (!pyodideReadyPromise) {
+        pyodideReadyPromise = loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/" });
+      }
+      return pyodideReadyPromise.then((py) => { window.pyodide = py; return py; });
+    } else {
+      return Promise.resolve(window.pyodide);
+    }
+  }
+
+  // Find all quiz run buttons and add event listeners
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.run-button-quiz').forEach(function(btn) {
+      btn.addEventListener('click', async function() {
+        const textarea = btn.previousElementSibling;
+        const output = btn.nextElementSibling;
+        output.textContent = '// Loading Pyodide...';
+        const pyodide = await ensurePyodide();
+        // Redirect print to output
+        let result = '';
+        function printInterceptor(...args) {
+          result += args.join(' ') + '\n';
+        }
+        pyodide.globals.set("print", printInterceptor);
+        // For input, prompt user
+        pyodide.globals.set("input", function(promptText="") {
+          let val = window.prompt(promptText || "Input:");
+          if (val === null) throw new Error("Input dibatalkan.");
+          return val;
+        });
+        try {
+          result = '';
+          await pyodide.runPythonAsync(textarea.value);
+          output.textContent = result.trim() ? result : '// (Tidak ada output)';
+        } catch (err) {
+          output.textContent = '// Error: ' + (err.message || err);
+        }
+      });
     });
   });
 </script>

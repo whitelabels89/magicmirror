@@ -116,6 +116,30 @@
     white-space: pre-wrap;
     font-family: monospace;
   }
+  .output-box {
+    background-color: #1e293b;
+    color: #a7f3d0;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 8px;
+    white-space: pre-wrap;
+    font-family: monospace;
+    min-height: 50px;
+  }
+  .quiz-textarea {
+    width: 100%;
+    min-height: 100px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    padding: 8px;
+    font-family: monospace;
+  }
+  #panel-9 ol {
+    padding-left: 20px;
+  }
+  #panel-9 li {
+    margin-bottom: 20px;
+  }
 </style>
 
 <div class="header">
@@ -220,10 +244,39 @@ print('Level naik jadi:', level_baru)"></div>
     </div>
     <div id="panel-9" class="step-content">
       <h2>Quiz Part 2 – Praktik</h2>
-      <p>Tulis kode latihan sesuai instruksi: buat modul <code>proyekku.py</code> lalu panggil di <code>main.py</code>.</p>
-      <div class="typingBox-vscode" data-hint=""></div>
-      <button class="run-button">Jalankan</button>
-      <pre class="output-box">// Hasil akan muncul di sini</pre>
+      <p>Tulis kode latihan sesuai instruksi di bawah ini:</p>
+      <ol>
+        <li>
+          Buat modul <code>proyekku.py</code> dengan fungsi <code>intro(nama)</code>, <code>aksi()</code>, dan <code>naik_level(level)</code>.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Di <code>main.py</code>, impor semua fungsi dari <code>proyekku</code>.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Jalankan <code>intro("Namamu")</code>, panggil <code>aksi()</code>, dan simpan hasil <code>naik_level(3)</code> ke variabel, tampilkan.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Tambahkan fungsi kreatif <code>efek_khusus()</code> di <code>proyekku.py</code> dan panggil di <code>main.py</code>.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Bonus: Simulasikan permainan kecil yang memanggil semua fungsi di atas sebagai cerita mini.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+      </ol>
     </div>
     <div class="nav-controls">
       <button onclick="prevPanel()">⟵ Sebelumnya</button>
@@ -286,6 +339,42 @@ print('Level naik jadi:', level_baru)"></div>
       const typingBox = panel.querySelector('.typingBox-vscode');
       const code = getCodeFromTypingBox(typingBox);
       runPythonCode(code, panel.querySelector('.output-box'));
+    });
+  });
+
+  // Run button for quiz textareas
+  async function runPythonCodeFromTextarea(code, outputElem) {
+    if (!window.pyodide) {
+      outputElem.textContent = 'Pyodide belum siap, silakan tunggu...';
+      return;
+    }
+    try {
+      await window.pyodide.loadPackagesFromImports(code);
+      let output = '';
+      const stdout = {
+        write(s) { output += s; },
+        flush() {}
+      };
+      const stderr = {
+        write(s) { output += s; },
+        flush() {}
+      };
+      window.pyodide.setStdout({batched: (s) => { output += s; }});
+      window.pyodide.setStderr({batched: (s) => { output += s; }});
+      await window.pyodide.runPythonAsync(code);
+      outputElem.textContent = output || '// Tidak ada output';
+    } catch (err) {
+      outputElem.textContent = err;
+    }
+  }
+
+  document.querySelectorAll('.run-button-quiz').forEach(button => {
+    button.addEventListener('click', async () => {
+      const li = button.closest('li');
+      const textarea = li.querySelector('textarea.quiz-textarea');
+      const outputBox = li.querySelector('.output-box');
+      const code = textarea.value;
+      await runPythonCodeFromTextarea(code, outputBox);
     });
   });
 </script>

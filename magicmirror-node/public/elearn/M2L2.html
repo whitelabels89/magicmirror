@@ -112,6 +112,39 @@
   }
   .step-content.active { display: block; }
   .nav-controls { text-align: center; margin-top: 20px; }
+  .output-box {
+    background-color: #1e293b;
+    color: #a7f3d0;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 8px;
+    white-space: pre-wrap;
+    font-family: monospace;
+    min-height: 50px;
+    overflow-x: auto;
+  }
+  .quiz-textarea {
+    width: 100%;
+    min-height: 100px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    padding: 8px;
+    font-family: monospace;
+    resize: vertical;
+  }
+  .run-button-quiz {
+    margin-top: 6px;
+    background-color: #4f46e5;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  .run-button-quiz:hover {
+    background-color: #3730a3;
+  }
 </style>
 
 <div class="header">
@@ -311,20 +344,111 @@ else:
     <div id="panel-16" class="step-content">
       <h2>Quiz Part 1</h2>
       <ol>
-        <li>Apa fungsi dari nested conditional?</li>
-        <ul>
-          <li>a) Mengulang kode terus menerus</li>
-          <li>b) Memeriksa kondisi di dalam kondisi ✅</li>
-          <li>c) Menyimpan data ke file</li>
-        </ul>
-        <li>Indentasi standar untuk blok di Python adalah ...</li>
+        <li>
+          Apa itu Pernyataan Kondisional?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Kapan kita menggunakan nested conditional?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Apa keuntungan menggunakan nested conditional?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Bagaimana aturan indentasi pada nested conditional di Python?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Apa perbedaan antara <code>if</code>, <code>elif</code>, dan <code>else</code>?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Berikan contoh sederhana penggunaan nested conditional!
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Apa yang terjadi jika indentasi pada nested conditional salah?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Bagaimana cara membuat keputusan lebih dari dua tingkat dalam program?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Mengapa nested conditional dapat membuat kode lebih mudah dibaca?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Sebutkan satu situasi di kehidupan sehari-hari yang bisa diselesaikan dengan nested conditional!
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
       </ol>
     </div>
     <div id="panel-17" class="step-content">
       <h2>Quiz Part 2</h2>
       <ol>
-        <li>Berapa output dari kode pada slide "Happy Hours" jika <code>jam = 15</code>?</li>
-        <li>Sebutkan kegunaan <code>elif</code> dalam conditional statement.</li>
+        <li>
+          Buat program diskon setengah harga untuk produk tertentu.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat program diskon seperempat harga berdasarkan kategori produk.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat program yang menangani semua kasus waktu (pagi, siang, malam).
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat program pilihan kategori belanja menggunakan nested if.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat program pilihan makanan dengan elif untuk berbagai kondisi.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat program diskon berdasarkan usia pelanggan.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat program mesin penjual otomatis dengan pilihan produk.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat program waktu bermain untuk robot anjing berdasarkan kondisi.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat program sistem hadiah berdasarkan skor game.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat program jam buka toko roti menggunakan nested conditional.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
       </ol>
     </div>
     <div id="panel-18" class="step-content">
@@ -401,4 +525,26 @@ else:
   window.kelasId = 'demo';
   window.lessonId = 'M2L2';
   initWhiteboard();
+</script>
+<script>
+  // Pyodide initialization and run code for quiz textareas
+  async function main() {
+    window.pyodide = await loadPyodide();
+    document.querySelectorAll('#panel-17 .run-button-quiz').forEach((btn, idx) => {
+      btn.addEventListener('click', async () => {
+        const textarea = btn.previousElementSibling;
+        const output = btn.nextElementSibling;
+        const code = textarea.value;
+        output.textContent = 'Running...';
+        try {
+          let result = await pyodide.runPythonAsync(code);
+          if (result === undefined) result = '';
+          output.textContent = result.toString();
+        } catch (err) {
+          output.textContent = 'Error: ' + err.message;
+        }
+      });
+    });
+  }
+  main();
 </script>

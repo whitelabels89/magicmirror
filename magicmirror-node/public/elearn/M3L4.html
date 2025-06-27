@@ -118,7 +118,7 @@
     font-family: monospace;
   }
   .output-box {
-    background: #f3f4f6;
+    background: #1e293b;
     border: 1px solid #d1d5db;
     border-radius: 8px;
     padding: 10px;
@@ -126,6 +126,15 @@
     font-family: monospace;
     white-space: pre-wrap;
     min-height: 40px;
+    color: #a7f3d0;
+  }
+  .quiz-textarea {
+    width: 100%;
+    min-height: 100px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    padding: 8px;
+    font-family: monospace;
   }
 </style>
 
@@ -235,21 +244,49 @@ def heal(pemain, hp):
   <h2>Quiz Part 2</h2>
   <p>Isi kode Python sesuai instruksi soal berikut:</p>
   <ol>
-    <li>Buat file <code>alatku.py</code> dengan fungsi halo() yang mencetak kalimat sambutan.</li>
-    <li>Gunakan file main.py untuk mengimpor fungsi tersebut dan jalankan.</li>
-    <li>Tambahkan fungsi jumlah(a, b) yang mengembalikan hasil penjumlahan.</li>
-    <li>Di main.py tampilkan hasil jumlah(5, 7).</li>
-    <li>Tambahkan fungsi info(nama, level) yang mencetak status karakter.</li>
-    <li>Panggil info() dari main.py dengan nama &amp; level berbeda.</li>
-    <li>Bonus: Buat fungsi gabung(teks1, teks2) di modul dan tampilkan hasilnya di main.py.</li>
+    <li>
+      Buat file alatku.py dan tambahkan fungsi halo() yang mencetak kalimat sambutan.
+      <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+      <button class="run-button-quiz">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </li>
+    <li>
+      Gunakan file main.py untuk mengimpor fungsi halo() dan jalankan.
+      <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+      <button class="run-button-quiz">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </li>
+    <li>
+      Tambahkan fungsi jumlah(a, b) di alatku.py yang mengembalikan hasil penjumlahan.
+      <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+      <button class="run-button-quiz">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </li>
+    <li>
+      Di main.py, tampilkan hasil pemanggilan jumlah(5, 7).
+      <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+      <button class="run-button-quiz">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </li>
+    <li>
+      Tambahkan fungsi info(nama, level) di alatku.py yang mencetak status karakter.
+      <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+      <button class="run-button-quiz">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </li>
+    <li>
+      Panggil info() dari main.py dengan nama dan level berbeda.
+      <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+      <button class="run-button-quiz">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </li>
+    <li>
+      Bonus: Buat fungsi gabung(teks1, teks2) di modul dan tampilkan hasilnya di main.py.
+      <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+      <button class="run-button-quiz">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </li>
   </ol>
-  <div class="typingBox-vscode" data-hint=""></div>
-  <div class="typingBox-vscode" data-hint=""></div>
-  <div class="typingBox-vscode" data-hint=""></div>
-  <div class="typingBox-vscode" data-hint=""></div>
-  <div class="typingBox-vscode" data-hint=""></div>
-  <div class="typingBox-vscode" data-hint=""></div>
-  <div class="typingBox-vscode" data-hint=""></div>
 </div>
     <div class="nav-controls">
       <button onclick="prevPanel()">⟵ Sebelumnya</button>
@@ -317,4 +354,43 @@ def heal(pemain, hp):
   window.kelasId = 'demo';
   window.lessonId = 'M3L4';
   initWhiteboard();
+</script>
+<script>
+  async function runCode(code, outputElement) {
+    if (!window.pyodide) {
+      outputElement.textContent = "Pyodide belum siap, tunggu sebentar...";
+      return;
+    }
+    try {
+      let output = await window.pyodide.runPythonAsync(`
+import sys
+import io
+sys.stdout = io.StringIO()
+sys.stderr = io.StringIO()
+try:
+${code.split('\n').map(line => '  ' + line).join('\n')}
+except Exception as e:
+  print(e)
+result = sys.stdout.getvalue() + sys.stderr.getvalue()
+result
+`);
+      outputElement.textContent = output.trim() || "// Tidak ada output";
+    } catch (err) {
+      outputElement.textContent = err.toString();
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    window.pyodide = await loadPyodide();
+
+    document.querySelectorAll('.run-button-quiz').forEach(button => {
+      button.addEventListener('click', () => {
+        const li = button.closest('li');
+        const textarea = li.querySelector('textarea');
+        const output = li.querySelector('.output-box');
+        const code = textarea.value;
+        runCode(code, output);
+      });
+    });
+  });
 </script>

@@ -119,7 +119,7 @@
     border: 1px solid #ccc;
     padding: 8px;
     border-radius: 6px;
-    background: #f9f9f9;
+    background: #020202;
     outline: none;
     overflow-y: auto;
   }
@@ -143,6 +143,8 @@
     overflow-x: auto;
     white-space: pre-wrap;
   }
+  .quiz-textarea { width: 100%; min-height: 100px; border-radius: 8px; border: 1px solid #ccc; padding: 8px; font-family: monospace; }
+  .output-box { background: #1e293b; color: #a7f3d0; padding: 12px; border-radius: 8px; margin-top: 10px; white-space: pre-wrap; }
 </style>
 
 <div class="header">
@@ -166,15 +168,15 @@
       <li data-step="5">5. Aksi Pakai Method</li>
       <li data-step="6">6. Saatnya Kamu Ciptakan!</li>
       <li data-step="7">7. Proyek Kerenmu 🚀</li>
-      <li data-step="8">8. Terima Kasih!</li>
       <li data-step="9">9. Quiz Part 1</li>
       <li data-step="10">10. Quiz Part 2</li>
+      <li data-step="11">11. Terima Kasih!</li>
     </ul>
   </div>
   <div class="main">
     <div id="panel-1" class="step-content">
       <h2>Pabrik Robot! 🤖</h2>
-      <p>Di Python, kita bisa bikin cetakan robot pakai class, dan bikin robotnya pakai object!</p>
+      <p>Kalau kamu bisa bikin robot dari pabrik, kamu mau dia bisa apa? Nah, di Python kita bisa bikin cetakannya dengan class, dan bikin robotnya dengan object!</p>
     </div>
     <div id="panel-2" class="step-content">
       <h2>Apa Itu Class dan Object?</h2>
@@ -185,7 +187,6 @@
       <div class="typingBox-vscode" contenteditable="true" data-hint="class Robot:
     def jalan(self):
         print('Robot berjalan!')
-
 r1 = Robot()
 r1.jalan()"></div>
       <button class="run-button">Jalankan</button>
@@ -193,14 +194,19 @@ r1.jalan()"></div>
     </div>
     <div id="panel-3" class="step-content">
       <h2>Satu Class, Banyak Object</h2>
-      <p>Bisa buat banyak object dari satu class → semua punya kemampuan, tapi bisa beda data.</p>
+      <p>Kita bisa bikin banyak object dari satu class! Semua punya kemampuan jalan, tapi bisa punya data beda.</p>
+      <div class="typingBox-vscode" contenteditable="true" data-hint="r1 = Robot()
+r2 = Robot()
+r3 = Robot()"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-4" class="step-content">
       <h2>Kasih Data Saat Dibuat</h2>
+      <p>Kita pakai __init__() untuk isi data ke object:</p>
       <div class="typingBox-vscode" contenteditable="true" data-hint="class Hero:
     def __init__(self, nama):
         self.nama = nama
-
 h = Hero('Ultrabot')
 print(h.nama)"></div>
       <button class="run-button">Jalankan</button>
@@ -212,10 +218,8 @@ print(h.nama)"></div>
     def __init__(self, nama, power):
         self.nama = nama
         self.power = power
-
     def serang(self):
         print(self.nama, 'menyerang dengan', self.power)
-
 h1 = Hero('Blaze', 'Api')
 h1.serang()"></div>
       <button class="run-button">Jalankan</button>
@@ -223,17 +227,16 @@ h1.serang()"></div>
     </div>
     <div id="panel-6" class="step-content">
       <h2>Saatnya Kamu Ciptakan!</h2>
-      <p>Coba buat class versimu, misalnya:</p>
+      <p>Yuk, coba bikin class sendiri! Kamu bisa buat Karakter, Senjata, Monster, atau lainnya. Tambahkan atribut dan method biar lebih seru.</p>
+      <p>Bikin class versimu dengan atribut dan method, misalnya:</p>
       <div class="typingBox-vscode" contenteditable="true" data-hint="class Senjata:
     def __init__(self, nama, damage):
         self.nama = nama
         self.damage = damage
-
 class Monster:
     def __init__(self, tipe, suara):
         self.tipe = tipe
         self.suara = suara
-
 class Karakter:
     def __init__(self, nama, jurus):
         self.nama = nama
@@ -243,27 +246,16 @@ class Karakter:
     </div>
     <div id="panel-7" class="step-content">
       <h2>Proyek Kerenmu 🚀</h2>
+      <p>Contoh:</p>
       <div class="typingBox-vscode" contenteditable="true" data-hint="class Kendaraan:
     def __init__(self, tipe):
         self.tipe = tipe
-
     def suara(self):
         print(self.tipe, 'berbunyi vroom!')
-
 motor = Kendaraan('Motor')
 motor.suara()"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
-    </div>
-    <div id="panel-8" class="step-content">
-      <h2>Terima Kasih!</h2>
-      <p>Kamu sudah belajar:</p>
-      <ul>
-        <li>Apa itu class &amp; object</li>
-        <li>Cara buat object dari class</li>
-        <li>Cara menambahkan data &amp; aksi</li>
-      </ul>
-      <p>Siap lanjut bikin program super seru?</p>
     </div>
     <div id="panel-9" class="step-content">
       <h2>Quiz Part 1 – Teori</h2>
@@ -275,7 +267,6 @@ motor.suara()"></div>
         <li>Apa hasil kode:<pre>class Kucing:
     def __init__(self, nama):
         self.nama = nama
-
 k = Kucing('Mimi')
 print(k.nama)</pre><input type="text"></li>
         <li>Kenapa bisa buat banyak object dari satu class? <input type="text"></li>
@@ -284,10 +275,8 @@ print(k.nama)</pre><input type="text"></li>
     def __init__(self, nama, senjata):
         self.nama = nama
         self.senjata = senjata
-
     def serang(self):
         print(self.nama, 'menyerang dengan', self.senjata)
-
 h = Hero('Bima', 'Tombak')
 h.serang()</pre><input type="text"></li>
         <li>Sebutkan 2 manfaat membuat class. <input type="text"></li>
@@ -298,18 +287,71 @@ h.serang()</pre><input type="text"></li>
       <h2>Quiz Part 2 – Praktik</h2>
       <p>Tugas:</p>
       <ol>
-        <li>Buat class Robot dengan atribut nama &amp; method jalan → cetak "[nama] sedang berjalan".</li>
-        <li>Buat object "Tobot" &amp; panggil method-nya.</li>
-        <li>Buat class Buah dengan atribut jenis &amp; warna, method info → cetak keterangan.</li>
-        <li>Buat object apel &amp; pisang → panggil info().</li>
-        <li>Buat class AlatMusik dengan atribut nama &amp; tipe, method bunyi → cetak bunyi.</li>
-        <li>Buat 2 object (gitar &amp; piano), panggil bunyi.</li>
-        <li>Buat class KarakterGame dengan atribut nama, level, nyawa, method status, naik_level, serang.</li>
-        <li>Buat object KarakterGame, jalankan semua method.</li>
-        <li>Desain class buatanmu sendiri: beri 2 atribut &amp; 2 method, jelaskan kegunaannya.</li>
+        <li>
+          Buat class Robot dengan atribut nama &amp; method jalan → cetak "[nama] sedang berjalan".
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat object "Tobot" &amp; panggil method-nya.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat class Buah dengan atribut jenis &amp; warna, method info → cetak keterangan.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat object apel &amp; pisang → panggil info().
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat class AlatMusik dengan atribut nama &amp; tipe, method bunyi → cetak bunyi.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat 2 object (gitar &amp; piano), panggil bunyi.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat class KarakterGame dengan atribut nama, level, nyawa, method status, naik_level, serang.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat object KarakterGame, jalankan semua method.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Desain class buatanmu sendiri: beri 2 atribut &amp; 2 method, jelaskan kegunaannya.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
       </ol>
-      <div class="typingBox-vscode" contenteditable="true" data-hint=""></div>
-      <div class="typingBox-vscode" contenteditable="true" data-hint=""></div>
+    </div>
+    <div id="panel-11" class="step-content">
+      <h2>Terima Kasih!</h2>
+      <p>Hari ini kamu belajar:</p>
+      <ul>
+        <li>Apa itu class & object</li>
+        <li>Cara membuat object dari class</li>
+        <li>Cara menambahkan data dan aksi</li>
+      </ul>
+      <p>Yuk lanjut bikin program super seru!</p>
     </div>
     <div class="nav-controls">
       <button onclick="prevPanel()">⟵ Sebelumnya</button>
@@ -328,7 +370,7 @@ h.serang()</pre><input type="text"></li>
 
 <script>
   let currentPanel = 1;
-  const totalPanels = 10;
+  const totalPanels = 11;
   function showPanel(n) {
     if (n < 1 || n > totalPanels) return;
     document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
@@ -433,6 +475,30 @@ sys.stderr = stderr
       if (!typingBox || !outputBox) return;
       const code = getCodeFromTypingBox(typingBox);
       runPythonCode(code, outputBox);
+    });
+  });
+</script>
+<script>
+  document.querySelectorAll('.run-button-quiz').forEach(button => {
+    button.addEventListener('click', async () => {
+      const textarea = button.previousElementSibling;
+      const outputEl = button.nextElementSibling;
+      const code = textarea.value.trim();
+      outputEl.textContent = 'Loading...';
+      if (!window.pyodide) {
+        window.pyodide = await loadPyodide();
+      }
+      let consoleOutput = '';
+      let consoleError = '';
+      window.pyodide.setStdout({ batched: (s) => { consoleOutput += s; } });
+      window.pyodide.setStderr({ batched: (s) => { consoleError += s; } });
+      try {
+        await window.pyodide.runPythonAsync(code);
+        outputEl.textContent = consoleOutput || '(No output)';
+        if (consoleError) outputEl.textContent += '\nError:\n' + consoleError;
+      } catch (e) {
+        outputEl.textContent = 'Error: ' + e.message;
+      }
     });
   });
 </script>

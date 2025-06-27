@@ -112,6 +112,16 @@
   }
   .step-content.active { display: block; }
   .nav-controls { text-align: center; margin-top: 20px; }
+  .output-box {
+    background-color: #1e293b !important;
+    color: #a7f3d0 !important;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 8px;
+    white-space: pre-wrap;
+    font-family: monospace;
+    min-height: 50px;
+  }
 </style>
 
 <div class="header">
@@ -216,11 +226,46 @@
     <div id="panel-10" class="step-content">
       <h2>Quiz Part 1</h2>
       <ol>
-        <li>Apa itu string?</li>
-        <li>Bagaimana cara menghitung jumlah karakter dalam string?</li>
-        <li>Bagaimana mengambil satu karakter dari string?</li>
-        <li>Apa fungsi <code>.lower()</code>?</li>
-        <li>Apa itu slicing pada string?</li>
+        <li>
+          Apa itu string di Python?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Fungsi apa yang digunakan untuk menghitung jumlah karakter dalam string? (Hint: diawali dengan "l")
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Apa tugas interpreter di Python?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Apa yang dilakukan operator + jika digunakan pada dua string?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Apa yang dilakukan operator + jika digunakan pada dua angka?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Bisakah kita mengalikan string dengan angka di Python? Apa hasilnya?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Apa perbedaan antara algoritma dan program?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Apa yang terjadi jika kita mencoba mengalikan string dengan string lain?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Apa yang dilakukan fungsi .lower() pada string?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Kenapa kita kadang menggunakan str() atau int() di Python? (Hint: untuk mengubah...)
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
       </ol>
     </div>
     <div id="panel-11" class="step-content">
@@ -251,13 +296,66 @@
     <div id="panel-15" class="step-content">
       <h2>Quiz Part 2</h2>
       <ol>
-        <li>Buat variabel <code>teks</code> berisi "Coding Asyik". Cetak panjangnya.</li>
-        <li>Cetak huruf ke-2 dari <code>teks</code>.</li>
-        <li>Ambil kata "Asyik" dari <code>teks</code> dengan slicing.</li>
-        <li>Cari posisi "Co" pada <code>teks</code>.</li>
-        <li>Ubah <code>teks</code> ke huruf kecil semua.</li>
-        <li>Gabungkan string "Hello" dan "World" dengan <code>+</code>.</li>
-        <li>Ulangi kata "Seru! " sebanyak 2 kali.</li>
+        <li>
+          Buat program untuk mengucapkan terima kasih atas review dan mencetak panjang review.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;background:#fff;color:#000;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Cetak huruf pertama dari kata "Elephant".
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;background:#fff;color:#000;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Cetak "Good morning" dari "Good morning, sunshine!" dengan slicing.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;background:#fff;color:#000;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Temukan posisi kata "pancakes" dalam kalimat "This place has the best pancakes!".
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;background:#fff;color:#000;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Ubah pesan menjadi huruf kecil dan cari kata "hello".
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;background:#fff;color:#000;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat program gabungkan string untuk mencetak "Thank you, [nama]!".
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;background:#fff;color:#000;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Cetak "Yay! " sebanyak 4 kali menggunakan operator *.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;background:#fff;color:#000;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Gabungkan hari 3 dan bulan 9 menjadi "Birthday: 3/9" dengan str().
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;background:#fff;color:#000;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Gabungkan "Jungle" dan "Quest" menjadi "JungleQuest" dengan +.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;background:#fff;color:#000;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Perbaiki program supaya dua angka dijumlahkan dengan benar.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;background:#fff;color:#000;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
       </ol>
     </div>
     <div id="panel-16" class="step-content">

@@ -112,6 +112,16 @@
   }
   .step-content.active { display: block; }
   .nav-controls { text-align: center; margin-top: 20px; }
+  .output-box {
+    background-color: #1e293b !important;
+    color: #a7f3d0 !important;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 8px;
+    white-space: pre-wrap;
+    font-family: monospace;
+    min-height: 50px;
+  }
 </style>
 
 <div class="header">
@@ -228,25 +238,115 @@ for name in friends:
     <div id="panel-10" class="step-content">
       <h2>Quiz Part 1</h2>
       <ol>
-        <li>Pertanyaan 1 dari materi (jawaban: <input type="text"></li>
-        <li>Pertanyaan 2 dari materi (jawaban: <input type="text"></li>
-        <li>Pertanyaan 3 dari materi (jawaban: <input type="text"></li>
-        <li>Pertanyaan 4 dari materi (jawaban: <input type="text"></li>
-        <li>Pertanyaan 5 dari materi (jawaban: <input type="text"></li>
-        <li>Pertanyaan 6 dari materi (jawaban: <input type="text"></li>
-        <li>Pertanyaan 7 dari materi (jawaban: <input type="text"></li>
-        <li>Pertanyaan 8 dari materi (jawaban: <input type="text"></li>
-        <li>Pertanyaan 9 dari materi (jawaban: <input type="text"></li>
-        <li>Pertanyaan 10 dari materi (jawaban: <input type="text"></li>
+        <li>
+          Apa itu for loop? Leo ingin komputer menyapa 3 temannya dengan “Hi!” masing-masing. Loop seperti apa yang bisa mengulang aksi untuk setiap item dalam grup?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Apakah kita perlu menghitung berapa kali loop berjalan saat looping melalui kata? Kenapa?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Ketika kita loop melalui kata “cat”, berapa kali loop akan berjalan?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Max membuat username, tapi simbol seperti “@” atau “#” tidak diperbolehkan. Bagaimana loop bisa membantu Max menemukan simbol yang salah?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Apa arti range(3)? Angka berapa saja yang akan dilewati loop?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Jika for loop menggunakan for i in range(5):, berapa kali loop berjalan?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Amy menulis program yang meminta user mengetik keinginan sebanyak 3 kali. Loop apa yang paling cocok?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Jika program menyapa 4 pemain, berapa kali baris sapaan akan berjalan?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Apa keuntungan menggunakan for loop saat mengolah setiap huruf dalam kata?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Berikan satu contoh situasi nyata di mana loop akan berguna dalam program.
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
       </ol>
+      
     </div>
     <div id="panel-11" class="step-content">
       <h2>Quiz Part 2</h2>
-      <p>Tuliskan kode Python agar menghasilkan output sesuai soal.</p>
-      <div class="typingBox-vscode" data-hint=""></div>
-      <button class="run-button">Jalankan</button>
-      <pre class="output-box">// Hasil akan muncul di sini</pre>
+      <ol>
+        <li>
+          Tulis program yang mencetak posisi setiap huruf dalam kata “sunny” menggunakan for loop.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat program yang memeriksa apakah username mengandung simbol terlarang seperti %, @, atau *, dan cetak jika ditemukan.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat program yang meminta user memasukkan 3 camilan favorit, satu per satu. Setelah tiap input, cetak “Yum!”.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat program yang menanyakan berapa teman yang datang ke pesta, lalu untuk tiap teman, minta nama dan ucapkan “Hi, [nama]!”.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat loop yang mencetak “I love coding!” sebanyak 5 kali menggunakan range().
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat program login dengan batas 3 kali. Jika user mengetik admin dan 1234, cetak “Welcome!” dan hentikan loop.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Dalam program login, apa yang terjadi jika lupa menambahkan break? Coba dan lihat apa yang terjadi.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat game di mana pemain punya 3 kesempatan menebak angka 7. Jika benar, cetak “You win!”.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat loop yang menanyakan “Mau main?” sampai user mengetik “off”. Di dalamnya, buat for loop yang menanyakan “Apa tebakanmu?”.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Ciptakan game mini atau alat seru dengan for loop. Tulis deskripsi singkat dan loop yang digunakan.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+      </ol>
     </div>
+    
     <div id="panel-12" class="step-content">
       <h2>Q&A</h2>
       <p>Tulis pertanyaanmu dan diskusikan bersama mentor.</p>

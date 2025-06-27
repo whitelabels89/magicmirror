@@ -119,9 +119,17 @@
     border: 1px solid #ccc;
     padding: 8px;
     border-radius: 6px;
-    background: #f9f9f9;
+    color: #f9f9f9; /* teks putih */
+    background: #040404;
     outline: none;
     overflow-y: auto;
+    pointer-events: auto;
+  }
+
+  /* Ensure typingBox-plain is always editable and visible */
+  .typingBox-plain {
+    pointer-events: auto !important;
+    color: #f9f9f9 !important;
   }
   .run-button {
     margin-top: 8px;
@@ -266,11 +274,68 @@ print(angka)</code> <input type="text"></li>
     </div>
     <div id="panel-10" class="step-content">
       <h2>Quiz Part 2 – Praktik</h2>
-      <p>Tuliskan kode latihanmu di sini:</p>
-      <div class="typingBox-vscode" contenteditable="true" data-hint=""></div>
-      <div class="typingBox-vscode" contenteditable="true" data-hint=""></div>
-      <div class="typingBox-vscode" contenteditable="true" data-hint=""></div>
-      <div class="typingBox-vscode" contenteditable="true" data-hint=""></div>
+      <ol>
+        <li>
+          Buat object string dan ubah hurufnya jadi kapital semua.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat list berisi 3 makanan favorit, tambahkan 1 makanan lagi, cetak hasilnya.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat class bernama Kucing dengan method meong() yang cetak "Meooong!".
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Tambahkan method lari() di class Kucing, cetak "Kucing berlari cepat!".
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat object dari class Kucing, panggil kedua method-nya.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Modifikasi class Kucing agar saat object dibuat, langsung simpan nama kucing (misal "Mimi") dan buat method sapa() yang cetak "Halo, namaku Mimi".
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat class Hero dengan method serang() dan bertahan(), buat object dan panggil dua-duanya.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat class Lampu dengan method berkedip() yang cetak "Lampu berkedip 3 kali!".
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Desain object imajinasimu sendiri, buat class dengan minimal 2 method, jelaskan fungsinya di komentar.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Apa perasaanmu setelah berhasil membuat object & method? Ceritakan di komentar atau cetak dengan print().
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+      </ol>
     </div>
     <div class="nav-controls">
       <button onclick="prevPanel()">⟵ Sebelumnya</button>
@@ -309,19 +374,6 @@ print(angka)</code> <input type="text"></li>
     }
   });
   document.addEventListener('DOMContentLoaded', () => showPanel(1));
-</script>
-<script>
-  // Prevent scroll on space or character in typingBox-vscode
-  document.querySelectorAll('.typingBox-vscode').forEach(box => {
-    box.addEventListener('keydown', (e) => {
-      if (e.key === ' ' || e.code === 'Space') {
-        e.preventDefault();
-        e.stopPropagation();
-        // Insert space manually
-        document.execCommand('insertText', false, ' ');
-      }
-    });
-  });
 </script>
 <!-- Firebase and Whiteboard -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
@@ -363,26 +415,15 @@ print(angka)</code> <input type="text"></li>
     if (!window.pyodide) {
       window.pyodide = await loadPyodide();
     }
+    // Set up stdout/stderr handlers
+    let consoleOutput = '';
+    let consoleError = '';
+    window.pyodide.setStdout({ batched: (s) => { consoleOutput += s; } });
+    window.pyodide.setStderr({ batched: (s) => { consoleError += s; } });
     try {
-      let output = '';
-      let error = '';
-      const stdout = {
-        write: (s) => { output += s; },
-        flush: () => {}
-      };
-      const stderr = {
-        write: (s) => { error += s; },
-        flush: () => {}
-      };
-      await window.pyodide.runPythonAsync(`
-import sys
-from js import stdout, stderr
-sys.stdout = stdout
-sys.stderr = stderr
-      `, { stdout, stderr });
-      await window.pyodide.runPythonAsync(code, { stdout, stderr });
-      outputEl.textContent = output || '(No output)';
-      if (error) outputEl.textContent += '\nError:\n' + error;
+      await window.pyodide.runPythonAsync(code);
+      outputEl.textContent = consoleOutput || '(No output)';
+      if (consoleError) outputEl.textContent += '\nError:\n' + consoleError;
     } catch (e) {
       outputEl.textContent = 'Error: ' + e.message;
     }
@@ -398,4 +439,43 @@ sys.stderr = stderr
       runPythonCode(code, outputBox);
     });
   });
+
+  // Quiz Part 2 code runner for textareas
+  document.querySelectorAll('.run-button-quiz').forEach(button => {
+    button.addEventListener('click', async () => {
+      const textarea = button.previousElementSibling;
+      const outputEl = button.nextElementSibling;
+      const code = textarea.value.trim();
+      outputEl.textContent = 'Loading...';
+      if (!window.pyodide) {
+        window.pyodide = await loadPyodide();
+      }
+      // Set up stdout/stderr handlers
+      let consoleOutput = '';
+      let consoleError = '';
+      window.pyodide.setStdout({ batched: (s) => { consoleOutput += s; } });
+      window.pyodide.setStderr({ batched: (s) => { consoleError += s; } });
+      try {
+        await window.pyodide.runPythonAsync(code);
+        outputEl.textContent = consoleOutput || '(No output)';
+        if (consoleError) outputEl.textContent += '\nError:\n' + consoleError;
+      } catch (e) {
+        outputEl.textContent = 'Error: ' + e.message;
+      }
+    });
+  });
+</script>
+<script>
+try {
+  document.querySelectorAll('.typingBox-vscode:not(.typingBox-plain)').forEach(el => {
+    // Contoh preset sederhana: apply data-hint ke innerText
+    const hint = el.getAttribute('data-hint');
+    if (hint) {
+      el.innerText = hint;
+    }
+    // Tambahkan preset styling atau highlight lainnya di sini
+  });
+} catch (e) {
+  console.error('Error in presetvs.js:', e);
+}
 </script>

@@ -111,7 +111,36 @@
     margin-bottom: 20px;
   }
   .step-content.active { display: block; }
-  .nav-controls { text-align: center; margin-top: 20px; }
+
+  /* VSCode-like code box for Quiz Part 1 */
+  #panel-12 pre code {
+    display: block;
+    background: #1e293b;
+    color: #a7f3d0;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    font-family: monospace;
+    overflow-x: auto;
+  }
+
+  /* Consistent dark navy output box with mint text */
+  .output-box {
+    background-color: #1e293b !important;
+    color: #a7f3d0 !important;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 8px;
+    white-space: pre-wrap;
+    font-family: monospace;
+    min-height: 50px;
+  }
+</style>
+
+<style>
+  #panel-12 ol li {
+    margin-bottom: 20px;
+  }
 </style>
 
 <div class="header">
@@ -262,14 +291,74 @@ print(barang)
     <div id="panel-12" class="step-content">
       <h2>Quiz Part 1</h2>
       <ol>
-        <li>Apa itu variabel dalam pemrograman?</li>
-        <ul>
-          <li>a) Hewan</li>
-          <li>b) Angka yang tidak berubah</li>
-          <li>c) Nama untuk menyimpan data ✅</li>
-          <li>d) Soal matematika</li>
-        </ul>
-        <li>Lengkapi kalimat: Untuk membuat variabel kamu butuh _____ dan _____</li>
+        <li>
+          Apa itu variabel dalam pemrograman?<br>
+          a. Hewan<br>
+          b. Angka yang tidak pernah berubah<br>
+          c. Nama untuk menyimpan data<br>
+          d. Soal matematika
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Lengkapi kalimat: Untuk membuat variabel, kamu harus memberikan _______ dan ________.
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          <pre><code>hours = 5
+hours = 6.5
+print(hours)
+</code></pre>
+          Lihat kode ini: Angka berapa yang akan ditampilkan program? Kenapa?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Mana dari nama variabel berikut yang baik?<br>
+          a. 2mainan<br>
+          b. harga_mainan<br>
+          c. mainan-harga
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          <pre><code>price = 50.5
+name = "Ella"
+age = 12
+</code></pre>
+          Cocokkan variabel dengan tipe data: a) String=___ b) Int=___ c) Float=___
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          <pre><code>name = "Mia"
+age = 9
+</code></pre>
+          Apa tipe data ini? Apakah name angka atau kata? Apakah age angka atau kata?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          <pre><code>number = 10
+number = 'ten'
+print(number)
+</code></pre>
+          Lihat program ini: Apa yang akan dicetak?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Mana nama variabel yang tidak direkomendasikan?<br>
+          a. Students_in_the_classroom_total_all<br>
+          b. Student_count<br>
+          c. Name
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Apa perbedaan string dan integer di Python?
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
+        <li>
+          Urutkan langkah berikut:<br>
+          a) Cetak variabel<br>
+          b) Buat variabel<br>
+          c) Isi nilai variabel
+          <textarea class="quiz-textarea" placeholder="Ketik jawabanmu di sini..." style="width:100%;min-height:60px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+        </li>
       </ol>
     </div>
 
@@ -320,12 +409,69 @@ print(barang)
     </div>
 
     <div id="panel-18" class="step-content">
-      <h2>Quiz Part 2: Tugas Coding</h2>
-      <p>Buat program sesuai petunjuk berikut:</p>
+      <h2>Quiz Part 2: Tugas Coding Lanjutan</h2>
+      <p>Kerjakan tugas-tugas berikut dengan mengetik kode Python sesuai instruksi. Klik <b>Jalankan</b> untuk mencoba kode kamu!</p>
       <ol>
-        <li>Tentukan jumlah tour guide di Paris (5) dan Rome (3), lalu tampilkan totalnya.</li>
-        <li>Tampilkan total snack jika 8 tamu mendapat 2 snack.</li>
-        <li>Harga notebook 75 rubel, Sophia beli 4. Tampilkan total biaya.</li>
+        <li>
+          Buat variabel untuk 5 pemandu di Paris dan 3 di Roma, lalu cetak total pemandu.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;background:#fff;color:#000;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat variabel untuk 8 tamu, masing-masing mendapat 2 snack, cetak total snack.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;background:#fff;color:#000;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat variabel harga notebook 75 rubel, beli 4, cetak total biaya.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;background:#fff;color:#000;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat variabel umur 2 siswa (12 dan 10), cetak rata-rata umur.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;background:#fff;color:#000;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat variabel pengunjung Januari (120), Februari (130), Maret (140), cetak total pengunjung.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;background:#fff;color:#000;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat program tanya nama user dan sapa dia, print "Halo, [nama]!".
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;background:#fff;color:#000;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Perbaiki kode penjumlahan agar hasilnya benar.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;background:#fff;color:#000;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat program tanya harga tiket dan poin loyalitas yang dipakai, cetak harga akhir.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;background:#fff;color:#000;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat program tanya pengunjung 1 cabang, cetak total pengunjung untuk 5 cabang.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;background:#fff;color:#000;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat program tanya jumlah anak untuk tiket museum ($12 per anak), cetak total harga.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;background:#fff;color:#000;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
       </ol>
     </div>
 

@@ -116,6 +116,41 @@
     white-space: pre-wrap;
     font-family: monospace;
   }
+  .output-box {
+    background-color: #1e293b;
+    color: #a7f3d0;
+    padding: 10px;
+    border-radius: 8px;
+    min-height: 80px;
+    white-space: pre-wrap;
+    margin-top: 8px;
+    font-family: monospace;
+  }
+  .quiz-textarea {
+    width: 100%;
+    min-height: 100px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    padding: 8px;
+    font-family: monospace;
+  }
+  #panel-9 ul {
+    list-style-type: decimal;
+    padding-left: 20px;
+  }
+  #panel-9 ul li {
+    margin-bottom: 20px;
+  }
+  .run-button-quiz {
+    margin-top: 8px;
+    background-color: #22c55e;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+  }
 </style>
 
 <div class="header">
@@ -247,13 +282,50 @@
     <div id="panel-9" class="step-content">
       <h2>Quiz Part 2 (Praktik Koding)</h2>
       <p>Isi kode Python sesuai instruksi soal.</p>
-      <div class="typingBox-vscode" data-hint=""></div>
-      <div class="typingBox-vscode" data-hint=""></div>
-      <div class="typingBox-vscode" data-hint=""></div>
-      <div class="typingBox-vscode" data-hint=""></div>
-      <div class="typingBox-vscode" data-hint=""></div>
-      <div class="typingBox-vscode" data-hint=""></div>
-      <div class="typingBox-vscode" data-hint=""></div>
+      <ul>
+        <li>
+          Buat fungsi tampil_loading() yang menampilkan “Loading…” lalu menunggu 2 detik dan cetak “Siap dijalankan!”.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat program untuk mengukur waktu reaksi pengguna menggunakan time.time() dan input().
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat fungsi pilih_karakter() yang mencetak karakter acak dari 4 pilihan.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat fungsi pilih_angka() yang memilih angka acak 1–5 dan cetak hasilnya.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Buat fungsi pilih_lokasi() yang memilih lokasi acak, tunggu 3 detik, lalu cetak lokasi.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Gabungkan semuanya dalam satu program interaktif: loading → pilih karakter → angka → lokasi.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Bonus: Buat fungsi pilih_item() yang memilih item dari daftar dan tampilkan dengan gaya kreatif.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+      </ul>
     </div>
     <div id="panel-10" class="step-content">
       <h2>Sesi Tanya Jawab Refleksi</h2>
@@ -329,6 +401,40 @@
       const typingBox = panel.querySelector('.typingBox-vscode');
       const code = getCodeFromTypingBox(typingBox);
       runPythonCode(code, panel.querySelector('.output-box'));
+    });
+  });
+
+  // New script for Quiz Part 2 run buttons
+  async function runPythonCodeFromTextarea(code, outputElement) {
+    outputElement.textContent = "// Running...";
+    try {
+      if (!window.pyodide) {
+        window.pyodide = await loadPyodide();
+      }
+      let output = "";
+      // Redirect print to capture output
+      await window.pyodide.runPythonAsync(`
+import sys
+import io
+sys.stdout = io.StringIO()
+sys.stderr = sys.stdout
+`);
+      await window.pyodide.runPythonAsync(code);
+      output = window.pyodide.runPython(`sys.stdout.getvalue()`);
+      outputElement.textContent = output || "// Tidak ada output";
+    } catch (err) {
+      outputElement.textContent = "Error: " + err;
+    }
+  }
+
+  document.querySelectorAll('.run-button-quiz').forEach(button => {
+    button.addEventListener('click', () => {
+      const li = button.closest('li');
+      const textarea = li.querySelector('textarea.quiz-textarea');
+      const outputBox = li.querySelector('.output-box');
+      if (textarea && outputBox) {
+        runPythonCodeFromTextarea(textarea.value, outputBox);
+      }
     });
   });
 </script>

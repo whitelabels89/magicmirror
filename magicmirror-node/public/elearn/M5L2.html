@@ -116,6 +116,14 @@
     white-space: pre-wrap;
     font-family: monospace;
   }
+  .output-box {
+    background: #1e293b; /* navy-dark background */
+    color: #a7f3d0; /* mint-green text */
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 10px;
+    white-space: pre-wrap;
+  }
 </style>
 
 <div class="header">
@@ -139,9 +147,9 @@
       <li data-step="5">5. Event di Game</li>
       <li data-step="6">6. Ayo Bikin Event!</li>
       <li data-step="7">7. Proyekmu Sendiri</li>
-      <li data-step="8">8. Terima Kasih!</li>
       <li data-step="9">9. Quiz Part 1</li>
       <li data-step="10">10. Quiz Part 2</li>
+      <li data-step="11">11. Terima Kasih!</li>
     </ul>
   </div>
   <div class="main">
@@ -181,16 +189,6 @@
       <h2>Proyekmu Sendiri</h2>
       <p>Buat program yang merespon 3 perintah bebas. Contoh: robot jalan, kucing meong, api menyala.</p>
     </div>
-    <div id="panel-8" class="step-content">
-      <h2>Terima Kasih!</h2>
-      <p>Kamu belajar:</p>
-      <ul>
-        <li>Apa itu event</li>
-        <li>Bagaimana komputer merespon perintah</li>
-        <li>Cara bikin sistem event sendiri</li>
-      </ul>
-      <p>Siap naik level?</p>
-    </div>
     <div id="panel-9" class="step-content">
       <h2>Quiz Part 1 – Teori</h2>
       <ol>
@@ -208,22 +206,78 @@
     </div>
     <div id="panel-10" class="step-content">
       <h2>Quiz Part 2 – Praktik</h2>
-      <div class="typingBox-vscode" data-hint=""></div>
-      <p>Tugas:</p>
       <ol>
-        <li>Program Python: input → respon "jalan" → teks "Karakter bergerak ke depan".</li>
-        <li>Gunakan if-elif untuk "lompat", "tidur", "bangun".</li>
-        <li>Gunakan dictionary untuk "buka", "tutup", "nyalakan".</li>
-        <li>Tangani input tidak dikenal dengan teks "Perintah tidak dimengerti".</li>
-        <li>Mini project: respon 3 perintah bebas dengan aksi kreatif.</li>
-        <li>Fitur loop: terus minta input sampai user ketik "selesai".</li>
-        <li>Simpan semua input ke list &amp; cetak di akhir.</li>
-        <li>Simulasi remote TV: 1=nyala, 2=volume naik, 3=volume turun, 0=mati.</li>
-        <li>Program: tanya nama user &amp; balas menyebutkan nama.</li>
-        <li>Ceritakan event impianmu di program sendiri.</li>
+        <li>
+          Program Python: input → respon "jalan" → teks "Karakter bergerak ke depan".
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Gunakan if-elif untuk "lompat", "tidur", "bangun".
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Gunakan dictionary untuk "buka", "tutup", "nyalakan".
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Tangani input tidak dikenal dengan teks "Perintah tidak dimengerti".
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Mini project: respon 3 perintah bebas dengan aksi kreatif.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Fitur loop: terus minta input sampai user ketik "selesai".
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Simpan semua input ke list & cetak di akhir.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Simulasi remote TV: 1=nyala, 2=volume naik, 3=volume turun, 0=mati.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Program: tanya nama user & balas menyebutkan nama.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
+        <li>
+          Ceritakan event impianmu di program sendiri.
+          <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+          <button class="run-button-quiz">Jalankan</button>
+          <pre class="output-box">// Hasil akan muncul di sini</pre>
+        </li>
       </ol>
-      <div class="typingBox-vscode" data-hint=""></div>
-      <div class="typingBox-vscode" data-hint=""></div>
+    </div>
+    <div id="panel-11" class="step-content">
+      <h2>Terima Kasih!</h2>
+      <p>Kamu belajar:</p>
+      <ul>
+        <li>Apa itu event</li>
+        <li>Bagaimana komputer merespon perintah</li>
+        <li>Cara bikin sistem event sendiri</li>
+      </ul>
+      <p>Siap naik level?</p>
     </div>
     <div class="nav-controls">
       <button onclick="prevPanel()">⟵ Sebelumnya</button>
@@ -242,7 +296,7 @@
 
 <script>
   let currentPanel = 1;
-  const totalPanels = 10;
+  const totalPanels = 11;
   function showPanel(n) {
     if (n < 1 || n > totalPanels) return;
     document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
@@ -271,6 +325,32 @@
         e.preventDefault();
         e.stopPropagation();
       }
+    });
+  });
+
+  // Quiz Part 2: Python code runner
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.run-button-quiz').forEach(button => {
+      button.addEventListener('click', async () => {
+        const textarea = button.previousElementSibling;
+        const outputEl = button.nextElementSibling;
+        const code = textarea.value.trim();
+        outputEl.textContent = 'Loading...';
+        if (!window.pyodide) {
+          window.pyodide = await loadPyodide();
+        }
+        let consoleOutput = '';
+        let consoleError = '';
+        window.pyodide.setStdout({ batched: (s) => { consoleOutput += s; } });
+        window.pyodide.setStderr({ batched: (s) => { consoleError += s; } });
+        try {
+          await window.pyodide.runPythonAsync(code);
+          outputEl.textContent = consoleOutput || '(No output)';
+          if (consoleError) outputEl.textContent += '\nError:\n' + consoleError;
+        } catch (e) {
+          outputEl.textContent = 'Error: ' + e.message;
+        }
+      });
     });
   });
 </script>
