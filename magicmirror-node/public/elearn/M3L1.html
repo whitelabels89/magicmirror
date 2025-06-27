@@ -112,6 +112,10 @@
   }
   .step-content.active { display: block; }
   .nav-controls { text-align: center; margin-top: 20px; }
+  .typingBox-vscode {
+    white-space: pre-wrap;
+    font-family: monospace;
+  }
 </style>
 
 <div class="header">
@@ -128,101 +132,157 @@
 <div class="container">
   <div class="sidebar">
     <ul id="lesson-nav">
-      <li data-step="1" class="active">1. Apa Itu Fungsi?</li>
-      <li data-step="2">2. Fungsi = Mesin Siap Pakai</li>
-      <li data-step="3">3. Parameter &amp; Argumen</li>
-      <li data-step="4">4. Dua Parameter Sekaligus</li>
-      <li data-step="5">5. return untuk Simpan Nilai</li>
-      <li data-step="6">6. Perbedaan print() dan return()</li>
+      <li data-step="1" class="active">1. Parameter Default Itu Apa?</li>
+      <li data-step="2">2. Fungsi Ramah Gamer</li>
+      <li data-step="3">3. Keyword Argument</li>
+      <li data-step="4">4. Fungsi dengan return</li>
+      <li data-step="5">5. Return Banyak Nilai</li>
+      <li data-step="6">6. Serangan Bertipe</li>
       <li data-step="7">7. Tantangan Coding</li>
       <li data-step="8">8. Tanya Sebelum Logout</li>
       <li data-step="9">9. Quiz Part 1</li>
       <li data-step="10">10. Quiz Part 2</li>
+      <li data-step="11">11. QnA Refleksi</li>
+      <li data-step="12">12. Thank You</li>
     </ul>
   </div>
   <div class="main">
     <div id="panel-1" class="step-content">
-      <h2>Apa Itu Fungsi? (Shortcut di Game!)</h2>
-      <p>Fungsi itu seperti tombol shortcut untuk melakukan aksi berulang.</p>
-      <div class="typingBox-vscode" data-hint="def sapa():\n    print('Halo, Petualang!')\n\nsapa()\nsapa()"></div>
+      <h2>Apa Itu Fungsi? (Seperti Tombol Shortcut!)</h2>
+      <p>Fungsi itu seperti tombol shortcut yang bisa kita tekan berulang kali dalam game. Bayangkan kamu harus menyerang musuh dengan menekan tombol yang sama berulang-ulang. Capek, kan? Nah, fungsi membantu kita membuat aksi itu otomatis.</p>
+      <div class="typingBox-vscode" data-hint="def sapa():
+    print('Halo, Petualang!')
+sapa()
+sapa()"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-2" class="step-content">
       <h2>Fungsi = Mesin Siap Pakai</h2>
-      <p>Fungsi bisa dipakai ulang.</p>
-      <div class="typingBox-vscode" data-hint="def heal():\n    print('+10 HP dipulihkan!')\n\nheal()\nheal()"></div>
+      <p>Fungsi bisa dipakai ulang kapan saja, seperti jurus yang siap digunakan terus-menerus. Ini membuat program kita lebih rapi dan cepat.</p>
+      <div class="typingBox-vscode" data-hint="def heal():
+    print('+10 HP dipulihkan!')
+heal()
+heal()"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-3" class="step-content">
-      <h2>Parameter &amp; Argumen (Biar Fleksibel!)</h2>
-      <p>Tambahkan parameter agar fungsinya bisa menyesuaikan input.</p>
-      <div class="typingBox-vscode" data-hint="def serang(musuh):\n    print('Menyerang', musuh)\n\nserang('Slime')\nserang('Troll')"></div>
+      <h2>Tambahkan Variasi – Parameter &amp; Argumen!</h2>
+      <p>Agar fungsi tidak selalu melakukan hal yang sama, kita bisa menambahkan parameter. Misalnya nama musuh yang ingin diserang.</p>
+      <div class="typingBox-vscode" data-hint="def serang(musuh):
+    print('Menyerang', musuh)
+serang('Slime')
+serang('Troll')"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-4" class="step-content">
-      <h2>Dua Parameter Sekaligus</h2>
-      <p>Gunakan dua parameter untuk hasil yang lebih kompleks.</p>
-      <div class="typingBox-vscode" data-hint="def tembak(musuh, damage):\n    print(musuh, 'kena damage sebesar', damage)\n\ntembak('Zombie', 15)\ntembak('Robot', 25)"></div>
+      <h2>Lebih Kuat dengan 2 Parameter!</h2>
+      <p>Kita bisa menambahkan dua parameter untuk menyerang musuh dengan kekuatan tertentu.</p>
+      <div class="typingBox-vscode" data-hint="def tembak(musuh, damage):
+    print(musuh, 'kena damage sebesar', damage)
+tembak('Zombie', 15)
+tembak('Robot', 25)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-5" class="step-content">
-      <h2>return untuk Simpan Nilai</h2>
-      <p>return digunakan agar hasil fungsi bisa disimpan/digunakan lagi.</p>
-      <div class="typingBox-vscode" data-hint="def tambah_xp(xp_awal, tambahan):\n    return xp_awal + tambahan\n\nhasil = tambah_xp(50, 20)\nprint('XP baru kamu:', hasil)"></div>
+      <h2>Fungsi yang Mengembalikan Nilai</h2>
+      <p>Kalau kamu ingin menyimpan hasil dari fungsi, gunakan <code>return</code>. Ini berguna kalau kamu mau memakai hasilnya lagi nanti.</p>
+      <div class="typingBox-vscode" data-hint="def tambah_xp(xp_awal, tambahan):
+    return xp_awal + tambahan
+hasil = tambah_xp(50, 20)
+print('XP baru kamu:', hasil)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-6" class="step-content">
-      <h2>Perbedaan print() dan return()</h2>
-      <p>print() hanya tampilkan ke layar. return() mengembalikan nilai.</p>
-      <div class="typingBox-vscode" data-hint="def tampil_status():\n    print('Level 3 - Energi Penuh')\n\ndef ambil_level():\n    return 3\n\nstatus = ambil_level() * 2\nprint('Levelmu dikali dua:', status)"></div>
+      <h2>Cetak vs Kembalikan – Apa Bedanya?</h2>
+      <p><code>print()</code> hanya menampilkan hasil. Tapi <code>return</code> bisa menyimpan hasil agar bisa dipakai dalam perhitungan lain.</p>
+      <div class="typingBox-vscode" data-hint="def tampil_status():
+    print('Level 3 - Energi Penuh')
+def ambil_level():
+    return 3
+status = ambil_level() * 2
+print('Levelmu dikali dua:', status)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-7" class="step-content">
-      <h2>Tantangan Coding Hari Ini</h2>
-      <p>Tugas coding:</p>
-      <p><code>intro_karakter(nama)</code> → cetak sapaan</p>
-      <div class="typingBox-vscode" data-hint="def intro_karakter(nama):\n    pass"></div>
-      <p><code>damage(serangan, kekuatan)</code> → tampilkan damage</p>
-      <div class="typingBox-vscode" data-hint="def damage(serangan, kekuatan):\n    pass"></div>
-      <p><code>upgrade_level(level)</code> → return level baru</p>
-      <div class="typingBox-vscode" data-hint="def upgrade_level(level):\n    pass"></div>
+      <h2>Tantanganmu Hari Ini!</h2>
+      <p>Buat 3 fungsi ini:</p>
+      <ul>
+        <li><code>intro_karakter(nama)</code> → cetak sapaan</li>
+        <li><code>damage(serangan, kekuatan)</code> → tampilkan damage</li>
+        <li><code>upgrade_level(level)</code> → return level baru</li>
+      </ul>
+      <div class="typingBox-vscode" data-hint="def intro_karakter(nama):
+    print('Selamat datang,', nama)
+def damage(serangan, kekuatan):
+    print('Melakukan', serangan, 'dengan kekuatan', kekuatan)
+def upgrade_level(level):
+    return level + 1
+intro_karakter('Nina')
+damage('Tebas', 15)
+print('Level baru:', upgrade_level(2))"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-8" class="step-content">
       <h2>Tanya Sebelum Logout</h2>
-      <p>Kapan kamu pakai <code>return()</code>?</p>
+      <p>Kapan kamu menggunakan parameter default dalam fungsi?</p>
       <textarea rows="3" style="width:100%;"></textarea>
-      <p>Kenapa fungsi memudahkan pembuatan program?</p>
+      <p>Bagaimana keyword argument membantu dalam pemanggilan fungsi?</p>
       <textarea rows="3" style="width:100%;"></textarea>
     </div>
     <div id="panel-9" class="step-content">
       <h2>Quiz Part 1</h2>
       <ol>
-        <li>Soal 1 (jawaban: <input type="text"></li>
-        <li>Soal 2 (jawaban: <input type="text"></li>
-        <li>Soal 3 (jawaban: <input type="text"></li>
-        <li>Soal 4 (jawaban: <input type="text"></li>
-        <li>Soal 5 (jawaban: <input type="text"></li>
-        <li>Soal 6 (jawaban: <input type="text"></li>
-        <li>Soal 7 (jawaban: <input type="text"></li>
-        <li>Soal 8 (jawaban: <input type="text"></li>
-        <li>Soal 9 (jawaban: <input type="text"></li>
-        <li>Soal 10 (jawaban: <input type="text"></li>
+        <li>Apa fungsi dari parameter default dalam sebuah fungsi? <input type="text"></li>
+        <li>Bagaimana cara menggunakan keyword argument saat memanggil fungsi? <input type="text"></li>
+        <li>Apa perbedaan antara <code>print()</code> dan <code>return</code>? <input type="text"></li>
+        <li>Bagaimana cara fungsi mengembalikan lebih dari satu nilai? <input type="text"></li>
+        <li>Apa keuntungan menggunakan parameter default? <input type="text"></li>
+        <li>Bagaimana keyword argument dapat meningkatkan kejelasan kode? <input type="text"></li>
+        <li>Jelaskan kegunaan <code>return</code> dalam fungsi. <input type="text"></li>
+        <li>Apa itu tuple dan bagaimana kaitannya dengan return banyak nilai? <input type="text"></li>
+        <li>Bagaimana cara mendefinisikan fungsi dengan parameter default? <input type="text"></li>
+        <li>Berikan contoh fungsi dengan keyword argument. <input type="text"></li>
       </ol>
     </div>
     <div id="panel-10" class="step-content">
       <h2>Quiz Part 2</h2>
-      <p>Tuliskan kode Python sesuai instruksi soal.</p>
-      <div class="typingBox-vscode" data-hint=""></div>
-      <button class="run-button">Jalankan</button>
-      <pre class="output-box">// Hasil akan muncul di sini</pre>
+      <p>Silakan tuliskan kode Python yang memenuhi instruksi soal yang diberikan.</p>
+      <div class="typingBox-vscode" data-hint="def hitung_damage(serangan, kekuatan):
+    return kekuatan * 2
+hasil = hitung_damage('Jurus Api', 10)
+print('Damage:', hasil)"></div>
+      <div class="typingBox-vscode" data-hint="def perkenalan(nama, kelas='Petualang'):
+    print(f'Halo, aku {nama} dari kelas {kelas}')"></div>
+      <div class="typingBox-vscode" data-hint="def tambah_xp(xp_awal, tambahan):
+    return xp_awal + tambahan"></div>
+      <div class="typingBox-vscode" data-hint="def serang(musuh, tipe='fisik'):
+    print(f'Serang {musuh} dengan {tipe}')"></div>
+      <div class="typingBox-vscode" data-hint="def cek_level(level):
+    if level > 10:
+        return 'Master'
+    else:
+        return 'Pemula'"></div>
+    </div>
+    <div id="panel-11" class="step-content">
+      <h2>Sesi Tanya Jawab Refleksi</h2>
+      <p>Sebelum kita akhiri, yuk jawab pertanyaan ini:</p>
+      <p>📌 Kapan kamu lebih memilih <code>return()</code> daripada <code>print()</code>?</p>
+      <textarea rows="3" style="width:100%;"></textarea>
+      <p>📌 Lebih nyaman mana: mengisi fungsi dengan urutan biasa atau pakai keyword argument?</p>
+      <textarea rows="3" style="width:100%;"></textarea>
+    </div>
+    <div id="panel-12" class="step-content">
+      <h2>🎉 Terima Kasih!</h2>
+      <p>Kamu telah menyelesaikan Lesson M3L1 dengan hebat!</p>
+      <p>Lanjutkan petualangan codingmu di lesson berikutnya ya!</p>
+      <p>🚀 Jangan lupa praktik dan bereksperimen dengan fungsi buatanmu sendiri!</p>
     </div>
     <div class="nav-controls">
       <button onclick="prevPanel()">⟵ Sebelumnya</button>
@@ -241,7 +301,7 @@
 
 <script>
   let currentPanel = 1;
-  const totalPanels = 10;
+  const totalPanels = 12;
   function showPanel(n) {
     if (n < 1 || n > totalPanels) return;
     document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
