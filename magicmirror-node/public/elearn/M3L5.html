@@ -1,0 +1,288 @@
+<link rel="stylesheet" href="presetvs.css" />
+<script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+<script src="presetvs.js"></script>
+<style>
+  body {
+    font-family: 'Fredoka', sans-serif;
+    margin: 0;
+    background: #f0f7ff;
+    color: #333;
+  }
+  .header {
+    text-align: center;
+    padding: 20px;
+    background: #4f46e5;
+    color: #fff;
+  }
+  .header h1 {
+    margin-bottom: 10px;
+    font-size: 2.2rem;
+  }
+  .header p {
+    margin-bottom: 20px;
+  }
+  .progress-container {
+    margin-top: 20px;
+    width: 80%;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .progress-bar {
+    height: 12px;
+    background: #fff;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .progress {
+    width: 0%;
+    height: 100%;
+    background: #facc15;
+  }
+  .back-btn {
+    display: inline-block;
+    margin-top: 8px;
+    color: #fff;
+    background: #22c55e;
+    padding: 6px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  .container {
+    display: flex;
+    padding: 20px;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .sidebar {
+    flex: 1 1 180px;
+    max-width: 200px;
+    background: #fde68a;
+    padding: 20px;
+    border-radius: 20px;
+  }
+  .sidebar ul {
+    list-style: none;
+    padding: 0;
+  }
+  .sidebar li {
+    margin-bottom: 10px;
+    background: #fcd34d;
+    padding: 8px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .sidebar li.active {
+    background: #fbbf24;
+  }
+  .main {
+    flex: 3 1 300px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 20px;
+  }
+  .lab-column {
+    flex: 1 1 260px;
+    background: #111827;
+    padding: 20px;
+    border-radius: 20px;
+    color: #a7f3d0;
+    min-width: 260px;
+  }
+  .whiteboard-container {
+    margin-top: 1rem;
+    text-align: center;
+  }
+  #whiteboardCanvas {
+    border: 1px solid #ccc;
+    width: 100%;
+    height: 300px;
+    display: none;
+    touch-action: none;
+    background: #fff;
+  }
+  .step-content {
+    display: none;
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+  }
+  .step-content.active { display: block; }
+  .nav-controls { text-align: center; margin-top: 20px; }
+  .typingBox-vscode {
+    white-space: pre-wrap;
+    font-family: monospace;
+  }
+</style>
+
+<div class="header">
+  <h1>Modul 3 - Lesson 5: Membuat Mini Proyek</h1>
+  <p>Menggabungkan fungsi dan modul menjadi game sederhana</p>
+  <div class="progress-container">
+    <div class="progress-bar"><div class="progress" id="progressBar"></div></div>
+  </div>
+  <div style="margin-top:10px;">
+    <a href="/elearn/modul.html" class="back-btn">⟵ Kembali ke Modul</a>
+  </div>
+</div>
+
+<div class="container">
+  <div class="sidebar">
+    <ul id="lesson-nav">
+      <li data-step="1" class="active">1. Proyek Mini</li>
+      <li data-step="2">2. Langkah 1</li>
+      <li data-step="3">3. Buat Modul</li>
+      <li data-step="4">4. File Utama</li>
+      <li data-step="5">5. Interaksi</li>
+      <li data-step="6">6. Proyekmu</li>
+      <li data-step="7">7. Review</li>
+      <li data-step="8">8. Quiz Part 1</li>
+      <li data-step="9">9. Quiz Part 2</li>
+    </ul>
+  </div>
+  <div class="main">
+    <div id="panel-1" class="step-content">
+      <h2>Proyek Mini – Jadi Developer Game Sendiri!</h2>
+      <p>Hari ini kamu akan jadi pembuat game sendiri! Kita gabungkan semua ilmu fungsi dan modul. Contoh: buat <code>karakter.py</code>, panggil di file utama.</p>
+    </div>
+    <div id="panel-2" class="step-content">
+      <h2>Langkah 1 – Rancang Proyekmu</h2>
+      <p>Bayangkan kamu bikin game petualangan:</p>
+      <ul>
+        <li>Modul berisi fungsi <code>lari()</code>, <code>serang()</code>, <code>upgrade()</code></li>
+        <li>File utama memanggil jurus dari modul</li>
+        <li>Gambar dulu rancangannya di kertas: nama modul, fungsi, dan interaksi antar file</li>
+      </ul>
+    </div>
+    <div id="panel-3" class="step-content">
+      <h2>Buat Modul</h2>
+      <div class="typingBox-vscode" data-hint="def intro(nama):\n    print('Selamat datang,', nama)\n\ndef lari():\n    print('Berlari ke sisi kiri dungeon...')\n\ndef serang():\n    print('Serangan Pedang Api diluncurkan!')"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+      <p>Simpan dengan nama <code>karakter.py</code>.</p>
+    </div>
+    <div id="panel-4" class="step-content">
+      <h2>File Utama</h2>
+      <div class="typingBox-vscode" data-hint="import karakter\n\nkarakter.intro('Zeno')\nkarakter.lari()\nkarakter.serang()"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+      <p>Jalankan file utama untuk memulai gamemu!</p>
+    </div>
+    <div id="panel-5" class="step-content">
+      <h2>Tambahkan Interaksi Lebih Dalam</h2>
+      <div class="typingBox-vscode" data-hint="def upgrade(level):\n    return level + 1\n\n# Di main.py\nlevel_baru = karakter.upgrade(2)\nprint('Level naik jadi:', level_baru)"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+      <p>Tambahkan fungsi <code>upgrade(level)</code> di modul dan cetak level baru di file utama.</p>
+    </div>
+    <div id="panel-6" class="step-content">
+      <h2>Proyekmu Sendiri – Sesuai Imajinasi!</h2>
+      <p>Mau buat sistem misi, XP, efek spesial? Bebas! Modul buatanmu bisa kamu susun seseru mungkin. Contoh tambahan:</p>
+      <div class="typingBox-vscode" data-hint="def efek():\n    print('\ud83d\udca5 Ledakan terjadi di ruangan rahasia!')"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-7" class="step-content">
+      <h2>Review – Jadi Developer Cilik</h2>
+      <ul>
+        <li>Merancang struktur game</li>
+        <li>Membuat modul sendiri</li>
+        <li>Mengimpor fungsi ke program utama</li>
+        <li>Menyusun mini game personal</li>
+      </ul>
+      <p>Bangga! Ini seperti proyek nyata para programmer!</p>
+    </div>
+    <div id="panel-8" class="step-content">
+      <h2>Quiz Part 1 – Teori</h2>
+      <ol>
+        <li>Mengapa kita menggunakan modul dalam membuat proyek Python? <input type="text"></li>
+        <li>Apa manfaat membagi program menjadi beberapa file (modul)? <input type="text"></li>
+        <li>Jelaskan cara mengimpor fungsi dari modul ke file utama. <input type="text"></li>
+        <li>Apa perbedaan antara fungsi dengan <code>print()</code> dan fungsi dengan <code>return</code>? <input type="text"></li>
+        <li>Mengapa penting merancang struktur proyek sebelum mulai mengetik kode? <input type="text"></li>
+      </ol>
+    </div>
+    <div id="panel-9" class="step-content">
+      <h2>Quiz Part 2 – Praktik</h2>
+      <p>Tulis kode latihan sesuai instruksi: buat modul <code>proyekku.py</code> lalu panggil di <code>main.py</code>.</p>
+      <div class="typingBox-vscode" data-hint=""></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div class="nav-controls">
+      <button onclick="prevPanel()">⟵ Sebelumnya</button>
+      <span id="indicator"></span>
+      <button onclick="nextPanel()">Selanjutnya ⟶</button>
+    </div>
+  </div>
+  <div class="lab-column">
+    <div class="whiteboard-container">
+      <button id="toggleWhiteboard">Tampilkan Whiteboard</button>
+      <button id="clearWhiteboard">Clear</button>
+      <canvas id="whiteboardCanvas"></canvas>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentPanel = 1;
+  const totalPanels = 9;
+  function showPanel(n) {
+    if (n < 1 || n > totalPanels) return;
+    document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+    const panel = document.getElementById('panel-' + n);
+    if (panel) panel.classList.add('active');
+    currentPanel = n;
+    updateIndicator();
+  }
+  function nextPanel() { if (currentPanel < totalPanels) showPanel(currentPanel + 1); }
+  function prevPanel() { if (currentPanel > 1) showPanel(currentPanel - 1); }
+  function updateIndicator() { document.getElementById('indicator').textContent = 'Slide ' + currentPanel + ' / ' + totalPanels; }
+  document.getElementById('lesson-nav').addEventListener('click', function(e) {
+    if(e.target.matches('li[data-step]')) {
+      document.querySelectorAll('#lesson-nav li').forEach(li => li.classList.remove('active'));
+      e.target.classList.add('active');
+      showPanel(Number(e.target.getAttribute('data-step')));
+    }
+  });
+  document.addEventListener('DOMContentLoaded', () => showPanel(1));
+</script>
+<script>
+  document.querySelectorAll('.typingBox-vscode').forEach(box => {
+    box.addEventListener('keydown', (e) => {
+      if (e.key === ' ' || e.code === 'Space') {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    });
+  });
+  document.querySelectorAll('.run-button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const box = btn.previousElementSibling;
+      if (!box || !box.classList.contains('typingBox-vscode')) return;
+      const lines = Array.from(box.querySelectorAll('.code-line')).map(div => div.textContent);
+      box._typed = lines;
+    }, { capture: true });
+  });
+</script>
+<!-- Firebase and Whiteboard -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script src="whiteboard.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBVO4ajDwkbcTGL33SVMxIoev4veB8itgI",
+    authDomain: "queens-academy-icoding.firebaseapp.com",
+    projectId: "queens-academy-icoding",
+    storageBucket: "queens-academy-icoding.appspot.com",
+    messagingSenderId: "1048549258959",
+    appId: "1:1048549258959:web:f8dc1c104bb170d7ff69ba",
+  };
+  firebase.initializeApp(firebaseConfig);
+  window.kelasId = 'demo';
+  window.lessonId = 'M3L5';
+  initWhiteboard();
+</script>
