@@ -1,0 +1,433 @@
+<link rel="stylesheet" href="presetvs.css" />
+<script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+<script src="presetvs.js"></script>
+<style>
+  body {
+    font-family: 'Fredoka', sans-serif;
+    margin: 0;
+    background: #f0f7ff;
+    color: #333;
+  }
+  .header {
+    text-align: center;
+    padding: 20px;
+    background: #4f46e5;
+    color: #fff;
+  }
+  .header h1 {
+    margin-bottom: 10px;
+    font-size: 2.2rem;
+  }
+  .header p {
+    margin-bottom: 20px;
+  }
+  .progress-container {
+    margin-top: 20px;
+    width: 80%;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .progress-bar {
+    height: 12px;
+    background: #fff;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .progress {
+    width: 0%;
+    height: 100%;
+    background: #facc15;
+  }
+  .back-btn {
+    display: inline-block;
+    margin-top: 8px;
+    color: #fff;
+    background: #22c55e;
+    padding: 6px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  .container {
+    display: flex;
+    padding: 20px;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .sidebar {
+    flex: 1 1 180px;
+    max-width: 200px;
+    background: #fde68a;
+    padding: 20px;
+    border-radius: 20px;
+  }
+  .sidebar ul {
+    list-style: none;
+    padding: 0;
+  }
+  .sidebar li {
+    margin-bottom: 10px;
+    background: #fcd34d;
+    padding: 8px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .sidebar li.active {
+    background: #fbbf24;
+  }
+  .main {
+    flex: 3 1 300px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 20px;
+  }
+  .lab-column {
+    flex: 1 1 260px;
+    background: #111827;
+    padding: 20px;
+    border-radius: 20px;
+    color: #a7f3d0;
+    min-width: 260px;
+  }
+  .whiteboard-container {
+    margin-top: 1rem;
+    text-align: center;
+  }
+  #whiteboardCanvas {
+    border: 1px solid #ccc;
+    width: 100%;
+    height: 300px;
+    display: none;
+    touch-action: none;
+    background: #fff;
+  }
+  .step-content {
+    display: none;
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+  }
+  .step-content.active { display: block; }
+  .nav-controls { text-align: center; margin-top: 20px; }
+  .typingBox-vscode {
+    white-space: pre-wrap;
+    font-family: monospace;
+    min-height: 80px;
+    border: 1px solid #ccc;
+    padding: 8px;
+    border-radius: 6px;
+    background: #f9f9f9;
+    outline: none;
+    overflow-y: auto;
+  }
+  .run-button {
+    margin-top: 8px;
+    background-color: #4f46e5;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  .output-box {
+    background: #1e293b;
+    color: #a7f3d0;
+    padding: 10px;
+    border-radius: 6px;
+    margin-top: 8px;
+    min-height: 60px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+  }
+</style>
+
+<div class="header">
+  <h1>Modul 5 - Pelajaran 4: Coloring Simple Objects in Python</h1>
+  <p>Versi game anak laki-laki</p>
+  <div class="progress-container">
+    <div class="progress-bar"><div class="progress" id="progressBar"></div></div>
+  </div>
+  <div style="margin-top:10px;">
+    <a href="/elearn/modul.html" class="back-btn">⟵ Kembali ke Modul</a>
+  </div>
+</div>
+
+<div class="container">
+  <div class="sidebar">
+    <ul id="lesson-nav">
+      <li data-step="1" class="active">1. Robot Berwarna? Bisa!</li>
+      <li data-step="2">2. Tambah Warna ke Class</li>
+      <li data-step="3">3. Aksi Berdasarkan Warna</li>
+      <li data-step="4">4. Contoh Duo Robot</li>
+      <li data-step="5">5. Saatnya Desain Sendiri</li>
+      <li data-step="6">6. Contoh Proyek Warna</li>
+      <li data-step="7">7. Gabung Data + Aksi = Karakter!</li>
+      <li data-step="8">8. Terima Kasih!</li>
+      <li data-step="9">9. Quiz Part 1</li>
+      <li data-step="10">10. Quiz Part 2</li>
+    </ul>
+  </div>
+  <div class="main">
+    <div id="panel-1" class="step-content">
+      <h2>Robot Berwarna? Bisa!</h2>
+      <p>Bayangin bikin robot dengan warna berbeda: merah, biru, kuning. Warna menunjukan kepribadian:</p>
+      <ul>
+        <li>Merah = cepat</li>
+        <li>Biru = tenang</li>
+        <li>Kuning = ceria</li>
+      </ul>
+    </div>
+    <div id="panel-2" class="step-content">
+      <h2>Tambah Warna ke Class</h2>
+      <div class="typingBox-vscode" contenteditable="true" data-hint="class Robot:
+    def __init__(self, nama, warna):
+        self.nama = nama
+        self.warna = warna
+
+    def info(self):
+        print(self.nama, 'berwarna', self.warna)"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-3" class="step-content">
+      <h2>Aksi Berdasarkan Warna</h2>
+      <div class="typingBox-vscode" contenteditable="true" data-hint="def aksi(self):
+    if self.warna == 'merah':
+        print(self.nama, 'bergerak cepat!')
+    elif self.warna == 'biru':
+        print(self.nama, 'berjalan pelan...')
+    else:
+        print(self.nama, 'bergerak dengan gaya khas!')"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-4" class="step-content">
+      <h2>Contoh Duo Robot</h2>
+      <div class="typingBox-vscode" contenteditable="true" data-hint="r1 = Robot('Flashbot', 'merah')
+r2 = Robot('Coolbot', 'biru')
+
+r1.info()
+r1.aksi()
+r2.info()
+r2.aksi()"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-5" class="step-content">
+      <h2>Saatnya Desain Sendiri</h2>
+      <p>Buat karakter sendiri. Contoh ide:</p>
+      <div class="typingBox-vscode" contenteditable="true" data-hint="class Bola:
+    # warna mempengaruhi pantulan
+    pass
+
+class Monster:
+    # warna mempengaruhi suara
+    pass
+
+class Kendaraan:
+    # warna mempengaruhi kecepatan
+    pass"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-6" class="step-content">
+      <h2>Contoh Proyek Warna</h2>
+      <div class="typingBox-vscode" contenteditable="true" data-hint="class Bola:
+    def __init__(self, warna):
+        self.warna = warna
+
+    def pantul(self):
+        if self.warna == 'kuning':
+            print('Bola kuning memantul tinggi!')
+        else:
+            print('Bola', self.warna, 'memantul biasa.')
+
+b = Bola('kuning')
+b.pantul()"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-7" class="step-content">
+      <h2>Gabung Data + Aksi = Karakter!</h2>
+      <p>Warna bukan cuma hiasan. Data warna dan aksi bikin object lebih hidup seperti karakter game.</p>
+    </div>
+    <div id="panel-8" class="step-content">
+      <h2>Terima Kasih!</h2>
+      <p>Kamu belajar:</p>
+      <ul>
+        <li>Menambahkan atribut warna</li>
+        <li>Membuat method yang menyesuaikan warna</li>
+        <li>Mendesain karakter berwarna sendiri</li>
+      </ul>
+      <p>Siap lanjut ke level berikutnya?</p>
+    </div>
+    <div id="panel-9" class="step-content">
+      <h2>Quiz Part 1 – Teori</h2>
+      <ol>
+        <li>Apa gunanya atribut warna pada object? <input type="text"></li>
+        <li>Bagaimana warna mempengaruhi aksi object? <input type="text"></li>
+        <li>Apa itu kombinasi atribut &amp; method? <input type="text"></li>
+        <li>Contoh kode class dengan atribut &amp; method aksi tergantung warna. <input type="text"></li>
+        <li>Cara buat dua object dengan warna berbeda. <input type="text"></li>
+        <li>Apa hasil kode:<pre>class Bola:
+    def __init__(self, warna):
+        self.warna = warna
+    def pantul(self):
+        if self.warna == 'kuning':
+            print('Bola kuning memantul tinggi!')
+        else:
+            print('Bola', self.warna, 'memantul biasa.')
+
+b = Bola('kuning')
+b.pantul()</pre><input type="text"></li>
+        <li>Bagaimana warna membantu user memahami karakter di game? <input type="text"></li>
+        <li>Manfaat menampilkan warna saat perkenalan object. <input type="text"></li>
+        <li>Sebutkan 3 ide class unik dengan warna. <input type="text"></li>
+        <li>Jelaskan bedanya object dengan string 'merah'. <input type="text"></li>
+      </ol>
+    </div>
+    <div id="panel-10" class="step-content">
+      <h2>Quiz Part 2 – Praktik</h2>
+      <p>Tugas:</p>
+      <ol>
+        <li>Buat class dengan atribut nama &amp; warna, method mencetak keduanya.</li>
+        <li>Tambah method aksi berdasarkan warna (misal: merah=ngebut, biru=santai).</li>
+        <li>Buat 2 object dengan warna berbeda &amp; panggil semua method.</li>
+        <li>Buat class lain dengan atribut &amp; method yang berubah sesuai warna.</li>
+        <li>Modifikasi class agar method juga mencetak warna saat dipanggil.</li>
+        <li>Buat class dengan atribut &amp; method mengubah gaya bicara sesuai warna.</li>
+        <li>Buat object hitam &amp; putih, panggil method keduanya.</li>
+        <li>Buat class dengan method cetak gaya cahaya sesuai warna.</li>
+        <li>Tambah fitur: object menyebutkan dirinya → "Saya [class] berwarna [warna]".</li>
+        <li>Desain class bebas (peri, robot, kendaraan, buah) dengan atribut warna &amp; method unik + komentar.</li>
+      </ol>
+      <div class="typingBox-vscode" contenteditable="true" data-hint=""></div>
+      <div class="typingBox-vscode" contenteditable="true" data-hint=""></div>
+    </div>
+    <div class="nav-controls">
+      <button onclick="prevPanel()">⟵ Sebelumnya</button>
+      <span id="indicator"></span>
+      <button onclick="nextPanel()">Selanjutnya ⟶</button>
+    </div>
+  </div>
+  <div class="lab-column">
+    <div class="whiteboard-container">
+      <button id="toggleWhiteboard">Tampilkan Whiteboard</button>
+      <button id="clearWhiteboard">Clear</button>
+      <canvas id="whiteboardCanvas"></canvas>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentPanel = 1;
+  const totalPanels = 10;
+  function showPanel(n) {
+    if (n < 1 || n > totalPanels) return;
+    document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+    const panel = document.getElementById('panel-' + n);
+    if (panel) panel.classList.add('active');
+    currentPanel = n;
+    updateIndicator();
+  }
+  function nextPanel() { if (currentPanel < totalPanels) showPanel(currentPanel + 1); }
+  function prevPanel() { if (currentPanel > 1) showPanel(currentPanel - 1); }
+  function updateIndicator() { document.getElementById('indicator').textContent = 'Slide ' + currentPanel + ' / ' + totalPanels; }
+  document.getElementById('lesson-nav').addEventListener('click', function(e) {
+    if(e.target.matches('li[data-step]')) {
+      document.querySelectorAll('#lesson-nav li').forEach(li => li.classList.remove('active'));
+      e.target.classList.add('active');
+      showPanel(Number(e.target.getAttribute('data-step')));
+    }
+  });
+  document.addEventListener('DOMContentLoaded', () => showPanel(1));
+</script>
+<script>
+  document.querySelectorAll('.typingBox-vscode').forEach(box => {
+    box.addEventListener('keydown', (e) => {
+      if (e.key === ' ' || e.code === 'Space') {
+        e.preventDefault();
+        e.stopPropagation();
+        document.execCommand('insertText', false, ' ');
+      }
+    });
+  });
+</script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script src="whiteboard.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBVO4ajDwkbcTGL33SVMxIoev4veB8itgI",
+    authDomain: "queens-academy-icoding.firebaseapp.com",
+    projectId: "queens-academy-icoding",
+    storageBucket: "queens-academy-icoding.appspot.com",
+    messagingSenderId: "1048549258959",
+    appId: "1:1048549258959:web:f8dc1c104bb170d7ff69ba",
+  };
+  firebase.initializeApp(firebaseConfig);
+  window.kelasId = 'demo';
+  window.lessonId = 'M5L4';
+  initWhiteboard();
+</script>
+<script>
+  // Append lesson card to modul.html
+  const cardContainer = parent.document ? parent.document.querySelector('#container-M5L4') : null;
+  if (cardContainer) {
+    cardContainer.innerHTML = '<a href="/elearn/M5L4.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M5 L4</span><h3>Coloring</h3><p>Coloring Simple Objects</p></div></a>';
+  }
+</script>
+<script>
+  function getCodeFromTypingBox(el) {
+    let html = el.innerHTML;
+    html = html.replace(/<div>/gi, '\n').replace(/<\/div>/gi, '');
+    html = html.replace(/<br>/gi, '\n');
+    html = html.replace(/&nbsp;/gi, ' ');
+    return html.trim();
+  }
+
+  async function runPythonCode(code, outputEl) {
+    outputEl.textContent = 'Loading...';
+    if (!window.pyodide) {
+      window.pyodide = await loadPyodide();
+    }
+    try {
+      let output = '';
+      let error = '';
+      const stdout = {
+        write: (s) => { output += s; },
+        flush: () => {}
+      };
+      const stderr = {
+        write: (s) => { error += s; },
+        flush: () => {}
+      };
+      await window.pyodide.runPythonAsync(`
+import sys
+from js import stdout, stderr
+sys.stdout = stdout
+sys.stderr = stderr
+      `, { stdout, stderr });
+      await window.pyodide.runPythonAsync(code, { stdout, stderr });
+      outputEl.textContent = output || '(No output)';
+      if (error) outputEl.textContent += '\nError:\n' + error;
+    } catch (e) {
+      outputEl.textContent = 'Error: ' + e.message;
+    }
+  }
+
+  document.querySelectorAll('.run-button').forEach(button => {
+    button.addEventListener('click', () => {
+      const panel = button.closest('.step-content');
+      const typingBox = panel.querySelector('.typingBox-vscode');
+      const outputBox = panel.querySelector('.output-box');
+      if (!typingBox || !outputBox) return;
+      const code = getCodeFromTypingBox(typingBox);
+      runPythonCode(code, outputBox);
+    });
+  });
+</script>
