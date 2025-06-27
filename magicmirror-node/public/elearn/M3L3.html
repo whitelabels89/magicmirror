@@ -150,9 +150,9 @@
       <h2>Loading Game – Kenapa Harus Nunggu?</h2>
       <p>Kita bisa membuat efek loading di Python memakai <code>sleep()</code>.</p>
       <div class="typingBox-vscode" data-hint="import time
-print('Loading...')
-time.sleep(2)
-print('Karakter siap bertarung!')"></div>
+    print('Loading...')
+    time.sleep(2)
+    print('Karakter siap bertarung!')"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
@@ -160,10 +160,10 @@ print('Karakter siap bertarung!')"></div>
       <h2>Stopwatch untuk Latihan Refleks</h2>
       <p>Buat timer sederhana untuk melatih kecepatan tanggapmu.</p>
       <div class="typingBox-vscode" data-hint="import time
-start = time.time()
-input('Tekan Enter secepatnya!')
-end = time.time()
-print('Waktu reaksimu:', end - start, 'detik')"></div>
+    start = time.time()
+    input('Tekan Enter secepatnya!')
+    end = time.time()
+    print('Waktu reaksimu:', end - start, 'detik')"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
@@ -171,8 +171,8 @@ print('Waktu reaksimu:', end - start, 'detik')"></div>
       <h2>Pemanggilan Monster Acak!</h2>
       <p>Pilih musuh secara acak dengan <code>random.choice()</code>.</p>
       <div class="typingBox-vscode" data-hint="import random
-musuh = random.choice(['Naga', 'Zombie', 'Robot', 'Alien'])
-print('Musuhmu hari ini:', musuh)"></div>
+    musuh = random.choice(['Naga', 'Zombie', 'Robot', 'Alien'])
+    print('Musuhmu hari ini:', musuh)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
@@ -180,10 +180,10 @@ print('Musuhmu hari ini:', musuh)"></div>
       <h2>Kekuatan Serangan Acak!</h2>
       <p>Damage tiap serangan bisa berbeda menggunakan <code>randint()</code>.</p>
       <div class="typingBox-vscode" data-hint="import random
-def serang():
-    damage = random.randint(5, 20)
-    print('Kamu menyerang musuh dengan', damage, 'damage!')
-serang()"></div>
+    def serang():
+        damage = random.randint(5, 20)
+        print('Kamu menyerang musuh dengan', damage, 'damage!')
+    serang()"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
@@ -191,10 +191,10 @@ serang()"></div>
       <h2>Simulasi Teleportasi!</h2>
       <p>Gabungkan <code>random</code> dan <code>sleep()</code> untuk efek teleportasi.</p>
       <div class="typingBox-vscode" data-hint="import time, random
-lokasi = random.choice(['Hutan', 'Gunung', 'Gua', 'Pantai'])
-print('Teleportasi dimulai...')
-time.sleep(3)
-print('Kamu tiba di:', lokasi)"></div>
+    lokasi = random.choice(['Hutan', 'Gunung', 'Gua', 'Pantai'])
+    print('Teleportasi dimulai...')
+    time.sleep(3)
+    print('Kamu tiba di:', lokasi)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
@@ -207,18 +207,18 @@ print('Kamu tiba di:', lokasi)"></div>
         <li><em>Bonus</em> <code>damage_acak()</code> → serangan dengan damage acak</li>
       </ul>
       <div class="typingBox-vscode" data-hint="import random, time
-def pilih_karakter():
-    return random.choice(['Ninja', 'Penyihir', 'Petarung'])
-def teleportasi():
-    lokasi = random.choice(['Hutan', 'Gunung', 'Gua', 'Pantai'])
-    print('Teleportasi...')
-    time.sleep(2)
-    print('Tiba di:', lokasi)
-def damage_acak():
-    return random.randint(5, 20)
-print('Karakter terpilih:', pilih_karakter())
-teleportasi()
-print('Damage serangan:', damage_acak())"></div>
+    def pilih_karakter():
+        return random.choice(['Ninja', 'Penyihir', 'Petarung'])
+    def teleportasi():
+        lokasi = random.choice(['Hutan', 'Gunung', 'Gua', 'Pantai'])
+        print('Teleportasi...')
+        time.sleep(2)
+        print('Tiba di:', lokasi)
+    def damage_acak():
+        return random.randint(5, 20)
+    print('Karakter terpilih:', pilih_karakter())
+    teleportasi()
+    print('Damage serangan:', damage_acak())"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
@@ -315,14 +315,21 @@ print('Damage serangan:', damage_acak())"></div>
       }
     });
   });
-  // Convert div/br to newline before running code
-  document.querySelectorAll('.run-button').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const box = btn.previousElementSibling;
-      if (!box || !box.classList.contains('typingBox-vscode')) return;
-      const lines = Array.from(box.querySelectorAll('.code-line')).map(div => div.textContent);
-      box._typed = lines;
-    }, { capture: true });
+
+  function getCodeFromTypingBox(el) {
+    let html = el.innerHTML;
+    html = html.replace(/<div>/gi, '\n').replace(/<\/div>/gi, '');
+    html = html.replace(/<br>/gi, '\n');
+    return html.replace(/&nbsp;/gi, ' ');
+  }
+
+  document.querySelectorAll('.run-button').forEach(button => {
+    button.addEventListener('click', () => {
+      const panel = button.closest('.step-content');
+      const typingBox = panel.querySelector('.typingBox-vscode');
+      const code = getCodeFromTypingBox(typingBox);
+      runPythonCode(code, panel.querySelector('.output-box'));
+    });
   });
 </script>
 <!-- Firebase and Whiteboard -->
