@@ -150,42 +150,70 @@
     <div id="panel-1" class="step-content">
       <h2>Parameter Default Itu Apa?</h2>
       <p>Kamu main game pilih karakter ninja. Kalau nggak pilih senjata, sistem kasih pedang otomatis — itu seperti parameter default!</p>
-      <div class="typingBox-vscode" data-hint="def sapa(nama='teman'):\n    print('Halo, ' + nama)\n\nsapa()\nsapa('Nina')"></div>
+      <div class="typingBox-vscode" data-hint="def sapa(nama='teman'):
+    print('Halo, ' + nama)
+sapa()
+sapa('Nina')"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-2" class="step-content">
       <h2>Fungsi Ramah Gamer – Contoh</h2>
       <p>Kalau bikin karakter tapi belum isi semua data, fungsi tetap jalan pakai data bawaan.</p>
-      <div class="typingBox-vscode" data-hint="def kenalan(nama, asal='Kota Pixel'):\n    print(f'Hai, saya {nama} dari {asal}.')\n\nkenalan('Riko')\nkenalan('Andi', 'Level 99')"></div>
+      <div class="typingBox-vscode" data-hint="def kenalan(nama, asal='Kota Pixel'):
+    print(f'Hai, saya {nama} dari {asal}.')
+kenalan('Riko')
+kenalan('Andi', 'Level 99')"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-3" class="step-content">
       <h2>Keyword Argument – Seperti Upgrade Karakter!</h2>
       <p>Biasanya kita isi parameter urut. Pakai keyword argument bisa tukar urutan.</p>
-      <div class="typingBox-vscode" data-hint="def profil(nama, level, skill):\n    print(f'{nama}, Lv.{level} – Skill: {skill}')\n\nprofil('Zara', 12, 'Teleport')\nprofil(skill='Shield', nama='Tama', level=5)"></div>
+      <div class="typingBox-vscode" data-hint="def profil(nama, level, skill):
+    print(f'{nama}, Lv.{level} – Skill: {skill}')
+profil('Zara', 12, 'Teleport')
+profil(skill='Shield', nama='Tama', level=5)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-4" class="step-content">
       <h2>Fungsi yang Mengembalikan Nilai – Dapat Hadiah!</h2>
       <p>Hasil dari <code>return</code> bisa disimpan untuk dipakai lagi.</p>
-      <div class="typingBox-vscode" data-hint="def ambil_gold(jumlah):\n    return jumlah * 100\n\nhasil = ambil_gold(3)\nprint('Gold yang kamu dapat:', hasil)"></div>
+      <div class="typingBox-vscode" data-hint="def ambil_gold(jumlah):
+    return jumlah * 100
+hasil = ambil_gold(3)
+print('Gold yang kamu dapat:', hasil)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-5" class="step-content">
       <h2>Kembalikan Banyak Hadiah!</h2>
       <p>Return beberapa nilai sekaligus seperti buka kartu monster.</p>
-      <div class="typingBox-vscode" data-hint="def buka_kartu():\n    return 'Naga', 'Level 10', 'Api'\n\nnama, level, elemen = buka_kartu()\nprint(nama)\nprint(level)\nprint(elemen)"></div>
+      <div class="typingBox-vscode" data-hint="def buka_kartu():
+    return 'Naga', 'Level 10', 'Api'
+nama, level, elemen = buka_kartu()
+print(nama)
+print(level)
+print(elemen)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-6" class="step-content">
       <h2>Kalkulator Skill – Pilih Serangan Sesuai Kebutuhan</h2>
       <p>Return berbeda tergantung parameter.</p>
-      <div class="typingBox-vscode" data-hint="def serang(musuh, power, jenis='normal'):\n    if jenis == 'normal':\n        return f'{musuh} terkena serangan biasa sebesar {power}!'\n    elif jenis == 'kritis':\n        return f'{musuh} kena serangan KRITIS sebesar {power * 2}!'\n    elif jenis == 'lemah':\n        return f'{musuh} hanya terkena {power // 2}.'\n    else:\n        return 'Jenis serangan tidak dikenali.'\n\nprint(serang('Orc', 30))\nprint(serang('Goblin', 40, jenis='kritis'))"></div>
+      <div class="typingBox-vscode" data-hint="def serang(musuh, power, jenis='normal'):
+    if jenis == 'normal':
+        return f'{musuh} terkena serangan biasa sebesar {power}!'
+    elif jenis == 'kritis':
+        return f'{musuh} kena serangan KRITIS sebesar {power * 2}!'
+    elif jenis == 'lemah':
+        return f'{musuh} hanya terkena {power // 2}.'
+    else:
+        return 'Jenis serangan tidak dikenali.'
+
+print(serang('Orc', 30))
+print(serang('Goblin', 40, jenis='kritis'))"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
@@ -196,7 +224,14 @@
         <li><code>kenalan(nama, asal='Server Asia')</code> → cetak sapaan.</li>
         <li><code>info_item(nama_item, tipe, rarity='Umum')</code> → cetak info item.</li>
       </ul>
-      <div class="typingBox-vscode" data-hint="def kenalan(nama, asal='Server Asia'):\n    print(f'Halo, {nama} dari {asal}')\n\ndef info_item(nama_item, tipe, rarity='Umum'):\n    print(f'{nama_item} - {tipe} [{rarity}]')\n\nkenalan('Dio')\ninfo_item('Pedang Naga', 'Senjata', 'Langka')"></div>
+      <div class="typingBox-vscode" data-hint="def kenalan(nama, asal='Server Asia'):
+    print(f'Halo, {nama} dari {asal}')
+
+def info_item(nama_item, tipe, rarity='Umum'):
+    print(f'{nama_item} - {tipe} [{rarity}]')
+
+kenalan('Dio')
+info_item('Pedang Naga', 'Senjata', 'Langka')"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
@@ -293,6 +328,21 @@
         e.preventDefault();
         e.stopPropagation();
       }
+    });
+  });
+
+  function getCodeFromTypingBox(el) {
+    let html = el.innerHTML;
+    html = html.replace(/<div>/gi, '\n').replace(/<\/div>/gi, '').replace(/<br>/gi, '\n');
+    return html.replace(/&nbsp;/gi, ' ');
+  }
+
+  document.querySelectorAll('.run-button').forEach(button => {
+    button.addEventListener('click', () => {
+      const panel = button.closest('.step-content');
+      const typingBox = panel.querySelector('.typingBox-vscode');
+      const code = getCodeFromTypingBox(typingBox);
+      runPythonCode(code, panel.querySelector('.output-box'));
     });
   });
 </script>
