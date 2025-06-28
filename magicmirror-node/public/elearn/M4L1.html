@@ -90,16 +90,15 @@
     color: #a7f3d0;
     min-width: 260px;
   }
-  .whiteboard-container {
+  .turtle-container {
     margin-top: 1rem;
     text-align: center;
   }
-  #whiteboardCanvas {
+  #turtle-canvas {
     border: 1px solid #ccc;
     width: 100%;
-    height: 300px;
-    display: none;
-    touch-action: none;
+    max-width: 400px;
+    height: 400px;
     background: #fff;
   }
   .step-content {
@@ -154,31 +153,21 @@
     </div>
     <div id="panel-3" class="step-content">
       <h2>Perintah Dasar Turtle</h2>
-      <div class="typingBox-vscode" data-hint="import turtle
-robot = turtle.Turtle()
-robot.forward(100)  # maju 100 langkah
-robot.left(90)      # belok kiri 90 derajat
-robot.backward(50)  # mundur 50 langkah"></div>
+      <div class="typingBox-vscode" data-hint="import turtle<br>robot = turtle.Turtle()<br>robot.forward(100)  # maju 100 langkah<br>robot.left(90)      # belok kiri 90 derajat<br>robot.backward(50)  # mundur 50 langkah"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
       <p>Coba kode ini, lihat bagaimana Turtle bergerak seperti robot!</p>
     </div>
     <div id="panel-4" class="step-content">
       <h2>Misi 1 – Gambar Jalanan</h2>
-      <div class="typingBox-vscode" data-hint="robot.forward(150)
-robot.left(90)
-robot.forward(100)"></div>
+      <div class="typingBox-vscode" data-hint="robot.forward(150)<br>robot.left(90)<br>robot.forward(100)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
       <p>Hasilnya mirip huruf L = jalan belok!</p>
     </div>
     <div id="panel-5" class="step-content">
       <h2>Misi 2 – Gambar Roket Linear!</h2>
-      <div class="typingBox-vscode" data-hint="robot.forward(60)
-robot.right(90)
-robot.forward(120)
-robot.right(90)
-robot.forward(60)"></div>
+      <div class="typingBox-vscode" data-hint="robot.forward(60)<br>robot.right(90)<br>robot.forward(120)<br>robot.right(90)<br>robot.forward(60)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
       <p>Tambahkan hiasan dengan maju dan belok lagi agar bentuknya lebih keren.</p>
@@ -202,13 +191,10 @@ robot.forward(60)"></div>
     </div>
     <div id="panel-8" class="step-content">
       <h2>Quiz Part 1</h2>
-      <ol>
-        <li>Apa yang dimaksud dengan linear programming dalam konteks menggambar dengan Turtle? <input type="text"></li>
-        <li>Sebutkan tiga perintah dasar Turtle dan jelaskan fungsinya. <input type="text"></li>
-        <li>Mengapa penting menyusun langkah-langkah secara berurutan? <input type="text"></li>
-        <li>Apa yang terjadi jika menukar perintah forward() dan right()? <input type="text"></li>
-        <li>Bagaimana menjelaskan cara membuat garis lurus ke kanan? <input type="text"></li>
-      </ol>
+      <p>Apa fungsi <code>robot.forward(100)</code>?</p>
+      <label><input type="radio" name="q1" value="a"> Mundur</label><br>
+      <label><input type="radio" name="q1" value="b"> Maju</label><br>
+      <label><input type="radio" name="q1" value="c"> Menghapus gambar</label>
     </div>
     <div id="panel-9" class="step-content">
       <h2>Quiz Part 2</h2>
@@ -233,10 +219,12 @@ robot.forward(60)"></div>
     </div>
   </div>
   <div class="lab-column">
-    <div class="whiteboard-container">
-      <button id="toggleWhiteboard">Tampilkan Whiteboard</button>
-      <button id="clearWhiteboard">Clear</button>
-      <canvas id="whiteboardCanvas"></canvas>
+    <div class="turtle-container">
+      <canvas id="turtle-canvas" width="400" height="400"></canvas>
+      <div style="margin-top:10px;">
+        <button id="clearCanvas">Bersihkan Canvas</button>
+      </div>
+      <div id="canvasStatus" style="margin-top:8px;color:#f87171;"></div>
     </div>
   </div>
 </div>
@@ -275,21 +263,86 @@ robot.forward(60)"></div>
     });
   });
 </script>
-<!-- Firebase and Whiteboard -->
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-<script src="whiteboard.js"></script>
 <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyBVO4ajDwkbcTGL33SVMxIoev4veB8itgI",
-    authDomain: "queens-academy-icoding.firebaseapp.com",
-    projectId: "queens-academy-icoding",
-    storageBucket: "queens-academy-icoding.appspot.com",
-    messagingSenderId: "1048549258959",
-    appId: "1:1048549258959:web:f8dc1c104bb170d7ff69ba",
-  };
-  firebase.initializeApp(firebaseConfig);
-  window.kelasId = 'demo';
-  window.lessonId = 'M4L1';
-  initWhiteboard();
+  let pyodideReadyPromise = loadPyodide();
+  function clearCanvas() {
+    const c = document.getElementById('turtle-canvas');
+    const ctx = c.getContext('2d');
+    ctx.clearRect(0, 0, c.width, c.height);
+    document.getElementById('canvasStatus').textContent = '';
+  }
+  function drawLine(x1, y1, x2, y2) {
+    const c = document.getElementById('turtle-canvas');
+    const ctx = c.getContext('2d');
+    let step = 0;
+    const steps = 20;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    function anim() {
+      step++;
+      const t = step / steps;
+      const nx = x1 + (x2 - x1) * t;
+      const ny = y1 + (y2 - y1) * t;
+      ctx.lineTo(nx, ny);
+      ctx.stroke();
+      if (step < steps) requestAnimationFrame(anim);
+    }
+    anim();
+  }
+  async function runTurtle(code, outputEl) {
+    outputEl.textContent = '';
+    document.getElementById('canvasStatus').textContent = '';
+    const pyodide = await pyodideReadyPromise;
+    const ns = pyodide.globals.get('dict')();
+    ns.set('drawLine', pyodide.toPy(drawLine));
+    const script = `import math
+class SimTurtle:
+    def __init__(self):
+        self.x = 200
+        self.y = 200
+        self.angle = 0
+        self.pen = True
+    def forward(self, d):
+        rad = math.radians(self.angle)
+        nx = self.x + math.cos(rad)*d
+        ny = self.y - math.sin(rad)*d
+        if self.pen:
+            drawLine(self.x, self.y, nx, ny)
+        self.x, self.y = nx, ny
+    def backward(self, d):
+        self.forward(-d)
+    def left(self, a):
+        self.angle += a
+    def right(self, a):
+        self.angle -= a
+    def penup(self):
+        self.pen = False
+    def pendown(self):
+        self.pen = True
+turtle = SimTurtle()
+robot = turtle
+` + code;
+    try {
+      clearCanvas();
+      await pyodide.runPythonAsync(script, { globals: ns });
+      document.getElementById('canvasStatus').textContent = 'Selesai!';
+    } catch (err) {
+      document.getElementById('canvasStatus').textContent = 'Error: ' + err;
+    } finally {
+      ns.destroy && ns.destroy();
+    }
+  }
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.run-button').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopImmediatePropagation();
+        const panel = btn.closest('.step-content');
+        const box = panel.querySelector('.typingBox-vscode');
+        const code = (box._typed || []).join('\n');
+        const out = panel.querySelector('.output-box');
+        await runTurtle(code, out);
+      }, true);
+    });
+    document.getElementById('clearCanvas').addEventListener('click', clearCanvas);
+  });
 </script>
