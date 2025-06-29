@@ -115,6 +115,16 @@
     white-space: pre-wrap;
     font-family: monospace;
   }
+  textarea.quiz-textarea {
+    width: 100%;
+    min-height: 100px;
+    background: #fff;
+    color: #000;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    padding: 8px;
+    font-family: monospace;
+  }
 </style>
 
 <div class="header">
@@ -156,7 +166,8 @@
       <div class="typingBox-vscode" data-hint="robot.color('red')  # ganti warna garis
 robot.width(3)     # ganti ketebalan
 robot.forward(100)  # maju 100 langkah
-robot.left(90)      # belok kiri 90 derajat"></div>
+robot.left(90)      # belok kiri 90 derajat
+robot.forward(100)  # maju 100 langkah"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
       <p>Coba kode ini. Kamu bisa mengubah warna dan ketebalan garis dengan <code>color()</code> dan <code>width()</code>.</p>
@@ -172,11 +183,17 @@ robot.forward(100)"></div>
     </div>
     <div id="panel-5" class="step-content">
       <h2>Misi 2 – Gambar Roket Linear!</h2>
-      <div class="typingBox-vscode" data-hint="robot.forward(60)
-robot.right(90)
-robot.forward(120)
-robot.right(90)
-robot.forward(60)"></div>
+      <div class="typingBox-vscode" data-hint="robot.forward(100)
+robot.right(144)
+robot.forward(100)
+robot.right(144)
+robot.forward(100)
+robot.right(144)
+robot.forward(100)
+robot.right(144)
+robot.forward(100)
+robot.right(144)
+"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
       <p>Tambahkan hiasan dengan maju dan belok lagi agar bentuknya lebih keren.</p>
@@ -184,8 +201,8 @@ robot.forward(60)"></div>
     <div id="panel-6" class="step-content">
       <h2>Mini Proyek – Gambar Karakter Robotmu Sendiri!</h2>
       <p>Gunakan minimal 5 perintah linear: maju, kiri, kanan. Tambahkan komentar agar kode mudah dimengerti temanmu.</p>
-      <div class="typingBox-vscode" data-hint=""></div>
-      <button class="run-button">Jalankan</button>
+      <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;background:#fff;color:#000;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
+      <button class="run-button" style="margin-top:4px;">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-7" class="step-content">
@@ -233,33 +250,38 @@ robot.forward(60)"></div>
       <ol>
         <li>
           Buat program menggunakan Turtle untuk menggambar huruf L besar.<br>
-          <div class="typingBox-vscode" contenteditable="true" style="margin-top:8px;"></div>
+          <textarea class="quiz-textarea" style="margin-top:8px;"></textarea>
           <button class="run-button" style="margin-top:4px;">Jalankan</button>
           <pre class="output-box">// Hasil akan muncul di sini</pre>
+          <canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas>
         </li>
         <li>
           Buat bentuk segitiga menggunakan perintah <code>forward()</code> dan <code>left()</code>.<br>
-          <div class="typingBox-vscode" contenteditable="true" style="margin-top:8px;"></div>
+          <textarea class="quiz-textarea" style="margin-top:8px;"></textarea>
           <button class="run-button" style="margin-top:4px;">Jalankan</button>
           <pre class="output-box">// Hasil akan muncul di sini</pre>
+          <canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas>
         </li>
         <li>
           Tulis program yang menggambar tangga kecil (3 langkah naik) menggunakan langkah maju dan belok kanan/kiri.<br>
-          <div class="typingBox-vscode" contenteditable="true" style="margin-top:8px;"></div>
+          <textarea class="quiz-textarea" style="margin-top:8px;"></textarea>
           <button class="run-button" style="margin-top:4px;">Jalankan</button>
           <pre class="output-box">// Hasil akan muncul di sini</pre>
+          <canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas>
         </li>
         <li>
           Buat proyek kecil yang menggambar bentuk bebas pilihanmu, minimal menggunakan 5 perintah Turtle.<br>
-          <div class="typingBox-vscode" contenteditable="true" style="margin-top:8px;"></div>
+          <textarea class="quiz-textarea" style="margin-top:8px;"></textarea>
           <button class="run-button" style="margin-top:4px;">Jalankan</button>
           <pre class="output-box">// Hasil akan muncul di sini</pre>
+          <canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas>
         </li>
         <li>
           Tambahkan komentar di setiap baris kode agar mudah dipahami temanmu.<br>
-          <div class="typingBox-vscode" contenteditable="true" style="margin-top:8px;"></div>
+          <textarea class="quiz-textarea" style="margin-top:8px;"></textarea>
           <button class="run-button" style="margin-top:4px;">Jalankan</button>
           <pre class="output-box">// Hasil akan muncul di sini</pre>
+          <canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas>
         </li>
       </ol>
     </div>
@@ -316,38 +338,28 @@ robot.forward(60)"></div>
 </script>
 <script>
   let pyodideReadyPromise = loadPyodide();
-  function clearCanvas() {
-    const c = document.getElementById('turtle-canvas');
-    const ctx = c.getContext('2d');
-    ctx.clearRect(0, 0, c.width, c.height);
+  function clearCanvas(canvas) {
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Explicitly clear the canvas context for the given canvasEl
+    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
     document.getElementById('canvasStatus').textContent = '';
   }
-  function drawLine(x1, y1, x2, y2, color = 'black', width = 1) {
-    const c = document.getElementById('turtle-canvas');
-    const ctx = c.getContext('2d');
+  function drawLine(canvas, x1, y1, x2, y2, color = 'black', width = 1) {
+    const ctx = canvas.getContext('2d');
     ctx.strokeStyle = color;
     ctx.lineWidth = width;
-    let step = 0;
-    const steps = 20;
     ctx.beginPath();
     ctx.moveTo(x1, y1);
-    function anim() {
-      step++;
-      const t = step / steps;
-      const nx = x1 + (x2 - x1) * t;
-      const ny = y1 + (y2 - y1) * t;
-      ctx.lineTo(nx, ny);
-      ctx.stroke();
-      if (step < steps) requestAnimationFrame(anim);
-    }
-    anim();
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
   }
-  async function runTurtle(code, outputEl) {
+  async function runTurtle(code, outputEl, canvasEl) {
     outputEl.textContent = '';
     document.getElementById('canvasStatus').textContent = '';
     const pyodide = await pyodideReadyPromise;
     const ns = pyodide.globals.get('dict')();
-    ns.set('drawLine', pyodide.toPy(drawLine));
+    ns.set('drawLine', pyodide.toPy((x1, y1, x2, y2, color='black', width=1) => drawLine(canvasEl, x1, y1, x2, y2, color, width)));
     const script = `import math
 class SimTurtle:
     def __init__(self):
@@ -355,15 +367,19 @@ class SimTurtle:
         self.y = 200
         self.angle = 0
         self.pen = True
-        self.color = 'black'
-        self.width = 1
+        self.pen_color = 'black'
+        self.pen_width = 1
     def forward(self, d):
         rad = math.radians(self.angle)
         nx = self.x + math.cos(rad)*d
         ny = self.y - math.sin(rad)*d
         if self.pen:
-            drawLine(self.x, self.y, nx, ny, self.color, self.width)
+            drawLine(self.x, self.y, nx, ny, self.pen_color, self.pen_width)
         self.x, self.y = nx, ny
+    def goto(self, x, y):
+        if self.pen:
+            drawLine(self.x, self.y, x, y, self.pen_color, self.pen_width)
+        self.x, self.y = x, y
     def backward(self, d):
         self.forward(-d)
     def left(self, a):
@@ -375,14 +391,17 @@ class SimTurtle:
     def pendown(self):
         self.pen = True
     def color(self, c):
-        self.color = c
+        self.pen_color = c
     def width(self, w):
-        self.width = w
+        self.pen_width = w
 turtle = SimTurtle()
 robot = turtle
 ` + code;
     try {
-      clearCanvas();
+      clearCanvas(canvasEl);
+      // Make sure we clear the entire canvas area for the current canvasEl (not just the global one)
+      const ctx = canvasEl.getContext('2d');
+      ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
       await pyodide.runPythonAsync(script, { globals: ns });
       document.getElementById('canvasStatus').textContent = 'Selesai!';
     } catch (err) {
@@ -395,13 +414,21 @@ robot = turtle
     document.querySelectorAll('.run-button').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         e.stopImmediatePropagation();
-        const panel = btn.closest('.step-content');
-        const box = panel.querySelector('.typingBox-vscode');
-        const code = box.innerText.replace(/\u200B/g, '');
-        const out = panel.querySelector('.output-box');
-        await runTurtle(code, out);
+        // Use the closest <li> as scope if available, otherwise fallback to .step-content
+        const item = btn.closest('li') || btn.closest('.step-content');
+        let box = item.querySelector('textarea.quiz-textarea') || item.querySelector('.typingBox-vscode');
+        const out = item.querySelector('.output-box');
+        let canvas = item.querySelector('canvas.turtle-canvas-quiz');
+        if (!canvas) canvas = document.getElementById('turtle-canvas');
+        const code = box && box.value !== undefined
+          ? box.value.replace(/\u200B/g, '')
+          : (box ? box.innerText.replace(/\u200B/g, '') : '');
+        await runTurtle(code, out, canvas);
       }, true);
     });
-    document.getElementById('clearCanvas').addEventListener('click', clearCanvas);
+    document.getElementById('clearCanvas').addEventListener('click', () => {
+      const canvas = document.getElementById('turtle-canvas');
+      clearCanvas(canvas);
+    });
   });
 </script>
