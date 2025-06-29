@@ -151,10 +151,13 @@
       <li data-step="8">8. Quiz Part 1</li>
       <li data-step="9">9. Quiz Part 2</li>
       <li data-step="10">10. Whiteboard</li>
-      </ul>
+    </ul>
+  </div>
+  <div class="main">
     <div id="panel-1" class="step-content">
       <h2>Robot Gambar Berulang – Ayo Kenalan dengan Loop!</h2>
       <p>Loop membuat robot gambar mengulang perintah otomatis. Cukup sekali tulis, robot mengerjakan berkali-kali!</p>
+    </div>
     <div id="panel-2" class="step-content">
       <h2>Kasus Seru – Gambar Tanpa Loop vs Dengan Loop</h2>
       <p>Tanpa loop, kita tulis perintah berulang satu per satu:</p>
@@ -222,6 +225,7 @@ robot.forward(100)"></div>
         <li>Apa yang terjadi jika pakai <code>range(8)</code> saat gambar?<br><textarea style="width:100%;min-height:48px;margin-top:8px;"></textarea></li>
         <li>Kenapa penting sudut belok tepat saat pakai loop?<br><textarea style="width:100%;min-height:48px;margin-top:8px;"></textarea></li>
       </ol>
+    </div>
     <div id="panel-9" class="step-content">
       <h2>Quiz Part 2</h2>
       <ol>
@@ -231,10 +235,12 @@ robot.forward(100)"></div>
         <li>Buat pola berulang bebas (roda, bunga, spiral) minimal 1 loop + komentar.<br><textarea class="quiz-textarea" style="margin-top:8px;"></textarea><button class="run-button" style="margin-top:4px;">Jalankan</button><pre class="output-box">// Hasil akan muncul di sini</pre><canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas></li>
         <li>Modifikasi bentuk sebelumnya dengan mengubah range() atau sudut belok.<br><textarea class="quiz-textarea" style="margin-top:8px;"></textarea><button class="run-button" style="margin-top:4px;">Jalankan</button><pre class="output-box">// Hasil akan muncul di sini</pre><canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas></li>
       </ol>
+    </div>
     <div id="panel-10" class="step-content">
       <h2>Whiteboard</h2>
       <p>Kamu bisa latihan gambar bebas di whiteboard. Gunakan tombol di samping untuk menampilkan atau membersihkannya.</p>
     </div>
+  </div>
   <div class="lab-column">
     <div class="turtle-container">
       <canvas id="turtle-canvas" width="400" height="400"></canvas>
@@ -361,11 +367,7 @@ robot = turtle
     }
   }
   function getCodeFromTypingBox(el) {
-    let html = el.innerHTML;
-    html = html.replace(/<div>/gi, "\n").replace(/<\/div>/gi, "");
-    html = html.replace(/<br>/gi, "\n");
-    html = html.replace(/&nbsp;/gi, " ");
-    return html.trim();
+    return el.innerText.trim();
   }
 
   document.addEventListener("DOMContentLoaded", () => {
@@ -376,11 +378,18 @@ robot = turtle
         const item = btn.closest('li') || btn.closest('.step-content');
         let box = item.querySelector('textarea.quiz-textarea') || item.querySelector('.typingBox-vscode');
         const out = item.querySelector('.output-box');
+        // For quiz panels (panel-9) use local canvas, otherwise use global
         let canvas = item.querySelector('canvas.turtle-canvas-quiz');
         if (!canvas) canvas = document.getElementById('turtle-canvas');
-        const code = box && box.value !== undefined
-            ? box.value.replace(/\u200B/g, "")
-          : (box ? getCodeFromTypingBox(box) : '');
+        let code = '';
+        if (box) {
+          if (box.tagName === 'TEXTAREA') {
+            code = box.value.replace(/\u200B/g, "");
+          } else {
+            code = getCodeFromTypingBox(box);
+          }
+        }
+        await runTurtle(code, out, canvas);
       }, true);
     });
     document.getElementById('clearCanvas').addEventListener('click', () => {
