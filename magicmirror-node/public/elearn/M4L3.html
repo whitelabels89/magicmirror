@@ -457,7 +457,12 @@ robot = turtle
           canvas = document.getElementById('turtle-canvas');
         }
         // New code assignment logic
-        let code = box?.getAttribute('data-code')?.trim() || box?.getAttribute('data-hint')?.trim() || '';
+        let code;
+        if (box.tagName === 'TEXTAREA' && box.classList.contains('quiz-textarea')) {
+          code = box.value.trim();
+        } else {
+          code = box?.getAttribute('data-code')?.trim() || box?.getAttribute('data-hint')?.trim() || '';
+        }
         // Aggressive cleaning
         code = code.replace(/^[\s\r\n]+|[\s\r\n]+$/g, '');
         code = code.replace(/[\u200B-\u200D\uFEFF]/g, '');
