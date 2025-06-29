@@ -1,0 +1,415 @@
+<link rel="stylesheet" href="presetvs.css" />
+<script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+<script src="presetvs.js"></script>
+<style>
+  body {
+    font-family: 'Fredoka', sans-serif;
+    margin: 0;
+    background: #f0f7ff;
+    color: #333;
+  }
+  .header {
+    text-align: center;
+    padding: 20px;
+    background: #4f46e5;
+    color: #fff;
+  }
+  .header h1 {
+    margin-bottom: 10px;
+    font-size: 2.2rem;
+  }
+  .header p {
+    margin-bottom: 20px;
+  }
+  .progress-container {
+    margin-top: 20px;
+    width: 80%;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .progress-bar {
+    height: 12px;
+    background: #fff;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .progress {
+    width: 0%;
+    height: 100%;
+    background: #facc15;
+  }
+  .back-btn {
+    display: inline-block;
+    margin-top: 8px;
+    color: #fff;
+    background: #22c55e;
+    padding: 6px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  .container {
+    display: flex;
+    padding: 20px;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .sidebar {
+    flex: 1 1 180px;
+    max-width: 200px;
+    background: #fde68a;
+    padding: 20px;
+    border-radius: 20px;
+  }
+  .sidebar ul {
+    list-style: none;
+    padding: 0;
+  }
+  .sidebar li {
+    margin-bottom: 10px;
+    background: #fcd34d;
+    padding: 8px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .sidebar li.active {
+    background: #fbbf24;
+  }
+  .main {
+    flex: 3 1 300px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 20px;
+  }
+  .lab-column {
+    flex: 1 1 260px;
+    background: #111827;
+    padding: 20px;
+    border-radius: 20px;
+    color: #a7f3d0;
+    min-width: 260px;
+  }
+  .turtle-container {
+    margin-top: 1rem;
+    text-align: center;
+  }
+  #turtle-canvas {
+    border: 1px solid #ccc;
+    width: 100%;
+    max-width: 400px;
+    height: 400px;
+    background: #fff;
+  }
+  .step-content {
+    display: none;
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+  }
+  .step-content.active { display: block; }
+  .nav-controls { text-align: center; margin-top: 20px; }
+  .typingBox-vscode {
+    white-space: pre-wrap;
+    font-family: monospace;
+  }
+  textarea.quiz-textarea {
+    width: 100%;
+    min-height: 100px;
+    background: #fff;
+    color: #000;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    padding: 8px;
+    font-family: monospace;
+  }
+</style>
+
+<div class="header">
+  <h1>Modul 4 - Lesson 2: Turtle Loops</h1>
+  <p>Loop Programming dengan Turtle Module</p>
+  <div class="progress-container">
+    <div class="progress-bar"><div class="progress" id="progressBar"></div></div>
+  </div>
+  <div style="margin-top:10px;">
+    <a href="/elearn/modul.html" class="back-btn">⟵ Kembali ke Modul</a>
+  </div>
+</div>
+
+<div class="container">
+  <div class="sidebar">
+    <ul id="lesson-nav">
+      <li data-step="1" class="active">1. Robot Gambar Berulang</li>
+      <li data-step="2">2. Tanpa Loop vs Dengan Loop</li>
+      <li data-step="3">3. for &amp; range()</li>
+      <li data-step="4">4. Misi 1 – Persegi</li>
+      <li data-step="5">5. Misi 2 – Roda Tank</li>
+      <li data-step="6">6. Proyek Bebas</li>
+      <li data-step="7">7. Review</li>
+      <li data-step="8">8. Quiz Part 1</li>
+      <li data-step="9">9. Quiz Part 2</li>
+      <li data-step="10">10. Whiteboard</li>
+      </ul>
+    <div id="panel-1" class="step-content">
+      <h2>Robot Gambar Berulang – Ayo Kenalan dengan Loop!</h2>
+      <p>Loop membuat robot gambar mengulang perintah otomatis. Cukup sekali tulis, robot mengerjakan berkali-kali!</p>
+    <div id="panel-2" class="step-content">
+      <h2>Kasus Seru – Gambar Tanpa Loop vs Dengan Loop</h2>
+      <p>Tanpa loop, kita tulis perintah berulang satu per satu:</p>
+      <div class="typingBox-vscode" data-hint="robot.forward(100)
+robot.right(90)
+robot.forward(100)
+robot.right(90)
+robot.forward(100)
+robot.right(90)
+robot.forward(100)"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+      <p>Dengan loop lebih singkat:</p>
+      <div class="typingBox-vscode" data-hint="for i in range(4):
+    robot.forward(100)
+    robot.right(90)"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-3" class="step-content">
+      <h2>Kenalan dengan for dan range()</h2>
+      <p><code>for i in range(4):</code> artinya lakukan 4 kali (i=0,1,2,3).</p>
+      <p><code>range(4)</code> menentukan total 4 pengulangan.</p>
+    </div>
+    <div id="panel-4" class="step-content">
+      <h2>Misi 1 – Gambar Perisai Superhero (Persegi)</h2>
+      <div class="typingBox-vscode" data-hint="for i in range(4):
+    robot.forward(80)
+    robot.right(90)"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-5" class="step-content">
+      <h2>Misi 2 – Roda Tank</h2>
+      <div class="typingBox-vscode" data-hint="for i in range(6):
+    robot.forward(100)
+    robot.right(60)"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-6" class="step-content">
+      <h2>Proyek Bebas – Gambar Mandala atau Roda Laser!</h2>
+      <div class="typingBox-vscode" data-hint="for i in range(36):
+    robot.forward(100)
+    robot.right(170)"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-7" class="step-content">
+      <h2>Review</h2>
+      <p>Kamu belajar:</p>
+      <ul>
+        <li>Bedanya gambar manual dan pakai loop</li>
+        <li>Pakai for + range() untuk gambar berulang</li>
+        <li>Bikin bentuk roda, segi banyak, mandala</li>
+        <li>Kode sedikit, hasil keren? Loop itu rahasianya!</li>
+      </ul>
+    </div>
+    <div id="panel-8" class="step-content">
+      <h2>Quiz Part 1</h2>
+      <ol>
+        <li>Apa itu loop &amp; penggunaannya di Turtle?<br><textarea style="width:100%;min-height:48px;margin-top:8px;"></textarea></li>
+        <li>Manfaat loop dibanding perintah satu per satu.<br><textarea style="width:100%;min-height:48px;margin-top:8px;"></textarea></li>
+        <li>Arti <code>for i in range(6):</code>.<br><textarea style="width:100%;min-height:48px;margin-top:8px;"></textarea></li>
+        <li>Apa yang terjadi jika pakai <code>range(8)</code> saat gambar?<br><textarea style="width:100%;min-height:48px;margin-top:8px;"></textarea></li>
+        <li>Kenapa penting sudut belok tepat saat pakai loop?<br><textarea style="width:100%;min-height:48px;margin-top:8px;"></textarea></li>
+      </ol>
+    <div id="panel-9" class="step-content">
+      <h2>Quiz Part 2</h2>
+      <ol>
+        <li>Buat program gambar persegi pakai loop.<br><textarea class="quiz-textarea" style="margin-top:8px;"></textarea><button class="run-button" style="margin-top:4px;">Jalankan</button><pre class="output-box">// Hasil akan muncul di sini</pre><canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas></li>
+        <li>Buat program gambar segitiga pakai loop.<br><textarea class="quiz-textarea" style="margin-top:8px;"></textarea><button class="run-button" style="margin-top:4px;">Jalankan</button><pre class="output-box">// Hasil akan muncul di sini</pre><canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas></li>
+        <li>Buat bentuk bintang sederhana pakai for+range().<br><textarea class="quiz-textarea" style="margin-top:8px;"></textarea><button class="run-button" style="margin-top:4px;">Jalankan</button><pre class="output-box">// Hasil akan muncul di sini</pre><canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas></li>
+        <li>Buat pola berulang bebas (roda, bunga, spiral) minimal 1 loop + komentar.<br><textarea class="quiz-textarea" style="margin-top:8px;"></textarea><button class="run-button" style="margin-top:4px;">Jalankan</button><pre class="output-box">// Hasil akan muncul di sini</pre><canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas></li>
+        <li>Modifikasi bentuk sebelumnya dengan mengubah range() atau sudut belok.<br><textarea class="quiz-textarea" style="margin-top:8px;"></textarea><button class="run-button" style="margin-top:4px;">Jalankan</button><pre class="output-box">// Hasil akan muncul di sini</pre><canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas></li>
+      </ol>
+    <div id="panel-10" class="step-content">
+      <h2>Whiteboard</h2>
+      <p>Kamu bisa latihan gambar bebas di whiteboard. Gunakan tombol di samping untuk menampilkan atau membersihkannya.</p>
+    </div>
+  <div class="lab-column">
+    <div class="turtle-container">
+      <canvas id="turtle-canvas" width="400" height="400"></canvas>
+      <div style="margin-top:10px;">
+        <button id="clearCanvas">Bersihkan Canvas</button>
+      </div>
+      <div id="canvasStatus" style="margin-top:8px;color:#f87171;"></div>
+    </div>
+    <div class="whiteboard-container">
+      <button id="toggleWhiteboard">Tampilkan Whiteboard</button>
+      <button id="clearWhiteboard">Clear</button>
+      <canvas id="whiteboardCanvas"></canvas>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentPanel = 1;
+  const totalPanels = 10;
+  function showPanel(n) {
+    if (n < 1 || n > totalPanels) return;
+    document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+    const panel = document.getElementById('panel-' + n);
+    if (panel) panel.classList.add('active');
+    currentPanel = n;
+    updateIndicator();
+  }
+  function nextPanel() { if (currentPanel < totalPanels) showPanel(currentPanel + 1); }
+  function prevPanel() { if (currentPanel > 1) showPanel(currentPanel - 1); }
+  function updateIndicator() { document.getElementById('indicator').textContent = 'Slide ' + currentPanel + ' / ' + totalPanels; }
+  document.getElementById('lesson-nav').addEventListener('click', function(e) {
+    if(e.target.matches('li[data-step]')) {
+      document.querySelectorAll('#lesson-nav li').forEach(li => li.classList.remove('active'));
+      e.target.classList.add('active');
+      showPanel(Number(e.target.getAttribute('data-step')));
+    }
+  });
+  document.addEventListener('DOMContentLoaded', () => showPanel(1));
+</script>
+<script>
+  // Prevent scroll on space or character in typingBox-vscode
+  document.querySelectorAll('.typingBox-vscode').forEach(box => {
+    box.addEventListener('keydown', (e) => {
+      if (e.key === ' ' || e.code === 'Space') {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    });
+  });
+</script>
+<script>
+  let pyodideReadyPromise = loadPyodide();
+  function clearCanvas(canvas) {
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Explicitly clear the canvas context for the given canvasEl
+    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+    document.getElementById('canvasStatus').textContent = '';
+  }
+  function drawLine(canvas, x1, y1, x2, y2, color = 'black', width = 1) {
+    const ctx = canvas.getContext('2d');
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+  }
+  async function runTurtle(code, outputEl, canvasEl) {
+    outputEl.textContent = '';
+    document.getElementById('canvasStatus').textContent = '';
+    const pyodide = await pyodideReadyPromise;
+    const ns = pyodide.globals.get('dict')();
+    ns.set('drawLine', pyodide.toPy((x1, y1, x2, y2, color='black', width=1) => drawLine(canvasEl, x1, y1, x2, y2, color, width)));
+    const script = `import math
+class SimTurtle:
+    def __init__(self):
+        self.x = 200
+        self.y = 200
+        self.angle = 0
+        self.pen = True
+        self.pen_color = 'black'
+        self.pen_width = 1
+    def forward(self, d):
+        rad = math.radians(self.angle)
+        nx = self.x + math.cos(rad)*d
+        ny = self.y - math.sin(rad)*d
+        if self.pen:
+            drawLine(self.x, self.y, nx, ny, self.pen_color, self.pen_width)
+        self.x, self.y = nx, ny
+    def goto(self, x, y):
+        if self.pen:
+            drawLine(self.x, self.y, x, y, self.pen_color, self.pen_width)
+        self.x, self.y = x, y
+    def backward(self, d):
+        self.forward(-d)
+    def left(self, a):
+        self.angle += a
+    def right(self, a):
+        self.angle -= a
+    def penup(self):
+        self.pen = False
+    def pendown(self):
+        self.pen = True
+    def color(self, c):
+        self.pen_color = c
+    def width(self, w):
+        self.pen_width = w
+turtle = SimTurtle()
+robot = turtle
+` + code;
+    try {
+      clearCanvas(canvasEl);
+      // Make sure we clear the entire canvas area for the current canvasEl (not just the global one)
+      const ctx = canvasEl.getContext('2d');
+
+      ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+      await pyodide.runPythonAsync(script, { globals: ns });
+      document.getElementById('canvasStatus').textContent = 'Selesai!';
+    } catch (err) {
+      document.getElementById('canvasStatus').textContent = 'Error: ' + err;
+    } finally {
+      ns.destroy && ns.destroy();
+    }
+  }
+  function getCodeFromTypingBox(el) {
+    let html = el.innerHTML;
+    html = html.replace(/<div>/gi, "\n").replace(/<\/div>/gi, "");
+    html = html.replace(/<br>/gi, "\n");
+    html = html.replace(/&nbsp;/gi, " ");
+    return html.trim();
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll('.run-button').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopImmediatePropagation();
+        // Use the closest <li> as scope if available, otherwise fallback to .step-content
+        const item = btn.closest('li') || btn.closest('.step-content');
+        let box = item.querySelector('textarea.quiz-textarea') || item.querySelector('.typingBox-vscode');
+        const out = item.querySelector('.output-box');
+        let canvas = item.querySelector('canvas.turtle-canvas-quiz');
+        if (!canvas) canvas = document.getElementById('turtle-canvas');
+        const code = box && box.value !== undefined
+            ? box.value.replace(/\u200B/g, "")
+          : (box ? getCodeFromTypingBox(box) : '');
+      }, true);
+    });
+    document.getElementById('clearCanvas').addEventListener('click', () => {
+      const canvas = document.getElementById('turtle-canvas');
+      clearCanvas(canvas);
+    });
+  });
+</script>
+<!-- Firebase and Whiteboard -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script src="whiteboard.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBVO4ajDwkbcTGL33SVMxIoev4veB8itgI",
+    authDomain: "queens-academy-icoding.firebaseapp.com",
+    projectId: "queens-academy-icoding",
+    storageBucket: "queens-academy-icoding.appspot.com",
+    messagingSenderId: "1048549258959",
+    appId: "1:1048549258959:web:f8dc1c104bb170d7ff69ba",
+  };
+  firebase.initializeApp(firebaseConfig);
+  window.kelasId = 'demo';
+  window.lessonId = 'M4L2';
+  initWhiteboard();
+</script>
+<script>
+  const cardContainer = parent.document ? parent.document.querySelector('#container-M4L2') : null;
+  if (cardContainer) {
+    cardContainer.innerHTML = '<a href="/elearn/M4L2.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M4 L2</span><h3>Turtle Loops</h3><p>Using Loops in the Turtle Module</p></div></a>';
+  }
+</script>
