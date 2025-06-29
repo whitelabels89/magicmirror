@@ -90,11 +90,6 @@
     color: #a7f3d0;
     min-width: 260px;
   }
-  .whiteboard-container {
-    margin-top: 1rem;
-    text-align: center;
-  }
-
   .turtle-container {
     margin-top: 1rem;
     text-align: center;
@@ -104,14 +99,6 @@
     width: 100%;
     max-width: 400px;
     height: 400px;
-    background: #fff;
-  }
-  #whiteboardCanvas {
-    border: 1px solid #ccc;
-    width: 100%;
-    height: 300px;
-    display: none;
-    touch-action: none;
     background: #fff;
   }
   .step-content {
@@ -141,8 +128,8 @@
 </style>
 
 <div class="header">
-  <h1>Modul 4 - Lesson 3: Turtle Decisions</h1>
-  <p>Menggunakan if, elif, else pada Turtle Module</p>
+  <h1>Modul 4 - Lesson 2: Turtle Loops</h1>
+  <p>Loop Programming dengan Turtle Module</p>
   <div class="progress-container">
     <div class="progress-bar"><div class="progress" id="progressBar"></div></div>
   </div>
@@ -154,158 +141,118 @@
 <div class="container">
   <div class="sidebar">
     <ul id="lesson-nav">
-      <li data-step="1" class="active">1. Robot Gambar dengan Otak!</li>
-      <li data-step="2">2. Apa Itu if, elif, else?</li>
-      <li data-step="3">3. Misi 1 – Pilih Warna Sesuai Sisi</li>
-      <li data-step="4">4. Misi 2 – Gambar Bentuk Berdasarkan Panjang</li>
-      <li data-step="5">5. Mini Proyek</li>
-      <li data-step="6">6. Review</li>
-      <li data-step="7">7. Quiz Part 1</li>
-      <li data-step="8">8. Quiz Part 2</li>
+      <li data-step="1" class="active">1. Robot Gambar Berulang</li>
+      <li data-step="2">2. Tanpa Loop vs Dengan Loop</li>
+      <li data-step="3">3. for &amp; range()</li>
+      <li data-step="4">4. Misi 1 – Persegi</li>
+      <li data-step="5">5. Misi 2 – Roda Tank</li>
+      <li data-step="6">6. Proyek Bebas</li>
+      <li data-step="7">7. Review</li>
+      <li data-step="8">8. Quiz Part 1</li>
+      <li data-step="9">9. Quiz Part 2</li>
+      <li data-step="10">10. Whiteboard</li>
     </ul>
   </div>
   <div class="main">
     <div id="panel-1" class="step-content">
-      <h2>Robot Gambar dengan Otak!</h2>
-      <p>Turtle bisa "berpikir" dan memilih jalur. Misal: "Kalau musuh di depan → belok kanan; kalau kosong → jalan terus". Ini decision making!</p>
+      <h2>Robot Gambar Berulang – Ayo Kenalan dengan Loop!</h2>
+      <p>Loop membuat robot gambar mengulang perintah otomatis. Cukup sekali tulis, robot mengerjakan berkali-kali!</p>
     </div>
     <div id="panel-2" class="step-content">
-      <h2>Apa Itu if, elif, else?</h2>
-      <p>
-        <code>if</code>: jika kondisi benar, lakukan ini<br>
-        <code>elif</code>: kondisi lain setelah <code>if</code> salah<br>
-        <code>else</code>: jika semua kondisi salah, lakukan ini
-      </p>
-      <div class="typingBox-vscode" data-hint="sisi = 6
-if sisi > 4:
-    turtle.color('red')
-else:
-    turtle.color('blue')" data-code="sisi = 6
-if sisi > 4:
-    turtle.color('red')
-else:
-    turtle.color('blue')"></div>
+      <h2>Kasus Seru – Gambar Tanpa Loop vs Dengan Loop</h2>
+      <p>Tanpa loop, kita tulis perintah berulang satu per satu:</p>
+      <div class="typingBox-vscode" data-hint="robot.forward(100)
+robot.right(90)
+robot.forward(100)
+robot.right(90)
+robot.forward(100)
+robot.right(90)
+robot.forward(100)" data-code="robot.forward(100)
+robot.right(90)
+robot.forward(100)
+robot.right(90)
+robot.forward(100)
+robot.right(90)
+robot.forward(100)"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+      <p>Dengan loop lebih singkat:</p>
+      <div class="typingBox-vscode" data-hint="for i in range(4):
+    robot.forward(100)
+    robot.right(90)" data-code="for i in range(4):
+    robot.forward(100)
+    robot.right(90)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-3" class="step-content">
-      <h2>Misi 1 – Pilih Warna Sesuai Sisi</h2>
-      <div class="typingBox-vscode" data-hint="sisi = 6
-if sisi % 2 == 0:
-    turtle.color('yellow')  # sisi genap
-else:
-    turtle.color('green')   # sisi ganjil" data-code="sisi = 6
-if sisi % 2 == 0:
-    turtle.color('yellow')  # sisi genap
-else:
-    turtle.color('green')   # sisi ganjil"></div>
-      <button class="run-button">Jalankan</button>
-      <pre class="output-box">// Hasil akan muncul di sini</pre>
+      <h2>Kenalan dengan for dan range()</h2>
+      <p><code>for i in range(4):</code> artinya lakukan 4 kali (i=0,1,2,3).</p>
+      <p><code>range(4)</code> menentukan total 4 pengulangan.</p>
     </div>
     <div id="panel-4" class="step-content">
-      <h2>Misi 2 – Gambar Bentuk Berdasarkan Panjang</h2>
-      <div class="typingBox-vscode" data-hint="panjang = 100
-if panjang > 80:
-    for i in range(3):
-        turtle.forward(panjang)
-        turtle.right(120)
-else:
-    for i in range(4):
-        turtle.forward(panjang)
-        turtle.right(90)" data-code="panjang = 100
-if panjang > 80:
-    for i in range(3):
-        turtle.forward(panjang)
-        turtle.right(120)
-else:
-    for i in range(4):
-        turtle.forward(panjang)
-        turtle.right(90)"></div>
+      <h2>Misi 1 – Gambar Perisai Superhero (Persegi)</h2>
+      <div class="typingBox-vscode" data-hint="for i in range(4):
+    robot.forward(80)
+    robot.right(90)" data-code="for i in range(4):
+    robot.forward(80)
+    robot.right(90)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-5" class="step-content">
-      <h2>Mini Proyek – Gambar Arena Pertempuran Dinamis</h2>
-      <div class="typingBox-vscode" data-hint="sisi = 5
-if sisi < 5:
-    turtle.color('gray')
-elif sisi == 5:
-    turtle.color('orange')
-else:
-    turtle.color('red')" data-code="sisi = 5
-if sisi < 5:
-    turtle.color('gray')
-elif sisi == 5:
-    turtle.color('orange')
-else:
-    turtle.color('red')"></div>
+      <h2>Misi 2 – Roda Tank</h2>
+      <div class="typingBox-vscode" data-hint="for i in range(6):
+    robot.forward(100)
+    robot.right(60)" data-code="for i in range(6):
+    robot.forward(100)
+    robot.right(60)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-6" class="step-content">
+      <h2>Proyek Bebas – Gambar Mandala atau Roda Laser!</h2>
+      <div class="typingBox-vscode" data-hint="for i in range(36):
+    robot.forward(100)
+    robot.right(170)" data-code="for i in range(36):
+    robot.forward(100)
+    robot.right(170)"></div>
+      <button class="run-button">Jalankan</button>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-7" class="step-content">
       <h2>Review</h2>
       <p>Kamu belajar:</p>
       <ul>
-        <li>Menggunakan if, elif, else</li>
-        <li>Mengatur warna & bentuk sesuai kondisi</li>
-        <li>Membuat gambar yang bisa “berpikir”</li>
-        <li>Siap lanjut ke logika lebih seru?</li>
+        <li>Bedanya gambar manual dan pakai loop</li>
+        <li>Pakai for + range() untuk gambar berulang</li>
+        <li>Bikin bentuk roda, segi banyak, mandala</li>
+        <li>Kode sedikit, hasil keren? Loop itu rahasianya!</li>
       </ul>
     </div>
-    <div id="panel-7" class="step-content">
-      <h2>Quiz Part 1 – Teori</h2>
+    <div id="panel-8" class="step-content">
+      <h2>Quiz Part 1</h2>
       <ol>
-        <li>Apa itu decision making di Python?<br><textarea style="width:100%;min-height:48px;margin-top:8px;"></textarea></li>
-        <li>Bedakan if, elif, else.<br><textarea style="width:100%;min-height:48px;margin-top:8px;"></textarea></li>
-        <li>Kenapa decision making penting di program interaktif?<br><textarea style="width:100%;min-height:48px;margin-top:8px;"></textarea></li>
-        <li>Apa yang terjadi jika kondisi if salah & tidak ada else?<br><textarea style="width:100%;min-height:48px;margin-top:8px;"></textarea></li>
-        <li>Contoh kondisi sederhana untuk atur warna Turtle.<br><textarea style="width:100%;min-height:48px;margin-top:8px;"></textarea></li>
+        <li>Apa itu loop &amp; penggunaannya di Turtle?<br><textarea style="width:100%;min-height:48px;margin-top:8px;"></textarea></li>
+        <li>Manfaat loop dibanding perintah satu per satu.<br><textarea style="width:100%;min-height:48px;margin-top:8px;"></textarea></li>
+        <li>Arti <code>for i in range(6):</code>.<br><textarea style="width:100%;min-height:48px;margin-top:8px;"></textarea></li>
+        <li>Apa yang terjadi jika pakai <code>range(8)</code> saat gambar?<br><textarea style="width:100%;min-height:48px;margin-top:8px;"></textarea></li>
+        <li>Kenapa penting sudut belok tepat saat pakai loop?<br><textarea style="width:100%;min-height:48px;margin-top:8px;"></textarea></li>
       </ol>
     </div>
-    <div id="panel-8" class="step-content">
+    <div id="panel-9" class="step-content">
       <h2>Quiz Part 2</h2>
       <ol>
-        <li>
-          Buat program menggunakan Turtle untuk menggambar huruf L besar.<br>
-          <textarea class="quiz-textarea" style="margin-top:8px;"></textarea>
-          <button class="run-button" style="margin-top:4px;">Jalankan</button>
-          <pre class="output-box">// Hasil akan muncul di sini</pre>
-          <canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas>
-        </li>
-        <li>
-          Buat bentuk segitiga menggunakan perintah <code>forward()</code> dan <code>left()</code>.<br>
-          <textarea class="quiz-textarea" style="margin-top:8px;"></textarea>
-          <button class="run-button" style="margin-top:4px;">Jalankan</button>
-          <pre class="output-box">// Hasil akan muncul di sini</pre>
-          <canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas>
-        </li>
-        <li>
-          Tulis program yang menggambar tangga kecil (3 langkah naik) menggunakan langkah maju dan belok kanan/kiri.<br>
-          <textarea class="quiz-textarea" style="margin-top:8px;"></textarea>
-          <button class="run-button" style="margin-top:4px;">Jalankan</button>
-          <pre class="output-box">// Hasil akan muncul di sini</pre>
-          <canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas>
-        </li>
-        <li>
-          Buat proyek kecil yang menggambar bentuk bebas pilihanmu, minimal menggunakan 5 perintah Turtle.<br>
-          <textarea class="quiz-textarea" style="margin-top:8px;"></textarea>
-          <button class="run-button" style="margin-top:4px;">Jalankan</button>
-          <pre class="output-box">// Hasil akan muncul di sini</pre>
-          <canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas>
-        </li>
-        <li>
-          Tambahkan komentar di setiap baris kode agar mudah dipahami temanmu.<br>
-          <textarea class="quiz-textarea" style="margin-top:8px;"></textarea>
-          <button class="run-button" style="margin-top:4px;">Jalankan</button>
-          <pre class="output-box">// Hasil akan muncul di sini</pre>
-          <canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas>
-        </li>
+        <li>Buat program gambar persegi pakai loop.<br><textarea class="quiz-textarea" style="margin-top:8px;"></textarea><button class="run-button" style="margin-top:4px;">Jalankan</button><pre class="output-box">// Hasil akan muncul di sini</pre><canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas></li>
+        <li>Buat program gambar segitiga pakai loop.<br><textarea class="quiz-textarea" style="margin-top:8px;"></textarea><button class="run-button" style="margin-top:4px;">Jalankan</button><pre class="output-box">// Hasil akan muncul di sini</pre><canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas></li>
+        <li>Buat bentuk bintang sederhana pakai for+range().<br><textarea class="quiz-textarea" style="margin-top:8px;"></textarea><button class="run-button" style="margin-top:4px;">Jalankan</button><pre class="output-box">// Hasil akan muncul di sini</pre><canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas></li>
+        <li>Buat pola berulang bebas (roda, bunga, spiral) minimal 1 loop + komentar.<br><textarea class="quiz-textarea" style="margin-top:8px;"></textarea><button class="run-button" style="margin-top:4px;">Jalankan</button><pre class="output-box">// Hasil akan muncul di sini</pre><canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas></li>
+        <li>Modifikasi bentuk sebelumnya dengan mengubah range() atau sudut belok.<br><textarea class="quiz-textarea" style="margin-top:8px;"></textarea><button class="run-button" style="margin-top:4px;">Jalankan</button><pre class="output-box">// Hasil akan muncul di sini</pre><canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas></li>
       </ol>
     </div>
-    <div class="nav-controls">
-      <button onclick="prevPanel()">⟵ Sebelumnya</button>
-      <span id="indicator"></span>
-      <button onclick="nextPanel()">Selanjutnya ⟶</button>
+    <div id="panel-10" class="step-content">
+      <h2>Whiteboard</h2>
+      <p>Kamu bisa latihan gambar bebas di whiteboard. Gunakan tombol di samping untuk menampilkan atau membersihkannya.</p>
     </div>
   </div>
   <div class="lab-column">
@@ -326,7 +273,7 @@ else:
 
 <script>
   let currentPanel = 1;
-  const totalPanels = 8;
+  const totalPanels = 10;
   function showPanel(n) {
     if (n < 1 || n > totalPanels) return;
     document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
@@ -365,6 +312,7 @@ else:
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     // Explicitly clear the canvas context for the given canvasEl
     canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+    document.getElementById('canvasStatus').textContent = '';
   }
   function drawLine(canvas, x1, y1, x2, y2, color = 'black', width = 1) {
     const ctx = canvas.getContext('2d');
@@ -420,7 +368,9 @@ robot = turtle
 ` + code;
     try {
       clearCanvas(canvasEl);
+      // Make sure we clear the entire canvas area for the current canvasEl (not just the global one)
       const ctx = canvasEl.getContext('2d');
+
       ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
       await pyodide.runPythonAsync(script, { globals: ns });
       document.getElementById('canvasStatus').textContent = 'Selesai!';
@@ -430,18 +380,29 @@ robot = turtle
       ns.destroy && ns.destroy();
     }
   }
-  document.addEventListener('DOMContentLoaded', () => {
+  function getCodeFromTypingBox(el) {
+    return el.getAttribute('data-code')?.trim() || el.innerText.trim();
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll('.run-button').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         e.stopImmediatePropagation();
+        // Use the closest <li> as scope if available, otherwise fallback to .step-content
         const item = btn.closest('li') || btn.closest('.step-content');
         let box = item.querySelector('textarea.quiz-textarea') || item.querySelector('.typingBox-vscode');
         const out = item.querySelector('.output-box');
+        // For quiz panels (panel-9) use local canvas, otherwise use global
         let canvas = item.querySelector('canvas.turtle-canvas-quiz');
         if (!canvas) canvas = document.getElementById('turtle-canvas');
-        const code = box && box.value !== undefined
-          ? box.value.replace(/\u200B/g, '')
-          : (box ? box.innerText.replace(/\u200B/g, '') : '');
+        let code = '';
+        if (box) {
+          if (box.tagName === 'TEXTAREA') {
+            code = box.value.replace(/\u200B/g, "");
+          } else {
+            code = getCodeFromTypingBox(box);
+          }
+        }
         await runTurtle(code, out, canvas);
       }, true);
     });
@@ -466,6 +427,12 @@ robot = turtle
   };
   firebase.initializeApp(firebaseConfig);
   window.kelasId = 'demo';
-  window.lessonId = 'M4L3';
+  window.lessonId = 'M4L2';
   initWhiteboard();
+</script>
+<script>
+  const cardContainer = parent.document ? parent.document.querySelector('#container-M4L2') : null;
+  if (cardContainer) {
+    cardContainer.innerHTML = '<a href="/elearn/M4L2.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M4 L2</span><h3>Turtle Loops</h3><p>Using Loops in the Turtle Module</p></div></a>';
+  }
 </script>
