@@ -394,10 +394,10 @@
           </summary>
           <div class="game-style-cards" style="margin: 40px 0;">
             <a href="/elearn/M4L1.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M4 L1</span><h3>Turtle Basics</h3><p>Linear Programming with Turtle Module for Drawing</p></div></a>
-            <div class="lesson-card"><span class="lesson-number">M4 L2</span><h3>Turtle Loops</h3><p>Using Loops in the Turtle Module</p></div>
-            <div class="lesson-card"><span class="lesson-number">M4 L3</span><h3>Turtle Decisions</h3><p>Using Decision Making in the Turtle Module</p></div>
-            <div class="lesson-card"><span class="lesson-number">M4 L4</span><h3>Drawing Project</h3><p>“Village Infrastructure” Using the Turtle Module</p></div>
-            <div id="container-M4L5"></div>
+            <a href="/elearn/M4L2.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M4 L2</span><h3>Turtle Loops</h3><p>Using Loops in the Turtle Module</p></div></a>
+            <a href="/elearn/M4L3.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M4 L3</span><h3>Turtle Decisions</h3><p>Using Decision Making in the Turtle Module</p></div></a>
+            <a href="/elearn/M4L4.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M4 L4</span><h3>Drawing Project</h3><p>“Village Infrastructure” Using the Turtle Module</p></div></a>
+            <a href="/elearn/M4L5.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M4 L5</span><h3>Drawing Project</h3><p>“Creating an Interactive Village” Using the Turtle Module</p></div></a>
           </div>
         </details>
 
@@ -450,6 +450,22 @@
     }
 
     // fungsi sidebar tersedia di sidebar.js
+  </script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const cont = document.getElementById('container-M4L2');
+    if (cont) {
+      cont.innerHTML = '<a href="/elearn/M4L2.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M4 L2</span><h3>Turtle Loops</h3><p>Using Loops in the Turtle Module</p></div></a>';
+    }
+  });
+</script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const cont = document.getElementById('container-M4L3');
+      if (cont) {
+        cont.innerHTML = '<a href="/elearn/M4L3.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M4 L3</span><h3>Turtle Decisions</h3><p>Using Decision Making in the Turtle Module</p></div></a>';
+      }
+    });
   </script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -515,5 +531,13 @@
     }
   });
 </script>
+ <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const cont = document.getElementById('container-M4L4');
+    if (cont) {
+      cont.innerHTML = '<a href="/elearn/M4L4.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M4 L4</span><h3>Drawing Project</h3><p>“Village Infrastructure” Using the Turtle Module</p></div></a>';
+    }
+  });
+ </script>
 </body>
 </html>
