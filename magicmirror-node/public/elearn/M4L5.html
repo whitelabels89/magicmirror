@@ -1,0 +1,401 @@
+<link rel="stylesheet" href="presetvs.css" />
+<script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+<script src="presetvs.js"></script>
+<style>
+  body {
+    font-family: 'Fredoka', sans-serif;
+    margin: 0;
+    background: #f0f7ff;
+    color: #333;
+  }
+  .header {
+    text-align: center;
+    padding: 20px;
+    background: #4f46e5;
+    color: #fff;
+  }
+  .header h1 {
+    margin-bottom: 10px;
+    font-size: 2.2rem;
+  }
+  .header p {
+    margin-bottom: 20px;
+  }
+  .progress-container {
+    margin-top: 20px;
+    width: 80%;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .progress-bar {
+    height: 12px;
+    background: #fff;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .progress {
+    width: 0%;
+    height: 100%;
+    background: #facc15;
+  }
+  .back-btn {
+    display: inline-block;
+    margin-top: 8px;
+    color: #fff;
+    background: #22c55e;
+    padding: 6px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  .container {
+    display: flex;
+    padding: 20px;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .sidebar {
+    flex: 1 1 180px;
+    max-width: 200px;
+    background: #fde68a;
+    padding: 20px;
+    border-radius: 20px;
+  }
+  .sidebar ul {
+    list-style: none;
+    padding: 0;
+  }
+  .sidebar li {
+    margin-bottom: 10px;
+    background: #fcd34d;
+    padding: 8px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .sidebar li.active {
+    background: #fbbf24;
+  }
+  .main {
+    flex: 3 1 300px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 20px;
+  }
+  .lab-column {
+    flex: 1 1 260px;
+    background: #111827;
+    padding: 20px;
+    border-radius: 20px;
+    color: #a7f3d0;
+    min-width: 260px;
+  }
+  .whiteboard-container {
+    margin-top: 1rem;
+    text-align: center;
+  }
+  #whiteboardCanvas {
+    border: 1px solid #ccc;
+    width: 100%;
+    height: 300px;
+    display: none;
+    touch-action: none;
+    background: #fff;
+  }
+  .turtle-container {
+    margin-top: 1rem;
+    text-align: center;
+  }
+  #turtle-canvas {
+    border: 1px solid #ccc;
+    width: 100%;
+    max-width: 400px;
+    height: 400px;
+    background: #fff;
+  }
+  .step-content {
+    display: none;
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+  }
+  .step-content.active { display: block; }
+  .nav-controls { text-align: center; margin-top: 20px; }
+  .typingBox-vscode {
+    white-space: pre-wrap;
+    font-family: monospace;
+  }
+  textarea.quiz-textarea {
+    width: 100%;
+    min-height: 100px;
+    background: #fff;
+    color: #000;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    padding: 8px;
+    font-family: monospace;
+  }
+</style>
+
+<div class="header">
+  <h1>Modul 4 - Pelajaran 5: Membuat Desa Interaktif dengan Turtle</h1>
+  <p>Mini Game Builder: Bangun Desa Impianmu dengan Python</p>
+  <div class="progress-container">
+    <div class="progress-bar"><div class="progress" id="progressBar"></div></div>
+  </div>
+  <div style="margin-top:10px;">
+    <a href="/elearn/modul.html" class="back-btn">⟵ Kembali ke Modul</a>
+  </div>
+</div>
+
+<div class="container">
+  <div class="sidebar">
+    <ul id="lesson-nav">
+      <li data-step="1" class="active">1. Kamu adalah Arsitek Desa!</li>
+      <li data-step="2">2. Fungsi Modular – Rumah, Jalan, Pohon</li>
+      <li data-step="3">3. Menu Pilihan Gambar</li>
+      <li data-step="4">4. Input Lokasi Gambar</li>
+      <li data-step="5">5. Gabungkan Semua</li>
+      <li data-step="6">6. Review & Tantangan</li>
+      <li data-step="7">7. Quiz Part 1</li>
+      <li data-step="8">8. Quiz Part 2</li>
+      <li data-step="9">9. Whiteboard</li>
+    </ul>
+  </div>
+  <div class="main">
+    <div id="panel-1" class="step-content">
+      <h2>Kamu adalah Arsitek Desa seperti di Minecraft!</h2>
+      <p>Bayangin kamu pembuat desa di dunia blok. Gambar rumah, jalan, pohon di posisi yang kamu tentukan pakai Python + Turtle!</p>
+    </div>
+    <div id="panel-2" class="step-content">
+      <h2>Buat Fungsi Modular – Rumah, Jalan, Pohon</h2>
+      <div class="typingBox-vscode" data-hint="def gambar_rumah():\n    for i in range(4):\n        turtle.forward(50)\n        turtle.right(90)\n    turtle.goto(turtle.xcor() + 25, turtle.ycor() + 50)\n    for i in range(3):\n        turtle.forward(25)\n        turtle.right(120)\n\ndef gambar_jalan():\n    turtle.color('gray')\n    for i in range(6):\n        turtle.forward(20)\n        turtle.right(90)\n        turtle.forward(10)\n        turtle.left(90)\n\ndef gambar_pohon():\n    turtle.color('brown')\n    turtle.forward(10)\n    turtle.backward(10)\n    turtle.left(90)\n    turtle.color('green')\n    for i in range(3):\n        turtle.circle(10)\n        turtle.right(60)"></div>
+      <button class="run-button">Jalankan</button>
+      <canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-3" class="step-content">
+      <h2>Buat Menu Pilihan Gambar</h2>
+      <div class="typingBox-vscode" data-hint="pilihan = input('Mau gambar apa? (rumah/jalan/pohon): ')\n\nif pilihan == 'rumah':\n    gambar_rumah()\nelif pilihan == 'jalan':\n    gambar_jalan()\nelif pilihan == 'pohon':\n    gambar_pohon()"></div>
+      <button class="run-button">Jalankan</button>
+      <canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-4" class="step-content">
+      <h2>Tambahkan Input Lokasi Gambar</h2>
+      <div class="typingBox-vscode" data-hint="x = int(input('Masukkan posisi X: '))\ny = int(input('Masukkan posisi Y: '))\nturtle.penup()\nturtle.goto(x, y)\nturtle.pendown()"></div>
+      <button class="run-button">Jalankan</button>
+      <canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas>
+      <pre class="output-box">// Hasil akan muncul di sini</pre>
+    </div>
+    <div id="panel-5" class="step-content">
+      <h2>Gabungkan Semua – Bangun Desa Impianmu!</h2>
+      <p>Gunakan loop untuk menggambar banyak rumah dan variasikan koordinat agar desa terlihat hidup. Tambahkan nama desa dan jalan jika mau.</p>
+    </div>
+    <div id="panel-6" class="step-content">
+      <h2>Review dan Tantangan Akhir</h2>
+      <p>Kamu belajar:</p>
+      <ul>
+        <li>Menu interaktif pakai <code>input()</code></li>
+        <li>Koordinat dinamis pakai <code>goto()</code></li>
+        <li>Fungsi modular & gambar bebas</li>
+      </ul>
+      <p>Tantangan: Bangun desa dengan 2 rumah, 1 jalan panjang, dan 2 pohon di posisi berbeda!</p>
+    </div>
+    <div id="panel-7" class="step-content">
+      <h2>Quiz Part 1</h2>
+      <ol>
+        <li>Manfaat fungsi seperti <code>gambar_rumah()</code> di proyek desa?<br><textarea style="width:100%;min-height:48px;margin-top:8px;"></textarea></li>
+        <li>Bagaimana <code>input()</code> bikin program interaktif?<br><textarea style="width:100%;min-height:48px;margin-top:8px;"></textarea></li>
+        <li>Kenapa pakai <code>turtle.goto(x, y)</code> penting di desa interaktif?<br><textarea style="width:100%;min-height:48px;margin-top:8px;"></textarea></li>
+        <li>Apa akibat tidak pakai <code>penup()</code>/<code>pendown()</code> saat pindah Turtle?<br><textarea style="width:100%;min-height:48px;margin-top:8px;"></textarea></li>
+        <li>Cara menyusun rumah, jalan, pohon agar tidak tumpang tindih?<br><textarea style="width:100%;min-height:48px;margin-top:8px;"></textarea></li>
+      </ol>
+    </div>
+    <div id="panel-8" class="step-content">
+      <h2>Quiz Part 2</h2>
+      <ol>
+        <li>Buat fungsi <code>gambar_rumah()</code> &amp; <code>gambar_jalan()</code> sesuai materi.<br><textarea class="quiz-textarea" style="margin-top:8px;"></textarea><button class="run-button" style="margin-top:4px;">Jalankan</button><canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas><pre class="output-box">// Hasil akan muncul di sini</pre></li>
+        <li>Buat kode menu tanya pilihan gambar (rumah/jalan/pohon) → gambar sesuai pilihan.<br><textarea class="quiz-textarea" style="margin-top:8px;"></textarea><button class="run-button" style="margin-top:4px;">Jalankan</button><canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas><pre class="output-box">// Hasil akan muncul di sini</pre></li>
+        <li>Tambahkan input koordinat (x, y) → gunakan <code>goto()</code> untuk menempatkan gambar.<br><textarea class="quiz-textarea" style="margin-top:8px;"></textarea><button class="run-button" style="margin-top:4px;">Jalankan</button><canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas><pre class="output-box">// Hasil akan muncul di sini</pre></li>
+        <li>Buat loop menggambar 3 rumah di koordinat berbeda.<br><textarea class="quiz-textarea" style="margin-top:8px;"></textarea><button class="run-button" style="margin-top:4px;">Jalankan</button><canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas><pre class="output-box">// Hasil akan muncul di sini</pre></li>
+        <li>Gabungkan: gambar 2 rumah, 1 jalan, 2 pohon/bunga di lokasi berbeda.<br><textarea class="quiz-textarea" style="margin-top:8px;"></textarea><button class="run-button" style="margin-top:4px;">Jalankan</button><canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas><pre class="output-box">// Hasil akan muncul di sini</pre></li>
+      </ol>
+    </div>
+    <div id="panel-9" class="step-content">
+      <h2>Whiteboard</h2>
+      <p>Gunakan whiteboard di samping untuk berlatih menggambar ide desamu.</p>
+    </div>
+    <div class="nav-controls">
+      <button onclick="prevPanel()">⟵ Sebelumnya</button>
+      <span id="indicator"></span>
+      <button onclick="nextPanel()">Selanjutnya ⟶</button>
+    </div>
+  </div>
+  <div class="lab-column">
+    <div class="turtle-container">
+      <canvas id="turtle-canvas" width="400" height="400"></canvas>
+      <div style="margin-top:10px;">
+        <button id="clearCanvas">Bersihkan Canvas</button>
+      </div>
+      <div id="canvasStatus" style="margin-top:8px;color:#f87171;"></div>
+    </div>
+    <div class="whiteboard-container">
+      <button id="toggleWhiteboard">Tampilkan Whiteboard</button>
+      <button id="clearWhiteboard">Clear</button>
+      <canvas id="whiteboardCanvas"></canvas>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentPanel = 1;
+  const totalPanels = 9;
+  function showPanel(n) {
+    if (n < 1 || n > totalPanels) return;
+    document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+    const panel = document.getElementById('panel-' + n);
+    if (panel) panel.classList.add('active');
+    currentPanel = n;
+    updateIndicator();
+  }
+  function nextPanel() { if (currentPanel < totalPanels) showPanel(currentPanel + 1); }
+  function prevPanel() { if (currentPanel > 1) showPanel(currentPanel - 1); }
+  function updateIndicator() { document.getElementById('indicator').textContent = 'Slide ' + currentPanel + ' / ' + totalPanels; }
+  document.getElementById('lesson-nav').addEventListener('click', function(e) {
+    if(e.target.matches('li[data-step]')) {
+      document.querySelectorAll('#lesson-nav li').forEach(li => li.classList.remove('active'));
+      e.target.classList.add('active');
+      showPanel(Number(e.target.getAttribute('data-step')));
+    }
+  });
+  document.addEventListener('DOMContentLoaded', () => showPanel(1));
+</script>
+<script>
+  document.querySelectorAll('.typingBox-vscode').forEach(box => {
+    box.addEventListener('keydown', (e) => {
+      if (e.key === ' ' || e.code === 'Space') {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    });
+  });
+</script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script src="whiteboard.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBVO4ajDwkbcTGL33SVMxIoev4veB8itgI",
+    authDomain: "queens-academy-icoding.firebaseapp.com",
+    projectId: "queens-academy-icoding",
+    storageBucket: "queens-academy-icoding.appspot.com",
+    messagingSenderId: "1048549258959",
+    appId: "1:1048549258959:web:f8dc1c104bb170d7ff69ba",
+  };
+  firebase.initializeApp(firebaseConfig);
+  window.kelasId = 'demo';
+  window.lessonId = 'M4L5';
+  initWhiteboard();
+</script>
+<script>
+  let pyodideReadyPromise = loadPyodide();
+  function clearCanvas(canvas) {
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+    document.getElementById('canvasStatus').textContent = '';
+  }
+  function drawLine(canvas, x1, y1, x2, y2, color = 'black', width = 1) {
+    const ctx = canvas.getContext('2d');
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+  }
+  async function runTurtle(code, outputEl, canvasEl) {
+    outputEl.textContent = '';
+    document.getElementById('canvasStatus').textContent = '';
+    const pyodide = await pyodideReadyPromise;
+    const ns = pyodide.globals.get('dict')();
+    ns.set('drawLine', pyodide.toPy((x1, y1, x2, y2, color='black', width=1) => drawLine(canvasEl, x1, y1, x2, y2, color, width)));
+    const script = `import math
+class SimTurtle:
+    def __init__(self):
+        self.x = 200
+        self.y = 200
+        self.angle = 0
+        self.pen = True
+        self.pen_color = 'black'
+        self.pen_width = 1
+    def forward(self, d):
+        rad = math.radians(self.angle)
+        nx = self.x + math.cos(rad)*d
+        ny = self.y - math.sin(rad)*d
+        if self.pen:
+            drawLine(self.x, self.y, nx, ny, self.pen_color, self.pen_width)
+        self.x, self.y = nx, ny
+    def goto(self, x, y):
+        if self.pen:
+            drawLine(self.x, self.y, x, y, self.pen_color, self.pen_width)
+        self.x, self.y = x, y
+    def backward(self, d):
+        self.forward(-d)
+    def left(self, a):
+        self.angle += a
+    def right(self, a):
+        self.angle -= a
+    def penup(self):
+        self.pen = False
+    def pendown(self):
+        self.pen = True
+    def color(self, c):
+        self.pen_color = c
+    def width(self, w):
+        self.pen_width = w
+turtle = SimTurtle()
+robot = turtle
+` + code;
+    try {
+      clearCanvas(canvasEl);
+      const ctx = canvasEl.getContext('2d');
+      ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+      await pyodide.runPythonAsync(script, { globals: ns });
+      document.getElementById('canvasStatus').textContent = 'Selesai!';
+    } catch (err) {
+      document.getElementById('canvasStatus').textContent = 'Error: ' + err;
+    } finally {
+      ns.destroy && ns.destroy();
+    }
+  }
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.run-button').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopImmediatePropagation();
+        const item = btn.closest('li') || btn.closest('.step-content');
+        let box = item.querySelector('textarea.quiz-textarea') || item.querySelector('.typingBox-vscode');
+        const out = item.querySelector('.output-box');
+        let canvas = item.querySelector('canvas.turtle-canvas-quiz');
+        if (!canvas) canvas = document.getElementById('turtle-canvas');
+        const code = box && box.value !== undefined
+          ? box.value.replace(/\u200B/g, '')
+          : (box ? box.innerText.replace(/\u200B/g, '') : '');
+        await runTurtle(code, out, canvas);
+      }, true);
+    });
+    document.getElementById('clearCanvas').addEventListener('click', () => {
+      const canvas = document.getElementById('turtle-canvas');
+      clearCanvas(canvas);
+    });
+  });
+</script>
+<script>
+  const cardContainer = parent.document ? parent.document.querySelector('#container-M4L5') : null;
+  if (cardContainer) {
+    cardContainer.innerHTML = '<a href="/elearn/M4L5.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M4 L5</span><h3>Mini Game Builder</h3><p>Membuat Desa Interaktif dengan Turtle</p></div></a>';
+  }
+</script>
