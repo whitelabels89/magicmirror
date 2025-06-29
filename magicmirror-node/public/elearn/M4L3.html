@@ -94,10 +94,23 @@
     margin-top: 1rem;
     text-align: center;
   }
+
+  .turtle-container {
+    margin-top: 1rem;
+    text-align: center;
+  }
+  #turtle-canvas {
+    border: 1px solid #ccc;
+    width: 100%;
+    max-width: 400px;
+    height: 400px;
+    background: #fff;
+  }
   #whiteboardCanvas {
     border: 1px solid #ccc;
     width: 100%;
     height: 300px;
+    display: none;
     touch-action: none;
     background: #fff;
   }
@@ -173,7 +186,6 @@ if sisi > 4:
 else:
     turtle.color('blue')"></div>
       <button class="run-button">Jalankan</button>
-      <canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
     </div>
     <div id="panel-3" class="step-content">
@@ -297,10 +309,16 @@ else:
     </div>
   </div>
   <div class="lab-column">
+    <div class="turtle-container">
+      <canvas id="turtle-canvas" width="400" height="400"></canvas>
+      <div style="margin-top:10px;">
+        <button id="clearCanvas">Bersihkan Canvas</button>
+      </div>
+      <div id="canvasStatus" style="margin-top:8px;color:#f87171;"></div>
+    </div>
     <div class="whiteboard-container">
       <button id="toggleWhiteboard">Tampilkan Whiteboard</button>
       <button id="clearWhiteboard">Clear</button>
-      <canvas id="turtleCanvas" style="border:1px solid #ccc; background:#fff; margin-bottom:8px; width:100%; height:300px;"></canvas>
       <canvas id="whiteboardCanvas"></canvas>
     </div>
   </div>
@@ -359,14 +377,10 @@ else:
   }
   async function runTurtle(code, outputEl, canvasEl) {
     outputEl.textContent = '';
-    // Sync canvas size to displayed size
-    canvasEl.width = canvasEl.clientWidth;
-    canvasEl.height = canvasEl.clientHeight;
+    document.getElementById('canvasStatus').textContent = '';
     const pyodide = await pyodideReadyPromise;
     const ns = pyodide.globals.get('dict')();
-    ns.set('drawLine', pyodide.toPy((x1, y1, x2, y2, color='black', width=1) => {
-      drawLine(canvasEl, x1, y1, x2, y2, color, width);
-    }));
+    ns.set('drawLine', pyodide.toPy((x1, y1, x2, y2, color='black', width=1) => drawLine(canvasEl, x1, y1, x2, y2, color, width)));
     const script = `import math
 class SimTurtle:
     def __init__(self):
@@ -406,12 +420,12 @@ robot = turtle
 ` + code;
     try {
       clearCanvas(canvasEl);
-      // Make sure we clear the entire canvas area for the current canvasEl (not just the global one)
       const ctx = canvasEl.getContext('2d');
       ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
       await pyodide.runPythonAsync(script, { globals: ns });
+      document.getElementById('canvasStatus').textContent = 'Selesai!';
     } catch (err) {
-      console.error(err);
+      document.getElementById('canvasStatus').textContent = 'Error: ' + err;
     } finally {
       ns.destroy && ns.destroy();
     }
@@ -420,24 +434,20 @@ robot = turtle
     document.querySelectorAll('.run-button').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         e.stopImmediatePropagation();
-        // Use the closest <li> as scope if available, otherwise fallback to .step-content
         const item = btn.closest('li') || btn.closest('.step-content');
         let box = item.querySelector('textarea.quiz-textarea') || item.querySelector('.typingBox-vscode');
         const out = item.querySelector('.output-box');
-        // Use shared whiteboard for all except Quiz Part 2 (panel-8)
-        let canvas;
-        if (item.closest('#panel-8')) {
-          // In Quiz Part 2, use the quiz-specific canvas
-          canvas = item.querySelector('canvas.turtle-canvas-quiz');
-        } else {
-          // For other panels, use the dedicated turtle canvas
-          canvas = document.getElementById('turtleCanvas');
-        }
+        let canvas = item.querySelector('canvas.turtle-canvas-quiz');
+        if (!canvas) canvas = document.getElementById('turtle-canvas');
         const code = box && box.value !== undefined
-          ? box.value.replace(/[\u200B-\u200D\uFEFF]/g, '')
-          : (box ? box.innerText.replace(/[\u200B-\u200D\uFEFF]/g, '') : '');
+          ? box.value.replace(/\u200B/g, '')
+          : (box ? box.innerText.replace(/\u200B/g, '') : '');
         await runTurtle(code, out, canvas);
       }, true);
+    });
+    document.getElementById('clearCanvas').addEventListener('click', () => {
+      const canvas = document.getElementById('turtle-canvas');
+      clearCanvas(canvas);
     });
   });
 </script>
