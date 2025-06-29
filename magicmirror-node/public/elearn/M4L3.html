@@ -359,7 +359,10 @@ else:
   });
 </script>
 <script>
-  let pyodideReadyPromise = loadPyodide();
+  // Remove global pyodideReadyPromise. Use fresh instance per run.
+  async function getFreshPyodide() {
+    return await loadPyodide();
+  }
   function clearCanvas(canvas) {
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -378,9 +381,16 @@ else:
   async function runTurtle(code, outputEl, canvasEl) {
     outputEl.textContent = '';
     document.getElementById('canvasStatus').textContent = '';
-    const pyodide = await pyodideReadyPromise;
+    // Aggressive cleaning
+    code = code.replace(/^[\s\r\n]+|[\s\r\n]+$/g, '');
+    code = code.replace(/[\u200B-\u200D\uFEFF]/g, '');
+    const pyodide = await getFreshPyodide();
     const ns = pyodide.globals.get('dict')();
-    ns.set('drawLine', pyodide.toPy((x1, y1, x2, y2, color='black', width=1) => drawLine(canvasEl, x1, y1, x2, y2, color, width)));
+    ns.set('drawLine', pyodide.toPy((x1, y1, x2, y2, color='black', width=1) => {
+      console.log("DRAWING ON CANVAS:", canvasEl);
+      drawLine(canvasEl, x1, y1, x2, y2, color, width);
+    }));
+    pyodide.globals.set('drawLine', ns.get('drawLine'));
     const script = `import math
 class SimTurtle:
     def __init__(self):
@@ -417,6 +427,7 @@ class SimTurtle:
         self.pen_width = w
 turtle = SimTurtle()
 robot = turtle
+
 ` + code;
     try {
       clearCanvas(canvasEl);
@@ -437,11 +448,19 @@ robot = turtle
         const item = btn.closest('li') || btn.closest('.step-content');
         let box = item.querySelector('textarea.quiz-textarea') || item.querySelector('.typingBox-vscode');
         const out = item.querySelector('.output-box');
-        let canvas = item.querySelector('canvas.turtle-canvas-quiz');
-        if (!canvas) canvas = document.getElementById('turtle-canvas');
-        const code = box && box.value !== undefined
-          ? box.value.replace(/\u200B/g, '')
-          : (box ? box.innerText.replace(/\u200B/g, '') : '');
+        // Updated canvas assignment logic
+        let canvas;
+        if (item.closest('#panel-8')) {
+          // In Quiz Part 2, always use the quiz's local canvas for each question
+          canvas = item.querySelector('canvas.turtle-canvas-quiz');
+        } else {
+          canvas = document.getElementById('turtle-canvas');
+        }
+        // New code assignment logic
+        let code = box?.getAttribute('data-code')?.trim() || box?.getAttribute('data-hint')?.trim() || '';
+        // Aggressive cleaning
+        code = code.replace(/^[\s\r\n]+|[\s\r\n]+$/g, '');
+        code = code.replace(/[\u200B-\u200D\uFEFF]/g, '');
         await runTurtle(code, out, canvas);
       }, true);
     });
