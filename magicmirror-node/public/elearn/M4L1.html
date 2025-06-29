@@ -153,12 +153,13 @@
     </div>
     <div id="panel-3" class="step-content">
       <h2>Perintah Dasar Turtle</h2>
-      <div class="typingBox-vscode" data-hint="robot.forward(100)  # maju 100 langkah
-robot.left(90)      # belok kiri 90 derajat
-robot.backward(50)  # mundur 50 langkah"></div>
+      <div class="typingBox-vscode" data-hint="robot.color('red')  # ganti warna garis
+robot.width(3)     # ganti ketebalan
+robot.forward(100)  # maju 100 langkah
+robot.left(90)      # belok kiri 90 derajat"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
-      <p>Coba kode ini, lihat bagaimana Turtle bergerak seperti robot!</p>
+      <p>Coba kode ini. Kamu bisa mengubah warna dan ketebalan garis dengan <code>color()</code> dan <code>width()</code>.</p>
     </div>
     <div id="panel-4" class="step-content">
       <h2>Misi 1 – Gambar Jalanan</h2>
@@ -321,9 +322,11 @@ robot.forward(60)"></div>
     ctx.clearRect(0, 0, c.width, c.height);
     document.getElementById('canvasStatus').textContent = '';
   }
-  function drawLine(x1, y1, x2, y2) {
+  function drawLine(x1, y1, x2, y2, color = 'black', width = 1) {
     const c = document.getElementById('turtle-canvas');
     const ctx = c.getContext('2d');
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
     let step = 0;
     const steps = 20;
     ctx.beginPath();
@@ -352,12 +355,14 @@ class SimTurtle:
         self.y = 200
         self.angle = 0
         self.pen = True
+        self.color = 'black'
+        self.width = 1
     def forward(self, d):
         rad = math.radians(self.angle)
         nx = self.x + math.cos(rad)*d
         ny = self.y - math.sin(rad)*d
         if self.pen:
-            drawLine(self.x, self.y, nx, ny)
+            drawLine(self.x, self.y, nx, ny, self.color, self.width)
         self.x, self.y = nx, ny
     def backward(self, d):
         self.forward(-d)
@@ -369,6 +374,10 @@ class SimTurtle:
         self.pen = False
     def pendown(self):
         self.pen = True
+    def color(self, c):
+        self.color = c
+    def width(self, w):
+        self.width = w
 turtle = SimTurtle()
 robot = turtle
 ` + code;
