@@ -18,9 +18,11 @@ function clearCanvas() {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
-function drawLine(x1, y1, x2, y2) {
+function drawLine(x1, y1, x2, y2, color = 'black', width = 1) {
   const canvas = document.getElementById("turtle-canvas");
   const ctx = canvas.getContext("2d");
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
   ctx.beginPath();
   ctx.moveTo(x1, y1);
   ctx.lineTo(x2, y2);
@@ -45,17 +47,23 @@ class SimTurtle:
         self.x = 150
         self.y = 150
         self.angle = 0
+        self.color = 'black'
+        self.width = 1
 
     def forward(self, distance):
         rad = math.radians(self.angle)
         new_x = self.x + math.cos(rad) * distance
         new_y = self.y + math.sin(rad) * distance
-        drawLine(self.x, self.y, new_x, new_y)
+        drawLine(self.x, self.y, new_x, new_y, self.color, self.width)
         self.x = new_x
         self.y = new_y
 
     def right(self, angle):
         self.angle += angle
+    def color(self, c):
+        self.color = c
+    def width(self, w):
+        self.width = w
 
 t = SimTurtle()
 ` + code;
