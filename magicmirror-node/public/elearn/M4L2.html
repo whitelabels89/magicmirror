@@ -167,11 +167,19 @@ robot.forward(100)
 robot.right(90)
 robot.forward(100)
 robot.right(90)
+robot.forward(100)" data-code="robot.forward(100)
+robot.right(90)
+robot.forward(100)
+robot.right(90)
+robot.forward(100)
+robot.right(90)
 robot.forward(100)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
       <p>Dengan loop lebih singkat:</p>
       <div class="typingBox-vscode" data-hint="for i in range(4):
+    robot.forward(100)
+    robot.right(90)" data-code="for i in range(4):
     robot.forward(100)
     robot.right(90)"></div>
       <button class="run-button">Jalankan</button>
@@ -186,6 +194,8 @@ robot.forward(100)"></div>
       <h2>Misi 1 – Gambar Perisai Superhero (Persegi)</h2>
       <div class="typingBox-vscode" data-hint="for i in range(4):
     robot.forward(80)
+    robot.right(90)" data-code="for i in range(4):
+    robot.forward(80)
     robot.right(90)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
@@ -194,6 +204,8 @@ robot.forward(100)"></div>
       <h2>Misi 2 – Roda Tank</h2>
       <div class="typingBox-vscode" data-hint="for i in range(6):
     robot.forward(100)
+    robot.right(60)" data-code="for i in range(6):
+    robot.forward(100)
     robot.right(60)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
@@ -201,6 +213,8 @@ robot.forward(100)"></div>
     <div id="panel-6" class="step-content">
       <h2>Proyek Bebas – Gambar Mandala atau Roda Laser!</h2>
       <div class="typingBox-vscode" data-hint="for i in range(36):
+    robot.forward(100)
+    robot.right(170)" data-code="for i in range(36):
     robot.forward(100)
     robot.right(170)"></div>
       <button class="run-button">Jalankan</button>
@@ -367,7 +381,7 @@ robot = turtle
     }
   }
   function getCodeFromTypingBox(el) {
-    return el.innerText.trim();
+    return el.getAttribute('data-code')?.trim() || el.innerText.trim();
   }
 
   document.addEventListener("DOMContentLoaded", () => {
