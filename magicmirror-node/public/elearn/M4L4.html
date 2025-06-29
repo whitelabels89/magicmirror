@@ -159,7 +159,16 @@
     </div>
     <div id="panel-2" class="step-content">
       <h2>Buat Fungsi untuk Bangunan Modular</h2>
-      <div class="typingBox-vscode" data-hint="def gambar_rumah():
+      <div class="typingBox-vscode"
+           data-hint="def gambar_rumah():
+    for i in range(4):
+        turtle.forward(60)
+        turtle.right(90)
+    turtle.goto(turtle.xcor() + 30, turtle.ycor() + 60)
+    for i in range(3):
+        turtle.forward(30)
+        turtle.right(120)"
+           data-code="def gambar_rumah():
     for i in range(4):
         turtle.forward(60)
         turtle.right(90)
@@ -169,24 +178,32 @@
         turtle.right(120)"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
-      <canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas>
     </div>
     <div id="panel-3" class="step-content">
       <h2>Gambar Jalan yang Panjang</h2>
-      <div class="typingBox-vscode" data-hint="def gambar_jalan(panjang):
+      <div class="typingBox-vscode"
+           data-hint="def gambar_jalan(panjang):
     turtle.color(&quot;gray&quot;)
     for i in range(panjang):
         turtle.forward(20)
         turtle.right(90)
         turtle.forward(10)
-        turtle.left(90)"></div>
+        turtle.left(90)"
+           data-code="def gambar_jalan(panjang):
+    turtle.color(&quot;gray&quot;)
+    for i in range(panjang):
+        turtle.forward(20)
+        turtle.right(90)
+        turtle.forward(10)
+        turtle.left(90)
+"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
-      <canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas>
     </div>
     <div id="panel-4" class="step-content">
       <h2>Tambahkan Pohon untuk Oksigen di Desa!</h2>
-      <div class="typingBox-vscode" data-hint="def gambar_pohon():
+      <div class="typingBox-vscode"
+           data-hint="def gambar_pohon():
     turtle.color(&quot;brown&quot;)
     turtle.forward(10)
     turtle.backward(10)
@@ -194,21 +211,45 @@
     turtle.color(&quot;green&quot;)
     for i in range(3):
         turtle.circle(10)
-        turtle.right(60)"></div>
+        turtle.right(60)"
+           data-code="def gambar_pohon():
+    turtle.color(&quot;brown&quot;)
+    turtle.forward(10)
+    turtle.backward(10)
+    turtle.left(90)
+    turtle.color(&quot;green&quot;)
+    for i in range(3):
+        turtle.circle(10)
+        turtle.right(60)
+"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
-      <canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas>
     </div>
     <div id="panel-5" class="step-content">
       <h2>Bangun Desa Otomatis dengan Loop dan Koordinat</h2>
-      <div class="typingBox-vscode" data-hint="for i in range(3):
+      <div class="typingBox-vscode"
+           data-hint="for i in range(3):
     turtle.penup()
     turtle.goto(-200 + (i * 100), 0)
     turtle.pendown()
-    gambar_rumah()"></div>
+    gambar_rumah()"
+           data-code="def gambar_rumah():
+    for i in range(4):
+        turtle.forward(60)
+        turtle.right(90)
+    turtle.goto(turtle.xcor() + 30, turtle.ycor() + 60)
+    for i in range(3):
+        turtle.forward(30)
+        turtle.right(120)
+
+for i in range(3):
+    turtle.penup()
+    turtle.goto(-200 + (i * 100), 0)
+    turtle.pendown()
+    gambar_rumah()
+"></div>
       <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
-      <canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas>
     </div>
     <div id="panel-6" class="step-content">
       <h2>Review dan Challenge</h2>
@@ -392,6 +433,10 @@ class SimTurtle:
         if self.pen:
             drawLine(self.x, self.y, x, y, self.pen_color, self.pen_width)
         self.x, self.y = x, y
+    def xcor(self):
+        return self.x
+    def ycor(self):
+        return self.y
     def backward(self, d):
         self.forward(-d)
     def left(self, a):
@@ -432,9 +477,21 @@ robot = turtle
         const out = item.querySelector('.output-box');
         let canvas = item.querySelector('canvas.turtle-canvas-quiz');
         if (!canvas) canvas = document.getElementById('turtle-canvas');
-        const code = box && box.value !== undefined
-          ? box.value.replace(/\u200B/g, '')
-          : (box ? box.innerText.replace(/\u200B/g, '') : '');
+        let code = '';
+        if (box) {
+          // Prioritaskan data-code jika ada
+          if (box.dataset && box.dataset.code) {
+            code = box.dataset.code;
+          } else if (box.value !== undefined) {
+            code = box.value;
+          } else if (box.innerText !== undefined) {
+            code = box.innerText;
+          }
+          // Bersihkan karakter \u200B
+          code = code.replace(/\u200B/g, '');
+          // Hapus leading baris kosong dan trim
+          code = code.replace(/^\s*\n/, '').trimStart();
+        }
         await runTurtle(code, out, canvas);
       }, true);
     });
