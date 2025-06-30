@@ -64,10 +64,11 @@ main();
   }
   .container {
     display: flex;
-    padding: 20px;
-    gap: 40px;
-    flex-wrap: wrap;
-    align-items: flex-start;
+    flex-direction: row;
+    padding: 0;
+    gap: 0;
+    align-items: stretch;
+    height: 100vh;
   }
   .top-nav {
     width: 100%;
@@ -109,19 +110,31 @@ main();
     color: #fff;
   }
   .main {
-    flex: 3 1 300px;
+    flex: 1 1 50%;
+    max-width: 50%;
     background: #ffffff;
     box-shadow: 0 2px 12px rgba(0,0,0,0.08);
     border-radius: 24px;
     padding: 20px;
+    transition: margin-right 0.5s;
+    overflow-y: auto;
   }
   .lab-column {
-    flex: 1 1 260px;
+    flex: 1 1 50%;
+    max-width: 50%;
     background: #111827;
     padding: 20px;
-    border-radius: 20px;
+    border-radius: 0;
     color: #a7f3d0;
-    min-width: 260px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    position: relative;
+  }
+  .global-editor, #globalPyodideOutput {
+    flex: 1 1 48%;
+    min-height: 200px;
   }
   .whiteboard-container {
     margin-top: 1rem;
@@ -160,14 +173,22 @@ main();
     background: #6d28d9;
   }
   .output-box {
-    background-color: #1e293b !important;
-    color: #a7f3d0 !important;
+    background-color: #1e293b;
+    color: #a7f3d0;
     padding: 10px;
     border-radius: 8px;
     margin-top: 8px;
     white-space: pre-wrap;
     font-family: monospace;
     min-height: 50px;
+  }
+  .light-theme-output {
+    background-color: white;
+    color: black;
+  }
+  .dark-theme-output {
+    background-color: #1e293b;
+    color: #a7f3d0;
   }
   .typingBox-vscode {
     max-width: 100%;
@@ -615,21 +636,23 @@ main();
       <button onclick="nextPanel()">Selanjutnya ⟶</button>
     </div>
   </div>
-    <div class="lab-column">
-      <div class="global-pyodide-container">
-        <h3>Output Canvas Pyodide</h3>
-        <div class="code-editor-container" style="margin-bottom:10px;">
-          <div contenteditable="true" id="globalPyodideInput" class="global-editor"></div>
-          <button onclick="runGlobalPyodideInput()" style="margin-top:8px;background:#4f46e5;color:#fff;padding:6px 12px;border-radius:8px;border:none;cursor:pointer;">Jalankan Kode</button>
-        </div>
-        <pre id="globalPyodideOutput" class="output-box" style="height:200px;overflow-y:auto;"></pre>
+  <button id="toggleLabColumn" style="position:fixed;top:50%;right:0;z-index:1000;background:#4f46e5;color:#fff;padding:8px 12px;border-radius:8px 0 0 8px;border:none;cursor:pointer;">⇆ Pyodide</button>
+  <div class="lab-column">
+    <div class="global-pyodide-container">
+      <h3>Output Canvas Pyodide</h3>
+      <div id="themeToggleIcon" style="position:absolute;top:10px;right:10px;cursor:pointer;font-size:24px;">🌙</div>
+      <div class="code-editor-container" style="margin-bottom:10px;">
+        <div contenteditable="true" id="globalPyodideInput" class="global-editor"></div>
+        <button onclick="runGlobalPyodideInput()" style="margin-top:8px;background:#4f46e5;color:#fff;padding:6px 12px;border-radius:8px;border:none;cursor:pointer;">Jalankan Kode</button>
       </div>
-      <div class="whiteboard-container">
-        <button id="toggleWhiteboard">Tampilkan Whiteboard</button>
-        <button id="clearWhiteboard">Clear</button>
-        <canvas id="whiteboardCanvas"></canvas>
-      </div>
+      <pre id="globalPyodideOutput" class="output-box" style="height:200px;overflow-y:auto;"></pre>
     </div>
+    <div class="whiteboard-container">
+      <button id="toggleWhiteboard">Tampilkan Whiteboard</button>
+      <button id="clearWhiteboard">Clear</button>
+      <canvas id="whiteboardCanvas"></canvas>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -708,8 +731,44 @@ sys.stderr = sys.stdout
       document.getElementById('globalPyodideOutput').textContent = 'Error: ' + err;
     }
   }
+
+  // Theme toggle icon (moon/sun)
+  document.getElementById('themeToggleIcon').addEventListener('click', function() {
+    const lab = document.querySelector('.lab-column');
+    const editor = document.getElementById('globalPyodideInput');
+    const output = document.getElementById('globalPyodideOutput');
+    const icon = document.getElementById('themeToggleIcon');
+    if (lab.classList.contains('dark-theme')) {
+      lab.classList.remove('dark-theme');
+      lab.style.background = '#f9fafb';
+      editor.style.background = 'white';
+      editor.style.color = 'black';
+      output.classList.remove('dark-theme-output', 'light-theme-output');
+      output.classList.add('light-theme-output');
+      icon.textContent = '🌙';
+    } else {
+      lab.classList.add('dark-theme');
+      lab.style.background = '#111827';
+      editor.style.background = '#1e293b';
+      editor.style.color = '#a7f3d0';
+      output.classList.remove('dark-theme-output', 'light-theme-output');
+      output.classList.add('dark-theme-output');
+      icon.textContent = '☀️';
+    }
+  });
+
+document.getElementById('toggleLabColumn').addEventListener('click', function() {
+  const main = document.querySelector('.main');
+  const lab = document.querySelector('.lab-column');
+  if (lab.style.display === 'none') {
+    lab.style.display = 'flex';
+    main.style.maxWidth = '50%';
+  } else {
+    lab.style.display = 'none';
+    main.style.maxWidth = '100%';
+  }
+});
 </script>
-<!-- Firebase and Whiteboard -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 <script src="whiteboard.js"></script>
