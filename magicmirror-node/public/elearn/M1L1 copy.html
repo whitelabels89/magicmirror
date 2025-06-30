@@ -1,12 +1,5 @@
 <link rel="stylesheet" href="presetvs.css" />
 <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
-<script>
-let pyodide;
-async function main() {
-  pyodide = await loadPyodide();
-}
-main();
-</script>
 <script src="presetvs.js"></script>
 <style>
   body {
@@ -18,15 +11,12 @@ main();
   .header {
     text-align: center;
     padding: 20px;
-    background: linear-gradient(90deg, #4f46e5, #6d28d9);
+    background: #4f46e5;
     color: #fff;
-    border-bottom-left-radius: 24px;
-    border-bottom-right-radius: 24px;
   }
   .header h1 {
     margin-bottom: 10px;
     font-size: 2.2rem;
-    font-weight: 700;
   }
   .header p {
     margin-bottom: 20px;
@@ -37,20 +27,17 @@ main();
     max-width: 600px;
     margin-left: auto;
     margin-right: auto;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    background: #f9fafb;
   }
   .progress-bar {
     height: 12px;
-    background: #e5e7eb;
+    background: #fff;
     border-radius: 6px;
     overflow: hidden;
   }
   .progress {
     width: 0%;
     height: 100%;
-    background: #22c55e;
+    background: #facc15;
   }
   .back-btn {
     display: inline-block;
@@ -65,55 +52,35 @@ main();
   .container {
     display: flex;
     padding: 20px;
-    gap: 40px;
+    gap: 20px;
     flex-wrap: wrap;
-    align-items: flex-start;
   }
-  .top-nav {
-    width: 100%;
-    overflow-x: auto;
-    background: #f9fafb;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    border-radius: 12px;
-    margin: 10px auto 20px auto;
-    padding: 10px 20px;
-    white-space: nowrap;
+  .sidebar {
+    flex: 1 1 180px;
+    max-width: 200px;
+    background: #fde68a;
+    padding: 20px;
+    border-radius: 20px;
   }
-  .top-nav ul {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
+  .sidebar ul {
     list-style: none;
-    margin: 0;
     padding: 0;
   }
-  .top-nav li {
-    flex: 0 0 auto;
-    width: 30px;
-    height: 30px;
-    background: #e5e7eb;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
+  .sidebar li {
+    margin-bottom: 10px;
+    background: #fcd34d;
+    padding: 8px 12px;
+    border-radius: 10px;
     cursor: pointer;
-    transition: background 0.3s, transform 0.2s;
   }
-  .top-nav li:hover {
-    background: #d1d5db;
-    transform: scale(1.1);
-  }
-  .top-nav li.active {
-    background: #4f46e5;
-    color: #fff;
+  .sidebar li.active {
+    background: #fbbf24;
   }
   .main {
     flex: 3 1 300px;
-    background: #ffffff;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-    border-radius: 24px;
+    background: #fff;
     padding: 20px;
+    border-radius: 20px;
   }
   .lab-column {
     flex: 1 1 260px;
@@ -145,20 +112,6 @@ main();
   }
   .step-content.active { display: block; }
   .nav-controls { text-align: center; margin-top: 20px; }
-  .nav-controls button {
-    background: #4f46e5;
-    color: #fff;
-    border: none;
-    padding: 10px 20px;
-    margin: 0 5px;
-    border-radius: 10px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background 0.3s;
-  }
-  .nav-controls button:hover {
-    background: #6d28d9;
-  }
   .output-box {
     background-color: #1e293b !important;
     color: #a7f3d0 !important;
@@ -168,26 +121,6 @@ main();
     white-space: pre-wrap;
     font-family: monospace;
     min-height: 50px;
-  }
-  .typingBox-vscode {
-    max-width: 100%;
-    word-wrap: break-word;
-    white-space: pre-wrap;
-    overflow-x: auto;
-    box-sizing: border-box;
-  }
-  .global-editor {
-    background: #1e293b;
-    color: #a7f3d0;
-    padding: 8px;
-    border-radius: 8px;
-    font-family: monospace;
-    width: 100%;
-    max-width: 100%;
-    word-wrap: break-word;
-    overflow-x: auto;
-    box-sizing: border-box;
-    min-height: 80px;
   }
 </style>
 
@@ -201,37 +134,37 @@ main();
     <a href="/elearn/modul.html" class="back-btn">⟵ Kembali ke Modul</a>
   </div>
 </div>
-<div class="top-nav">
-  <ul id="lesson-nav">
-    <li data-step="1" class="active">1</li>
-    <li data-step="2">2</li>
-    <li data-step="3">3</li>
-    <li data-step="4">4</li>
-    <li data-step="5">5</li>
-    <li data-step="6">6</li>
-    <li data-step="7">7</li>
-    <li data-step="8">8</li>
-    <li data-step="9">9</li>
-    <li data-step="10">10</li>
-    <li data-step="11">11</li>
-    <li data-step="12">12</li>
-    <li data-step="13">13</li>
-    <li data-step="14">14</li>
-    <li data-step="15">15</li>
-    <li data-step="16">16</li>
-    <li data-step="17">17</li>
-    <li data-step="18">18</li>
-    <li data-step="19">19</li>
-    <li data-step="20">20</li>
-    <li data-step="21">21</li>
-    <li data-step="22">22</li>
-    <li data-step="23">23</li>
-    <li data-step="24">24</li>
-    <li data-step="25">25</li>
-  </ul>
-</div>
 
 <div class="container">
+  <div class="sidebar">
+    <ul id="lesson-nav">
+      <li data-step="1" class="active">1. Mengapa Belajar?</li>
+      <li data-step="2">2. Kegunaan Python</li>
+      <li data-step="3">3. Pentingnya Teori</li>
+      <li data-step="4">4. Konsep Dasar</li>
+      <li data-step="5">5. Apa Itu Algoritma</li>
+      <li data-step="6">6. Algoritma Baik</li>
+      <li data-step="7">7. Contoh Algoritma</li>
+      <li data-step="8">8. Eksekusi Kode</li>
+      <li data-step="9">9. Bahasa Pemrograman</li>
+      <li data-step="10">10. Apa Itu Program</li>
+      <li data-step="11">11. Menulis Program</li>
+      <li data-step="12">12. Kesimpulan Dasar</li>
+      <li data-step="13">13. Task Platform</li>
+      <li data-step="14">14. Apa Itu Fungsi</li>
+      <li data-step="15">15. Fungsi print()</li>
+      <li data-step="16">16. Cetak Nilai</li>
+      <li data-step="17">17. Ekspresi print()</li>
+      <li data-step="18">18. Sintaks Lain</li>
+      <li data-step="19">19. Urutan Operasi</li>
+      <li data-step="20">20. Kesimpulan Fungsi</li>
+      <li data-step="21">21. Task Fungsi</li>
+      <li data-step="22">22. Quiz Part 1</li>
+      <li data-step="23">23. Quiz Part 2</li>
+      <li data-step="24">24. Q&amp;A</li>
+      <li data-step="25">25. Terima Kasih</li>
+    </ul>
+  </div>
   <div class="main">
     <div id="panel-1" class="step-content">
       <h2>Mengapa Kita Belajar Python?</h2>
@@ -365,7 +298,7 @@ main();
         <li>Fungsi melakukan tugas tertentu saat dipanggil.</li>
       </ul>
       <p><strong>Contoh:</strong></p>
-      <div class="typingBox-vscode" data-hint="def sapa(): print('Halo!'); sapa()"></div>
+      <div class="typingBox-vscode" data-hint="def sapa():\n    print('Halo!')\nsapa()"></div>
     </div>
     <div id="panel-15" class="step-content">
       <h2>Fungsi print()</h2>
@@ -387,7 +320,7 @@ main();
       <h2>Mencetak Nilai dengan print()</h2>
       <div class="code-group">
         <p><strong>Fungsi print() bisa mencetak teks, angka, atau kombinasi keduanya:</strong></p>
-        <div class="typingBox-vscode" data-hint="print('My age is: 14'); print(1, 4)"></div>
+        <div class="typingBox-vscode" data-hint="print('My age is: 14')\nprint(1, 4)"></div>
         <p><strong>Output:</strong></p>
         <pre class="output-box"></pre>
       </div>
@@ -439,7 +372,9 @@ main();
 
         <div class="code-group">
           <p><strong>Contoh tambahan:</strong></p>
-          <div class="typingBox-vscode" data-hint="print(14 % 2); print(14 // 3); print(3 ** 3)"></div>
+          <div class="typingBox-vscode" data-hint="print(14 % 2)
+print(14 // 3)
+print(3 ** 3)"></div>
           <p><strong>Output:</strong></p>
           <pre class="output-box">0
 4
@@ -449,7 +384,8 @@ main();
     </div>
     <div id="panel-19" class="step-content">
       <h2>Urutan Operasi</h2>
-      <div class="typingBox-vscode" data-hint="print(2 + 3 * 4); print((2 + 3) * 4)"></div>
+      <div class="typingBox-vscode" data-hint="print(2 + 3 * 4)
+nprint((2 + 3) * 4)"></div>
     </div>
     <div id="panel-20" class="step-content">
       <h2>Ringkasan & Inti Pembelajaran</h2>
@@ -615,21 +551,13 @@ main();
       <button onclick="nextPanel()">Selanjutnya ⟶</button>
     </div>
   </div>
-    <div class="lab-column">
-      <div class="global-pyodide-container">
-        <h3>Output Canvas Pyodide</h3>
-        <div class="code-editor-container" style="margin-bottom:10px;">
-          <div contenteditable="true" id="globalPyodideInput" class="global-editor"></div>
-          <button onclick="runGlobalPyodideInput()" style="margin-top:8px;background:#4f46e5;color:#fff;padding:6px 12px;border-radius:8px;border:none;cursor:pointer;">Jalankan Kode</button>
-        </div>
-        <pre id="globalPyodideOutput" class="output-box" style="height:200px;overflow-y:auto;"></pre>
-      </div>
-      <div class="whiteboard-container">
-        <button id="toggleWhiteboard">Tampilkan Whiteboard</button>
-        <button id="clearWhiteboard">Clear</button>
-        <canvas id="whiteboardCanvas"></canvas>
-      </div>
+  <div class="lab-column">
+    <div class="whiteboard-container">
+      <button id="toggleWhiteboard">Tampilkan Whiteboard</button>
+      <button id="clearWhiteboard">Clear</button>
+      <canvas id="whiteboardCanvas"></canvas>
     </div>
+  </div>
 </div>
 
 <script>
@@ -654,60 +582,6 @@ main();
     }
   });
   document.addEventListener('DOMContentLoaded', () => showPanel(1));
-
-  // Pyodide global output canvas for all .typingBox-vscode (run on Enter)
-  document.querySelectorAll('.typingBox-vscode').forEach(box => {
-    box.addEventListener('keydown', async function(e) {
-      if(e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        const code = box.textContent.trim();
-        try {
-          const wrappedCode = `
-import sys
-import io
-sys.stdout = io.StringIO()
-sys.stderr = sys.stdout
-${code}
-sys.stdout.getvalue()
-`;
-          const output = await pyodide.runPythonAsync(wrappedCode);
-          document.getElementById('globalPyodideOutput').textContent = output || '=== Tidak ada output ===';
-        } catch(err) {
-          document.getElementById('globalPyodideOutput').textContent = 'Error: ' + err;
-        }
-      }
-    });
-  });
-
-  // Fungsi untuk menjalankan kode dari input editor global (definisi dan eksekusi dipisah)
-  async function runGlobalPyodideInput() {
-    const code = document.getElementById('globalPyodideInput').textContent.trim();
-    if (!code) {
-      document.getElementById('globalPyodideOutput').textContent = '❌ Kode kosong. Ketik kode Python dulu.';
-      return;
-    }
-    try {
-      const lines = code.split("\n");
-      const lastLine = lines.pop();
-      const defs = lines.join("\n");
-      
-      // jalankan definisi fungsi dulu jika ada
-      if (defs) await pyodide.runPythonAsync(defs);
-
-      // redirect stdout sebelum eksekusi pemanggilan
-      await pyodide.runPythonAsync(`
-import sys
-import io
-sys.stdout = io.StringIO()
-sys.stderr = sys.stdout
-`);
-      await pyodide.runPythonAsync(lastLine);
-      const output = pyodide.runPython('sys.stdout.getvalue()');
-      document.getElementById('globalPyodideOutput').textContent = output || '=== Tidak ada output ===';
-    } catch(err) {
-      document.getElementById('globalPyodideOutput').textContent = 'Error: ' + err;
-    }
-  }
 </script>
 <!-- Firebase and Whiteboard -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
