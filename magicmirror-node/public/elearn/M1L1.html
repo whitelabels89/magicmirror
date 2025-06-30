@@ -717,7 +717,7 @@ sys.stdout.getvalue()
       // jalankan definisi fungsi dulu jika ada
       if (defs) await pyodide.runPythonAsync(defs);
 
-      // redirect stdout sebelum eksekusi peemanggilan
+      // redirect stdout sebelum eksekusi pemanggilan
       await pyodide.runPythonAsync(`
 import sys
 import io
