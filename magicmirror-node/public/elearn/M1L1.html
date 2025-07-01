@@ -1,9 +1,9 @@
 <link rel="stylesheet" href="presetvs.css" />
 <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
 <script>
-let pyodide;
 async function main() {
-  pyodide = await loadPyodide();
+  window.pyodide = await loadPyodide();
+  window.pyodideReady = true;
 }
 main();
 </script>
@@ -681,9 +681,14 @@ main();
   // Pyodide global output canvas for all .typingBox-vscode (run on Enter)
   document.querySelectorAll('.typingBox-vscode').forEach(box => {
     box.addEventListener('keydown', async function(e) {
-      if(e.key === 'Enter' && !e.shiftKey) {
+      if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        const code = box.textContent.trim();
+        if (!window.pyodideReady) {
+          document.getElementById('globalPyodideOutput').textContent = '⏳ Pyodide belum siap, tunggu sebentar...';
+          return;
+        }
+        const hidden = box.querySelector('.code-output');
+        const code = hidden ? hidden.textContent : box.textContent.trim();
         try {
           const wrappedCode = `
 import sys
@@ -693,40 +698,37 @@ sys.stderr = sys.stdout
 ${code}
 sys.stdout.getvalue()
 `;
-          const output = await pyodide.runPythonAsync(wrappedCode);
-          document.getElementById('globalPyodideOutput').textContent = output || '=== Tidak ada output ===';
-        } catch(err) {
+          const output = await window.pyodide.runPythonAsync(wrappedCode);
+          document.getElementById('globalPyodideOutput').textContent = output.trim() || '=== Tidak ada output ===';
+        } catch (err) {
           document.getElementById('globalPyodideOutput').textContent = 'Error: ' + err;
         }
       }
     });
   });
 
-  // Fungsi untuk menjalankan kode dari input editor global (definisi dan eksekusi dipisah)
+  // Fungsi untuk menjalankan kode dari input editor global
   async function runGlobalPyodideInput() {
     const code = document.getElementById('globalPyodideInput').textContent.trim();
     if (!code) {
       document.getElementById('globalPyodideOutput').textContent = '❌ Kode kosong. Ketik kode Python dulu.';
       return;
     }
+    if (!window.pyodideReady) {
+      document.getElementById('globalPyodideOutput').textContent = '⏳ Pyodide belum siap, tunggu sebentar...';
+      return;
+    }
     try {
-      const lines = code.split("\n");
-      const lastLine = lines.pop();
-      const defs = lines.join("\n");
-      
-      // jalankan definisi fungsi dulu jika ada
-      if (defs) await pyodide.runPythonAsync(defs);
-
-      // redirect stdout sebelum eksekusi pemanggilan
-      await pyodide.runPythonAsync(`
+      const wrappedCode = `
 import sys
 import io
 sys.stdout = io.StringIO()
 sys.stderr = sys.stdout
-`);
-      await pyodide.runPythonAsync(lastLine);
-      const output = pyodide.runPython('sys.stdout.getvalue()');
-      document.getElementById('globalPyodideOutput').textContent = output || '=== Tidak ada output ===';
+${code}
+sys.stdout.getvalue()
+`;
+      const output = await window.pyodide.runPythonAsync(wrappedCode);
+      document.getElementById('globalPyodideOutput').textContent = output.trim() || '=== Tidak ada output ===';
     } catch(err) {
       document.getElementById('globalPyodideOutput').textContent = 'Error: ' + err;
     }
