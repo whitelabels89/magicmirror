@@ -131,6 +131,7 @@ main();
     flex-direction: column;
     justify-content: flex-start;
     position: relative;
+    overflow-x: hidden;
   }
   .global-editor, #globalPyodideOutput {
     flex: 1 1 48%;
@@ -139,14 +140,22 @@ main();
   .whiteboard-container {
     margin-top: 1rem;
     text-align: center;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: auto;
   }
   #whiteboardCanvas {
     border: 1px solid #ccc;
     width: 100%;
-    height: 300px;
+    max-width: 100%;
+    height: auto;
+    aspect-ratio: 4/1.2;
     display: none;
     touch-action: none;
     background: #fff;
+    border-radius: 12px;
+    box-sizing: border-box;
   }
   .step-content {
     display: none;
@@ -343,7 +352,10 @@ main();
         <li>Setiap perintah dalam bahasa pemrograman memiliki makna yang jelas dan khusus.</li>
       </ul>
       <p><strong>Contoh:</strong></p>
-      <div class="typingBox-vscode" data-hint="print('Halo Dunia')"></div>
+      <div class="code-group">
+        <div class="typingBox-vscode" data-hint="print('Halo Dunia')"></div>
+        <pre class="output-box"></pre>
+      </div>
     </div>
     <div id="panel-10" class="step-content">
       <h2>Apa Itu Program?</h2>
@@ -352,7 +364,10 @@ main();
         <li>Program berisi serangkaian instruksi yang dapat dijalankan oleh komputer.</li>
       </ul>
       <p><strong>Contoh:</strong></p>
-      <div class="typingBox-vscode" data-hint="print('Selamat datang di dunia coding!')"></div>
+      <div class="code-group">
+        <div class="typingBox-vscode" data-hint="print('Selamat datang di dunia coding!')"></div>
+        <pre class="output-box"></pre>
+      </div>
     </div>
     <div id="panel-11" class="step-content">
       <h2>Cara Menulis Program yang Dimengerti Komputer</h2>
@@ -386,7 +401,10 @@ main();
         <li>Fungsi melakukan tugas tertentu saat dipanggil.</li>
       </ul>
       <p><strong>Contoh:</strong></p>
-      <div class="typingBox-vscode" data-hint="def sapa(): print('Halo!'); sapa()"></div>
+      <div class="code-group">
+        <div class="typingBox-vscode" data-hint="def sapa(): print('Halo!'); sapa()"></div>
+        <pre class="output-box"></pre>
+      </div>
     </div>
     <div id="panel-15" class="step-content">
       <h2>Fungsi print()</h2>
@@ -445,7 +463,10 @@ main();
     </div>
     <div id="panel-17" class="step-content">
       <h2>Menggunakan print() dengan Ekspresi</h2>
-      <div class="typingBox-vscode" data-hint="print('Total: ', 2 + 3)"></div>
+      <div class="code-group">
+        <div class="typingBox-vscode" data-hint="print('Total: ', 2 + 3)"></div>
+        <pre class="output-box"></pre>
+      </div>
       <p>Kamu bisa menggabungkan teks dan hasil perhitungan dalam satu perintah print.</p>
     </div>
     <div id="panel-18" class="step-content">
@@ -470,7 +491,10 @@ main();
     </div>
     <div id="panel-19" class="step-content">
       <h2>Urutan Operasi</h2>
-      <div class="typingBox-vscode" data-hint="print(2 + 3 * 4); print((2 + 3) * 4)"></div>
+      <div class="code-group">
+        <div class="typingBox-vscode" data-hint="print(2 + 3 * 4); print((2 + 3) * 4)"></div>
+        <pre class="output-box"></pre>
+      </div>
     </div>
     <div id="panel-20" class="step-content">
       <h2>Ringkasan & Inti Pembelajaran</h2>
@@ -594,31 +618,58 @@ main();
       <h2>Quiz Part 2 - Coding Practice</h2>
       <ol>
         <li>Tampilkan sapaan:
-          <div class="typingBox-vscode" data-hint="print('Hello, Python Learner!')"></div>
+          <div class="code-group">
+            <div class="typingBox-vscode" data-hint="print('Hello, Python Learner!')"></div>
+            <pre class="output-box"></pre>
+          </div>
         </li>
         <li>Usia kamu:
-          <div class="typingBox-vscode" data-hint="print('Saya berusia 10 tahun')"></div>
+          <div class="code-group">
+            <div class="typingBox-vscode" data-hint="print('Saya berusia 10 tahun')"></div>
+            <pre class="output-box"></pre>
+          </div>
         </li>
         <li>Total gaji tim:
-          <div class="typingBox-vscode" data-hint="print(1000 * 12)"></div>
+          <div class="code-group">
+            <div class="typingBox-vscode" data-hint="print(1000 * 12)"></div>
+            <pre class="output-box"></pre>
+          </div>
         </li>
         <li>Harga sewa naik 10%:
-          <div class="typingBox-vscode" data-hint="print(85000 * 1.10)"></div>
+          <div class="code-group">
+            <div class="typingBox-vscode" data-hint="print(85000 * 1.10)"></div>
+            <pre class="output-box"></pre>
+          </div>
         </li>
         <li>Total biaya perlengkapan:
-          <div class="typingBox-vscode" data-hint="print(6*55480 + 3*21830 + 11*411 + 5*290)"></div>
+          <div class="code-group">
+            <div class="typingBox-vscode" data-hint="print(6*55480 + 3*21830 + 11*411 + 5*290)"></div>
+            <pre class="output-box"></pre>
+          </div>
         </li>
         <li>Bagi mainan ke 4 anak:
-          <div class="typingBox-vscode" data-hint="print(30 // 4)"></div>
+          <div class="code-group">
+            <div class="typingBox-vscode" data-hint="print(30 // 4)"></div>
+            <pre class="output-box"></pre>
+          </div>
         </li>
         <li>Sisa permen:
-          <div class="typingBox-vscode" data-hint="print(25 % 4)"></div>
+          <div class="code-group">
+            <div class="typingBox-vscode" data-hint="print(25 % 4)"></div>
+            <pre class="output-box"></pre>
+          </div>
         </li>
         <li>Pangkat:
-          <div class="typingBox-vscode" data-hint="print(3 ** 2)"></div>
+          <div class="code-group">
+            <div class="typingBox-vscode" data-hint="print(3 ** 2)"></div>
+            <pre class="output-box"></pre>
+          </div>
         </li>
         <li>Nilai akhir:
-          <div class="typingBox-vscode" data-hint="print(50 + 5 - 2)"></div>
+          <div class="code-group">
+            <div class="typingBox-vscode" data-hint="print(50 + 5 - 2)"></div>
+            <pre class="output-box"></pre>
+          </div>
         </li>
       </ol>
     </div>
