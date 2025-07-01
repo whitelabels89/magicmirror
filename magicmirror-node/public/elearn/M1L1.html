@@ -732,26 +732,27 @@ main();
   // Pyodide global output canvas for all .typingBox-vscode (run on Enter)
   document.querySelectorAll('.typingBox-vscode').forEach(box => {
     box.addEventListener('keydown', async function(e) {
-      if(e.key === 'Enter' && !e.shiftKey) {
+      if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         if (!window.pyodideReady) {
-          const outputBox = box.closest('.code-group')?.querySelector('.output-box') || document.getElementById('globalPyodideOutput');
-          outputBox.textContent = '⏳ Pyodide belum siap, tunggu sebentar...';
+          document.getElementById('globalPyodideOutput').textContent = '⏳ Pyodide belum siap, tunggu sebentar...';
           return;
         }
-        const code = box.textContent.trim();
-        const outputBox = box.closest('.code-group')?.querySelector('.output-box') || document.getElementById('globalPyodideOutput');
+        const hidden = box.querySelector('.code-output');
+        const code = hidden ? hidden.textContent : box.textContent.trim();
         try {
-          let output = "";
-          window.pyodide.setStdout({batched: s => { output += s; }});
-          window.pyodide.setStderr({batched: s => { output += s; }});
-          await window.pyodide.runPythonAsync(code + "\nimport sys; sys.stdout.flush()");
-          outputBox.textContent = output.trim() || '=== Tidak ada output ===';
-        } catch(err) {
-          outputBox.textContent = 'Error: ' + err;
-        } finally {
-          window.pyodide.setStdout({});
-          window.pyodide.setStderr({});
+          const wrappedCode = `
+import sys
+import io
+sys.stdout = io.StringIO()
+sys.stderr = sys.stdout
+${code}
+sys.stdout.getvalue()
+`;
+          const output = await window.pyodide.runPythonAsync(wrappedCode);
+          document.getElementById('globalPyodideOutput').textContent = output.trim() || '=== Tidak ada output ===';
+        } catch (err) {
+          document.getElementById('globalPyodideOutput').textContent = 'Error: ' + err;
         }
       }
     });
@@ -769,10 +770,15 @@ main();
       return;
     }
     try {
-      let output = "";
-      window.pyodide.setStdout({batched: s => { output += s; }});
-      window.pyodide.setStderr({batched: s => { output += s; }});
-      await window.pyodide.runPythonAsync(code + "\nimport sys; sys.stdout.flush()");
+      const wrappedCode = `
+import sys
+import io
+sys.stdout = io.StringIO()
+sys.stderr = sys.stdout
+${code}
+sys.stdout.getvalue()
+`;
+      const output = await window.pyodide.runPythonAsync(wrappedCode);
       document.getElementById('globalPyodideOutput').textContent = output.trim() || '=== Tidak ada output ===';
     } catch(err) {
       document.getElementById('globalPyodideOutput').textContent = 'Error: ' + err;
