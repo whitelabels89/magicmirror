@@ -1,6 +1,6 @@
 <link rel="stylesheet" href="presetvs.css" />
 <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
-<script src="presetvs.js"></script>
+<!-- <script src="presetvs.js"></script> -->
 <style>
   body {
     font-family: 'Fredoka', sans-serif;
@@ -557,6 +557,11 @@ nprint((2 + 3) * 4)"></div>
       <button id="clearWhiteboard">Clear</button>
       <canvas id="whiteboardCanvas"></canvas>
     </div>
+    <div class="lab-code-runner" style="margin-top:20px;">
+      <textarea id="labCodeArea" placeholder="Tulis kode Python di sini..." style="width:100%;min-height:100px;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;background:#fff;color:#000;"></textarea>
+      <button id="labRunBtn" style="margin-top:8px;">Jalankan Kode</button>
+      <pre id="labOutputBox">// Hasil lab akan muncul di sini</pre>
+    </div>
   </div>
 </div>
 
@@ -600,4 +605,13 @@ nprint((2 + 3) * 4)"></div>
   window.kelasId = 'demo';
   window.lessonId = 'M1L1';
   initWhiteboard();
+</script>
+
+<script src="pyodide-tool.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    attachTypingBoxListeners();
+    attachCustomPyodideRunner('.run-button-quiz', '.output-box');
+    attachCustomPyodideRunner('#labRunBtn', '#labOutputBox');
+  });
 </script>
