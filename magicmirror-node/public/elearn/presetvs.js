@@ -114,6 +114,28 @@ function setupVscodeTypingBox(container) {
         container._lineIndex--;
         container._charIndex = container._typed[container._lineIndex].length;
       }
+    } else if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      const typedCode = container._typed.map(line => line).join('\n');
+      outputEl.textContent = "⏳ Menjalankan...";
+      (async () => {
+        try {
+          let output = "";
+          window.pyodide.setStdout({ batched: (s) => { output += s + "\n"; } });
+          let codeToRun = typedCode.includes('sys.stdout.flush()') ? typedCode : `${typedCode}\nsys.stdout.flush()`;
+          await window.pyodide.runPythonAsync(`
+import sys
+import time
+${codeToRun}
+time.sleep(0.2)
+`);
+          outputEl.textContent = output.trim() || "✅ Berhasil (tidak ada output)";
+        } catch (err) {
+          outputEl.textContent = "❌ Error:\n" + err;
+        } finally {
+          window.pyodide.setStdout({});
+        }
+      })();
     }
     renderCode();
   });
@@ -160,7 +182,13 @@ function setupVscodeTypingBox(container) {
     try {
       let output = "";
       window.pyodide.setStdout({ batched: (s) => { output += s + "\n"; } });
-      await window.pyodide.runPythonAsync(typedCode + "\nimport sys; sys.stdout.flush()");
+      let codeToRun = typedCode.includes('sys.stdout.flush()') ? typedCode : `${typedCode}\nsys.stdout.flush()`;
+      await window.pyodide.runPythonAsync(`
+import sys
+import time
+${codeToRun}
+time.sleep(0.2)
+`);
       outputEl.textContent = output.trim() || "✅ Berhasil (tidak ada output)";
     } catch (err) {
       outputEl.textContent = "❌ Error:\n" + err;

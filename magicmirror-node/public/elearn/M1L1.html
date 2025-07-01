@@ -1,5 +1,5 @@
 <link rel="stylesheet" href="presetvs.css" />
-<script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
 <script>
 async function main() {
   window.pyodide = await loadPyodide();
@@ -727,35 +727,43 @@ main();
       showPanel(Number(e.target.getAttribute('data-step')));
     }
   });
-  document.addEventListener('DOMContentLoaded', () => showPanel(1));
-
-  // Pyodide global output canvas for all .typingBox-vscode (run on Enter)
-  document.querySelectorAll('.typingBox-vscode').forEach(box => {
-    box.addEventListener('keydown', async function(e) {
-      if(e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        if (!window.pyodideReady) {
-          const outputBox = box.closest('.code-group')?.querySelector('.output-box') || document.getElementById('globalPyodideOutput');
-          outputBox.textContent = '⏳ Pyodide belum siap, tunggu sebentar...';
-          return;
-        }
-        const code = box.textContent.trim();
-        const outputBox = box.closest('.code-group')?.querySelector('.output-box') || document.getElementById('globalPyodideOutput');
-        try {
-          let output = "";
-          window.pyodide.setStdout({batched: s => { output += s; }});
-          window.pyodide.setStderr({batched: s => { output += s; }});
-          await window.pyodide.runPythonAsync(code + "\nimport sys; sys.stdout.flush()");
-          outputBox.textContent = output.trim() || '=== Tidak ada output ===';
-        } catch(err) {
-          outputBox.textContent = 'Error: ' + err;
-        } finally {
-          window.pyodide.setStdout({});
-          window.pyodide.setStderr({});
-        }
-      }
-    });
+  document.addEventListener('DOMContentLoaded', () => {
+    showPanel(1);
+    attachTypingBoxListeners();
   });
+
+
+  // Fungsi attachTypingBoxListeners untuk .typingBox-vscode
+  function attachTypingBoxListeners() {
+    document.querySelectorAll('.typingBox-vscode').forEach(box => {
+      if (box.dataset.listenerAttached) return; // Cegah double attach
+      box.dataset.listenerAttached = "true";
+      box.addEventListener('keydown', async function(e) {
+        if(e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          if (!window.pyodideReady) {
+            const outputBox = box.closest('.code-group')?.querySelector('.output-box') || document.getElementById('globalPyodideOutput');
+            outputBox.textContent = '⏳ Pyodide belum siap, tunggu sebentar...';
+            return;
+          }
+          const code = box.textContent.trim();
+          const outputBox = box.closest('.code-group')?.querySelector('.output-box') || document.getElementById('globalPyodideOutput');
+          try {
+            let output = "";
+            window.pyodide.setStdout({batched: s => { output += s; }});
+            window.pyodide.setStderr({batched: s => { output += s; }});
+            await window.pyodide.runPythonAsync(code + "\nimport sys; sys.stdout.flush()");
+            outputBox.textContent = output.trim() || '=== Tidak ada output ===';
+          } catch(err) {
+            outputBox.textContent = 'Error: ' + err;
+          } finally {
+            window.pyodide.setStdout({});
+            window.pyodide.setStderr({});
+          }
+        }
+      });
+    });
+  }
 
   // Fungsi untuk menjalankan kode dari input editor global
   async function runGlobalPyodideInput() {
