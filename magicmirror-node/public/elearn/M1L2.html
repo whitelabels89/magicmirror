@@ -1,5 +1,12 @@
 <link rel="stylesheet" href="presetvs.css" />
 <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+<script>
+async function main() {
+  window.pyodide = await loadPyodide();
+  window.pyodideReady = true;
+}
+main();
+</script>
 <script src="presetvs.js"></script>
 <style>
   body {
@@ -11,12 +18,15 @@
   .header {
     text-align: center;
     padding: 20px;
-    background: #4f46e5;
+    background: linear-gradient(90deg, #4f46e5, #6d28d9);
     color: #fff;
+    border-bottom-left-radius: 24px;
+    border-bottom-right-radius: 24px;
   }
   .header h1 {
     margin-bottom: 10px;
     font-size: 2.2rem;
+    font-weight: 700;
   }
   .header p {
     margin-bottom: 20px;
@@ -27,17 +37,20 @@
     max-width: 600px;
     margin-left: auto;
     margin-right: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #f9fafb;
   }
   .progress-bar {
     height: 12px;
-    background: #fff;
+    background: #e5e7eb;
     border-radius: 6px;
     overflow: hidden;
   }
   .progress {
     width: 0%;
     height: 100%;
-    background: #facc15;
+    background: #22c55e;
   }
   .back-btn {
     display: inline-block;
@@ -51,44 +64,77 @@
   }
   .container {
     display: flex;
-    padding: 20px;
-    gap: 20px;
-    flex-wrap: wrap;
+    flex-direction: row;
+    padding: 0;
+    gap: 0;
+    align-items: stretch;
+    height: 100vh;
   }
-  .sidebar {
-    flex: 1 1 180px;
-    max-width: 200px;
-    background: #fde68a;
-    padding: 20px;
-    border-radius: 20px;
+  .top-nav {
+    width: 100%;
+    overflow-x: auto;
+    background: #f9fafb;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    margin: 10px auto 20px auto;
+    padding: 10px 20px;
+    white-space: nowrap;
   }
-  .sidebar ul {
+  .top-nav ul {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
     list-style: none;
+    margin: 0;
     padding: 0;
   }
-  .sidebar li {
-    margin-bottom: 10px;
-    background: #fcd34d;
-    padding: 8px 12px;
-    border-radius: 10px;
+  .top-nav li {
+    flex: 0 0 auto;
+    width: 30px;
+    height: 30px;
+    background: #e5e7eb;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
     cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
   }
-  .sidebar li.active {
-    background: #fbbf24;
+  .top-nav li:hover {
+    background: #d1d5db;
+    transform: scale(1.1);
+  }
+  .top-nav li.active {
+    background: #4f46e5;
+    color: #fff;
   }
   .main {
-    flex: 3 1 300px;
-    background: #fff;
+    flex: 1 1 50%;
+    max-width: 50%;
+    background: #ffffff;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    border-radius: 24px;
     padding: 20px;
-    border-radius: 20px;
+    transition: margin-right 0.5s;
+    overflow-y: auto;
   }
   .lab-column {
-    flex: 1 1 260px;
+    flex: 1 1 50%;
+    max-width: 50%;
     background: #111827;
     padding: 20px;
-    border-radius: 20px;
+    border-radius: 0;
     color: #a7f3d0;
-    min-width: 260px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    position: relative;
+  }
+  .global-editor, #globalPyodideOutput {
+    flex: 1 1 48%;
+    min-height: 200px;
   }
   .whiteboard-container {
     margin-top: 1rem;
@@ -111,23 +157,24 @@
     margin-bottom: 20px;
   }
   .step-content.active { display: block; }
-
-  /* VSCode-like code box for Quiz Part 1 */
-  #panel-12 pre code {
-    display: block;
-    background: #1e293b;
-    color: #a7f3d0;
-    padding: 12px;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    font-family: monospace;
-    overflow-x: auto;
+  .nav-controls { text-align: center; margin-top: 20px; }
+  .nav-controls button {
+    background: #4f46e5;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    margin: 0 5px;
+    border-radius: 10px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s;
   }
-
-  /* Consistent dark navy output box with mint text */
+  .nav-controls button:hover {
+    background: #6d28d9;
+  }
   .output-box {
-    background-color: #1e293b !important;
-    color: #a7f3d0 !important;
+    background-color: #1e293b;
+    color: #a7f3d0;
     padding: 10px;
     border-radius: 8px;
     margin-top: 8px;
@@ -135,11 +182,33 @@
     font-family: monospace;
     min-height: 50px;
   }
-</style>
-
-<style>
-  #panel-12 ol li {
-    margin-bottom: 20px;
+  .light-theme-output {
+    background-color: white;
+    color: black;
+  }
+  .dark-theme-output {
+    background-color: #1e293b;
+    color: #a7f3d0;
+  }
+  .typingBox-vscode {
+    max-width: 100%;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    overflow-x: auto;
+    box-sizing: border-box;
+  }
+  .global-editor {
+    background: #1e293b;
+    color: #a7f3d0;
+    padding: 8px;
+    border-radius: 8px;
+    font-family: monospace;
+    width: 100%;
+    max-width: 100%;
+    word-wrap: break-word;
+    overflow-x: auto;
+    box-sizing: border-box;
+    min-height: 80px;
   }
 </style>
 
@@ -153,30 +222,30 @@
     <a href="/elearn/modul.html" class="back-btn">⟵ Kembali ke Modul</a>
   </div>
 </div>
+<div class="top-nav">
+  <ul id="lesson-nav">
+    <li data-step="1" class="active">1</li>
+    <li data-step="2">2</li>
+    <li data-step="3">3</li>
+    <li data-step="4">4</li>
+    <li data-step="5">5</li>
+    <li data-step="6">6</li>
+    <li data-step="7">7</li>
+    <li data-step="8">8</li>
+    <li data-step="9">9</li>
+    <li data-step="10">10</li>
+    <li data-step="11">11</li>
+    <li data-step="12">12</li>
+    <li data-step="13">13</li>
+    <li data-step="14">14</li>
+    <li data-step="15">15</li>
+    <li data-step="16">16</li>
+    <li data-step="17">17</li>
+    <li data-step="18">18</li>
+  </ul>
+</div>
 
 <div class="container">
-  <div class="sidebar">
-    <ul id="lesson-nav">
-      <li data-step="1" class="active">1. Warm-Up</li>
-      <li data-step="2">2. Apa itu Variabel?</li>
-      <li data-step="3">3. Membuat Variabel Pertama</li>
-      <li data-step="4">4. Ubah Isi Variabel</li>
-      <li data-step="5">5. Apa Arti Tanda = ?</li>
-      <li data-step="6">6. Jenis Isi Kotak</li>
-      <li data-step="7">7. Nama Tipe Data</li>
-      <li data-step="8">8. Contoh float</li>
-      <li data-step="9">9. Pilih Nama yang Jelas</li>
-      <li data-step="10">10. Ubah Isi Variabel</li>
-      <li data-step="11">11. Perubahan Variabel</li>
-      <li data-step="12">12. Quiz: Apa Hasilnya?</li>
-      <li data-step="13">13. Perkenalkan input()</li>
-      <li data-step="14">14. Kesalahan input()</li>
-      <li data-step="15">15. Perbaiki dengan int()</li>
-      <li data-step="16">16. int() dan str()</li>
-      <li data-step="17">17. Wrap-Up</li>
-      <li data-step="18">18. Quiz Part 2</li>
-    </ul>
-  </div>
   <div class="main">
     <div id="panel-1" class="step-content">
       <h2>Selamat datang di Variabel!</h2>
@@ -189,17 +258,19 @@
     <div id="panel-3" class="step-content">
       <h2>Cara Membuat Variabel</h2>
       <p>Untuk membuat variabel, beri nama dan isi dengan nilai. Contohnya:</p>
+      <div class="code-group">
       <div class="typingBox-vscode" data-hint="hours = 6&#10;print(hours)"></div>
-      <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
+      </div>
       <p>Di sini, kita membuat variabel <code>hours</code> dan mencetak nilainya ke layar.</p>
     </div>
     <div id="panel-4" class="step-content">
       <h2>Mengubah Nilai</h2>
       <p>Kamu bisa mengubah isi variabel kapan saja dengan menuliskan nama variabel dan nilai baru.</p>
+      <div class="code-group">
       <div class="typingBox-vscode" data-hint="buah = &quot;Apel&quot;&#10;print(buah)&#10;buah = &quot;Jeruk&quot;&#10;print(buah)"></div>
-      <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
+      </div>
       <p>Di sini, variabel <code>buah</code> awalnya berisi "Apel", lalu diubah menjadi "Jeruk".</p>
     </div>
     <div id="panel-5" class="step-content">
@@ -208,12 +279,13 @@
       <p>Contoh nama yang baik: <code>umur</code>, <code>nama_siswa</code></p>
       <p>Contoh nama yang tidak baik: <code>123umur</code>, <code>nama siswa</code></p>
       <p>Contoh nama variabel yang baik:</p>
+      <div class="code-group">
       <div class="typingBox-vscode" data-hint="umur = 12&#10;print(umur)">
 umur = 12
 print(umur)
       </div>
-      <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
+      </div>
     </div>
     <div id="panel-6" class="step-content">
       <h2>Nama Baik dan Buruk</h2>
@@ -221,20 +293,22 @@ print(umur)
       <p>Nama yang baik membantu kamu dan temanmu memahami kode dengan mudah.</p>
 
       <p>Contoh nama variabel yang buruk:</p>
+      <div class="code-group">
       <div class="typingBox-vscode" data-hint="xysju39293slfjds = 20&#10;print(xysju39293slfjds)">
 xysju39293slfjds = 20
 print(xysju39293slfjds)
       </div>
-      <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
+      </div>
 
       <p>Contoh nama variabel yang baik:</p>
+      <div class="code-group">
       <div class="typingBox-vscode" data-hint="jumlah_siswa = 20&#10;print(jumlah_siswa)">
 jumlah_siswa = 20
 print(jumlah_siswa)
       </div>
-      <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
+      </div>
     </div>
     <div id="panel-7" class="step-content">
       <h2>Tipe Data</h2>
@@ -244,48 +318,53 @@ print(jumlah_siswa)
         <li><code>int</code>: angka bulat, misal 10</li>
         <li><code>float</code>: angka desimal, misal 3.14</li>
       </ul>
+      <div class="code-group">
       <div class="typingBox-vscode" data-hint="tinggi = 145.5&#10;print(type(tinggi))">
 tinggi = 145.5
 print(type(tinggi))
       </div>
-      <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
+      </div>
     </div>
     <div id="panel-8" class="step-content">
       <h2>Contoh Tipe Data</h2>
+      <div class="code-group">
       <div class="typingBox-vscode" data-hint="tinggi = 135.5&#10;print(tinggi)"></div>
-      <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
+      </div>
       <p>Variabel <code>tinggi</code> berisi angka desimal (float) dan bisa dicetak dengan <code>print()</code>.</p>
     </div>
     <div id="panel-9" class="step-content">
       <h2>Yuk Coba!</h2>
       <p>Coba buat variabelmu sendiri dan cetak isinya.</p>
+      <div class="code-group">
       <div class="typingBox-vscode" data-hint="nama = &quot;Adi&quot;&#10;umur = 12&#10;print(nama)&#10;print(umur)"></div>
-      <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
+      </div>
     </div>
     <div id="panel-10" class="step-content">
       <h2>Ganti Angka</h2>
       <p>Kamu bisa mengubah angka dalam variabel kapan saja, lalu lihat hasilnya.</p>
       <p>Coba lihat apa yang terjadi saat kita ganti nilainya:</p>
+      <div class="code-group">
       <div class="typingBox-vscode" data-hint="umur = 10&#10;print(umur)&#10;umur = 15&#10;print(umur)"></div>
-      <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
+      </div>
     </div>
     <div id="panel-11" class="step-content">
       <h2>Kesimpulan</h2>
       <p>Variabel adalah tempat menyimpan data yang bisa diubah dan dipakai kapan saja dalam programmu.</p>
       <p>Gunakan nama yang jelas dan isi dengan tipe data yang sesuai.</p>
       <p>Contoh perubahan isi variabel dalam satu program:</p>
+      <div class="code-group">
       <div class="typingBox-vscode" data-hint="barang = &quot;Buku&quot;&#10;print(barang)&#10;barang = &quot;Pulpen&quot;&#10;print(barang)">
 barang = "Buku"
 print(barang)
 barang = "Pulpen"
 print(barang)
       </div>
-      <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
+      </div>
     </div>
 
     <div id="panel-12" class="step-content">
@@ -365,33 +444,37 @@ print(number)
     <div id="panel-13" class="step-content">
       <h2>Perkenalkan input()</h2>
       <p>Fungsi <code>input()</code> membuat kita bisa memasukkan data dari keyboard.</p>
+      <div class="code-group">
       <div class="typingBox-vscode" data-hint="nama = input(&quot;Siapa namamu? &quot;)&#10;print(&quot;Halo &quot; + nama)"></div>
-      <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
+      </div>
       <p>Program ini menanyakan namamu dan menyapamu.</p>
     </div>
     <div id="panel-14" class="step-content">
       <h2>Kesalahan input()</h2>
       <p>Input selalu menghasilkan teks (string), jadi jika ingin menghitung angka, harus dikonversi dulu.</p>
+      <div class="code-group">
       <div class="typingBox-vscode" data-hint="gaji = input(&quot;Berapa gaji? &quot;)&#10;print(gaji * 2)  # Error!"></div>
-      <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
+      </div>
       <p>Kalau tidak dikonversi, hasilnya bukan perkalian angka, tapi pengulangan teks.</p>
     </div>
     <div id="panel-15" class="step-content">
       <h2>Perbaiki dengan int()</h2>
       <p>Gunakan <code>int()</code> untuk mengubah teks menjadi angka bulat.</p>
+      <div class="code-group">
       <div class="typingBox-vscode" data-hint="gaji = int(input(&quot;Gaji per hari? &quot;))&#10;print(gaji * 2)"></div>
-      <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
+      </div>
       <p>Sekarang hasil perkalian akan benar karena <code>gaji</code> sudah angka.</p>
     </div>
     <div id="panel-16" class="step-content">
       <h2>int() dan str()</h2>
       <p>Kamu juga bisa mengubah angka menjadi teks dengan <code>str()</code> supaya bisa digabung dengan kata.</p>
+      <div class="code-group">
       <div class="typingBox-vscode" data-hint="umur = 10&#10;umur_text = str(umur)&#10;print(&quot;Usia saya: &quot; + umur_text)"></div>
-      <button class="run-button">Jalankan</button>
       <pre class="output-box">// Hasil akan muncul di sini</pre>
+      </div>
       <p>Ini berguna saat kamu mau mencetak angka bersama kata-kata.</p>
     </div>
 
@@ -417,71 +500,90 @@ print(number)
           <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;background:#fff;color:#000;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
           <button class="run-button-quiz">Jalankan</button>
           <pre class="output-box">// Hasil akan muncul di sini</pre>
+      </div>
         </li>
         <li>
           Buat variabel untuk 8 tamu, masing-masing mendapat 2 snack, cetak total snack.
           <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;background:#fff;color:#000;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
           <button class="run-button-quiz">Jalankan</button>
           <pre class="output-box">// Hasil akan muncul di sini</pre>
+      </div>
         </li>
         <li>
           Buat variabel harga notebook 75 rubel, beli 4, cetak total biaya.
           <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;background:#fff;color:#000;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
           <button class="run-button-quiz">Jalankan</button>
           <pre class="output-box">// Hasil akan muncul di sini</pre>
+      </div>
         </li>
         <li>
           Buat variabel umur 2 siswa (12 dan 10), cetak rata-rata umur.
           <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;background:#fff;color:#000;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
           <button class="run-button-quiz">Jalankan</button>
           <pre class="output-box">// Hasil akan muncul di sini</pre>
+      </div>
         </li>
         <li>
           Buat variabel pengunjung Januari (120), Februari (130), Maret (140), cetak total pengunjung.
           <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;background:#fff;color:#000;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
           <button class="run-button-quiz">Jalankan</button>
           <pre class="output-box">// Hasil akan muncul di sini</pre>
+      </div>
         </li>
         <li>
           Buat program tanya nama user dan sapa dia, print "Halo, [nama]!".
           <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;background:#fff;color:#000;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
           <button class="run-button-quiz">Jalankan</button>
           <pre class="output-box">// Hasil akan muncul di sini</pre>
+      </div>
         </li>
         <li>
           Perbaiki kode penjumlahan agar hasilnya benar.
           <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;background:#fff;color:#000;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
           <button class="run-button-quiz">Jalankan</button>
           <pre class="output-box">// Hasil akan muncul di sini</pre>
+      </div>
         </li>
         <li>
           Buat program tanya harga tiket dan poin loyalitas yang dipakai, cetak harga akhir.
           <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;background:#fff;color:#000;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
           <button class="run-button-quiz">Jalankan</button>
           <pre class="output-box">// Hasil akan muncul di sini</pre>
+      </div>
         </li>
         <li>
           Buat program tanya pengunjung 1 cabang, cetak total pengunjung untuk 5 cabang.
           <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;background:#fff;color:#000;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
           <button class="run-button-quiz">Jalankan</button>
           <pre class="output-box">// Hasil akan muncul di sini</pre>
+      </div>
         </li>
         <li>
           Buat program tanya jumlah anak untuk tiket museum ($12 per anak), cetak total harga.
           <textarea class="quiz-textarea" placeholder="Ketik jawaban kodenya di sini..." style="width:100%;min-height:100px;background:#fff;color:#000;border-radius:8px;border:1px solid #ccc;padding:8px;font-family:monospace;"></textarea>
           <button class="run-button-quiz">Jalankan</button>
           <pre class="output-box">// Hasil akan muncul di sini</pre>
+      </div>
         </li>
       </ol>
     </div>
-
     <div class="nav-controls">
       <button onclick="prevPanel()">⟵ Sebelumnya</button>
       <span id="indicator"></span>
       <button onclick="nextPanel()">Selanjutnya ⟶</button>
     </div>
   </div>
+  <button id="toggleLabColumn" style="position:fixed;top:50%;right:0;z-index:1000;background:#4f46e5;color:#fff;padding:8px 12px;border-radius:8px 0 0 8px;border:none;cursor:pointer;">⇆ Pyodide</button>
   <div class="lab-column">
+    <div class="global-pyodide-container">
+      <h3>Output Canvas Pyodide</h3>
+      <div id="themeToggleIcon" style="position:absolute;top:10px;right:10px;cursor:pointer;font-size:24px;">🌙</div>
+      <div class="code-editor-container" style="margin-bottom:10px;">
+        <div contenteditable="true" id="globalPyodideInput" class="global-editor"></div>
+        <button onclick="runGlobalPyodideInput()" style="margin-top:8px;background:#4f46e5;color:#fff;padding:6px 12px;border-radius:8px;border:none;cursor:pointer;">Jalankan Kode</button>
+      </div>
+      <pre id="globalPyodideOutput" class="output-box" style="height:200px;overflow-y:auto;"></pre>
+    </div>
     <div class="whiteboard-container">
       <button id="toggleWhiteboard">Tampilkan Whiteboard</button>
       <button id="clearWhiteboard">Clear</button>
@@ -489,7 +591,7 @@ print(number)
     </div>
   </div>
 </div>
-
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script>
   let currentPanel = 1;
   const totalPanels = 18;
@@ -512,9 +614,94 @@ print(number)
     }
   });
   document.addEventListener('DOMContentLoaded', () => showPanel(1));
+
+  document.querySelectorAll('.typingBox-vscode').forEach(box => {
+    box.addEventListener('keydown', async function(e) {
+      if(e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        const outputEl = box.closest('.code-group')?.querySelector('.output-box');
+        if (!window.pyodideReady) {
+          if(outputEl) outputEl.textContent = '⏳ Pyodide belum siap, tunggu sebentar...';
+          return;
+        }
+        const hidden = box.querySelector('.code-output');
+        const code = hidden ? hidden.textContent : box.textContent.trim();
+        try {
+          let output = "";
+          window.pyodide.setStdout({batched: s => { output += s; }});
+          window.pyodide.setStderr({batched: s => { output += s; }});
+          await window.pyodide.runPythonAsync(code);
+          if(outputEl) outputEl.textContent = output.trim() || '=== Tidak ada output ===';
+        } catch(err) {
+          if(outputEl) outputEl.textContent = 'Error: ' + err;
+        } finally {
+          window.pyodide.setStdout({});
+          window.pyodide.setStderr({});
+        }
+      }
+    });
+  });
+
+  async function runGlobalPyodideInput() {
+    const code = document.getElementById('globalPyodideInput').textContent.trim();
+    if (!code) {
+      document.getElementById('globalPyodideOutput').textContent = '❌ Kode kosong. Ketik kode Python dulu.';
+      return;
+    }
+    if (!window.pyodideReady) {
+      document.getElementById('globalPyodideOutput').textContent = '⏳ Pyodide belum siap, tunggu sebentar...';
+      return;
+    }
+    try {
+      let output = "";
+      window.pyodide.setStdout({batched: s => { output += s; }});
+      window.pyodide.setStderr({batched: s => { output += s; }});
+      await window.pyodide.runPythonAsync(code);
+      document.getElementById('globalPyodideOutput').textContent = output.trim() || '=== Tidak ada output ===';
+    } catch(err) {
+      document.getElementById('globalPyodideOutput').textContent = 'Error: ' + err;
+    } finally {
+      window.pyodide.setStdout({});
+      window.pyodide.setStderr({});
+    }
+  }
+
+  document.getElementById('themeToggleIcon').addEventListener('click', function() {
+    const lab = document.querySelector('.lab-column');
+    const editor = document.getElementById('globalPyodideInput');
+    const output = document.getElementById('globalPyodideOutput');
+    const icon = document.getElementById('themeToggleIcon');
+    if (lab.classList.contains('dark-theme')) {
+      lab.classList.remove('dark-theme');
+      lab.style.background = '#f9fafb';
+      editor.style.background = 'white';
+      editor.style.color = 'black';
+      output.classList.remove('dark-theme-output', 'light-theme-output');
+      output.classList.add('light-theme-output');
+      icon.textContent = '🌙';
+    } else {
+      lab.classList.add('dark-theme');
+      lab.style.background = '#111827';
+      editor.style.background = '#1e293b';
+      editor.style.color = '#a7f3d0';
+      output.classList.remove('dark-theme-output', 'light-theme-output');
+      output.classList.add('dark-theme-output');
+      icon.textContent = '☀️';
+    }
+  });
+
+  document.getElementById('toggleLabColumn').addEventListener('click', function() {
+    const main = document.querySelector('.main');
+    const lab = document.querySelector('.lab-column');
+    if (lab.style.display === 'none') {
+      lab.style.display = 'flex';
+      main.style.maxWidth = '50%';
+    } else {
+      lab.style.display = 'none';
+      main.style.maxWidth = '100%';
+    }
+  });
 </script>
-<!-- Firebase and Whiteboard -->
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 <script src="whiteboard.js"></script>
 <script>
