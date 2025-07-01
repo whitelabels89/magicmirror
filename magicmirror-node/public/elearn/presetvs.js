@@ -160,7 +160,7 @@ function setupVscodeTypingBox(container) {
     try {
       let output = "";
       window.pyodide.setStdout({ batched: (s) => { output += s + "\n"; } });
-      await window.pyodide.runPythonAsync(typedCode);
+      await window.pyodide.runPythonAsync(typedCode + "\nimport sys; sys.stdout.flush()");
       outputEl.textContent = output.trim() || "✅ Berhasil (tidak ada output)";
     } catch (err) {
       outputEl.textContent = "❌ Error:\n" + err;
