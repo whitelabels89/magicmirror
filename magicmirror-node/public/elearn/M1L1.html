@@ -752,7 +752,11 @@ main();
             let output = "";
             window.pyodide.setStdout({batched: s => { output += s; }});
             window.pyodide.setStderr({batched: s => { output += s; }});
-            await window.pyodide.runPythonAsync(code + "\nimport sys; sys.stdout.flush()");
+            let codeToRun = code;
+            if (!code.includes('\n') && code.includes(';')) codeToRun = codeToRun.replace(/;/g, '\n');
+            if (!code.includes('import sys')) codeToRun = `import sys\n${codeToRun}`;
+            if (!code.includes('sys.stdout.flush()')) codeToRun += `\nsys.stdout.flush()`;
+            await window.pyodide.runPythonAsync(codeToRun);
             outputBox.textContent = output.trim() || '=== Tidak ada output ===';
           } catch(err) {
             outputBox.textContent = 'Error: ' + err;
@@ -780,7 +784,11 @@ main();
       let output = "";
       window.pyodide.setStdout({batched: s => { output += s; }});
       window.pyodide.setStderr({batched: s => { output += s; }});
-      await window.pyodide.runPythonAsync(code + "\nimport sys; sys.stdout.flush()");
+      let codeToRun = code;
+      if (!code.includes('\n') && code.includes(';')) codeToRun = codeToRun.replace(/;/g, '\n');
+      if (!code.includes('import sys')) codeToRun = `import sys\n${codeToRun}`;
+      if (!code.includes('sys.stdout.flush()')) codeToRun += `\nsys.stdout.flush()`;
+      await window.pyodide.runPythonAsync(codeToRun);
       document.getElementById('globalPyodideOutput').textContent = output.trim() || '=== Tidak ada output ===';
     } catch(err) {
       document.getElementById('globalPyodideOutput').textContent = 'Error: ' + err;
