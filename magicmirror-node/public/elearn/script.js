@@ -32,7 +32,7 @@ async function login() {
 
     // Redirect berdasarkan role
     if (data.role === "murid") {
-      window.location.href = "https://verse.queensacademy.id/";
+      window.location.href = "/elearn/murid.html";
     } else if (data.role === "guru") {
       window.location.href = "/elearn/guru.html";
     } else if (data.role === "ortu") {
