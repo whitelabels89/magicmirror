@@ -1,5 +1,12 @@
 <link rel="stylesheet" href="presetvs.css" />
-<script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+<script>
+async function main() {
+  window.pyodide = await loadPyodide();
+  window.pyodideReady = true;
+}
+main();
+</script>
 <script src="presetvs.js"></script>
 <style>
   body {
@@ -11,12 +18,15 @@
   .header {
     text-align: center;
     padding: 20px;
-    background: #4f46e5;
+    background: linear-gradient(90deg, #4f46e5, #6d28d9);
     color: #fff;
+    border-bottom-left-radius: 24px;
+    border-bottom-right-radius: 24px;
   }
   .header h1 {
     margin-bottom: 10px;
     font-size: 2.2rem;
+    font-weight: 700;
   }
   .header p {
     margin-bottom: 20px;
@@ -27,17 +37,20 @@
     max-width: 600px;
     margin-left: auto;
     margin-right: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #f9fafb;
   }
   .progress-bar {
     height: 12px;
-    background: #fff;
+    background: #e5e7eb;
     border-radius: 6px;
     overflow: hidden;
   }
   .progress {
     width: 0%;
     height: 100%;
-    background: #facc15;
+    background: #22c55e;
   }
   .back-btn {
     display: inline-block;
@@ -51,56 +64,98 @@
   }
   .container {
     display: flex;
-    padding: 20px;
-    gap: 20px;
-    flex-wrap: wrap;
+    flex-direction: row;
+    padding: 0;
+    gap: 0;
+    align-items: stretch;
+    height: 100vh;
   }
-  .sidebar {
-    flex: 1 1 180px;
-    max-width: 200px;
-    background: #fde68a;
-    padding: 20px;
-    border-radius: 20px;
+  .top-nav {
+    width: 100%;
+    overflow-x: auto;
+    background: #f9fafb;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    margin: 10px auto 20px auto;
+    padding: 10px 20px;
+    white-space: nowrap;
   }
-  .sidebar ul {
+  .top-nav ul {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
     list-style: none;
+    margin: 0;
     padding: 0;
   }
-  .sidebar li {
-    margin-bottom: 10px;
-    background: #fcd34d;
-    padding: 8px 12px;
-    border-radius: 10px;
+  .top-nav li {
+    flex: 0 0 auto;
+    width: 30px;
+    height: 30px;
+    background: #e5e7eb;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
     cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
   }
-  .sidebar li.active {
-    background: #fbbf24;
+  .top-nav li:hover {
+    background: #d1d5db;
+    transform: scale(1.1);
+  }
+  .top-nav li.active {
+    background: #4f46e5;
+    color: #fff;
   }
   .main {
-    flex: 3 1 300px;
-    background: #fff;
+    flex: 1 1 50%;
+    max-width: 50%;
+    background: #ffffff;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    border-radius: 24px;
     padding: 20px;
-    border-radius: 20px;
+    transition: margin-right 0.5s;
+    overflow-y: auto;
   }
   .lab-column {
-    flex: 1 1 260px;
+    flex: 1 1 50%;
+    max-width: 50%;
     background: #111827;
     padding: 20px;
-    border-radius: 20px;
+    border-radius: 0;
     color: #a7f3d0;
-    min-width: 260px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    position: relative;
+    overflow-x: hidden;
+  }
+  .global-editor, #globalPyodideOutput {
+    flex: 1 1 48%;
+    min-height: 200px;
   }
   .whiteboard-container {
     margin-top: 1rem;
     text-align: center;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: auto;
   }
   #whiteboardCanvas {
     border: 1px solid #ccc;
     width: 100%;
-    height: 300px;
+    max-width: 100%;
+    height: auto;
+    aspect-ratio: 4/1.2;
     display: none;
     touch-action: none;
     background: #fff;
+    border-radius: 12px;
+    box-sizing: border-box;
   }
   .step-content {
     display: none;
@@ -112,47 +167,63 @@
   }
   .step-content.active { display: block; }
   .nav-controls { text-align: center; margin-top: 20px; }
-  .typingBox-vscode {
-    white-space: pre-wrap;
-    font-family: monospace;
+  .nav-controls button {
+    background: #4f46e5;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    margin: 0 5px;
+    border-radius: 10px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  .nav-controls button:hover {
+    background: #6d28d9;
   }
   .output-box {
     background-color: #1e293b;
     color: #a7f3d0;
     padding: 10px;
     border-radius: 8px;
-    min-height: 50px;
+    margin-top: 8px;
     white-space: pre-wrap;
     font-family: monospace;
-    margin-top: 8px;
+    min-height: 50px;
   }
-  .quiz-textarea {
-    width: 100%;
-    min-height: 100px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
+  .light-theme-output {
+    background-color: white;
+    color: black;
+  }
+  .dark-theme-output {
+    background-color: #1e293b;
+    color: #a7f3d0;
+  }
+  .typingBox-vscode {
+    max-width: 100%;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    overflow-x: auto;
+    box-sizing: border-box;
+  }
+  .global-editor {
+    background: #1e293b;
+    color: #a7f3d0;
     padding: 8px;
-    font-family: monospace;
-    margin-top: 6px;
-  }
-  .run-button-quiz {
-    margin-top: 6px;
-    background-color: #22c55e;
-    color: white;
-    border: none;
-    padding: 6px 12px;
     border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-  }
-  .run-button-quiz:hover {
-    background-color: #16a34a;
+    font-family: monospace;
+    width: 100%;
+    max-width: 100%;
+    word-wrap: break-word;
+    overflow-x: auto;
+    box-sizing: border-box;
+    min-height: 80px;
   }
 </style>
 
 <div class="header">
-  <h1>Modul 3 - Lesson 2: Advanced Functions in Python</h1>
-  <p>Menggunakan fungsi dengan cara lebih seru</p>
+  <h1>  Modul 3 - Lesson 2: Advanced Functions in Python</h1>
+  <p>  Menggunakan fungsi dengan cara lebih seru</p>
   <div class="progress-container">
     <div class="progress-bar"><div class="progress" id="progressBar"></div></div>
   </div>
@@ -160,25 +231,26 @@
     <a href="/elearn/modul.html" class="back-btn">⟵ Kembali ke Modul</a>
   </div>
 </div>
+<div class="top-nav">
+  <ul id="lesson-nav">
+  </ul>
+    <li data-step="1" class="active">1</li>
+    <li data-step="2">2</li>
+    <li data-step="3">3</li>
+    <li data-step="4">4</li>
+    <li data-step="5">5</li>
+    <li data-step="6">6</li>
+    <li data-step="7">7</li>
+    <li data-step="8">8</li>
+    <li data-step="9">9</li>
+    <li data-step="10">10</li>
+    <li data-step="11">11</li>
+    <li data-step="12">12</li>
+</div>
 
 <div class="container">
-  <div class="sidebar">
-    <ul id="lesson-nav">
-      <li data-step="1" class="active">1. Parameter Default Itu Apa?</li>
-      <li data-step="2">2. Fungsi Ramah Gamer</li>
-      <li data-step="3">3. Keyword Argument</li>
-      <li data-step="4">4. Fungsi dengan Return</li>
-      <li data-step="5">5. Kembalikan Banyak Hadiah</li>
-      <li data-step="6">6. Kalkulator Skill</li>
-      <li data-step="7">7. Tantangan Arena</li>
-      <li data-step="8">8. Tanya Cepat</li>
-      <li data-step="9">9. Quiz Part 1</li>
-      <li data-step="10">10. Quiz Part 2</li>
-      <li data-step="11">11. QnA Refleksi</li>
-      <li data-step="12">12. Thank You</li>
-    </ul>
-  </div>
   <div class="main">
+    <!-- START LESSON PANELS -->
     <div id="panel-1" class="step-content">
       <h2>Parameter Default Itu Apa?</h2>
       <p>Kamu main game pilih karakter ninja. Kalau nggak pilih senjata, sistem kasih pedang otomatis — itu seperti parameter default!</p>
@@ -360,8 +432,29 @@ info_item('Pedang Naga', 'Senjata', 'Langka')"></div>
       <span id="indicator"></span>
       <button onclick="nextPanel()">Selanjutnya ⟶</button>
     </div>
+    <!-- Insert lesson-specific panels here, for example:
+         <div id="panel-1" class="step-content"> ... </div>
+         <div id="panel-2" class="step-content"> ... </div>
+         ...etc...
+    -->
+    <!-- END LESSON PANELS -->
+    <div class="nav-controls">
+      <button onclick="prevPanel()">⟵ Sebelumnya</button>
+      <span id="indicator"></span>
+      <button onclick="nextPanel()">Selanjutnya ⟶</button>
+    </div>
   </div>
+  <button id="toggleLabColumn" style="position:fixed;top:50%;right:0;z-index:1000;background:#4f46e5;color:#fff;padding:8px 12px;border-radius:8px 0 0 8px;border:none;cursor:pointer;">⇆ Pyodide</button>
   <div class="lab-column">
+    <div class="global-pyodide-container">
+      <h3>Output Canvas Pyodide</h3>
+      <div id="themeToggleIcon" style="position:absolute;top:10px;right:10px;cursor:pointer;font-size:24px;">🌙</div>
+      <div class="code-editor-container" style="margin-bottom:10px;">
+        <div contenteditable="true" id="globalPyodideInput" class="global-editor"></div>
+        <button onclick="runGlobalPyodideInput()" style="margin-top:8px;background:#4f46e5;color:#fff;padding:6px 12px;border-radius:8px;border:none;cursor:pointer;">Jalankan Kode</button>
+      </div>
+      <pre id="globalPyodideOutput" class="output-box" style="height:200px;overflow-y:auto;"></pre>
+    </div>
     <div class="whiteboard-container">
       <button id="toggleWhiteboard">Tampilkan Whiteboard</button>
       <button id="clearWhiteboard">Clear</button>
@@ -391,35 +484,121 @@ info_item('Pedang Naga', 'Senjata', 'Langka')"></div>
       showPanel(Number(e.target.getAttribute('data-step')));
     }
   });
-  document.addEventListener('DOMContentLoaded', () => showPanel(1));
-</script>
-<script>
-  // Prevent scroll on space or character in typingBox-vscode
-  document.querySelectorAll('.typingBox-vscode').forEach(box => {
-    box.addEventListener('keydown', (e) => {
-      if (e.key === ' ' || e.code === 'Space') {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    });
+  document.addEventListener('DOMContentLoaded', () => {
+    showPanel(1);
+    attachTypingBoxListeners();
   });
 
-  function getCodeFromTypingBox(el) {
-    let html = el.innerHTML;
-    html = html.replace(/<div>/gi, '\n').replace(/<\/div>/gi, '').replace(/<br>/gi, '\n');
-    return html.replace(/&nbsp;/gi, ' ');
+
+  // Fungsi attachTypingBoxListeners untuk .typingBox-vscode
+  function attachTypingBoxListeners() {
+    document.querySelectorAll('.typingBox-vscode').forEach(box => {
+      if (box.dataset.listenerAttached) return; // Cegah double attach
+      box.dataset.listenerAttached = "true";
+      box.addEventListener('keydown', async function(e) {
+        if(e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          if (!window.pyodideReady) {
+            const outputBox = box.closest('.code-group')?.querySelector('.output-box') || document.getElementById('globalPyodideOutput');
+            outputBox.textContent = '⏳ Pyodide belum siap, tunggu sebentar...';
+            return;
+          }
+          const code = box.textContent.trim();
+          const outputBox = box.closest('.code-group')?.querySelector('.output-box') || document.getElementById('globalPyodideOutput');
+          try {
+            let output = "";
+            window.pyodide.setStdout({batched: s => { output += s; }});
+            window.pyodide.setStderr({batched: s => { output += s; }});
+            let codeToRun = code;
+            if (!code.includes('\n') && code.includes(';')) codeToRun = codeToRun.replace(/;/g, '\n');
+            if (!code.includes('import sys')) codeToRun = `import sys\n${codeToRun}`;
+            if (!code.includes('sys.stdout.flush()')) codeToRun += `\nsys.stdout.flush()`;
+            await window.pyodide.runPythonAsync(codeToRun);
+            outputBox.textContent = output.trim() || '=== Tidak ada output ===';
+          } catch(err) {
+            outputBox.textContent = 'Error: ' + err;
+          } finally {
+            window.pyodide.setStdout({});
+            window.pyodide.setStderr({});
+          }
+        }
+      });
+    });
   }
 
-  document.querySelectorAll('.run-button').forEach(button => {
-    button.addEventListener('click', () => {
-      const panel = button.closest('.step-content');
-      const typingBox = panel.querySelector('.typingBox-vscode');
-      const code = getCodeFromTypingBox(typingBox);
-      runPythonCode(code, panel.querySelector('.output-box'));
-    });
+  // Fungsi untuk menjalankan kode dari input editor global
+  async function runGlobalPyodideInput() {
+    const code = document.getElementById('globalPyodideInput').textContent.trim();
+    if (!code) {
+      document.getElementById('globalPyodideOutput').textContent = '❌ Kode kosong. Ketik kode Python dulu.';
+      return;
+    }
+    if (!window.pyodideReady) {
+      document.getElementById('globalPyodideOutput').textContent = '⏳ Pyodide belum siap, tunggu sebentar...';
+      return;
+    }
+    try {
+      let output = "";
+      window.pyodide.setStdout({batched: s => { output += s; }});
+      window.pyodide.setStderr({batched: s => { output += s; }});
+      let codeToRun = code;
+      if (!code.includes('\n') && code.includes(';')) codeToRun = codeToRun.replace(/;/g, '\n');
+      if (!code.includes('import sys')) codeToRun = `import sys\n${codeToRun}`;
+      if (!code.includes('sys.stdout.flush()')) codeToRun += `\nsys.stdout.flush()`;
+      await window.pyodide.runPythonAsync(codeToRun);
+      document.getElementById('globalPyodideOutput').textContent = output.trim() || '=== Tidak ada output ===';
+    } catch(err) {
+      document.getElementById('globalPyodideOutput').textContent = 'Error: ' + err;
+    } finally {
+      window.pyodide.setStdout({});
+      window.pyodide.setStderr({});
+    }
+  }
+
+  // Theme toggle icon (moon/sun)
+  document.getElementById('themeToggleIcon').addEventListener('click', function() {
+    const lab = document.querySelector('.lab-column');
+    const editor = document.getElementById('globalPyodideInput');
+    const output = document.getElementById('globalPyodideOutput');
+    const icon = document.getElementById('themeToggleIcon');
+    if (lab.classList.contains('dark-theme')) {
+      lab.classList.remove('dark-theme');
+      lab.style.background = '#f9fafb';
+      editor.style.background = 'white';
+      editor.style.color = 'black';
+      output.classList.remove('dark-theme-output', 'light-theme-output');
+      output.classList.add('light-theme-output');
+      icon.textContent = '🌙';
+    } else {
+      lab.classList.add('dark-theme');
+      lab.style.background = '#111827';
+      editor.style.background = '#1e293b';
+      editor.style.color = '#a7f3d0';
+      output.classList.remove('dark-theme-output', 'light-theme-output');
+      output.classList.add('dark-theme-output');
+      icon.textContent = '☀️';
+    }
   });
+
+document.getElementById('toggleLabColumn').addEventListener('click', function() {
+  const main = document.querySelector('.main');
+  const lab = document.querySelector('.lab-column');
+  if (lab.style.display === 'none') {
+    lab.style.display = 'flex';
+    main.style.maxWidth = '50%';
+  } else {
+    lab.style.display = 'none';
+    main.style.maxWidth = '100%';
+  }
+});
+  /*
+    To use this template:
+    - Replace   Modul 3 - Lesson 2: Advanced Functions in Python with your lesson's title.
+    - Replace   Menggunakan fungsi dengan cara lebih seru with a short description.
+    - Replace /elearn/modul.html with the path to your module or dashboard.
+    - Add your panels inside "START LESSON PANELS" ... "END LESSON PANELS" section.
+  */
 </script>
-<!-- Firebase and Whiteboard -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 <script src="whiteboard.js"></script>
