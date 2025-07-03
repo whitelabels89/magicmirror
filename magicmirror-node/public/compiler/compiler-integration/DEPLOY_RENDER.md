@@ -38,6 +38,7 @@ git push -u origin main
    - **Runtime**: `Node`
    - **Build Command**: `npm install`
    - **Start Command**: `npm start`
+   - **Publish Directory**: kosongkan (leave empty)
    - **Instance Type**: `Free`
 
 5. **Click "Create Web Service"**

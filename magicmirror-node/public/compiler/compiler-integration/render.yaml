@@ -3,14 +3,9 @@ services:
     name: queens-academy-compiler
     env: node
     plan: free
-    buildCommand: npm install && npm run build
+    buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        fromService:
-          type: web
-          name: queens-academy-compiler
-          property: port
