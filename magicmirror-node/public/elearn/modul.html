@@ -297,20 +297,65 @@
       font-size: 20px;
     }
 
+    /* Lesson Details Styling */
+    .lesson-details {
+      display: none;
+      margin-top: 10px;
+      background: linear-gradient(to right, #6366f1, #8b5cf6);
+      border-radius: 20px;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+      padding: 20px;
+      color: white;
+      font-size: 14px;
+    }
+    .lesson-details ul {
+      list-style-type: disc;
+      padding-left: 20px;
+    }
+    .lesson-details li {
+      margin-bottom: 6px;
+    }
+
+    /* Mini lesson cards for module toggle */
+    .lesson-card.mini {
+      position: relative;
+      width: 280px;
+      height: 180px;
+      font-size: 14px;
+      padding: 20px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      border-radius: 20px;
+      background: linear-gradient(to right, #6366f1, #8b5cf6);
+      color: white;
+      text-align: center;
+    }
+    .lesson-card.mini h3 {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      margin: 0;
+      line-height: 1.4;
+    }
+    .lesson-cards-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 20px;
+      gap: 10px;
+    }
+
     /* Responsiveness */
     @media (max-width: 768px) {
       .page-container {
         flex-direction: column;
         height: auto;
-
         width: calc(100% - 20px);
         margin: 10px;
       }
-
       .sidebar,
       .panel-ungu,
       .main-content {
-
         width: 100%;
         left: 0;
         position: relative;
@@ -319,23 +364,23 @@
         max-width: 100% !important;
         overflow-y: auto !important;
       }
-
       .header {
         flex-direction: column;
         gap: 10px;
       }
-
       .status-box {
         flex-wrap: wrap;
       }
-
       .game-style-cards {
         justify-content: center;
       }
-
       .lesson-card {
         width: 100%;
         height: auto;
+      }
+      .lesson-details {
+        width: 100%;
+        box-sizing: border-box;
       }
     }
 </style>
@@ -381,11 +426,29 @@
           <p>Pondasi dunia digital modern</p>
           <a href="#" class="start-btn">Lihat Modul</a>
         </div>
+        <div class="lesson-details">
+          <ul>
+            <li>L1: Recognizing Digital Devices Around Us</li>
+            <li>L2: Basic Use of Tablet/Computer: Tap, Drag, and Swipe</li>
+            <li>L3: Safe and Healthy Screen Time Habits</li>
+            <li>L4: Exploring Educational Apps Together</li>
+            <li>L5: Understanding Online vs Offline (Conceptual)</li>
+          </ul>
+        </div>
         <div class="lesson-card" style="background: linear-gradient(to right, #16a34a, #4ade80);">
           <span class="lesson-number">#02</span>
           <h3>Digital Creativity</h3>
           <p>Berpikir kreatif dengan teknologi</p>
           <a href="#" class="start-btn">Lihat Modul</a>
+        </div>
+        <div class="lesson-details">
+          <ul>
+            <li>L1: Drawing Simple Shapes on a Digital Canvas</li>
+            <li>L2: Coloring Digital Pictures with Tools</li>
+            <li>L3: Creating Stickers or Emojis</li>
+            <li>L4: Arranging Digital Collages from Photos</li>
+            <li>L5: Making a Short Animated Story with Drag-and-Drop Tools</li>
+          </ul>
         </div>
         <div class="lesson-card" style="background: linear-gradient(to right, #0284c7, #38bdf8);">
           <span class="lesson-number">#03</span>
@@ -393,11 +456,29 @@
           <p>Kode sambil berkarya</p>
           <a href="#" class="start-btn">Lihat Modul</a>
         </div>
+        <div class="lesson-details">
+          <ul>
+            <li>L1: Making Paper Crafts Based on Digital Templates</li>
+            <li>L2: Building Patterns with Digital Blocks (e.g., Scratch Jr)</li>
+            <li>L3: Introducing Commands: Move, Turn, Repeat</li>
+            <li>L4: Connecting Crafts with Simple Coding (e.g., card with QR code)</li>
+            <li>L5: Craft Showcase: Presenting Digital and Physical Creations</li>
+          </ul>
+        </div>
         <div class="lesson-card" style="background: linear-gradient(to right, #7c3aed, #c084fc);">
           <span class="lesson-number">#04</span>
           <h3>2D Game Development</h3>
           <p>Buat game 2D pertama kamu!</p>
           <a href="#" class="start-btn">Lihat Modul</a>
+        </div>
+        <div class="lesson-details">
+          <ul>
+            <li>L1: Understanding Game Characters and Backgrounds</li>
+            <li>L2: Choosing Sprites and Moving Them with Simple Commands</li>
+            <li>L3: Adding Sounds and Reactions (e.g., 'jump' makes sound)</li>
+            <li>L4: Creating a One-Screen Maze Game Using Blocks</li>
+            <li>L5: Sharing the Game with Family and Friends</li>
+          </ul>
         </div>
       </div>
 
@@ -661,3 +742,62 @@
   </script>
 </body>
 </html>
+
+  <script>
+    // Mini lesson cards toggle functionality
+    const lessonsData = {
+      "Digital Literacy": [
+        "Recognizing Digital Devices Around Us",
+        "Basic Use of Tablet/Computer: Tap, Drag, and Swipe",
+        "Safe and Healthy Screen Time Habits",
+        "Exploring Educational Apps Together",
+        "Understanding Online vs Offline (Conceptual)"
+      ],
+      "Digital Creativity": [
+        "Drawing Simple Shapes on a Digital Canvas",
+        "Coloring Digital Pictures with Tools",
+        "Creating Stickers or Emojis",
+        "Arranging Digital Collages from Photos",
+        "Making a Short Animated Story with Drag-and-Drop Tools"
+      ],
+      "Craft & Coding": [
+        "Making Paper Crafts Based on Digital Templates",
+        "Building Patterns with Digital Blocks (e.g., Scratch Jr)",
+        "Introducing Commands: Move, Turn, Repeat",
+        "Connecting Crafts with Simple Coding (e.g., card with QR code)",
+        "Craft Showcase: Presenting Digital and Physical Creations"
+      ],
+      "2D Game Development": [
+        "Understanding Game Characters and Backgrounds",
+        "Choosing Sprites and Moving Them with Simple Commands",
+        "Adding Sounds and Reactions (e.g., 'jump' makes sound)",
+        "Creating a One-Screen Maze Game Using Blocks",
+        "Sharing the Game with Family and Friends"
+      ]
+    };
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.start-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.preventDefault();
+          const card = btn.closest('.lesson-card');
+          const title = card.querySelector('h3').textContent.trim();
+          let container = card.nextElementSibling;
+          // If already has a mini lesson-cards-container, toggle it
+          if (container && container.classList.contains('lesson-cards-container')) {
+            container.style.display = container.style.display === 'none' ? 'flex' : 'none';
+            return;
+          }
+          // Otherwise, create and insert the mini lesson cards container
+          container = document.createElement('div');
+          container.classList.add('lesson-cards-container');
+          lessonsData[title]?.forEach((lesson, idx) => {
+            const lessonCard = document.createElement('div');
+            lessonCard.classList.add('lesson-card', 'mini');
+            lessonCard.innerHTML = `<span class="lesson-number">L${idx + 1}</span><h3>${lesson}</h3>`;
+            container.appendChild(lessonCard);
+          });
+          card.parentNode.insertBefore(container, card.nextSibling);
+        });
+      });
+    });
+  </script>
