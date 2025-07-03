@@ -233,7 +233,6 @@ main();
 </div>
 <div class="top-nav">
   <ul id="lesson-nav">
-  </ul>
     <li data-step="1" class="active">1</li>
     <li data-step="2">2</li>
     <li data-step="3">3</li>
@@ -243,6 +242,7 @@ main();
     <li data-step="7">7</li>
     <li data-step="8">8</li>
     <li data-step="9">9</li>
+  </ul>
 </div>
 
 <div class="container">
@@ -363,17 +363,7 @@ print('Level naik jadi:', level_baru)"></div>
       <span id="indicator"></span>
       <button onclick="nextPanel()">Selanjutnya ⟶</button>
     </div>
-    <!-- Insert lesson-specific panels here, for example:
-         <div id="panel-1" class="step-content"> ... </div>
-         <div id="panel-2" class="step-content"> ... </div>
-         ...etc...
-    -->
     <!-- END LESSON PANELS -->
-    <div class="nav-controls">
-      <button onclick="prevPanel()">⟵ Sebelumnya</button>
-      <span id="indicator"></span>
-      <button onclick="nextPanel()">Selanjutnya ⟶</button>
-    </div>
   </div>
   <button id="toggleLabColumn" style="position:fixed;top:50%;right:0;z-index:1000;background:#4f46e5;color:#fff;padding:8px 12px;border-radius:8px 0 0 8px;border:none;cursor:pointer;">⇆ Pyodide</button>
   <div class="lab-column">
