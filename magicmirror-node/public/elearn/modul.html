@@ -25,6 +25,7 @@
       overflow: hidden;
       outline: 12px solid #111827;
       outline-offset: 0px;
+      position: relative;
     }
 
     .sidebar {
@@ -109,6 +110,35 @@
       justify-content: center;
       box-shadow: inset 0 0 10px #c084fc;
       min-height: calc(100vh - 60px);
+      position: relative;
+      transition: width 0.3s ease, padding 0.3s ease;
+    }
+    .panel-ungu.hidden {
+      width: 40px;
+      padding: 0;
+      overflow: hidden;
+      transition: width 0.3s ease, padding 0.3s ease;
+    }
+
+    .panel-toggle-btn {
+      position: absolute;
+      top: 50%;
+      right: 5px;
+      transform: translateY(-50%);
+      width: 30px;
+      height: 30px;
+      background: #8b5cf6;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      transition: transform 0.3s ease;
+      z-index: 10;
+    }
+
+    .panel-ungu.hidden > *:not(.panel-toggle-btn) {
+      display: none;
     }
 
     .progress-card {
@@ -133,12 +163,18 @@
       padding: 30px;
       border-radius: 40px 0 0 40px;
       overflow-y: auto;
+      position: relative;
     }
 
     .header {
       display: flex;
       justify-content: space-between;
       margin-bottom: 30px;
+    }
+
+    /* Toggle button rotate when hidden */
+    .panel-ungu.hidden ~ .main-content .panel-toggle-btn {
+      transform: rotate(180deg);
     }
     .status-box {
       display: flex;
@@ -167,7 +203,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 24px;
-      justify-content: flex-start;
+      justify-content: center;
     }
 
     .lesson-card {
@@ -233,6 +269,34 @@
       margin-bottom: 50px; /* Atur jarak dari bawah */
     }
 
+    .python-class-container {
+      display: block;
+      width: 100%;
+      max-width: 900px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f9fafb;
+      border-radius: 40px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+      z-index: 1;
+      position: relative;
+    }
+
+    .python-class-container summary:hover {
+      background: linear-gradient(135deg, #6366f1, #a78bfa);
+      transform: scale(1.02);
+    }
+
+    .lesson-card.locked {
+      background: repeating-linear-gradient(45deg, #9ca3af, #9ca3af 10px, #6b7280 10px, #6b7280 20px);
+      color: white;
+      text-align: center;
+      padding: 40px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 20px;
+    }
+
     /* Responsiveness */
     @media (max-width: 768px) {
       .page-container {
@@ -296,15 +360,8 @@
     <!-- Sidebar Kiri akan dimuat secara dinamis -->
     <div id="sidebar-container"></div>
 
-    <!-- Konten Tengah (Panel Ungu / Neon) -->
-    <div class="panel-ungu">
-      <h2>👾 Learning Mode</h2>
-      <p>Selamat datang kembali, murid pintar!</p>
-      <div class="progress-card">
-        <p>🚀 Progress kamu: 40%</p>
-        <div class="progress-bar"><div class="progress-bar-fill" style="width: 40%;"></div></div>
-      </div>
-    </div>
+    <!-- Konten Tengah (Panel Ungu / Neon) akan dimuat secara dinamis -->
+    <div id="panel-profile-container"></div>
 
     <!-- Konten Kanan (Utama) -->
     <div class="main-content">
@@ -344,88 +401,125 @@
         </div>
       </div>
 
-      <h2 class="judul-section">📘 Syllabus</h2>
+      <h2 class="judul-section"></h2>
       <div class="syllabus-section">
-        <details>
-          <summary style="background:#8b5cf6; color:white; padding:12px 20px; border-radius:16px; cursor:pointer; font-weight:bold; font-size:16px; margin-bottom:10px; box-shadow:0 4px 8px rgba(0,0,0,0.15);">
-            Basic Python
+        <details class="python-class-container">
+          <summary style="background: linear-gradient(135deg, #4f46e5, #8b5cf6); color: white; padding: 16px 24px; border-radius: 24px; cursor: pointer; font-weight: 700; font-size: 20px; margin-bottom: 24px; box-shadow: 0 12px 24px rgba(0,0,0,0.2); height: 180px; display: flex; align-items: center; justify-content: center; letter-spacing: 0.5px; transition: background 0.4s ease, transform 0.2s ease;">
+            Python Class
           </summary>
-          <div class="game-style-cards" style="margin: 40px 0;">
-            <a href="/elearn/M1L1.html" style="text-decoration:none;">
-              <div class="lesson-card">
-                <span class="lesson-number">M1 L1</span>
-                <h3>Intro to Python</h3>
-                <p>Introduction to the Python Programming Language</p>
+          <div>
+            <details>
+              <summary style="background:#8b5cf6; color:white; padding:12px 20px; border-radius:16px; cursor:pointer; font-weight:bold; font-size:16px; margin-bottom:10px; box-shadow:0 4px 8px rgba(0,0,0,0.15);">
+                Basic Python
+              </summary>
+              <div class="game-style-cards" style="margin: 40px 0;">
+                <a href="/elearn/M1L1.html" style="text-decoration:none;">
+                  <div class="lesson-card">
+                    <span class="lesson-number">M1 L1</span>
+                    <h3>Intro to Python</h3>
+                    <p>Introduction to the Python Programming Language</p>
+                  </div>
+                </a>
+                <a href="/elearn/M1L2.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M1 L2</span><h3>Variables</h3><p>Understanding Variables in Python</p></div></a>
+                <a href="/elearn/M1L3.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M1 L3</span><h3>Strings</h3><p>Working with String Data Types</p></div></a>
+                <a href="/elearn/M1L4.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M1 L4</span><h3>Nested Constructs</h3><p>Simplifying Code with Nested Constructs</p></div></a>
               </div>
-            </a>
-            <a href="/elearn/M1L2.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M1 L2</span><h3>Variables</h3><p>Understanding Variables in Python</p></div></a>
-            <a href="/elearn/M1L3.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M1 L3</span><h3>Strings</h3><p>Working with String Data Types</p></div></a>
-            <a href="/elearn/M1L4.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M1 L4</span><h3>Nested Constructs</h3><p>Simplifying Code with Nested Constructs</p></div></a>
+            </details>
+            <details>
+              <summary style="background:#8b5cf6; color:white; padding:12px 20px; border-radius:16px; cursor:pointer; font-weight:bold; font-size:16px; margin-bottom:10px; box-shadow:0 4px 8px rgba(0,0,0,0.15);">
+                Control Structures
+              </summary>
+              <div class="game-style-cards" style="margin: 40px 0;">
+                <a href="/elearn/M2L1.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M2 L1</span><h3>Decision Making</h3><p>Making Decisions in Python</p></div></a>
+                <a href="/elearn/M2L2.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M2 L2</span><h3>Simplified Decisions</h3><p>Simplifying Decision Making</p></div></a>
+                <a href="/elearn/M2L3.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M2 L3</span><h3>Loops</h3><p>Loops in Python</p></div></a>
+                <a href="/elearn/M2L4.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M2 L4</span><h3>Adv Loops</h3><p>Advanced Looping in Python</p></div></a>
+                <div class="lesson-card"><span class="lesson-number">M2 L5</span><h3>Nested Structures</h3><p>Nested Control Structures</p></div>
+              </div>
+            </details>
+            <details>
+              <summary style="background:#8b5cf6; color:white; padding:12px 20px; border-radius:16px; cursor:pointer; font-weight:bold; font-size:16px; margin-bottom:10px; box-shadow:0 4px 8px rgba(0,0,0,0.15);">
+                Functions and Modules
+              </summary>
+              <div class="game-style-cards" style="margin: 40px 0;">
+                <a href="/elearn/M3L1.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M3 L1</span><h3>Functions</h3><p>Creating Functions in Python</p></div></a>
+                <a href="/elearn/M3L2.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M3 L2</span><h3>Advanced Functions</h3><p>Creating Functions (Advanced Topics)</p></div></a>
+                <a href="/elearn/M3L3.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M3 L3</span><h3>Time & Random</h3><p>Working with Time and Random Modules</p></div></a>
+                <a href="/elearn/M3L4.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M3 L4</span><h3>Libraries</h3><p>Creating Modules (Libraries) in Python</p></div></a>
+                <a href="/elearn/M3L5.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M3 L5</span><h3>Mini Project</h3><p>Combine Functions and Modules</p></div></a>
+              </div>
+            </details>
+            <details>
+              <summary style="background:#8b5cf6; color:white; padding:12px 20px; border-radius:16px; cursor:pointer; font-weight:bold; font-size:16px; margin-bottom:10px; box-shadow:0 4px 8px rgba(0,0,0,0.15);">
+                Turtle and Math Modules
+              </summary>
+              <div class="game-style-cards" style="margin: 40px 0;">
+                <a href="/elearn/M4L1.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M4 L1</span><h3>Turtle Basics</h3><p>Linear Programming with Turtle Module for Drawing</p></div></a>
+                <a href="/elearn/M4L2.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M4 L2</span><h3>Turtle Loops</h3><p>Using Loops in the Turtle Module</p></div></a>
+                <div id="container-M4L3"></div>
+                <div id="container-M4L4"></div>
+              </div>
+            </details>
+            <details>
+              <summary style="background:#8b5cf6; color:white; padding:12px 20px; border-radius:16px; cursor:pointer; font-weight:bold; font-size:16px; margin-bottom:10px; box-shadow:0 4px 8px rgba(0,0,0,0.15);">
+                Object-Oriented Programming
+              </summary>
+              <div class="game-style-cards" style="margin: 40px 0;">
+                <div id="container-M5L1"></div>
+                <div id="container-M5L2"></div>
+                <div id="container-M5L3"></div>
+                <div id="container-M5L4"></div>
+                <div id="container-M5L5"></div>
+                <div id="container-M5L6"></div>
+              </div>
+            </details>
+            <details>
+              <summary style="background:#8b5cf6; color:white; padding:12px 20px; border-radius:16px; cursor:pointer; font-weight:bold; font-size:16px; margin-bottom:10px; box-shadow:0 4px 8px rgba(0,0,0,0.15);">
+                Creating 2D Games in Python
+              </summary>
+              <div class="game-style-cards" style="margin: 40px 0;">
+                <div class="lesson-card"><span class="lesson-number">M6 L1</span><h3>Game Basics</h3><p>Basics of Game Development in Python</p></div>
+                <div class="lesson-card"><span class="lesson-number">M6 L2</span><h3>Events P1</h3><p>Game Dev with Events (Part 1)</p></div>
+                <div class="lesson-card"><span class="lesson-number">M6 L3</span><h3>Events P2</h3><p>Game Dev with Events (Part 2)</p></div>
+                <div class="lesson-card"><span class="lesson-number">M6 L4</span><h3>Events P3</h3><p>Game Dev with Events (Part 3)</p></div>
+                <div class="lesson-card"><span class="lesson-number">M6 L5</span><h3>Build P1</h3><p>Building Game in Python (Part 1)</p></div>
+                <div class="lesson-card"><span class="lesson-number">M6 L6</span><h3>Build P2</h3><p>Building Game in Python (Part 2)</p></div>
+                <div class="lesson-card"><span class="lesson-number">M6 L7</span><h3>Build P3</h3><p>Building Game in Python (Part 3)</p></div>
+              </div>
+            </details>
           </div>
         </details>
-        <details>
-          <summary style="background:#8b5cf6; color:white; padding:12px 20px; border-radius:16px; cursor:pointer; font-weight:bold; font-size:16px; margin-bottom:10px; box-shadow:0 4px 8px rgba(0,0,0,0.15);">
-            Control Structures
+        <!-- LOCKED/MAINTENANCE CONTAINERS -->
+        <details class="python-class-container">
+          <summary style="background: linear-gradient(135deg, #4f46e5, #8b5cf6); color: white; padding: 16px 24px; border-radius: 24px; cursor: pointer; font-weight: 700; font-size: 20px; margin-bottom: 24px; box-shadow: 0 12px 24px rgba(0,0,0,0.2); height: 180px; display: flex; align-items: center; justify-content: center; letter-spacing: 0.5px; transition: background 0.4s ease, transform 0.2s ease;">
+            Website Development
           </summary>
-          <div class="game-style-cards" style="margin: 40px 0;">
-            <a href="/elearn/M2L1.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M2 L1</span><h3>Decision Making</h3><p>Making Decisions in Python</p></div></a>
-            <a href="/elearn/M2L2.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M2 L2</span><h3>Simplified Decisions</h3><p>Simplifying Decision Making</p></div></a>
-              <a href="/elearn/M2L3.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M2 L3</span><h3>Loops</h3><p>Loops in Python</p></div></a>
-            <a href="/elearn/M2L4.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M2 L4</span><h3>Adv Loops</h3><p>Advanced Looping in Python</p></div></a>
-            <div class="lesson-card"><span class="lesson-number">M2 L5</span><h3>Nested Structures</h3><p>Nested Control Structures</p></div>
+          <div>
+            <div class="lesson-card locked">🚧 Under Maintenance</div>
           </div>
         </details>
-        <details>
-          <summary style="background:#8b5cf6; color:white; padding:12px 20px; border-radius:16px; cursor:pointer; font-weight:bold; font-size:16px; margin-bottom:10px; box-shadow:0 4px 8px rgba(0,0,0,0.15);">
-            Functions and Modules
+        <details class="python-class-container">
+          <summary style="background: linear-gradient(135deg, #4f46e5, #8b5cf6); color: white; padding: 16px 24px; border-radius: 24px; cursor: pointer; font-weight: 700; font-size: 20px; margin-bottom: 24px; box-shadow: 0 12px 24px rgba(0,0,0,0.2); height: 180px; display: flex; align-items: center; justify-content: center; letter-spacing: 0.5px; transition: background 0.4s ease, transform 0.2s ease;">
+            Mobile Apps Development
           </summary>
-          <div class="game-style-cards" style="margin: 40px 0;">
-            <a href="/elearn/M3L1.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M3 L1</span><h3>Functions</h3><p>Creating Functions in Python</p></div></a>
-            <a href="/elearn/M3L2.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M3 L2</span><h3>Advanced Functions</h3><p>Creating Functions (Advanced Topics)</p></div></a>
-            <a href="/elearn/M3L3.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M3 L3</span><h3>Time & Random</h3><p>Working with Time and Random Modules</p></div></a>
-            <a href="/elearn/M3L4.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M3 L4</span><h3>Libraries</h3><p>Creating Modules (Libraries) in Python</p></div></a>
-            <a href="/elearn/M3L5.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M3 L5</span><h3>Mini Project</h3><p>Combine Functions and Modules</p></div></a>
+          <div>
+            <div class="lesson-card locked">🚧 Under Maintenance</div>
           </div>
         </details>
-
-        <details>
-          <summary style="background:#8b5cf6; color:white; padding:12px 20px; border-radius:16px; cursor:pointer; font-weight:bold; font-size:16px; margin-bottom:10px; box-shadow:0 4px 8px rgba(0,0,0,0.15);">
-            Turtle and Math Modules
+        <details class="python-class-container">
+          <summary style="background: linear-gradient(135deg, #4f46e5, #8b5cf6); color: white; padding: 16px 24px; border-radius: 24px; cursor: pointer; font-weight: 700; font-size: 20px; margin-bottom: 24px; box-shadow: 0 12px 24px rgba(0,0,0,0.2); height: 180px; display: flex; align-items: center; justify-content: center; letter-spacing: 0.5px; transition: background 0.4s ease, transform 0.2s ease;">
+            Robotic Class
           </summary>
-          <div class="game-style-cards" style="margin: 40px 0;">
-            <a href="/elearn/M4L1.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M4 L1</span><h3>Turtle Basics</h3><p>Linear Programming with Turtle Module for Drawing</p></div></a>
-            <a href="/elearn/M4L2.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M4 L2</span><h3>Turtle Loops</h3><p>Using Loops in the Turtle Module</p></div></a>
-            <div id="container-M4L3"></div>
-            <div id="container-M4L4"></div>
+          <div>
+            <div class="lesson-card locked">🚧 Under Maintenance</div>
           </div>
         </details>
-
-        <details>
-          <summary style="background:#8b5cf6; color:white; padding:12px 20px; border-radius:16px; cursor:pointer; font-weight:bold; font-size:16px; margin-bottom:10px; box-shadow:0 4px 8px rgba(0,0,0,0.15);">
-            Object-Oriented Programming
+        <details class="python-class-container">
+          <summary style="background: linear-gradient(135deg, #4f46e5, #8b5cf6); color: white; padding: 16px 24px; border-radius: 24px; cursor: pointer; font-weight: 700; font-size: 20px; margin-bottom: 24px; box-shadow: 0 12px 24px rgba(0,0,0,0.2); height: 180px; display: flex; align-items: center; justify-content: center; letter-spacing: 0.5px; transition: background 0.4s ease, transform 0.2s ease;">
+            Artificial Intelligence
           </summary>
-          <div class="game-style-cards" style="margin: 40px 0;">
-            <div id="container-M5L1"></div>
-            <div id="container-M5L2"></div>
-            <div id="container-M5L3"></div>
-            <div id="container-M5L4"></div>
-            <div id="container-M5L5"></div>
-            <div id="container-M5L6"></div>
-          </div>
-        </details>
-
-        <details>
-          <summary style="background:#8b5cf6; color:white; padding:12px 20px; border-radius:16px; cursor:pointer; font-weight:bold; font-size:16px; margin-bottom:10px; box-shadow:0 4px 8px rgba(0,0,0,0.15);">
-            Creating 2D Games in Python
-          </summary>
-          <div class="game-style-cards" style="margin: 40px 0;">
-            <div class="lesson-card"><span class="lesson-number">M6 L1</span><h3>Game Basics</h3><p>Basics of Game Development in Python</p></div>
-            <div class="lesson-card"><span class="lesson-number">M6 L2</span><h3>Events P1</h3><p>Game Dev with Events (Part 1)</p></div>
-            <div class="lesson-card"><span class="lesson-number">M6 L3</span><h3>Events P2</h3><p>Game Dev with Events (Part 2)</p></div>
-            <div class="lesson-card"><span class="lesson-number">M6 L4</span><h3>Events P3</h3><p>Game Dev with Events (Part 3)</p></div>
-            <div class="lesson-card"><span class="lesson-number">M6 L5</span><h3>Build P1</h3><p>Building Game in Python (Part 1)</p></div>
-            <div class="lesson-card"><span class="lesson-number">M6 L6</span><h3>Build P2</h3><p>Building Game in Python (Part 2)</p></div>
-            <div class="lesson-card"><span class="lesson-number">M6 L7</span><h3>Build P3</h3><p>Building Game in Python (Part 3)</p></div>
+          <div>
+            <div class="lesson-card locked">🚧 Under Maintenance</div>
           </div>
         </details>
       </div>
@@ -538,5 +632,17 @@
     }
   });
 </script>
+</script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      fetch('/elearn/panel-profile.html')
+        .then(response => response.text())
+        .then(data => {
+          document.getElementById('panel-profile-container').innerHTML = data;
+          if (typeof initPanelProfile === 'function') initPanelProfile();
+        })
+        .catch(error => console.error('Failed to load panel-profile:', error));
+    });
+  </script>
 </body>
 </html>

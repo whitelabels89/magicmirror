@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Panel Profile</title>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Baloo 2', sans-serif; }
+    body {
+      background: #e0f2fe;
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      align-items: flex-start;
+    }
+    .panel-ungu {
+      background: #8b5cf6;
+      color: #fff;
+      width: 300px;
+      padding: 30px;
+      border-radius: 0 40px 40px 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      box-shadow: inset 0 0 10px #c084fc;
+      min-height: calc(100vh - 60px);
+      position: relative;
+      transition: width 0.3s ease, padding 0.3s ease;
+    }
+    .panel-ungu.hidden {
+      width: 40px;
+      padding: 0;
+      overflow: hidden;
+      transition: width 0.3s ease, padding 0.3s ease;
+    }
+    .panel-toggle-btn {
+      position: absolute;
+      top: 50%;
+      right: 5px;
+      transform: translateY(-50%);
+      width: 30px;
+      height: 30px;
+      background: #8b5cf6;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      transition: transform 0.3s ease;
+      z-index: 10;
+    }
+    .panel-ungu.hidden > *:not(.panel-toggle-btn) {
+      display: none;
+    }
+    .progress-card {
+      margin-top: 20px;
+    }
+    .progress-bar {
+      height: 10px;
+      background: #e5e7eb;
+      border-radius: 20px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: #facc15;
+      transition: width 0.3s ease;
+    }
+    @media (max-width: 768px) {
+      .panel-ungu {
+        width: 100%;
+        min-height: unset;
+        border-radius: 0 0 40px 40px;
+      }
+      body {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="panel-ungu hidden">
+    <button id="toggle-panel-btn" class="panel-toggle-btn">⮞</button>
+    <h2>👾 Learning Mode</h2>
+    <p>Selamat datang kembali, murid pintar!</p>
+    <div class="progress-card">
+      <p>🚀 Progress kamu: 40%</p>
+      <div class="progress-bar"><div class="progress-bar-fill" style="width: 40%;"></div></div>
+    </div>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const panel = document.querySelector('.panel-ungu');
+      const btn = document.getElementById('toggle-panel-btn');
+      function updateBtnDirection() {
+        if (panel.classList.contains('hidden')) {
+          btn.innerHTML = '⮞';
+        } else {
+          btn.innerHTML = '⮜';
+        }
+      }
+      btn.addEventListener('click', () => {
+        panel.classList.toggle('hidden');
+        updateBtnDirection();
+      });
+      updateBtnDirection();
+    });
+  </script>
+</body>
+</html>
