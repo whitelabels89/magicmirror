@@ -461,12 +461,7 @@
               <h3>Exploring Educational Apps Together</h3>
             </div>
           </a>
-          <a href="/elearn/DLL5.html" style="text-decoration:none;">
-            <div class="lesson-card mini">
-              <span class="lesson-number">L5</span>
-              <h3>Understanding Online vs Offline (Conceptual)</h3>
-            </div>
-          </a>
+          <div id="container-DLL5"></div>
         </div>
         <div class="lesson-card" style="background: linear-gradient(to right, #16a34a, #4ade80);">
           <span class="lesson-number">#02</span>
@@ -836,6 +831,14 @@
     const cont = document.getElementById('container-DLL4');
     if (cont) {
       cont.innerHTML = '<a href="/elearn/DLL4.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">DL L4</span><h3>Exploring Educational Apps Together</h3></div></a>';
+    }
+  });
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const cont = document.getElementById('container-DLL5');
+    if (cont) {
+      cont.innerHTML = '<a href="/elearn/DLL5.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">DL L5</span><h3>Understanding Online vs Offline</h3></div></a>';
     }
   });
 </script>
