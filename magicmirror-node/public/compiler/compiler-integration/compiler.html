@@ -18,6 +18,45 @@
             min-height: 100vh;
             color: #333;
         }
+
+        body.dark {
+            background: #1f2937;
+            color: #e5e7eb;
+        }
+
+        body.dark .header {
+            background: #111827;
+            border-bottom-color: #374151;
+        }
+
+        body.dark .language-selector,
+        body.dark .editor-panel,
+        body.dark .output-panel {
+            background: #111827;
+            border-color: #374151;
+        }
+
+        body.dark .panel-header {
+            background: #1f2937;
+            border-bottom-color: #374151;
+        }
+
+        body.dark .language-btn {
+            background: #1f2937;
+            color: #d1d5db;
+            border-color: #374151;
+        }
+
+        body.dark .language-btn.active {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: #fff;
+        }
+
+        body.dark .language-btn:hover:not(.active) {
+            background: #374151;
+            border-color: #4b5563;
+        }
         
         /* Header styles matching original */
         .header {
@@ -321,6 +360,15 @@ int main() {
         };
         
         let currentLanguage = 'python';
+
+        // Apply saved theme preference
+        document.addEventListener('DOMContentLoaded', () => {
+            const saved = localStorage.getItem('compilerTheme');
+            if (saved === 'dark') {
+                document.body.classList.add('dark');
+                document.querySelector('.theme-toggle').textContent = '☀️';
+            }
+        });
         
         // Language switching
         document.querySelectorAll('.language-btn').forEach(btn => {
@@ -509,13 +557,15 @@ ${code}`;
         function toggleTheme() {
             const body = document.body;
             const toggle = document.querySelector('.theme-toggle');
-            
+
             if (body.classList.contains('dark')) {
                 body.classList.remove('dark');
                 toggle.textContent = '🌙';
+                localStorage.setItem('compilerTheme', 'light');
             } else {
                 body.classList.add('dark');
                 toggle.textContent = '☀️';
+                localStorage.setItem('compilerTheme', 'dark');
             }
         }
         
