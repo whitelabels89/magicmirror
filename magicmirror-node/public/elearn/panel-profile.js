@@ -1,6 +1,3 @@
-
-
-
 function initPanelProfile() {
   const panel = document.querySelector('.panel-ungu');
   const btn = document.getElementById('toggle-panel-btn');
