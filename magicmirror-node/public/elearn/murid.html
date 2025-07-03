@@ -296,15 +296,8 @@
     <!-- Sidebar Kiri akan dimuat secara dinamis -->
     <div id="sidebar-container"></div>
 
-    <!-- Konten Tengah (Panel Ungu / Neon) -->
-    <div class="panel-ungu">
-      <h2>👾 Learning Mode</h2>
-      <p>Selamat datang kembali, murid pintar!</p>
-      <div class="progress-card">
-        <p>🚀 Progress kamu: 40%</p>
-        <div class="progress-bar"><div class="progress-bar-fill" style="width: 40%;"></div></div>
-      </div>
-    </div>
+    <!-- Panel Profile akan dimuat secara dinamis -->
+    <div id="panel-profile-container"></div>
 
     <!-- Konten Kanan (Utama) -->
     <div class="main-content">
@@ -398,6 +391,7 @@
 
   <script src="userInfo.js"></script>
   <script src="sidebar.js"></script>
+  <script src="/elearn/panel-profile.js"></script>
   <script>
     // Cek apakah user sudah login, jika tidak redirect
     const user = getUserInfo();
@@ -410,6 +404,15 @@
       document.getElementById('namaMurid').textContent = user.nama || "Murid";
     }
     // Sidebar logic ada di sidebar.js (whiteboard dihapus)
+    document.addEventListener('DOMContentLoaded', () => {
+      fetch('/elearn/panel-profile.html')
+        .then(response => response.text())
+        .then(data => {
+          document.getElementById('panel-profile-container').innerHTML = data;
+          if (typeof initPanelProfile === 'function') initPanelProfile();
+        })
+        .catch(error => console.error('Failed to load panel-profile:', error));
+    });
   </script>
 </body>
 </html>

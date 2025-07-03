@@ -220,7 +220,7 @@ async function login() {
     localStorage.setItem("nama", data.nama);
     localStorage.setItem("role", data.role);
 
-    window.location.href = "https://verse.queensacademy.id/";
+    window.location.href = "/elearn/murid.html";
   } catch (err) {
     console.error(err);
     errorEl.innerText = "❌ Login gagal. Periksa email dan password kamu.";
