@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Digital Literacy L4 - Menjelajahi Aplikasi Edukasi</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  body { font-family:'Baloo 2', sans-serif; margin:0; background:#f8fafc; }
+  .header { text-align:center; padding:20px; background:#dbeafe; }
+  .header h1 { margin:0 0 10px; }
+  .progress-container { margin:0 auto 10px; width:80%; max-width:600px; border:1px solid #e5e7eb; border-radius:12px; background:#f9fafb; }
+  .progress-bar { height:12px; background:#e5e7eb; border-radius:6px; overflow:hidden; }
+  .progress { width:0%; height:100%; background:#22c55e; }
+  .back-btn { display:inline-block; margin-top:8px; color:#fff; background:#22c55e; padding:6px 12px; border-radius:8px; text-decoration:none; }
+  .container { display:flex; }
+  .sidebar { width:200px; background:#fff; border-right:1px solid #e5e7eb; }
+  .sidebar ul { list-style:none; padding:0; margin:0; }
+  .sidebar li { padding:10px; cursor:pointer; border-bottom:1px solid #e5e7eb; }
+  .sidebar li.active { background:#dbeafe; }
+  .main { flex:1; padding:20px; }
+  .step-content { display:none; }
+  .step-content.active { display:block; animation:fade 0.5s; }
+  .nav-controls { text-align:center; margin-top:20px; }
+  .typingBox-vscode { background:#fff; border:1px solid #ccc; padding:12px; border-radius:8px; min-height:80px; }
+  .whiteboard-container { text-align:center; margin-top:20px; }
+  #whiteboardCanvas { width:100%; height:300px; border:1px solid #ccc; display:none; }
+  @keyframes fade { from { opacity:0; } to { opacity:1; } }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Digital Literacy – Lesson 4: Menjelajahi Aplikasi Edukasi</h1>
+  <div class="progress-container">
+    <div class="progress-bar"><div class="progress" id="progressBar"></div></div>
+  </div>
+  <div style="margin-top:10px;">
+    <a href="/elearn/modul.html" class="back-btn">⟵ Kembali ke Modul</a>
+  </div>
+</div>
+<div class="container">
+  <div class="sidebar">
+    <ul id="lesson-nav">
+      <li data-step="1" class="active">1. Apa Itu Aplikasi Belajar?</li>
+      <li data-step="2">2. Contoh Aplikasi Belajar</li>
+      <li data-step="3">3. Kenapa Seru?</li>
+      <li data-step="4">4. Yuk, Kita Coba</li>
+      <li data-step="5">5. Apa yang Kamu Pelajari?</li>
+      <li data-step="6">6. Terima Kasih</li>
+      <li data-step="7">7. Quiz Teori</li>
+      <li data-step="8">8. Quiz Praktik</li>
+      <li data-step="9">9. Whiteboard</li>
+    </ul>
+  </div>
+  <div class="main">
+    <div id="panel-1" class="step-content">
+      <h2>Apa Itu Aplikasi Belajar? 📱</h2>
+      <p>Aplikasi belajar = game seru di tablet/HP yang bisa bantu kita belajar!</p>
+    </div>
+    <div id="panel-2" class="step-content">
+      <h2>Contoh Aplikasi Belajar 🧩</h2>
+      <ul>
+        <li>Game puzzle alfabet</li>
+        <li>Game mengenal angka</li>
+        <li>Game warna &amp; bentuk</li>
+      </ul>
+    </div>
+    <div id="panel-3" class="step-content">
+      <h2>Kenapa Aplikasi Belajar Itu Seru?</h2>
+      <ul>
+        <li>Ada suara &amp; gambar menarik</li>
+        <li>Belajar sambil main</li>
+        <li>Huruf &amp; angka jadi mudah dipelajari</li>
+      </ul>
+    </div>
+    <div id="panel-4" class="step-content">
+      <h2>Yuk, Kita Coba Bareng!</h2>
+      <ul>
+        <li>Buka aplikasi belajar</li>
+        <li>Ikuti instruksi: tap huruf/angka</li>
+        <li>Selesaikan puzzle bareng</li>
+      </ul>
+    </div>
+    <div id="panel-5" class="step-content">
+      <h2>Apa yang Kamu Pelajari?</h2>
+      <ul>
+        <li>Huruf baru?</li>
+        <li>Angka baru?</li>
+        <li>Warna atau bentuk?</li>
+      </ul>
+    </div>
+    <div id="panel-6" class="step-content">
+      <h2>Terima Kasih!</h2>
+      <p>Hari ini kamu belajar:</p>
+      <ul>
+        <li>Mengenal aplikasi edukasi</li>
+        <li>Cara bermain aplikasi belajar</li>
+        <li>Manfaat belajar pakai aplikasi</li>
+      </ul>
+      <p>Siap coba aplikasi seru lagi di rumah? 🚀</p>
+    </div>
+    <div id="panel-7" class="step-content">
+      <h2>Quiz Part 1 – Teori</h2>
+      <ol>
+        <li>Apa itu aplikasi edukasi? Jelaskan dengan bahasamu.</li>
+        <li>Sebutkan 2 contoh aplikasi belajar.</li>
+        <li>Kenapa kita harus coba aplikasi edukasi?</li>
+        <li>Apa yang kamu pelajari dari aplikasi belajar?</li>
+        <li>Bedakan aplikasi edukasi &amp; game biasa.</li>
+      </ol>
+      <div class="typingBox-vscode" contenteditable="true"></div>
+    </div>
+    <div id="panel-8" class="step-content">
+      <h2>Quiz Part 2 – Praktik</h2>
+      <ol>
+        <li>Buka aplikasi belajar bareng guru.</li>
+        <li>Ikuti petunjuk di aplikasi: tap huruf/angka.</li>
+        <li>Ceritakan apa yang kamu lihat &amp; dengar dari aplikasi.</li>
+        <li>Gambar aplikasi belajar favoritmu.</li>
+        <li>Buat daftar 3 hal baru yang kamu pelajari hari ini.</li>
+      </ol>
+      <div class="typingBox-vscode" contenteditable="true"></div>
+    </div>
+    <div id="panel-9" class="step-content">
+      <h2>Whiteboard</h2>
+      <div class="whiteboard-container">
+        <button id="toggleWhiteboard">Tampilkan Whiteboard</button>
+        <button id="clearWhiteboard">Clear</button>
+        <canvas id="whiteboardCanvas"></canvas>
+      </div>
+    </div>
+    <div class="nav-controls">
+      <button onclick="prevPanel()">⟵ Sebelumnya</button>
+      <span id="indicator"></span>
+      <button onclick="nextPanel()">Selanjutnya ⟶</button>
+    </div>
+  </div>
+</div>
+<script>
+  let currentPanel = 1;
+  const totalPanels = 9;
+  function showPanel(n) {
+    if(n < 1 || n > totalPanels) return;
+    document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+    const panel = document.getElementById('panel-' + n);
+    if(panel) panel.classList.add('active');
+    document.querySelectorAll('#lesson-nav li').forEach(li => li.classList.remove('active'));
+    const nav = document.querySelector('#lesson-nav li[data-step="' + n + '"]');
+    if(nav) nav.classList.add('active');
+    currentPanel = n;
+    updateIndicator();
+  }
+  function nextPanel(){ if(currentPanel < totalPanels) showPanel(currentPanel + 1); }
+  function prevPanel(){ if(currentPanel > 1) showPanel(currentPanel - 1); }
+  function updateIndicator(){ document.getElementById('indicator').textContent = 'Slide ' + currentPanel + ' / ' + totalPanels; updateProgress(); }
+  document.getElementById('lesson-nav').addEventListener('click', e => {
+    if(e.target.matches('li[data-step]')) showPanel(Number(e.target.getAttribute('data-step')));
+  });
+  document.addEventListener('DOMContentLoaded', () => { showPanel(1); initWhiteboard(); });
+</script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script src="whiteboard.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBVO4ajDwkbcTGL33SVMxIoev4veB8itgI",
+    authDomain: "queens-academy-icoding.firebaseapp.com",
+    projectId: "queens-academy-icoding",
+    storageBucket: "queens-academy-icoding.appspot.com",
+    messagingSenderId: "1048549258959",
+    appId: "1:1048549258959:web:f8dc1c104bb170d7ff69ba",
+  };
+  firebase.initializeApp(firebaseConfig);
+  window.kelasId = 'demo';
+  window.lessonId = 'DLL4';
+  initWhiteboard();
+</script>
+<script>
+  function updateProgress() {
+    const progress = document.getElementById('progressBar');
+    const percent = (currentPanel - 1) / (totalPanels - 1) * 100;
+    if (progress) progress.style.width = percent + '%';
+  }
+  document.querySelectorAll('.nav-controls button').forEach(btn => {
+    btn.addEventListener('click', updateProgress);
+  });
+  document.getElementById('lesson-nav').addEventListener('click', updateProgress);
+</script>
+</body>
+</html>
