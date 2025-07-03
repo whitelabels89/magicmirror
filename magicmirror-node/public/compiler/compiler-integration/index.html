@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Queen's Academy iCoding - Online Compiler</title>
+    <meta name="description" content="Online code compiler and editor platform for educational purposes. Supports multiple programming languages including Python, JavaScript, Java, C++, and HTML/CSS.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💻</text></svg>">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Monaco Editor -->
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs/loader.js"></script>
+    
+    <style>
+        /* Custom CSS for compiler */
+        .compiler-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .glass-effect {
+            backdrop-filter: blur(16px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            .compiler-container {
+                background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <!-- React CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX (development only) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        
+        // Simplified compiler component for standalone HTML
+        function OnlineCompiler() {
+            const [code, setCode] = useState('console.log("Hello, World!");');
+            const [language, setLanguage] = useState('javascript');
+            const [output, setOutput] = useState('');
+            const [loading, setLoading] = useState(false);
+            
+            const languages = [
+                { id: 'javascript', name: 'JavaScript', icon: '🟨' },
+                { id: 'python', name: 'Python', icon: '🐍' },
+                { id: 'java', name: 'Java', icon: '☕' },
+                { id: 'cpp', name: 'C++', icon: '⚡' },
+                { id: 'html', name: 'HTML', icon: '🌐' }
+            ];
+            
+            const runCode = async () => {
+                setLoading(true);
+                try {
+                    // Demo mode - show code preview
+                    setTimeout(() => {
+                        setOutput(`✅ Code executed successfully!\n\n--- Code Preview ---\n${code}\n\n--- Demo Output ---\nHello from ${language.toUpperCase()}!\nThis is a demo version.`);
+                        setLoading(false);
+                    }, 1000);
+                } catch (error) {
+                    setOutput(`❌ Error: ${error.message}`);
+                    setLoading(false);
+                }
+            };
+            
+            return (
+                <div className="compiler-container min-h-screen p-4">
+                    <div className="max-w-7xl mx-auto">
+                        {/* Header */}
+                        <div className="text-center mb-8">
+                            <h1 className="text-4xl font-bold text-white mb-2">
+                                Queen's Academy iCoding
+                            </h1>
+                            <p className="text-white/80 text-lg">
+                                Online Code Compiler & Editor
+                            </p>
+                        </div>
+                        
+                        {/* Language Selector */}
+                        <div className="glass-effect rounded-lg p-4 mb-6">
+                            <div className="flex flex-wrap gap-2">
+                                {languages.map(lang => (
+                                    <button
+                                        key={lang.id}
+                                        onClick={() => setLanguage(lang.id)}
+                                        className={`px-4 py-2 rounded-lg transition-all ${
+                                            language === lang.id 
+                                                ? 'bg-blue-500 text-white' 
+                                                : 'bg-white/20 text-white hover:bg-white/30'
+                                        }`}
+                                    >
+                                        {lang.icon} {lang.name}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        
+                        {/* Code Editor & Output */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {/* Code Editor */}
+                            <div className="glass-effect rounded-lg p-4">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="text-white font-semibold">Code Editor</h3>
+                                    <button
+                                        onClick={runCode}
+                                        disabled={loading}
+                                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50"
+                                    >
+                                        {loading ? '⏳ Running...' : '▶️ Run Code'}
+                                    </button>
+                                </div>
+                                <textarea
+                                    value={code}
+                                    onChange={(e) => setCode(e.target.value)}
+                                    className="w-full h-96 p-4 bg-gray-900 text-green-400 font-mono text-sm rounded-lg resize-none"
+                                    placeholder="Write your code here..."
+                                />
+                            </div>
+                            
+                            {/* Output Panel */}
+                            <div className="glass-effect rounded-lg p-4">
+                                <h3 className="text-white font-semibold mb-4">Output</h3>
+                                <div className="bg-gray-900 text-green-400 font-mono text-sm p-4 rounded-lg h-96 overflow-auto">
+                                    {output || 'Click "Run Code" to see output...'}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {/* Footer */}
+                        <div className="text-center mt-8">
+                            <p className="text-white/60">
+                                © 2025 Queen's Academy iCoding - Educational Platform
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        
+        // Render the app
+        ReactDOM.render(<OnlineCompiler />, document.getElementById('root'));
+    </script>
+</body>
+</html>
