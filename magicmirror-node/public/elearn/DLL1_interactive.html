@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>DL L1 Interaktif - Mengenal Alat Digital</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/konva@9/konva.min.js"></script>
+<style>
+  body { font-family:'Baloo 2', cursive; margin:0; background:#f0f4f8; }
+  .header { background:#dbeafe; padding:20px; text-align:center; }
+  .progress-container { margin:10px auto; width:80%; max-width:600px; background:#e5e7eb; border-radius:12px; overflow:hidden; }
+  .progress-bar {
+    height:12px;
+    background:linear-gradient(90deg,#34d399,#06b6d4);
+    width:0%;
+    transition:width 0.3s;
+  }
+  .container { display:flex; flex-wrap:wrap; }
+  .slides { flex:1 1 60%; padding:20px; min-width:300px; }
+  .interactive { flex:1 1 35%; padding:20px; min-width:280px; background:#fff; border-left:1px solid #e5e7eb; }
+  .slide { display:none; }
+  .slide.active { display:block; animation:fade 0.5s; }
+  .nav-controls { text-align:center; margin-top:20px; }
+  #bullets { text-align:center; margin-top:10px; }
+  #bullets span {
+    display:inline-block;
+    width:14px;
+    height:14px;
+    margin:0 4px;
+    background:#e5e7eb;
+    border-radius:50%;
+  }
+  #bullets .active { background:#06b6d4; }
+  @keyframes fade { from{opacity:0;} to{opacity:1;} }
+  .quiz-q { margin-bottom:10px; }
+  .drag-item {
+    padding:8px 12px;
+    background:#facc15;
+    border-radius:6px;
+    margin:6px;
+    cursor:grab;
+    display:inline-block;
+    box-shadow:0 2px 4px rgba(0,0,0,0.2);
+  }
+  .drop-zone {
+    border:2px dashed #9ca3af;
+    border-radius:8px;
+    min-height:120px;
+    padding:10px;
+    margin-top:10px;
+    text-align:center;
+    transition:background 0.3s;
+  }
+  .drop-zone.over { background:#d1fae5; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Digital Literacy – Lesson 1: Mengenal Alat Digital</h1>
+  <div class="progress-container"><div class="progress-bar" id="progress"></div></div>
+</div>
+<div class="container">
+  <div class="slides">
+    <div class="slide" id="slide1"><h2>Apa Itu Alat Digital?</h2><p>Handphone, tablet, dan jam digital adalah contoh alat digital.</p></div>
+    <div class="slide" id="slide2"><h2>Contoh Alat Digital</h2><ul><li>Handphone</li><li>Laptop</li><li>Jam digital</li><li>Televisi</li></ul></div>
+    <div class="slide" id="slide3"><h2>Kenapa Disebut Digital?</h2><p>Karena menampilkan informasi secara elektronik dengan layar atau angka otomatis.</p></div>
+    <div class="slide" id="slide4"><h2>Bandingkan Non-Digital</h2><p>Jam digital menunjukkan angka otomatis sementara jam analog memakai jarum.</p></div>
+    <div class="slide" id="slide5"><h2>Alat Digital Favoritmu?</h2><p>Alat digital apa yang paling sering kamu pakai?</p></div>
+    <div class="slide" id="slide6"><h2>Daftar Alat Digital Kita</h2><p>TV, tablet, kamera digital, jam digital.</p></div>
+    <div class="slide" id="slide7"><h2>Terima Kasih!</h2><p>Kita sudah mengenal berbagai alat digital di sekitar kita.</p></div>
+    <div class="slide" id="slide8"><h2>Quiz Interaktif</h2><div id="quizBox"></div><div id="quizProgress"></div></div>
+    <div class="slide" id="slide9"><h2>Gambar Alat Digital Favorit</h2><div id="konvaContainer"></div></div>
+    <div class="slide" id="slide10"><h2>Ceritakan Pengalamanmu</h2><textarea id="story" rows="5" style="width:100%;"></textarea></div>
+    <div class="slide" id="slide11"><h2>Game Drag & Drop</h2><p>Tarik benda ke kotak yang benar.</p><div class="drag-items">
+      <div class="drag-item" draggable="true" data-type="digital">📱 Handphone</div>
+      <div class="drag-item" draggable="true" data-type="digital">🧮 Kalkulator</div>
+      <div class="drag-item" draggable="true" data-type="non">✏️ Pensil</div>
+      <div class="drag-item" draggable="true" data-type="non">📚 Buku</div>
+    </div>
+    <div style="display:flex; gap:10px;">
+      <div style="flex:1;">
+        <h4>Digital</h4>
+        <div class="drop-zone" id="zone-digital"></div>
+      </div>
+      <div style="flex:1;">
+        <h4>Non-Digital</h4>
+        <div class="drop-zone" id="zone-non"></div>
+      </div>
+    </div>
+    <p id="dropMsg"></p></div>
+  </div>
+  <div class="interactive" id="interactiveBox"></div>
+</div>
+<div class="nav-controls">
+  <button id="prevBtn">⟵ Sebelumnya</button>
+  <button id="nextBtn">Selanjutnya ⟶</button>
+</div>
+<div id="bullets"></div>
+<script>
+const slides = document.querySelectorAll('.slide');
+let current = 0;
+function showSlide(n){
+  if(n<0||n>=slides.length) return;
+  slides[current].classList.remove('active');
+  current=n;
+  slides[current].classList.add('active');
+  updateProgress();
+}
+function updateProgress(){
+  const percent = current/(slides.length-1)*100;
+  document.getElementById('progress').style.width=percent+'%';
+  document.querySelectorAll('#bullets span').forEach((b,i)=>{
+    b.classList.toggle('active',i===current);
+  });
+}
+document.getElementById('nextBtn').onclick=()=>{ if(current<slides.length-1) showSlide(current+1); };
+document.getElementById('prevBtn').onclick=()=>{ if(current>0) showSlide(current-1); };
+const bullets=document.getElementById('bullets');
+slides.forEach(()=>{const s=document.createElement('span');bullets.appendChild(s);});
+showSlide(0);
+// Quiz logic
+const quiz=[
+  {q:'Apa itu alat digital?',a:'Benda elektronik yang memakai layar.',type:'text'},
+  {q:'Mana contoh alat digital?',opts:['Pensil','Televisi','Kertas'],answer:1},
+  {q:'Jam digital termasuk?',opts:['Digital','Non-Digital'],answer:0},
+  {q:'Kalkulator digunakan untuk?',a:'Menghitung angka',type:'text'},
+  {q:'Manakah bukan alat digital?',opts:['Laptop','Buku','Tablet'],answer:1},
+  {q:'TV menampilkan gambar secara?',opts:['Manual','Elektronik'],answer:1},
+  {q:'Sebutkan alat digital di rumahmu',type:'text'},
+  {q:'Jam analog memakai?',opts:['Jarum','Layar'],answer:0},
+  {q:'Apa manfaat handphone?',type:'text'},
+  {q:'Contoh alat non-digital?',type:'text'}
+];
+let qIndex=0, correct=0;
+const quizBox=document.getElementById('quizBox');
+const quizProg=document.getElementById('quizProgress');
+function renderQuiz(){
+  const q=quiz[qIndex];
+  let html='<div class="quiz-q">'+(qIndex+1)+'. '+q.q+'</div>';
+  if(q.opts){
+    html+=q.opts.map((o,i)=>`<label><input type="radio" name="q" value="${i}"> ${o}</label><br>`).join('');
+  } else {
+    html+=`<input type="text" id="qtext" style="width:100%;">`;
+  }
+  html+='<button id="quizNext">Next</button>';
+  quizBox.innerHTML=html;
+  quizProg.textContent=`${qIndex+1}/`+quiz.length+' selesai';
+  document.getElementById('quizNext').onclick=()=>{
+    const val=q.opts?document.querySelector('input[name=q]:checked')?.value:document.getElementById('qtext').value.trim();
+    if(q.opts && Number(val)==q.answer) correct++;
+    if(!q.opts && val) correct++; // treat non-empty as answered
+    qIndex++; if(qIndex<quiz.length) renderQuiz(); else quizBox.innerHTML='<p>Skor: '+correct+'/'+quiz.length+'</p>';
+  };
+}
+if(document.getElementById('slide8')){ renderQuiz(); }
+// Konva drawing
+function initKonva(){
+  const width=300, height=300;
+  const stage=new Konva.Stage({container:'konvaContainer',width,height});
+  const layer=new Konva.Layer();
+  stage.add(layer);
+  let isPaint=false, lastPos=null;
+  const line=new Konva.Line({stroke:'black',strokeWidth:3,points:[]});
+  layer.add(line);
+  stage.on('mousedown touchstart',()=>{isPaint=true;line.points([]);});
+  stage.on('mouseup touchend',()=>{isPaint=false;});
+  stage.on('mousemove touchmove',e=>{if(!isPaint) return;const pos=stage.getPointerPosition();line.points(line.points().concat([pos.x,pos.y]));layer.batchDraw();});
+}
+if(document.getElementById('konvaContainer')){initKonva();}
+// Drag and Drop game
+const items=document.querySelectorAll('.drag-item');
+let dropCount=0;
+function checkGame(){
+  if(dropCount===items.length){
+    document.getElementById('dropMsg').textContent='Hebat! Kamu berhasil!';
+  }
+}
+items.forEach(it=>{
+  it.addEventListener('dragstart',e=>{
+    e.dataTransfer.setData('text/plain',it.dataset.type);
+    it.classList.add('dragging');
+  });
+  it.addEventListener('dragend',()=>it.classList.remove('dragging'));
+});
+['zone-digital','zone-non'].forEach(id=>{
+  const zone=document.getElementById(id);
+  zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('over');});
+  zone.addEventListener('dragleave',()=>zone.classList.remove('over'));
+  zone.addEventListener('drop',e=>{
+    e.preventDefault();zone.classList.remove('over');
+    const type=e.dataTransfer.getData('text/plain');
+    const dragging=document.querySelector('.dragging');
+    if(((id==='zone-digital'&&type==='digital')||(id==='zone-non'&&type==='non'))&& dragging){
+      zone.appendChild(dragging);
+      dropCount++;checkGame();
+    }
+  });
+});
+</script>
+</body>
+</html>
