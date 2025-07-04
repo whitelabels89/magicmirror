@@ -484,12 +484,7 @@
               <h3>Creating Stickers or Emojis</h3>
             </div>
           </a>
-          <a href="/elearn/DCL4.html" style="text-decoration:none;">
-            <div class="lesson-card mini">
-              <span class="lesson-number">L4</span>
-              <h3>Arranging Digital Collages from Photos</h3>
-            </div>
-          </a>
+          <div id="container-DCL4"></div>
           <a href="/elearn/DCL5.html" style="text-decoration:none;">
             <div class="lesson-card mini">
               <span class="lesson-number">L5</span>
@@ -838,6 +833,14 @@
     }
   });
 </script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const cont = document.getElementById('container-DCL4');
+    if (cont) {
+      cont.innerHTML = '<a href="/elearn/DCL4.html" style="text-decoration:none;"><div class="lesson-card mini"><span class="lesson-number">L4</span><h3>Arranging Digital Collages from Photos</h3></div></a>';
+    }
+  });
+  </script>
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const cont = document.getElementById('container-DCL1');
