@@ -527,19 +527,20 @@
                 <h3>Choosing Sprites and Moving Them with Simple Commands</h3>
               </div>
             </a>
-            <a href="/elearn/GDL3.html" style="text-decoration:none;">
-              <div class="lesson-card mini">
-                <span class="lesson-number">GD L3</span>
-                <h3>Adding Sounds and Reactions (e.g., 'jump' makes sound)</h3>
-              </div>
-            </a>
+            <div id="container-GDL3"></div>
             <a href="/elearn/GDL4.html" style="text-decoration:none;">
               <div class="lesson-card mini">
                 <span class="lesson-number">GD L4</span>
                 <h3>Creating a One-Screen Maze Game Using Blocks</h3>
               </div>
             </a>
-            <div id="container-GDL5"></div>
+            <a href="/elearn/GDL5.html" style="text-decoration:none;">
+              <div class="lesson-card mini">
+                <span class="lesson-number">GD L5</span>
+                <h3>Sharing the Game with Family and Friends</h3>
+              </div>
+            </a>
+            <div id="container-GDL4"></div>
           </div>
         </div>
       </div>
@@ -777,6 +778,14 @@
 </script>
 <script>
   document.addEventListener('DOMContentLoaded', () => {
+    const cont = document.getElementById('container-GDL1');
+    if (cont) {
+      cont.innerHTML = '<a href="/elearn/GDL1.html" style="text-decoration:none;"><div class="lesson-card mini"><span class="lesson-number">GD L1</span><h3>Understanding Game Characters and Backgrounds</h3></div></a>';
+    }
+  });
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
     const cont = document.getElementById('container-DLL2');
     if (cont) {
       cont.innerHTML = '<a href="/elearn/DLL2.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">DL L2</span><h3>Basic Use of Tablet/Computer: Tap, Drag, and Swipe</h3></div></a>';
@@ -849,6 +858,14 @@
 </script>
 <script>
   document.addEventListener('DOMContentLoaded', () => {
+    const cont = document.getElementById('container-GDL3');
+    if (cont) {
+      cont.innerHTML = '<a href="/elearn/GDL3.html" style="text-decoration:none;"><div class="lesson-card mini"><span class="lesson-number">GD L3</span><h3>Adding Sounds and Reactions (e.g., \x27jump\x27 makes sound)</h3></div></a>';
+    }
+  });
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
     const cont = document.getElementById('container-CCL5');
     if (cont) {
       cont.innerHTML = '<a href="/elearn/CCL5.html" style="text-decoration:none;"><div class="lesson-card mini"><span class="lesson-number">CC L5</span><h3>Craft Showcase: Presenting Digital and Physical Creations</h3></div></a>';
@@ -892,6 +909,14 @@
     const cont = document.getElementById('container-GDL5');
     if (cont) {
       cont.innerHTML = '<a href="/elearn/GDL5.html" style="text-decoration:none;"><div class="lesson-card mini"><span class="lesson-number">GD L5</span><h3>Sharing the Game with Family and Friends</h3></div></a>';
+    }
+  });
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const cont = document.getElementById('container-GDL4');
+    if (cont) {
+      cont.innerHTML = '<a href="/elearn/GDL4.html" style="text-decoration:none;"><div class="lesson-card mini"><span class="lesson-number">GD L4</span><h3>Creating a One-Screen Maze Game Using Blocks</h3></div></a>';
     }
   });
 </script>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>2D Games Development L1 - Mengenal Karakter &amp; Latar Game 2D</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/elearn/presetvs.css">
+<script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+<script src="/elearn/presetvs.js"></script>
+<style>
+  body { font-family: 'Baloo 2', sans-serif; margin:0; background:#fef8e7; }
+  .header { text-align:center; padding:20px; background:#fde68a; }
+  .header h1 { margin:0 0 10px; }
+  .progress-container { margin:0 auto 10px; width:80%; max-width:600px; border:1px solid #e5e7eb; border-radius:12px; background:#f9fafb; }
+  .progress-bar { height:12px; background:#e5e7eb; border-radius:6px; overflow:hidden; }
+  .progress { width:0%; height:100%; background:#facc15; }
+  .back-btn { display:inline-block; margin-top:8px; color:#fff; background:#f59e0b; padding:6px 12px; border-radius:8px; text-decoration:none; }
+  .container { display:flex; }
+  .sidebar { width:200px; background:#fff; border-right:1px solid #e5e7eb; }
+  .sidebar ul { list-style:none; padding:0; margin:0; }
+  .sidebar li { padding:10px; cursor:pointer; border-bottom:1px solid #e5e7eb; }
+  .sidebar li.active { background:#fef3c7; }
+  .main { flex:1; padding:20px; }
+  .step-content { display:none; }
+  .step-content.active { display:block; animation:fade 0.5s; }
+  .nav-controls { text-align:center; margin-top:20px; }
+  .typingBox-vscode { background:#fff; border:1px solid #ccc; padding:12px; border-radius:8px; min-height:80px; }
+  .whiteboard-container { text-align:center; margin-top:20px; }
+  #whiteboardCanvas { width:100%; height:300px; border:1px solid #ccc; display:none; }
+  .selectable { width:100px; border:2px solid transparent; border-radius:8px; cursor:pointer; margin:4px; }
+  .selectable.selected { border-color:#38bdf8; }
+  .choice-group { display:flex; gap:10px; justify-content:center; margin-top:10px; }
+  @keyframes fade { from { opacity:0; } to { opacity:1; } }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>2D Games Development – Lesson 1: Mengenal Karakter &amp; Latar Game 2D 🎮🏞</h1>
+  <div class="progress-container">
+    <div class="progress-bar"><div class="progress" id="progressBar"></div></div>
+  </div>
+  <div style="margin-top:10px;">
+    <a href="/elearn/modul.html" class="back-btn">⟵ Kembali ke Modul</a>
+  </div>
+</div>
+<div class="container">
+  <div class="sidebar">
+    <ul id="lesson-nav" class="lesson-nav">
+      <li data-step="1" class="active">1. Hai, Penggemar Game Hebat!</li>
+      <li data-step="2">2. Apa Itu Karakter Game? 🎮</li>
+      <li data-step="3">3. Apa Itu Latar Game? 🏞</li>
+      <li data-step="4">4. Contoh Karakter &amp; Latar</li>
+      <li data-step="5">5. Pilih Favoritmu!</li>
+      <li data-step="6">6. Hebat!</li>
+      <li data-step="7">7. Quiz Teori</li>
+      <li data-step="8">8. Quiz Praktik</li>
+      <li data-step="9">9. Whiteboard</li>
+    </ul>
+  </div>
+  <div class="main">
+    <div id="panel-1" class="step-content">
+      <h2>Hai, Penggemar Game Hebat!</h2>
+      <p>Pernah main game 2D? Hari ini kita akan belajar tentang karakter dan latar di game!</p>
+    </div>
+    <div id="panel-2" class="step-content">
+      <h2>Apa Itu Karakter Game? 🎮</h2>
+      <p>Karakter = tokoh yang bisa kamu gerakkan, seperti Mario atau Sonic.</p>
+    </div>
+    <div id="panel-3" class="step-content">
+      <h2>Apa Itu Latar Game? 🏞</h2>
+      <p>Latar = tempat cerita game berlangsung, seperti hutan, kota, kastil.</p>
+    </div>
+    <div id="panel-4" class="step-content">
+      <h2>Contoh Karakter &amp; Latar</h2>
+      <p>Contoh: Mario (karakter) &amp; Mushroom Kingdom (latar).</p>
+    </div>
+    <div id="panel-5" class="step-content">
+      <h2>Pilih Favoritmu!</h2>
+      <p>Pilih 1 karakter &amp; 1 latar favoritmu, lalu ceritakan kenapa kamu suka.</p>
+      <div>
+        <h3>Karakter</h3>
+        <div class="choice-group">
+          <img src="/elearn/img/m.png" alt="Mario" class="selectable" data-group="char">
+          <img src="/elearn/img/s.png" alt="Sonic" class="selectable" data-group="char">
+        </div>
+      </div>
+      <div>
+        <h3>Latar</h3>
+        <div class="choice-group">
+          <img src="/elearn/img/bghr.png" alt="Mushroom Kingdom" class="selectable" data-group="bg">
+          <img src="/elearn/img/unv.png" alt="Green Hill" class="selectable" data-group="bg">
+        </div>
+      </div>
+      <div class="typingBox-vscode" contenteditable="true" style="margin-top:10px;"></div>
+    </div>
+    <div id="panel-6" class="step-content">
+      <h2>Hebat!</h2>
+      <p>Hari ini kamu belajar mengenal karakter &amp; latar game. Siap buat game seru di lesson berikutnya?</p>
+    </div>
+    <div id="panel-7" class="step-content">
+      <h2>Quiz Part 1 – Teori</h2>
+      <ol>
+        <li>Apa itu karakter dalam game?</li>
+        <li>Apa itu latar dalam game?</li>
+        <li>Sebutkan contoh karakter di game 2D.</li>
+        <li>Sebutkan contoh latar di game 2D.</li>
+        <li>Kenapa latar penting dalam game?</li>
+      </ol>
+      <div class="typingBox-vscode" contenteditable="true"></div>
+    </div>
+    <div id="panel-8" class="step-content">
+      <h2>Quiz Part 2 – Praktik</h2>
+      <p>Tugas:</p>
+      <ol>
+        <li>Pilih gambar karakter favorit dari contoh yang ditampilkan.</li>
+        <li>Pilih gambar latar favorit dari contoh yang ditampilkan.</li>
+        <li>Cocokkan karakter dengan latar yang sesuai.</li>
+        <li>Ceritakan cerita singkat tentang petualangan karaktermu di latar itu.</li>
+        <li>Tunjukkan hasil ceritamu ke guru/orang tua untuk mendapat apresiasi!</li>
+      </ol>
+      <div class="choice-group">
+        <img src="/elearn/img/m.png" alt="Mario" class="selectable" data-group="pchar">
+        <img src="/elearn/img/s.png" alt="Sonic" class="selectable" data-group="pchar">
+      </div>
+      <div class="choice-group">
+        <img src="/elearn/img/bghr.png" alt="Mushroom Kingdom" class="selectable" data-group="pbg">
+        <img src="/elearn/img/unv.png" alt="Green Hill" class="selectable" data-group="pbg">
+      </div>
+      <div class="typingBox-vscode" contenteditable="true" style="margin-top:10px;"></div>
+    </div>
+    <div id="panel-9" class="step-content">
+      <h2>Whiteboard</h2>
+      <div class="whiteboard-container">
+        <button id="toggleWhiteboard">Tampilkan Whiteboard</button>
+        <button id="clearWhiteboard">Clear</button>
+        <canvas id="whiteboardCanvas"></canvas>
+      </div>
+    </div>
+    <div class="nav-controls">
+      <button onclick="prevPanel()">⟵ Sebelumnya</button>
+      <span id="indicator"></span>
+      <button onclick="nextPanel()">Selanjutnya ⟶</button>
+    </div>
+  </div>
+</div>
+<script>
+  let currentPanel = 1;
+  const totalPanels = 9;
+  function showPanel(n){
+    if(n < 1 || n > totalPanels) return;
+    document.querySelectorAll('.step-content').forEach(el=>el.classList.remove('active'));
+    const panel = document.getElementById('panel-'+n);
+    if(panel) panel.classList.add('active');
+    document.querySelectorAll('#lesson-nav li').forEach(li=>li.classList.remove('active'));
+    const nav = document.querySelector('#lesson-nav li[data-step="'+n+'"]');
+    if(nav) nav.classList.add('active');
+    currentPanel = n;
+    updateIndicator();
+  }
+  function nextPanel(){ if(currentPanel < totalPanels) showPanel(currentPanel+1); }
+  function prevPanel(){ if(currentPanel > 1) showPanel(currentPanel-1); }
+  function updateIndicator(){ document.getElementById('indicator').textContent = 'Slide '+currentPanel+' / '+totalPanels; updateProgress(); }
+  document.getElementById('lesson-nav').addEventListener('click', e=>{ if(e.target.matches('li[data-step]')) showPanel(Number(e.target.getAttribute('data-step'))); });
+  document.addEventListener('DOMContentLoaded', ()=>{ showPanel(1); initWhiteboard(); initSelectable(); });
+
+  function initSelectable(){
+    document.querySelectorAll('.selectable').forEach(img=>{
+      img.addEventListener('click', ()=>{
+        const group = img.getAttribute('data-group');
+        document.querySelectorAll('.selectable[data-group="'+group+'"]').forEach(el=>el.classList.remove('selected'));
+        img.classList.add('selected');
+      });
+    });
+  }
+</script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script src="whiteboard.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBVO4ajDwkbcTGL33SVMxIoev4veB8itgI",
+    authDomain: "queens-academy-icoding.firebaseapp.com",
+    projectId: "queens-academy-icoding",
+    storageBucket: "queens-academy-icoding.appspot.com",
+    messagingSenderId: "1048549258959",
+    appId: "1:1048549258959:web:f8dc1c104bb170d7ff69ba",
+  };
+  firebase.initializeApp(firebaseConfig);
+  window.kelasId = 'demo';
+  window.lessonId = 'GDL1';
+  initWhiteboard();
+</script>
+<script>
+  function updateProgress(){
+    const progress = document.getElementById('progressBar');
+    const percent = (currentPanel - 1) / (totalPanels - 1) * 100;
+    if(progress) progress.style.width = percent + '%';
+  }
+  document.querySelectorAll('.nav-controls button').forEach(btn=>{ btn.addEventListener('click', updateProgress); });
+  document.getElementById('lesson-nav').addEventListener('click', updateProgress);
+</script>
+</body>
+</html>
