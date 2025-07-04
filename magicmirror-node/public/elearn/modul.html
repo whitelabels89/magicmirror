@@ -355,6 +355,18 @@
       gap: 10px;
     }
 
+    /* Center the module group container */
+    .module-group {
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .lesson-cards-container.active {
+      display: flex;
+      margin-top: 20px;
+    }
+
     /* Responsiveness */
     @media (max-width: 768px) {
       .page-container {
@@ -430,141 +442,110 @@
 
       <h2 class="judul-section">🚀 Learning Journey</h2>
       <div class="game-style-cards">
-        <div class="lesson-card" style="background: linear-gradient(to right, #f97316, #fb923c);">
-          <span class="lesson-number">DL L1</span>
-          <h3>Digital Literacy</h3>
-          <p>L1: Pengenalan Dunia Digital</p>
-          <a href="#" class="start-btn">Lihat Modul</a>
+        <div class="module-group">
+          <div class="lesson-card" style="background: linear-gradient(to right, #f97316, #fb923c);">
+            <span class="lesson-number">DL L1</span>
+            <h3>Digital Literacy</h3>
+            <p>DL L1: Pengenalan Dunia Digital</p>
+            <a href="#" class="start-btn">Lihat Modul</a>
+          </div>
+          <div class="lesson-cards-container" style="display:none;">
+            <a href="/elearn/DLL1.html" style="text-decoration:none;">
+              <div class="lesson-card mini">
+                <span class="lesson-number">DL L1</span>
+                <h3>Recognizing Digital Devices Around Us</h3>
+              </div>
+            </a>
+            <a href="/elearn/DLL2.html" style="text-decoration:none;">
+              <div class="lesson-card mini">
+                <span class="lesson-number">DL L2</span>
+                <h3>Basic Use of Tablet/Computer: Tap, Drag, and Swipe</h3>
+              </div>
+            </a>
+            <a href="/elearn/DLL3.html" style="text-decoration:none;">
+              <div class="lesson-card mini">
+                <span class="lesson-number">DL L3</span>
+                <h3>Safe and Healthy Screen Time Habits</h3>
+              </div>
+            </a>
+            <a href="/elearn/DLL4.html" style="text-decoration:none;">
+              <div class="lesson-card mini">
+                <span class="lesson-number">DL L4</span>
+                <h3>Exploring Educational Apps Together</h3>
+              </div>
+            </a>
+            <div id="container-DLL5"></div>
+          </div>
         </div>
-        <div class="lesson-cards-container" style="display:none;">
-          <a href="/elearn/DLL1.html" style="text-decoration:none;">
-            <div class="lesson-card mini">
-              <span class="lesson-number">L1</span>
-              <h3>Recognizing Digital Devices Around Us</h3>
-            </div>
-          </a>
-          <a href="/elearn/DLL2.html" style="text-decoration:none;">
-            <div class="lesson-card mini">
-              <span class="lesson-number">L2</span>
-              <h3>Basic Use of Tablet/Computer: Tap, Drag, and Swipe</h3>
-            </div>
-          </a>
-          <a href="/elearn/DLL3.html" style="text-decoration:none;">
-            <div class="lesson-card mini">
-              <span class="lesson-number">L3</span>
-              <h3>Safe and Healthy Screen Time Habits</h3>
-            </div>
-          </a>
-          <a href="/elearn/DLL4.html" style="text-decoration:none;">
-            <div class="lesson-card mini">
-              <span class="lesson-number">L4</span>
-              <h3>Exploring Educational Apps Together</h3>
-            </div>
-          </a>
-          <div id="container-DLL5"></div>
+        <div class="module-group">
+          <div class="lesson-card" style="background: linear-gradient(to right, #16a34a, #4ade80);">
+            <span class="lesson-number">DC L1</span>
+            <h3>Digital Creativity</h3>
+            <p>DC L1: Berpikir kreatif dengan teknologi</p>
+            <a href="#" class="start-btn">Lihat Modul</a>
+          </div>
+          <div class="lesson-cards-container" style="display:none;">
+            <div id="container-DCL1"></div>
+            <div id="container-DCL2"></div>
+            <div id="container-DCL3"></div>
+            <div id="container-DCL4"></div>
+            <div id="container-DCL5"></div>
+          </div>
         </div>
-        <div class="lesson-card" style="background: linear-gradient(to right, #16a34a, #4ade80);">
-          <span class="lesson-number">#02</span>
-          <h3>Digital Creativity</h3>
-          <p>Berpikir kreatif dengan teknologi</p>
-          <a href="#" class="start-btn">Lihat Modul</a>
-        </div>
-        <div class="lesson-cards-container" style="display:none;">
-          <div id="container-DCL2"></div>
-          <a href="/elearn/DCL2.html" style="text-decoration:none;">
-            <div class="lesson-card mini">
-              <span class="lesson-number">L2</span>
-              <h3>Mewarnai Gambar Digital dengan Alat Pewarna</h3>
-            </div>
-          </a>
-          <div id="container-DCL3"></div>
-          <a href="/elearn/DCL3.html" style="text-decoration:none;">
-            <div class="lesson-card mini">
-              <span class="lesson-number">L3</span>
-              <h3>Creating Stickers or Emojis</h3>
-            </div>
-          </a>
-          <div id="container-DCL4"></div>
-          <a href="/elearn/DCL4.html" style="text-decoration:none;">
-            <div class="lesson-card mini">
-              <span class="lesson-number">L4</span>
-              <h3>Arranging Digital Collages from Photos</h3>
-            </div>
-          </a>
-          <div id="container-DCL5"></div>
-          <a href="/elearn/DCL5.html" style="text-decoration:none;">
-            <div class="lesson-card mini">
-              <span class="lesson-number">L5</span>
-              <h3>Making a Short Animated Story with Drag-and-Drop Tools</h3>
-            </div>
-          </a>
-        <div class="lesson-card" style="background: linear-gradient(to right, #0284c7, #38bdf8);">
-          <span class="lesson-number">#03</span>
-          <h3>Craft & Coding</h3>
-          <p>Kode sambil berkarya</p>
-          <a href="#" class="start-btn">Lihat Modul</a>
-        </div>
-        <div class="lesson-cards-container" style="display:none;">
-          <div id="container-CCL2"></div>
-          <a href="/elearn/CCL2.html" style="text-decoration:none;">
-            <div class="lesson-card mini">
-              <span class="lesson-number">L2</span>
-              <h3>Building Patterns with Digital Blocks (e.g., Scratch Jr)</h3>
-            </div>
-          </a>
-          <div id="container-CCL3"></div>
-          <a href="/elearn/CCL3.html" style="text-decoration:none;">
-            <div class="lesson-card mini">
-              <span class="lesson-number">L3</span>
-              <h3>Introducing Commands: Move, Turn, Repeat</h3>
-            </div>
-          </a>
+        <div class="module-group">
+          <div class="lesson-card" style="background: linear-gradient(to right, #0284c7, #38bdf8);">
+            <span class="lesson-number">CC L1</span>
+            <h3>Craft & Coding</h3>
+            <p>CC L1: Kode sambil berkarya</p>
+            <a href="#" class="start-btn">Lihat Modul</a>
+          </div>
+          <div class="lesson-cards-container" style="display:none;">
+            <div id="container-CCL1"></div>
+            <div id="container-CCL2"></div>
+            <div id="container-CCL3"></div>
             <div id="container-CCL4"></div>
-          <a href="/elearn/CCL5.html" style="text-decoration:none;">
-            <div class="lesson-card mini">
-              <span class="lesson-number">L5</span>
-              <h3>Craft Showcase: Presenting Digital and Physical Creations</h3>
-            </div>
-          </a>
-          <div id="container-CCL5"></div>
+            <div id="container-CCL5"></div>
+          </div>
         </div>
-        <div class="lesson-card" style="background: linear-gradient(to right, #7c3aed, #c084fc);">
-          <span class="lesson-number">#04</span>
-          <h3>2D Game Development</h3>
-          <p>Buat game 2D pertama kamu!</p>
-          <a href="#" class="start-btn">Lihat Modul</a>
-        </div>
-        <div class="lesson-cards-container" style="display:none;">
-          <a href="/elearn/GDL1.html" style="text-decoration:none;">
-            <div class="lesson-card mini">
-              <span class="lesson-number">L1</span>
-              <h3>Understanding Game Characters and Backgrounds</h3>
-            </div>
-          </a>
-          <a href="/elearn/GDL2.html" style="text-decoration:none;">
-            <div class="lesson-card mini">
-              <span class="lesson-number">L2</span>
-              <h3>Choosing Sprites and Moving Them with Simple Commands</h3>
-            </div>
-          </a>
-          <a href="/elearn/GDL3.html" style="text-decoration:none;">
-            <div class="lesson-card mini">
-              <span class="lesson-number">L3</span>
-              <h3>Adding Sounds and Reactions (e.g., 'jump' makes sound)</h3>
-            </div>
-          </a>
-          <a href="/elearn/GDL4.html" style="text-decoration:none;">
-            <div class="lesson-card mini">
-              <span class="lesson-number">L4</span>
-              <h3>Creating a One-Screen Maze Game Using Blocks</h3>
-            </div>
-          </a>
-          <a href="/elearn/GDL5.html" style="text-decoration:none;">
-            <div class="lesson-card mini">
-              <span class="lesson-number">L5</span>
-              <h3>Sharing the Game with Family and Friends</h3>
-            </div>
-          </a>
+        <div class="module-group">
+          <div class="lesson-card" style="background: linear-gradient(to right, #7c3aed, #c084fc);">
+            <span class="lesson-number">GD L1</span>
+            <h3>2D Game Development</h3>
+            <p>GD L1: Buat game 2D pertama kamu!</p>
+            <a href="#" class="start-btn">Lihat Modul</a>
+          </div>
+          <div class="lesson-cards-container" style="display:none;">
+            <a href="/elearn/GDL1.html" style="text-decoration:none;">
+              <div class="lesson-card mini">
+                <span class="lesson-number">GD L1</span>
+                <h3>Understanding Game Characters and Backgrounds</h3>
+              </div>
+            </a>
+            <a href="/elearn/GDL2.html" style="text-decoration:none;">
+              <div class="lesson-card mini">
+                <span class="lesson-number">GD L2</span>
+                <h3>Choosing Sprites and Moving Them with Simple Commands</h3>
+              </div>
+            </a>
+            <a href="/elearn/GDL3.html" style="text-decoration:none;">
+              <div class="lesson-card mini">
+                <span class="lesson-number">GD L3</span>
+                <h3>Adding Sounds and Reactions (e.g., 'jump' makes sound)</h3>
+              </div>
+            </a>
+            <a href="/elearn/GDL4.html" style="text-decoration:none;">
+              <div class="lesson-card mini">
+                <span class="lesson-number">GD L4</span>
+                <h3>Creating a One-Screen Maze Game Using Blocks</h3>
+              </div>
+            </a>
+            <a href="/elearn/GDL5.html" style="text-decoration:none;">
+              <div class="lesson-card mini">
+                <span class="lesson-number">GD L5</span>
+                <h3>Sharing the Game with Family and Friends</h3>
+              </div>
+            </a>
+          </div>
         </div>
       </div>
 
@@ -843,15 +824,15 @@
   document.addEventListener('DOMContentLoaded', () => {
     const cont = document.getElementById('container-DCL4');
     if (cont) {
-      cont.innerHTML = '<a href="/elearn/DCL4.html" style="text-decoration:none;"><div class="lesson-card mini"><span class="lesson-number">L4</span><h3>Arranging Digital Collages from Photos</h3></div></a>';
+      cont.innerHTML = '<a href="/elearn/DCL4.html" style="text-decoration:none;"><div class="lesson-card mini"><span class="lesson-number">DC L4</span><h3>Arranging Digital Collages from Photos</h3></div></a>';
     }
   });
-  </script>
+</script>
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const cont = document.getElementById('container-DCL1');
     if (cont) {
-      cont.innerHTML = '<a href="/elearn/DCL1.html" style="text-decoration:none;"><div class="lesson-card mini"><span class="lesson-number">L1</span><h3>Drawing Simple Shapes on a Digital Canvas</h3></div></a>';
+      cont.innerHTML = '<a href="/elearn/DCL1.html" style="text-decoration:none;"><div class="lesson-card mini"><span class="lesson-number">DC L1</span><h3>Drawing Simple Shapes on a Digital Canvas</h3></div></a>';
     }
   });
 </script>
@@ -875,7 +856,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     const cont = document.getElementById('container-CCL5');
     if (cont) {
-      cont.innerHTML = '<a href="/elearn/CCL5.html" style="text-decoration:none;"><div class="lesson-card mini"><span class="lesson-number">L5</span><h3>Craft Showcase: Presenting Digital and Physical Creations</h3></div></a>';
+      cont.innerHTML = '<a href="/elearn/CCL5.html" style="text-decoration:none;"><div class="lesson-card mini"><span class="lesson-number">CC L5</span><h3>Craft Showcase: Presenting Digital and Physical Creations</h3></div></a>';
      }
   });
 </script>
@@ -883,7 +864,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     const cont = document.getElementById('container-CCL4');
     if (cont) {
-      cont.innerHTML = '<a href="/elearn/CCL4.html" style="text-decoration:none;"><div class="lesson-card mini"><span class="lesson-number">L4</span><h3>Connecting Crafts with Simple Coding (e.g., card with QR code)</h3></div></a>';
+      cont.innerHTML = '<a href="/elearn/CCL4.html" style="text-decoration:none;"><div class="lesson-card mini"><span class="lesson-number">CC L4</span><h3>Connecting Crafts with Simple Coding (e.g., card with QR code)</h3></div></a>';
      }
   });
 </script>
@@ -891,7 +872,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     const cont = document.getElementById('container-CCL3');
     if (cont) {
-      cont.innerHTML = '<a href="/elearn/CCL3.html" style="text-decoration:none;"><div class="lesson-card mini"><span class="lesson-number">L3</span><h3>Introducing Commands: Move, Turn, Repeat</h3></div></a>';
+      cont.innerHTML = '<a href="/elearn/CCL3.html" style="text-decoration:none;"><div class="lesson-card mini"><span class="lesson-number">CC L3</span><h3>Introducing Commands: Move, Turn, Repeat</h3></div></a>';
      }
   });
 </script>
@@ -907,7 +888,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     const cont = document.getElementById('container-CCL1');
     if (cont) {
-      cont.innerHTML = '<a href="/elearn/CCL1.html" style="text-decoration:none;"><div class="lesson-card mini"><span class="lesson-number">L1</span><h3>Making Paper Crafts Based on Digital Templates</h3></div></a>';
+      cont.innerHTML = '<a href="/elearn/CCL1.html" style="text-decoration:none;"><div class="lesson-card mini"><span class="lesson-number">CC L1</span><h3>Making Paper Crafts Based on Digital Templates</h3></div></a>';
     }
   });
 </script>
