@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Digital Creativity L3 - Membuat Stiker & Emoji Digital</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  body { font-family:'Baloo 2', sans-serif; margin:0; background:#eff6ff; }
+  .header { text-align:center; padding:20px; background:#bae6fd; }
+  .header h1 { margin:0 0 10px; }
+  .progress-container { margin:0 auto 10px; width:80%; max-width:600px; border:1px solid #e5e7eb; border-radius:12px; background:#f9fafb; }
+  .progress-bar { height:12px; background:#e5e7eb; border-radius:6px; overflow:hidden; }
+  .progress { width:0%; height:100%; background:#0ea5e9; }
+  .back-btn { display:inline-block; margin-top:8px; color:#fff; background:#0ea5e9; padding:6px 12px; border-radius:8px; text-decoration:none; }
+  .container { display:flex; }
+  .sidebar { width:200px; background:#fff; border-right:1px solid #e5e7eb; }
+  .sidebar ul { list-style:none; padding:0; margin:0; }
+  .sidebar li { padding:10px; cursor:pointer; border-bottom:1px solid #e5e7eb; }
+  .sidebar li.active { background:#bae6fd; }
+  .main { flex:1; padding:20px; }
+  .step-content { display:none; }
+  .step-content.active { display:block; animation:fade 0.5s; }
+  .nav-controls { text-align:center; margin-top:20px; }
+  .typingBox-vscode { background:#fff; border:1px solid #ccc; padding:12px; border-radius:8px; min-height:80px; }
+  .whiteboard-container { text-align:center; margin-top:20px; }
+  #whiteboardCanvas { width:100%; height:300px; border:1px solid #ccc; display:none; }
+  #emojiCanvas { border:1px solid #111827; background:#fff; border-radius:8px; }
+  .builder-controls { margin-top:10px; }
+  @keyframes fade { from { opacity:0; } to { opacity:1; } }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Digital Creativity – Lesson 3: Membuat Stiker & Emoji Digital</h1>
+  <div class="progress-container">
+    <div class="progress-bar"><div class="progress" id="progressBar"></div></div>
+  </div>
+  <div style="margin-top:10px;">
+    <a href="/elearn/modul.html" class="back-btn">⟵ Kembali ke Modul</a>
+  </div>
+</div>
+<div class="container">
+  <div class="sidebar">
+    <ul id="lesson-nav" class="lesson-nav">
+      <li data-step="1" class="active">1. Hai, Pembuat Emoji Hebat!</li>
+      <li data-step="2">2. Apa Itu Emoji? 😃</li>
+      <li data-step="3">3. Pilih Wajahmu 🖼</li>
+      <li data-step="4">4. Tambah Ekspresi!</li>
+      <li data-step="5">5. Hasil Karyamu</li>
+      <li data-step="6">6. Hebat!</li>
+      <li data-step="7">7. Quiz Teori</li>
+      <li data-step="8">8. Quiz Praktik</li>
+      <li data-step="9">9. Whiteboard</li>
+    </ul>
+  </div>
+  <div class="main">
+    <div id="panel-1" class="step-content">
+      <h2>Hai, Pembuat Emoji Hebat!</h2>
+      <p>Pernah lihat emoji senyum, sedih, marah? Hari ini kita buat emoji keren kita sendiri!</p>
+    </div>
+    <div id="panel-2" class="step-content">
+      <h2>Apa Itu Emoji? 😃</h2>
+      <p>Emoji = gambar kecil yang menunjukkan perasaan: senang, sedih, marah.</p>
+    </div>
+    <div id="panel-3" class="step-content">
+      <h2>Pilih Wajahmu 🖼</h2>
+      <p>Pilih bentuk wajah emoji: bulat, kotak, atau lainnya.</p>
+    </div>
+    <div id="panel-4" class="step-content">
+      <h2>Tambah Ekspresi!</h2>
+      <p>Pilih mata, mulut, dan aksesoris untuk buat emoji lebih lucu.</p>
+    </div>
+    <div id="panel-5" class="step-content">
+      <h2>Hasil Karyamu!</h2>
+      <p>Foto emoji yang sudah kamu buat dan tunjukkan ke guru/orang tua.</p>
+    </div>
+    <div id="panel-6" class="step-content">
+      <h2>Hebat!</h2>
+      <p>Hari ini kamu belajar membuat stiker/emoji digital dengan ekspresi unik. Siap buat emoji lebih seru di lesson berikutnya?</p>
+    </div>
+    <div id="panel-7" class="step-content">
+      <h2>Quiz Part 1 – Teori</h2>
+      <ol>
+        <li>Apa itu emoji?</li>
+        <li>Sebutkan 2 contoh ekspresi emoji.</li>
+        <li>Apa manfaat membuat emoji sendiri?</li>
+        <li>Bagaimana cara memilih bentuk wajah emoji?</li>
+        <li>Apa saja yang bisa ditambahkan untuk membuat emoji lebih lucu?</li>
+      </ol>
+      <div class="typingBox-vscode" contenteditable="true"></div>
+    </div>
+    <div id="panel-8" class="step-content">
+      <h2>Quiz Part 2 – Praktik</h2>
+      <p>Tugas:</p>
+      <ol>
+        <li>Buat satu emoji dengan ekspresi senang.</li>
+        <li>Buat satu emoji dengan ekspresi lain (sedih, marah, atau lucu).</li>
+        <li>Tambahkan aksesoris seperti topi atau kacamata ke salah satu emoji.</li>
+        <li>Foto hasil emoji yang kamu buat.</li>
+        <li>Tunjukkan hasilmu ke guru/orang tua untuk dapat pujian!</li>
+      </ol>
+      <div style="text-align:center; margin-top:10px;">
+        <canvas id="emojiCanvas" width="200" height="200"></canvas>
+        <div class="builder-controls">
+          Bentuk: <select id="faceShape"><option value="circle">Bulat</option><option value="square">Kotak</option></select>
+          Mata: <select id="eyeType"><option value="happy">Senang</option><option value="sad">Sedih</option><option value="angry">Marah</option></select>
+          Mulut: <select id="mouthType"><option value="smile">Smile</option><option value="frown">Sedih</option><option value="open">Terbuka</option></select>
+          Aksesoris: <select id="accessory"><option value="">-</option><option value="sunglasses">Kacamata</option><option value="hat">Topi</option></select>
+          <button id="clearEmoji">Clear</button>
+          <button id="saveEmoji">Save</button>
+        </div>
+      </div>
+      <div class="typingBox-vscode" contenteditable="true" style="margin-top:10px;"></div>
+    </div>
+    <div id="panel-9" class="step-content">
+      <h2>Whiteboard</h2>
+      <div class="whiteboard-container">
+        <button id="toggleWhiteboard">Tampilkan Whiteboard</button>
+        <button id="clearWhiteboard">Clear</button>
+        <canvas id="whiteboardCanvas"></canvas>
+      </div>
+    </div>
+    <div class="nav-controls">
+      <button onclick="prevPanel()">⟵ Sebelumnya</button>
+      <span id="indicator"></span>
+      <button onclick="nextPanel()">Selanjutnya ⟶</button>
+    </div>
+  </div>
+</div>
+<script>
+  let currentPanel = 1;
+  const totalPanels = 9;
+  function showPanel(n){
+    if(n < 1 || n > totalPanels) return;
+    document.querySelectorAll('.step-content').forEach(el=>el.classList.remove('active'));
+    const panel = document.getElementById('panel-'+n);
+    if(panel) panel.classList.add('active');
+    document.querySelectorAll('#lesson-nav li').forEach(li=>li.classList.remove('active'));
+    const nav = document.querySelector('#lesson-nav li[data-step="'+n+'"]');
+    if(nav) nav.classList.add('active');
+    currentPanel = n;
+    updateIndicator();
+  }
+  function nextPanel(){ if(currentPanel < totalPanels) showPanel(currentPanel+1); }
+  function prevPanel(){ if(currentPanel > 1) showPanel(currentPanel-1); }
+  function updateIndicator(){ document.getElementById('indicator').textContent = 'Slide '+currentPanel+' / '+totalPanels; updateProgress(); }
+  document.getElementById('lesson-nav').addEventListener('click', e=>{ if(e.target.matches('li[data-step]')) showPanel(Number(e.target.getAttribute('data-step'))); });
+  document.addEventListener('DOMContentLoaded', ()=>{ showPanel(1); initWhiteboard(); initEmojiBuilder(); });
+</script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script src="whiteboard.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBVO4ajDwkbcTGL33SVMxIoev4veB8itgI",
+    authDomain: "queens-academy-icoding.firebaseapp.com",
+    projectId: "queens-academy-icoding",
+    storageBucket: "queens-academy-icoding.appspot.com",
+    messagingSenderId: "1048549258959",
+    appId: "1:1048549258959:web:f8dc1c104bb170d7ff69ba",
+  };
+  firebase.initializeApp(firebaseConfig);
+  window.kelasId = 'demo';
+  window.lessonId = 'DCL3';
+  initWhiteboard();
+</script>
+<script>
+  function updateProgress(){
+    const progress = document.getElementById('progressBar');
+    const percent = (currentPanel - 1) / (totalPanels - 1) * 100;
+    if(progress) progress.style.width = percent + '%';
+  }
+  document.querySelectorAll('.nav-controls button').forEach(btn=>{ btn.addEventListener('click', updateProgress); });
+  document.getElementById('lesson-nav').addEventListener('click', updateProgress);
+
+  function initEmojiBuilder(){
+    const canvas = document.getElementById("emojiCanvas");
+    if(!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const face = document.getElementById("faceShape");
+    const eyes = document.getElementById("eyeType");
+    const mouth = document.getElementById("mouthType");
+    const acc = document.getElementById("accessory");
+    function draw(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle = "#ffeb3b";
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = 2;
+      if(face.value === "circle"){ ctx.beginPath(); ctx.arc(100,100,80,0,Math.PI*2); ctx.fill(); ctx.stroke(); }
+      else { ctx.beginPath(); ctx.rect(40,40,120,120); ctx.fill(); ctx.stroke(); }
+      ctx.fillStyle = "#000";
+      if(eyes.value === "happy"){ ctx.beginPath(); ctx.arc(70,80,10,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(130,80,10,0,Math.PI*2); ctx.fill(); }
+      else if(eyes.value === "sad"){ ctx.beginPath(); ctx.arc(70,90,10,0,Math.PI); ctx.stroke(); ctx.beginPath(); ctx.arc(130,90,10,0,Math.PI); ctx.stroke(); }
+      else if(eyes.value === "angry"){ ctx.beginPath(); ctx.moveTo(60,70); ctx.lineTo(80,80); ctx.stroke(); ctx.beginPath(); ctx.moveTo(140,70); ctx.lineTo(120,80); ctx.stroke(); }
+      ctx.strokeStyle = "#000";
+      if(mouth.value === "smile"){ ctx.beginPath(); ctx.arc(100,120,40,0,Math.PI,false); ctx.stroke(); }
+      else if(mouth.value === "frown"){ ctx.beginPath(); ctx.arc(100,150,40,Math.PI,0,false); ctx.stroke(); }
+      else if(mouth.value === "open"){ ctx.beginPath(); ctx.arc(100,135,25,0,Math.PI*2); ctx.stroke(); }
+      if(acc.value === "sunglasses"){ ctx.fillStyle = "#333"; ctx.fillRect(60,70,30,20); ctx.fillRect(110,70,30,20); ctx.beginPath(); ctx.moveTo(90,80); ctx.lineTo(110,80); ctx.stroke(); }
+      else if(acc.value === "hat"){ ctx.fillStyle = "#e11d48"; ctx.beginPath(); ctx.moveTo(40,40); ctx.lineTo(160,40); ctx.lineTo(100,10); ctx.closePath(); ctx.fill(); }
+    }
+    [face, eyes, mouth, acc].forEach(el=>el.addEventListener("change", draw));
+    document.getElementById("clearEmoji").addEventListener("click", ()=>{ ctx.clearRect(0,0,canvas.width,canvas.height); });
+    document.getElementById("saveEmoji").addEventListener("click", ()=>{ const link=document.createElement("a"); link.download="emoji.png"; link.href=canvas.toDataURL(); link.click(); });
+    draw();
+  }
+</script>
+</body>
+</html>
