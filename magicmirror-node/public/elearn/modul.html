@@ -515,13 +515,14 @@
             <a href="#" class="start-btn">Lihat Modul</a>
           </div>
           <div class="lesson-cards-container" style="display:none;">
-            <div id="container-GDL1"></div>
-            <a href="/elearn/GDL2.html" style="text-decoration:none;">
+            <a href="/elearn/GDL1.html" style="text-decoration:none;">
               <div class="lesson-card mini">
-                <span class="lesson-number">GD L2</span>
-                <h3>Choosing Sprites and Moving Them with Simple Commands</h3>
+                <span class="lesson-number">GD L1</span>
+                <h3>Understanding Game Characters and Backgrounds</h3>
               </div>
             </a>
+            <div id="container-GDL2"></div>
+
             <a href="/elearn/GDL3.html" style="text-decoration:none;">
               <div class="lesson-card mini">
                 <span class="lesson-number">GD L3</span>
@@ -892,6 +893,14 @@
     const cont = document.getElementById('container-CCL1');
     if (cont) {
       cont.innerHTML = '<a href="/elearn/CCL1.html" style="text-decoration:none;"><div class="lesson-card mini"><span class="lesson-number">CC L1</span><h3>Making Paper Crafts Based on Digital Templates</h3></div></a>';
+    }
+  });
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const cont = document.getElementById('container-GDL2');
+    if (cont) {
+      cont.innerHTML = '<a href="/elearn/GDL2.html" style="text-decoration:none;"><div class="lesson-card mini"><span class="lesson-number">GD L2</span><h3>Choosing Sprites and Moving Them with Simple Commands</h3></div></a>';
     }
   });
 </script>
