@@ -507,12 +507,7 @@
           <a href="#" class="start-btn">Lihat Modul</a>
         </div>
         <div class="lesson-cards-container" style="display:none;">
-          <a href="/elearn/CCL1.html" style="text-decoration:none;">
-            <div class="lesson-card mini">
-              <span class="lesson-number">L1</span>
-              <h3>Making Paper Crafts Based on Digital Templates</h3>
-            </div>
-          </a>
+          <div id="container-CCL1"></div>
           <a href="/elearn/CCL2.html" style="text-decoration:none;">
             <div class="lesson-card mini">
               <span class="lesson-number">L2</span>
@@ -878,6 +873,14 @@
     const cont = document.getElementById('container-DLL5');
     if (cont) {
       cont.innerHTML = '<a href="/elearn/DLL5.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">DL L5</span><h3>Understanding Online vs Offline</h3></div></a>';
+    }
+  });
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const cont = document.getElementById('container-CCL1');
+    if (cont) {
+      cont.innerHTML = '<a href="/elearn/CCL1.html" style="text-decoration:none;"><div class="lesson-card mini"><span class="lesson-number">L1</span><h3>Making Paper Crafts Based on Digital Templates</h3></div></a>';
     }
   });
 </script>
