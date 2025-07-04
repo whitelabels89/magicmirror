@@ -474,7 +474,7 @@
           <a href="/elearn/DCL2.html" style="text-decoration:none;">
             <div class="lesson-card mini">
               <span class="lesson-number">L2</span>
-              <h3>Coloring Digital Pictures with Tools</h3>
+              <h3>Mewarnai Gambar Digital dengan Alat Pewarna</h3>
             </div>
           </a>
           <div id="container-DCL2"></div>
@@ -483,7 +483,9 @@
               <span class="lesson-number">L3</span>
               <h3>Creating Stickers or Emojis</h3>
             </div>
+          
           </a>
+          <div id="container-DCL4"></div>
           <a href="/elearn/DCL4.html" style="text-decoration:none;">
             <div class="lesson-card mini">
               <span class="lesson-number">L4</span>
@@ -496,6 +498,7 @@
               <h3>Making a Short Animated Story with Drag-and-Drop Tools</h3>
             </div>
           </a>
+          <div id="container-DCL5"></div>
         </div>
         <div class="lesson-card" style="background: linear-gradient(to right, #0284c7, #38bdf8);">
           <span class="lesson-number">#03</span>
@@ -504,12 +507,7 @@
           <a href="#" class="start-btn">Lihat Modul</a>
         </div>
         <div class="lesson-cards-container" style="display:none;">
-          <a href="/elearn/CCL1.html" style="text-decoration:none;">
-            <div class="lesson-card mini">
-              <span class="lesson-number">L1</span>
-              <h3>Making Paper Crafts Based on Digital Templates</h3>
-            </div>
-          </a>
+          <div id="container-CCL1"></div>
           <a href="/elearn/CCL2.html" style="text-decoration:none;">
             <div class="lesson-card mini">
               <span class="lesson-number">L2</span>
@@ -835,15 +833,39 @@
   document.addEventListener('DOMContentLoaded', () => {
     const cont = document.getElementById('container-DCL2');
     if (cont) {
-      cont.innerHTML = '<a href="/elearn/DCL2.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">DC L2</span><h3>Coloring Digital Pictures with Tools</h3></div></a>';
+      cont.innerHTML = '<a href="/elearn/DCL2.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">DC L2</span><h3>Mewarnai Gambar Digital dengan Alat Pewarna</h3></div></a>';
     }
   });
 </script>
 <script>
   document.addEventListener('DOMContentLoaded', () => {
+    const cont = document.getElementById('container-DCL3');
+    if (cont) {
+      cont.innerHTML = '<a href="/elearn/DCL3.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">DC L3</span><h3>Creating Stickers or Emojis</h3></div></a>';
+    }
+  });
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const cont = document.getElementById('container-DCL4');
+    if (cont) {
+      cont.innerHTML = '<a href="/elearn/DCL4.html" style="text-decoration:none;"><div class="lesson-card mini"><span class="lesson-number">L4</span><h3>Arranging Digital Collages from Photos</h3></div></a>';
+    }
+  });
+  </script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
     const cont = document.getElementById('container-DCL1');
     if (cont) {
       cont.innerHTML = '<a href="/elearn/DCL1.html" style="text-decoration:none;"><div class="lesson-card mini"><span class="lesson-number">L1</span><h3>Drawing Simple Shapes on a Digital Canvas</h3></div></a>';
+    }
+  });
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const cont = document.getElementById('container-DCL5');
+    if (cont) {
+      cont.innerHTML = '<a href="/elearn/DCL5.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">DC L5</span><h3>Making a Short Animated Story with Drag-and-Drop Tools</h3></div></a>';
     }
   });
 </script>
@@ -860,6 +882,14 @@
     const cont = document.getElementById('container-CCL2');
     if (cont) {
       cont.innerHTML = '<a href="/elearn/CCL2.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">CC L2</span><h3>Building Patterns with Digital Blocks (e.g., Scratch Jr)</h3></div></a>';
+     }
+  });
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const cont = document.getElementById('container-CCL1');
+    if (cont) {
+      cont.innerHTML = '<a href="/elearn/CCL1.html" style="text-decoration:none;"><div class="lesson-card mini"><span class="lesson-number">L1</span><h3>Making Paper Crafts Based on Digital Templates</h3></div></a>';
     }
   });
 </script>
