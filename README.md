@@ -1,96 +1,141 @@
-# Magic Mirror
+# Magic Mirror & Queen's Academy Platform
 
-This repository hosts the backend for the **Queen's Academy** platform. It includes the Magic Mirror module and the e-learning API used by the teacher and student dashboards. The Magic Mirror component analyses faces and generates personalized style recommendations and images. The project is split into two main parts:
+## 1. Deskripsi Umum
+Magic Mirror adalah modul AI untuk menganalisis wajah dan memberikan rekomendasi gaya secara personal. Proyek ini merupakan bagian dari platform **Queen's Academy** yang menyediakan dashboard pembelajaran dan manajemen karya bagi guru, murid, maupun orang tua.
 
-Both services rely on environment variables stored in `.env` files within their respective directories.
+Repositori ini berisi beberapa layanan:
+- **magicmirror-node** – Backend Express dan aset web (dashboard, modul e-learning, Magic Mirror UI).
+- **magicmirror-python** – Service Flask untuk analisis wajah dan generasi gambar/audio AI.
+- **firebase-upload-backend** – Server tambahan untuk upload karya ke Firebase dan Google Sheets.
 
-## Contents
+Pengguna akhir proyek adalah guru, murid, serta orang tua yang memantau perkembangan anak.
 
-### `magicmirror-node`
-
-- `server.js` – Express server with REST endpoints and WebSocket events.
-- `public/` – static HTML, CSS, and JS assets for the browser UI.
-- `package.json` – lists the Node dependencies and the `npm start` script.
-
-### `magicmirror-python`
-
-- `app.py` – Flask entrypoint used in development and by `start.sh`.
-- `face_consultant_freshstart.py` – main face analysis script.
-- `requirements.txt` – Python dependencies.
-- `start.sh` – script used in Docker or production to start the Flask app via Gunicorn.
-
-
-### `elearning-api.gs`
-
-Google Apps Script ini adalah endpoint utama untuk sistem e-learning **Queen's Academy**, mengambil data murid, progress, karya, dan reward dari Google Sheets. Script ini menyediakan REST API yang digunakan dashboard guru dan murid.
-
-🔗 Web App URL:
-https://script.google.com/macros/s/AKfycbynFv8gTnczc7abTL5Olq_sKmf1e0y6w9z_KBTKETK8i6NaGd941Cna4QVnoujoCsMdvA/exec
-
-Contoh fetch data:
-```js
-fetch(`${WEB_APP_URL}?tab=EL_PROGRESS_MURID&uid=xxxxx`)
+## 2. Struktur Direktori
+Berikut struktur direktori utama:
+```text
+.
+├── elearn/                 # Halaman playground sederhana
+├── firebase-upload-backend/ # Upload ke Firebase & Google Sheets
+├── firestore.rules         # Aturan akses Firestore
+├── generate_html_from_json.js
+├── generated_lessons/      # Hasil HTML modul yang diunggah
+├── magicmirror-node/       # Server Express + frontend
+│   ├── server.js
+│   ├── uploadModul.js
+│   ├── package.json
+│   └── public/
+│       └── elearn/        # Portal e-learning (murid, guru, ortu)
+├── magicmirror-python/     # Backend Flask & analisis wajah
+│   ├── app.py
+│   ├── face_consultant_freshstart.py
+│   ├── requirements.txt
+│   └── public/
+├── templates/              # Template HTML lesson
+└── uploads/                # Temp penyimpanan upload
 ```
+Keterangan singkat tiap folder dapat dilihat pada dokumentasi internal.
 
-## Setup
+### Isi Folder `public/elearn`
+Folder ini merupakan inti frontend e-learning. Beberapa file penting di dalamnya:
+- `login-elearning.html` – halaman login utama.
+- `murid.html`, `guru.html`, `ortu.html` – dashboard sesuai peran pengguna.
+- `lesson*.html`, `modul*.html` – materi interaktif hasil konversi PDF.
+- `script.js`, `firebase-tracker.js` – logika autentikasi dan penyimpanan progres.
+- Subfolder `craft-coding/`, `doodle/`, dan `img/` menyimpan playground serta aset gambar.
 
-Clone the repository and create the following `.env` files:
+## 3. Alur Sistem
+Frontend utama berada di `magicmirror-node/public`. Browser terhubung dengan backend Node melalui WebSocket. Analisis wajah dijalankan oleh service Python dan hasilnya dikirim balik via WebSocket.
 
-### For `magicmirror-node`
 ```
-SPREADSHEET_ID=your_google_sheet_id
-OPENAI_API_KEY=your_openai_api_key
-WHACENTER_DEVICE=your_whacenter_device_id
-WEB_APP_URL=apps_script_web_url
-PORT=3000 # optional, defaults to 3000
+Browser ──WebSocket──► magicmirror-node ──emit──► magicmirror-python
+   ▲                                       │
+   └──────── result & faces ◄──────────────┘
 ```
+Selain modul Magic Mirror, dashboard murid dan guru memanggil Google Apps Script (`elearning-api.gs`) menggunakan URL `WEB_APP_URL` untuk mengambil progres, karya, dan reward.
 
-### For `magicmirror-python`
-```
-OPENAI_API_KEY=your_openai_api_key
-ELEVENLABS_API_KEY=your_elevenlabs_api_key
-VOICE_ID=elevenlabs_voice_id
-GDRIVE_FOLDER_ID=google_drive_folder_id
-USE_ELEVENLABS=true|false
-ENV_MODE=dev|prod
-PORT=10000 # optional when running app.py
-```
-
-## Install dependencies
-
-1. **Node server**
+## 4. Menjalankan Lokal
+1. Buat file `.env` di `magicmirror-node` dan `magicmirror-python`.
+   Contoh variabel:
    ```bash
-   cd magicmirror-node
-   npm install
+   # magicmirror-node
+   SPREADSHEET_ID=your_google_sheet_id
+   OPENAI_API_KEY=your_openai_api_key
+   WHACENTER_DEVICE=your_whacenter_device
+   WEB_APP_URL=https://script.google.com/macros/s/....../exec
+   PORT=3000
+
+   # magicmirror-python
+   OPENAI_API_KEY=your_openai_api_key
+   ELEVENLABS_API_KEY=your_elevenlabs_api_key
+   VOICE_ID=voice_id
+   GDRIVE_FOLDER_ID=folder_id
+   USE_ELEVENLABS=true
+   ENV_MODE=dev
+   PORT=10000
    ```
-2. **Python server**
+2. Install dependensi
    ```bash
-   cd magicmirror-python
-   python3 -m venv venv
-   source venv/bin/activate
-   pip install -r requirements.txt
+   cd magicmirror-node && npm install
+   cd ../magicmirror-python && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt
    ```
+3. Jalankan server
+   ```bash
+   # Node server
+   cd magicmirror-node && npm start
+   # Python service
+   cd ../magicmirror-python && python app.py
+   ```
+Akses `http://localhost:3000` untuk frontend dan `http://localhost:10000` untuk API Python.
 
-## Running the servers
+## 5. Deploy ke Produksi
+- **Render.com** atau hosting lain dapat digunakan.
+- Deploy `magicmirror-node` sebagai Web Service Node (build: `npm install`, start: `npm start`).
+- Deploy `magicmirror-python` sebagai service terpisah dengan perintah `./start.sh` (Gunicorn).
+- Pastikan environment variable sama seperti konfigurasi lokal.
 
-### Start the Node backend
+## 6. Dependensi & Teknologi
+- **OpenAI API** – rekomendasi gaya, pembuatan cerita, dan gambar (DALL‑E).
+- **Replicate API** – generasi wajah virtual.
+- **ElevenLabs** – opsional untuk sintesis suara stylist.
+- **Google Sheets** – penyimpanan data murid, progress, dan login.
+- **Firebase** – penyimpanan gambar karya dan koleksi Firestore.
+- **Whacenter API** – pengiriman notifikasi WhatsApp.
+- Node.js, Express, Socket.IO, serta Python + Flask.
+
+## 7. Contoh Endpoint API
+Beberapa endpoint penting:
+
+| Method | Endpoint | Deskripsi |
+|-------|---------|-----------|
+| GET | `/sync-profile-anak` | Sinkronisasi data profil ke sheet `PROFILE_ANAK` |
+| GET | `/reset-password` | Kirim link reset password via WhatsApp |
+| POST | `/ganti-password` | Perbarui password user di Google Sheets |
+| GET | `/login` | Validasi login dashboard murid |
+| POST | `/api/save-karya` | Simpan metadata karya ke Google Sheets |
+| POST | `/openai-api` | Proxy OpenAI untuk Lab Co-Pilot |
+| POST | `/upload_photo` | Menerima foto base64 dari alat fisik |
+| POST | `/push_faces_to_frontend` | Fallback push wajah hasil generate |
+| POST | `/api/generate-story` | Buat cerita pendek untuk anak |
+| POST | `/api/generate-story-with-images` | Cerita beserta ilustrasi |
+
+Contoh respons JSON:
+```json
+{ "success": true, "story": "...." }
 ```
-cd magicmirror-node
-npm start
-```
-This will serve the web UI on `http://localhost:3000`.
 
-### Start the Python service
-```
-cd magicmirror-python
-python app.py  # or ./start.sh in production
-```
-The Flask API will run on port `10000` (or the value of `PORT`).
+## 8. Fitur Utama
+- **Dashboard Murid** – melihat progress, badge, dan materi.
+- **Upload Karya** – kirim gambar ke Firebase dan tampil di feed.
+- **Badge & Reward** – gambar badge tersimpan di `public/badges`.
+- **Lesson Interaktif** – modul HTML hasil dari folder `generated_lessons`.
+- **Magic Mirror** – analisis wajah real-time dan galeri virtual face.
 
-Both services communicate via WebSockets. When running locally, ensure the ports in the `.env` files match the expected defaults.
+## 9. Build & Deploy Frontend/Backend
+- Jalankan `npm run build` jika ada script build pada sub‑projek (misalnya compiler). Untuk server utama cukup `npm start`.
+- Python service dapat dijalankan via `gunicorn -w 1 app:app` atau script `start.sh`.
+- Pastikan `uploads/` dan `generated_lessons/` tetap ada saat deploy.
 
-
-## Notes
-
-- Proyek ini merupakan bagian dari pengembangan platform Queen's Academy dengan integrasi AI, e-learning, dan pelacakan progress murid berbasis Google Sheets dan Firebase.
-- Magic Mirror hanyalah salah satu modul visual; sistem e-learning adalah fokus utama.
+## 10. Catatan Tambahan
+- Kredensial Google/Firebase **jangan** dimasukkan ke repository publik.
+- Beberapa endpoint masih bergantung pada koneksi ke Google Apps Script sehingga perlu koneksi internet.
+- Tidak ada automated test; lakukan pengecekan manual setelah deploy.
