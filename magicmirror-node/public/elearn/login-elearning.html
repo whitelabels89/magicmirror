@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="style.css" />
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBVO4ajDwkbcTGL33SVMxIoev4veB8itgI",
@@ -175,6 +176,7 @@
       <input type="password" id="password" placeholder="Password" />
     </div>
 
+    <div class="g-recaptcha" data-sitekey="6Ldyv38rAAAAAJ9khQ2Dff03PEMAhzRJCrQZC-UM"></div>
     <!-- Login Button -->
     <div class="login-button-container">
       <button onclick="login()" id="login-btn"></button>
@@ -195,13 +197,30 @@ async function login() {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
   const errorEl = document.getElementById("error-message");
+  const captchaToken = grecaptcha.getResponse();
 
   if (!email || !password) {
     errorEl.innerText = "❗ Email dan password harus diisi.";
     return;
   }
 
+  if (!captchaToken) {
+    errorEl.innerText = "❗ Verifikasi CAPTCHA terlebih dahulu.";
+    return;
+  }
+
   try {
+    const verifyRes = await fetch("/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: email, password, token: captchaToken })
+    });
+    const verifyData = await verifyRes.json();
+    if (!verifyRes.ok || !verifyData.success) {
+      errorEl.innerText = verifyData.error || "❌ Login gagal.";
+      grecaptcha.reset();
+      return;
+    }
     const userCred = await firebase.auth().signInWithEmailAndPassword(email, password);
     const uid = userCred.user.uid;
 

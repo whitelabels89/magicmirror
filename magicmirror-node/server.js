@@ -16,6 +16,28 @@ app.use(express.json({ limit: '10mb' })); // untuk terima JSON besar (seperti fo
 app.use('/generated_lessons', express.static(path.join(__dirname, '..', 'generated_lessons')));
 app.use(uploadModulRouter);
 
+async function verifyRecaptcha(req, res, next) {
+  const token = req.body.token || req.body.captcha;
+  if (!token) {
+    return res.status(403).json({ error: "Verifikasi CAPTCHA gagal" });
+  }
+  try {
+    const secret = process.env.RECAPTCHA_SECRET;
+    const gRes = await axios.post(
+      'https://www.google.com/recaptcha/api/siteverify',
+      null,
+      { params: { secret, response: token } }
+    );
+    if (gRes.data.success) {
+      return next();
+    }
+    return res.status(403).json({ error: "Verifikasi CAPTCHA gagal" });
+  } catch (err) {
+    console.error('reCAPTCHA verify error:', err?.response?.data || err.message);
+    return res.status(403).json({ error: "Verifikasi CAPTCHA gagal" });
+  }
+}
+
 // Endpoint: Sinkronisasi data Form Responses 1 ke PROFILE_ANAK berdasarkan CID
 app.get("/sync-profile-anak", async (req, res) => {
   const { google } = require("googleapis");
@@ -143,8 +165,8 @@ app.post("/ganti-password", async (req, res) => {
 });
 
 // Endpoint login user
-app.get("/login", async (req, res) => {
-    const { username, password } = req.query;
+app.post("/login", verifyRecaptcha, async (req, res) => {
+    const { username, password } = req.body;
   
     // Fetch data dari Google Sheet PROFILE_ANAK
     const sheetData = await getProfileAnakData(); // Fungsi ini ambil data sheet
