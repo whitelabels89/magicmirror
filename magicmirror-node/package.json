@@ -15,7 +15,8 @@
     "http-proxy-middleware": "^3.0.5",
     "path": "^0.12.7",
     "socket.io": "^4.8.1",
-    "googleapis": "^130.0.0"
+    "googleapis": "^130.0.0",
+    "firebase-admin": "^11.10.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
