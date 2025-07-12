@@ -284,6 +284,21 @@ async function getProfileAnakData() {
 }
 
 // ======= E-learning Moderator Endpoints =======
+// GET /api/semua-murid - daftar semua murid (uid, nama, email)
+app.get('/api/semua-murid', async (req, res) => {
+  try {
+    const snap = await db.collection('murid').get();
+    const data = snap.docs.map(d => {
+      const val = d.data();
+      return { uid: d.id, nama: val.nama || '', email: val.email || '' };
+    });
+    res.json(data);
+  } catch (err) {
+    console.error('❌ Error get semua murid:', err);
+    res.status(500).json([]);
+  }
+});
+
 // GET /api/kelas - daftar semua kelas
 app.get('/api/kelas', async (req, res) => {
   try {
