@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <link href="https://fonts.googleapis.com/css2?family=Indie+Flower&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=One+Little+Font&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login E-Learning</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.google.com/recaptcha/api.js?render=6LeNUoArAAAAACP2yuxCC-MJ-G6k3SBOesTEEAD7"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBVO4ajDwkbcTGL33SVMxIoev4veB8itgI",
+      authDomain: "queens-academy-icoding.firebaseapp.com",
+      projectId: "queens-academy-icoding",
+      storageBucket: "queens-academy-icoding.firebasestorage.app",
+      messagingSenderId: "1048549258959",
+      appId: "1:1048549258959:web:f8dc1c104bb170d7ff69ba",
+      measurementId: "G-RJCXM1YL7E"
+    };
+    firebase.initializeApp(firebaseConfig);
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translate3d(0, 40px, 0);
+      }
+      to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+      }
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Fredoka', sans-serif;
+      background: url('/elearn/img/bg-classroom-magic.png') no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .container {
+      display: flex;
+      width: 90vw;
+      max-width: 900px;
+      background-color: white;
+      border-radius: 20px;
+      box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+      overflow: hidden;
+      animation: fadeInUp 0.8s ease forwards;
+      height: auto;
+      box-sizing: border-box;
+    }
+
+    .left-panel {
+      flex: 1;
+      background: #f9f9f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 30px;
+      box-sizing: border-box;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .left-panel img {
+      object-fit: contain;
+      width: 100%;
+      max-width: 250px;
+      height: auto;
+      margin-bottom: 20px;
+    }
+
+    .left-panel p {
+      font-family: 'Indie Flower', cursive;
+      font-size: 1.8rem;
+      color: #333;
+      margin: 0;
+    }
+
+    .right-panel {
+      flex: 1;
+      padding: 40px 60px 40px 80px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background-color: white;
+      position: relative;
+      z-index: 2;
+      border-top-left-radius: 80px;
+      border-bottom-left-radius: 80px;
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.25);
+      text-align: center;
+    }
+
+    .quote-section {
+      font-family: 'Indie Flower', cursive;
+      font-size: 1.6rem;
+      color: #5C90FF;
+      margin-bottom: 30px;
+      user-select: none;
+    }
+
+    .login-container {
+      width: 100%;
+    }
+
+    .login-right h2 {
+      margin-bottom: 30px;
+      color: #333;
+      font-family: 'Indie Flower', cursive;
+      font-size: 3rem;
+      user-select: none;
+    }
+
+    .input-wrapper {
+      position: relative;
+      width: 100%;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+    }
+
+    .form-input {
+      width: 100%;
+      height: 50px;
+      padding: 0 45px 0 40px;
+      font-size: 16px;
+      border-radius: 12px;
+      border: 1px solid #ccc;
+      font-family: 'Fredoka', sans-serif;
+      box-sizing: border-box;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 12px;
+      width: 20px;
+      height: 20px;
+      fill: #888;
+      pointer-events: none;
+    }
+
+    .login-button {
+      background-color: #5C90FF;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 18px;
+      padding: 12px 25px;
+      cursor: pointer;
+      font-family: 'Fredoka', sans-serif;
+      transition: background-color 0.3s ease;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .login-button:hover {
+      background-color: #3c6edc;
+    }
+
+    #error-message {
+      margin-top: 10px;
+      color: red;
+      width: 100%;
+      text-align: center;
+      position: relative;
+      min-height: 22px;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .right-panel {
+        border-radius: 0;
+        box-shadow: none;
+        padding: 30px 20px;
+      }
+    }
+    @media (max-width: 600px) {
+      .container {
+        flex-direction: column;
+        border-radius: 20px;
+      }
+      .left-panel, .right-panel {
+        padding: 20px;
+        border-radius: 0;
+      }
+      .left-panel p {
+        font-size: 1.5rem;
+      }
+      .right-panel h2 {
+        font-size: 2.2rem;
+      }
+      .form-input {
+        padding-left: 40px;
+      }
+      .login-button {
+        font-size: 16px;
+        padding: 10px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" role="main">
+    <div class="left-panel" aria-label="Ilustrasi maskot anak Kody melambaikan tangan">
+      <img src="/elearn/img/kody-wave.png" alt="Maskot anak Kody melambaikan tangan" />
+      <p>Selamat datang di dunia belajar yang menyenangkan!</p>
+    </div>
+    <div class="right-panel">
+      <div class="quote-section">"Belajar adalah kunci masa depan cerah"</div>
+      <div class="login-container">
+        <h2>Masuk ke Dunia Belajar</h2>
+
+        <!-- Email -->
+        <div class="input-wrapper">
+          <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+          <input type="email" id="email" class="form-input" placeholder="Email" aria-label="Email" />
+        </div>
+
+        <!-- Password -->
+        <div class="input-wrapper">
+          <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm6-7h-1V7a5 5 0 0 0-10 0v3H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2zm-6-3a3 3 0 0 1 3 3v3H9v-3a3 3 0 0 1 3-3z"/></svg>
+          <input type="password" id="password" class="form-input" placeholder="Password" aria-label="Password" />
+        </div>
+
+        <!-- Login Button -->
+        <div class="input-wrapper" style="margin-bottom: 10px;">
+          <button onclick="login()" id="login-btn" class="login-button">Masuk</button>
+        </div>
+
+        <p id="error-message"></p>
+
+        <!-- Daftar Akun Baru -->
+        <div class="input-wrapper" style="justify-content: center;">
+          <button onclick="window.location.href='/elearn/daftar.html'" class="login-button" style="background-color: #4CAF50; width: auto; padding: 10px 30px; font-size: 18px;">
+            Daftar Akun Baru
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+async function login() {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const errorEl = document.getElementById("error-message");
+
+  if (!email || !password) {
+    errorEl.innerText = "❗ Email dan password harus diisi.";
+    return;
+  }
+
+  grecaptcha.ready(function () {
+    grecaptcha.execute('6LeNUoArAAAAACP2yuxCC-MJ-G6k3SBOesTEEAD7', { action: 'login' }).then(async function (captchaToken) {
+      if (!captchaToken || captchaToken.length < 20) {
+        errorEl.innerText = "❗ Verifikasi CAPTCHA tidak valid.";
+        return;
+      }
+
+      try {
+        const verifyRes = await fetch("/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: email,
+            password,
+            "g-recaptcha-response": captchaToken
+          })
+        });
+        const verifyData = await verifyRes.json();
+        if (!verifyRes.ok || !verifyData.success) {
+          errorEl.innerText = verifyData.error || "❌ Login gagal.";
+          return;
+        }
+
+        const userCred = await firebase.auth().signInWithEmailAndPassword(email, password);
+        const uid = userCred.user.uid;
+
+        const res = await fetch(`https://firebase-upload-backend.onrender.com/api/get-role-by-uid?uid=${uid}`);
+        const data = await res.json();
+
+        if (!data || !data.role) {
+          errorEl.innerText = "❌ Akun tidak memiliki akses yang valid.";
+          return;
+        }
+
+        localStorage.setItem("uid", data.uid);
+        localStorage.setItem("cid", data.cid);
+        localStorage.setItem("email", data.email);
+        localStorage.setItem("nama", data.nama);
+        localStorage.setItem("role", data.role);
+
+        if (data.role === "moderator") {
+          window.location.href = "/elearn/moderator.html";
+        } else {
+          window.location.href = "/elearn/murid.html";
+        }
+      } catch (err) {
+        console.error(err);
+        errorEl.innerText = "❌ Login gagal. Periksa email dan password kamu.";
+      }
+    });
+  });
+}
+</script>
+<script src="userInfo.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

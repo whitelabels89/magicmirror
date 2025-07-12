@@ -1,0 +1,477 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #a8e6cf 0%, #c8f5d8 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.container {
+    position: relative;
+    max-width: 900px;
+    width: 100%;
+    height: 600px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Left Panel - Space Theme Card (Back Card) */
+.left-panel {
+    position: absolute;
+    width: 400px;
+    height: 550px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    transform: translateX(-80px);
+    z-index: 1;
+    overflow: hidden;
+}
+
+.space-background {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+/* Stars */
+.star {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    animation: twinkle 2s infinite alternate;
+}
+
+.star-1 {
+    width: 3px;
+    height: 3px;
+    top: 15%;
+    left: 20%;
+    animation-delay: 0s;
+}
+
+.star-2 {
+    width: 2px;
+    height: 2px;
+    top: 25%;
+    left: 70%;
+    animation-delay: 0.5s;
+}
+
+.star-3 {
+    width: 4px;
+    height: 4px;
+    top: 40%;
+    left: 15%;
+    animation-delay: 1s;
+}
+
+.star-4 {
+    width: 2px;
+    height: 2px;
+    top: 60%;
+    left: 80%;
+    animation-delay: 1.5s;
+}
+
+.star-5 {
+    width: 3px;
+    height: 3px;
+    top: 80%;
+    left: 25%;
+    animation-delay: 2s;
+}
+
+.star-6 {
+    width: 2px;
+    height: 2px;
+    top: 35%;
+    left: 85%;
+    animation-delay: 0.8s;
+}
+
+/* Planets */
+.planet {
+    position: absolute;
+    border-radius: 50%;
+    animation: float 4s ease-in-out infinite;
+}
+
+.planet-1 {
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+    top: 20%;
+    left: 30%;
+    animation-delay: 0s;
+}
+
+.planet-2 {
+    width: 15px;
+    height: 15px;
+    background: linear-gradient(45deg, #4ecdc4, #44a08d);
+    top: 35%;
+    left: 60%;
+    animation-delay: 1s;
+}
+
+.planet-3 {
+    width: 25px;
+    height: 25px;
+    background: linear-gradient(45deg, #ffa726, #ff7043);
+    top: 50%;
+    left: 20%;
+    animation-delay: 2s;
+}
+
+.planet-4 {
+    width: 12px;
+    height: 12px;
+    background: linear-gradient(45deg, #ab47bc, #8e24aa);
+    top: 65%;
+    left: 75%;
+    animation-delay: 3s;
+}
+
+.planet-5 {
+    width: 18px;
+    height: 18px;
+    background: linear-gradient(45deg, #42a5f5, #1e88e5);
+    top: 75%;
+    left: 40%;
+    animation-delay: 0.5s;
+}
+
+.planet-6 {
+    width: 8px;
+    height: 8px;
+    background: linear-gradient(45deg, #fdd835, #f57f17);
+    top: 10%;
+    left: 75%;
+    animation-delay: 1.5s;
+}
+
+.planet-7 {
+    width: 14px;
+    height: 14px;
+    background: linear-gradient(45deg, #66bb6a, #43a047);
+    top: 45%;
+    left: 85%;
+    animation-delay: 2.5s;
+}
+
+.planet-8 {
+    width: 22px;
+    height: 22px;
+    background: linear-gradient(45deg, #ef5350, #e53935);
+    top: 30%;
+    left: 10%;
+    animation-delay: 3.5s;
+}
+
+.illustration-placeholder {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60%;
+    background: transparent;
+    /* This is where the user's robot and children illustration will be placed */
+}
+
+/* Right Panel - Login Form Card (Front Card) */
+.right-panel {
+    position: absolute;
+    width: 400px;
+    height: 550px;
+    background: white;
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    transform: skew(8deg) translateX(120px);
+    z-index: 2;
+    overflow: hidden;
+}
+
+.right-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: white;
+    border-radius: 24px;
+    z-index: -1;
+}
+
+.login-container {
+    transform: skew(-8deg);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+}
+
+.login-container {
+    width: 100%;
+    max-width: 400px;
+}
+
+.quote-section {
+    margin-bottom: 40px;
+}
+
+.quote-text {
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: #2c3e50;
+    margin-bottom: 16px;
+}
+
+.quote-author {
+    font-size: 16px;
+    color: #7f8c8d;
+    font-weight: 400;
+}
+
+.login-form {
+    width: 100%;
+}
+
+.form-title {
+    font-size: 28px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 30px;
+}
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    position: absolute;
+    left: 15px;
+    color: #95a5a6;
+    font-size: 16px;
+    z-index: 1;
+}
+
+.form-input {
+    width: 100%;
+    padding: 15px 15px 15px 45px;
+    border: 2px solid #ecf0f1;
+    border-radius: 12px;
+    font-size: 16px;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.form-input:focus {
+    border-color: #3498db;
+    background: white;
+}
+
+.form-input::placeholder {
+    color: #95a5a6;
+}
+
+.login-button {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, #ff6b35, #f7931e);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+    margin-bottom: 30px;
+}
+
+.login-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3);
+}
+
+.footer-links {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.footer-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #7f8c8d;
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.3s ease;
+}
+
+.footer-link:hover {
+    color: #3498db;
+}
+
+.footer-link i {
+    font-size: 12px;
+}
+
+/* Animations */
+@keyframes twinkle {
+    0% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 968px) {
+    .container {
+        max-width: 750px;
+        height: 500px;
+    }
+    
+    .left-panel {
+        width: 350px;
+        height: 450px;
+        transform: translateX(-60px);
+    }
+    
+    .right-panel {
+        width: 350px;
+        height: 450px;
+        transform: skew(6deg) translateX(90px);
+    }
+    
+    .login-container {
+        transform: skew(-6deg);
+        padding: 30px;
+    }
+    
+    .quote-text {
+        font-size: 20px;
+    }
+    
+    .form-title {
+        font-size: 24px;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        max-width: 600px;
+        height: 400px;
+    }
+    
+    .left-panel {
+        width: 300px;
+        height: 380px;
+        transform: translateX(-40px);
+    }
+    
+    .right-panel {
+        width: 300px;
+        height: 380px;
+        transform: skew(4deg) translateX(60px);
+    }
+    
+    .login-container {
+        transform: skew(-4deg);
+        padding: 25px;
+    }
+    
+    .quote-text {
+        font-size: 18px;
+    }
+    
+    .form-title {
+        font-size: 22px;
+    }
+    
+    .footer-links {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+    
+    .container {
+        max-width: 350px;
+        height: 500px;
+    }
+    
+    .left-panel {
+        width: 280px;
+        height: 480px;
+        transform: translateX(-30px);
+    }
+    
+    .right-panel {
+        width: 280px;
+        height: 480px;
+        transform: skew(2deg) translateX(40px);
+    }
+    
+    .login-container {
+        transform: skew(-2deg);
+        padding: 20px;
+    }
+    
+    .quote-text {
+        font-size: 16px;
+    }
+    
+    .form-title {
+        font-size: 20px;
+    }
+    
+    .form-input {
+        padding: 12px 12px 12px 40px;
+        font-size: 14px;
+    }
+    
+    .login-button {
+        padding: 12px;
+        font-size: 14px;
+    }
+}
