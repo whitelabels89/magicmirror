@@ -177,23 +177,31 @@ app.post("/ganti-password", async (req, res) => {
   }
 });
 
-// Endpoint login user
+// Endpoint login user menggunakan Firebase Authentication & Firestore
 app.post("/login", verifyRecaptcha, async (req, res) => {
-    const { username, password } = req.body;
-  
-    // Fetch data dari Google Sheet PROFILE_ANAK
-    const sheetData = await getProfileAnakData(); // Fungsi ini ambil data sheet
-    const user = sheetData.find(row =>
-      row.whatsapp.replace(/\s+/g, '') === username &&
-      password === "cerdas123"
-    );
-  
-    if (user) {
-      res.json({ success: true, cid: user.cid });
-    } else {
-      res.json({ success: false });
+  const { uid } = req.body;
+  if (!uid) {
+    return res.status(400).json({ success: false, error: "uid kosong" });
+  }
+  try {
+    const doc = await db.collection("murid").doc(uid).get();
+    if (!doc.exists) {
+      return res.status(404).json({ success: false, error: "User tidak ditemukan" });
     }
-  });
+    const data = doc.data();
+    res.json({
+      success: true,
+      uid,
+      cid: data.cid || "",
+      nama: data.nama || "",
+      role: data.role || "",
+      kelas_id: data.kelas_id || ""
+    });
+  } catch (err) {
+    console.error("❌ Login error:", err);
+    res.status(500).json({ success: false, error: "Server error" });
+  }
+});
 
 // Fungsi untuk update password user di Google Sheet PROFILE_ANAK
 async function updateCustomerPassword(username, newPassword) {
