@@ -1,3 +1,32 @@
+// POST /api/assign-murid-ke-kelas - assign murid ke kelas
+app.post('/api/assign-murid-ke-kelas', async (req, res) => {
+  const { uid, kelas_id } = req.body;
+  if (!uid || !kelas_id) {
+    return res.status(400).json({ success: false, error: 'Data tidak lengkap' });
+  }
+  try {
+    const muridRef = db.collection('murid').doc(uid);
+    const muridSnap = await muridRef.get();
+    if (!muridSnap.exists) {
+      return res.status(404).json({ success: false, error: 'Murid tidak ditemukan' });
+    }
+
+    // Update kelas_id murid
+    await muridRef.update({ kelas_id });
+
+    // Tambahkan UID ke array murid di kelas
+    const kelasRef = db.collection('kelas').doc(kelas_id);
+    await kelasRef.set({ kelas_id }, { merge: true });
+    await kelasRef.update({
+      murid: admin.firestore.FieldValue.arrayUnion(uid)
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('❌ Error assign murid:', err);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
 const axios = require('axios');
 require('dotenv').config();
 const express = require('express');
