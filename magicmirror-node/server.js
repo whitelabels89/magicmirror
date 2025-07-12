@@ -1,3 +1,14 @@
+const express = require('express');
+const app = express();
+const axios = require('axios');
+require('dotenv').config();
+const http = require('http').createServer(app);
+const io = require('socket.io')(http, { cors: { origin: "*" } });
+const path = require('path');
+const { google } = require('googleapis');
+const uploadModulRouter = require('./uploadModul');
+const admin = require('firebase-admin');
+
 // POST /api/assign-murid-ke-kelas - assign murid ke kelas
 app.post('/api/assign-murid-ke-kelas', async (req, res) => {
   const { uid, kelas_id } = req.body;
@@ -27,16 +38,6 @@ app.post('/api/assign-murid-ke-kelas', async (req, res) => {
     res.status(500).json({ success: false, error: 'Server error' });
   }
 });
-const axios = require('axios');
-require('dotenv').config();
-const express = require('express');
-const app = express();
-const http = require('http').createServer(app);
-const io = require('socket.io')(http, { cors: { origin: "*" } });
-const path = require('path');
-const { google } = require('googleapis');
-const uploadModulRouter = require('./uploadModul');
-const admin = require('firebase-admin');
 
 // Init Firebase Admin
 if (!admin.apps.length) {
