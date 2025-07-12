@@ -1,0 +1,557 @@
+<link rel="stylesheet" href="presetvs.css" />
+<script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+<script>
+async function main() {
+  window.pyodide = await loadPyodide();
+  window.pyodideReady = true;
+}
+main();
+</script>
+<script src="presetvs.js"></script>
+<style>
+  body {
+    font-family: 'Fredoka', sans-serif;
+    margin: 0;
+    background: #f0f7ff;
+    color: #333;
+  }
+  .header {
+    text-align: center;
+    padding: 20px;
+    background: linear-gradient(90deg, #4f46e5, #6d28d9);
+    color: #fff;
+    border-bottom-left-radius: 24px;
+    border-bottom-right-radius: 24px;
+  }
+  .header h1 {
+    margin-bottom: 10px;
+    font-size: 2.2rem;
+    font-weight: 700;
+  }
+  .header p {
+    margin-bottom: 20px;
+  }
+  .progress-container {
+    margin-top: 20px;
+    width: 80%;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #f9fafb;
+  }
+  .progress-bar {
+    height: 12px;
+    background: #e5e7eb;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .progress {
+    width: 0%;
+    height: 100%;
+    background: #22c55e;
+  }
+  .back-btn {
+    display: inline-block;
+    margin-top: 8px;
+    color: #fff;
+    background: #22c55e;
+    padding: 6px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  .container {
+    display: flex;
+    flex-direction: row;
+    padding: 0;
+    gap: 0;
+    align-items: stretch;
+    height: 100vh;
+  }
+  .top-nav {
+    width: 100%;
+    overflow-x: auto;
+    background: #f9fafb;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    margin: 10px auto 20px auto;
+    padding: 10px 20px;
+    white-space: nowrap;
+  }
+  .top-nav ul {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .top-nav li {
+    flex: 0 0 auto;
+    width: 30px;
+    height: 30px;
+    background: #e5e7eb;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+  }
+  .top-nav li:hover {
+    background: #d1d5db;
+    transform: scale(1.1);
+  }
+  .top-nav li.active {
+    background: #4f46e5;
+    color: #fff;
+  }
+  .main {
+    flex: 1 1 50%;
+    max-width: 50%;
+    background: #ffffff;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    border-radius: 24px;
+    padding: 20px;
+    transition: margin-right 0.5s;
+    overflow-y: auto;
+  }
+  .lab-column {
+    flex: 1 1 50%;
+    max-width: 50%;
+    background: #111827;
+    padding: 20px;
+    border-radius: 0;
+    color: #a7f3d0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    position: relative;
+    overflow-x: hidden;
+  }
+  .global-editor, #globalPyodideOutput {
+    flex: 1 1 48%;
+    min-height: 200px;
+  }
+  .whiteboard-container {
+    margin-top: 1rem;
+    text-align: center;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: auto;
+  }
+  #whiteboardCanvas {
+    border: 1px solid #ccc;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    aspect-ratio: 4/1.2;
+    display: none;
+    touch-action: none;
+    background: #fff;
+    border-radius: 12px;
+    box-sizing: border-box;
+  }
+  .step-content {
+    display: none;
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+  }
+  .step-content.active { display: block; }
+  .nav-controls { text-align: center; margin-top: 20px; }
+  .nav-controls button {
+    background: #4f46e5;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    margin: 0 5px;
+    border-radius: 10px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  .nav-controls button:hover {
+    background: #6d28d9;
+  }
+  .output-box {
+    background-color: #1e293b;
+    color: #a7f3d0;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 8px;
+    white-space: pre-wrap;
+    font-family: monospace;
+    min-height: 50px;
+  }
+  .light-theme-output {
+    background-color: white;
+    color: black;
+  }
+  .dark-theme-output {
+    background-color: #1e293b;
+    color: #a7f3d0;
+  }
+  .typingBox-vscode {
+    max-width: 100%;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    overflow-x: auto;
+    box-sizing: border-box;
+  }
+  .global-editor {
+    background: #1e293b;
+    color: #a7f3d0;
+    padding: 8px;
+    border-radius: 8px;
+    font-family: monospace;
+    width: 100%;
+    max-width: 100%;
+    word-wrap: break-word;
+    overflow-x: auto;
+    box-sizing: border-box;
+    min-height: 80px;
+  }
+</style>
+
+<div class="header">
+  <h1>{{lesson_title}}</h1>
+  <p>{{lesson_subtitle}}</p>
+  <div class="progress-container">
+    <div class="progress-bar"><div class="progress" id="progressBar"></div></div>
+  </div>
+  <div style="margin-top:10px;">
+    <a href="{{back_link}}" class="back-btn">⟵ Kembali ke Modul</a>
+  </div>
+</div>
+<div class="top-nav">
+  <ul id="lesson-nav">
+    <li data-step="1" class="active">1</li>
+    <li data-step="2">2</li>
+    <li data-step="3">3</li>
+    <li data-step="4">4</li>
+    <li data-step="5">5</li>
+    <li data-step="6">6</li>
+    <li data-step="7">7</li>
+    <li data-step="8">8</li>
+    <li data-step="9">9</li>
+    <li data-step="10">10</li>
+    <li data-step="11">11</li>
+    <li data-step="12">12</li>
+    <li data-step="13">13</li>
+    <li data-step="14">14</li>
+    <li data-step="15">15</li>
+    <li data-step="16">16</li>
+    <li data-step="17">17</li>
+    <li data-step="18">18</li>
+    <li data-step="19">19</li>
+    <li data-step="20">20</li>
+    <li data-step="21">21</li>
+    <li data-step="22">22</li>
+    <li data-step="23">23</li>
+    <li data-step="24">24</li>
+    <li data-step="25">25</li>
+  </ul>
+</div>
+
+<div class="container">
+  <div class="main">
+    <!-- START LESSON PANELS -->
+    <!-- Insert lesson-specific panels here, for example:
+         <div id="panel-1" class="step-content"> ... </div>
+         <div id="panel-2" class="step-content"> ... </div>
+         ...etc...
+    -->
+    <!-- END LESSON PANELS -->
+    <div class="nav-controls">
+      <button onclick="prevPanel()">⟵ Sebelumnya</button>
+      <span id="indicator"></span>
+      <button onclick="nextPanel()">Selanjutnya ⟶</button>
+    </div>
+  </div>
+  <button id="toggleAppToolColumn" style="position:fixed;top:55%;right:0;z-index:1000;background:#22c55e;color:#fff;padding:8px 12px;border-radius:8px 0 0 8px;border:none;cursor:pointer;">⇆ App Tool</button>
+  <button id="toggleLabColumn" style="position:fixed;top:50%;right:0;z-index:1000;background:#4f46e5;color:#fff;padding:8px 12px;border-radius:8px 0 0 8px;border:none;cursor:pointer;">⇆ Pyodide</button>
+  <div class="lab-column">
+    <div class="global-pyodide-container">
+      <h3>Output Canvas Pyodide</h3>
+      <div id="themeToggleIcon" style="position:absolute;top:10px;right:10px;cursor:pointer;font-size:24px;">🌙</div>
+      <div class="code-editor-container" style="margin-bottom:10px;">
+        <div contenteditable="true" id="globalPyodideInput" class="global-editor"></div>
+        <button onclick="runGlobalPyodideInput()" style="margin-top:8px;background:#4f46e5;color:#fff;padding:6px 12px;border-radius:8px;border:none;cursor:pointer;">Jalankan Kode</button>
+      </div>
+      <pre id="globalPyodideOutput" class="output-box" style="height:200px;overflow-y:auto;"></pre>
+    </div>
+    <div class="whiteboard-container">
+      <button id="toggleWhiteboard">Tampilkan Whiteboard</button>
+      <button id="clearWhiteboard">Clear</button>
+      <canvas id="whiteboardCanvas"></canvas>
+    </div>
+  </div>
+  <div class="app-tool-column" style="display:none;flex:1 1 50%;max-width:50%;background:#f9fafb;padding:0;overflow:hidden;border-left:1px solid #e5e7eb;">
+    <iframe src="/elearn/tool-madev/index.html" style="width:100%;height:100%;border:none;border-radius:0;"></iframe>
+  </div>
+</div>
+
+<script>
+  let currentPanel = 1;
+  const totalPanels = 25;
+  function showPanel(n) {
+    if (n < 1 || n > totalPanels) return;
+    document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+    const panel = document.getElementById('panel-' + n);
+    if (panel) panel.classList.add('active');
+    currentPanel = n;
+    updateIndicator();
+  }
+  function nextPanel() { if (currentPanel < totalPanels) showPanel(currentPanel + 1); }
+  function prevPanel() { if (currentPanel > 1) showPanel(currentPanel - 1); }
+  function updateIndicator() { document.getElementById('indicator').textContent = 'Slide ' + currentPanel + ' / ' + totalPanels; }
+  document.getElementById('lesson-nav').addEventListener('click', function(e) {
+    if(e.target.matches('li[data-step]')) {
+      document.querySelectorAll('#lesson-nav li').forEach(li => li.classList.remove('active'));
+      e.target.classList.add('active');
+      showPanel(Number(e.target.getAttribute('data-step')));
+    }
+  });
+  document.addEventListener('DOMContentLoaded', () => {
+    showPanel(1);
+    attachTypingBoxListeners();
+  });
+
+
+  // Fungsi attachTypingBoxListeners untuk .typingBox-vscode
+  function attachTypingBoxListeners() {
+    document.querySelectorAll('.typingBox-vscode').forEach(box => {
+      if (box.dataset.listenerAttached) return; // Cegah double attach
+      box.dataset.listenerAttached = "true";
+      box.addEventListener('keydown', async function(e) {
+        if(e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          if (!window.pyodideReady) {
+            const outputBox = box.closest('.code-group')?.querySelector('.output-box') || document.getElementById('globalPyodideOutput');
+            outputBox.textContent = '⏳ Pyodide belum siap, tunggu sebentar...';
+            return;
+          }
+          const code = box.textContent.trim();
+          const outputBox = box.closest('.code-group')?.querySelector('.output-box') || document.getElementById('globalPyodideOutput');
+          try {
+            let output = "";
+            window.pyodide.setStdout({batched: s => { output += s; }});
+            window.pyodide.setStderr({batched: s => { output += s; }});
+            let codeToRun = code;
+            if (!code.includes('\n') && code.includes(';')) codeToRun = codeToRun.replace(/;/g, '\n');
+            if (!code.includes('import sys')) codeToRun = `import sys\n${codeToRun}`;
+            if (!code.includes('sys.stdout.flush()')) codeToRun += `\nsys.stdout.flush()`;
+            await window.pyodide.runPythonAsync(codeToRun);
+            outputBox.textContent = output.trim() || '=== Tidak ada output ===';
+          } catch(err) {
+            outputBox.textContent = 'Error: ' + err;
+          } finally {
+            window.pyodide.setStdout({});
+            window.pyodide.setStderr({});
+          }
+        }
+      });
+    });
+  }
+
+  // Fungsi untuk menjalankan kode dari input editor global
+  async function runGlobalPyodideInput() {
+    const code = document.getElementById('globalPyodideInput').textContent.trim();
+    if (!code) {
+      document.getElementById('globalPyodideOutput').textContent = '❌ Kode kosong. Ketik kode Python dulu.';
+      return;
+    }
+    if (!window.pyodideReady) {
+      document.getElementById('globalPyodideOutput').textContent = '⏳ Pyodide belum siap, tunggu sebentar...';
+      return;
+    }
+    try {
+      let output = "";
+      window.pyodide.setStdout({batched: s => { output += s; }});
+      window.pyodide.setStderr({batched: s => { output += s; }});
+      let codeToRun = code;
+      if (!code.includes('\n') && code.includes(';')) codeToRun = codeToRun.replace(/;/g, '\n');
+      if (!code.includes('import sys')) codeToRun = `import sys\n${codeToRun}`;
+      if (!code.includes('sys.stdout.flush()')) codeToRun += `\nsys.stdout.flush()`;
+      await window.pyodide.runPythonAsync(codeToRun);
+      document.getElementById('globalPyodideOutput').textContent = output.trim() || '=== Tidak ada output ===';
+    } catch(err) {
+      document.getElementById('globalPyodideOutput').textContent = 'Error: ' + err;
+    } finally {
+      window.pyodide.setStdout({});
+      window.pyodide.setStderr({});
+    }
+  }
+
+  // Theme toggle icon (moon/sun)
+  document.getElementById('themeToggleIcon').addEventListener('click', function() {
+    const lab = document.querySelector('.lab-column');
+    const editor = document.getElementById('globalPyodideInput');
+    const output = document.getElementById('globalPyodideOutput');
+    const icon = document.getElementById('themeToggleIcon');
+    if (lab.classList.contains('dark-theme')) {
+      lab.classList.remove('dark-theme');
+      lab.style.background = '#f9fafb';
+      editor.style.background = 'white';
+      editor.style.color = 'black';
+      output.classList.remove('dark-theme-output', 'light-theme-output');
+      output.classList.add('light-theme-output');
+      icon.textContent = '🌙';
+    } else {
+      lab.classList.add('dark-theme');
+      lab.style.background = '#111827';
+      editor.style.background = '#1e293b';
+      editor.style.color = '#a7f3d0';
+      output.classList.remove('dark-theme-output', 'light-theme-output');
+      output.classList.add('dark-theme-output');
+      icon.textContent = '☀️';
+    }
+  });
+
+document.getElementById('toggleLabColumn').addEventListener('click', function() {
+  const main = document.querySelector('.main');
+  const lab = document.querySelector('.lab-column');
+  const appTool = document.querySelector('.app-tool-column');
+
+  if (lab.style.display === 'none') {
+    lab.style.display = 'flex';
+    appTool.style.display = 'none';
+    main.style.maxWidth = '50%';
+  } else {
+    lab.style.display = 'none';
+    main.style.maxWidth = '100%';
+  }
+});
+
+document.getElementById('toggleAppToolColumn').addEventListener('click', function() {
+  const main = document.querySelector('.main');
+  const lab = document.querySelector('.lab-column');
+  const appTool = document.querySelector('.app-tool-column');
+
+  if (appTool.style.display === 'none') {
+    appTool.style.display = 'flex';
+    lab.style.display = 'none';
+    main.style.maxWidth = '50%';
+  } else {
+    appTool.style.display = 'none';
+    main.style.maxWidth = '100%';
+  }
+});
+
+// Reuse canvas init untuk #whiteboardCanvas2
+document.getElementById('toggleWhiteboard2').addEventListener('click', function() {
+  const canvas = document.getElementById('whiteboardCanvas2');
+  canvas.style.display = canvas.style.display === 'none' ? 'block' : 'none';
+});
+document.getElementById('clearWhiteboard2').addEventListener('click', function() {
+  const canvas = document.getElementById('whiteboardCanvas2');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+});
+  // Bubble.io-style drag-drop builder
+  document.querySelectorAll('.draggable-component').forEach(el => {
+    el.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('componentType', el.dataset.type);
+    });
+  });
+
+  const dropArea = document.getElementById('canvasDropArea');
+  if (dropArea) {
+    dropArea.addEventListener('dragover', (e) => e.preventDefault());
+    dropArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const type = e.dataTransfer.getData('componentType');
+      const el = document.createElement(
+        type === 'text'
+          ? 'div'
+          : type === 'button'
+          ? 'button'
+          : type === 'input'
+          ? 'input'
+          : 'img'
+      );
+
+      el.style.position = 'absolute';
+      el.style.left = (e.offsetX - 40) + 'px';
+      el.style.top = (e.offsetY - 20) + 'px';
+      el.style.cursor = 'move';
+
+      switch (type) {
+        case 'text':
+          el.textContent = 'Teks Contoh';
+          el.style.fontSize = '14px';
+          el.style.color = '#111';
+          break;
+        case 'button':
+          el.textContent = 'Klik Saya';
+          el.style.padding = '6px 12px';
+          el.style.background = '#4f46e5';
+          el.style.color = '#fff';
+          el.style.border = 'none';
+          el.style.borderRadius = '6px';
+          break;
+        case 'input':
+          el.placeholder = 'Tulis di sini';
+          el.style.padding = '6px';
+          el.style.border = '1px solid #ccc';
+          el.style.borderRadius = '6px';
+          break;
+        case 'image':
+          el.src = 'https://via.placeholder.com/100x60';
+          el.style.width = '100px';
+          el.style.height = '60px';
+          break;
+      }
+
+      el.draggable = true;
+      el.addEventListener('dragstart', (ev) => {
+        ev.dataTransfer.setData('text/plain', '');
+        ev.dataTransfer.setDragImage(el, 0, 0);
+        el.dataset.dragging = 'true';
+      });
+
+      el.addEventListener('dragend', (ev) => {
+        const offsetX = ev.offsetX;
+        const offsetY = ev.offsetY;
+        el.style.left = offsetX + 'px';
+        el.style.top = offsetY + 'px';
+        el.dataset.dragging = 'false';
+      });
+
+      dropArea.appendChild(el);
+    });
+  }
+
+  /*
+    To use this template:
+    - Replace {{lesson_title}} with your lesson's title.
+    - Replace {{lesson_subtitle}} with a short description.
+    - Replace {{back_link}} with the path to your module or dashboard.
+    - Add your panels inside "START LESSON PANELS" ... "END LESSON PANELS" section.
+  */
+</script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script src="whiteboard.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBVO4ajDwkbcTGL33SVMxIoev4veB8itgI",
+    authDomain: "queens-academy-icoding.firebaseapp.com",
+    projectId: "queens-academy-icoding",
+    storageBucket: "queens-academy-icoding.appspot.com",
+    messagingSenderId: "1048549258959",
+    appId: "1:1048549258959:web:f8dc1c104bb170d7ff69ba",
+  };
+  firebase.initializeApp(firebaseConfig);
+  window.kelasId = 'demo';
+  window.lessonId = 'M1L1';
+  initWhiteboard();
+</script>
