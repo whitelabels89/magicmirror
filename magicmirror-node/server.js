@@ -340,10 +340,17 @@ app.post('/api/daftar-akun-baru', async (req, res) => {
   }
   try {
     const cid = 'CQA' + Date.now();
-    await db.collection('murid').doc(cid).set({ cid, nama, email, password, kelas_id, role });
+    // Create Firebase Auth user
+    const authUser = await admin.auth().createUser({
+      email,
+      password,
+      displayName: nama,
+    });
+    const uid = authUser.uid;
+    await db.collection('murid').doc(uid).set({ cid, uid, nama, email, kelas_id, role });
     await db.collection('kelas').doc(kelas_id).set({ kelas_id }, { merge: true });
-    await db.collection('kelas').doc(kelas_id).update({ murid: admin.firestore.FieldValue.arrayUnion(cid) });
-    res.json({ success: true, cid });
+    await db.collection('kelas').doc(kelas_id).update({ murid: admin.firestore.FieldValue.arrayUnion(uid) });
+    res.json({ success: true, cid, uid });
   } catch (err) {
     console.error('❌ Error daftar akun baru:', err);
     res.status(500).json({ success: false, error: 'Server error' });
