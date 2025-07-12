@@ -7,6 +7,19 @@ const io = require('socket.io')(http, { cors: { origin: "*" } });
 const path = require('path');
 const { google } = require('googleapis');
 const uploadModulRouter = require('./uploadModul');
+const admin = require('firebase-admin');
+
+// Init Firebase Admin
+if (!admin.apps.length) {
+  const saBase64 = process.env.SERVICE_ACCOUNT_KEY_BASE64;
+  if (saBase64) {
+    const serviceAccount = JSON.parse(Buffer.from(saBase64, 'base64').toString('utf8'));
+    admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+  } else {
+    admin.initializeApp();
+  }
+}
+const db = admin.firestore();
 
 const PORT = process.env.PORT || 3000;
 
@@ -261,6 +274,81 @@ async function getProfileAnakData() {
     return rowObj;
   });
 }
+
+// ======= E-learning Moderator Endpoints =======
+// GET /api/kelas - daftar semua kelas
+app.get('/api/kelas', async (req, res) => {
+  try {
+    const snap = await db.collection('kelas').get();
+    const data = snap.docs.map(d => {
+      const val = d.data();
+      return {
+        kelas_id: val.kelas_id || d.id,
+        nama_kelas: val.nama_kelas || '',
+        guru_id: val.guru_id || '',
+        jumlah_murid: Array.isArray(val.murid) ? val.murid.length : 0
+      };
+    });
+    res.json({ success: true, data });
+  } catch (err) {
+    console.error('❌ Error get kelas:', err);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
+
+// GET /api/kelas/:kelas_id - daftar murid dalam kelas
+app.get('/api/kelas/:id', async (req, res) => {
+  try {
+    const kelasId = req.params.id;
+    const doc = await db.collection('kelas').doc(kelasId).get();
+    if (!doc.exists) return res.status(404).json([]);
+    const muridIds = doc.data().murid || [];
+    const snapshots = await Promise.all(muridIds.map(cid => db.collection('murid').doc(cid).get()));
+    const murid = snapshots.filter(s => s.exists).map(s => ({ cid: s.id, ...s.data() }));
+    res.json(murid);
+  } catch (err) {
+    console.error('❌ Error get murid kelas:', err);
+    res.status(500).json([]);
+  }
+});
+
+// POST /api/kelas - tambah kelas baru
+app.post('/api/kelas', async (req, res) => {
+  const { kelas_id, nama_kelas, guru_id } = req.body;
+  if (!kelas_id || !nama_kelas || !guru_id) {
+    return res.status(400).json({ success: false, error: 'Data tidak lengkap' });
+  }
+  try {
+    const ref = db.collection('kelas').doc(kelas_id);
+    const exist = await ref.get();
+    if (exist.exists) {
+      return res.status(400).json({ success: false, error: 'kelas_id sudah ada' });
+    }
+    await ref.set({ kelas_id, nama_kelas, guru_id, murid: [] });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('❌ Error add kelas:', err);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
+
+// POST /api/daftar-akun-baru - tambah akun murid/guru/moderator
+app.post('/api/daftar-akun-baru', async (req, res) => {
+  const { nama, email, password, kelas_id, role } = req.body;
+  if (!nama || !email || !password || !kelas_id || !role) {
+    return res.status(400).json({ success: false, error: 'Data tidak lengkap' });
+  }
+  try {
+    const cid = 'CQA' + Date.now();
+    await db.collection('murid').doc(cid).set({ cid, nama, email, password, kelas_id, role });
+    await db.collection('kelas').doc(kelas_id).set({ kelas_id }, { merge: true });
+    await db.collection('kelas').doc(kelas_id).update({ murid: admin.firestore.FieldValue.arrayUnion(cid) });
+    res.json({ success: true, cid });
+  } catch (err) {
+    console.error('❌ Error daftar akun baru:', err);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
 
 // Endpoint: simpan metadata karya ke Google Sheet
 app.post('/api/save-karya', async (req, res) => {

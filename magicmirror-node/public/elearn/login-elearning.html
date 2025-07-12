@@ -242,7 +242,11 @@ async function login() {
         localStorage.setItem("nama", data.nama);
         localStorage.setItem("role", data.role);
 
-        window.location.href = "/elearn/murid.html";
+        if (data.role === "moderator") {
+          window.location.href = "/elearn/moderator.html";
+        } else {
+          window.location.href = "/elearn/murid.html";
+        }
       } catch (err) {
         console.error(err);
         errorEl.innerText = "❌ Login gagal. Periksa email dan password kamu.";
