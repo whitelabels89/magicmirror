@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile App Builder - Interactive Learning Tool</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="app-builder-container" class="app-builder-container">
+        <!-- Toggle Button for Show/Hide -->
+        <button id="toggle-builder" class="toggle-builder">
+            <i class="fas fa-mobile-alt"></i>
+            <span>App Builder</span>
+        </button>
+
+        <!-- Main Builder Interface -->
+        <div id="builder-interface" class="builder-interface hidden">
+            <div class="builder-header">
+                <h2>Mobile App Builder</h2>
+                <div class="header-actions">
+                    <button id="save-project" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save
+                    </button>
+                    <button id="load-project" class="btn btn-secondary">
+                        <i class="fas fa-folder-open"></i> Load
+                    </button>
+                    <button id="clear-canvas" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Clear
+                    </button>
+                    <button id="close-builder" class="btn btn-close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="builder-content">
+                <!-- Left Sidebar - Components -->
+                <div class="sidebar">
+                    <div class="sidebar-header">
+                        <h3>Components</h3>
+                        <button id="toggle-sidebar" class="toggle-sidebar">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="component-categories">
+                        <div class="category">
+                            <h4>Visual Elements</h4>
+                            <div class="component-list">
+                                <div class="component-item" draggable="true" data-component="text">
+                                    <i class="fas fa-text-width"></i>
+                                    <span>Text</span>
+                                </div>
+                                <div class="component-item" draggable="true" data-component="button">
+                                    <i class="fas fa-square"></i>
+                                    <span>Button</span>
+                                </div>
+                                <div class="component-item" draggable="true" data-component="icon">
+                                    <i class="fas fa-star"></i>
+                                    <span>Icon</span>
+                                </div>
+                                <div class="component-item" draggable="true" data-component="image">
+                                    <i class="fas fa-image"></i>
+                                    <span>Image</span>
+                                </div>
+                                <div class="component-item" draggable="true" data-component="shape">
+                                    <i class="fas fa-circle"></i>
+                                    <span>Shape</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="category">
+                            <h4>Containers</h4>
+                            <div class="component-list">
+                                <div class="component-item" draggable="true" data-component="group">
+                                    <i class="fas fa-layer-group"></i>
+                                    <span>Group</span>
+                                </div>
+                                <div class="component-item" draggable="true" data-component="list">
+                                    <i class="fas fa-list"></i>
+                                    <span>List</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Center - Mobile Preview -->
+                <div class="preview-area">
+                    <div class="mobile-frame">
+                        <div class="mobile-header">
+                            <div class="status-bar">
+                                <span class="time">9:41</span>
+                                <div class="status-icons">
+                                    <i class="fas fa-signal"></i>
+                                    <i class="fas fa-wifi"></i>
+                                    <i class="fas fa-battery-three-quarters"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mobile-screen" id="mobile-canvas">
+                            <div class="drop-zone">
+                                <div class="drop-message">
+                                    <i class="fas fa-mobile-alt"></i>
+                                    <p>Drag components here to build your app</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Sidebar - Properties -->
+                <div class="properties-panel">
+                    <div class="properties-header">
+                        <h3>Properties</h3>
+                    </div>
+                    <div class="properties-content" id="properties-content">
+                        <div class="no-selection">
+                            <i class="fas fa-mouse-pointer"></i>
+                            <p>Select a component to edit its properties</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Project Save/Load Modal -->
+        <div id="project-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modal-title">Save Project</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div id="save-form" class="form-group">
+                        <label for="project-name">Project Name:</label>
+                        <input type="text" id="project-name" placeholder="Enter project name">
+                        <button id="save-confirm" class="btn btn-primary">Save</button>
+                    </div>
+                    <div id="load-form" class="form-group" style="display: none;">
+                        <label>Saved Projects:</label>
+                        <div id="project-list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="components.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
