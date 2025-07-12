@@ -1,3 +1,29 @@
+<script>
+  document.addEventListener("DOMContentLoaded", async function() {
+    const uid = localStorage.getItem('uid');
+    const role = localStorage.getItem('role');
+    const currentLesson = "M1L1"; // HARUS disesuaikan di tiap file
+
+    if (!uid || role !== 'murid') {
+      alert("❌ Kamu harus login sebagai murid.");
+      window.location.href = "/elearn/login-elearning.html";
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/akses-murid/${uid}`);
+      const data = await res.json();
+      if (!data.akses_lesson || !data.akses_lesson.includes(currentLesson)) {
+        alert("🚫 Kamu belum terdaftar untuk lesson ini.");
+        window.location.href = "/elearn/dashboard-murid.html";
+        return;
+      }
+    } catch (err) {
+      alert("⚠️ Gagal memverifikasi akses.");
+      console.error(err);
+    }
+  });
+</script>
 <link rel="stylesheet" href="presetvs.css" />
 <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
 <script>
