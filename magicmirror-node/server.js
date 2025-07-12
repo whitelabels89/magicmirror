@@ -18,8 +18,8 @@ app.use(uploadModulRouter);
 
 async function verifyRecaptcha(req, res, next) {
   const token = req.body["g-recaptcha-response"];
-  if (!token) {
-    return res.status(403).json({ success: false, error: "Verifikasi CAPTCHA gagal" });
+  if (!token || token.length < 20) {
+    return res.status(403).json({ success: false, error: "Token CAPTCHA tidak valid" });
   }
   try {
     const secret = process.env.RECAPTCHA_SECRET;
@@ -28,10 +28,10 @@ async function verifyRecaptcha(req, res, next) {
       null,
       { params: { secret, response: token } }
     );
-    if (gRes.data.success) {
+    if (gRes.data.success && gRes.data.score >= 0.5) {
       return next();
     }
-    return res.status(403).json({ success: false, error: "Verifikasi CAPTCHA gagal" });
+    return res.status(403).json({ success: false, error: "Verifikasi CAPTCHA gagal atau skor terlalu rendah" });
   } catch (err) {
     console.error("reCAPTCHA verify error:", err?.response?.data || err.message);
     return res.status(403).json({ success: false, error: "Verifikasi CAPTCHA gagal" });

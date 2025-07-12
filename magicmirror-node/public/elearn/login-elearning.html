@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="style.css" />
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+  <script src="https://www.google.com/recaptcha/api.js?render=6LeNUoArAAAAACP2yuxCC-MJ-G6k3SBOesTEEAD7"></script>
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBVO4ajDwkbcTGL33SVMxIoev4veB8itgI",
@@ -176,7 +176,6 @@
       <input type="password" id="password" placeholder="Password" />
     </div>
 
-    <div class="g-recaptcha" data-sitekey="6Ldyv38rAAAAAJ9khQ2Dff03PEMAhzRJCrQZC-UM"></div>
     <!-- Login Button -->
     <div class="login-button-container">
       <button onclick="login()" id="login-btn"></button>
@@ -197,57 +196,59 @@ async function login() {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
   const errorEl = document.getElementById("error-message");
-  const captchaToken = grecaptcha.getResponse();
 
   if (!email || !password) {
     errorEl.innerText = "❗ Email dan password harus diisi.";
     return;
   }
 
-  if (!captchaToken) {
-    errorEl.innerText = "❗ Verifikasi CAPTCHA terlebih dahulu.";
-    return;
-  }
+  grecaptcha.ready(function () {
+    grecaptcha.execute('6LeNUoArAAAAACP2yuxCC-MJ-G6k3SBOesTEEAD7', { action: 'login' }).then(async function (captchaToken) {
+      if (!captchaToken || captchaToken.length < 20) {
+        errorEl.innerText = "❗ Verifikasi CAPTCHA tidak valid.";
+        return;
+      }
 
-  try {
-    const verifyRes = await fetch("/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        username: email,
-        password,
-        "g-recaptcha-response": captchaToken
-      })
+      try {
+        const verifyRes = await fetch("/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: email,
+            password,
+            "g-recaptcha-response": captchaToken
+          })
+        });
+        const verifyData = await verifyRes.json();
+        if (!verifyRes.ok || !verifyData.success) {
+          errorEl.innerText = verifyData.error || "❌ Login gagal.";
+          return;
+        }
+
+        const userCred = await firebase.auth().signInWithEmailAndPassword(email, password);
+        const uid = userCred.user.uid;
+
+        const res = await fetch(`https://firebase-upload-backend.onrender.com/api/get-role-by-uid?uid=${uid}`);
+        const data = await res.json();
+
+        if (!data || !data.role) {
+          errorEl.innerText = "❌ Akun tidak memiliki akses yang valid.";
+          return;
+        }
+
+        localStorage.setItem("uid", data.uid);
+        localStorage.setItem("cid", data.cid);
+        localStorage.setItem("email", data.email);
+        localStorage.setItem("nama", data.nama);
+        localStorage.setItem("role", data.role);
+
+        window.location.href = "/elearn/murid.html";
+      } catch (err) {
+        console.error(err);
+        errorEl.innerText = "❌ Login gagal. Periksa email dan password kamu.";
+      }
     });
-    const verifyData = await verifyRes.json();
-    if (!verifyRes.ok || !verifyData.success) {
-      errorEl.innerText = verifyData.error || "❌ Login gagal.";
-      grecaptcha.reset();
-      return;
-    }
-    const userCred = await firebase.auth().signInWithEmailAndPassword(email, password);
-    const uid = userCred.user.uid;
-
-    const res = await fetch(`https://firebase-upload-backend.onrender.com/api/get-role-by-uid?uid=${uid}`);
-    const data = await res.json();
-
-    if (!data || !data.role) {
-      errorEl.innerText = "❌ Akun tidak memiliki akses yang valid.";
-      return;
-    }
-
-    // Store all properties returned by backend response into localStorage, matching backend keys exactly
-    localStorage.setItem("uid", data.uid);
-    localStorage.setItem("cid", data.cid);
-    localStorage.setItem("email", data.email);
-    localStorage.setItem("nama", data.nama);
-    localStorage.setItem("role", data.role);
-
-    window.location.href = "/elearn/murid.html";
-  } catch (err) {
-    console.error(err);
-    errorEl.innerText = "❌ Login gagal. Periksa email dan password kamu.";
-  }
+  });
 }
 </script>
 <script src="userInfo.js"></script>
