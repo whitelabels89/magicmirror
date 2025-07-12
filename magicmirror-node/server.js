@@ -17,24 +17,24 @@ app.use('/generated_lessons', express.static(path.join(__dirname, '..', 'generat
 app.use(uploadModulRouter);
 
 async function verifyRecaptcha(req, res, next) {
-  const token = req.body.token || req.body.captcha;
+  const token = req.body["g-recaptcha-response"];
   if (!token) {
-    return res.status(403).json({ error: "Verifikasi CAPTCHA gagal" });
+    return res.status(403).json({ success: false, error: "Verifikasi CAPTCHA gagal" });
   }
   try {
     const secret = process.env.RECAPTCHA_SECRET;
     const gRes = await axios.post(
-      'https://www.google.com/recaptcha/api/siteverify',
+      "https://www.google.com/recaptcha/api/siteverify",
       null,
       { params: { secret, response: token } }
     );
     if (gRes.data.success) {
       return next();
     }
-    return res.status(403).json({ error: "Verifikasi CAPTCHA gagal" });
+    return res.status(403).json({ success: false, error: "Verifikasi CAPTCHA gagal" });
   } catch (err) {
-    console.error('reCAPTCHA verify error:', err?.response?.data || err.message);
-    return res.status(403).json({ error: "Verifikasi CAPTCHA gagal" });
+    console.error("reCAPTCHA verify error:", err?.response?.data || err.message);
+    return res.status(403).json({ success: false, error: "Verifikasi CAPTCHA gagal" });
   }
 }
 

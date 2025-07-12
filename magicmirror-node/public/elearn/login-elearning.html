@@ -213,7 +213,11 @@ async function login() {
     const verifyRes = await fetch("/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: email, password, token: captchaToken })
+      body: JSON.stringify({
+        username: email,
+        password,
+        "g-recaptcha-response": captchaToken
+      })
     });
     const verifyData = await verifyRes.json();
     if (!verifyRes.ok || !verifyData.success) {
