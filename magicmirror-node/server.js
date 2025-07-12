@@ -9,7 +9,7 @@ const { google } = require('googleapis');
 const uploadModulRouter = require('./uploadModul');
 const admin = require('firebase-admin');
 
-// POST /api/assign-murid-ke-kelas - assign murid ke kelas
+// POST /api/assign-murid-ke-kelas - assign murid ke kelas/lesson
 app.post('/api/assign-murid-ke-kelas', async (req, res) => {
   const { uid, kelas_id } = req.body;
   if (!uid || !kelas_id) {
@@ -22,8 +22,11 @@ app.post('/api/assign-murid-ke-kelas', async (req, res) => {
       return res.status(404).json({ success: false, error: 'Murid tidak ditemukan' });
     }
 
-    // Update kelas_id murid
-    await muridRef.update({ kelas_id });
+    // Tambahkan kelas_id ke array akses_lesson murid
+    await muridRef.set({
+      akses_lesson: admin.firestore.FieldValue.arrayUnion(kelas_id),
+      kelas_id
+    }, { merge: true });
 
     // Tambahkan UID ke array murid di kelas
     const kelasRef = db.collection('kelas').doc(kelas_id);
@@ -312,6 +315,24 @@ async function getProfileAnakData() {
     return rowObj;
   });
 }
+
+// GET /api/akses-murid/:uid - ambil daftar lesson yang bisa diakses murid
+app.get('/api/akses-murid/:uid', async (req, res) => {
+  const uid = req.params.uid;
+  if (!uid) return res.status(400).json({ akses_lesson: [] });
+  try {
+    const doc = await db.collection('murid').doc(uid).get();
+    if (!doc.exists) {
+      return res.status(404).json({ akses_lesson: [] });
+    }
+    const data = doc.data();
+    const akses = Array.isArray(data.akses_lesson) ? data.akses_lesson : [];
+    res.json({ akses_lesson: akses });
+  } catch (err) {
+    console.error('❌ Error get akses murid:', err);
+    res.status(500).json({ akses_lesson: [] });
+  }
+});
 
 // ======= E-learning Moderator Endpoints =======
 // GET /api/semua-murid - daftar semua murid (uid, nama, email)
