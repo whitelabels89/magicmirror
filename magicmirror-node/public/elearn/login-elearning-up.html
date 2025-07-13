@@ -31,9 +31,67 @@
       height: 100%;
       z-index: 1;
     }
+    .robot-mascot {
+      position: absolute;
+      width: 180px;
+      transition: transform 0.2s ease-out;
+      transform-origin: bottom center;
+      z-index: 9999;
+      left: 50%;
+      /* Hapus batasan bottom/top agar transform bisa atur posisi vertikal */
+    }
+    .robot-mascot.peek {
+      animation: peekMotion 3s ease-in-out forwards;
+    }
+    @keyframes peekMotion {
+      0% {
+        bottom: -120px;
+        left: 10px;
+        transform: translateX(0) scaleX(1);
+      }
+      20% {
+        bottom: -40px;
+      }
+      80% {
+        bottom: -40px;
+      }
+      100% {
+        bottom: -120px;
+      }
+    }
+    .robot-mascot::after {
+      content: "";
+      position: absolute;
+      top: 40px;
+      left: 70px;
+      width: 10px;
+      height: 10px;
+      background: rgba(0, 255, 255, 0.7);
+      border-radius: 50%;
+      box-shadow: 0 0 8px 4px rgba(0, 255, 255, 0.5);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 4;
+    }
+
+    .robot-mascot:hover::after {
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
+  <!-- Global Background Effects -->
+  <div class="background-effects">
+    <div class="aurora-glow"></div>
+    <div class="ripple-light"></div>
+    <div class="orbit-ring"></div>
+    <div class="grid-overlay"></div>
+    <div class="sparkle sparkle-1"></div>
+    <div class="sparkle sparkle-2"></div>
+    <div class="sparkle sparkle-3"></div>
+    <div class="sparkle sparkle-4"></div>
+    <div class="sparkle sparkle-5"></div>
+  </div>
   <div class="container" role="main">
     <div class="left-panel" aria-label="Ilustrasi maskot anak Kody melambaikan tangan" style="background-image: url('/elearn/img/bg-galaxy-placeholder.png'); background-size: cover; background-position: center;">
       <div class="space-background" aria-hidden="true">
@@ -55,8 +113,24 @@
         <div class="planet planet-7"></div>
         <div class="planet planet-8"></div>
       </div>
+      <!-- Grid Overlay -->
+      <div class="grid-overlay"></div>
+
+      <!-- Ripple Light -->
+      <div class="ripple-light"></div>
+
+      <!-- Orbit Ring -->
+      <div class="orbit-ring"></div>
+
+      <!-- Sparkle Particles -->
+      <div class="particle" style="top:20%; left:15%; animation-delay:0s;"></div>
+      <div class="particle" style="top:50%; left:30%; animation-delay:1s;"></div>
+      <div class="particle" style="top:70%; left:80%; animation-delay:2s;"></div>
+      <div class="particle" style="top:90%; left:60%; animation-delay:1.5s;"></div>
+      <div class="particle" style="top:10%; left:40%; animation-delay:2.5s;"></div>
       <img src="/elearn/img/kody-wave.png" alt="Maskot anak Kody melambaikan tangan" />
-      <img src="/elearn/img/rob.jpg" alt="Maskot Robot Kody" class="robot-mascot" />
+      <img src="/elearn/img/rob.png" alt="Maskot Robot Kody" class="robot-mascot" />
+      <div id="hi-bubble" style="position:absolute; display:none; background:#fff; border-radius:12px; padding:4px 8px; font-size:12px; font-weight:bold; top:0; left:-40px; z-index:4;">Hi!</div>
       <p>Selamat datang di dunia belajar yang menyenangkan!</p>
     </div>
     <div class="right-panel">
@@ -160,7 +234,128 @@ async function login() {
   });
 }
 </script>
+</script>
 <script src="userInfo.js"></script>
 <script src="script.js"></script>
+<script>
+const robot = document.querySelector('.robot-mascot');
+const hiBubble = document.getElementById('hi-bubble');
+const loginBtn = document.getElementById('login-btn');
+let mouseX = 0;
+let mouseY = 0;
+let currentX = 0;
+let currentY = 0;
+let isIdle = false;
+isIdle = true;
+startFreeMovement();
+let idleTimer;
+
+// Gerakan smooth menuju kursor (bergerak lebih cepat dan penuh ke titik kursor)
+function animate() {
+  const dx = mouseX - currentX;
+  const dy = mouseY - currentY;
+
+  currentX += dx * 0.15;
+  currentY += dy * 0.25;
+
+  if (!isIdle) {
+    const flip = dx > 0 ? 1 : -1;
+    robot.style.transform = `translateX(-50%) translate(${currentX}px, ${currentY}px) scaleX(${flip})`;
+  }
+
+  // Perbarui posisi bubble setiap frame jika terlihat
+  if (hiBubble.style.display === 'block') {
+    const robotBox = robot.getBoundingClientRect();
+    hiBubble.style.left = `${robotBox.left + 40}px`;
+    hiBubble.style.top = `${robotBox.top - 20}px`;
+  }
+
+  requestAnimationFrame(animate);
+}
+animate();
+
+// Tracking kursor di panel kiri
+document.querySelector('.left-panel').addEventListener('mousemove', function(e) {
+  const panel = this.getBoundingClientRect();
+  const offsetX = e.clientX - panel.left - panel.width / 2;
+  const offsetY = e.clientY - panel.top - panel.height / 2;
+  mouseX = offsetX;
+  mouseY = offsetY;
+
+  isIdle = false;
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    isIdle = true;
+    startFreeMovement();
+  }, 5000);
+
+  robot.style.left = '50%';
+});
+
+document.querySelector('.left-panel').addEventListener('click', function() {
+  const loginBox = loginBtn.getBoundingClientRect();
+  const daftarBtn = document.querySelector('.daftar-akun').getBoundingClientRect();
+  const panel = this.getBoundingClientRect();
+
+  // arahkan Kody ke tombol Sign Up
+  mouseX = daftarBtn.left + daftarBtn.width / 2 - panel.left - panel.width / 2;
+  mouseY = daftarBtn.top + daftarBtn.height / 2 - panel.top - panel.height / 2;
+
+  robot.style.zIndex = 9999;
+  isIdle = false;
+
+  setTimeout(() => {
+    robot.style.zIndex = 3;
+  }, 3000); // reset z-index setelah 3 detik
+});
+
+function startFreeMovement() {
+  if (!isIdle) return;
+  function randomFloat(min, max) {
+    return Math.random() * (max - min) + min;
+  }
+  function moveRandomly() {
+    if (!isIdle) return;
+    const x = randomFloat(-20, 20);
+    const y = randomFloat(-80, 100); // Bebas bergerak lebih tinggi secara vertikal
+    robot.style.left = '50%';
+    robot.style.transform = `translateX(-50%) translate(${x}px, ${y}px) rotate(${randomFloat(-10, 10)}deg) scaleX(${x > 0 ? 1 : -1})`;
+    setTimeout(moveRandomly, 1500);
+  }
+  moveRandomly();
+}
+
+// Reset posisi saat mouse keluar
+document.querySelector('.left-panel').addEventListener('mouseleave', function() {
+  isIdle = true;
+  startFreeMovement();
+});
+
+function startPeekMotion() {
+  if (!robot.classList.contains('peek')) {
+    robot.classList.add('peek');
+    setTimeout(() => {
+      robot.classList.remove('peek');
+    }, 3000);
+  }
+}
+
+// Jalankan secara acak tiap 10–20 detik
+setInterval(() => {
+  if (isIdle) startPeekMotion();
+}, Math.floor(Math.random() * 10000) + 10000);
+
+function checkGreeting() {
+  const distance = Math.sqrt(mouseX ** 2 + mouseY ** 2);
+  if (distance < 50 && !robot.classList.contains('peek')) {
+    hiBubble.style.display = 'block';
+    hiBubble.style.left = (robot.offsetLeft + 40) + 'px';
+    hiBubble.style.top = (robot.offsetTop - 20) + 'px';
+  } else {
+    hiBubble.style.display = 'none';
+  }
+}
+setInterval(checkGreeting, 300);
+</script>
 </body>
 </html>
