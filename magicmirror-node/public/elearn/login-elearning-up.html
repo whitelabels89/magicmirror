@@ -24,6 +24,9 @@
     firebase.initializeApp(firebaseConfig);
   </script>
   <style>
+    body {
+      background: #ffffff;
+    }
     .space-background {
       background: linear-gradient(to bottom, #0d1b40 60%, #6bb9f0 150%);
       position: absolute;
@@ -77,20 +80,120 @@
     .robot-mascot:hover::after {
       opacity: 1;
     }
+    .aurora-glow {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 30% 30%, rgba(0,255,255,0.1), transparent 60%);
+      animation: auroraPulse 12s ease-in-out infinite;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .sparkle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: yellow;
+      border-radius: 50%;
+      opacity: 0.8;
+      animation: sparkleBlink 2s infinite ease-in-out;
+    }
+
+    .ripple-light {
+      position: fixed;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      background: radial-gradient(rgba(255,255,255,0.2), transparent);
+      animation: rippleWave 8s infinite ease-in-out;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .orbit-ring {
+      position: absolute;
+      border: 1px solid rgba(255,255,255,0.1);
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      animation: spinOrbit 30s linear infinite;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .grid-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), 
+                        linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 20px 20px;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    @keyframes auroraPulse {
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 0.4; }
+    }
+
+    @keyframes rippleWave {
+      0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.6; }
+      50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.3; }
+      100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.6; }
+    }
+
+    @keyframes spinOrbit {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    @keyframes sparkleBlink {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 1; }
+    }
+
+    /* Galaxy Background */
+    .bg-wrapper {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      display: none;
+    }
+    .bg-galaxy {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-image: url('/elearn/img/bg-galaxy-placeholder.png');
+      background-size: cover;
+      background-position: center;
+    }
   </style>
 </head>
 <body>
+  <div class="bg-wrapper">
+    <div class="bg-galaxy"></div>
+  </div>
   <!-- Global Background Effects -->
   <div class="background-effects">
     <div class="aurora-glow"></div>
     <div class="ripple-light"></div>
     <div class="orbit-ring"></div>
     <div class="grid-overlay"></div>
-    <div class="sparkle sparkle-1"></div>
-    <div class="sparkle sparkle-2"></div>
-    <div class="sparkle sparkle-3"></div>
-    <div class="sparkle sparkle-4"></div>
-    <div class="sparkle sparkle-5"></div>
+    <div class="sparkle sparkle-1" style="top: 10%; left: 20%;"></div>
+    <div class="sparkle sparkle-2" style="top: 30%; left: 70%;"></div>
+    <div class="sparkle sparkle-3" style="top: 60%; left: 40%;"></div>
+    <div class="sparkle sparkle-4" style="top: 80%; left: 25%;"></div>
+    <div class="sparkle sparkle-5" style="top: 15%; left: 55%;"></div>
   </div>
   <div class="container" role="main">
     <div class="left-panel" aria-label="Ilustrasi maskot anak Kody melambaikan tangan" style="background-image: url('/elearn/img/bg-galaxy-placeholder.png'); background-size: cover; background-position: center;">
@@ -113,23 +216,10 @@
         <div class="planet planet-7"></div>
         <div class="planet planet-8"></div>
       </div>
-      <!-- Grid Overlay -->
-      <div class="grid-overlay"></div>
-
-      <!-- Ripple Light -->
-      <div class="ripple-light"></div>
-
-      <!-- Orbit Ring -->
-      <div class="orbit-ring"></div>
-
-      <!-- Sparkle Particles -->
-      <div class="particle" style="top:20%; left:15%; animation-delay:0s;"></div>
-      <div class="particle" style="top:50%; left:30%; animation-delay:1s;"></div>
-      <div class="particle" style="top:70%; left:80%; animation-delay:2s;"></div>
-      <div class="particle" style="top:90%; left:60%; animation-delay:1.5s;"></div>
-      <div class="particle" style="top:10%; left:40%; animation-delay:2.5s;"></div>
       <img src="/elearn/img/kody-wave.png" alt="Maskot anak Kody melambaikan tangan" />
       <img src="/elearn/img/rob.png" alt="Maskot Robot Kody" class="robot-mascot" />
+      <!-- AI-generated illustration: child with VR headset and AI robot assistant -->
+      <img src="/elearn/img/child-vr-ai-robot.png" alt="Child with VR headset and AI robot assistant" style="width:180px;display:block;margin:24px auto 0 auto;" />
       <div id="hi-bubble" style="position:absolute; display:none; background:#fff; border-radius:12px; padding:4px 8px; font-size:12px; font-weight:bold; top:0; left:-40px; z-index:4;">Hi!</div>
       <p>Selamat datang di dunia belajar yang menyenangkan!</p>
     </div>
@@ -233,7 +323,7 @@ async function login() {
     });
   });
 }
-</script>
+<!-- (removed duplicate script end tag) -->
 </script>
 <script src="userInfo.js"></script>
 <script src="script.js"></script>
