@@ -731,3 +731,27 @@ app.use((req, res) => {
 http.listen(PORT, () => {
     console.log(`🚀 Server jalan di http://localhost:${PORT}`);
 });
+
+// POST /api/assign-lesson - assign akses lesson ke murid
+app.post('/api/assign-lesson', async (req, res) => {
+  const { uid, lesson } = req.body;
+  if (!uid || !lesson) {
+    return res.status(400).json({ success: false, error: 'Data tidak lengkap' });
+  }
+  try {
+    const muridRef = db.collection('murid').doc(uid);
+    const muridSnap = await muridRef.get();
+    if (!muridSnap.exists) {
+      return res.status(404).json({ success: false, error: 'Murid tidak ditemukan' });
+    }
+
+    await muridRef.set({
+      akses_lesson: admin.firestore.FieldValue.arrayUnion(lesson)
+    }, { merge: true });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('❌ Error assign lesson:', err);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});

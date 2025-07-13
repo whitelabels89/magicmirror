@@ -454,9 +454,9 @@
         <div class="form-card">
           <h2>Tambah Kelas Baru</h2>
           <form id="form-add-class">
-            <input type="text" id="kelas_id" placeholder="Kelas ID" required>
-            <input type="text" id="nama_kelas" placeholder="Nama Kelas" required>
-            <input type="text" id="guru_id" placeholder="Guru ID" required>
+            <input type="text" id="kelas_id" placeholder="Kelas ID" required style="max-width: 441px;">
+            <input type="text" id="nama_kelas" placeholder="Nama Kelas" required style="max-width: 441px;">
+            <input type="text" id="guru_id" placeholder="Guru ID" required style="max-width: 441px;">
             <button type="submit">Tambah Kelas</button>
           </form>
           <p id="class-status"></p>
@@ -464,10 +464,10 @@
         <div class="form-card">
           <h2>Tambah Akun</h2>
           <form id="form-add-student">
-            <input type="text" id="nama" placeholder="Nama" required>
-            <input type="email" id="email" placeholder="Email" required>
-            <input type="password" id="password" placeholder="Password" required>
-            <input type="text" id="kelas_id_student" placeholder="Kelas ID" required>
+            <input type="text" id="nama" placeholder="Nama" required style="max-width: 441px;">
+            <input type="email" id="email" placeholder="Email" required style="max-width: 441px;">
+            <input type="password" id="password" placeholder="Password" required style="max-width: 441px;">
+            <input type="text" id="kelas_id_student" placeholder="Kelas ID" required style="max-width: 441px;">
             <select id="role">
               <option value="murid">Murid</option>
               <option value="guru">Guru</option>
@@ -479,12 +479,21 @@
         </div>
         <div class="form-card">
           <h2>Assign Murid ke Kelas</h2>
-          <form id="form-assign-student">
+          <form id="form-assign-student" style="max-width: 100%;">
             <select id="assign_uid"></select>
-            <input type="text" id="assign_kelas_id" placeholder="Kelas ID Tujuan" required>
+            <input type="text" id="assign_kelas_id" placeholder="Kelas ID Tujuan" required style="max-width: 441px;">
             <button type="submit">Assign Murid</button>
           </form>
           <p id="assign-status"></p>
+        </div>
+        <div class="form-card">
+          <h2>Assign Lesson ke Murid</h2>
+          <form id="form-assign-lesson">
+            <select id="assign_lesson_uid"></select>
+            <input type="text" id="lesson_code" placeholder="Kode Lesson (contoh: M1L2)" required style="max-width: 441px;">
+            <button type="submit">Tambah Akses Lesson</button>
+          </form>
+          <p id="lesson-assign-status"></p>
         </div>
       </div>
     </main>
@@ -559,16 +568,24 @@
   async function loadAllStudents() {
     const select = document.getElementById('assign_uid');
     const status = document.getElementById('assign-status');
+    const selectLesson = document.getElementById('assign_lesson_uid');
     try {
       const res = await fetch('/api/semua-murid');
       if (!res.ok) throw new Error('Network');
       const list = await res.json();
       select.innerHTML = '<option value="">Pilih Murid</option>';
+      if (selectLesson) selectLesson.innerHTML = '<option value="">Pilih Murid</option>';
       list.forEach(m => {
         const opt = document.createElement('option');
         opt.value = m.uid;
         opt.textContent = `${m.nama} (${m.email})`;
         select.appendChild(opt);
+        if (selectLesson) {
+          const opt2 = document.createElement('option');
+          opt2.value = m.uid;
+          opt2.textContent = `${m.nama} (${m.email})`;
+          selectLesson.appendChild(opt2);
+        }
       });
       // Update stat card murid
       document.getElementById('stat-murid').textContent = list.length;
@@ -632,6 +649,32 @@
     }
   }
   document.getElementById('form-assign-student').addEventListener('submit', assignStudent);
+
+  document.getElementById('form-assign-lesson').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const uid = document.getElementById('assign_lesson_uid').value.trim();
+    const lesson = document.getElementById('lesson_code').value.trim();
+    const status = document.getElementById('lesson-assign-status');
+    if (!uid || !lesson) return;
+
+    try {
+      const res = await fetch('/api/assign-lesson', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid, lesson })
+      });
+      if (res.ok) {
+        status.textContent = '✅ Akses lesson berhasil ditambahkan.';
+        e.target.reset();
+      } else {
+        const data = await res.json();
+        status.textContent = '❌ ' + (data.error || 'Gagal assign lesson');
+      }
+    } catch (err) {
+      console.error(err);
+      status.textContent = '❌ Gagal assign lesson';
+    }
+  });
 
   async function assignStudent(e) {
     e.preventDefault();

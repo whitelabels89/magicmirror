@@ -1,3 +1,26 @@
+/* Robot Mascot Animation */
+.robot-mascot {
+  width: 240px;
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  transition: transform 0.3s ease-in-out;
+  z-index: 3; /* Lebih tinggi dari milkyway-overlay */
+}
+
+.robot-mascot:hover {
+  animation: floatWiggle 2s infinite ease-in-out;
+}
+
+@keyframes floatWiggle {
+  0% { transform: translateX(-50%) translateY(0) rotate(0deg); }
+  25% { transform: translateX(-52%) translateY(-4px) rotate(2deg); }
+  50% { transform: translateX(-50%) translateY(-8px) rotate(0deg); }
+  75% { transform: translateX(-48%) translateY(-4px) rotate(-2deg); }
+  100% { transform: translateX(-50%) translateY(0) rotate(0deg); }
+}
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&display=swap');
 * {
     margin: 0;
     padding: 0;
@@ -29,7 +52,15 @@ body {
     position: absolute;
     width: 400px;
     height: 550px;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    background-color: #0d1b40; /* Fallback solid base */
+    background-image:
+        radial-gradient(circle at 30% 40%, rgba(90, 170, 255, 0.2), transparent 50%),
+        radial-gradient(circle at 70% 60%, rgba(255, 255, 255, 0.1), transparent 70%),
+        linear-gradient(135deg, #0c0f2c 0%, #0d1b40 100%);
+    background-blend-mode: screen;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
     border-radius: 24px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
     transform: translateX(-80px);
@@ -97,6 +128,27 @@ body {
     top: 35%;
     left: 85%;
     animation-delay: 0.8s;
+}
+
+.star-7 {
+    width: 14px;
+    height: 14px;
+    background: #ffffff;
+    clip-path: polygon(
+      50% 0%,
+      61% 35%,
+      98% 35%,
+      68% 57%,
+      79% 91%,
+      50% 70%,
+      21% 91%,
+      32% 57%,
+      2% 35%,
+      39% 35%
+    );
+    top: 50%;
+    left: 50%;
+    animation-delay: 2.2s;
 }
 
 /* Planets */
@@ -196,9 +248,10 @@ body {
     background: white;
     border-radius: 24px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-    transform: skew(8deg) translateX(120px);
+    transform: skew(0deg) translateX(180px);
     z-index: 2;
     overflow: hidden;
+    
 }
 
 .right-panel::before {
@@ -214,36 +267,41 @@ body {
 }
 
 .login-container {
-    transform: skew(-8deg);
+    transform: skew(-0deg);
     width: 100%;
     height: 100%;
+    max-width: 100%;
+    max-height: 100%;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 40px;
-}
-
-.login-container {
-    width: 100%;
-    max-width: 400px;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 35px 50px 40px;
+    overflow: hidden;
+    gap: 7px;
 }
 
 .quote-section {
-    margin-bottom: 40px;
+  margin-bottom: 35px;
+  text-align: center;
+  width: 120%;
+  margin-left: -31px;
 }
 
 .quote-text {
+    font-family: 'Playfair Display', serif;
     font-size: 24px;
     font-weight: 600;
-    line-height: 1.4;
     color: #2c3e50;
-    margin-bottom: 16px;
+    line-height: 1.6;
+    margin-bottom: 10px;
 }
 
 .quote-author {
-    font-size: 16px;
-    color: #7f8c8d;
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
     font-weight: 400;
+    color: #7f8c8d;
 }
 
 .login-form {
@@ -254,11 +312,11 @@ body {
     font-size: 28px;
     font-weight: 600;
     color: #2c3e50;
-    margin-bottom: 30px;
+    margin-bottom: 16px;
 }
 
 .input-group {
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 .input-wrapper {
@@ -268,11 +326,14 @@ body {
 }
 
 .input-icon {
-    position: absolute;
-    left: 15px;
-    color: #95a5a6;
-    font-size: 16px;
-    z-index: 1;
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  fill: #95a5a6;
+  pointer-events: none;
 }
 
 .form-input {
@@ -306,8 +367,31 @@ body {
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    margin-top: 10px;
-    margin-bottom: 30px;
+    margin: 0;
+}
+
+.daftar-akun {
+    padding: 15px;
+    background: linear-gradient(135deg, #ff6b35, #f7931e);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 0;
+}
+
+.daftar-akun:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3);
+}
+
+.button-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
 }
 
 .login-button:hover {
@@ -337,6 +421,27 @@ body {
 
 .footer-link i {
     font-size: 12px;
+}
+.login-container h2 {
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 3px;
+}
+
+/* Milky Way Overlay */
+.milkyway-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 120%;
+  height: 120%;
+  object-fit: cover;
+  opacity: 0.6;
+  filter: brightness(1.2) contrast(1.2);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  z-index: 0;
 }
 
 /* Animations */
@@ -381,11 +486,14 @@ body {
     
     .login-container {
         transform: skew(-6deg);
-        padding: 30px;
+        padding: 40px 25px;
+        align-items: flex-start;
+        justify-content: flex-start;
+        gap: 16px;
     }
     
     .quote-text {
-        font-size: 20px;
+        font-size: 16px;
     }
     
     .form-title {
@@ -413,11 +521,14 @@ body {
     
     .login-container {
         transform: skew(-4deg);
-        padding: 25px;
+        padding: 40px 25px;
+        align-items: flex-start;
+        justify-content: flex-start;
+        gap: 16px;
     }
     
     .quote-text {
-        font-size: 18px;
+        font-size: 15px;
     }
     
     .form-title {
@@ -455,10 +566,13 @@ body {
     .login-container {
         transform: skew(-2deg);
         padding: 20px;
+        align-items: flex-start;
+        justify-content: flex-start;
+        gap: 16px;
     }
     
     .quote-text {
-        font-size: 16px;
+        font-size: 14px;
     }
     
     .form-title {
@@ -470,8 +584,74 @@ body {
         font-size: 14px;
     }
     
-    .login-button {
-        padding: 12px;
-        font-size: 14px;
-    }
+}
+
+
+.button-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 10px;
+}
+
+.button-row .login-button {
+  flex: 1;
+  padding: 15px;
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+.quote-slider {
+  position: relative;
+  min-height: 200px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.quote-slide {
+  position: absolute;
+  width: 100%;
+  opacity: 0;
+  animation: slideQuote 12s infinite;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  text-align: center;
+  overflow: auto;
+  min-height: 140px;
+}
+
+.quote-slide:nth-child(1) {
+  animation-delay: 0s;
+}
+.quote-slide:nth-child(2) {
+  animation-delay: 6s;
+}
+
+@keyframes slideQuote {
+  0% { opacity: 0; transform: translateY(20px); }
+  5% { opacity: 1; transform: translateY(0); }
+  45% { opacity: 1; transform: translateY(0); }
+  50% { opacity: 0; transform: translateY(-20px); }
+  100% { opacity: 0; transform: translateY(-20px); }
+}
+/* Milky Way Overlay */
+.milkyway-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.6;
+  filter: brightness(1.2) contrast(1.2);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  z-index: 0;
 }

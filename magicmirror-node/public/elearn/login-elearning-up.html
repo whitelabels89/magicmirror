@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <link href="https://fonts.googleapis.com/css2?family=Indie+Flower&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=One+Little+Font&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login E-Learning</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="/elearn/login-elearning-up.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.google.com/recaptcha/api.js?render=6LeNUoArAAAAACP2yuxCC-MJ-G6k3SBOesTEEAD7"></script>
@@ -22,206 +23,55 @@
     };
     firebase.initializeApp(firebaseConfig);
   </script>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translate3d(0, 40px, 0);
-      }
-      to {
-        opacity: 1;
-        transform: translate3d(0, 0, 0);
-      }
-    }
-
-    body {
-      margin: 0;
-      font-family: 'Fredoka', sans-serif;
-      background: url('/elearn/img/bg-classroom-magic.png') no-repeat center center fixed;
-      background-size: cover;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-    }
-
-    .container {
-      display: flex;
-      width: 90vw;
-      max-width: 900px;
-      background-color: white;
-      border-radius: 20px;
-      box-shadow: 0 12px 25px rgba(0,0,0,0.15);
-      overflow: hidden;
-      animation: fadeInUp 0.8s ease forwards;
-      height: auto;
-      box-sizing: border-box;
-    }
-
-    .left-panel {
-      flex: 1;
-      background: #f9f9f9;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 40px 30px;
-      box-sizing: border-box;
-      text-align: center;
-      position: relative;
-      z-index: 1;
-    }
-
-    .left-panel img {
-      object-fit: contain;
-      width: 100%;
-      max-width: 250px;
-      height: auto;
-      margin-bottom: 20px;
-    }
-
-    .left-panel p {
-      font-family: 'Indie Flower', cursive;
-      font-size: 1.8rem;
-      color: #333;
-      margin: 0;
-    }
-
-    .right-panel {
-      flex: 1;
-      padding: 40px 60px 40px 80px;
-      box-sizing: border-box;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      background-color: white;
-      position: relative;
-      z-index: 2;
-      border-top-left-radius: 80px;
-      border-bottom-left-radius: 80px;
-      box-shadow: 0 0 40px rgba(0, 0, 0, 0.25);
-      text-align: center;
-    }
-
-    .quote-section {
-      font-family: 'Indie Flower', cursive;
-      font-size: 1.6rem;
-      color: #5C90FF;
-      margin-bottom: 30px;
-      user-select: none;
-    }
-
-    .login-container {
-      width: 100%;
-    }
-
-    .login-right h2 {
-      margin-bottom: 30px;
-      color: #333;
-      font-family: 'Indie Flower', cursive;
-      font-size: 3rem;
-      user-select: none;
-    }
-
-    .input-wrapper {
-      position: relative;
-      width: 100%;
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-    }
-
-    .form-input {
-      width: 100%;
-      height: 50px;
-      padding: 0 45px 0 40px;
-      font-size: 16px;
-      border-radius: 12px;
-      border: 1px solid #ccc;
-      font-family: 'Fredoka', sans-serif;
-      box-sizing: border-box;
-    }
-
-    .input-icon {
+    .space-background {
+      background: linear-gradient(to bottom, #0d1b40 60%, #6bb9f0 150%);
       position: absolute;
-      left: 12px;
-      width: 20px;
-      height: 20px;
-      fill: #888;
-      pointer-events: none;
-    }
-
-    .login-button {
-      background-color: #5C90FF;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 18px;
-      padding: 12px 25px;
-      cursor: pointer;
-      font-family: 'Fredoka', sans-serif;
-      transition: background-color 0.3s ease;
       width: 100%;
-      box-sizing: border-box;
-    }
-    .login-button:hover {
-      background-color: #3c6edc;
-    }
-
-    #error-message {
-      margin-top: 10px;
-      color: red;
-      width: 100%;
-      text-align: center;
-      position: relative;
-      min-height: 22px;
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-      .right-panel {
-        border-radius: 0;
-        box-shadow: none;
-        padding: 30px 20px;
-      }
-    }
-    @media (max-width: 600px) {
-      .container {
-        flex-direction: column;
-        border-radius: 20px;
-      }
-      .left-panel, .right-panel {
-        padding: 20px;
-        border-radius: 0;
-      }
-      .left-panel p {
-        font-size: 1.5rem;
-      }
-      .right-panel h2 {
-        font-size: 2.2rem;
-      }
-      .form-input {
-        padding-left: 40px;
-      }
-      .login-button {
-        font-size: 16px;
-        padding: 10px 20px;
-      }
+      height: 100%;
+      z-index: 1;
     }
   </style>
 </head>
 <body>
   <div class="container" role="main">
-    <div class="left-panel" aria-label="Ilustrasi maskot anak Kody melambaikan tangan">
+    <div class="left-panel" aria-label="Ilustrasi maskot anak Kody melambaikan tangan" style="background-image: url('/elearn/img/bg-galaxy-placeholder.png'); background-size: cover; background-position: center;">
+      <div class="space-background" aria-hidden="true">
+        <div class="star star-1"></div>
+        <div class="star star-2"></div>
+        <div class="star star-3"></div>
+        <div class="star star-4"></div>
+        <div class="star star-5"></div>
+        <div class="star star-6"></div>
+        <div class="star star-7"></div>
+        <img src="/elearn/img/milkyway.png" alt="Milky Way" class="milkyway-overlay" />
+        <!-- Milkyway Stars -->
+        <div class="planet planet-1"></div>
+        <div class="planet planet-2"></div>
+        <div class="planet planet-3"></div>
+        <div class="planet planet-4"></div>
+        <div class="planet planet-5"></div>
+        <div class="planet planet-6"></div>
+        <div class="planet planet-7"></div>
+        <div class="planet planet-8"></div>
+      </div>
       <img src="/elearn/img/kody-wave.png" alt="Maskot anak Kody melambaikan tangan" />
+      <img src="/elearn/img/rob.jpg" alt="Maskot Robot Kody" class="robot-mascot" />
       <p>Selamat datang di dunia belajar yang menyenangkan!</p>
     </div>
     <div class="right-panel">
-      <div class="quote-section">"Belajar adalah kunci masa depan cerah"</div>
       <div class="login-container">
-        <h2>Masuk ke Dunia Belajar</h2>
+        <div class="quote-section quote-slider">
+          <div class="quote-slide">
+            <p class="quote-text">"Understanding code is like understanding the language of the future."</p>
+            <p class="quote-author">– Mark Zuckerberg</p>
+          </div>
+          <div class="quote-slide">
+            <p class="quote-text">"Some people don't like change, but you need to embrace change if the alternative is disaster."</p>
+            <p class="quote-author">– Elon Musk</p>
+          </div>
+        </div>
+        <h2>Ready to Step Into the Digital Future?</h2>
 
         <!-- Email -->
         <div class="input-wrapper">
@@ -235,19 +85,13 @@
           <input type="password" id="password" class="form-input" placeholder="Password" aria-label="Password" />
         </div>
 
-        <!-- Login Button -->
-        <div class="input-wrapper" style="margin-bottom: 10px;">
-          <button onclick="login()" id="login-btn" class="login-button">Masuk</button>
+        <!-- Login & Daftar Buttons -->
+        <div class="button-row">
+          <button onclick="login()" id="login-btn" class="login-button">Login</button>
+          <button onclick="window.location.href='/elearn/daftar.html'" class="daftar-akun">Sign Up</button>
         </div>
 
         <p id="error-message"></p>
-
-        <!-- Daftar Akun Baru -->
-        <div class="input-wrapper" style="justify-content: center;">
-          <button onclick="window.location.href='/elearn/daftar.html'" class="login-button" style="background-color: #4CAF50; width: auto; padding: 10px 30px; font-size: 18px;">
-            Daftar Akun Baru
-          </button>
-        </div>
       </div>
     </div>
   </div>
