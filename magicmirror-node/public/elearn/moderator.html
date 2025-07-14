@@ -499,6 +499,9 @@
     </main>
   </div>
   <script>
+  // Konstanta endpoint backend Firebase
+  const FIREBASE_API = "https://firebase-upload-backend.onrender.com";
+
   document.addEventListener('DOMContentLoaded', () => {
     const role = localStorage.getItem('role');
     if (role !== 'moderator') {
@@ -570,7 +573,7 @@
     const status = document.getElementById('assign-status');
     const selectLesson = document.getElementById('assign_lesson_uid');
     try {
-      const res = await fetch('/api/semua-murid');
+      const res = await fetch(`${FIREBASE_API}/api/semua-murid`);
       if (!res.ok) throw new Error('Network');
       const list = await res.json();
       select.innerHTML = '<option value="">Pilih Murid</option>';
@@ -630,7 +633,7 @@
     const kelas_id = document.getElementById('kelas_id_student').value.trim();
     const role = document.getElementById('role').value;
     try {
-      const res = await fetch('/api/daftar-akun-baru', {
+      const res = await fetch(`${FIREBASE_API}/api/daftar-akun-baru`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nama, email, password, kelas_id, role })
@@ -658,7 +661,7 @@
     if (!cid || !lesson) return;
 
     try {
-      const res = await fetch('/api/assign-lesson', {
+      const res = await fetch(`${FIREBASE_API}/api/assign-lesson`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cid, lesson })
@@ -688,7 +691,7 @@
     const uid = document.getElementById('assign_uid').value.trim();
     const kelas_id = document.getElementById('assign_kelas_id').value.trim();
     try {
-      const res = await fetch('/api/assign-murid-ke-kelas', {
+      const res = await fetch(`${FIREBASE_API}/api/assign-murid-ke-kelas`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uid, kelas_id })
