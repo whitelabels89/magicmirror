@@ -15,7 +15,7 @@
       const data = await res.json();
       if (!data.akses_lesson || !data.akses_lesson.includes(currentLesson)) {
         alert("🚫 Kamu belum terdaftar untuk lesson ini.");
-        window.location.href = "/elearn/dashboard-murid.html";
+        window.location.href = "/elearn/modul.html";
         return;
       }
     } catch (err) {
