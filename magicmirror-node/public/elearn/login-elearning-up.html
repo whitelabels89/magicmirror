@@ -295,9 +295,12 @@ async function login() {
         }
 
         const userCred = await firebase.auth().signInWithEmailAndPassword(email, password);
-        const uid = userCred.user.uid;
-
-        const res = await fetch(`https://firebase-upload-backend.onrender.com/api/get-role-by-uid?uid=${uid}`);
+        const emailLogin = userCred.user.email;
+        const res = await fetch('https://firebase-upload-backend.onrender.com/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: emailLogin })
+        });
         const data = await res.json();
 
         if (!data || !data.role) {
