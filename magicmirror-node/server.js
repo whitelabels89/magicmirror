@@ -413,17 +413,29 @@ app.post('/api/daftar-akun-baru', async (req, res) => {
     return res.status(400).json({ success: false, error: 'Data tidak lengkap' });
   }
   try {
-    const cid = 'CQA' + Date.now();
-    // Create Firebase Auth user
+    const cid = 'QAC' + Date.now();
     const authUser = await admin.auth().createUser({
       email,
       password,
       displayName: nama,
     });
     const uid = authUser.uid;
-    await db.collection('murid').doc(uid).set({ cid, uid, nama, email, kelas_id, role });
-    await db.collection('kelas').doc(kelas_id).set({ kelas_id }, { merge: true });
-    await db.collection('kelas').doc(kelas_id).update({ murid: admin.firestore.FieldValue.arrayUnion(uid) });
+
+    const akunData = { cid, uid, nama, email, kelas_id, role };
+    await db.collection('akun').doc(cid).set(akunData);
+
+    if (role === 'murid') {
+      await db.collection('murid').doc(cid).set(akunData);
+      await db.collection('kelas').doc(kelas_id).set({ kelas_id }, { merge: true });
+      await db.collection('kelas').doc(kelas_id).update({
+        murid: admin.firestore.FieldValue.arrayUnion(cid)
+      });
+    } else if (role === 'guru') {
+      await db.collection('guru').doc(cid).set(akunData);
+    } else if (role === 'moderator') {
+      await db.collection('moderator').doc(cid).set(akunData);
+    }
+
     res.json({ success: true, cid, uid });
   } catch (err) {
     console.error('❌ Error daftar akun baru:', err);
