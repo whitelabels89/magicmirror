@@ -576,7 +576,7 @@ document.getElementById('finishClassBtn').addEventListener('click',async()=>{
   const btn=document.getElementById('finishClassBtn');
   btn.disabled=true;
   try{
-    const res=await fetch('/api/selesai-kelas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const res=await fetch('https://firebase-upload-backend.onrender.com/api/selesai-kelas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     if(res.ok){alert('Kelas selesai & data tersimpan');}
     else{throw new Error('Request failed');}
   }catch(e){console.error(e);alert('Gagal menyimpan data');btn.disabled=false;}
