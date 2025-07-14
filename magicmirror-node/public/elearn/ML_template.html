@@ -434,6 +434,7 @@ document.getElementById('toggleLabColumn').addEventListener('click', function() 
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 <script src="whiteboard.js"></script>
+<button id="finishClassBtn">Selesai Kelas</button>
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyBVO4ajDwkbcTGL33SVMxIoev4veB8itgI",
@@ -447,4 +448,64 @@ document.getElementById('toggleLabColumn').addEventListener('click', function() 
   window.kelasId = 'demo';
   window.lessonId = 'M1L1';
   initWhiteboard();
+</script>
+
+<script>
+window.userCID = window.userCID || localStorage.getItem('cid');
+function collectQuizData(sel){
+  const c=document.querySelector(sel);
+  const answers={};
+  if(!c) return {answers,score:0};
+  const els=c.querySelectorAll('input, textarea, select');
+  let total=0,answered=0;
+  els.forEach((el,i)=>{
+    const k=el.name||`q${i+1}`;
+    if(el.type==='radio'){
+      if(answers[k]===undefined){answers[k]=null;total++;}
+      if(el.checked){answers[k]=el.value;answered++;}
+    }else if(el.type==='checkbox'){
+      if(!Array.isArray(answers[k])) answers[k]=[];
+      if(el.checked) answered++;
+      answers[k].push(el.value);
+      total++;
+    }else{
+      answers[k]=el.value.trim();
+      total++;
+      if(el.value.trim()) answered++;}
+  });
+  const score=total?Math.round((answered/total)*100):0;
+  return {answers,score};
+}
+function handleQuizFinish(btnId,sel,ansVar,scoreVar){
+  const btn=document.getElementById(btnId);
+  if(!btn) return;
+  btn.addEventListener('click',()=>{
+    const {answers,score}=collectQuizData(sel);
+    window[ansVar]=answers;
+    window[scoreVar]=score;
+    alert('Quiz berhasil disimpan!');
+    btn.disabled=true;
+  });
+}
+handleQuizFinish('finishQuiz1Btn','.quiz-part1','quizJawabanPart1','quizScorePart1');
+handleQuizFinish('finishQuiz2Btn','.quiz-part2','quizJawabanPart2','quizScorePart2');
+document.getElementById('finishClassBtn').addEventListener('click',async()=>{
+  const payload={
+    cid: window.userCID||'',
+    modul: window.kelasId||'',
+    lesson: window.lessonId||'',
+    quiz_teori: window.quizScorePart1||0,
+    quiz_praktek: window.quizScorePart2||0,
+    jawaban_teori: JSON.stringify(window.quizJawabanPart1||{}),
+    jawaban_praktek: JSON.stringify(window.quizJawabanPart2||{}),
+    timestamp: new Date().toISOString()
+  };
+  const btn=document.getElementById('finishClassBtn');
+  btn.disabled=true;
+  try{
+    const res=await fetch('/api/selesai-kelas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(res.ok){alert('Kelas selesai & data tersimpan');}
+    else{throw new Error('Request failed');}
+  }catch(e){console.error(e);alert('Gagal menyimpan data');btn.disabled=false;}
+});
 </script>

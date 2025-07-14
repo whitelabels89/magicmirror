@@ -287,7 +287,7 @@ for i in range(3):
       </ul>
       <p>Challenge: bangun desa dengan 3 rumah, 1 jalan, 2 pohon di posisi berbeda!</p>
     </div>
-    <div id="panel-7" class="step-content">
+    <div id="panel-7" class="step-content quiz-part1">
       <h2>Quiz Part 1</h2>
       <ol>
         <li>
@@ -316,8 +316,9 @@ for i in range(3):
           <textarea style="width:100%;min-height:48px;margin-top:8px;"></textarea>
         </li>
       </ol>
+      <button id="finishQuiz1Btn">Selesai Quiz</button>
     </div>
-    <div id="panel-8" class="step-content">
+    <div id="panel-8" class="step-content quiz-part2">
       <h2>Quiz Part 2</h2>
       <ol>
         <li>
@@ -356,6 +357,7 @@ for i in range(3):
           <canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas>
         </li>
       </ol>
+      <button id="finishQuiz2Btn">Selesai Quiz</button>
     </div>
     <div id="panel-9" class="step-content">
       <h2>Whiteboard</h2>
@@ -415,6 +417,7 @@ for i in range(3):
     });
   });
 </script>
+<button id="finishClassBtn">Selesai Kelas</button>
 <script>
   let pyodideReadyPromise = loadPyodide();
   function clearCanvas(canvas) {
@@ -526,4 +529,64 @@ robot = turtle
       clearCanvas(canvas);
     });
   });
+</script>
+
+<script>
+window.userCID = window.userCID || localStorage.getItem('cid');
+function collectQuizData(sel){
+  const c=document.querySelector(sel);
+  const answers={};
+  if(!c) return {answers,score:0};
+  const els=c.querySelectorAll('input, textarea, select');
+  let total=0,answered=0;
+  els.forEach((el,i)=>{
+    const k=el.name||`q${i+1}`;
+    if(el.type==='radio'){
+      if(answers[k]===undefined){answers[k]=null;total++;}
+      if(el.checked){answers[k]=el.value;answered++;}
+    }else if(el.type==='checkbox'){
+      if(!Array.isArray(answers[k])) answers[k]=[];
+      if(el.checked) answered++;
+      answers[k].push(el.value);
+      total++;
+    }else{
+      answers[k]=el.value.trim();
+      total++;
+      if(el.value.trim()) answered++;}
+  });
+  const score=total?Math.round((answered/total)*100):0;
+  return {answers,score};
+}
+function handleQuizFinish(btnId,sel,ansVar,scoreVar){
+  const btn=document.getElementById(btnId);
+  if(!btn) return;
+  btn.addEventListener('click',()=>{
+    const {answers,score}=collectQuizData(sel);
+    window[ansVar]=answers;
+    window[scoreVar]=score;
+    alert('Quiz berhasil disimpan!');
+    btn.disabled=true;
+  });
+}
+handleQuizFinish('finishQuiz1Btn','.quiz-part1','quizJawabanPart1','quizScorePart1');
+handleQuizFinish('finishQuiz2Btn','.quiz-part2','quizJawabanPart2','quizScorePart2');
+document.getElementById('finishClassBtn').addEventListener('click',async()=>{
+  const payload={
+    cid: window.userCID||'',
+    modul: window.kelasId||'',
+    lesson: window.lessonId||'',
+    quiz_teori: window.quizScorePart1||0,
+    quiz_praktek: window.quizScorePart2||0,
+    jawaban_teori: JSON.stringify(window.quizJawabanPart1||{}),
+    jawaban_praktek: JSON.stringify(window.quizJawabanPart2||{}),
+    timestamp: new Date().toISOString()
+  };
+  const btn=document.getElementById('finishClassBtn');
+  btn.disabled=true;
+  try{
+    const res=await fetch('/api/selesai-kelas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(res.ok){alert('Kelas selesai & data tersimpan');}
+    else{throw new Error('Request failed');}
+  }catch(e){console.error(e);alert('Gagal menyimpan data');btn.disabled=false;}
+});
 </script>

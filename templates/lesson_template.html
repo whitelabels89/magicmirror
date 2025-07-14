@@ -15,16 +15,86 @@
     <div class="step-content" id="quiz1">
       <h2>Quiz</h2>
       {{quiz_1}}
+      <button id="finishQuiz1Btn">Selesai Quiz</button>
     </div>
     <div class="step-content" id="quiz2">
       <h2>Quiz Lanjutan</h2>
       {{quiz_2}}
+      <button id="finishQuiz2Btn">Selesai Quiz</button>
     </div>
   </div>
 </div>
+<button id="finishClassBtn">Selesai Kelas</button>
 <script>
 let currentPanel=1;
 function showPanel(n){document.querySelectorAll('.step-content').forEach(p=>p.classList.remove('active'));document.getElementById('panel-'+n)?.classList.add('active');currentPanel=n;}
 document.getElementById('lesson-nav').addEventListener('click',e=>{if(e.target.matches('li[data-step]')){showPanel(Number(e.target.dataset.step));}});
 showPanel(1);
+window.userCID = window.userCID || localStorage.getItem('cid');
+
+function collectQuizData(partId){
+  const container=document.getElementById(partId);
+  const answers={};
+  if(!container) return {answers,score:0};
+  const elements=container.querySelectorAll('input, textarea, select');
+  let total=0,answered=0;
+  elements.forEach((el,idx)=>{
+    const key=el.name||`q${idx+1}`;
+    if(el.type==='radio'){
+      if(!answers[key]){answers[key]=null;total++;}
+      if(el.checked){answers[key]=el.value;answered++;}
+    }else if(el.type==='checkbox'){
+      if(!answers[key]) answers[key]=[];
+      if(el.checked) answered++;
+      answers[key].push(el.value);
+      total++;
+    }else{
+      answers[key]=el.value.trim();
+      total++;
+      if(el.value.trim()) answered++;}
+  });
+  const score=total?Math.round((answered/total)*100):0;
+  return {answers,score};
+}
+
+function handleQuizFinish(btnId,partId,ansVar,scoreVar){
+  const btn=document.getElementById(btnId);
+  btn.addEventListener('click',()=>{
+    const {answers,score}=collectQuizData(partId);
+    window[ansVar]=answers;
+    window[scoreVar]=score;
+    alert('Quiz berhasil disimpan!');
+    btn.disabled=true;
+  });
+}
+
+handleQuizFinish('finishQuiz1Btn','quiz1','quizJawabanPart1','quizScorePart1');
+handleQuizFinish('finishQuiz2Btn','quiz2','quizJawabanPart2','quizScorePart2');
+
+document.getElementById('finishClassBtn').addEventListener('click',async()=>{
+  const payload={
+    cid: window.userCID||'',
+    modul: window.kelasId||'',
+    lesson: window.lessonId||'',
+    quiz_teori: window.quizScorePart1||0,
+    quiz_praktek: window.quizScorePart2||0,
+    jawaban_teori: JSON.stringify(window.quizJawabanPart1||{}),
+    jawaban_praktek: JSON.stringify(window.quizJawabanPart2||{}),
+    timestamp: new Date().toISOString()
+  };
+  const btn=document.getElementById('finishClassBtn');
+  btn.disabled=true;
+  try{
+    const res=await fetch('/api/selesai-kelas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(res.ok){
+      alert('Kelas selesai & data tersimpan');
+    }else{
+      throw new Error('Request failed');
+    }
+  }catch(err){
+    console.error(err);
+    alert('Gagal menyimpan data');
+    btn.disabled=false;
+  }
+});
 </script>
