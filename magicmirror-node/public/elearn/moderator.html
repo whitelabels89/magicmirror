@@ -667,8 +667,14 @@
         status.textContent = '✅ Akses lesson berhasil ditambahkan.';
         e.target.reset();
       } else {
-        const data = await res.json();
-        status.textContent = '❌ ' + (data.error || 'Gagal assign lesson');
+        try {
+          const data = await res.json();
+          status.textContent = '❌ ' + (data.error || 'Gagal assign lesson');
+        } catch (err) {
+          const text = await res.text();
+          console.error('❌ Invalid JSON:', text);
+          status.textContent = '❌ Gagal assign lesson (invalid response)';
+        }
       }
     } catch (err) {
       console.error(err);
