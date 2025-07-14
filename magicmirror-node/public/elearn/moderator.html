@@ -577,13 +577,13 @@
       if (selectLesson) selectLesson.innerHTML = '<option value="">Pilih Murid</option>';
       list.forEach(m => {
         const opt = document.createElement('option');
-        opt.value = m.uid;
-        opt.textContent = `${m.nama} (${m.email})`;
+        opt.value = m.cid;
+        opt.textContent = `${m.nama} (${m.cid})`;
         select.appendChild(opt);
         if (selectLesson) {
           const opt2 = document.createElement('option');
-          opt2.value = m.uid;
-          opt2.textContent = `${m.nama} (${m.email})`;
+          opt2.value = m.cid;
+          opt2.textContent = `${m.nama} (${m.cid})`;
           selectLesson.appendChild(opt2);
         }
       });
@@ -652,16 +652,16 @@
 
   document.getElementById('form-assign-lesson').addEventListener('submit', async function(e) {
     e.preventDefault();
-    const uid = document.getElementById('assign_lesson_uid').value.trim();
+    const cid = document.getElementById('assign_lesson_uid').value.trim();
     const lesson = document.getElementById('lesson_code').value.trim();
     const status = document.getElementById('lesson-assign-status');
-    if (!uid || !lesson) return;
+    if (!cid || !lesson) return;
 
     try {
       const res = await fetch('https://firebase-upload-backend.onrender.com/api/assign-lesson', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uid, lesson })
+        body: JSON.stringify({ cid, lesson })
       });
       if (res.ok) {
         status.textContent = '✅ Akses lesson berhasil ditambahkan.';
