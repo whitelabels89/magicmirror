@@ -296,6 +296,7 @@ async function login() {
 
         const userCred = await firebase.auth().signInWithEmailAndPassword(email, password);
         const emailLogin = userCred.user.email;
+        // Ambil data akun dari backend yang sudah mengambil dari collection 'akun'
         const res = await fetch('https://firebase-upload-backend.onrender.com/api/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -303,6 +304,7 @@ async function login() {
         });
         const data = await res.json();
 
+        // Data sudah mengandung role, cid, nama, uid sesuai collection 'akun'
         if (!data || !data.role) {
           errorEl.innerText = "❌ Akun tidak memiliki akses yang valid.";
           return;
@@ -316,6 +318,10 @@ async function login() {
 
         if (data.role === "moderator") {
           window.location.href = "/elearn/moderator.html";
+        } else if (data.role === "murid") {
+          window.location.href = "/elearn/murid.html";
+        } else if (data.role === "guru") {
+          window.location.href = "/elearn/guru.html";
         } else {
           window.location.href = "/elearn/murid.html";
         }
