@@ -46,6 +46,7 @@
 
     [data-theme='dark'] .sidebar .logo {
       background: linear-gradient(45deg, #4ca1af, #6dd5ed);
+      background-clip: text;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
@@ -137,6 +138,7 @@
       margin-bottom: 34px;
       letter-spacing: 1px;
       background: linear-gradient(45deg, #2c3e50, #4ca1af);
+      background-clip: text;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
@@ -632,11 +634,13 @@
     const password = document.getElementById('password').value.trim();
     const kelas_id = document.getElementById('kelas_id_student').value.trim();
     const role = document.getElementById('role').value;
+    // Generate CID before sending request
+    const cid = 'QAC' + String(Date.now()).slice(-7); // Simple unique 7-digit suffix
     try {
       const res = await fetch(`${FIREBASE_API}/api/daftar-akun-baru`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nama, email, password, kelas_id, role })
+        body: JSON.stringify({ cid, nama, email, password, kelas_id, role })
       });
       if (res.ok) {
         status.textContent = '✅ Akun berhasil ditambah.';
