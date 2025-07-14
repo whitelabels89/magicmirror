@@ -658,7 +658,7 @@
     if (!uid || !lesson) return;
 
     try {
-      const res = await fetch('/api/assign-lesson', {
+      const res = await fetch('https://firebase-upload-backend.onrender.com/api/assign-lesson', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uid, lesson })
