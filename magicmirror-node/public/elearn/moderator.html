@@ -468,6 +468,7 @@
           <form id="form-add-student">
             <input type="text" id="nama" placeholder="Nama" required style="max-width: 441px;">
             <input type="email" id="email" placeholder="Email" required style="max-width: 441px;">
+            <input type="tel" id="wa" placeholder="Nomor WhatsApp" required style="max-width: 441px;">
             <input type="password" id="password" placeholder="Password" required style="max-width: 441px;">
             <input type="text" id="kelas_id_student" placeholder="Kelas ID" required style="max-width: 441px;">
             <select id="role">
@@ -631,6 +632,10 @@
     const status = document.getElementById('student-status');
     const nama = document.getElementById('nama').value.trim();
     const email = document.getElementById('email').value.trim();
+    let wa = document.getElementById('wa').value.trim();
+    if (wa && !wa.startsWith('+62')) {
+      wa = '+62' + wa.replace(/^0+/, '');
+    }
     const password = document.getElementById('password').value.trim();
     const kelas_id = document.getElementById('kelas_id_student').value.trim();
     const role = document.getElementById('role').value;
@@ -640,7 +645,7 @@
       const res = await fetch(`${FIREBASE_API}/api/daftar-akun-baru`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cid, nama, email, password, kelas_id, role })
+        body: JSON.stringify({ cid, nama, email, password, wa, kelas_id, role })
       });
       if (res.ok) {
         status.textContent = '✅ Akun berhasil ditambah.';
