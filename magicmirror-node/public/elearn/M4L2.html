@@ -256,7 +256,7 @@ robot.forward(100)"></div>
         <li>Kode sedikit, hasil keren? Loop itu rahasianya!</li>
       </ul>
     </div>
-    <div id="panel-8" class="step-content">
+    <div id="panel-8" class="step-content quiz-part1">
       <h2>Quiz Part 1</h2>
       <ol>
         <li>Apa itu loop &amp; penggunaannya di Turtle?<br><textarea style="width:100%;min-height:48px;margin-top:8px;"></textarea></li>
@@ -265,8 +265,9 @@ robot.forward(100)"></div>
         <li>Apa yang terjadi jika pakai <code>range(8)</code> saat gambar?<br><textarea style="width:100%;min-height:48px;margin-top:8px;"></textarea></li>
         <li>Kenapa penting sudut belok tepat saat pakai loop?<br><textarea style="width:100%;min-height:48px;margin-top:8px;"></textarea></li>
       </ol>
+      <button id="finishQuiz1Btn">Selesai Quiz</button>
     </div>
-    <div id="panel-9" class="step-content">
+    <div id="panel-9" class="step-content quiz-part2">
       <h2>Quiz Part 2</h2>
       <ol>
         <li>Buat program gambar persegi pakai loop.<br><textarea class="quiz-textarea" style="margin-top:8px;"></textarea><button class="run-button" style="margin-top:4px;">Jalankan</button><pre class="output-box">// Hasil akan muncul di sini</pre><canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas></li>
@@ -275,6 +276,7 @@ robot.forward(100)"></div>
         <li>Buat pola berulang bebas (roda, bunga, spiral) minimal 1 loop + komentar.<br><textarea class="quiz-textarea" style="margin-top:8px;"></textarea><button class="run-button" style="margin-top:4px;">Jalankan</button><pre class="output-box">// Hasil akan muncul di sini</pre><canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas></li>
         <li>Modifikasi bentuk sebelumnya dengan mengubah range() atau sudut belok.<br><textarea class="quiz-textarea" style="margin-top:8px;"></textarea><button class="run-button" style="margin-top:4px;">Jalankan</button><pre class="output-box">// Hasil akan muncul di sini</pre><canvas class="turtle-canvas-quiz" width="400" height="400" style="border:1px solid #ccc;margin-top:8px;"></canvas></li>
       </ol>
+      <button id="finishQuiz2Btn">Selesai Quiz</button>
     </div>
     <div id="panel-10" class="step-content">
       <h2>Whiteboard</h2>
@@ -456,9 +458,70 @@ robot = turtle
   window.lessonId = 'M4L2';
   initWhiteboard();
 </script>
+<button id="finishClassBtn">Selesai Kelas</button>
 <script>
   const cardContainer = parent.document ? parent.document.querySelector('#container-M4L2') : null;
   if (cardContainer) {
     cardContainer.innerHTML = '<a href="/elearn/M4L2.html" style="text-decoration:none;"><div class="lesson-card"><span class="lesson-number">M4 L2</span><h3>Turtle Loops</h3><p>Using Loops in the Turtle Module</p></div></a>';
   }
+</script>
+
+<script>
+window.userCID = window.userCID || localStorage.getItem('cid');
+function collectQuizData(sel){
+  const c=document.querySelector(sel);
+  const answers={};
+  if(!c) return {answers,score:0};
+  const els=c.querySelectorAll('input, textarea, select');
+  let total=0,answered=0;
+  els.forEach((el,i)=>{
+    const k=el.name||`q${i+1}`;
+    if(el.type==='radio'){
+      if(answers[k]===undefined){answers[k]=null;total++;}
+      if(el.checked){answers[k]=el.value;answered++;}
+    }else if(el.type==='checkbox'){
+      if(!Array.isArray(answers[k])) answers[k]=[];
+      if(el.checked) answered++;
+      answers[k].push(el.value);
+      total++;
+    }else{
+      answers[k]=el.value.trim();
+      total++;
+      if(el.value.trim()) answered++;}
+  });
+  const score=total?Math.round((answered/total)*100):0;
+  return {answers,score};
+}
+function handleQuizFinish(btnId,sel,ansVar,scoreVar){
+  const btn=document.getElementById(btnId);
+  if(!btn) return;
+  btn.addEventListener('click',()=>{
+    const {answers,score}=collectQuizData(sel);
+    window[ansVar]=answers;
+    window[scoreVar]=score;
+    alert('Quiz berhasil disimpan!');
+    btn.disabled=true;
+  });
+}
+handleQuizFinish('finishQuiz1Btn','.quiz-part1','quizJawabanPart1','quizScorePart1');
+handleQuizFinish('finishQuiz2Btn','.quiz-part2','quizJawabanPart2','quizScorePart2');
+document.getElementById('finishClassBtn').addEventListener('click',async()=>{
+  const payload={
+    cid: window.userCID||'',
+    modul: window.kelasId||'',
+    lesson: window.lessonId||'',
+    quiz_teori: window.quizScorePart1||0,
+    quiz_praktek: window.quizScorePart2||0,
+    jawaban_teori: JSON.stringify(window.quizJawabanPart1||{}),
+    jawaban_praktek: JSON.stringify(window.quizJawabanPart2||{}),
+    timestamp: new Date().toISOString()
+  };
+  const btn=document.getElementById('finishClassBtn');
+  btn.disabled=true;
+  try{
+    const res=await fetch('/api/selesai-kelas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(res.ok){alert('Kelas selesai & data tersimpan');}
+    else{throw new Error('Request failed');}
+  }catch(e){console.error(e);alert('Gagal menyimpan data');btn.disabled=false;}
+});
 </script>
