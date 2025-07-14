@@ -217,7 +217,7 @@ app.post("/login", verifyRecaptcha, async (req, res) => {
     return res.status(400).json({ success: false, error: "uid kosong" });
   }
   try {
-    const doc = await db.collection("murid").doc(uid).get();
+    const doc = await db.collection("akun").doc(uid).get();
     if (!doc.exists) {
       return res.status(404).json({ success: false, error: "User tidak ditemukan" });
     }
@@ -228,7 +228,8 @@ app.post("/login", verifyRecaptcha, async (req, res) => {
       cid: data.cid || "",
       nama: data.nama || "",
       role: data.role || "",
-      kelas_id: data.kelas_id || ""
+      kelas_id: data.kelas_id || "",
+      email: data.email || ""
     });
   } catch (err) {
     console.error("❌ Login error:", err);
