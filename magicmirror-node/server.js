@@ -755,3 +755,27 @@ app.post('/api/assign-lesson', async (req, res) => {
     res.status(500).json({ success: false, error: 'Server error' });
   }
 });
+// POST /api/selesai-kelas
+// Endpoint untuk menyimpan status penyelesaian lesson oleh murid.
+// Payload dikirim dari tombol "Selesai Kelas" di halaman lesson HTML.
+// Data yang dikirim: { cid, modul, lesson, quiz_teori, quiz_praktek, jawaban_teori, jawaban_praktek, timestamp }
+// Endpoint ini akan meneruskan data ke Google Apps Script untuk disimpan di sheet EL_LESSON_LOG.
+app.post('/api/selesai-kelas', async (req, res) => {
+  const payload = req.body;
+  if (!payload || !payload.cid || !payload.lesson) {
+    return res.status(400).json({ success: false, error: 'Data tidak lengkap' });
+  }
+
+  try {
+    const response = await fetch(process.env.WEB_APP_URL + '?action=selesaikanLesson', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const result = await response.json();
+    res.json(result);
+  } catch (err) {
+    console.error('❌ Error kirim ke Apps Script:', err);
+    res.status(500).json({ success: false, error: 'Gagal menyimpan ke Apps Script' });
+  }
+});
