@@ -878,7 +878,7 @@ body::before {
   @media (max-width: 480px) {
     #hi-bubble {
       position: fixed !important;
-      top: 38% !important;
+      top: 43% !important;
       right: 0px !important;
       left: auto !important;
       transform: translateY(-50%) !important;
@@ -893,7 +893,7 @@ body::before {
       transition: none !important;
       top: auto !important;
       left: auto !important;
-      bottom: 310px !important;
+      bottom: 400px !important;
       right: 10px !important;
       position: fixed !important;
       transform: translate(0, 0) !important;
