@@ -382,25 +382,44 @@
       white-space: normal;
     }
   </style>
+  <link rel="stylesheet" href="/elearn/css/sidebar-mod.css">
 </head>
 <body>
   <div class="dashboard-layout">
-    <aside class="sidebar">
-      <div class="logo">Queen's Academy</div>
-      <nav>
-        <ul>
-          <li>Dashboard</li>
-          <li onclick="scrollToSection('kelas-section'); setActive(this)">Data Kelas</li>
-          <li onclick="scrollToSection('akun-section'); setActive(this)">Data Akun</li>
-          <li>Assign Murid</li>
-          <li onclick="window.location.href='/elearn/login-elearning.html'">Logout</li>
-        </ul>
-      </nav>
-      <div style="margin: 20px auto; text-align: center;">
-        <button onclick="toggleTheme()" style="padding: 6px 16px; border-radius: 20px; border: 1px solid #ccc; background: #fff; color: #333; font-size: 0.9rem; cursor: pointer;">Toggle Theme</button>
-      </div>
-    </aside>
+    <!-- Sidebar digantikan dengan file terpisah -->
+    <div id="sidebar-placeholder"></div>
+    <script>
+      fetch('/elearn/sidebar-mod.html')
+        .then(res => res.text())
+        .then(html => {
+          document.getElementById('sidebar-placeholder').innerHTML = html;
+
+          const toggleBtn = document.getElementById('sidebar-toggle');
+          const sidebarContainer = document.getElementById('sidebar-container');
+
+          if (toggleBtn && sidebarContainer) {
+            toggleBtn.addEventListener('click', () => {
+              sidebarContainer.classList.toggle('collapsed');
+            });
+          }
+
+          document.querySelectorAll('.menu-group > a').forEach(group => {
+            group.addEventListener('click', () => {
+              if (sidebarContainer.classList.contains('collapsed')) {
+                sidebarContainer.classList.remove('collapsed');
+              }
+              group.parentElement.classList.toggle('open');
+            });
+          });
+        });
+    </script>
     <main class="main-content">
+      <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+        <label style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 0.9rem;">Dark Mode</span>
+          <input type="checkbox" id="theme-toggle" onchange="toggleTheme()" />
+        </label>
+      </div>
       <div class="header-welcome">Selamat Datang, <span id="user-name">Moderator</span>!</div>
       <div class="stat-cards" id="stat-cards">
         <div class="stat-card">
@@ -727,6 +746,13 @@
      localStorage.setItem('theme', next);
    }
  </script>
+  <script>
+    // Set posisi awal toggle berdasarkan theme saat ini
+    document.addEventListener('DOMContentLoaded', () => {
+      const currentTheme = localStorage.getItem('theme') || 'light';
+      document.getElementById('theme-toggle').checked = currentTheme === 'dark';
+    });
+  </script>
 <script>
   // Chart.js dummy chart
   window.addEventListener('DOMContentLoaded', () => {

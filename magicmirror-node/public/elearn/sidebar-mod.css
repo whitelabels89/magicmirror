@@ -1,0 +1,347 @@
+body, html {
+  font-family: 'Roboto', sans-serif;
+}
+  html, body {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    height: 100%;
+    overflow-x: hidden;
+  }
+  :root {
+    --sidebar-width: 240px;
+    --sidebar-collapsed-width: 90px;
+  }
+
+  /* Sidebar styles */
+  #sidebar-container {
+    width: var(--sidebar-width);
+    transition: width 0.3s ease-in-out;
+    border-radius: 20px !important;
+    overflow: hidden;
+    margin-top: 12px;
+    margin-bottom: 12px;
+    box-sizing: border-box;
+    margin-left: 8px; /* beri nafas dari kiri */
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  #sidebar-container.collapsed {
+    width: var(--sidebar-collapsed-width) !important;
+  }
+
+  #sidebar-container.collapsed .sidebar-logo img {
+    width: 40px;
+    margin: 1rem 0;
+  }
+
+  #sidebar-container.collapsed .sidebar-label {
+    display: none !important;
+  }
+
+  #sidebar-container.collapsed .sidebar-nav a {
+    justify-content: center;
+    padding: 0.75rem 0.5rem;
+  }
+
+  #sidebar-container.collapsed .menu-group .submenu {
+    display: none !important;
+  }
+
+  .sidebar {
+    width: 100%;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    background-color: #625b5b;
+    color: #F9FAFB;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 8px; /* sebelumnya 16px */
+    padding-bottom: 16px;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    border: none;
+    outline: none;
+    border-radius: 20px !important;
+    overflow: hidden;
+    position: relative;
+    box-sizing: border-box;
+  }
+  .sidebar-logo img {
+    width: 120px;
+    margin-bottom: 0.25rem; /* lebih kecil agar logo lebih dekat ke ikon pertama */
+  }
+  .sidebar-nav ul {
+    list-style: none;
+    padding: 0;
+    width: 100%;
+    margin-top: 0.25rem; /* tambahkan margin atas kecil agar lebih rapat ke logo */
+  }
+  .sidebar-nav li {
+    width: 100%;
+  }
+  .sidebar-nav a {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.5rem;
+    color: #F9FAFB;
+    text-decoration: none;
+    font-size: 1rem;
+    transition: background-color 0.2s;
+    line-height: 1;
+    justify-content: flex-start;
+  }
+  .sidebar-nav a:hover {
+    background-color: #ffffff10;
+    border-radius: 0px 50px;
+  }
+  .sidebar-nav i {
+    width: 24px;
+    height: 24px;
+    font-size: 1.2rem;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #sidebar-container.collapsed .sidebar-nav i {
+    margin-right: 0 !important;
+  }
+
+  /* Remove previous active state styles if any */
+  /* Removed ::after and border-radius: 999px from active links */
+
+  /* New active state styles with concave effect using clip-path */
+  .sidebar-nav a.active {
+    position: relative;
+    background: transparent;
+    color: #fff;
+    z-index: 1;
+  }
+
+  .sidebar-nav a.active::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: -30px;
+    transform: translateY(-50%);
+    width: 260px;
+    height: 35px;
+    background-color: #ffffff;
+    border-radius: 50px 50px;
+    z-index: -1;
+    box-shadow: none;
+  }
+
+  #sidebar-container.collapsed .sidebar-nav a.active::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: -30px;
+    transform: translateY(-50%);
+    width: 80px;
+    height: 35px;
+    background-color: white;
+    border-radius: 0px 50px;
+    z-index: -1;
+    box-shadow: none;
+  }
+
+  /* Default active icon color (sidebar show) */
+  .sidebar-nav a.active i {
+    color: white;
+  }
+
+  /* Collapsed sidebar active icon color */
+  #sidebar-container.collapsed .sidebar-nav a.active i {
+    color: #530505;
+  }
+
+  #sidebar-container:not(.collapsed) .sidebar-nav a.active {
+    color: #530505;
+  }
+
+  #sidebar-container:not(.collapsed) .sidebar-nav a.active i {
+    color: #530505;
+  }
+  
+
+  /* Sidebar hide/show */
+  #sidebar-container {
+    transform: translateX(0);
+    opacity: 1;
+    transition: transform 0.5s ease-in-out, opacity 0.3s ease-in-out;
+    will-change: transform;
+  }
+  #sidebar-container.hidden {
+    /* Collapse to icon-only width instead of sliding */
+    transform: translateX(0) !important;
+    width: 60px !important;
+    overflow: hidden !important;
+    transition: width 0.3s ease-in-out, transform 0.3s ease-in-out, opacity 0.3s ease-in-out !important;
+  }
+  /* Remove box-shadow when collapsed */
+  #sidebar-container.hidden .sidebar {
+    box-shadow: none !important;
+  }
+  /* Hide labels when sidebar is collapsed */
+  #sidebar-container.hidden .sidebar-nav .sidebar-label {
+    display: none !important;
+  }
+  /* Center icons when collapsed */
+  #sidebar-container.hidden .sidebar-nav a {
+    justify-content: center !important;
+  }
+  /* Remove focus outline from toggle button */
+  #sidebar-toggle:focus {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+  /* Ensure toggle button has no background/frame */
+  #sidebar-toggle {
+    background: transparent !important;
+    border: none !important;
+  }
+  /* Collapse shows only icons */
+
+  .sidebar-toggle {
+    position: absolute;
+    top: 20px;
+    right: -14px;
+    width: 32px;
+    height: 32px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 2px solid #F9FAFB;
+    border-radius: 50%;
+    color: #F9FAFB;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.3s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    z-index: 1101;
+  }
+  .sidebar-toggle i {
+    font-size: 1.1rem;
+  }
+  .sidebar-toggle:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 8px rgba(249, 250, 251, 0.8);
+  }
+  #sidebar-container:not(.collapsed) .sidebar-toggle i {
+    transform: rotate(0deg);
+  }
+  #sidebar-container.collapsed .sidebar-toggle i {
+    transform: rotate(180deg);
+  }
+
+  #sidebar-container.collapsed .sidebar {
+    align-items: center;
+    padding-left: auto;
+    padding-right: auto;
+  }
+
+  #sidebar-container.collapsed .sidebar-logo {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+
+  #sidebar-container.collapsed .sidebar-nav {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  #sidebar-container.collapsed .sidebar-nav ul {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+
+  #sidebar-container.collapsed .sidebar-nav a {
+    justify-content: center !important;
+  }
+
+  /* New styles for menu groups and submenus */
+  .menu-group {
+    width: 100%;
+  }
+  .menu-group > a {
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    color: #F9FAFB;
+    text-decoration: none;
+  }
+  .menu-group .submenu {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+    display: none;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    width: 100%;
+    max-height: none;
+    overflow-y: visible;
+  }
+  .menu-group.open .submenu {
+    display: block;
+  }
+  .menu-group .submenu a {
+    font-weight: normal;
+    font-size: 0.95rem;
+    padding-left: 2.25rem;
+  }
+
+  #sidebar-container.collapsed .menu-group .submenu a {
+    justify-content: center !important;
+  }
+
+  .sidebar-divider {
+    border: none;
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.2);
+    margin: 8px 0;
+    width: 80%;
+    align-self: center;
+  }
+
+  #sidebar-container.collapsed .sidebar-divider {
+    display: none;
+  }
+
+  .meteor {
+    width: 20px;
+    height: 6px;
+    background: linear-gradient(90deg, white, transparent);
+    position: absolute;
+    offset-path: path("M-90,16 h199 a20,20 0 0 1 20,20 v580 a20,20 0 0 1 -20,20 h-197 a20,20 0 0 1 -20,-20 v-580 a20,20 0 0 1 20,-20 z");
+    offset-distance: 0%;
+    offset-rotate: auto;
+    animation: moveMeteor 4s linear infinite;
+    z-index: 999;
+  }
+
+  @keyframes moveMeteor {
+    0% {
+      offset-distance: 0%;
+    }
+    100% {
+      offset-distance: 100%;
+    }
+  }
