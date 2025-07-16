@@ -67,7 +67,6 @@
     .robot-mascot {
       position: absolute;
       width: 180px;
-      transition: transform 0.2s ease-out;
       transform-origin: bottom center;
       z-index: 9999;
       left: 50%;
@@ -102,14 +101,10 @@
       background: rgba(0, 255, 255, 0.7);
       border-radius: 50%;
       box-shadow: 0 0 8px 4px rgba(0, 255, 255, 0.5);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      z-index: 4;
+
     }
 
-    .robot-mascot:hover::after {
-      opacity: 1;
-    }
+    
     .aurora-glow {
       position: fixed;
       width: 100%;
@@ -277,6 +272,52 @@
       color: #f0f0f0;
       margin-bottom: 1.5rem;
     }
+
+    .slide-hook {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: #ffffff;
+      text-align: center;
+      margin: 1.5rem 0;
+      position: relative;
+    }
+    .slide-hook::after {
+      content: '';
+      display: block;
+      width: 60px;
+      height: 3px;
+      background-color: #e91e63;
+      margin: 0.5rem auto 0;
+    }
+
+    /* Center hook text within left panel */
+    .left-panel {
+      position: relative; /* ensure absolute children are positioned correctly */
+    }
+    .left-panel .hook-text {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 1rem;
+      box-sizing: border-box;
+      z-index: 2;
+    }
+    /* Gradient text animation for hook */
+    @keyframes hookGradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .slide-hook {
+      background: linear-gradient(90deg, #FF6A00, #EE0979, #FF6A00);
+      background-size: 200% 200%;
+      animation: hookGradient 4s ease infinite;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
     .side-slide.custom-slide .slide-banner ol {
       margin-left: 1rem;
       color: #f0f0f0;
@@ -368,13 +409,20 @@
         height: auto !important;
       }
     }
+
+    /* Desktop: hide the high-bubble tooltip */
+    @media (min-width: 481px) {
+      #hi-bubble {
+        display: none !important;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="main-background"></div>
   <div class="bg-wrapper">
     <div class="bg-galaxy"></div>
-    <div class="milkyway-scroll-container">
+    <div class="milkyway-overlay milkyway-scroll-container">
       <img src="/elearn/img/milkyway.png" class="milkyway-tile" />
       <img src="/elearn/img/milkyway.png" class="milkyway-tile" />
     </div>
@@ -393,49 +441,58 @@
     <div class="sparkle sparkle-5" style="top: 15%; left: 55%;"></div>
   </div>
   <div id="main-wrapper">
+    <img 
+      src="/elearn/img/rob-right.png" 
+      class="robot-mascot"
+      data-right-src="/elearn/img/rob-right.png"
+      data-back-src="/elearn/img/rob-back.png"
+      data-left-src="/elearn/img/rob.png"
+    />
     <div class="container" role="main">
       <div class="panel-group">
-      <div class="left-panel" aria-label="Ilustrasi Kody di luar jendela pesawat luar angkasa" style="background: transparent;">
-        <div class="window-outer-space">
-          <img src="/elearn/img/rob.png" class="robot-mascot" />
-        </div>
-        <div id="hi-bubble" style="position:absolute; display:none; background:#fff; border-radius:12px; padding:4px 8px; font-size:12px; font-weight:bold; top:0; left:-40px; z-index:4;">Hi!</div>
-      </div>
-      <div class="right-panel">
-        <div class="login-container">
-          <div class="quote-section quote-slider">
-            <div class="quote-slide">
-              <p class="quote-text">"Understanding code is like understanding the language of the future."</p>
-              <p class="quote-author">– Mark Zuckerberg</p>
+        <div class="right-panel">
+          <div class="login-container">
+            <div class="quote-section quote-slider">
+              <div class="quote-slide">
+                <p class="quote-text">"Understanding code is like understanding the language of the future."</p>
+                <p class="quote-author">– Mark Zuckerberg</p>
+              </div>
+              <div class="quote-slide">
+                <p class="quote-text">"Some people don't like change, but you need to embrace change if the alternative is disaster."</p>
+                <p class="quote-author">– Elon Musk</p>
+              </div>
             </div>
-            <div class="quote-slide">
-              <p class="quote-text">"Some people don't like change, but you need to embrace change if the alternative is disaster."</p>
-              <p class="quote-author">– Elon Musk</p>
+            <h2>Ready to Step Into the Digital Future?</h2>
+
+            <!-- Email -->
+            <div class="input-wrapper">
+              <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+              <input type="email" id="email" class="form-input" placeholder="Email" aria-label="Email" />
             </div>
-          </div>
-          <h2>Ready to Step Into the Digital Future?</h2>
 
-          <!-- Email -->
-          <div class="input-wrapper">
-            <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
-            <input type="email" id="email" class="form-input" placeholder="Email" aria-label="Email" />
-          </div>
+            <!-- Password -->
+            <div class="input-wrapper">
+              <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm6-7h-1V7a5 5 0 0 0-10 0v3H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2zm-6-3a3 3 0 0 1 3 3v3H9v-3a3 3 0 0 1 3-3z"/></svg>
+              <input type="password" id="password" class="form-input" placeholder="Password" aria-label="Password" />
+            </div>
 
-          <!-- Password -->
-          <div class="input-wrapper">
-            <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm6-7h-1V7a5 5 0 0 0-10 0v3H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2zm-6-3a3 3 0 0 1 3 3v3H9v-3a3 3 0 0 1 3-3z"/></svg>
-            <input type="password" id="password" class="form-input" placeholder="Password" aria-label="Password" />
-          </div>
+            <!-- Login & Daftar Buttons -->
+            <div class="button-row">
+              <button onclick="login()" id="login-btn" class="login-button">Login</button>
+              <button onclick="window.location.href='/elearn/daftar.html'" class="daftar-akun">Sign Up</button>
+            </div>
 
-          <!-- Login & Daftar Buttons -->
-          <div class="button-row">
-            <button onclick="login()" id="login-btn" class="login-button">Login</button>
-            <button onclick="window.location.href='/elearn/daftar.html'" class="daftar-akun">Sign Up</button>
+            <p id="error-message"></p>
           </div>
-
-          <p id="error-message"></p>
         </div>
-      </div>
+        <div class="left-panel" aria-label="Ilustrasi Kody di luar jendela pesawat luar angkasa" style="background: transparent;">
+          <div class="window-outer-space">
+          </div>
+          <div class="hook-text">
+            <h2 class="slide-hook">✨ Discover the magic on the right — swipe to explore! ✨</h2>
+          </div>
+          <div id="hi-bubble" style="position:absolute; display:none; background:#fff; border-radius:12px; padding:4px 8px; font-size:12px; font-weight:bold; top:0; left:-40px; z-index:4;">Discover the magic on the right — swipe to explore! ✨</div>
+        </div>
       </div> <!-- end panel-group -->
     </div>
     <div class="side-slide right-slide">
@@ -619,125 +676,233 @@ drawNetwork();
 <script src="userInfo.js"></script>
 <script src="script.js"></script>
 <script>
+// Ensure global variables for robot interactivity
+let idleTimer;
+let isIdle = false;
 const robot = document.querySelector('.robot-mascot');
+const wrapper = document.getElementById('main-wrapper');
 const hiBubble = document.getElementById('hi-bubble');
 const loginBtn = document.getElementById('login-btn');
-let mouseX = 0;
-let mouseY = 0;
-let currentX = 0;
-let currentY = 0;
-let isIdle = false;
-isIdle = true;
-startFreeMovement();
-let idleTimer;
-
-// Gerakan smooth menuju kursor (bergerak lebih cepat dan penuh ke titik kursor)
-function animate() {
-  const dx = mouseX - currentX;
-  const dy = mouseY - currentY;
-
-  currentX += dx * 0.15;
-  currentY += dy * 0.25;
-
-  if (!isIdle) {
-    const flip = dx > 0 ? 1 : -1;
-    robot.style.transform = `translateX(-50%) translate(${currentX}px, ${currentY}px) scaleX(${flip})`;
-  }
-
-  // Perbarui posisi bubble setiap frame jika terlihat
-  if (hiBubble.style.display === 'block') {
-    const robotBox = robot.getBoundingClientRect();
-    hiBubble.style.left = `${robotBox.left + 40}px`;
-    hiBubble.style.top = `${robotBox.top - 20}px`;
-  }
-
-  requestAnimationFrame(animate);
-}
-animate();
-
-// Tracking kursor di panel kiri
-document.querySelector('.left-panel').addEventListener('mousemove', function(e) {
-  const panel = this.getBoundingClientRect();
-  const offsetX = e.clientX - panel.left - panel.width / 2;
-  const offsetY = e.clientY - panel.top - panel.height / 2;
-  mouseX = offsetX;
-  mouseY = offsetY;
-
-  isIdle = false;
-  clearTimeout(idleTimer);
-  idleTimer = setTimeout(() => {
-    isIdle = true;
-    startFreeMovement();
-  }, 5000);
-
-  robot.style.left = '50%';
-});
-
-document.querySelector('.left-panel').addEventListener('click', function() {
-  const loginBox = loginBtn.getBoundingClientRect();
-  const daftarBtn = document.querySelector('.daftar-akun').getBoundingClientRect();
-  const panel = this.getBoundingClientRect();
-
-  // arahkan Kody ke tombol Sign Up
-  mouseX = daftarBtn.left + daftarBtn.width / 2 - panel.left - panel.width / 2;
-  mouseY = daftarBtn.top + daftarBtn.height / 2 - panel.top - panel.height / 2;
-
-  robot.style.zIndex = 9999;
-  isIdle = false;
-
-  setTimeout(() => {
-    robot.style.zIndex = 3;
-  }, 3000); // reset z-index setelah 3 detik
-});
-
-function startFreeMovement() {
-  if (!isIdle) return;
-  function randomFloat(min, max) {
-    return Math.random() * (max - min) + min;
-  }
-  function moveRandomly() {
-    if (!isIdle) return;
-    const x = randomFloat(-20, 20);
-    const y = randomFloat(-80, 100); // Bebas bergerak lebih tinggi secara vertikal
-    robot.style.left = '50%';
-    robot.style.transform = `translateX(-50%) translate(${x}px, ${y}px) rotate(${randomFloat(-10, 10)}deg) scaleX(${x > 0 ? 1 : -1})`;
-    setTimeout(moveRandomly, 1500);
-  }
-  moveRandomly();
-}
-
-// Reset posisi saat mouse keluar
-document.querySelector('.left-panel').addEventListener('mouseleave', function() {
+if (window.innerWidth <= 480) {
+  // Static robot and bubble for mobile
+  robot.style.position = 'fixed';
+  robot.style.bottom = '20px';
+  robot.style.right = '10px';
+  robot.style.width = '50px';
+  robot.style.animation = 'none';
+  robot.style.transition = 'none';
+  hiBubble.style.display = 'block';
+  hiBubble.style.position = 'fixed';
+  hiBubble.style.top = 'calc(50% - 60px)';
+  hiBubble.style.right = '10px';
+  hiBubble.style.left = 'auto';
+  hiBubble.style.zIndex = '10000';
+  // Skip initializing interactive behavior
+} else {
+  // Desktop: ensure bubble is hidden by default
+  hiBubble.style.display = 'none';
+  // Desktop: initialize interactive behavior
+  let mouseX = 0;
+  let mouseY = 0;
+  let currentX = 0;
+  let currentY = 0;
+  let isIdle = false;
   isIdle = true;
   startFreeMovement();
-});
+  let idleTimer;
+  let lastDist = Infinity;
 
-function startPeekMotion() {
-  if (!robot.classList.contains('peek')) {
-    robot.classList.add('peek');
+  // Gerakan smooth menuju kursor (bergerak lebih cepat dan penuh ke titik kursor)
+  function animate() {
+    // Mobile: pin robot static in bottom-right and skip animation
+    if (window.innerWidth <= 480) {
+      robot.style.position = 'fixed';
+      robot.style.bottom = '20px';
+      robot.style.right = '10px';
+      robot.style.top = 'auto';
+      robot.style.left = 'auto';
+      robot.style.width = '50px';
+      robot.style.animation = 'none';
+      robot.style.transition = 'none';
+      // Ensure bubble stays visible
+      hiBubble.style.display = 'block';
+      hiBubble.style.position = 'fixed';
+      hiBubble.style.top = 'calc(50% - 60px)';
+      hiBubble.style.right = '10px';
+      hiBubble.style.left = 'auto';
+      hiBubble.style.zIndex = '10000';
+      return; // skip all other animate logic
+    }
+    const dx = mouseX - currentX;
+    const dy = mouseY - currentY;
+
+    currentX += dx * 0.15;
+    currentY += dy * 0.25;
+
+    // --- Sprite & opacity logic refactored as per instructions ---
+    if (!isIdle) {
+      const threshold = 20;
+      let poseSrc;
+      if (lastDist < 100) {
+        // Cursor too close: show back view
+        poseSrc = robot.getAttribute('data-back-src');
+      } else if (dx > threshold) {
+        poseSrc = robot.getAttribute('data-back-src');
+      } else if (dx < -threshold) {
+        poseSrc = robot.getAttribute('data-left-src');
+      } else {
+        poseSrc = robot.getAttribute('data-right-src');
+        poseSrc = robot.getAttribute('data-right-src');
+      }
+      robot.style.transform = `translateX(-50%) translate(${currentX}px, ${currentY}px)`;
+      setTimeout(() => {
+        robot.src = poseSrc;
+      }, 100);
+    } else {
+      // Idle: always show front view
+      robot.src = robot.getAttribute('data-right-src'); // use default rob.png 
+    }
+
+    // Perbarui posisi bubble setiap frame jika terlihat
+    if (hiBubble.style.display === 'block') {
+      const robotBox = robot.getBoundingClientRect();
+      hiBubble.style.left = `${robotBox.left + 40}px`;
+      hiBubble.style.top = `${robotBox.top - 20}px`;
+    }
+
+    requestAnimationFrame(animate);
+  }
+  // Only start continuous animation on desktop
+  if (window.innerWidth > 480) {
+    animate();
+  }
+
+  // Tracking kursor di panel kiri
+  wrapper.addEventListener('mousemove', function(e) {
+    // Calculate offset relative to robot center
+    const robotBox = robot.getBoundingClientRect();
+    const robotCenterX = robotBox.left + robotBox.width / 2;
+    const robotCenterY = robotBox.top + robotBox.height / 2;
+    const offsetX = e.clientX - robotCenterX;
+    const offsetY = e.clientY - robotCenterY;
+    const dist = Math.hypot(offsetX, offsetY);
+    lastDist = dist;
+    // const panel = wrapper.getBoundingClientRect();
+    // const offsetX = e.clientX - panel.left - panel.width / 2;
+    // const offsetY = e.clientY - panel.top - panel.height / 2;
+    // const dist = Math.hypot(offsetX, offsetY);
+    if (dist < 100) {
+      // Cursor too close: robot moves away
+      mouseX = -offsetX * 1.5;
+      mouseY = -offsetY * 1.5;
+    } else {
+      // Normal follow when idle
+      mouseX = offsetX;
+      mouseY = offsetY;
+    }
+
+    isIdle = false;
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => {
+      isIdle = true;
+      startFreeMovement();
+    }, 5000);
+
+    robot.style.left = '50%';
+  });
+
+  wrapper.addEventListener('click', function() {
+    const loginBox = loginBtn.getBoundingClientRect();
+    const daftarBtn = document.querySelector('.daftar-akun').getBoundingClientRect();
+    const panel = wrapper.getBoundingClientRect();
+
+    // arahkan Kody ke tombol Sign Up
+    mouseX = daftarBtn.left + daftarBtn.width / 2 - panel.left - panel.width / 2;
+    mouseY = daftarBtn.top + daftarBtn.height / 2 - panel.top - panel.height / 2;
+
+    robot.style.zIndex = 9999;
+    isIdle = false;
+
     setTimeout(() => {
-      robot.classList.remove('peek');
-    }, 3000);
+      robot.style.zIndex = 3;
+    }, 3000); // reset z-index setelah 3 detik
+  });
+
+  function startFreeMovement() {
+    if (!isIdle) return;
+    function randomFloat(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+    function moveRandomly() {
+      if (!isIdle) return;
+      const x = randomFloat(-20, 20);
+      const y = randomFloat(-80, 100); // Bebas bergerak lebih tinggi secara vertikal
+      robot.style.left = '50%';
+      robot.style.transform = `translateX(-50%) translate(${x}px, ${y}px) rotate(${randomFloat(-10, 10)}deg) scaleX(${x > 0 ? 1 : -1})`;
+      setTimeout(moveRandomly, 1500);
+    }
+    moveRandomly();
   }
-}
 
-// Jalankan secara acak tiap 10–20 detik
-setInterval(() => {
-  if (isIdle) startPeekMotion();
-}, Math.floor(Math.random() * 10000) + 10000);
+  // Reset posisi saat mouse keluar
+  wrapper.addEventListener('mouseleave', function() {
+    isIdle = true;
+    startFreeMovement();
+  });
 
-function checkGreeting() {
-  const distance = Math.sqrt(mouseX ** 2 + mouseY ** 2);
-  if (distance < 50 && !robot.classList.contains('peek')) {
-    hiBubble.style.display = 'block';
-    hiBubble.style.left = (robot.offsetLeft + 40) + 'px';
-    hiBubble.style.top = (robot.offsetTop - 20) + 'px';
-  } else {
-    hiBubble.style.display = 'none';
+  function startPeekMotion() {
+    if (!robot.classList.contains('peek')) {
+      robot.classList.add('peek');
+      setTimeout(() => {
+        robot.classList.remove('peek');
+      }, 3000);
+    }
   }
-}
 
-setInterval(checkGreeting, 300);
+  // Jalankan secara acak tiap 10–20 detik
+  setInterval(() => {
+    if (isIdle) startPeekMotion();
+  }, Math.floor(Math.random() * 10000) + 10000);
+
+  function checkGreeting() {
+    if (window.innerWidth > 480) {
+      const distance = Math.sqrt(mouseX ** 2 + mouseY ** 2);
+      if (distance < 50 && !robot.classList.contains('peek')) {
+        hiBubble.style.display = 'block';
+        hiBubble.style.left = (robot.offsetLeft + 40) + 'px';
+        hiBubble.style.top = (robot.offsetTop - 20) + 'px';
+      } else {
+        hiBubble.style.display = 'none';
+      }
+    }
+  }
+
+  setInterval(checkGreeting, 300);
+}
+</script>
+
+<script>
+// Sync robot Kody to the center of active slide on scroll
+wrapper.addEventListener('scroll', () => {
+  // Pause other movements
+  isIdle = true;
+  clearTimeout(idleTimer);
+
+  const slideWidth = window.innerWidth;
+  const index = Math.round(wrapper.scrollLeft / slideWidth);
+  const slides = wrapper.querySelectorAll('.container, .side-slide');
+  const active = slides[index];
+  if (active) {
+    const rect = active.getBoundingClientRect();
+    // Center robot on active slide
+    robot.style.left = `${rect.left + rect.width / 2}px`;
+    robot.style.top = `${rect.top + rect.height / 2}px`;
+    // Reset transform to center at those coords
+    robot.style.transform = 'translate(-50%, -50%)';
+  }
+});
+// Trigger initial position on load
+window.addEventListener('load', () => wrapper.dispatchEvent(new Event('scroll')));
 </script>
 
 </body>

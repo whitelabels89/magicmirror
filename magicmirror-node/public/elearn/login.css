@@ -1,12 +1,13 @@
 /* Robot Mascot Animation */
 .robot-mascot {
   width: 180px;
-  position: absolute;
-  bottom: 20px;
+  position: fixed;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   transition: transform 0.1s ease-out;
-  z-index: 9999; /* Lebih tinggi dari container login */
+  z-index: 9999;
+  pointer-events: none;
 }
 
 .robot-mascot:hover {
@@ -96,7 +97,7 @@ body::before {
     background-position: center;
     border-radius: 24px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-    transform: translateX(-80px);
+    transform: translateX(80px);
     z-index: 4;
     overflow: hidden;
 }
@@ -331,7 +332,7 @@ body::before {
     background: white;
     border-radius: 24px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-    transform: skew(0deg) translateX(180px);
+    transform: skew(0deg) translateX(-180px);
     z-index: 4;
     overflow: hidden;
     
@@ -651,45 +652,105 @@ body::before {
     body {
         padding: 10px;
     }
-    
     .container {
         max-width: 350px;
         height: 500px;
     }
-    
-    .left-panel {
-        width: 280px;
-        height: 480px;
-        transform: translateX(-30px);
+    /* Stack panels vertically on small screens */
+    .panel-group {
+      display: block !important;
+      margin: 0 !important;
+      padding: 0 !important;
     }
-    
+    .left-panel,
     .right-panel {
-        width: 280px;
-        height: 480px;
-        transform: skew(2deg) translateX(40px);
+      position: relative !important;
+      width: 100% !important;
+      height: auto !important;
+      transform: none !important;
+      margin: 0 auto 1.5rem !important;
+      box-shadow: none !important;
     }
-    
+    /* Hide hook text in mobile */
+    .left-panel .hook-text {
+      display: none !important;
+    }
+    /* Responsive login container */
     .login-container {
+        width: 100% !important;
+        padding: 30px 20px !important;
+        align-items: center !important;
+        justify-content: center !important;
         transform: skew(-2deg);
-        padding: 20px;
-        align-items: flex-start;
-        justify-content: flex-start;
-        gap: 16px;
+        gap: 20px !important;
     }
-    
+    /* Add bottom margin for input groups to space out fields */
+    .input-group {
+        width: 100% !important;
+        max-width: none !important;
+        margin-bottom: 16px !important;
+    }
+    /* Make form and buttons full width */
+    .login-form,
+    .login-button,
+    .daftar-akun {
+        width: 100% !important;
+        max-width: none !important;
+    }
     .quote-text {
         font-size: 14px;
     }
-    
     .form-title {
         font-size: 20px;
+        text-align: center !important;
+        margin-bottom: 24px !important;
     }
-    
     .form-input {
-        padding: 12px 12px 12px 40px;
-        font-size: 14px;
+        padding: 12px 15px !important;
+        font-size: 16px !important;
+    }
+    /* Add top margin above the login and daftar buttons */
+    .login-button,
+    .daftar-akun {
+        margin-top: 16px !important;
     }
 
+    /* Proportional mobile adjustments for login form */
+    .right-panel .login-container {
+      width: 80% !important;
+      margin: 0 auto !important;
+      padding: 12px !important;
+      gap: 8px !important;
+    }
+    .right-panel .login-container .input-wrapper {
+      margin-bottom: 8px !important;
+    }
+    .right-panel .login-container .input-icon {
+      left: 10px !important;
+      width: 12px !important;
+      height: 12px !important;
+    }
+    .right-panel .login-container .form-input {
+      padding: 10px 10px 10px 32px !important;
+      font-size: 13px !important;
+    }
+    .right-panel .login-container .button-row {
+      flex-direction: column !important;
+      width: 100% !important;
+    }
+    .right-panel .login-container .login-button {
+      order: 1;
+      margin-bottom: 8px !important;
+    }
+    .right-panel .login-container .daftar-akun {
+      order: 2;
+      margin-top: 0 !important;
+    }
+    .right-panel .login-container .login-button,
+    .right-panel .login-container .daftar-akun {
+      padding: 10px !important;
+      font-size: 13px !important;
+    }
     /* Responsiveee moving background for mobile */
     .bg-galaxy,
     .milkyway-overlay,
@@ -699,17 +760,16 @@ body::before {
       width: 100vw !important;
       height: 100vh !important;
     }
-
     /* Ensure Milky Way overlay fills mobile viewport */
     .milkyway-overlay {
-      width: 100vw !important;
-      height: 100vh !important;
+      width: auto !important;
+      height: 100vh !important; /* keep existing correct height */
       top: 0 !important;
-      left: 0 !important;
-      object-fit: cover !important;
+      left: 50% !important;
+      transform: translateX(-50%) !important;
+      object-fit: none !important;
       animation: moveMilkyWay 60s linear infinite !important;
     }
-
     .grid-overlay {
       background-size: 20px 20px !important;
     }
@@ -722,7 +782,137 @@ body::before {
       width: 8px !important;
       height: 8px !important;
     }
+    /* Slide-specific responsive tweaks */
+    .side-slide.right-slide .slide-banner h1,
+    .side-slide.custom-slide .slide-banner h1 {
+      font-size: 2rem !important;
+      line-height: 1.2 !important;
+      padding: 0 1rem !important;
+      word-wrap: break-word !important;
+    }
+    .side-slide.right-slide .slide-banner .subheading,
+    .side-slide.custom-slide .slide-banner .subheading {
+      font-size: 1rem !important;
+      padding: 0 1rem !important;
+      margin-bottom: 1rem !important;
+    }
+    /* Wrap step cards and adjust card width */
+    .side-slide.custom-slide .slide-banner .step-cards {
+      flex-wrap: wrap !important;
+      gap: 1rem !important;
+    }
+    .side-slide.custom-slide .slide-banner .card {
+      flex: 1 0 45% !important;
+      padding: 1rem !important;
+      font-size: 0.9rem !important;
+    }
+    /* Center CTA */
+    .side-slide.custom-slide .slide-banner .cta-link,
+    .side-slide.right-slide .slide-banner .cta-link {
+      text-align: center !important;
+      display: block !important;
+      margin: 1.5rem auto !important;
+      font-size: 1rem !important;
+    }
+
+    /* Compact mobile styling for slide 4 benefit list */
+    .side-slide.custom-slide .slide-banner {
+      padding: 0.5rem !important;
+    }
+    .side-slide.custom-slide .slide-banner .benefit-list {
+      margin: 1rem 0 !important;
+    }
+    .side-slide.custom-slide .slide-banner .benefit-list li {
+      font-size: 1rem !important;
+      margin-bottom: 0.75rem !important;
+      padding-left: 1rem !important;
+      line-height: 1.2 !important;
+      white-space: normal !important;
+    }
+
+    /* Mobile peek mode styling */
+    .robot-mascot {
+      width: 50px !important;
+      height: auto !important;
+    }
+    #hi-bubble {
+      max-width: 160px !important;
+      font-size: 0.875rem !important;
+      text-align: center !important;
+      padding: 4px 8px !important;
+      border-radius: 8px !important;
+      background: rgba(0,0,0,0.7) !important;
+      color: #ffffff !important;
+    }
+    /* Disable all robot animations on mobile */
+    .robot-mascot,
+    .robot-mascot:hover {
+      animation: none !important;
+      transition: none !important;
+    }
+    /* Always show bubble */
+    #hi-bubble {
+      display: block !important;
+      opacity: 1 !important;
+    }
+    /* Ensure left-panel allows overflow for bubble */
+    .left-panel {
+      overflow: visible !important;
+    }
+    /* Pin robot mascot and disable movement */
+    .robot-mascot {
+      position: absolute !important;
+      animation: none !important;
+      transition: none !important;
+    }
+    /* Always show the hi-bubble text */
+    #hi-bubble {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      z-index: 10000 !important;
+    }
 }
+
+  /* Mobile: fix bubble position and ensure robot is static */
+  @media (max-width: 480px) {
+    #hi-bubble {
+      position: fixed !important;
+      top: 38% !important;
+      right: 0px !important;
+      left: auto !important;
+      transform: translateY(-50%) !important;
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      z-index: 10000 !important;
+      pointer-events: none !important;
+    }
+    .robot-mascot {
+      animation: none !important;
+      transition: none !important;
+      top: auto !important;
+      left: auto !important;
+      bottom: 310px !important;
+      right: 10px !important;
+      position: fixed !important;
+      transform: translate(0, 0) !important;
+    }
+  }
+
+  /* Compact quote box on mobile */
+  .quote-section {
+    width: 90% !important;
+    max-width: 300px !important;
+    margin: 0 auto 16px !important;
+    padding: 0 8px !important;
+    overflow: visible !important;
+  }
+  .quote-text, .quote-author {
+    text-align: center !important;
+    width: 100% !important;
+    word-wrap: break-word !important;
+  }
 
 
 .button-row {
@@ -942,10 +1132,13 @@ body::before {
 }
 
 /* Override panel transforms and center content */
+/* Horizontal scrollable main wrapper with snap points */
 #main-wrapper {
   display: flex;
   width: 500vw;
-  transition: transform 0.3s ease;
+  /* transition: transform 0.3s ease; */ /* Disabled to allow native scroll */
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
 }
 #main-wrapper > .container,
 #main-wrapper > .side-slide {
@@ -956,6 +1149,12 @@ body::before {
   align-items: center;
   box-sizing: border-box;
   /* padding-left: 50px; */ /* Removed to prevent horizontal offset interference */
+  scroll-snap-align: center;
+}
+
+#main-wrapper > .container,
+#main-wrapper > .side-slide {
+  scroll-snap-align: center;
 }
 
 /* Remove original translateX/skew transforms */
