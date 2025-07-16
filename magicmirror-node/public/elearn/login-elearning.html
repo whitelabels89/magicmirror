@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <link href="https://fonts.googleapis.com/css2?family=Indie+Flower&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=One+Little+Font&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login E-Learning</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="/elearn/login-elearning-up.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.google.com/recaptcha/api.js?render=6LeNUoArAAAAACP2yuxCC-MJ-G6k3SBOesTEEAD7"></script>
@@ -22,174 +23,449 @@
     };
     firebase.initializeApp(firebaseConfig);
   </script>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    body {
-      margin: 0;
-      font-family: 'Fredoka', sans-serif;
-      background: url('/elearn/img/4.jpg') no-repeat center center fixed;
-      background-size: cover;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
+    /* White background container for all side slides */
+    .side-slide .slide-content {
+      /* Slide 2 will use .card-container for white box, so remove here for all */
     }
-
-    .login-wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      width: 100px;
-      margin-top: 150px;
-      height: auto;
+    /* Card container for slide 2 */
+    .card-container {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 8px;
+      width: 80%;
+      max-width: 600px;
       box-sizing: border-box;
-      text-align: center;
-      z-index: 10;
-    }
-
-    .input-container {
-      position: relative;
-      width: auto;
-      height: auto;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      margin: 5px 0;
-    }
-
-    .input-container input {
-      width: 300px;
-      height: 50px;
-      padding: 10px;
-      font-size: 18px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
       text-align: left;
-      background: #fff;
     }
-
-    input[type="email"],
-    input[type="password"] {
-      /* Removed previous styles */
-      position: static;
-      margin-top: 0;
-      background: #fff;
-      border: 1px solid #ccc;
-      outline: none;
-      font-size: 18px;
-      color: #000;
-      text-align: center;
-      width: 450px;
-      height: 15px;
-      padding: 10px;
-      border-radius: 10px;
-      pointer-events: auto;
-      z-index: 1;
-      font-family: 'Indie Flower', cursive;
+    /* Slider container with scroll-snap */
+    #main-wrapper {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
     }
-
-    /* Login Button */
-    .login-button-container {
-      position: relative;
-      width: 160px;
-      height: 160px;
-      margin: -55px 0;
+    #main-wrapper > .container,
+    #main-wrapper > .side-slide {
+      flex: 0 0 100vw;
+      scroll-snap-align: start;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
-
-    .login-button-container img {
+    html, body { overflow-x: hidden; }
+    body {
+      background: #ffffff;
+    }
+    .space-background {
+      background: linear-gradient(to bottom, #0d1b40 60%, #6bb9f0 150%);
+      position: absolute;
       width: 100%;
       height: 100%;
-      object-fit: contain;
+      z-index: 1;
+    }
+    .robot-mascot {
+      position: absolute;
+      width: 180px;
+      transition: transform 0.2s ease-out;
+      transform-origin: bottom center;
+      z-index: 9999;
+      left: 50%;
+      /* Hapus batasan bottom/top agar transform bisa atur posisi vertikal */
+    }
+    .robot-mascot.peek {
+      animation: peekMotion 3s ease-in-out forwards;
+    }
+    @keyframes peekMotion {
+      0% {
+        bottom: -120px;
+        left: 10px;
+        transform: translateX(0) scaleX(1);
+      }
+      20% {
+        bottom: -40px;
+      }
+      80% {
+        bottom: -40px;
+      }
+      100% {
+        bottom: -120px;
+      }
+    }
+    .robot-mascot::after {
+      content: "";
+      position: absolute;
+      top: 40px;
+      left: 70px;
+      width: 10px;
+      height: 10px;
+      background: rgba(0, 255, 255, 0.7);
+      border-radius: 50%;
+      box-shadow: 0 0 8px 4px rgba(0, 255, 255, 0.5);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 4;
+    }
+
+    .robot-mascot:hover::after {
+      opacity: 1;
+    }
+    .aurora-glow {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 30% 30%, rgba(0,255,255,0.1), transparent 60%);
+      animation: auroraPulse 12s ease-in-out infinite;
+      z-index: 0;
       pointer-events: none;
+    }
+
+    .sparkle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: yellow;
+      border-radius: 50%;
+      opacity: 0.8;
+      animation: sparkleBlink 2s infinite ease-in-out;
+    }
+
+    .ripple-light {
+      position: fixed;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      background: radial-gradient(rgba(255,255,255,0.2), transparent);
+      animation: rippleWave 8s infinite ease-in-out;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .orbit-ring {
+      position: absolute;
+      border: 1px solid rgba(255,255,255,0.1);
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      animation: spinOrbit 30s linear infinite;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .grid-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), 
+                        linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 20px 20px;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    @keyframes auroraPulse {
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 0.4; }
+    }
+
+    @keyframes rippleWave {
+      0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.6; }
+      50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.3; }
+      100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.6; }
+    }
+
+    @keyframes spinOrbit {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    @keyframes sparkleBlink {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 1; }
+    }
+
+    /* Galaxy Background */
+    .bg-wrapper {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      display: block;
+    }
+    .main-background {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(to bottom, #000428, #004e92);
+      background-size: cover;
+      background-position: center;
+      z-index: -2;
+    }
+    .bg-galaxy {
       position: absolute;
       top: 0;
       left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-image: url('/elearn/img/bg-galaxy-placeholder3.png');
+      background-repeat: repeat-x;
+      background-size: cover;
+      background-position: 0 0;
+      animation: moveGalaxy 60s linear infinite;
+      z-index: -2;
+      pointer-events: none;
+    }
+    .milkyway-scroll-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 200vw;
+      height: 100vh;
+      display: flex;
+      animation: scrollMilkyWay 60s linear infinite;
+      z-index: -1;
+      pointer-events: none;
     }
 
-    #login-btn {
+    .milkyway-tile {
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      opacity: 0.45;
+      filter: brightness(1.1) contrast(1.1);
+      mix-blend-mode: screen;
+    }
+
+    @keyframes scrollMilkyWay {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-100vw); }
+    }
+    @keyframes moveGalaxy {
+      0% { background-position-x: 0; }
+      100% { background-position-x: -100vw; }
+    }
+    /* Banner style for custom slides (slides 3,4,5) */
+    .side-slide.custom-slide .slide-banner {
+      text-align: left;
+      max-width: 80vw;
+      padding: 2rem;
+    }
+    .side-slide.custom-slide .slide-banner h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 3rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 0.5rem;
+      line-height: 1.1;
       position: relative;
-      width: 140px;
-      height: 50px;
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      z-index: 3;
+    }
+    .side-slide.custom-slide .slide-banner h1::after {
+      content: '';
+      display: block;
+      width: 80px;
+      height: 4px;
+      background-color: #e91e63;
+      margin-top: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .side-slide.custom-slide .slide-banner .subheading {
+      font-size: 1.125rem;
+      color: #f0f0f0;
+      margin-bottom: 1.5rem;
+    }
+    .side-slide.custom-slide .slide-banner ol {
+      margin-left: 1rem;
+      color: #f0f0f0;
+    }
+    .side-slide.custom-slide .slide-banner ol li {
+      margin-bottom: 0.75rem;
+      font-size: 1rem;
+      color: #f0f0f0;
+    }
+
+    /* Animated gradient background */
+    @keyframes gradientAnimation {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    /* Elegant gradient text and custom bullet for benefits */
+    .side-slide.custom-slide .slide-banner .benefit-list {
+      list-style: none;
       padding: 0;
-      margin: 0;
-      top: 50px;
-      left: 0px;
+      margin: 2rem 0;
     }
-
-    .login-button-container img {
-      transition: transform 0.2s ease, filter 0.2s ease;
-    }
-
-    #login-btn:hover + img {
-      transform: scale(1.03);
-      filter: brightness(1.25);
-    }
-
-    button:hover {
-      background: #f55f7a;
-    }
-
-    button:active {
-      background: #e94e6a;
-    }
-
-    #error-message {
-      margin-top: 10px;
-      color: red;
-      width: 100%;
-      text-align: center;
+    .side-slide.custom-slide .slide-banner .benefit-list li {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
       position: relative;
+      padding-left: 2rem;
+      background-image: linear-gradient(45deg, #FF6A00, #EE0979);
+      background-size: 400% 400%;
+      animation: gradientAnimation 8s ease infinite;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 8px rgba(238,9,121,0.8);
+      white-space: nowrap;
+    }
+    .side-slide.custom-slide .slide-banner .benefit-list li::before {
+      content: '●';
+      position: absolute;
+      left: 0;
+      top: 0.3rem;
+      font-size: 1rem;
+      color: #FF6A00;
     }
 
-  @media (max-width: 600px) {
-    .input-container input, input[type="email"], input[type="password"] {
-      width: 90vw;
+    /* Playful 3-step cards for How It Works slide */
+    .side-slide.custom-slide .slide-banner .step-cards {
+      display: flex;
+      gap: 1.5rem;
+      margin: 2rem 0;
     }
-    .login-button-container {
-      width: 120px;
-      height: 120px;
+    .side-slide.custom-slide .slide-banner .step-cards .card {
+      flex: 1;
+      background: linear-gradient(135deg, #FFD54F, #FF8A65);
+      padding: 1.5rem;
+      border-radius: 16px;
+      text-align: center;
+      font-weight: 700;
+      color: #ffffff;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
     }
-    #login-btn {
-      width: 100px;
-      top: 40px;
+    .side-slide.custom-slide .slide-banner .step-cards .card::before {
+      content: attr(data-step-icon);
+      font-size: 2.5rem;
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      opacity: 0.2;
     }
-  }
+    .side-slide.custom-slide .slide-banner .step-cards .card span {
+      display: block;
+      margin: 0;
+      font-size: 1rem;
+    }
   </style>
 </head>
 <body>
-  <div class="login-wrapper">
-    <!-- Email -->
-    <div class="input-container">
-      <input type="email" id="email" placeholder="Email" />
-    </div>
-
-    <!-- Password -->
-    <div class="input-container">
-      <input type="password" id="password" placeholder="Password" />
-    </div>
-
-    <!-- Login Button -->
-    <div class="login-button-container">
-      <button onclick="login()" id="login-btn"></button>
-      <img src="/elearn/img/loginbutton.png" alt="Login Button" />
-    </div>
-
-    <p id="error-message"></p>
-    <!-- Daftar Akun Baru -->
-    <div class="input-container">
-      <button onclick="window.location.href='/elearn/daftar.html'" style="padding: 10px 30px; font-size: 18px; border-radius: 10px; border: none; background-color: #4CAF50; color: white; cursor: pointer;">
-        Daftar Akun Baru
-      </button>
+  <div class="main-background"></div>
+  <div class="bg-wrapper">
+    <div class="bg-galaxy"></div>
+    <div class="milkyway-scroll-container">
+      <img src="/elearn/img/milkyway.png" class="milkyway-tile" />
+      <img src="/elearn/img/milkyway.png" class="milkyway-tile" />
     </div>
   </div>
+  <!-- Global Background Effects -->
+  <div class="background-effects">
+    <div class="aurora-glow"></div>
+    <div class="ripple-light"></div>
+    <div class="orbit-ring"></div>
+    <div class="grid-overlay"></div>
+    <canvas id="network-canvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none;"></canvas>
+    <div class="sparkle sparkle-1" style="top: 10%; left: 20%;"></div>
+    <div class="sparkle sparkle-2" style="top: 30%; left: 70%;"></div>
+    <div class="sparkle sparkle-3" style="top: 60%; left: 40%;"></div>
+    <div class="sparkle sparkle-4" style="top: 80%; left: 25%;"></div>
+    <div class="sparkle sparkle-5" style="top: 15%; left: 55%;"></div>
+  </div>
+  <div id="main-wrapper">
+    <div class="container" role="main">
+      <div class="panel-group">
+      <div class="left-panel" aria-label="Ilustrasi Kody di luar jendela pesawat luar angkasa" style="background: transparent;">
+        <div class="window-outer-space">
+          <img src="/elearn/img/rob.png" class="robot-mascot" />
+        </div>
+        <div id="hi-bubble" style="position:absolute; display:none; background:#fff; border-radius:12px; padding:4px 8px; font-size:12px; font-weight:bold; top:0; left:-40px; z-index:4;">Hi!</div>
+      </div>
+      <div class="right-panel">
+        <div class="login-container">
+          <div class="quote-section quote-slider">
+            <div class="quote-slide">
+              <p class="quote-text">"Understanding code is like understanding the language of the future."</p>
+              <p class="quote-author">– Mark Zuckerberg</p>
+            </div>
+            <div class="quote-slide">
+              <p class="quote-text">"Some people don't like change, but you need to embrace change if the alternative is disaster."</p>
+              <p class="quote-author">– Elon Musk</p>
+            </div>
+          </div>
+          <h2>Ready to Step Into the Digital Future?</h2>
+
+          <!-- Email -->
+          <div class="input-wrapper">
+            <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+            <input type="email" id="email" class="form-input" placeholder="Email" aria-label="Email" />
+          </div>
+
+          <!-- Password -->
+          <div class="input-wrapper">
+            <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm6-7h-1V7a5 5 0 0 0-10 0v3H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2zm-6-3a3 3 0 0 1 3 3v3H9v-3a3 3 0 0 1 3-3z"/></svg>
+            <input type="password" id="password" class="form-input" placeholder="Password" aria-label="Password" />
+          </div>
+
+          <!-- Login & Daftar Buttons -->
+          <div class="button-row">
+            <button onclick="login()" id="login-btn" class="login-button">Login</button>
+            <button onclick="window.location.href='/elearn/daftar.html'" class="daftar-akun">Sign Up</button>
+          </div>
+
+          <p id="error-message"></p>
+        </div>
+      </div>
+      </div> <!-- end panel-group -->
+    </div>
+    <div class="side-slide right-slide">
+      <div class="slide-banner">
+        <h1>Create.Future.Together.</h1>
+        <p class="subheading">Actively shaping the future, jointly finding innovative solutions to new challenges.</p>
+        <a href="#learn-more" class="cta-link">LEARN MORE →</a>
+      </div>
+    </div>
+    <div class="side-slide custom-slide">
+      <div class="slide-banner">
+        <h1>Ignite Their Coding Journey</h1>
+        <p class="subheading">Explore our step-by-step modules crafted to spark creativity and problem-solving in every learner.</p>
+        <a href="#curriculum-details" class="cta-link">LEARN MORE →</a>
+      </div>
+    </div>
+    <div class="side-slide custom-slide">
+      <div class="slide-banner">
+        <h1>Why iCoding Works</h1>
+        <p class="subheading">Unlock skills that matter</p>
+        <ul class="benefit-list">
+          <li>Growth Mindset &amp; Creativity</li>
+          <li>Logical Thinking&nbsp;&amp;&nbsp;Problem Solving</li>
+          <li>Collaboration &amp; Confidence</li>
+        </ul>
+        <a href="#benefits" class="cta-link">EXPLORE BENEFITS →</a>
+      </div>
+    </div>
+    <div class="side-slide custom-slide">
+      <div class="slide-banner">
+        <h1>⚙️ How It Works</h1>
+        <p class="subheading">Three simple steps to start coding</p>
+        <div class="step-cards">
+          <div class="card"><span>1. Sign Up &amp; Onboard</span></div>
+          <div class="card"><span>2. Interactive Lessons &amp; Challenges</span></div>
+          <div class="card"><span>3. Build &amp; Showcase Projects</span></div>
+        </div>
+        <a href="#get-started" class="cta-link">GET STARTED →</a>
+      </div>
+    </div>
+  </div> <!-- end main-wrapper -->
 
 <script>
 async function login() {
@@ -226,11 +502,16 @@ async function login() {
         }
 
         const userCred = await firebase.auth().signInWithEmailAndPassword(email, password);
-        const uid = userCred.user.uid;
-
-        const res = await fetch(`https://firebase-upload-backend.onrender.com/api/get-role-by-uid?uid=${uid}`);
+        const emailLogin = userCred.user.email;
+        // Ambil data akun dari backend yang sudah mengambil dari collection 'akun'
+        const res = await fetch('https://firebase-upload-backend.onrender.com/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: emailLogin })
+        });
         const data = await res.json();
 
+        // Data sudah mengandung role, cid, nama, uid sesuai collection 'akun'
         if (!data || !data.role) {
           errorEl.innerText = "❌ Akun tidak memiliki akses yang valid.";
           return;
@@ -244,6 +525,10 @@ async function login() {
 
         if (data.role === "moderator") {
           window.location.href = "/elearn/moderator.html";
+        } else if (data.role === "murid") {
+          window.location.href = "/elearn/murid.html";
+        } else if (data.role === "guru") {
+          window.location.href = "/elearn/guru.html";
         } else {
           window.location.href = "/elearn/murid.html";
         }
@@ -254,8 +539,196 @@ async function login() {
     });
   });
 }
+<!-- (removed duplicate script end tag) -->
+</script>
+<script>
+const canvas = document.getElementById('network-canvas');
+const ctx = canvas.getContext('2d');
+let nodes = [];
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  initNodes();
+}
+
+function initNodes() {
+  nodes = [];
+  const nodeCount = Math.floor(canvas.width * canvas.height / 5000);
+  for (let i = 0; i < nodeCount; i++) {
+    nodes.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.5,
+      vy: (Math.random() - 0.5) * 0.5,
+    });
+  }
+}
+
+function drawNetwork() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  for (let i = 0; i < nodes.length; i++) {
+    const a = nodes[i];
+    ctx.beginPath();
+    ctx.arc(a.x, a.y, 2, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff55';
+    ctx.fill();
+    for (let j = i + 1; j < nodes.length; j++) {
+      const b = nodes[j];
+      const dx = a.x - b.x;
+      const dy = a.y - b.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 120) {
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.strokeStyle = `rgba(255,255,255,${1 - dist / 120})`;
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+    }
+  }
+
+  for (const node of nodes) {
+    node.x += node.vx;
+    node.y += node.vy;
+
+    if (node.x < 0 || node.x > canvas.width) node.vx *= -1;
+    if (node.y < 0 || node.y > canvas.height) node.vy *= -1;
+  }
+
+  requestAnimationFrame(drawNetwork);
+}
+
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+drawNetwork();
 </script>
 <script src="userInfo.js"></script>
 <script src="script.js"></script>
+<script>
+const robot = document.querySelector('.robot-mascot');
+const hiBubble = document.getElementById('hi-bubble');
+const loginBtn = document.getElementById('login-btn');
+let mouseX = 0;
+let mouseY = 0;
+let currentX = 0;
+let currentY = 0;
+let isIdle = false;
+isIdle = true;
+startFreeMovement();
+let idleTimer;
+
+// Gerakan smooth menuju kursor (bergerak lebih cepat dan penuh ke titik kursor)
+function animate() {
+  const dx = mouseX - currentX;
+  const dy = mouseY - currentY;
+
+  currentX += dx * 0.15;
+  currentY += dy * 0.25;
+
+  if (!isIdle) {
+    const flip = dx > 0 ? 1 : -1;
+    robot.style.transform = `translateX(-50%) translate(${currentX}px, ${currentY}px) scaleX(${flip})`;
+  }
+
+  // Perbarui posisi bubble setiap frame jika terlihat
+  if (hiBubble.style.display === 'block') {
+    const robotBox = robot.getBoundingClientRect();
+    hiBubble.style.left = `${robotBox.left + 40}px`;
+    hiBubble.style.top = `${robotBox.top - 20}px`;
+  }
+
+  requestAnimationFrame(animate);
+}
+animate();
+
+// Tracking kursor di panel kiri
+document.querySelector('.left-panel').addEventListener('mousemove', function(e) {
+  const panel = this.getBoundingClientRect();
+  const offsetX = e.clientX - panel.left - panel.width / 2;
+  const offsetY = e.clientY - panel.top - panel.height / 2;
+  mouseX = offsetX;
+  mouseY = offsetY;
+
+  isIdle = false;
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    isIdle = true;
+    startFreeMovement();
+  }, 5000);
+
+  robot.style.left = '50%';
+});
+
+document.querySelector('.left-panel').addEventListener('click', function() {
+  const loginBox = loginBtn.getBoundingClientRect();
+  const daftarBtn = document.querySelector('.daftar-akun').getBoundingClientRect();
+  const panel = this.getBoundingClientRect();
+
+  // arahkan Kody ke tombol Sign Up
+  mouseX = daftarBtn.left + daftarBtn.width / 2 - panel.left - panel.width / 2;
+  mouseY = daftarBtn.top + daftarBtn.height / 2 - panel.top - panel.height / 2;
+
+  robot.style.zIndex = 9999;
+  isIdle = false;
+
+  setTimeout(() => {
+    robot.style.zIndex = 3;
+  }, 3000); // reset z-index setelah 3 detik
+});
+
+function startFreeMovement() {
+  if (!isIdle) return;
+  function randomFloat(min, max) {
+    return Math.random() * (max - min) + min;
+  }
+  function moveRandomly() {
+    if (!isIdle) return;
+    const x = randomFloat(-20, 20);
+    const y = randomFloat(-80, 100); // Bebas bergerak lebih tinggi secara vertikal
+    robot.style.left = '50%';
+    robot.style.transform = `translateX(-50%) translate(${x}px, ${y}px) rotate(${randomFloat(-10, 10)}deg) scaleX(${x > 0 ? 1 : -1})`;
+    setTimeout(moveRandomly, 1500);
+  }
+  moveRandomly();
+}
+
+// Reset posisi saat mouse keluar
+document.querySelector('.left-panel').addEventListener('mouseleave', function() {
+  isIdle = true;
+  startFreeMovement();
+});
+
+function startPeekMotion() {
+  if (!robot.classList.contains('peek')) {
+    robot.classList.add('peek');
+    setTimeout(() => {
+      robot.classList.remove('peek');
+    }, 3000);
+  }
+}
+
+// Jalankan secara acak tiap 10–20 detik
+setInterval(() => {
+  if (isIdle) startPeekMotion();
+}, Math.floor(Math.random() * 10000) + 10000);
+
+function checkGreeting() {
+  const distance = Math.sqrt(mouseX ** 2 + mouseY ** 2);
+  if (distance < 50 && !robot.classList.contains('peek')) {
+    hiBubble.style.display = 'block';
+    hiBubble.style.left = (robot.offsetLeft + 40) + 'px';
+    hiBubble.style.top = (robot.offsetTop - 20) + 'px';
+  } else {
+    hiBubble.style.display = 'none';
+  }
+}
+
+setInterval(checkGreeting, 300);
+</script>
+
 </body>
 </html>
+
