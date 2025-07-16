@@ -1,7 +1,7 @@
-<link href="https://fonts.googleapis.com/css2?family=Fredoka&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
 <style>
 body, html {
-  font-family: 'Fredoka', sans-serif;
+  font-family: 'Roboto', sans-serif;
 }
   html, body {
     margin: 0;
@@ -45,10 +45,14 @@ body, html {
     padding: 0.75rem 0.5rem;
   }
 
+  #sidebar-container.collapsed .menu-group .submenu {
+    display: none !important;
+  }
+
   .sidebar {
     width: 100%;
     height: 100vh;
-    background-color: #625b5bba;
+    background-color: #625b5b;
     color: #F9FAFB;
     display: flex;
     flex-direction: column;
@@ -87,9 +91,11 @@ body, html {
     font-size: 1rem;
     transition: background-color 0.2s;
     line-height: 1;
+    justify-content: flex-start;
   }
   .sidebar-nav a:hover {
-    background-color: #374151;
+    background-color: #ffffff10;
+    border-radius: 0px 50px;
   }
   .sidebar-nav i {
     width: 24px;
@@ -265,6 +271,75 @@ body, html {
     justify-content: center !important;
   }
 
+  /* New styles for menu groups and submenus */
+  .menu-group {
+    width: 100%;
+  }
+  .menu-group > a {
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    color: #F9FAFB;
+    text-decoration: none;
+  }
+  .menu-group .submenu {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+    display: none;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    width: 100%;
+  }
+  .menu-group.open .submenu {
+    display: block;
+  }
+  .menu-group .submenu a {
+    font-weight: normal;
+    font-size: 0.95rem;
+  }
+
+  #sidebar-container.collapsed .menu-group .submenu a {
+    justify-content: center !important;
+  }
+
+  .sidebar-divider {
+    border: none;
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.2);
+    margin: 8px 0;
+    width: 80%;
+    align-self: center;
+  }
+
+  #sidebar-container.collapsed .sidebar-divider {
+    display: none;
+  }
+
+  .meteor {
+    width: 20px;
+    height: 6px;
+    background: linear-gradient(90deg, white, transparent);
+    position: absolute;
+    offset-path: path("M-90,16 h199 a20,20 0 0 1 20,20 v580 a20,20 0 0 1 -20,20 h-197 a20,20 0 0 1 -20,-20 v-580 a20,20 0 0 1 20,-20 z");
+    offset-distance: 0%;
+    offset-rotate: auto;
+    animation: moveMeteor 4s linear infinite;
+    z-index: 999;
+  }
+
+  @keyframes moveMeteor {
+    0% {
+      offset-distance: 0%;
+    }
+    100% {
+      offset-distance: 100%;
+    }
+  }
 </style>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
@@ -275,15 +350,55 @@ body, html {
       <img src="/elearn/img/icoding.png" alt="Logo">
     </div>
     <nav class="sidebar-nav">
-      <ul>
-        <li><a href="moderator.html" class="active"><i class="fas fa-tachometer-alt"></i><span class="sidebar-label">Dashboard</span></a></li>
-        <li><a href="data-kelas.html"><i class="fas fa-chalkboard-teacher"></i><span class="sidebar-label">Data Kelas</span></a></li>
-        <li><a href="data-akun.html"><i class="fas fa-users"></i><span class="sidebar-label">Data Akun</span></a></li>
-        <li><a href="assign-murid.html"><i class="fas fa-user-graduate"></i><span class="sidebar-label">Assign Murid</span></a></li>
-        <li><a href="modul.html"><i class="fas fa-book"></i><span class="sidebar-label">Classroom</span></a></li>
-        <li><a href="logout.html"><i class="fas fa-sign-out-alt"></i><span class="sidebar-label">Logout</span></a></li>
-      </ul>
+      <div class="menu-group">
+        <a><i class="fas fa-user-cog"></i> <span class="sidebar-label">Account Management</span></a>
+        <ul class="submenu">
+          <li><a href="students.html"><i class="fas fa-user"></i><span class="sidebar-label">Student Accounts</span></a></li>
+          <li><a href="teachers.html"><i class="fas fa-chalkboard-teacher"></i><span class="sidebar-label">Teacher Accounts</span></a></li>
+          <li><a href="parents.html"><i class="fas fa-users"></i><span class="sidebar-label">Parent Accounts</span></a></li>
+          <li><a href="create-account.html"><i class="fas fa-user-plus"></i><span class="sidebar-label">Create New Account</span></a></li>
+        </ul>
+        <hr class="sidebar-divider">
+      </div>
+      <div class="menu-group">
+        <a><i class="fas fa-book"></i> <span class="sidebar-label">Lesson Management</span></a>
+        <ul class="submenu">
+          <li><a href="generated-lessons.html"><i class="fas fa-book-open"></i><span class="sidebar-label">Interactive Lessons</span></a></li>
+          <li><a href="lesson-access.html"><i class="fas fa-unlock"></i><span class="sidebar-label">Lesson Access per Student</span></a></li>
+        </ul>
+        <hr class="sidebar-divider">
+      </div>
+      <div class="menu-group">
+        <a><i class="fas fa-school"></i> <span class="sidebar-label">Class & Progress</span></a>
+        <ul class="submenu">
+          <li><a href="classes.html"><i class="fas fa-layer-group"></i><span class="sidebar-label">Active Classes</span></a></li>
+          <li><a href="progress-tracking.html"><i class="fas fa-chart-line"></i><span class="sidebar-label">Student Progress</span></a></li>
+          <li><a href="student-works.html"><i class="fas fa-paint-brush"></i><span class="sidebar-label">Student Works</span></a></li>
+          <li><a href="activity-report.html"><i class="fas fa-file-alt"></i><span class="sidebar-label">Activity Reports</span></a></li>
+        </ul>
+        <hr class="sidebar-divider">
+      </div>
+      <div class="menu-group">
+        <a><i class="fas fa-medal"></i> <span class="sidebar-label">Badges & Rewards</span></a>
+        <ul class="submenu">
+          <li><a href="manage-badges.html"><i class="fas fa-award"></i><span class="sidebar-label">Manage Badges</span></a></li>
+          <li><a href="scoring.html"><i class="fas fa-check-circle"></i><span class="sidebar-label">Auto/Manual Scoring</span></a></li>
+          <li><a href="reward-history.html"><i class="fas fa-gift"></i><span class="sidebar-label">Reward History</span></a></li>
+        </ul>
+        <hr class="sidebar-divider">
+      </div>
+      <div class="menu-group">
+        <a><i class="fas fa-cogs"></i> <span class="sidebar-label">System Settings</span></a>
+        <ul class="submenu">
+          <li><a href="env-settings.html"><i class="fas fa-code"></i><span class="sidebar-label">Developer</span></a></li>
+          <li><a href="sheet-sync.html"><i class="fas fa-sync"></i><span class="sidebar-label">Sync</span></a></li>
+          <li><a href="firebase-monitor.html"><i class="fas fa-fire"></i><span class="sidebar-label">Firebase Monitor</span></a></li>
+          <li><a href="whatsapp.html"><i class="fas fa-bell"></i><span class="sidebar-label">Notification</span></a></li>
+        </ul>
+        <hr class="sidebar-divider">
+      </div>
     </nav>
+    <div class="meteor"></div>
     <button id="sidebar-toggle" class="sidebar-toggle">
       <i class="fas fa-angle-left"></i>
     </button>
@@ -294,5 +409,17 @@ body, html {
   const sidebarContainer = document.getElementById('sidebar-container');
   toggleBtn.addEventListener('click', () => {
     sidebarContainer.classList.toggle('collapsed');
+  });
+
+  document.querySelectorAll('.menu-group > a').forEach(group => {
+    group.addEventListener('click', () => {
+      // Jika sidebar dalam kondisi collapsed, buka dulu
+      if (sidebarContainer.classList.contains('collapsed')) {
+        sidebarContainer.classList.remove('collapsed');
+      }
+
+      // Toggle submenu setelah sidebar terbuka
+      group.parentElement.classList.toggle('open');
+    });
   });
 </script>
