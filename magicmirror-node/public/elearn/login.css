@@ -790,6 +790,12 @@ body::before {
       padding: 0 1rem !important;
       word-wrap: break-word !important;
     }
+    /* Mobile: shrink slide 2 headline to prevent clipping */
+    .side-slide.right-slide .slide-banner h1 {
+      font-size: 2rem !important;
+      line-height: 1.2 !important;
+      padding: 0 1rem !important;
+    }
     .side-slide.right-slide .slide-banner .subheading,
     .side-slide.custom-slide .slide-banner .subheading {
       font-size: 1rem !important;
