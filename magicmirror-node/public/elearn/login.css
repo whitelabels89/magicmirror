@@ -717,8 +717,9 @@ body::before {
 
     /* Proportional mobile adjustments for login form */
     .right-panel .login-container {
-      width: 80% !important;
-      margin: 0 10px !important;
+      width: 85% !important;
+      max-width: 360px !important;
+      margin: 0 auto !important;
       padding: 12px !important;
       gap: 8px !important;
     }
