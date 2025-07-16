@@ -42,11 +42,13 @@ body {
     min-height: 100vh;
     display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 20px;
+    justify-content: flex-start;
+    padding: 0;
+    margin: 0;
     position: relative;
     overflow: hidden;
 }
+
 
 /* Aurora Glow */
 body::before {
@@ -68,9 +70,9 @@ body::before {
 
 .container {
   position: relative;
-  max-width: 900px;
-  width: 100%;
-  height: 600px;
+  max-width: none !important;
+  width: 100vw !important;
+  height: 100vh !important;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -534,19 +536,19 @@ body::before {
   z-index: 2;
   pointer-events: none;
 }
-.milkyway-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 140vw;
-  height: 140vh;
-  object-fit: cover;
-  opacity: 0.6;
-  filter: brightness(1.2) contrast(1.2);
-  mix-blend-mode: screen;
-  pointer-events: none;
-  z-index: 1;
-}
+ .milkyway-overlay {
+   position: absolute;
+   top: 0;
+   left: 0;
+   width: 100vw;
+   height: 100vh;
+   object-fit: cover;
+   opacity: 0.45;
+   filter: brightness(1.1) contrast(1.1);
+   mix-blend-mode: screen;
+   pointer-events: none;
+   z-index: 1;
+ }
 
 /* Animations */
 @keyframes twinkle {
@@ -758,6 +760,12 @@ body::before {
   mix-blend-mode: screen;
   pointer-events: none;
   z-index: 0;
+  animation: moveMilkyWay 120s linear infinite;
+}
+
+@keyframes moveMilkyWay {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-200px); }
 }
 /* === Global Background Effects for Login Page === */
 .background-effects {
@@ -855,4 +863,267 @@ body::before {
 @keyframes spinOrbit {
   0% { transform: translate(-50%, -50%) rotate(0deg); }
   100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+/* Network Animation Canvas */
+.network-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+}
+/* Spaceship Window Effect */
+.window-outer-space {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 1;
+  background: transparent;
+}
+
+.robot-outside {
+  position: absolute;
+  width: 160px;
+  top: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: floatKody 6s ease-in-out infinite;
+  z-index: 2;
+}
+
+@keyframes floatKody {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-10px); }
+}
+
+/* Center robot and login form in each panel */
+.container {
+  display: flex;
+}
+.container > .left-panel,
+.container > .right-panel {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Override panel transforms and center content */
+#main-wrapper {
+  display: flex;
+  width: 500vw;
+  transition: transform 0.3s ease;
+}
+#main-wrapper > .container,
+#main-wrapper > .side-slide {
+  width: 100vw;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+  /* padding-left: 50px; */ /* Removed to prevent horizontal offset interference */
+}
+
+/* Remove original translateX/skew transforms */
+#main-wrapper > .container .left-panel {
+  position: relative;
+  transform: none !important;
+}
+#main-wrapper > .container .right-panel {
+  position: relative;
+  transform: none !important;
+}
+/* White container for slide content */
+.white-box {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  width: 80%;
+  max-width: 600px;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+/* Style and center card container on slide 2 */
+/* Professional, Trusted, Playful Card for Slide 2 */
+.side-slide.right-slide .card-container {
+  position: relative;
+  background: linear-gradient(135deg, #e0f7fa, #ffffff);
+  border: 2px solid #81d4fa;
+  border-radius: 16px;
+  padding: 2rem 1.5rem;
+  width: 80%;
+  max-width: 600px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  margin: 0 auto;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.side-slide.right-slide .card-container:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+}
+.side-slide.right-slide .card-container h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.8rem;
+  color: #0277bd;
+  margin-bottom: 1rem;
+}
+.side-slide.right-slide .card-container p {
+  font-size: 1rem;
+  color: #455a64;
+  margin-bottom: 1rem;
+}
+.side-slide.right-slide .card-container ul {
+  list-style: none;
+  padding-left: 0;
+}
+.side-slide.right-slide .card-container ul li {
+  position: relative;
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+  color: #37474f;
+}
+.side-slide.right-slide .card-container ul li::before {
+  content: '★';
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #0288d1;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* Wrapper to group left & right panels */
+.panel-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0px; /* adjust spacing between panels */
+}
+/* Reset individual transforms since grouping will handle positioning */
+.left-panel,
+.right-panel {
+  position: static;
+  transform: none !important;
+  margin: 0;
+}
+
+/* Slider viewport hides adjacent slides */
+.slider-viewport {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+#main-wrapper {
+  display: flex;
+  width: 500vw; /* total slides */
+  height: 100%;
+  transition: transform 0.4s ease;
+  position: relative;
+  transform: translateX(0);
+}
+/* Force slide panels full width and reset spacing */
+ .slider-viewport #main-wrapper > .container {
+   flex: 0 0 100vw !important;
+   width: 100vw !important;
+   max-width: none !important;
+   margin: 0 !important;
+   padding: 0 !important;
+ }
+ .slider-viewport #main-wrapper > .side-slide {
+   flex: 0 0 100vw !important;
+   width: 100vw !important;
+   margin: 0 !important;
+   padding: 0 !important;
+ }
+/* Reset panel-group spacing */
+.panel-group {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+/* Banner style for slide 2 */
+.side-slide.right-slide .slide-banner {
+  text-align: left;
+  max-width: 600px;
+  padding: 2rem;
+}
+.side-slide.right-slide .slide-banner h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 3rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+  line-height: 1.1;
+  position: relative;
+}
+.side-slide.right-slide .slide-banner h1::after {
+  content: '';
+  display: block;
+  width: 80px;
+  height: 4px;
+  background-color: #e91e63;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+}
+.side-slide.right-slide .slide-banner .subheading {
+  font-size: 1.125rem;
+  color: #f0f0f0;
+  margin-bottom: 1.5rem;
+}
+.side-slide.right-slide .slide-banner .cta-link {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #e91e63;
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  transition: border-color 0.2s;
+}
+.side-slide.right-slide .slide-banner .cta-link:hover {
+  border-color: #e91e63;
+}
+/* Banner style for custom slides (slides 3,4,5) */
+.side-slide.custom-slide .slide-banner {
+  text-align: left;
+  max-width: 600px;
+  padding: 2rem;
+}
+.side-slide.custom-slide .slide-banner h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 3rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+  line-height: 1.1;
+  position: relative;
+}
+.side-slide.custom-slide .slide-banner h1::after {
+  content: '';
+  display: block;
+  width: 80px;
+  height: 4px;
+  background-color: #e91e63;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+}
+.side-slide.custom-slide .slide-banner .subheading {
+  font-size: 1.125rem;
+  color: #f0f0f0;
+  margin-bottom: 1.5rem;
+}
+.side-slide.custom-slide .slide-banner .cta-link {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #e91e63;
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  transition: border-color 0.2s;
+}
+.side-slide.custom-slide .slide-banner .cta-link:hover {
+  border-color: #e91e63;
 }
