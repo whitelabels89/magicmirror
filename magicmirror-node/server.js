@@ -730,6 +730,24 @@ io.on('connection', (socket) => {
     });
 });
 
+// GET /api/murid/:cid - ambil data profil murid berdasarkan CID
+app.get('/api/murid/:cid', async (req, res) => {
+  const cid = req.params.cid;
+  if (!cid) return res.status(400).json({ success: false, error: 'CID kosong' });
+
+  try {
+    const doc = await db.collection('murid').doc(cid).get();
+    if (!doc.exists) {
+      return res.status(404).json({ success: false, error: 'Murid tidak ditemukan' });
+    }
+
+    res.json({ success: true, data: doc.data() });
+  } catch (err) {
+    console.error('❌ Error ambil profil murid:', err);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
+
 // Default route ke index.html
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/index.html'));
