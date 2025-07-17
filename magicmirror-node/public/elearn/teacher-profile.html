@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Teacher Profile</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body>
+  <div class="container-fluid py-5 px-4" style="background-color: #e6f0ff;">
+    <!-- Header Section -->
+    <div class="row gy-4 mb-5 align-items-center">
+      <div class="col-md-2 text-center">
+        <img src="https://via.placeholder.com/120" class="rounded-circle img-thumbnail shadow-sm" alt="Teacher Photo" />
+      </div>
+      <div class="col-md-10">
+        <h2 class="fs-4 fw-bold mb-2" id="teacherName">Jane Doe</h2>
+        <p class="text-muted small mb-0" id="profileSummary">
+          Experienced Math and Science teacher passionate about student growth and innovative learning.
+        </p>
+      </div>
+    </div>
+
+    <div class="row gy-4">
+      <!-- Contact Info -->
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4">
+          <div class="mb-3 fs-4 fw-bold text-primary">Contact Info</div>
+          <ul class="list-unstyled mb-0">
+            <li><strong>Email:</strong> <span id="teacherEmail" class="text-muted small">janedoe@example.com</span></li>
+            <li><strong>Phone:</strong> <span id="teacherPhone" class="text-muted small">+1 555-123-4567</span></li>
+            <li><strong>Username:</strong> <span id="teacherUsername" class="text-muted small">jdoe</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Class Assignments -->
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4">
+          <div class="mb-3 fs-4 fw-bold text-success">Class Assignments</div>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item border-0 px-0 py-1 text-muted small">Math 101 - Grade 7A</li>
+            <li class="list-group-item border-0 px-0 py-1 text-muted small">Science 201 - Grade 8B</li>
+            <li class="list-group-item border-0 px-0 py-1 text-muted small">Physics 301 - Grade 10C</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Activity Stats -->
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4">
+          <div class="mb-3 fs-4 fw-bold text-info">Activity Stats</div>
+          <ul class="list-unstyled mb-0">
+            <li><strong>Lessons Taught:</strong> <span id="lessonsTaught" class="text-muted small">153</span></li>
+            <li><strong>Students:</strong> <span id="studentCount" class="text-muted small">120</span></li>
+            <li><strong>Last Login:</strong> <span id="lastLogin" class="text-muted small">2024-06-09 14:22</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="row gy-4 mt-4">
+      <!-- Interaction Logs -->
+      <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 p-4">
+          <div class="mb-3 fs-4 fw-bold text-secondary">Recent Interactions / Evaluations</div>
+          <div class="table-responsive">
+            <table class="table mb-0 table-striped">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Summary</th>
+                </tr>
+              </thead>
+              <tbody id="interactionLogs">
+                <tr>
+                  <td class="text-muted small">2024-06-08</td>
+                  <td class="text-muted small">Evaluation</td>
+                  <td class="text-muted small">Excellent classroom management noted by Principal.</td>
+                </tr>
+                <tr>
+                  <td class="text-muted small">2024-06-06</td>
+                  <td class="text-muted small">Parent Meeting</td>
+                  <td class="text-muted small">Discussed student progress with parents of Grade 7A.</td>
+                </tr>
+                <tr>
+                  <td class="text-muted small">2024-06-02</td>
+                  <td class="text-muted small">Observation</td>
+                  <td class="text-muted small">Peer review: Engaging lesson on Newton's Laws.</td>
+                </tr>
+                <!-- More rows can be dynamically added -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin Actions and Role Management -->
+      <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+          <div class="mb-3 fs-4 fw-bold text-warning">Admin Actions</div>
+          <div class="d-grid gap-2">
+            <button class="btn btn-outline-primary" type="button">Reset Password</button>
+            <button class="btn btn-outline-secondary" type="button">Change Email/Phone</button>
+            <button class="btn btn-outline-success" type="button">Assign/Unassign Class</button>
+            <button class="btn btn-outline-danger" type="button">Delete Account</button>
+          </div>
+        </div>
+        <div class="card border-0 shadow-sm rounded-4 p-4">
+          <div class="mb-3 fs-4 fw-bold text-dark">Role Management</div>
+          <form>
+            <div class="mb-3">
+              <label for="roleSelect" class="form-label fw-semibold">Role:</label>
+              <select class="form-select" id="roleSelect" disabled>
+                <option selected>Primary Teacher</option>
+                <option>Assistant Teacher</option>
+              </select>
+            </div>
+            <div>
+              <label for="accessLevel" class="form-label fw-semibold">Access Level:</label>
+              <select class="form-select" id="accessLevel" disabled>
+                <option selected>Standard</option>
+                <option>Admin</option>
+                <option>Limited</option>
+              </select>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="row gy-4 mt-4">
+      <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4 p-4">
+          <div class="mb-3 fs-4 fw-bold text-dark">Performance Evaluation</div>
+          <div class="row text-center">
+            <div class="col-md-3 mb-3 mb-md-0">
+              <h6 class="fw-semibold">Attendance</h6>
+              <div class="display-6">98%</div>
+              <small class="text-muted">Current semester</small>
+            </div>
+            <div class="col-md-3 mb-3 mb-md-0">
+              <h6 class="fw-semibold">Student Progress</h6>
+              <div class="display-6">87%</div>
+              <small class="text-muted">Avg. test score</small>
+            </div>
+            <div class="col-md-3 mb-3 mb-md-0">
+              <h6 class="fw-semibold">Parent Feedback</h6>
+              <div class="display-6">4.8/5</div>
+              <small class="text-muted">Last 12 months</small>
+            </div>
+            <div class="col-md-3">
+              <h6 class="fw-semibold">Peer Review</h6>
+              <div class="display-6">Excellent</div>
+              <small class="text-muted">Last observation</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  const FIREBASE_API = "https://firebase-upload-backend.onrender.com";
+  const urlParams = new URLSearchParams(window.location.search);
+  const uid = urlParams.get("uid");
+
+  async function loadTeacherProfile() {
+    if (!uid) return;
+
+    try {
+      const res = await fetch(`${FIREBASE_API}/api/guru/${uid}`);
+      const { data } = await res.json();
+
+      document.getElementById("teacherName").textContent = data.nama || "-";
+      document.getElementById("profileSummary").textContent = data.bio || "-";
+      document.getElementById("teacherEmail").textContent = data.email || "-";
+      document.getElementById("teacherPhone").textContent = data.hp || "-";
+      document.getElementById("teacherUsername").textContent = data.username || "-";
+      document.getElementById("lessonsTaught").textContent = data.jumlah_lesson || "0";
+      document.getElementById("studentCount").textContent = data.jumlah_siswa || "0";
+      document.getElementById("lastLogin").textContent = data.terakhir_login || "-";
+
+      const logs = data.log || [];
+      const logContainer = document.getElementById("interactionLogs");
+      logContainer.innerHTML = "";
+      logs.forEach(log => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="text-muted small">${log.tanggal}</td>
+          <td class="text-muted small">${log.tipe}</td>
+          <td class="text-muted small">${log.catatan}</td>
+        `;
+        logContainer.appendChild(tr);
+      });
+    } catch (err) {
+      console.error("Gagal mengambil data guru", err);
+    }
+  }
+
+  loadTeacherProfile();
+</script>
+</body>
+</html>

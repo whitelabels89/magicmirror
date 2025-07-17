@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Teacher Accounts</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'light');
+  </script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+    [data-theme='dark'] {
+      --primary: #131313;
+      --primary-light: #1c1c1c;
+      --card-bg: #1e1e1e;
+      --gray: #2a2a2a;
+      --text-main: #f5f5f5;
+      --text-muted: #aaa;
+      --card-radius: 14px;
+      color: var(--text-main);
+      background-color: var(--primary);
+    }
+    
+
+    [data-theme='dark'] body {
+      background: #121212;
+      color: var(--text-main);
+    }
+
+    [data-theme='dark'] .stat-card,
+    [data-theme='dark'] .form-card,
+    [data-theme='dark'] .data-table-card,
+    [data-theme='dark'] .chart-card {
+      background: var(--card-bg);
+      color: var(--text-main);
+      box-shadow: 0 0 15px rgba(0,255,255,0.3), 0 0 30px rgba(255,0,255,0.15);
+      border-radius: var(--card-radius);
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    [data-theme='dark'] table th {
+      background: #2a2f3a;
+      color: #e0e7ff;
+    }
+
+    /* Ensure table text and notifications readable in dark theme */
+    [data-theme='dark'] th,
+    [data-theme='dark'] td {
+      color: #cdd8f7;
+    }
+
+    [data-theme='dark'] #class-status,
+    [data-theme='dark'] #student-status,
+    [data-theme='dark'] #assign-status {
+      color: #363636;
+    }
+
+    [data-theme='dark'] input,
+    [data-theme='dark'] select {
+      background: #292929;
+      color: #505050;
+      border-color: #444;
+    }
+
+    [data-theme='dark'] input::placeholder,
+    [data-theme='dark'] select option {
+      color: var(--text-muted);
+    }
+
+    [data-theme='dark'] button {
+      background: linear-gradient(135deg, #ff00cc, #3333ff);
+      color: #fff;
+      box-shadow: none;
+    }
+
+    [data-theme='dark'] button:hover {
+      background: linear-gradient(135deg, #ff66cc, #5555ff);
+      box-shadow: none;
+    }
+    [data-theme='dark'] .header-welcome {
+      text-shadow: 0 0 6px rgba(255,255,255,0.3);
+      color: #f0f8ff;
+    }
+
+    [data-theme='dark'] .stat-card-value {
+      text-shadow: 0 0 5px rgba(255,255,255,0.2);
+      color: #4d4d4d;
+    }
+    :root {
+      --sidebar-width: 230px;
+      --primary: #2c3e50;
+      --primary-light: #ecf0f1;
+      --card-bg: #fff;
+      --card-radius: 14px;
+      --shadow: 0 2px 8px rgba(0,0,0,0.04);
+      --gray: #f0f4f8;
+      --font-main: 'Inter', sans-serif;
+    }
+    body {
+      font-family: var(--font-main);
+      margin: 0;
+      background: #f5f7fa;
+      min-height: 100vh;
+    }
+    .dashboard-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+    .main-content {
+      flex: 1;
+      padding: 36px 40px 36px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 0px;
+      overflow-x: hidden;
+    }
+    .section-theme-toggle {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .stat-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 22px;
+      margin-bottom: 18px;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow);
+      padding: 28px 26px 20px 26px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      min-width: 0;
+      transition: all 0.3s ease-in-out;
+    }
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .stat-card-title {
+      font-size: 1.05rem;
+      color: #555;
+      margin-bottom: 8px;
+    }
+    .stat-card-value {
+      font-size: 2.1rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+    .charts-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 10px;
+      overflow-x: auto;
+    }
+    .chart-card {
+      background: var(--card-bg);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow);
+      padding: 22px 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 100%;
+      width: 100%;
+      box-sizing: border-box;
+      overflow-x: auto;
+    }
+    .chart-card canvas {
+      max-width: 100% !important;
+      height: auto !important;
+    }
+    .chart-title {
+      font-size: 1.07rem;
+      color: #444;
+      margin-bottom: 10px;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+    }
+    .cards-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 30px;
+      margin-bottom: 20px;
+    }
+    .form-card {
+      background: var(--card-bg);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow);
+      padding: 26px 28px 20px 28px;
+      margin-bottom: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      transition: all 0.3s ease-in-out;
+    }
+    .form-card h2 {
+      margin-top: 0;
+      margin-bottom: 18px;
+      font-size: 1.18rem;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .form-card form {
+      margin: 0;
+      max-width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .form-card input,
+    .form-card select {
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: 7px;
+      border: 1px solid #dde1ef;
+      margin-bottom: 6px;
+      font-size: 1rem;
+      background: #f7fafd;
+      transition: border 0.13s;
+    }
+    .form-card input:focus,
+    .form-card select:focus {
+      outline: none;
+      border: 1.5px solid var(--primary);
+    }
+    .form-card button {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 10px 0;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-top: 8px;
+    }
+    .form-card button:hover {
+      background: #2445a7;
+    }
+    .form-card p {
+      margin: 8px 0 0 0;
+      font-size: 0.96rem;
+    }
+    .data-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 0;
+    }
+    .data-table-card {
+      background: var(--card-bg);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow);
+      padding: 26px 18px 18px 18px;
+      overflow-x: auto;
+      transition: all 0.3s ease-in-out;
+    }
+    .data-table-card h2 {
+      margin-top: 0;
+      margin-bottom: 16px;
+      font-size: 1.14rem;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 1rem;
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 0;
+    }
+    th, td {
+      padding: 9px 12px;
+      border-bottom: 1px solid #f0f0f0;
+      text-align: left;
+    }
+    th {
+      background: var(--primary-light);
+      color: #233b6c;
+      font-weight: 500;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    button {
+      padding: 6px 14px;
+      border-radius: 6px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-size: 0.97rem;
+      transition: background 0.13s;
+    }
+    button:hover {
+      background: #2445a7;
+    }
+    /* Responsive */
+    @media (max-width: 1100px) {
+      .main-content { padding: 28px 10px 28px 10px; }
+      .charts-row, .data-section, .cards-section { grid-template-columns: 1fr; }
+    }
+  </style>
+  <link rel="stylesheet" href="/elearn/css/sidebar-mod.css">
+</head>
+<body>
+  <div class="dashboard-layout">
+    <!-- Sidebar digantikan dengan file terpisah -->
+    <div id="sidebar-placeholder"></div>
+    <script type="module">
+      import { loadSidebar } from '/elearn/js/sidebar-init.js';
+      loadSidebar().then(() => {
+        if (typeof initSidebar === 'function') initSidebar();
+        highlightActiveSidebarMenu(window.location.pathname);
+      });
+    </script>
+    <script src="/elearn/sidebar-meteor.js" defer></script>
+    <main class="main-content">
+  <!-- Section: Theme Toggle -->
+  <section class="section-theme-toggle section-spacing" style="margin-bottom: 30px;">
+    <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+      <button id="theme-toggle-btn" style="background: none; border: none; cursor: pointer; font-size: 1.3rem;">
+        <span id="theme-icon">☀️</span>
+      </button>
+    </div>
+  </section>
+
+  <div class="container py-4">
+    <h2 class="mb-3 fw-bold text-success"><i class="bi bi-person-lines-fill"></i> Parent Profile</h2>
+    <p class="text-muted mb-4">Detailed information and linked student data.</p>
+
+    <div class="row mb-4">
+      <div class="col-md-6">
+        <div class="bg-white shadow-sm p-4 rounded">
+          <h5 class="fw-semibold mb-3">Parent Info</h5>
+          <p><strong>Name:</strong> <span id="parentName">Loading...</span></p>
+          <p><strong>Email:</strong> <span id="parentEmail">Loading...</span></p>
+          <p><strong>Phone:</strong> <span id="parentPhone">Loading...</span></p>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="bg-white shadow-sm p-4 rounded">
+          <h5 class="fw-semibold mb-3">Linked Students</h5>
+          <ul id="linkedStudents" class="list-unstyled mb-0">
+            <li>Loading...</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white p-4 rounded shadow-sm">
+      <h5 class="fw-bold mb-3">Interaction History</h5>
+      <p class="text-muted">Coming soon: timeline of communication, class attendance, and activity highlights.</p>
+    </div>
+  </div>
+</main>
+  </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const role = localStorage.getItem('role');
+    if (role !== 'moderator') {
+      window.location.href = '/elearn/login.html';
+      return;
+    }
+    // Set dynamic username
+    const userName = localStorage.getItem('nama') || 'Moderator';
+    // Pastikan elemen user-name ada sebelum mengakses
+    if (document.getElementById('user-name')) {
+      document.getElementById('user-name').textContent = userName;
+    }
+  });
+  // Konstanta endpoint backend Firebase
+  const FIREBASE_API = "https://firebase-upload-backend.onrender.com";
+  const tableBody = document.getElementById("teacherTableBody");
+  const searchInput = document.getElementById("searchInput");
+  const totalTeachersEl = document.getElementById("totalTeachers");
+  const totalClassesEl = document.getElementById("totalClasses");
+  const totalStudentsEl = document.getElementById("totalStudents");
+
+  let teacherList = [];
+
+  function renderTeachers(data) {
+    tableBody.innerHTML = "";
+    data.forEach(t => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${t.name}</td>
+        <td>${t.email}</td>
+        <td>${t.type || "-"}</td>
+        <td>${t.status || "-"}</td>
+        <td>${t.totalClasses || 0}</td>
+        <td>${t.lastLogin || "-"}</td>
+        <td>
+          <a href="teacher-profile.html?uid=${t.uid}" class="btn btn-sm btn-info">View</a>
+          <button class="btn btn-sm btn-primary">Edit</button>
+          <button class="btn btn-sm btn-danger">Remove</button>
+        </td>
+      `;
+      tableBody.appendChild(row);
+    });
+  }
+
+  async function fetchTeachers() {
+    try {
+      const res = await fetch(`${FIREBASE_API}/api/guru`);
+      const data = await res.json();
+      teacherList = data || [];
+      renderTeachers(teacherList);
+
+      // Update summary cards
+      totalTeachersEl.textContent = teacherList.length;
+      const classesCount = teacherList.reduce((sum, t) => sum + (t.totalClasses || 0), 0);
+      totalClassesEl.textContent = classesCount;
+
+      // Assuming totalStudents is not part of teacher data, set to 0 or fetch if available
+      totalStudentsEl.textContent = 0;
+    } catch (err) {
+      console.error("Failed to load teacher data:", err);
+    }
+  }
+
+  searchInput.addEventListener("input", () => {
+    const keyword = searchInput.value.toLowerCase();
+    const filtered = teacherList.filter(t =>
+      t.name.toLowerCase().includes(keyword) || t.email.toLowerCase().includes(keyword)
+    );
+    renderTeachers(filtered);
+  });
+
+  fetchTeachers();
+</script>
+<script>
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      const next = current === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      updateThemeIcon();
+      const sidebar = document.getElementById('sidebar-container');
+      if (sidebar) {
+        if (next === 'dark') {
+          sidebar.classList.add('dark-theme');
+        } else {
+          sidebar.classList.remove('dark-theme');
+        }
+      }
+    }
+
+    function updateThemeIcon() {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      document.getElementById('theme-icon').textContent = current === 'dark' ? '🌙' : '☀️';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const currentTheme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      updateThemeIcon();
+      document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
+      // Add dark-theme class to sidebar if dark mode is active
+      if (currentTheme === 'dark') {
+        document.getElementById('sidebar-container')?.classList.add('dark-theme');
+      }
+    });
+  </script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const uid = params.get("uid");
+    if (!pid) return;
+
+    fetch(`${FIREBASE_API}/api/orangtua/${uid}`)
+      .then(res => res.json())
+      .then(({ data }) => {
+        document.getElementById("parentName").textContent = data.name || '-';
+        document.getElementById("parentEmail").textContent = data.email || '-';
+        document.getElementById("parentPhone").textContent = data.phone || '-';
+
+        const list = document.getElementById("linkedStudents");
+        list.innerHTML = '';
+        if (data.students && data.students.length > 0) {
+          data.students.forEach(s => {
+            const li = document.createElement("li");
+            li.textContent = `${s.name} (CID: ${s.cid})`;
+            list.appendChild(li);
+          });
+        } else {
+          list.innerHTML = '<li>No students linked</li>';
+        }
+      })
+      .catch(err => console.error("Failed to load parent data", err));
+  });
+</script>
+</body>
+<script>
+  if (!window.loadSidebar) {
+    fetch('/elearn/sidebar-mod.html')
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById('sidebar-placeholder').innerHTML = html;
+      });
+  }
+</script>
+</html>
