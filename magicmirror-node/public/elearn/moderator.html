@@ -211,6 +211,7 @@
       grid-template-columns: 1fr 1fr;
       gap: 30px;
       margin-bottom: 10px;
+      overflow-x: auto;
     }
     .chart-card {
       background: var(--card-bg);
@@ -220,6 +221,14 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      max-width: 100%;
+      width: 100%;
+      box-sizing: border-box;
+      overflow-x: auto;
+    }
+    .chart-card canvas {
+      max-width: 100% !important;
+      height: auto !important;
     }
     .chart-title {
       font-size: 1.07rem;
@@ -414,110 +423,132 @@
         });
     </script>
     <main class="main-content">
-      <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
-        <label style="display: flex; align-items: center; gap: 8px;">
-          <span style="font-size: 0.9rem;">Dark Mode</span>
-          <input type="checkbox" id="theme-toggle" onchange="toggleTheme()" />
-        </label>
-      </div>
-      <div class="header-welcome">Selamat Datang, <span id="user-name">Moderator</span>!</div>
-      <div class="stat-cards" id="stat-cards">
-        <div class="stat-card">
-          <div class="stat-card-title">Jumlah Kelas</div>
-          <div class="stat-card-value" id="stat-kelas">0</div>
+      <!-- Section: Theme Toggle -->
+      <section class="section-theme-toggle section-spacing" style="margin-bottom: 30px;">
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+          <button id="theme-toggle-btn" style="background: none; border: none; cursor: pointer; font-size: 1.3rem;">
+            <span id="theme-icon">☀️</span>
+          </button>
         </div>
-        <div class="stat-card">
-          <div class="stat-card-title">Jumlah Murid</div>
-          <div class="stat-card-value" id="stat-murid">0</div>
+      </section>
+
+      <!-- Section: Welcome -->
+      <section class="section-welcome section-spacing" style="margin-bottom: 30px;">
+        <div class="header-welcome">Selamat Datang, <span id="user-name">Moderator</span>!</div>
+      </section>
+
+      <!-- Section: Stats -->
+      <section class="section-stats section-spacing" style="margin-bottom: 30px;">
+        <div class="stat-cards" id="stat-cards">
+          <div class="stat-card">
+            <div class="stat-card-title">Jumlah Kelas</div>
+            <div class="stat-card-value" id="stat-kelas">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-title">Jumlah Murid</div>
+            <div class="stat-card-value" id="stat-murid">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-title">Jumlah Guru</div>
+            <div class="stat-card-value" id="stat-guru">0</div>
+          </div>
         </div>
-        <div class="stat-card">
-          <div class="stat-card-title">Jumlah Guru</div>
-          <div class="stat-card-value" id="stat-guru">0</div>
+      </section>
+
+      <!-- Section: Charts -->
+      <section class="section-charts section-spacing" style="margin-bottom: 30px;">
+        <div class="charts-row">
+          <div class="chart-card">
+            <div class="chart-title">Income Overview</div>
+            <canvas id="donutChart" width="220" height="220"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Net Income per Bulan</div>
+            <canvas id="barChart" width="320" height="220"></canvas>
+          </div>
         </div>
-      </div>
-      <div class="charts-row">
-        <div class="chart-card">
-          <div class="chart-title">Income Overview</div>
-          <canvas id="donutChart" width="220" height="220"></canvas>
+      </section>
+
+      <!-- Section: Data -->
+      <section class="section-data section-spacing" style="margin-bottom: 30px;">
+        <div class="data-section" id="kelas-section">
+          <div class="data-table-card">
+            <h2>Daftar Kelas</h2>
+            <table id="kelas-table">
+              <thead>
+                <tr>
+                  <th>Kelas ID</th>
+                  <th>Nama Kelas</th>
+                  <th>Guru ID</th>
+                  <th>Jumlah Murid</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="data-table-card">
+            <h2>Daftar Murid</h2>
+            <table id="students-table">
+              <thead>
+                <tr><th>CID</th><th>Nama</th><th>Email</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
         </div>
-        <div class="chart-card">
-          <div class="chart-title">Net Income per Bulan</div>
-          <canvas id="barChart" width="320" height="220"></canvas>
+      </section>
+
+      <!-- Section: Forms -->
+      <section class="section-forms section-spacing" style="margin-bottom: 30px;">
+        <div class="cards-section" id="akun-section">
+          <div class="form-card">
+            <h2>Tambah Kelas Baru</h2>
+            <form id="form-add-class">
+              <input type="text" id="kelas_id" placeholder="Kelas ID" required style="max-width: 441px;">
+              <input type="text" id="nama_kelas" placeholder="Nama Kelas" required style="max-width: 441px;">
+              <input type="text" id="guru_id" placeholder="Guru ID" required style="max-width: 441px;">
+              <button type="submit">Tambah Kelas</button>
+            </form>
+            <p id="class-status"></p>
+          </div>
+          <div class="form-card">
+            <h2>Tambah Akun</h2>
+            <form id="form-add-student">
+              <input type="text" id="nama" placeholder="Nama" required style="max-width: 441px;">
+              <input type="email" id="email" placeholder="Email" required style="max-width: 441px;">
+              <input type="tel" id="wa" placeholder="Nomor WhatsApp (+62...)" required style="max-width: 441px;">
+              <input type="password" id="password" placeholder="Password" required style="max-width: 441px;">
+              <input type="text" id="kelas_id_student" placeholder="Kelas ID" required style="max-width: 441px;">
+              <select id="role">
+                <option value="murid">Murid</option>
+                <option value="guru">Guru</option>
+                <option value="moderator">Moderator</option>
+              </select>
+              <button type="submit">Tambah Akun</button>
+            </form>
+            <p id="student-status"></p>
+          </div>
+          <div class="form-card">
+            <h2>Assign Murid ke Kelas</h2>
+            <form id="form-assign-student" style="max-width: 100%;">
+              <select id="assign_uid"></select>
+              <input type="text" id="assign_kelas_id" placeholder="Kelas ID Tujuan" required style="max-width: 441px;">
+              <button type="submit">Assign Murid</button>
+            </form>
+            <p id="assign-status"></p>
+          </div>
+          <div class="form-card">
+            <h2>Assign Lesson ke Murid</h2>
+            <form id="form-assign-lesson">
+              <select id="assign_lesson_uid"></select>
+              <input type="text" id="lesson_code" placeholder="Kode Lesson (contoh: M1L2)" required style="max-width: 441px;">
+              <button type="submit">Tambah Akses Lesson</button>
+            </form>
+            <p id="lesson-assign-status"></p>
+          </div>
         </div>
-      </div>
-      <div class="data-section" id="kelas-section">
-        <div class="data-table-card">
-          <h2>Daftar Kelas</h2>
-          <table id="kelas-table">
-            <thead>
-              <tr>
-                <th>Kelas ID</th>
-                <th>Nama Kelas</th>
-                <th>Guru ID</th>
-                <th>Jumlah Murid</th>
-                <th>Aksi</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <div class="data-table-card">
-          <h2>Daftar Murid</h2>
-          <table id="students-table">
-            <thead>
-              <tr><th>CID</th><th>Nama</th><th>Email</th></tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-      <div class="cards-section" id="akun-section">
-        <div class="form-card">
-          <h2>Tambah Kelas Baru</h2>
-          <form id="form-add-class">
-            <input type="text" id="kelas_id" placeholder="Kelas ID" required style="max-width: 441px;">
-            <input type="text" id="nama_kelas" placeholder="Nama Kelas" required style="max-width: 441px;">
-            <input type="text" id="guru_id" placeholder="Guru ID" required style="max-width: 441px;">
-            <button type="submit">Tambah Kelas</button>
-          </form>
-          <p id="class-status"></p>
-        </div>
-        <div class="form-card">
-          <h2>Tambah Akun</h2>
-          <form id="form-add-student">
-            <input type="text" id="nama" placeholder="Nama" required style="max-width: 441px;">
-            <input type="email" id="email" placeholder="Email" required style="max-width: 441px;">
-            <input type="tel" id="wa" placeholder="Nomor WhatsApp (+62...)" required style="max-width: 441px;">
-            <input type="password" id="password" placeholder="Password" required style="max-width: 441px;">
-            <input type="text" id="kelas_id_student" placeholder="Kelas ID" required style="max-width: 441px;">
-            <select id="role">
-              <option value="murid">Murid</option>
-              <option value="guru">Guru</option>
-              <option value="moderator">Moderator</option>
-            </select>
-            <button type="submit">Tambah Akun</button>
-          </form>
-          <p id="student-status"></p>
-        </div>
-        <div class="form-card">
-          <h2>Assign Murid ke Kelas</h2>
-          <form id="form-assign-student" style="max-width: 100%;">
-            <select id="assign_uid"></select>
-            <input type="text" id="assign_kelas_id" placeholder="Kelas ID Tujuan" required style="max-width: 441px;">
-            <button type="submit">Assign Murid</button>
-          </form>
-          <p id="assign-status"></p>
-        </div>
-        <div class="form-card">
-          <h2>Assign Lesson ke Murid</h2>
-          <form id="form-assign-lesson">
-            <select id="assign_lesson_uid"></select>
-            <input type="text" id="lesson_code" placeholder="Kode Lesson (contoh: M1L2)" required style="max-width: 441px;">
-            <button type="submit">Tambah Akses Lesson</button>
-          </form>
-          <p id="lesson-assign-status"></p>
-        </div>
-      </div>
+      </section>
     </main>
   </div>
   <script>
@@ -738,19 +769,26 @@
     }
   }
  </script>
- <script>
-   function toggleTheme() {
-     const current = document.documentElement.getAttribute('data-theme') || 'light';
-     const next = current === 'light' ? 'dark' : 'light';
-     document.documentElement.setAttribute('data-theme', next);
-     localStorage.setItem('theme', next);
-   }
- </script>
+
   <script>
-    // Set posisi awal toggle berdasarkan theme saat ini
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      const next = current === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      updateThemeIcon();
+    }
+
+    function updateThemeIcon() {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      document.getElementById('theme-icon').textContent = current === 'dark' ? '🌙' : '☀️';
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       const currentTheme = localStorage.getItem('theme') || 'light';
-      document.getElementById('theme-toggle').checked = currentTheme === 'dark';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      updateThemeIcon();
+      document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
     });
   </script>
 <script>

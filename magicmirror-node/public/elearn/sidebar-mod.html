@@ -60,6 +60,9 @@
         <hr class="sidebar-divider">
       </div>
     </nav>
+    <div class="menu-group">
+      <a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> <span class="sidebar-label">Logout</span></a>
+    </div>
     <div class="meteor"></div>
     <button id="sidebar-toggle" class="sidebar-toggle">
       <i class="fas fa-angle-left"></i>
@@ -83,6 +86,14 @@
       // Toggle submenu setelah sidebar terbuka
       group.parentElement.classList.toggle('open');
     });
+  });
+  document.getElementById('logout-btn').addEventListener('click', (e) => {
+    e.preventDefault();
+    // Clear session/local storage
+    localStorage.clear();
+    sessionStorage.clear();
+    // Redirect to login page
+    window.location.href = '/elearn/login.html';
   });
 </script>
 <script>

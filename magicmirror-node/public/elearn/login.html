@@ -24,6 +24,34 @@
     firebase.initializeApp(firebaseConfig);
   </script>
   <style>
+    .cta-digital-experience {
+      display: block;
+      background: linear-gradient(135deg, #00c6ff, #0072ff);
+      color: white;
+      padding: 14px 20px;
+      border-radius: 10px;
+      font-weight: bold;
+      text-align: center;
+      text-decoration: none;
+      margin-top: 20px;
+      margin-bottom: 40px;
+      font-size: 1rem;
+      box-shadow: 0 4px 8px rgba(0, 114, 255, 0.3);
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    .cta-digital-experience:hover {
+      background: linear-gradient(135deg, #0072ff, #00c6ff);
+      transform: scale(1.05);
+    }
+
+    .cta-digital-experience .cta-subtext {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: normal;
+      margin-top: 4px;
+      color: #e0e0e0;
+    }
     /* White background container for all side slides */
     .side-slide .slide-content {
       /* Slide 2 will use .card-container for white box, so remove here for all */
@@ -416,6 +444,10 @@
         display: none !important;
       }
     }
+        /* Ensure enough bottom padding in login container to prevent button cutoff */
+    .login-container {
+      padding-bottom: 100px;
+    }
   </style>
 </head>
 <body>
@@ -482,6 +514,7 @@
               <button onclick="window.location.href='/elearn/daftar.html'" class="daftar-akun">Sign Up</button>
             </div>
 
+
             <p id="error-message"></p>
           </div>
         </div>
@@ -490,6 +523,12 @@
           </div>
           <div class="hook-text">
             <h2 class="slide-hook">✨ Discover the magic on the right — swipe to explore! ✨</h2>
+          </div>
+          <div class="input-wrapper" style="margin: 40px auto 0 auto; max-width: 360px; width: 90%;">
+            <a href="https://beinternetawesome.withgoogle.com/id_id/interland" target="_blank" class="cta-digital-experience">
+              🌍 Explore a Fun Digital World!
+              <span class="cta-subtext">Start your digital safety adventure with Google Interland</span>
+            </a>
           </div>
           <div id="hi-bubble" style="position:absolute; display:none; background:#fff; border-radius:12px; padding:4px 8px; font-size:12px; font-weight:bold; top:0; left:-40px; z-index:4;">Discover the magic on the right — swipe to explore! ✨</div>
         </div>
@@ -907,4 +946,5 @@ window.addEventListener('load', () => wrapper.dispatchEvent(new Event('scroll'))
 
 </body>
 </html>
+
 
