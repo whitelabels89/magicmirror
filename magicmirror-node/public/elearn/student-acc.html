@@ -406,6 +406,19 @@
         .then(html => {
           document.getElementById('sidebar-placeholder').innerHTML = html;
 
+          // Eksekusi ulang semua <script> dari sidebar-mod.html
+          const sidebarFragment = document.createRange().createContextualFragment(html);
+          const scripts = sidebarFragment.querySelectorAll('script');
+          scripts.forEach(script => {
+            const newScript = document.createElement('script');
+            if (script.src) {
+              newScript.src = script.src;
+            } else {
+              newScript.textContent = script.textContent;
+            }
+            document.body.appendChild(newScript);
+          });
+
           // Auto-expand parent menu-group of the active menu item
           setTimeout(() => {
             const activeLink = document.querySelector('.sidebar-nav a.active');
@@ -534,12 +547,19 @@
     }
     // Set dynamic username
     const userName = localStorage.getItem('nama') || 'Moderator';
-    document.getElementById('user-name').textContent = userName;
+    // Pastikan elemen user-name ada sebelum mengakses
+    if (document.getElementById('user-name')) {
+      document.getElementById('user-name').textContent = userName;
+    }
 
     loadClasses();
     loadAllStudents();
-    document.getElementById('form-add-class').addEventListener('submit', addClass);
-    document.getElementById('form-add-student').addEventListener('submit', addStudent);
+    if (document.getElementById('form-add-class')) {
+      document.getElementById('form-add-class').addEventListener('submit', addClass);
+    }
+    if (document.getElementById('form-add-student')) {
+      document.getElementById('form-add-student').addEventListener('submit', addStudent);
+    }
   });
 
   async function loadClasses() {
@@ -600,13 +620,15 @@
       const res = await fetch(`${FIREBASE_API}/api/semua-murid`);
       if (!res.ok) throw new Error('Network');
       const list = await res.json();
-      select.innerHTML = '<option value="">Pilih Murid</option>';
+      if (select) select.innerHTML = '<option value="">Pilih Murid</option>';
       if (selectLesson) selectLesson.innerHTML = '<option value="">Pilih Murid</option>';
       list.forEach(m => {
-        const opt = document.createElement('option');
-        opt.value = m.cid;
-        opt.textContent = `${m.nama} (${m.cid})`;
-        select.appendChild(opt);
+        if (select) {
+          const opt = document.createElement('option');
+          opt.value = m.cid;
+          opt.textContent = `${m.nama} (${m.cid})`;
+          select.appendChild(opt);
+        }
         if (selectLesson) {
           const opt2 = document.createElement('option');
           opt2.value = m.cid;
@@ -615,10 +637,12 @@
         }
       });
       // Update stat card murid
-      document.getElementById('stat-murid').textContent = list.length;
+      if (document.getElementById('stat-murid')) {
+        document.getElementById('stat-murid').textContent = list.length;
+      }
     } catch (err) {
       console.error(err);
-      status.textContent = '❌ Gagal memuat daftar murid';
+      if (status) status.textContent = '❌ Gagal memuat daftar murid';
     }
   }
 
@@ -635,16 +659,16 @@
         body: JSON.stringify({ kelas_id, nama_kelas, guru_id })
       });
       if (res.ok) {
-        status.textContent = '✅ Kelas berhasil ditambah.';
+        if (status) status.textContent = '✅ Kelas berhasil ditambah.';
         loadClasses();
         e.target.reset();
       } else {
         const data = await res.json();
-        status.textContent = '❌ ' + (data.error || 'Gagal menambah kelas');
+        if (status) status.textContent = '❌ ' + (data.error || 'Gagal menambah kelas');
       }
     } catch (err) {
       console.error(err);
-      status.textContent = '❌ Gagal menambah kelas';
+      if (status) status.textContent = '❌ Gagal menambah kelas';
     }
   }
 
@@ -669,51 +693,55 @@
         body: JSON.stringify({ cid, nama, email, password, wa, kelas_id, role })
       });
       if (res.ok) {
-        status.textContent = '✅ Akun berhasil ditambah.';
+        if (status) status.textContent = '✅ Akun berhasil ditambah.';
         e.target.reset();
         loadClasses();
       } else {
         const data = await res.json();
-        status.textContent = '❌ ' + (data.error || 'Gagal menambah akun');
+        if (status) status.textContent = '❌ ' + (data.error || 'Gagal menambah akun');
       }
     } catch (err) {
       console.error(err);
-      status.textContent = '❌ Gagal menambah akun';
+      if (status) status.textContent = '❌ Gagal menambah akun';
     }
   }
-  document.getElementById('form-assign-student').addEventListener('submit', assignStudent);
+  if (document.getElementById('form-assign-student')) {
+    document.getElementById('form-assign-student').addEventListener('submit', assignStudent);
+  }
 
-  document.getElementById('form-assign-lesson').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const cid = document.getElementById('assign_lesson_uid').value.trim();
-    const lesson = document.getElementById('lesson_code').value.trim();
-    const status = document.getElementById('lesson-assign-status');
-    if (!cid || !lesson) return;
+  if (document.getElementById('form-assign-lesson')) {
+    document.getElementById('form-assign-lesson').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const cid = document.getElementById('assign_lesson_uid').value.trim();
+      const lesson = document.getElementById('lesson_code').value.trim();
+      const status = document.getElementById('lesson-assign-status');
+      if (!cid || !lesson) return;
 
-    try {
-      const res = await fetch(`${FIREBASE_API}/api/assign-lesson`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cid, lesson })
-      });
-      if (res.ok) {
-        status.textContent = '✅ Akses lesson berhasil ditambahkan.';
-        e.target.reset();
-      } else {
-        try {
-          const data = await res.json();
-          status.textContent = '❌ ' + (data.error || 'Gagal assign lesson');
-        } catch (err) {
-          const text = await res.text();
-          console.error('❌ Invalid JSON:', text);
-          status.textContent = '❌ Gagal assign lesson (invalid response)';
+      try {
+        const res = await fetch(`${FIREBASE_API}/api/assign-lesson`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cid, lesson })
+        });
+        if (res.ok) {
+          if (status) status.textContent = '✅ Akses lesson berhasil ditambahkan.';
+          e.target.reset();
+        } else {
+          try {
+            const data = await res.json();
+            if (status) status.textContent = '❌ ' + (data.error || 'Gagal assign lesson');
+          } catch (err) {
+            const text = await res.text();
+            console.error('❌ Invalid JSON:', text);
+            if (status) status.textContent = '❌ Gagal assign lesson (invalid response)';
+          }
         }
+      } catch (err) {
+        console.error(err);
+        if (status) status.textContent = '❌ Gagal assign lesson';
       }
-    } catch (err) {
-      console.error(err);
-      status.textContent = '❌ Gagal assign lesson';
-    }
-  });
+    });
+  }
 
   async function assignStudent(e) {
     e.preventDefault();
@@ -727,16 +755,16 @@
         body: JSON.stringify({ uid, kelas_id })
       });
       if (res.ok) {
-        status.textContent = '✅ Murid berhasil di-assign ke kelas.';
+        if (status) status.textContent = '✅ Murid berhasil di-assign ke kelas.';
         e.target.reset();
         loadClasses();
       } else {
         const data = await res.json();
-        status.textContent = '❌ ' + (data.error || 'Gagal assign murid');
+        if (status) status.textContent = '❌ ' + (data.error || 'Gagal assign murid');
       }
     } catch (err) {
       console.error(err);
-      status.textContent = '❌ Gagal assign murid';
+      if (status) status.textContent = '❌ Gagal assign murid';
     }
   }
  </script>
@@ -762,70 +790,6 @@
       document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
     });
   </script>
-<script>
-  // Chart.js dummy chart
-  window.addEventListener('DOMContentLoaded', () => {
-    const donutCtx = document.getElementById('donutChart').getContext('2d');
-    new Chart(donutCtx, {
-      type: 'doughnut',
-      data: {
-        labels: ['A', 'B', 'C'],
-        datasets: [{ data: [10, 20, 30], backgroundColor: ['#f66', '#6f6', '#66f'] }]
-      },
-      options: {
-        plugins: { legend: { position: 'bottom' } }
-      }
-    });
-
-    const barCtx = document.getElementById('barChart').getContext('2d');
-    new Chart(barCtx, {
-      type: 'bar',
-      data: {
-        labels: ['Jan', 'Feb', 'Mar'],
-        datasets: [{ label: 'Net Income', data: [3, 6, 4], backgroundColor: '#f99' }]
-      },
-      options: {
-        plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true } }
-      }
-    });
-  });
-</script>
-<script>
-  function scrollToSection(id) {
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  }
-</script>
-</script>
-</script>
-<script>
-// Fungsi untuk mengambil data murid dari Firestore
-async function ambilDataMuridDariFirestore() {
-  try {
-    const res = await fetch(`${FIREBASE_API}/api/semua-murid`);
-    if (!res.ok) throw new Error('Gagal mengambil data murid dari Firestore');
-    const data = await res.json();
-    console.log('Data murid dari Firestore:', data);
-    // Populate the student table directly
-    const tbody = document.querySelector('#students-table tbody');
-    tbody.innerHTML = '';
-    data.forEach(murid => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td data-label="CID">${murid.cid}</td>
-        <td data-label="Nama"><a href="/elearn/student-profile.html?cid=${murid.cid}">${murid.nama}</a></td>
-        <td data-label="Email">${murid.email}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-// Panggil fungsi saat halaman dimuat
-document.addEventListener('DOMContentLoaded', ambilDataMuridDariFirestore);
-</script>
+<!-- No hardcoded sidebar markup remains here. -->
 </body>
 </html>
