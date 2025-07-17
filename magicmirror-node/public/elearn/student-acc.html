@@ -790,8 +790,18 @@ async function ambilDataMuridDariFirestore() {
     if (!res.ok) throw new Error('Gagal mengambil data murid dari Firestore');
     const data = await res.json();
     console.log('Data murid dari Firestore:', data);
-    // Lakukan sesuatu dengan data murid ini, contoh:
-    // tampilkanMuridKeTabel(data);
+    // Populate the student table directly
+    const tbody = document.querySelector('#students-table tbody');
+    tbody.innerHTML = '';
+    data.forEach(murid => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td data-label="CID">${murid.cid}</td>
+        <td data-label="Nama">${murid.nama}</td>
+        <td data-label="Email">${murid.email}</td>
+      `;
+      tbody.appendChild(tr);
+    });
   } catch (err) {
     console.error(err);
   }

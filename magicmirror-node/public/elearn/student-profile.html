@@ -1,0 +1,165 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Profile</title>
+  <link rel="stylesheet" href="/elearn/css/sidebar-mod.css" />
+  <style>
+    body {
+      font-family: 'Fredoka', sans-serif;
+      margin: 0;
+      background-color: #f5f5f5;
+    }
+    .main-wrapper {
+      display: flex;
+    }
+    .main-content {
+      flex-grow: 1;
+      padding: 30px;
+    }
+    .profile-card {
+      display: flex;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      overflow: hidden;
+      margin-bottom: 30px;
+    }
+    .profile-left {
+      flex: 0 0 200px;
+      background: #eee;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    .profile-left img {
+      width: 100px;
+      height: 100px;
+      border-radius: 100px;
+      object-fit: cover;
+      margin-bottom: 10px;
+    }
+    .profile-right {
+      flex-grow: 1;
+      padding: 20px;
+    }
+    h2 {
+      margin-top: 0;
+    }
+    .section {
+      background: white;
+      padding: 20px;
+      margin-bottom: 30px;
+      border-radius: 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    .section h3 {
+      margin-top: 0;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="main-wrapper">
+    <div id="sidebar-container">
+      <!-- sidebar will be included here -->
+    </div>
+    <main class="main-content">
+      <div class="profile-card">
+        <div class="profile-left">
+          <img id="avatar" src="/img/default-avatar.png" alt="Avatar"/>
+          <div id="cid">CID: -</div>
+        </div>
+        <div class="profile-right">
+          <h2 id="nama">Nama Murid</h2>
+          <p><strong>Email:</strong> <span id="email">-</span></p>
+          <p><strong>Usia:</strong> <span id="usia">-</span></p>
+          <p><strong>Kelas:</strong> <span id="kelas">-</span></p>
+        </div>
+      </div>
+
+      <div class="section" id="progress-section">
+        <h3>Progress Akademik</h3>
+        <div id="progress-content">Loading...</div>
+      </div>
+
+      <div class="section" id="karya-section">
+        <h3>Karya & Badge</h3>
+        <div id="karya-content">Loading...</div>
+      </div>
+
+      <div class="section hidden" id="ai-section">
+        <h3>AI Insight</h3>
+        <p><strong>Gaya Belajar:</strong> <span id="ai-gaya">-</span></p>
+        <p><strong>Rekomendasi:</strong> <span id="ai-rekomendasi">-</span></p>
+      </div>
+
+      <div class="section hidden" id="admin-section">
+        <h3>Aksi Admin</h3>
+        <button>Reset Password</button>
+        <button>Tambah Badge</button>
+        <button>Hapus Akun</button>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const cid = params.get('cid');
+    const role = localStorage.getItem('role') || 'murid';
+
+    document.getElementById('cid').innerText = 'CID: ' + cid;
+
+    if (role === 'moderator') {
+      document.getElementById('ai-section').classList.remove('hidden');
+      document.getElementById('admin-section').classList.remove('hidden');
+    }
+
+    fetch(`/api/murid/${cid}`)
+      .then(res => {
+        if (!res.ok) throw new Error("Gagal mengambil data murid");
+        return res.json();
+      })
+      .then(data => {
+        // Tampilkan data murid
+        document.getElementById('nama').textContent = data.nama || '-';
+        document.getElementById('email').textContent = data.email || '-';
+        document.getElementById('usia').textContent = data.usia || '-';
+        document.getElementById('kelas').textContent = data.kelas || '-';
+        if (data.avatar) {
+          document.getElementById('avatar').src = data.avatar;
+        }
+
+        // Tampilkan progress (jika ada)
+        document.getElementById('progress-content').innerHTML = data.progress ? `
+          <ul>
+            ${data.progress.map(p => `<li>${p.lesson}: ${p.status}</li>`).join('')}
+          </ul>
+        ` : 'Belum ada data progress';
+
+        // Tampilkan karya & badge
+        document.getElementById('karya-content').innerHTML = `
+          <p><strong>Karya:</strong> ${data.karya?.length || 0} item</p>
+          <p><strong>Badge:</strong> ${data.badge?.length || 0} item</p>
+        `;
+
+        // AI Insight (jika ada dan role moderator)
+        if (role === 'moderator' && data.ai) {
+          document.getElementById('ai-gaya').textContent = data.ai.gaya || '-';
+          document.getElementById('ai-rekomendasi').textContent = data.ai.rekomendasi || '-';
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert('Gagal memuat profil murid');
+      });
+
+  </script>
+</body>
+</html>
