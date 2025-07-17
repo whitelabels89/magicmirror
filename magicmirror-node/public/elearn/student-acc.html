@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard Moderator</title>
+  <title>Student Accounts – Admin</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
@@ -165,7 +165,7 @@
       padding: 36px 40px 36px 40px;
       display: flex;
       flex-direction: column;
-      gap: 30px;
+      gap: 0px;
       overflow-x: hidden;
     }
     .header-welcome {
@@ -437,123 +437,65 @@
 
       <!-- Section: Welcome -->
       <section class="section-welcome section-spacing" style="margin-bottom: 30px;">
-        <div class="header-welcome" style="font-family: 'Inter', sans-serif; font-weight: 700; font-size: 2rem; background: linear-gradient(90deg, #ff3c3c, #ff7272); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-          Hello, <span id="user-name">Moderator</span>!
+        <div class="header-welcome">
+          👩‍🎓 Manage Student Accounts
         </div>
       </section>
 
       <!-- Section: Stats -->
       <section class="section-stats section-spacing" style="margin-bottom: 30px;">
-        <div class="stat-cards" id="stat-cards">
+        <div class="stat-cards">
           <div class="stat-card">
-            <div class="stat-card-title">Jumlah Kelas</div>
-            <div class="stat-card-value" id="stat-kelas">0</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-card-title">Jumlah Murid</div>
+            <div class="stat-card-title">Total Students</div>
             <div class="stat-card-value" id="stat-murid">0</div>
           </div>
           <div class="stat-card">
-            <div class="stat-card-title">Jumlah Guru</div>
+            <div class="stat-card-title">Total Classes</div>
+            <div class="stat-card-value" id="stat-kelas">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-title">Total Teachers</div>
             <div class="stat-card-value" id="stat-guru">0</div>
           </div>
         </div>
       </section>
 
-      <!-- Section: Charts -->
-      <section class="section-charts section-spacing" style="margin-bottom: 30px;">
-        <div class="charts-row">
-          <div class="chart-card">
-            <div class="chart-title">Income Overview</div>
-            <canvas id="donutChart" width="220" height="220"></canvas>
-          </div>
-          <div class="chart-card">
-            <div class="chart-title">Net Income per Bulan</div>
-            <canvas id="barChart" width="320" height="220"></canvas>
-          </div>
-        </div>
-      </section>
-
-      <!-- Section: Data -->
+      <!-- Section: Class Table -->
       <section class="section-data section-spacing" style="margin-bottom: 30px;">
-        <div class="data-section" id="kelas-section">
-          <div class="data-table-card">
-            <h2>Daftar Kelas</h2>
-            <table id="kelas-table">
-              <thead>
-                <tr>
-                  <th>Kelas ID</th>
-                  <th>Nama Kelas</th>
-                  <th>Guru ID</th>
-                  <th>Jumlah Murid</th>
-                  <th>Aksi</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-          <div class="data-table-card">
-            <h2>Daftar Murid</h2>
-            <table id="students-table">
-              <thead>
-                <tr><th>CID</th><th>Nama</th><th>Email</th></tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
+        <div class="data-table-card">
+          <h2>Class List</h2>
+          <table id="kelas-table">
+            <thead>
+              <tr>
+                <th>Kelas ID</th>
+                <th>Nama Kelas</th>
+                <th>Guru ID</th>
+                <th>Jumlah Murid</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
       </section>
 
-      <!-- Section: Forms -->
-      <section class="section-forms section-spacing" style="margin-bottom: 30px;">
-        <div class="cards-section" id="akun-section">
-          <div class="form-card">
-            <h2>Tambah Kelas Baru</h2>
-            <form id="form-add-class">
-              <input type="text" id="kelas_id" placeholder="Kelas ID" required style="max-width: 441px;">
-              <input type="text" id="nama_kelas" placeholder="Nama Kelas" required style="max-width: 441px;">
-              <input type="text" id="guru_id" placeholder="Guru ID" required style="max-width: 441px;">
-              <button type="submit">Tambah Kelas</button>
-            </form>
-            <p id="class-status"></p>
-          </div>
-          <div class="form-card">
-            <h2>Tambah Akun</h2>
-            <form id="form-add-student">
-              <input type="text" id="nama" placeholder="Nama" required style="max-width: 441px;">
-              <input type="email" id="email" placeholder="Email" required style="max-width: 441px;">
-              <input type="tel" id="wa" placeholder="Nomor WhatsApp (+62...)" required style="max-width: 441px;">
-              <input type="password" id="password" placeholder="Password" required style="max-width: 441px;">
-              <input type="text" id="kelas_id_student" placeholder="Kelas ID" required style="max-width: 441px;">
-              <select id="role">
-                <option value="murid">Murid</option>
-                <option value="guru">Guru</option>
-                <option value="moderator">Moderator</option>
-              </select>
-              <button type="submit">Tambah Akun</button>
-            </form>
-            <p id="student-status"></p>
-          </div>
-          <div class="form-card">
-            <h2>Assign Murid ke Kelas</h2>
-            <form id="form-assign-student" style="max-width: 100%;">
-              <select id="assign_uid"></select>
-              <input type="text" id="assign_kelas_id" placeholder="Kelas ID Tujuan" required style="max-width: 441px;">
-              <button type="submit">Assign Murid</button>
-            </form>
-            <p id="assign-status"></p>
-          </div>
-          <div class="form-card">
-            <h2>Assign Lesson ke Murid</h2>
-            <form id="form-assign-lesson">
-              <select id="assign_lesson_uid"></select>
-              <input type="text" id="lesson_code" placeholder="Kode Lesson (contoh: M1L2)" required style="max-width: 441px;">
-              <button type="submit">Tambah Akses Lesson</button>
-            </form>
-            <p id="lesson-assign-status"></p>
-          </div>
+      <!-- Section: Student Table -->
+      <section class="section-data section-spacing" style="margin-bottom: 30px;">
+        <div class="data-table-card">
+          <h2>Students in Selected Class</h2>
+          <table id="students-table">
+            <thead>
+              <tr>
+                <th>CID</th>
+                <th>Nama</th>
+                <th>Email</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
       </section>
+
     </main>
   </div>
   <script>
@@ -838,6 +780,25 @@
     items.forEach(item => item.classList.remove('active'));
     el.classList.add('active');
   }
+</script>
+</script>
+<script>
+// Fungsi untuk mengambil data murid dari Firestore
+async function ambilDataMuridDariFirestore() {
+  try {
+    const res = await fetch(`${FIREBASE_API}/api/semua-murid`);
+    if (!res.ok) throw new Error('Gagal mengambil data murid dari Firestore');
+    const data = await res.json();
+    console.log('Data murid dari Firestore:', data);
+    // Lakukan sesuatu dengan data murid ini, contoh:
+    // tampilkanMuridKeTabel(data);
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// Panggil fungsi saat halaman dimuat
+document.addEventListener('DOMContentLoaded', ambilDataMuridDariFirestore);
 </script>
 </body>
 </html>
