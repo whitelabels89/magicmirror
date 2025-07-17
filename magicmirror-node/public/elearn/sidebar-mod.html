@@ -96,22 +96,3 @@
     window.location.href = '/elearn/login.html';
   });
 </script>
-<script>
-  window.addEventListener("DOMContentLoaded", () => {
-    const sidebarLinks = document.querySelectorAll('.sidebar-nav a[href]');
-
-    const currentPath = window.location.pathname.split('/').pop().split('?')[0];
-
-    sidebarLinks.forEach(link => {
-      const hrefPath = link.getAttribute('href').split('?')[0];
-      if (hrefPath === currentPath) {
-        link.classList.add('active');
-      }
-
-      link.addEventListener('click', () => {
-        sidebarLinks.forEach(l => l.classList.remove('active'));
-        link.classList.add('active');
-      });
-    });
-  });
-</script>

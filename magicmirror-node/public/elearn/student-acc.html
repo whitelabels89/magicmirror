@@ -406,6 +406,30 @@
         .then(html => {
           document.getElementById('sidebar-placeholder').innerHTML = html;
 
+          // Auto-expand parent menu-group of the active menu item
+          setTimeout(() => {
+            const activeLink = document.querySelector('.sidebar-nav a.active');
+            if (activeLink) {
+              const menuGroup = activeLink.closest('.menu-group');
+              if (menuGroup) {
+                menuGroup.classList.add('open');
+              }
+            }
+          }, 0);
+
+          // New menu active detection logic
+          const currentPath = window.location.pathname.split('/').pop();
+          const sidebarLinks = document.querySelectorAll('.sidebar-nav a[href]');
+
+          sidebarLinks.forEach(link => {
+            const linkPath = link.getAttribute('href');
+            if (currentPath === linkPath) {
+              link.classList.add('active');
+            } else {
+              link.classList.remove('active');
+            }
+          });
+
           const toggleBtn = document.getElementById('sidebar-toggle');
           const sidebarContainer = document.getElementById('sidebar-container');
 
@@ -773,13 +797,6 @@
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   }
 </script>
-</script>
-<script>
-  function setActive(el) {
-    const items = document.querySelectorAll('.sidebar nav ul li');
-    items.forEach(item => item.classList.remove('active'));
-    el.classList.add('active');
-  }
 </script>
 </script>
 <script>
