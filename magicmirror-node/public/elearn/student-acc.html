@@ -559,7 +559,7 @@
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td data-label="CID">${murid.cid}</td>
-          <td data-label="Nama">${murid.nama}</td>
+          <td data-label="Nama"><a href="/elearn/student-profile.html?cid=${murid.cid}">${murid.nama}</a></td>
           <td data-label="Email">${murid.email}</td>`;
         tbody.appendChild(tr);
       });
@@ -797,7 +797,7 @@ async function ambilDataMuridDariFirestore() {
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td data-label="CID">${murid.cid}</td>
-        <td data-label="Nama">${murid.nama}</td>
+        <td data-label="Nama"><a href="/elearn/student-profile.html?cid=${murid.cid}">${murid.nama}</a></td>
         <td data-label="Email">${murid.email}</td>
       `;
       tbody.appendChild(tr);
