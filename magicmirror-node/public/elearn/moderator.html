@@ -341,37 +341,21 @@
       white-space: normal;
     }
   </style>
+</style>
   <link rel="stylesheet" href="/elearn/css/sidebar-mod.css">
 </head>
 <body>
   <div class="dashboard-layout">
     <!-- Sidebar digantikan dengan file terpisah -->
     <div id="sidebar-placeholder"></div>
-    <script>
-      fetch('/elearn/sidebar-mod.html')
-        .then(res => res.text())
-        .then(html => {
-          document.getElementById('sidebar-placeholder').innerHTML = html;
-
-          const toggleBtn = document.getElementById('sidebar-toggle');
-          const sidebarContainer = document.getElementById('sidebar-container');
-
-          if (toggleBtn && sidebarContainer) {
-            toggleBtn.addEventListener('click', () => {
-              sidebarContainer.classList.toggle('collapsed');
-            });
-          }
-
-          document.querySelectorAll('.menu-group > a').forEach(group => {
-            group.addEventListener('click', () => {
-              if (sidebarContainer.classList.contains('collapsed')) {
-                sidebarContainer.classList.remove('collapsed');
-              }
-              group.parentElement.classList.toggle('open');
-            });
-          });
-        });
+    <script type="module">
+      import { loadSidebar } from '/elearn/js/sidebar-init.js';
+      loadSidebar().then(() => {
+        if (typeof initSidebar === 'function') initSidebar();
+        highlightActiveSidebarMenu(window.location.pathname);
+      });
     </script>
+    <script src="/elearn/sidebar-meteor.js" defer></script>
     <main class="main-content">
       <!-- Section: Theme Toggle -->
       <section class="section-theme-toggle section-spacing" style="margin-bottom: 30px;">
@@ -510,7 +494,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     const role = localStorage.getItem('role');
     if (role !== 'moderator') {
-      window.location.href = '/elearn/login-elearning.html';
+      window.location.href = '/elearn/login.html';
       return;
     }
     // Set dynamic username
@@ -743,48 +727,66 @@
       document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
     });
   </script>
-<script>
-  // Chart.js dummy chart
-  window.addEventListener('DOMContentLoaded', () => {
-    const donutCtx = document.getElementById('donutChart').getContext('2d');
-    new Chart(donutCtx, {
-      type: 'doughnut',
-      data: {
-        labels: ['A', 'B', 'C'],
-        datasets: [{ data: [10, 20, 30], backgroundColor: ['#f66', '#6f6', '#66f'] }]
-      },
-      options: {
-        plugins: { legend: { position: 'bottom' } }
-      }
-    });
+  <script>
+    // Chart.js dummy chart
+    window.addEventListener('DOMContentLoaded', () => {
+      const donutCtx = document.getElementById('donutChart').getContext('2d');
+      new Chart(donutCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['A', 'B', 'C'],
+          datasets: [{ data: [10, 20, 30], backgroundColor: ['#f66', '#6f6', '#66f'] }]
+        },
+        options: {
+          plugins: { legend: { position: 'bottom' } }
+        }
+      });
 
-    const barCtx = document.getElementById('barChart').getContext('2d');
-    new Chart(barCtx, {
-      type: 'bar',
-      data: {
-        labels: ['Jan', 'Feb', 'Mar'],
-        datasets: [{ label: 'Net Income', data: [3, 6, 4], backgroundColor: '#f99' }]
-      },
-      options: {
-        plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true } }
+      const barCtx = document.getElementById('barChart').getContext('2d');
+      new Chart(barCtx, {
+        type: 'bar',
+        data: {
+          labels: ['Jan', 'Feb', 'Mar'],
+          datasets: [{ label: 'Net Income', data: [3, 6, 4], backgroundColor: '#f99' }]
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+    });
+  </script>
+  <script>
+    function scrollToSection(id) {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
+  </script>
+</script>
+<script>
+  function highlightActiveSidebarMenu(currentPath) {
+    const links = document.querySelectorAll('.sidebar-nav a[href]');
+    links.forEach(link => {
+      const linkPath = new URL(link.href).pathname;
+      if (linkPath === currentPath) {
+        link.classList.add('active');
+        const parentGroup = link.closest('.menu-group');
+        if (parentGroup) parentGroup.classList.add('open');
+      } else {
+        link.classList.remove('active');
       }
     });
-  });
-</script>
-<script>
-  function scrollToSection(id) {
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  }
-</script>
-</script>
-<script>
-  function setActive(el) {
-    const items = document.querySelectorAll('.sidebar nav ul li');
-    items.forEach(item => item.classList.remove('active'));
-    el.classList.add('active');
   }
 </script>
 </body>
+<!-- Fallback for sidebar if sidebar-init.js fails -->
+<script>
+  if (!window.loadSidebar) {
+    fetch('/elearn/sidebar-mod.html')
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById('sidebar-placeholder').innerHTML = html;
+      });
+  }
+</script>
 </html>

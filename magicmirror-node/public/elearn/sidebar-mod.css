@@ -293,18 +293,18 @@ body, html {
     height: 6px;
     background: linear-gradient(90deg, white, transparent);
     position: absolute;
-    offset-path: path("M-90,16 h199 a20,20 0 0 1 20,20 v580 a20,20 0 0 1 -20,20 h-197 a20,20 0 0 1 -20,-20 v-580 a20,20 0 0 1 20,-20 z");
-    offset-distance: 0%;
-    offset-rotate: auto;
-    animation: moveMeteor 4s linear infinite;
     z-index: 999;
+    offset-path: path("M20,20 H220 A20,20 0 0 1 240,40 V620 A20,20 0 0 1 220,640 H20 A20,20 0 0 1 0,620 V40 A20,20 0 0 1 20,20 Z");
+    offset-rotate: auto;
+    offset-distance: 0%;
+    animation: moveMeteor 4s linear infinite;
   }
 
   @keyframes moveMeteor {
-    0% {
+    from {
       offset-distance: 0%;
     }
-    100% {
+    to {
       offset-distance: 100%;
     }
   }
@@ -320,12 +320,12 @@ body, html {
   content: "";
   position: absolute;
   top: 50%;
-  right: -32px;
+  right: -62px;
   transform: translateY(-50%);
   width: calc(100% + 60px);
   height: 36px;
   background-color: #ffffff;
-  border-radius: 0px 50px 50px 0px;
+  border-radius: 0px 50px 0px 50px;
   z-index: -1;
 }
 

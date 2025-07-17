@@ -1,3 +1,24 @@
+<style>
+  .meteor {
+    width: 20px;
+    height: 6px;
+    background: linear-gradient(90deg, white, transparent);
+    position: absolute;
+    z-index: 999;
+    offset-distance: 0%;
+    offset-rotate: auto;
+    animation: moveMeteor 4s linear infinite;
+  }
+
+  @keyframes moveMeteor {
+    from {
+      offset-distance: 0%;
+    }
+    to {
+      offset-distance: 100%;
+    }
+  }
+</style>
 <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/elearn/sidebar-mod.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
@@ -95,4 +116,52 @@
     // Redirect to login page
     window.location.href = '/elearn/login.html';
   });
+
+  function updateMeteorPath() {
+    requestAnimationFrame(() => {
+      const sidebar = document.querySelector('.sidebar');
+      const meteor = document.querySelector('.meteor');
+
+      if (sidebar && meteor) {
+        const rect = sidebar.getBoundingClientRect();
+        const height = rect.height - 40; // padding atas bawah
+        const path = `M20,20 H220 A20,20 0 0 1 240,40 V${height} A20,20 0 0 1 220,${height+20} H20 A20,20 0 0 1 0,${height} V40 A20,20 0 0 1 20,20 Z`;
+        meteor.style.offsetPath = `path("${path}")`;
+        meteor.style.offsetDistance = '0%';
+      }
+    });
+  }
+
+  function restartMeteorAnimation() {
+    const meteor = document.querySelector('.meteor');
+    if (meteor) {
+      meteor.style.animation = 'none';
+      void meteor.offsetWidth; // reflow
+      meteor.style.animation = 'moveMeteor 4s linear infinite';
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    updateMeteorPath();
+    restartMeteorAnimation();
+  });
+
+  window.addEventListener('load', () => {
+    updateMeteorPath();
+    restartMeteorAnimation();
+    setTimeout(() => {
+      updateMeteorPath();
+      restartMeteorAnimation();
+    }, 500);
+  });
+
+  window.addEventListener('resize', updateMeteorPath);
+
+  const observer = new ResizeObserver(() => {
+    updateMeteorPath();
+    restartMeteorAnimation();
+  });
+
+  const sidebarEl = document.querySelector('.sidebar');
+  if (sidebarEl) observer.observe(sidebarEl);
 </script>

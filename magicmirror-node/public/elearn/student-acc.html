@@ -321,68 +321,14 @@
   <div class="dashboard-layout">
     <!-- Sidebar digantikan dengan file terpisah -->
     <div id="sidebar-placeholder"></div>
-    <script>
-      fetch('/elearn/sidebar-mod.html')
-        .then(res => res.text())
-        .then(html => {
-          document.getElementById('sidebar-placeholder').innerHTML = html;
-
-          // Eksekusi ulang semua <script> dari sidebar-mod.html
-          const sidebarFragment = document.createRange().createContextualFragment(html);
-          const scripts = sidebarFragment.querySelectorAll('script');
-          scripts.forEach(script => {
-            const newScript = document.createElement('script');
-            if (script.src) {
-              newScript.src = script.src;
-            } else {
-              newScript.textContent = script.textContent;
-            }
-            document.body.appendChild(newScript);
-          });
-
-          // Auto-expand parent menu-group of the active menu item
-          setTimeout(() => {
-            const activeLink = document.querySelector('.sidebar-nav a.active');
-            if (activeLink) {
-              const menuGroup = activeLink.closest('.menu-group');
-              if (menuGroup) {
-                menuGroup.classList.add('open');
-              }
-            }
-          }, 0);
-
-          // New menu active detection logic
-          const currentPath = window.location.pathname.split('/').pop();
-          const sidebarLinks = document.querySelectorAll('.sidebar-nav a[href]');
-
-          sidebarLinks.forEach(link => {
-            const linkPath = link.getAttribute('href');
-            if (currentPath === linkPath) {
-              link.classList.add('active');
-            } else {
-              link.classList.remove('active');
-            }
-          });
-
-          const toggleBtn = document.getElementById('sidebar-toggle');
-          const sidebarContainer = document.getElementById('sidebar-container');
-
-          if (toggleBtn && sidebarContainer) {
-            toggleBtn.addEventListener('click', () => {
-              sidebarContainer.classList.toggle('collapsed');
-            });
-          }
-
-          document.querySelectorAll('.menu-group > a').forEach(group => {
-            group.addEventListener('click', () => {
-              if (sidebarContainer.classList.contains('collapsed')) {
-                sidebarContainer.classList.remove('collapsed');
-              }
-              group.parentElement.classList.toggle('open');
-            });
-          });
-        });
+    <script type="module">
+      import { loadSidebar } from '/elearn/js/sidebar-init.js';
+      loadSidebar().then(() => {
+        if (typeof initSidebar === 'function') initSidebar();
+        highlightActiveSidebarMenu(window.location.pathname);
+      });
     </script>
+    <script src="/elearn/sidebar-meteor.js" defer></script>
     <main class="main-content">
       <!-- Section: Theme Toggle -->
       <section class="section-theme-toggle section-spacing" style="margin-bottom: 30px;">
@@ -723,6 +669,14 @@
       }
     });
   </script>
-<!-- No hardcoded sidebar markup remains here. -->
 </body>
+<script>
+  if (!window.loadSidebar) {
+    fetch('/elearn/sidebar-mod.html')
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById('sidebar-placeholder').innerHTML = html;
+      });
+  }
+</script>
 </html>
