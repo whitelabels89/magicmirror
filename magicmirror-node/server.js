@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+const cors = require('cors');
 const axios = require('axios');
 require('dotenv').config();
 const http = require('http').createServer(app);
@@ -58,6 +59,7 @@ const PORT = process.env.PORT || 3000;
 
 // Serve static files from /public
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(cors());
 app.use(express.json({ limit: '10mb' })); // untuk terima JSON besar (seperti foto)
 app.use('/generated_lessons', express.static(path.join(__dirname, '..', 'generated_lessons')));
 app.use(uploadModulRouter);
@@ -335,7 +337,7 @@ app.get('/api/akses-murid/:uid', async (req, res) => {
   }
 });
 
-// GET /api/lessons - Ambil semua lesson
+// GET /api/lessons - ambil semua lesson
 app.get('/api/lessons', async (req, res) => {
   try {
     const snap = await db.collection('lessons').get();
@@ -349,6 +351,35 @@ app.get('/api/lessons', async (req, res) => {
     res.status(500).json({ success: false, error: 'Server error' });
   }
 });
+
+// POST /api/lessons - tambah lesson baru
+app.post('/api/lessons', async (req, res) => {
+  const { lesson_id, title, module, status, kelas_id } = req.body;
+  if (!lesson_id || !title || !module) {
+    return res.status(400).json({ success: false, error: 'Data tidak lengkap' });
+  }
+  try {
+    const ref = db.collection('lessons').doc(lesson_id);
+    const exist = await ref.get();
+    if (exist.exists) {
+      return res.status(400).json({ success: false, error: 'lesson_id sudah ada' });
+    }
+    await ref.set({
+      lesson_id,
+      title,
+      module,
+      kelas_id: kelas_id || '',
+      status: status || 'active',
+      created: Date.now()
+    });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('❌ Error add lesson:', err);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
+
+
 
 // ======= E-learning Moderator Endpoints =======
 // GET /api/semua-murid - daftar semua murid (uid, nama, email)

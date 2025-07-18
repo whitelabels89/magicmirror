@@ -426,16 +426,31 @@
     if (document.getElementById('form-add-student')) {
       document.getElementById('form-add-student').addEventListener('submit', addStudent);
     }
+    if (document.getElementById('form-add-lesson')) {
+      document.getElementById('form-add-lesson').addEventListener('submit', addLesson);
+    }
   });
 
   // Load lessons and populate lesson table
   async function loadLessons() {
     try {
-      const res = await fetch(`${FIREBASE_API}/api/lessons`);
-      const list = await res.json();
+      const res = await fetch('/api/lessons');
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(`HTTP ${res.status} - ${txt}`);
+      }
+      const raw = await res.text();
+      let data;
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch (parseErr) {
+        console.error('❌ Failed response body:', raw);
+        throw parseErr;
+      }
+      const list = Array.isArray(data.lessons) ? data.lessons : (Array.isArray(data) ? data : []);
 
       if (!Array.isArray(list)) {
-        console.error('❌ Invalid data format: lessons must be an array', list);
+        console.error('❌ Invalid data format: lessons must be an array', data);
         return;
       }
 
@@ -545,6 +560,42 @@
     } catch (err) {
       console.error(err);
       if (status) status.textContent = '❌ Gagal menambah akun';
+    }
+  }
+
+  async function addLesson(e) {
+    e.preventDefault();
+    const statusEl = document.getElementById('lesson-status');
+    const title = document.getElementById('lesson_title').value.trim();
+    const module = document.getElementById('lesson_module').value.trim();
+    const lesson_id = document.getElementById('lesson_code').value.trim();
+    const lessonStatus = document.getElementById('lesson_status').value;
+
+    try {
+      const res = await fetch('/api/lessons', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lesson_id, title, module, status: lessonStatus })
+      });
+      const text = await res.text();
+      let data = {};
+      if (text) {
+        try {
+          data = JSON.parse(text);
+        } catch (parseErr) {
+          console.error('❌ Failed response body:', text);
+        }
+      }
+      if (res.ok) {
+        if (statusEl) statusEl.textContent = '✅ Lesson berhasil ditambah.';
+        e.target.reset();
+        loadLessons();
+      } else {
+        if (statusEl) statusEl.textContent = '❌ ' + (data.error || 'Gagal menambah lesson');
+      }
+    } catch (err) {
+      console.error(err);
+      if (statusEl) statusEl.textContent = '❌ Gagal menambah lesson';
     }
   }
   if (document.getElementById('form-assign-student')) {
