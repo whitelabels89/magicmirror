@@ -358,12 +358,14 @@ app.post('/api/lessons', async (req, res) => {
   if (!lesson_id || !title || !module) {
     return res.status(400).json({ success: false, error: 'Data tidak lengkap' });
   }
+
   try {
     const ref = db.collection('lessons').doc(lesson_id);
     const exist = await ref.get();
     if (exist.exists) {
       return res.status(400).json({ success: false, error: 'lesson_id sudah ada' });
     }
+
     await ref.set({
       lesson_id,
       title,
@@ -372,14 +374,13 @@ app.post('/api/lessons', async (req, res) => {
       status: status || 'active',
       created: Date.now()
     });
+
     res.json({ success: true });
   } catch (err) {
     console.error('❌ Error add lesson:', err);
     res.status(500).json({ success: false, error: 'Server error' });
   }
 });
-
-
 
 // ======= E-learning Moderator Endpoints =======
 // GET /api/semua-murid - daftar semua murid (uid, nama, email)
