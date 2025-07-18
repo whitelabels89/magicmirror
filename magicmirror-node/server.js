@@ -319,6 +319,71 @@ async function getProfileAnakData() {
   });
 }
 
+// GET /api/lesson-aktif - ambil daftar murid yang sedang aktif mengerjakan lesson
+app.get('/api/lesson-aktif', async (req, res) => {
+  try {
+    const muridSnap = await db.collection('progress_murid').get();
+    const hasil = [];
+
+    for (const doc of muridSnap.docs) {
+      const cid = doc.id;
+      const namaSnap = await db.collection('murid').doc(cid).get();
+      const nama = namaSnap.exists ? (namaSnap.data().nama || '') : '';
+
+      const lessonSnap = await db.collection('progress_murid').doc(cid).collection('lessons').get();
+      for (const l of lessonSnap.docs) {
+        const data = l.data();
+        if (data.status === 'berlangsung') {
+          hasil.push({
+            cid,
+            nama_murid: nama,
+            lesson_kode: l.id,
+            lesson_nama: data.nama || '',
+            status: data.status || '',
+            start: new Date(data.start_at || Date.now()).toLocaleString(),
+            end: data.end_at ? new Date(data.end_at).toLocaleString() : '-'
+          });
+        }
+      }
+    }
+
+    res.json(hasil);
+  } catch (err) {
+    console.error('❌ Error ambil lesson aktif:', err);
+    res.status(500).json([]);
+  }
+});
+
+// GET /api/log-lesson/:cid/:lesson - ambil log aktivitas lesson dari progress_murid
+app.get('/api/log-lesson/:cid/:lesson', async (req, res) => {
+  const { cid, lesson } = req.params;
+  try {
+    const snap = await db
+      .collection('progress_murid')
+      .doc(cid)
+      .collection('lessons')
+      .doc(lesson)
+      .collection('log')
+      .orderBy('timestamp', 'desc')
+      .limit(50)
+      .get();
+
+    const log = snap.docs.map(d => {
+      const data = d.data();
+      return {
+        waktu: new Date(data.timestamp || Date.now()).toLocaleString(),
+        kegiatan: data.kegiatan || '',
+        user: data.user || ''
+      };
+    });
+
+    res.json(log);
+  } catch (err) {
+    console.error('❌ Error ambil log lesson:', err);
+    res.status(500).json([]);
+  }
+});
+
 // GET /api/akses-murid/:uid - ambil daftar lesson yang bisa diakses murid
 app.get('/api/akses-murid/:uid', async (req, res) => {
   const uid = req.params.uid;
@@ -777,6 +842,61 @@ io.on('connection', (socket) => {
     });
 });
 
+// GET /api/kelas-aktif - daftar kelas yang sedang aktif
+app.get('/api/kelas-aktif', async (req, res) => {
+  try {
+    const snap = await db.collection('kelas').get();
+    const kelasAktif = [];
+
+    for (const doc of snap.docs) {
+      const data = doc.data();
+      if (data.status === 'aktif' || data.status === 'berlangsung') {
+        kelasAktif.push({
+          kelas_id: data.kelas_id || doc.id,
+          nama_kelas: data.nama_kelas || '',
+          nama_guru: data.nama_guru || '',
+          jadwal: data.jadwal || '',
+          jumlah_murid: Array.isArray(data.murid) ? data.murid.length : 0,
+          status: data.status || 'aktif'
+        });
+      }
+    }
+
+    res.json(kelasAktif);
+  } catch (err) {
+    console.error('❌ Error get kelas aktif:', err);
+    res.status(500).json([]);
+  }
+});
+
+// GET /api/log-kelas/:kelas_id - ambil log aktivitas per kelas
+app.get('/api/log-kelas/:kelas_id', async (req, res) => {
+  const kelasId = req.params.kelas_id;
+  try {
+    const snap = await db
+      .collection('kelas')
+      .doc(kelasId)
+      .collection('log')
+      .orderBy('timestamp', 'desc')
+      .limit(50)
+      .get();
+
+    const log = snap.docs.map(d => {
+      const data = d.data();
+      return {
+        waktu: new Date(data.timestamp || Date.now()).toLocaleString(),
+        kegiatan: data.kegiatan || '',
+        user: data.user || ''
+      };
+    });
+
+    res.json(log);
+  } catch (err) {
+    console.error('❌ Error get log kelas:', err);
+    res.status(500).json([]);
+  }
+});
+
 // GET /api/murid/:cid - ambil data profil murid berdasarkan CID
 app.get('/api/murid/:cid', async (req, res) => {
   const cid = req.params.cid;
@@ -828,6 +948,161 @@ app.get('/api/orangtua/:uid', async (req, res) => {
   } catch (err) {
     console.error('❌ Error ambil profil orangtua:', err);
     res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
+
+// GET /api/progress-murid - ringkasan progres semua murid
+app.get('/api/progress-murid', async (req, res) => {
+  try {
+    const muridSnap = await db.collection('progress_murid').get();
+    const hasil = [];
+
+    for (const doc of muridSnap.docs) {
+      const cid = doc.id;
+      const profilSnap = await db.collection('murid').doc(cid).get();
+      const nama = profilSnap.exists ? (profilSnap.data().nama || '') : '';
+      const kelas_id = profilSnap.exists ? (profilSnap.data().kelas_id || '-') : '-';
+
+      const lessonsSnap = await db.collection('progress_murid').doc(cid).collection('lessons').get();
+      const total = lessonsSnap.size;
+      const selesai = lessonsSnap.docs.filter(l => l.data().status === 'selesai').length;
+      const status = total === 0 ? 'Belum mulai' : (selesai === total ? 'Selesai semua' : 'Aktif');
+      const percent = total > 0 ? Math.round((selesai / total) * 100) : 0;
+
+      hasil.push({ cid, nama, kelas_id, total_lesson: total, progress_percent: percent, status });
+    }
+
+    res.json(hasil);
+  } catch (err) {
+    console.error('❌ Error get progress murid:', err);
+    res.status(500).json([]);
+  }
+});
+
+// GET /api/progress-murid/:cid - detail progres lesson per murid
+app.get('/api/progress-murid/:cid', async (req, res) => {
+  const { cid } = req.params;
+  try {
+    const snap = await db.collection('progress_murid').doc(cid).collection('lessons').get();
+    const hasil = snap.docs.map(d => {
+      const data = d.data();
+      return {
+        lesson: d.id,
+        modul: data.modul || '',
+        status: data.status || '',
+        start: data.start_at ? new Date(data.start_at).toLocaleString() : '-',
+        end: data.end_at ? new Date(data.end_at).toLocaleString() : '-',
+        score: data.score || '-'
+      };
+    });
+    res.json(hasil);
+  } catch (err) {
+    console.error('❌ Error get detail progress murid:', err);
+    res.status(500).json([]);
+  }
+});
+
+// GET /api/karya-anak - ambil semua karya anak
+app.get('/api/karya-anak', async (req, res) => {
+  try {
+    const snap = await db.collection('karya_anak').orderBy('timestamp', 'desc').get();
+    const hasil = [];
+    for (const doc of snap.docs) {
+      const data = doc.data();
+      const id_karya = doc.id;
+      const nama = data.nama || ''; // Jika disimpan
+      hasil.push({
+        id_karya,
+        cid: data.cid,
+        nama,
+        judul: data.judul,
+        link: data.link,
+        tipe: data.tipe,
+        timestamp: data.timestamp,
+        status: data.status || 'pending'
+      });
+    }
+    res.json(hasil);
+  } catch (err) {
+    console.error('❌ Gagal get karya:', err);
+    res.status(500).json([]);
+  }
+});
+
+// GET /api/karya-semua - gabungkan hasil quiz + karya anak
+app.get('/api/karya-semua', async (req, res) => {
+  try {
+    const hasilGabung = [];
+    const quizSnap = await db.collection('lesson_results').get();
+
+    for (const doc of quizSnap.docs) {
+      const data = doc.data();
+      const cid = data.cid;
+      const lesson = data.lesson;
+      const nama = data.nama || ''; // optional, jika disimpan
+      const quiz_teori = data.quiz_teori ?? '-';
+      const quiz_praktek = data.quiz_praktek ?? '-';
+      const timestamp = data.timestamp ?? null;
+
+      // Ambil metadata karya anak dari koleksi nested (jika ada)
+      let judul = '-', link = '-', tipe = '-', status = '-';
+
+      try {
+        const karyaRef = await db.collection('karya_anak').doc(cid).collection('lesson').doc(lesson).get();
+        if (karyaRef.exists) {
+          const karyaData = karyaRef.data();
+          judul = karyaData.judul || '-';
+          link = karyaData.link || '-';
+          tipe = karyaData.tipe || '-';
+          status = karyaData.status || '-';
+        }
+      } catch (e) {
+        console.warn(`❗ Tidak ada karya untuk ${cid} - ${lesson}`);
+      }
+
+      hasilGabung.push({
+        cid,
+        nama,
+        lesson,
+        judul,
+        link,
+        tipe,
+        quiz_teori,
+        quiz_praktek,
+        timestamp,
+        status
+      });
+    }
+
+    res.json(hasilGabung);
+  } catch (err) {
+    console.error('❌ Gagal get karya_semua:', err);
+    res.status(500).json({ error: 'Failed to fetch' });
+  }
+});
+
+// DELETE /api/karya-anak/:id_karya - hapus karya anak
+app.delete('/api/karya-anak/:id_karya', async (req, res) => {
+  const { id_karya } = req.params;
+  try {
+    await db.collection('karya_anak').doc(id_karya).delete();
+    res.status(200).json({ message: 'Deleted' });
+  } catch (err) {
+    console.error('❌ Gagal delete karya:', err);
+    res.status(500).json({ error: 'Failed to delete' });
+  }
+});
+
+// POST /api/karya-anak/highlight - tandai sebagai unggulan
+app.post('/api/karya-anak/highlight', async (req, res) => {
+  const { id_karya } = req.body;
+  if (!id_karya) return res.status(400).json({ error: 'Missing ID' });
+  try {
+    await db.collection('karya_anak').doc(id_karya).update({ status: 'highlighted' });
+    res.status(200).json({ message: 'Updated' });
+  } catch (err) {
+    console.error('❌ Gagal highlight karya:', err);
+    res.status(500).json({ error: 'Failed to update' });
   }
 });
 

@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Accounts – Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'light');
+  </script>
+  <style>
+    /* Theme toggle switch styles */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 20px;
+    }
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.4s;
+      border-radius: 20px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 14px;
+      width: 14px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+    .switch input:checked + .slider {
+      background-color: #2196F3;
+    }
+    .switch input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+
+    [data-theme='dark'] {
+      --primary: #131313;
+      --primary-light: #1c1c1c;
+      --card-bg: #1e1e1e;
+      --gray: #2a2a2a;
+      --text-main: #f5f5f5;
+      --text-muted: #aaa;
+      --card-radius: 14px;
+      color: var(--text-main);
+      background-color: var(--primary);
+    }
+    
+
+    [data-theme='dark'] body {
+      background: #121212;
+      color: var(--text-main);
+    }
+
+    [data-theme='dark'] .stat-card,
+    [data-theme='dark'] .form-card,
+    [data-theme='dark'] .data-table-card,
+    [data-theme='dark'] .chart-card {
+      background: var(--card-bg);
+      color: var(--text-main);
+      box-shadow: 0 0 15px rgba(0,255,255,0.3), 0 0 30px rgba(255,0,255,0.15);
+      border-radius: var(--card-radius);
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    [data-theme='dark'] table th {
+      background: #2a2f3a;
+      color: #e0e7ff;
+    }
+
+    /* Ensure table text and notifications readable in dark theme */
+    [data-theme='dark'] th,
+    [data-theme='dark'] td {
+      color: #cdd8f7;
+    }
+
+    [data-theme='dark'] #class-status,
+    [data-theme='dark'] #student-status,
+    [data-theme='dark'] #assign-status {
+      color: #363636;
+    }
+
+    [data-theme='dark'] input,
+    [data-theme='dark'] select {
+      background: #292929;
+      color: #505050;
+      border-color: #444;
+    }
+
+    [data-theme='dark'] input::placeholder,
+    [data-theme='dark'] select option {
+      color: var(--text-muted);
+    }
+
+    [data-theme='dark'] button {
+      background: linear-gradient(135deg, #ff00cc, #3333ff);
+      color: #fff;
+      box-shadow: none;
+    }
+
+    [data-theme='dark'] button:hover {
+      background: linear-gradient(135deg, #ff66cc, #5555ff);
+      box-shadow: none;
+    }
+    [data-theme='dark'] .header-welcome {
+      text-shadow: 0 0 6px rgba(255,255,255,0.3);
+      color: #f0f8ff;
+    }
+
+    [data-theme='dark'] .stat-card-value {
+      text-shadow: 0 0 5px rgba(255,255,255,0.2);
+      color: #4d4d4d;
+    }
+    :root {
+      --sidebar-width: 230px;
+      --primary: #2c3e50;
+      --primary-light: #ecf0f1;
+      --card-bg: #fff;
+      --card-radius: 14px;
+      --shadow: 0 2px 8px rgba(0,0,0,0.04);
+      --gray: #f0f4f8;
+      --font-main: 'Inter', sans-serif;
+    }
+    body {
+      font-family: var(--font-main);
+      margin: 0;
+      background: #f5f7fa;
+      min-height: 100vh;
+    }
+    body.dark-theme {
+      background-color: #121212;
+      color: #f0f0f0;
+    }
+    .dashboard-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+    .main-content {
+      flex: 1;
+      padding: 36px 40px 36px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 0px;
+      overflow-x: hidden;
+    }
+    .header-welcome {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 2rem;
+      background: linear-gradient(90deg, #ff3c3c, #ff7272);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+    .stat-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 22px;
+      margin-bottom: 18px;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow);
+      padding: 28px 26px 20px 26px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      min-width: 0;
+      transition: all 0.3s ease-in-out;
+    }
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .stat-card-title {
+      font-size: 1.05rem;
+      color: #555;
+      margin-bottom: 8px;
+    }
+    .stat-card-value {
+      font-size: 2.1rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+    .charts-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 10px;
+      overflow-x: auto;
+    }
+    .chart-card {
+      background: var(--card-bg);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow);
+      padding: 22px 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 100%;
+      width: 100%;
+      box-sizing: border-box;
+      overflow-x: auto;
+    }
+    .chart-card canvas {
+      max-width: 100% !important;
+      height: auto !important;
+    }
+    .chart-title {
+      font-size: 1.07rem;
+      color: #444;
+      margin-bottom: 10px;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+    }
+    .cards-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 30px;
+      margin-bottom: 20px;
+    }
+    .form-card {
+      background: var(--card-bg);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow);
+      padding: 26px 28px 20px 28px;
+      margin-bottom: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      transition: all 0.3s ease-in-out;
+    }
+    .form-card h2 {
+      margin-top: 0;
+      margin-bottom: 18px;
+      font-size: 1.18rem;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .form-card form {
+      margin: 0;
+      max-width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .form-card input,
+    .form-card select {
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: 7px;
+      border: 1px solid #dde1ef;
+      margin-bottom: 6px;
+      font-size: 1rem;
+      background: #f7fafd;
+      transition: border 0.13s;
+    }
+    .form-card input:focus,
+    .form-card select:focus {
+      outline: none;
+      border: 1.5px solid var(--primary);
+    }
+    .form-card button {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 10px 0;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-top: 8px;
+    }
+    .form-card button:hover {
+      background: #2445a7;
+    }
+    .form-card p {
+      margin: 8px 0 0 0;
+      font-size: 0.96rem;
+    }
+    .data-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 0;
+    }
+    .data-table-card {
+      background: var(--card-bg);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow);
+      padding: 26px 18px 18px 18px;
+      overflow-x: auto;
+      transition: all 0.3s ease-in-out;
+    }
+    .data-table-card h2 {
+      margin-top: 0;
+      margin-bottom: 16px;
+      font-size: 1.14rem;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 1rem;
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 0;
+    }
+    th, td {
+      padding: 9px 12px;
+      border-bottom: 1px solid #f0f0f0;
+      text-align: left;
+    }
+    th {
+      background: var(--primary-light);
+      color: #233b6c;
+      font-weight: 500;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    button {
+      padding: 6px 14px;
+      border-radius: 6px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-size: 0.97rem;
+      transition: background 0.13s;
+    }
+    button:hover {
+      background: #2445a7;
+    }
+    /* Responsive */
+    @media (max-width: 1100px) {
+      .main-content { padding: 28px 10px 28px 10px; }
+      .charts-row, .data-section, .cards-section { grid-template-columns: 1fr; }
+    }
+  </style>
+  <link rel="stylesheet" href="/elearn/css/sidebar-mod.css">
+</head>
+<body>
+  <div class="dashboard-layout">
+    <!-- Sidebar digantikan dengan file terpisah -->
+    <div id="sidebar-placeholder"></div>
+    <script type="module">
+      import { loadSidebar } from '/elearn/js/sidebar-init.js';
+      loadSidebar().then(() => {
+        if (typeof initSidebar === 'function') initSidebar();
+        highlightActiveSidebarMenu(window.location.pathname);
+      });
+    </script>
+    <script src="/elearn/sidebar-meteor.js" defer></script>
+    <!-- Theme toggle switch -->
+    <div class="theme-toggle" style="position: absolute; top: 20px; right: 20px;">
+      <label class="switch">
+        <input type="checkbox" id="themeToggle">
+        <span class="slider round"></span>
+      </label>
+    </div>
+    <main class="main-content">
+      <!-- Section: Welcome -->
+      <section class="section-welcome section-spacing" style="margin-bottom: 30px;">
+        <div class="header-welcome">
+          📘 Manage Lesson Access
+        </div>
+      </section>
+
+      <!-- Section: Assign Lesson -->
+      <section class="section-assign-lesson section-spacing" style="margin-bottom: 30px;">
+        <div class="form-card">
+          <h2>Assign Lesson to Student</h2>
+          <form id="form-assign-lesson">
+            <select id="assign_lesson_uid" required>
+              <option value="">Pilih Murid</option>
+            </select>
+            <select id="lesson_code" required>
+              <option value="">Pilih Lesson</option>
+            </select>
+            <button type="submit">Assign Lesson</button>
+          </form>
+          <p id="lesson-assign-status"></p>
+        </div>
+      </section>
+
+      <!-- Section: Akses Lesson Table -->
+      <section class="section-data section-spacing">
+        <div class="data-table-card">
+          <h2>Daftar Akses Lesson Murid</h2>
+          <table id="lesson-access-table">
+            <thead>
+              <tr>
+                <th>Nama Murid (CID)</th>
+                <th>Lesson Title</th>
+                <th>Lesson Code</th>
+                <th>Status</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script>
+    // Role check
+    document.addEventListener('DOMContentLoaded', () => {
+      const role = localStorage.getItem('role');
+      if (role !== 'moderator') {
+        window.location.href = '/elearn/login.html';
+        return;
+      }
+      // Set dynamic username
+      const userName = localStorage.getItem('nama') || 'Moderator';
+      if (document.getElementById('user-name')) {
+        document.getElementById('user-name').textContent = userName;
+      }
+    });
+  </script>
+</body>
+<script>
+  // Theme toggle switch logic
+  const themeToggle = document.getElementById("themeToggle");
+  themeToggle.addEventListener("change", function () {
+    document.body.classList.toggle("dark-theme", this.checked);
+    localStorage.setItem("theme", this.checked ? "dark" : "light");
+  });
+
+  window.addEventListener("DOMContentLoaded", () => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+      document.body.classList.add("dark-theme");
+      themeToggle.checked = true;
+    }
+  });
+</script>
+<script>
+async function loadLessons() {
+  try {
+    const res = await fetch('/api/lessons');
+    const data = await res.json();
+    const select = document.getElementById('lesson_code');
+    if (!Array.isArray(data)) throw new Error('Format data salah');
+    data.forEach(lesson => {
+      const opt = document.createElement('option');
+      opt.value = lesson.code;
+      opt.textContent = `${lesson.title} (${lesson.code})`;
+      select.appendChild(opt);
+    });
+  } catch (err) {
+    console.error('❌ Failed to load lessons:', err);
+  }
+}
+
+async function loadLessonAccessList() {
+  try {
+    const res = await fetch('/api/akses-lesson');
+    const data = await res.json();
+    const tbody = document.querySelector('#lesson-access-table tbody');
+    tbody.innerHTML = '';
+    data.forEach(row => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${row.nama} (${row.cid})</td>
+        <td>${row.title}</td>
+        <td>${row.code}</td>
+        <td>${row.status}</td>
+        <td><button onclick="hapusAksesLesson('${row.cid}', '${row.code}')">❌ Hapus</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error('❌ Gagal memuat daftar akses lesson:', err);
+  }
+}
+
+async function hapusAksesLesson(cid, code) {
+  if (!confirm(`Hapus akses lesson ${code} dari ${cid}?`)) return;
+  try {
+    const res = await fetch(`/api/akses-lesson/${cid}/${code}`, { method: 'DELETE' });
+    if (res.ok) {
+      alert('✅ Akses lesson berhasil dihapus');
+      loadLessonAccessList();
+    } else {
+      const data = await res.json();
+      alert('❌ ' + (data.error || 'Gagal menghapus akses'));
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Populate student select for assign lesson
+  fetch('/api/semua-murid').then(res => res.json()).then(list => {
+    const select = document.getElementById('assign_lesson_uid');
+    if (select) {
+      select.innerHTML = '<option value="">Pilih Murid</option>';
+      list.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.cid;
+        opt.textContent = `${m.nama} (${m.cid})`;
+        select.appendChild(opt);
+      });
+    }
+  }).catch(err => {
+    console.error('❌ Failed to load students:', err);
+  });
+  loadLessons();
+  loadLessonAccessList();
+  // Handle assign lesson form submission
+  const form = document.getElementById('form-assign-lesson');
+  if (form) {
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const cid = document.getElementById('assign_lesson_uid').value.trim();
+      const lesson = document.getElementById('lesson_code').value.trim();
+      const status = document.getElementById('lesson-assign-status');
+      if (!cid || !lesson) return;
+      try {
+        const res = await fetch('/api/assign-lesson', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cid, lesson })
+        });
+        if (res.ok) {
+          if (status) status.textContent = '✅ Akses lesson berhasil ditambahkan.';
+          form.reset();
+          loadLessonAccessList();
+        } else {
+          const data = await res.json();
+          if (status) status.textContent = '❌ ' + (data.error || 'Gagal assign lesson');
+        }
+      } catch (err) {
+        console.error(err);
+        if (status) status.textContent = '❌ Gagal assign lesson';
+      }
+    });
+  }
+});
+</script>
+</body>
+<script>
+  if (!window.loadSidebar) {
+    fetch('/elearn/sidebar-mod.html')
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById('sidebar-placeholder').innerHTML = html;
+      });
+  }
+</script>
+</html>
