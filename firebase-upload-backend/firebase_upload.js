@@ -1088,6 +1088,51 @@ app.post("/api/notify-ortu", async (req, res) => {
   }
 });
 
+// Endpoint: Ambil daftar lesson
+app.get('/api/lessons', async (req, res) => {
+  try {
+    const snap = await db.collection('lessons').get();
+    const data = snap.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    res.json({ success: true, lessons: data });
+  } catch (err) {
+    console.error('❌ Error ambil daftar lessons:', err);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
+
+// Endpoint: Tambah lesson baru
+app.post('/api/lessons', async (req, res) => {
+  const { lesson_id, title, module, status, kelas_id } = req.body;
+  if (!lesson_id || !title || !module) {
+    return res.status(400).json({ success: false, error: 'Data tidak lengkap' });
+  }
+
+  try {
+    const ref = db.collection('lessons').doc(lesson_id);
+    const exist = await ref.get();
+    if (exist.exists) {
+      return res.status(400).json({ success: false, error: 'lesson_id sudah ada' });
+    }
+
+    await ref.set({
+      lesson_id,
+      title,
+      module,
+      kelas_id: kelas_id || '',
+      status: status || 'active',
+      created: Date.now()
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('❌ Error add lesson:', err);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
+
 
 // Fungsi: Ambil akun berdasarkan email dari Firestore
 async function getAccountByEmail(email) {
