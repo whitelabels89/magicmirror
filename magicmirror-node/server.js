@@ -335,6 +335,21 @@ app.get('/api/akses-murid/:uid', async (req, res) => {
   }
 });
 
+// GET /api/lessons - Ambil semua lesson
+app.get('/api/lessons', async (req, res) => {
+  try {
+    const snap = await db.collection('lessons').get();
+    const data = snap.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    res.json({ success: true, lessons: data });
+  } catch (err) {
+    console.error('❌ Error ambil daftar lessons:', err);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
+
 // ======= E-learning Moderator Endpoints =======
 // GET /api/semua-murid - daftar semua murid (uid, nama, email)
 app.get('/api/semua-murid', async (req, res) => {
@@ -744,6 +759,42 @@ app.get('/api/murid/:cid', async (req, res) => {
     res.json({ success: true, data: doc.data() });
   } catch (err) {
     console.error('❌ Error ambil profil murid:', err);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
+
+// GET /api/guru/:uid - ambil data profil guru berdasarkan UID
+app.get('/api/guru/:uid', async (req, res) => {
+  const uid = req.params.uid;
+  if (!uid) return res.status(400).json({ success: false, error: 'UID kosong' });
+
+  try {
+    const doc = await db.collection('guru').doc(uid).get();
+    if (!doc.exists) {
+      return res.status(404).json({ success: false, error: 'Guru tidak ditemukan' });
+    }
+
+    res.json({ success: true, data: doc.data() });
+  } catch (err) {
+    console.error('❌ Error ambil profil guru:', err);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
+
+// GET /api/orangtua/:uid - ambil data profil orangtua berdasarkan UID
+app.get('/api/orangtua/:uid', async (req, res) => {
+  const uid = req.params.uid;
+  if (!uid) return res.status(400).json({ success: false, error: 'UID kosong' });
+
+  try {
+    const doc = await db.collection('orangtua').doc(uid).get();
+    if (!doc.exists) {
+      return res.status(404).json({ success: false, error: 'Orangtua tidak ditemukan' });
+    }
+
+    res.json({ success: true, data: doc.data() });
+  } catch (err) {
+    console.error('❌ Error ambil profil orangtua:', err);
     res.status(500).json({ success: false, error: 'Server error' });
   }
 });
