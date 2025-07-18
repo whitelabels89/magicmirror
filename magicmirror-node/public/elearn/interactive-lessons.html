@@ -439,7 +439,14 @@
         const txt = await res.text();
         throw new Error(`HTTP ${res.status} - ${txt}`);
       }
-      const data = await res.json();
+      const raw = await res.text();
+      let data;
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch (parseErr) {
+        console.error('❌ Failed response body:', raw);
+        throw parseErr;
+      }
       const list = Array.isArray(data.lessons) ? data.lessons : (Array.isArray(data) ? data : []);
 
       if (!Array.isArray(list)) {
@@ -570,12 +577,20 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ lesson_id, title, module, status: lessonStatus })
       });
+      const text = await res.text();
+      let data = {};
+      if (text) {
+        try {
+          data = JSON.parse(text);
+        } catch (parseErr) {
+          console.error('❌ Failed response body:', text);
+        }
+      }
       if (res.ok) {
         if (statusEl) statusEl.textContent = '✅ Lesson berhasil ditambah.';
         e.target.reset();
         loadLessons();
       } else {
-        const data = await res.json().catch(() => ({}));
         if (statusEl) statusEl.textContent = '❌ ' + (data.error || 'Gagal menambah lesson');
       }
     } catch (err) {

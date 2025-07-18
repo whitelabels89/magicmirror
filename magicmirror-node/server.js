@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+const cors = require('cors');
 const axios = require('axios');
 require('dotenv').config();
 const http = require('http').createServer(app);
@@ -58,6 +59,7 @@ const PORT = process.env.PORT || 3000;
 
 // Serve static files from /public
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(cors());
 app.use(express.json({ limit: '10mb' })); // untuk terima JSON besar (seperti foto)
 app.use('/generated_lessons', express.static(path.join(__dirname, '..', 'generated_lessons')));
 app.use(uploadModulRouter);
