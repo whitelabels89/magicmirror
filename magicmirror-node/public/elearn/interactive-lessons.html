@@ -431,8 +431,14 @@
   // Load lessons and populate lesson table
   async function loadLessons() {
     try {
-      const res = await fetch('/api/lessons');
+      const res = await fetch(`${FIREBASE_API}/api/lessons`);
       const list = await res.json();
+
+      if (!Array.isArray(list)) {
+        console.error('❌ Invalid data format: lessons must be an array', list);
+        return;
+      }
+
       const tbody = document.querySelector('#lesson-table tbody');
       tbody.innerHTML = '';
       list.forEach(lesson => {
@@ -605,37 +611,6 @@
   }
  </script>
 
-<script>
-if (document.getElementById('form-add-lesson')) {
-  document.getElementById('form-add-lesson').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const title = document.getElementById('lesson_title').value.trim();
-    const module = document.getElementById('lesson_module').value.trim();
-    const lesson_id = document.getElementById('lesson_code').value.trim();
-    const status = document.getElementById('lesson_status').value;
-    const statusEl = document.getElementById('lesson-status');
-
-    try {
-      const res = await fetch(`${FIREBASE_API}/api/lessons`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lesson_id, title, module, status })
-      });
-      if (res.ok) {
-        statusEl.textContent = '✅ Lesson berhasil ditambahkan.';
-        loadLessons();
-        e.target.reset();
-      } else {
-        const data = await res.json();
-        statusEl.textContent = '❌ ' + (data.error || 'Gagal menambah lesson');
-      }
-    } catch (err) {
-      console.error(err);
-      statusEl.textContent = '❌ Gagal menambah lesson';
-    }
-  });
-}
-</script>
 
   <script>
     function toggleTheme() {
