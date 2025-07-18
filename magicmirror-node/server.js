@@ -337,7 +337,7 @@ app.get('/api/akses-murid/:uid', async (req, res) => {
   }
 });
 
-// GET /api/lessons - Ambil semua lesson
+// GET /api/lessons - ambil semua lesson
 app.get('/api/lessons', async (req, res) => {
   try {
     const snap = await db.collection('lessons').get();
@@ -381,6 +381,7 @@ app.post('/api/lessons', async (req, res) => {
     res.status(500).json({ success: false, error: 'Server error' });
   }
 });
+
 
 // ======= E-learning Moderator Endpoints =======
 // GET /api/semua-murid - daftar semua murid (uid, nama, email)
