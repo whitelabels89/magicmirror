@@ -434,7 +434,7 @@
   // Load lessons and populate lesson table
   async function loadLessons() {
     try {
-      const res = await fetch(`${FIREBASE_API}/api/lessons`);
+      const res = await fetch('/api/lessons');
       if (!res.ok) {
         const txt = await res.text();
         throw new Error(`HTTP ${res.status} - ${txt}`);
@@ -572,7 +572,7 @@
     const lessonStatus = document.getElementById('lesson_status').value;
 
     try {
-      const res = await fetch(`${FIREBASE_API}/api/lessons`, {
+      const res = await fetch('/api/lessons', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ lesson_id, title, module, status: lessonStatus })
