@@ -745,22 +745,22 @@
       const el = document.getElementById(id);
       if (el) el.scrollIntoView({ behavior: 'smooth' });
     }
+    </script>
+  <script>
+    function highlightActiveSidebarMenu(currentPath) {
+      const links = document.querySelectorAll('.sidebar-nav a[href]');
+      links.forEach(link => {
+        const linkPath = new URL(link.href).pathname;
+        if (linkPath === currentPath) {
+          link.classList.add('active');
+          const parentGroup = link.closest('.menu-group');
+          if (parentGroup) parentGroup.classList.add('open');
+        } else {
+          link.classList.remove('active');
+        }
+      });
+    }
   </script>
-</script>
-<script>
-  function highlightActiveSidebarMenu(currentPath) {
-    const links = document.querySelectorAll('.sidebar-nav a[href]');
-    links.forEach(link => {
-      const linkPath = new URL(link.href).pathname;
-      if (linkPath === currentPath) {
-        link.classList.add('active');
-        const parentGroup = link.closest('.menu-group');
-        if (parentGroup) parentGroup.classList.add('open');
-      } else {
-        link.classList.remove('active');
-      }
-  }
-</script>
 </body>
 <!-- Fallback for sidebar if sidebar-init.js fails -->
 <script>

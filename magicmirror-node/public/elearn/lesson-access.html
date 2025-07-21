@@ -541,15 +541,15 @@ document.addEventListener('DOMContentLoaded', () => {
           form.reset();
           loadLessonAccessList();
         } else {
-          const data = await res.json();
-          if (status) status.textContent = '❌ ' + (data.error || 'Gagal assign lesson');
+      const data = await res.json();
+      if (status) status.textContent = '❌ ' + (data.error || 'Gagal assign lesson');
         }
       } catch (err) {
         console.error(err);
         if (status) status.textContent = '❌ Gagal assign lesson';
       }
-  }
-</script>
+    }
+  </script>
 </body>
 <script>
   if (!window.loadSidebar) {

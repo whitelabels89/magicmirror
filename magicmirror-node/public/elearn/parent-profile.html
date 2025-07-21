@@ -474,26 +474,28 @@
     const uid = params.get("uid");
     if (!pid) return;
 
-    fetch(`${FIREBASE_API}/api/orangtua/${uid}`)
-      .then(res => res.json())
-      .then(({ data }) => {
-        document.getElementById("parentName").textContent = data.name || '-';
-        document.getElementById("parentEmail").textContent = data.email || '-';
-        document.getElementById("parentPhone").textContent = data.phone || '-';
+      fetch(`${FIREBASE_API}/api/orangtua/${uid}`)
+        .then(res => res.json())
+        .then(({ data }) => {
+          document.getElementById("parentName").textContent = data.name || '-';
+          document.getElementById("parentEmail").textContent = data.email || '-';
+          document.getElementById("parentPhone").textContent = data.phone || '-';
 
-        const list = document.getElementById("linkedStudents");
-        list.innerHTML = '';
-        if (data.students && data.students.length > 0) {
-          data.students.forEach(s => {
-            const li = document.createElement("li");
-            li.textContent = `${s.name} (CID: ${s.cid})`;
-            list.appendChild(li);
-        } else {
-          list.innerHTML = '<li>No students linked</li>';
-        }
-      })
-      .catch(err => console.error("Failed to load parent data", err));
-</script>
+          const list = document.getElementById("linkedStudents");
+          list.innerHTML = '';
+          if (data.students && data.students.length > 0) {
+            data.students.forEach(s => {
+              const li = document.createElement("li");
+              li.textContent = `${s.name} (CID: ${s.cid})`;
+              list.appendChild(li);
+            });
+          } else {
+            list.innerHTML = '<li>No students linked</li>';
+          }
+        })
+        .catch(err => console.error("Failed to load parent data", err));
+    });
+  </script>
 </body>
 <script>
   if (!window.loadSidebar) {
