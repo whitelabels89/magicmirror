@@ -321,10 +321,7 @@
     <div id="sidebar-placeholder"></div>
     <script type="module">
       import { loadSidebar } from '/elearn/sidebar-init.js';
-      loadSidebar().then(() => {
-        if (typeof initSidebar === 'function') initSidebar();
-        highlightActiveSidebarMenu(window.location.pathname);
-      });
+      loadSidebar();
     </script>
     <script src="/elearn/sidebar-meteor.js" defer></script>
     <main class="main-content">

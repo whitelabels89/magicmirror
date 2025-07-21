@@ -323,10 +323,7 @@
     <div id="sidebar-placeholder"></div>
     <script type="module">
       import { loadSidebar } from '/elearn/sidebar-init.js';
-      loadSidebar().then(() => {
-        if (typeof initSidebar === 'function') initSidebar();
-        highlightActiveSidebarMenu(window.location.pathname);
-      });
+      loadSidebar();
     </script>
     <script src="/elearn/sidebar-meteor.js" defer></script>
     <main class="main-content">
@@ -392,7 +389,6 @@
       if (currentTheme === 'dark') {
         document.getElementById('sidebar-container')?.classList.add('dark-theme');
       }
-    });
   </script>
 
   <script>
@@ -414,7 +410,6 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ cid, nama, email, password, wa, kelas_id, role })
-        });
         if (res.ok) {
           status.textContent = '✅ Akun berhasil ditambah.';
           e.target.reset();
@@ -426,7 +421,6 @@
         console.error(err);
         status.textContent = '❌ Gagal menambah akun';
       }
-    });
   </script>
 
   <script>
@@ -460,7 +454,6 @@
       if (currentTheme === 'dark') {
         document.getElementById('sidebar-container')?.classList.add('dark-theme');
       }
-    });
   </script>
 </body>
 <script>
@@ -469,7 +462,6 @@
       .then(res => res.text())
       .then(html => {
         document.getElementById('sidebar-placeholder').innerHTML = html;
-      });
   }
 </script>
 </html>

@@ -597,11 +597,13 @@ app.post('/api/daftar-akun-baru', async (req, res) => {
         murid: admin.firestore.FieldValue.arrayUnion(cid)
       });
     } else if (mappedRole === 'guru') {
-      await db.collection('guru').doc(cid).set(akunData);
+      // Use UID as document ID for teachers
+      await db.collection('guru').doc(uid).set(akunData);
     } else if (mappedRole === 'orangtua') {
-      await db.collection('orangtua').doc(cid).set(akunData);
+      // Use UID as document ID for parents
+      await db.collection('orangtua').doc(uid).set(akunData);
     } else if (mappedRole === 'moderator') {
-      await db.collection('moderator').doc(cid).set(akunData);
+      await db.collection('moderator').doc(uid).set(akunData);
     }
 
     res.json({ success: true, cid, uid });

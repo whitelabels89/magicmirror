@@ -323,10 +323,8 @@
     <div id="sidebar-placeholder"></div>
     <script type="module">
       import { loadSidebar } from '/elearn/sidebar-init.js';
-      loadSidebar().then(() => {
-        if (typeof initSidebar === 'function') initSidebar();
-        highlightActiveSidebarMenu(window.location.pathname);
-      });
+      loadSidebar();
+
     </script>
     <script src="/elearn/sidebar-meteor.js" defer></script>
     <main class="main-content">
@@ -399,7 +397,6 @@
     if (document.getElementById('form-add-student')) {
       document.getElementById('form-add-student').addEventListener('submit', addStudent);
     }
-  });
 
   async function loadClasses() {
     try {
@@ -422,7 +419,6 @@
         tbody.appendChild(tr);
         totalMurid += (kelas.jumlah_murid || 0);
         if (kelas.guru_id) guruSet.add(kelas.guru_id);
-      });
       // Update stat cards
       document.getElementById('stat-kelas').textContent = list.length;
       document.getElementById('stat-murid').textContent = totalMurid;
@@ -445,7 +441,6 @@
           <td data-label="Nama"><a href="/elearn/student-profile.html?cid=${murid.cid}">${murid.nama}</a></td>
           <td data-label="Email">${murid.email}</td>`;
         tbody.appendChild(tr);
-      });
     } catch (err) {
       console.error(err);
     }
@@ -474,7 +469,6 @@
           opt2.textContent = `${m.nama} (${m.cid})`;
           selectLesson.appendChild(opt2);
         }
-      });
       // Update stat card murid
       if (document.getElementById('stat-murid')) {
         document.getElementById('stat-murid').textContent = list.length;
@@ -496,7 +490,6 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ kelas_id, nama_kelas, guru_id })
-      });
       if (res.ok) {
         if (status) status.textContent = '✅ Kelas berhasil ditambah.';
         loadClasses();
@@ -530,7 +523,6 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cid, nama, email, password, wa, kelas_id, role })
-      });
       if (res.ok) {
         if (status) status.textContent = '✅ Akun berhasil ditambah.';
         e.target.reset();
@@ -561,7 +553,6 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ cid, lesson })
-        });
         if (res.ok) {
           if (status) status.textContent = '✅ Akses lesson berhasil ditambahkan.';
           e.target.reset();
@@ -579,7 +570,6 @@
         console.error(err);
         if (status) status.textContent = '❌ Gagal assign lesson';
       }
-    });
   }
 
   async function assignStudent(e) {
@@ -592,7 +582,6 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uid, kelas_id })
-      });
       if (res.ok) {
         if (status) status.textContent = '✅ Murid berhasil di-assign ke kelas.';
         e.target.reset();
@@ -639,7 +628,6 @@
       if (currentTheme === 'dark') {
         document.getElementById('sidebar-container')?.classList.add('dark-theme');
       }
-    });
   </script>
   <script>
     async function loadActiveLessons() {
@@ -660,7 +648,6 @@
             <td><button onclick="viewLessonLog('${lesson.cid}','${lesson.lesson_kode}')">View Log</button></td>
           `;
           tbody.appendChild(tr);
-        });
       } catch (err) {
         console.error('❌ Gagal memuat lesson aktif', err);
       }
@@ -680,7 +667,6 @@
             <td>${entry.user}</td>
           `;
           tbody.appendChild(tr);
-        });
       } catch (err) {
         console.error('❌ Gagal memuat log aktivitas', err);
       }
@@ -688,7 +674,6 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       loadActiveLessons();
-    });
   </script>
 </body>
 <script>
@@ -697,7 +682,6 @@
       .then(res => res.text())
       .then(html => {
         document.getElementById('sidebar-placeholder').innerHTML = html;
-      });
   }
 </script>
 </html>
