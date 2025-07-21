@@ -684,13 +684,4 @@
       }
   </script>
 </body>
-<script>
-  if (!window.loadSidebar) {
-    fetch('/elearn/sidebar-mod.html')
-      .then(res => res.text())
-      .then(html => {
-        document.getElementById('sidebar-placeholder').innerHTML = html;
-      });
-  }
-</script>
 </html>

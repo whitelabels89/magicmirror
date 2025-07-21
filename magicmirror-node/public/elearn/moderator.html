@@ -486,7 +486,7 @@
   </div>
   <script>
   // Konstanta endpoint backend Firebase
-  const FIREBASE_API = "https://firebase-upload-backend.onrender.com";
+  const FIREBASE_API = window.location.origin;
 
   document.addEventListener('DOMContentLoaded', () => {
     const role = localStorage.getItem('role');
@@ -762,13 +762,4 @@
     }
   </script>
 </body>
-<!-- Fallback for sidebar if sidebar-init.js fails -->
-<script>
-  if (!window.loadSidebar) {
-    fetch('/elearn/sidebar-mod.html')
-      .then(res => res.text())
-      .then(html => {
-        document.getElementById('sidebar-placeholder').innerHTML = html;
-  }
-</script>
 </html>

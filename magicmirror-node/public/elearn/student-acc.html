@@ -401,7 +401,7 @@
   </div>
   <script>
   // Konstanta endpoint backend Firebase
-  const FIREBASE_API = "https://firebase-upload-backend.onrender.com";
+  const FIREBASE_API = window.location.origin;
 
   document.addEventListener('DOMContentLoaded', () => {
     const role = localStorage.getItem('role');
@@ -425,7 +425,7 @@
       document.getElementById('form-add-student').addEventListener('submit', addStudent);
     }
 
-  async function loadClasses() {
+    async function loadClasses() {
     try {
       const res = await fetch('/api/kelas');
       const json = await res.json();
@@ -434,19 +434,20 @@
       tbody.innerHTML = '';
       let totalMurid = 0;
       let guruSet = new Set();
-      list.forEach(kelas => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td data-label="Kelas ID">${kelas.kelas_id}</td>
-          <td data-label="Nama Kelas">${kelas.nama_kelas}</td>
-          <td data-label="Guru ID">${kelas.guru_id}</td>
-          <td data-label="Jumlah Murid">${kelas.jumlah_murid || 0}</td>
-          <td data-label="Aksi"><button data-id="${kelas.kelas_id}">Lihat Murid</button></td>`;
-        tr.querySelector('button').addEventListener('click', () => loadStudents(kelas.kelas_id));
-        tbody.appendChild(tr);
-        totalMurid += (kelas.jumlah_murid || 0);
-        if (kelas.guru_id) guruSet.add(kelas.guru_id);
-      // Update stat cards
+        list.forEach(kelas => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td data-label="Kelas ID">${kelas.kelas_id}</td>
+            <td data-label="Nama Kelas">${kelas.nama_kelas}</td>
+            <td data-label="Guru ID">${kelas.guru_id}</td>
+            <td data-label="Jumlah Murid">${kelas.jumlah_murid || 0}</td>
+            <td data-label="Aksi"><button data-id="${kelas.kelas_id}">Lihat Murid</button></td>`;
+          tr.querySelector('button').addEventListener('click', () => loadStudents(kelas.kelas_id));
+          tbody.appendChild(tr);
+          totalMurid += (kelas.jumlah_murid || 0);
+          if (kelas.guru_id) guruSet.add(kelas.guru_id);
+        });
+        // Update stat cards
       document.getElementById('stat-kelas').textContent = list.length;
       document.getElementById('stat-murid').textContent = totalMurid;
       document.getElementById('stat-guru').textContent = guruSet.size;
@@ -461,13 +462,14 @@
       const data = await res.json();
       const tbody = document.querySelector('#students-table tbody');
       tbody.innerHTML = '';
-      data.forEach(murid => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td data-label="CID">${murid.cid}</td>
-          <td data-label="Nama"><a href="/elearn/student-profile.html?cid=${murid.cid}">${murid.nama}</a></td>
-          <td data-label="Email">${murid.email}</td>`;
-        tbody.appendChild(tr);
+        data.forEach(murid => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td data-label="CID">${murid.cid}</td>
+            <td data-label="Nama"><a href="/elearn/student-profile.html?cid=${murid.cid}">${murid.nama}</a></td>
+            <td data-label="Email">${murid.email}</td>`;
+          tbody.appendChild(tr);
+        });
     } catch (err) {
       console.error(err);
     }
@@ -483,20 +485,21 @@
       const list = await res.json();
       if (select) select.innerHTML = '<option value="">Pilih Murid</option>';
       if (selectLesson) selectLesson.innerHTML = '<option value="">Pilih Murid</option>';
-      list.forEach(m => {
-        if (select) {
-          const opt = document.createElement('option');
-          opt.value = m.cid;
-          opt.textContent = `${m.nama} (${m.cid})`;
-          select.appendChild(opt);
-        }
-        if (selectLesson) {
-          const opt2 = document.createElement('option');
-          opt2.value = m.cid;
-          opt2.textContent = `${m.nama} (${m.cid})`;
-          selectLesson.appendChild(opt2);
-        }
-      // Update stat card murid
+        list.forEach(m => {
+          if (select) {
+            const opt = document.createElement('option');
+            opt.value = m.cid;
+            opt.textContent = `${m.nama} (${m.cid})`;
+            select.appendChild(opt);
+          }
+          if (selectLesson) {
+            const opt2 = document.createElement('option');
+            opt2.value = m.cid;
+            opt2.textContent = `${m.nama} (${m.cid})`;
+            selectLesson.appendChild(opt2);
+          }
+        });
+        // Update stat card murid
       if (document.getElementById('stat-murid')) {
         document.getElementById('stat-murid').textContent = list.length;
       }
@@ -513,11 +516,12 @@
     const nama_kelas = document.getElementById('nama_kelas').value.trim();
     const guru_id = document.getElementById('guru_id').value.trim();
     try {
-      const res = await fetch('/api/kelas', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ kelas_id, nama_kelas, guru_id })
-      if (res.ok) {
+        const res = await fetch('/api/kelas', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ kelas_id, nama_kelas, guru_id })
+        });
+        if (res.ok) {
         if (status) status.textContent = '✅ Kelas berhasil ditambah.';
         loadClasses();
         e.target.reset();
@@ -546,11 +550,12 @@
     // Generate CID before sending request
     const cid = 'QAC' + String(Date.now()).slice(-7); // Simple unique 7-digit suffix
     try {
-      const res = await fetch(`${FIREBASE_API}/api/daftar-akun-baru`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cid, nama, email, password, wa, kelas_id, role })
-      if (res.ok) {
+        const res = await fetch(`${FIREBASE_API}/api/daftar-akun-baru`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cid, nama, email, password, wa, kelas_id, role })
+        });
+        if (res.ok) {
         if (status) status.textContent = '✅ Akun berhasil ditambah.';
         e.target.reset();
         loadClasses();
@@ -657,12 +662,4 @@
       }
   </script>
 </body>
-<script>
-  if (!window.loadSidebar) {
-    fetch('/elearn/sidebar-mod.html')
-      .then(res => res.text())
-      .then(html => {
-        document.getElementById('sidebar-placeholder').innerHTML = html;
-  }
-</script>
 </html>

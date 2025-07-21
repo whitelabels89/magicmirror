@@ -380,15 +380,16 @@
       document.getElementById('theme-icon').textContent = current === 'dark' ? '🌙' : '☀️';
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const currentTheme = localStorage.getItem('theme') || 'light';
-      document.documentElement.setAttribute('data-theme', currentTheme);
-      updateThemeIcon();
-      document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
-      // Add dark-theme class to sidebar if dark mode is active
-      if (currentTheme === 'dark') {
-        document.getElementById('sidebar-container')?.classList.add('dark-theme');
-      }
+  document.addEventListener('DOMContentLoaded', () => {
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    updateThemeIcon();
+    document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
+    // Add dark-theme class to sidebar if dark mode is active
+    if (currentTheme === 'dark') {
+      document.getElementById('sidebar-container')?.classList.add('dark-theme');
+    }
+  });
   </script>
 
   <script>
@@ -456,12 +457,4 @@
       }
   </script>
 </body>
-<script>
-  if (!window.loadSidebar) {
-    fetch('/elearn/sidebar-mod.html')
-      .then(res => res.text())
-      .then(html => {
-        document.getElementById('sidebar-placeholder').innerHTML = html;
-  }
-</script>
 </html>

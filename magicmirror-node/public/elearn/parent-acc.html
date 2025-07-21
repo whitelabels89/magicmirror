@@ -397,6 +397,7 @@
     const userName = localStorage.getItem('nama') || 'Moderator';
     const nameEl = document.getElementById('user-name');
     if (nameEl) nameEl.textContent = userName;
+  });
   // Konstanta endpoint backend Firebase
   const FIREBASE_API = window.location.origin;
     function toggleTheme() {
@@ -481,15 +482,7 @@
     );
     renderParents(filtered);
 
-  fetchParents();
+fetchParents();
 </script>
 </body>
-<script>
-  if (!window.loadSidebar) {
-    fetch('/elearn/sidebar-mod.html')
-      .then(res => res.text())
-      .then(html => {
-        document.getElementById('sidebar-placeholder').innerHTML = html;
-  }
-</script>
 </html>
