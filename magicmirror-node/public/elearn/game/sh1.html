@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Warna Bentuk</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      margin: 20px;
+      background-color: #f5fcff;
+    }
+    .container {
+      background: white;
+      border-radius: 16px;
+      padding: 30px 40px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      display: inline-block;
+      margin-top: 20px;
+    }
+    #palette, #grid {
+      display: grid;
+      grid-template-columns: repeat(6, 70px);
+      gap: 15px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    #palette .cell {
+      width: 70px;
+      height: 70px;
+      line-height: 70px;
+      border: 2px solid black;
+      font-weight: bold;
+      font-size: 28px;
+      cursor: default;
+      color: white;
+      text-align: center;
+      vertical-align: middle;
+      user-select: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 12px;
+    }
+    #grid .cell {
+      width: 70px;
+      height: 70px;
+      line-height: 1.2;
+      border: 2px solid black;
+      font-weight: normal;
+      font-size: 30px;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      user-select: none;
+      color: black;
+      border-radius: 12px;
+    }
+    .buttons {
+      margin-top: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 0 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .dots {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      align-items: center;
+      justify-items: center;
+    }
+
+    .dot {
+      width: 16px;
+      height: 10px;
+      background: black;
+      border-radius: 50%;
+    }
+
+    .dots-1 div:nth-child(5),
+    .dots-2 div:nth-child(1),
+    .dots-2 div:nth-child(9),
+    .dots-3 div:nth-child(1),
+    .dots-3 div:nth-child(5),
+    .dots-3 div:nth-child(9),
+    .dots-4 div:nth-child(1),
+    .dots-4 div:nth-child(3),
+    .dots-4 div:nth-child(7),
+    .dots-4 div:nth-child(9),
+    .dots-5 div:nth-child(1),
+    .dots-5 div:nth-child(3),
+    .dots-5 div:nth-child(5),
+    .dots-5 div:nth-child(7),
+    .dots-5 div:nth-child(9),
+    .dots-6 div:nth-child(1),
+    .dots-6 div:nth-child(2),
+    .dots-6 div:nth-child(3),
+    .dots-6 div:nth-child(7),
+    .dots-6 div:nth-child(8),
+    .dots-6 div:nth-child(9)
+    {
+      content: '';
+    }
+
+    .dots-1 div:nth-child(5):after,
+    .dots-2 div:nth-child(1):after,
+    .dots-2 div:nth-child(9):after,
+    .dots-3 div:nth-child(1):after,
+    .dots-3 div:nth-child(5):after,
+    .dots-3 div:nth-child(9):after,
+    .dots-4 div:nth-child(1):after,
+    .dots-4 div:nth-child(3):after,
+    .dots-4 div:nth-child(7):after,
+    .dots-4 div:nth-child(9):after,
+    .dots-5 div:nth-child(1):after,
+    .dots-5 div:nth-child(3):after,
+    .dots-5 div:nth-child(5):after,
+    .dots-5 div:nth-child(7):after,
+    .dots-5 div:nth-child(9):after,
+    .dots-6 div:nth-child(1):after,
+    .dots-6 div:nth-child(2):after,
+    .dots-6 div:nth-child(3):after,
+    .dots-6 div:nth-child(7):after,
+    .dots-6 div:nth-child(8):after,
+    .dots-6 div:nth-child(9):after {
+      content: '';
+      display: block;
+      width: 10px;
+      height: 10px;
+      background: black;
+      border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+  <h2>Silakan Diwarnai Sesuai Petunjuk</h2>
+  <div id="palette" class="container"></div>
+  <hr style="width: 60%;">
+  <div id="grid" class="container"></div>
+  <div class="buttons">
+    <button onclick="resetGrid()">Reset</button>
+    <button onclick="checkAnswer()">Cek Jawaban</button>
+  </div>
+
+<script>
+const colorClues = {
+  1: '#f44336',  // merah
+  2: '#ffeb3b',  // kuning
+  3: '#4caf50',  // hijau
+  4: '#2196f3',  // biru
+  5: '#ba68c8',  // ungu
+  6: '#ec407a'   // pink
+};
+
+const colorOrder = ['#ccc', '#f44336', '#ffeb3b', '#4caf50', '#2196f3', '#ba68c8', '#ec407a'];
+const numbers = [1, 2, 3, 4, 5, 6];
+const rows = 3, cols = 6;
+
+function createPalette() {
+  const pal = document.getElementById('palette');
+  numbers.forEach(n => {
+    const div = document.createElement('div');
+    div.className = 'cell';
+    div.style.background = colorClues[n];
+    div.innerText = n;
+    pal.appendChild(div);
+  });
+}
+
+function randomNumber() {
+  return numbers[Math.floor(Math.random() * numbers.length)];
+}
+
+function createGrid() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  for (let i = 0; i < rows * cols; i++) {
+    const n = randomNumber();
+    const div = document.createElement('div');
+    div.className = 'cell';
+    div.dataset.number = n;
+    div.dataset.step = "0";
+    div.innerHTML = getDotHTML(n);
+    div.style.background = colorOrder[0];  // Start with grey
+    div.addEventListener('click', colorCell);
+    grid.appendChild(div);
+  }
+}
+
+function colorCell(e) {
+  const cell = e.currentTarget;
+  let step = parseInt(cell.dataset.step, 10);
+  step = (step + 1) % colorOrder.length;
+  cell.style.background = colorOrder[step];
+  cell.dataset.step = step;
+}
+
+function resetGrid() {
+  createGrid();
+}
+
+function checkAnswer() {
+  const cells = document.querySelectorAll('#grid .cell');
+  let correct = true;
+
+  cells.forEach(cell => {
+    const number = cell.dataset.number;
+    const expectedColor = colorClues[number].toLowerCase();
+    const currentColor = rgb2hex(window.getComputedStyle(cell).backgroundColor);
+    if (currentColor !== expectedColor) {
+      correct = false;
+    }
+  });
+
+  alert(correct ? "Jawaban benar! 🎉" : "Masih ada yang salah. Coba lagi ya! 💪");
+}
+
+function rgb2hex(rgb) {
+  const result = /^rgba?\((\d+),\s*(\d+),\s*(\d+)/i.exec(rgb);
+  return result ? "#" +
+    ("0" + parseInt(result[1]).toString(16)).slice(-2) +
+    ("0" + parseInt(result[2]).toString(16)).slice(-2) +
+    ("0" + parseInt(result[3]).toString(16)).slice(-2) : "";
+}
+
+function getDotHTML(n) {
+  const dotGrid = `<div class="dots dots-${n}">` +
+    Array(9).fill('<div></div>').join('') +
+    '</div>';
+  return dotGrid;
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  createPalette();
+  createGrid();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Game Logika Gambar</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #fff5f5;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 15px 0;
+      flex-wrap: wrap;
+    }
+    .emoji {
+      font-size: 40px;
+      margin: 5px;
+    }
+    .equal {
+      margin: 0 10px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    input[type="number"] {
+      width: 80px;
+      font-size: 20px;
+      padding: 5px;
+      text-align: center;
+    }
+    .result {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Jumlahkan Angka Sesuai Gambar</h2>
+
+    <button onclick="checkAnswer()">Cek Jawaban</button>
+    <div class="result" id="resultBox"></div>
+  </div>
+
+  <script>
+    const characters = [
+      { options: ["🍎", "🍊", "🍌"], value: 0, chosen: "" },
+      { options: ["🧀", "🍕", "🍞"], value: 0, chosen: "" },
+      { options: ["🥚", "🍩", "🥜"], value: 0, chosen: "" }
+    ];
+
+    function getRandomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function setupQuestions() {
+      const container = document.querySelector(".container");
+
+      characters.forEach(char => {
+        char.value = getRandomInt(2, 9);
+        char.chosen = char.options[Math.floor(Math.random() * char.options.length)];
+      });
+
+      const rows = [
+        [0, 0, 0],
+        [1, 1, 1],
+        [2, 2, 2],
+        [0, 1, 2]
+      ];
+
+      rows.forEach((row, index) => {
+        const div = document.createElement("div");
+        div.className = "row";
+
+        row.forEach((id, i) => {
+          const span = document.createElement("span");
+          span.className = "emoji";
+          span.textContent = characters[id].chosen;
+          div.appendChild(span);
+          if (i < row.length - 1) {
+            div.appendChild(document.createTextNode(" + "));
+          }
+        });
+
+        const eq = document.createElement("span");
+        eq.className = "equal";
+        eq.textContent = index === 3 ? "=" : `= ${row.reduce((a, id) => a + characters[id].value, 0)}`;
+        div.appendChild(eq);
+
+        if (index === 3) {
+          const input = document.createElement("input");
+          input.type = "number";
+          input.id = "answerInput";
+          div.appendChild(input);
+        }
+
+        container.insertBefore(div, document.querySelector("button"));
+      });
+    }
+
+    function checkAnswer() {
+      const input = document.getElementById("answerInput");
+      const result = document.getElementById("resultBox");
+      const correct = characters[0].value + characters[1].value + characters[2].value;
+      if (parseInt(input.value) === correct) {
+        input.style.backgroundColor = "#c8f7c5";
+        result.innerText = `Benar! 🎉 Jawabannya adalah ${correct}`;
+      } else {
+        input.style.backgroundColor = "#f7c5c5";
+        result.innerText = "Coba lagi ya! 🙈";
+      }
+    }
+
+    setupQuestions();
+  </script>
+</body>
+</html>

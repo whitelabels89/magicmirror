@@ -1,0 +1,230 @@
+<style>
+  body {
+    background-color: #f0f8ff;
+    font-family: sans-serif;
+  }
+  .card-container {
+    background-color: white;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    width: fit-content;
+    margin: 40px auto;
+  }
+</style>
+
+<div class="card-container">
+  <h2 style="text-align: center;">Menulis Huruf</h2>
+  <p style="text-align: center;">Tulis huruf-huruf yang mewakili setiap warna lingkaran seperti contoh!</p>
+
+  <div id="clue-container" style="display: flex; justify-content: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+    <!-- Clue circles will be inserted here dynamically -->
+  </div>
+
+  <div id="soal-container" style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
+    <!-- Soal rows will be inserted here dynamically -->
+  </div>
+
+  <div style="display: flex; justify-content: center; margin-top: 30px;">
+    <button onclick="cekJawaban()" style="font-size: 20px; padding: 12px 28px; background-color: #4caf50; color: white; border: none; border-radius: 10px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: background 0.3s ease;">Cek Jawaban</button>
+  </div>
+</div>
+
+<style>
+  .circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 2px solid #555;
+    font-size: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  input[type="text"] {
+    font-size: 20px;
+    height: 40px;
+  }
+  button:hover {
+    background-color: #45a049;
+  }
+</style>
+
+<script>
+  const mappings = {
+    'a': '#f44336', // merah
+    'b': '#e91e63', // pink
+    'c': '#9c27b0', // ungu
+    'd': '#673ab7', // indigo
+    'e': '#3f51b5', // biru gelap
+    'f': '#2196f3', // biru
+    'g': '#03a9f4', // biru muda
+    'h': '#00bcd4', // cyan
+    'i': '#009688', // teal
+    'j': '#4caf50', // hijau
+    'k': '#8bc34a', // hijau terang
+    'l': '#cddc39', // lime
+    'm': '#ffeb3b', // kuning
+    'n': '#ffc107', // amber
+    'o': '#ff9800', // orange
+    'p': '#ff5722', // deep orange
+    'q': '#795548', // coklat
+    'r': '#9e9e9e', // abu-abu
+    's': '#607d8b', // biru keabu-abuan
+    't': '#000000', // hitam
+    'u': '#ffffff', // putih
+    'v': '#ffb6c1', // light pink
+    'w': '#add8e6', // light blue
+    'x': '#90ee90', // light green
+    'y': '#ffcccb', // light red
+    'z': '#d3d3d3'  // light gray
+  };
+
+  // Semua kata berikut valid, bermakna, dan hanya terdiri dari huruf pada key masing-masing
+  // Kombinasi dipilih agar memungkinkan banyak jawaban valid dan bermakna
+  const kataAnakMapping = {
+    'auple': ['apel', 'palu', 'lupa'],
+    'imtpa': ['pita', 'tapi', 'pati'],
+    'bukal': ['baku', 'luka', 'kuba'],
+    'rumah': ['rumah', 'harum', 'murah'],
+    'mejas': ['saja', 'jasa', 'meja'],
+    'kudai': ['kuda', 'aduk', 'dadu'],
+    'sukam': ['suka', 'muka', 'kamu'],
+    'tasum': ['tamu', 'satu', 'mata'],
+    'pudak': ['padu', 'dapu', 'kuda'],
+    'bunga': ['bunga', 'guna', 'naga'],
+    'sinar': ['sari', 'nasi', 'rasi'],
+    'taniga': ['tangga', 'ganti', 'tiga'],
+    'kertas': ['kertas', 'teras'],
+    'kain': ['kain', 'ikan'],
+    'senik': ['seni', 'kini'],
+  };
+
+  let mapping;
+  let kataAnak = [];
+
+  function tampilkanClue(mapping) {
+    const clueContainer = document.getElementById('clue-container');
+    clueContainer.innerHTML = '';
+    // Sort keys alphabetically for consistent display
+    const keys = Object.keys(mapping).sort();
+    keys.forEach(k => {
+      const warna = mapping[k];
+      const divOuter = document.createElement('div');
+      divOuter.style.textAlign = 'center';
+      const divCircle = document.createElement('div');
+      divCircle.style.width = '60px';
+      divCircle.style.height = '60px';
+      divCircle.style.borderRadius = '50%';
+      divCircle.style.background = warna;
+      divCircle.style.display = 'flex';
+      divCircle.style.alignItems = 'center';
+      divCircle.style.justifyContent = 'center';
+      const span = document.createElement('span');
+      span.style.fontSize = '20px';
+      span.style.fontWeight = 'bold';
+      span.textContent = k;
+      divCircle.appendChild(span);
+      divOuter.appendChild(divCircle);
+      clueContainer.appendChild(divOuter);
+    });
+  }
+
+  function getHurufByWarna(warna) {
+    for (const [key, value] of Object.entries(mapping)) {
+      if (value.toLowerCase() === warna.toLowerCase()) return key;
+    }
+    return '?';
+  }
+
+  function rgbToHex(rgb) {
+    const result = rgb.match(/\d+/g);
+    if (!result) return '';
+    return (
+      '#' +
+      result
+        .map(x => parseInt(x).toString(16).padStart(2, '0'))
+        .join('')
+        .toLowerCase()
+    );
+  }
+
+  function acakSoal() {
+    const soalContainer = document.getElementById('soal-container');
+    soalContainer.innerHTML = '';
+
+    kataAnak.forEach((word, index) => {
+      // Skip kata jika ada huruf yang tidak ada dalam mapping
+      const valid = [...word].every(char => mapping[char]);
+      if (!valid) return;
+      // Only include words that are 4 or 5 letters long
+      if (word.length < 4 || word.length > 5) return;
+
+      const row = document.createElement('div');
+      row.className = 'jawaban-row';
+      row.style.display = 'flex';
+      row.style.alignItems = 'center';
+      row.style.gap = '10px';
+
+      // Create circles for each letter
+      [...word].forEach(char => {
+        const circle = document.createElement('div');
+        circle.className = 'circle';
+        circle.style.background = mapping[char];
+        row.appendChild(circle);
+      });
+
+      // Equal sign
+      const span = document.createElement('span');
+      span.textContent = '=';
+      row.appendChild(span);
+
+      // Input text
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.style.width = '140px';
+      input.style.textAlign = 'center';
+      input.value = '';
+      row.appendChild(input);
+
+      soalContainer.appendChild(row);
+    });
+  }
+
+  function cekJawaban() {
+    const baris = document.querySelectorAll('.jawaban-row');
+    baris.forEach(row => {
+      const circles = row.querySelectorAll('.circle');
+      const input = row.querySelector('input');
+      let jawabanSeharusnya = '';
+      circles.forEach(c => {
+        const bg = window.getComputedStyle(c).backgroundColor;
+        const hex = rgbToHex(bg);
+        jawabanSeharusnya += getHurufByWarna(hex);
+      });
+
+      if (input.value.toLowerCase().trim() === jawabanSeharusnya) {
+        input.style.border = '2px solid green';
+      } else {
+        input.style.border = '2px solid red';
+      }
+    });
+  }
+
+  window.onload = function() {
+    const allKeys = Object.keys(kataAnakMapping);
+    const randomKey = allKeys[Math.floor(Math.random() * allKeys.length)];
+    kataAnak = kataAnakMapping[randomKey];
+
+    // Gunakan huruf dari key sebagai dasar mapping acak
+    const hurufArray = randomKey.split('');
+    mapping = {};
+    const warnaPool = ['#fbe36a', '#3a9ff3', '#b6ddb2', '#f58ca7', '#fdb95b'];
+    hurufArray.forEach((huruf, idx) => {
+      mapping[huruf] = warnaPool[idx % warnaPool.length];
+    });
+
+    tampilkanClue(mapping);
+    acakSoal();
+  };
+</script>

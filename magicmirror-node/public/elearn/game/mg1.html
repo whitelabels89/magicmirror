@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game Penjumlahan Warna</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f8ff;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .color-circle {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: inline-block;
+      margin: 5px;
+      line-height: 50px;
+      font-weight: bold;
+      font-size: 18px;
+      color: #000;
+    }
+    .row {
+      margin: 15px 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    input[type="number"] {
+      width: 60px;
+      padding: 5px;
+      font-size: 16px;
+      text-align: center;
+      margin-left: 10px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 15px;
+      font-size: 16px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .result {
+      margin-top: 15px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Jumlahkan Sesuai Warna</h2>
+    <div class="row" id="legend"></div>
+    <hr>
+    <div id="questions"></div>
+    <button onclick="checkAnswers()">Cek Jawaban</button>
+    <div class="result" id="resultBox"></div>
+  </div>
+
+  <script>
+    const colorCodes = [
+      { color: "#77e3e3", value: 1 },
+      { color: "#f8cd7c", value: 2 },
+      { color: "#b7cc97", value: 3 },
+      { color: "#f76c6c", value: 4 },
+      { color: "#dbbddb", value: 5 }
+    ];
+
+    const questionCount = 6;
+    let questions = [];
+
+    function getRandomPair() {
+      const a = colorCodes[Math.floor(Math.random() * colorCodes.length)];
+      const b = colorCodes[Math.floor(Math.random() * colorCodes.length)];
+      return { a, b };
+    }
+
+    function generateLegend() {
+      const legend = document.getElementById("legend");
+      colorCodes.forEach(code => {
+        const circle = document.createElement("div");
+        circle.className = "color-circle";
+        circle.style.background = code.color;
+        circle.textContent = code.value;
+        legend.appendChild(circle);
+      });
+    }
+
+    function generateQuestions() {
+      const questionsDiv = document.getElementById("questions");
+      questionsDiv.innerHTML = "";
+      questions = [];
+      for (let i = 0; i < questionCount; i++) {
+        const pair = getRandomPair();
+        questions.push(pair);
+
+        const row = document.createElement("div");
+        row.className = "row";
+
+        const circleA = document.createElement("div");
+        circleA.className = "color-circle";
+        circleA.style.background = pair.a.color;
+
+        const plus = document.createElement("span");
+        plus.textContent = " + ";
+
+        const circleB = document.createElement("div");
+        circleB.className = "color-circle";
+        circleB.style.background = pair.b.color;
+
+        const equal = document.createElement("span");
+        equal.textContent = " = ";
+
+        const input = document.createElement("input");
+        input.type = "number";
+        input.className = "answer";
+
+        row.appendChild(circleA);
+        row.appendChild(plus);
+        row.appendChild(circleB);
+        row.appendChild(equal);
+        row.appendChild(input);
+
+        questionsDiv.appendChild(row);
+      }
+    }
+
+    function checkAnswers() {
+      const inputs = document.querySelectorAll(".answer");
+      let score = 0;
+
+      inputs.forEach((input, index) => {
+        const expected = questions[index].a.value + questions[index].b.value;
+        if (parseInt(input.value) === expected) {
+          score++;
+          input.style.backgroundColor = "#c8f7c5";
+        } else {
+          input.style.backgroundColor = "#f7c5c5";
+        }
+      });
+
+      document.getElementById("resultBox").innerText = `Kamu benar ${score} dari ${questionCount} soal.`;
+    }
+
+    // Inisialisasi
+    generateLegend();
+    generateQuestions();
+  </script>
+</body>
+</html>
