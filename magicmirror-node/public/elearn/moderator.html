@@ -349,7 +349,7 @@
     <!-- Sidebar digantikan dengan file terpisah -->
     <div id="sidebar-placeholder"></div>
     <script type="module">
-      import { loadSidebar } from '/elearn/js/sidebar-init.js';
+      import { loadSidebar } from '/elearn/sidebar-init.js';
       loadSidebar().then(() => {
         if (typeof initSidebar === 'function') initSidebar();
         highlightActiveSidebarMenu(window.location.pathname);
