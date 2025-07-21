@@ -349,11 +349,8 @@
     <!-- Sidebar digantikan dengan file terpisah -->
     <div id="sidebar-placeholder"></div>
     <script type="module">
-      import { loadSidebar } from '/elearn/js/sidebar-init.js';
-      loadSidebar().then(() => {
-        if (typeof initSidebar === 'function') initSidebar();
-        highlightActiveSidebarMenu(window.location.pathname);
-      });
+      import { loadSidebar } from '/elearn/sidebar-init.js';
+      loadSidebar();
     </script>
     <script src="/elearn/sidebar-meteor.js" defer></script>
     <main class="main-content">
@@ -505,7 +502,6 @@
     loadAllStudents();
     document.getElementById('form-add-class').addEventListener('submit', addClass);
     document.getElementById('form-add-student').addEventListener('submit', addStudent);
-  });
 
   async function loadClasses() {
     try {
@@ -528,7 +524,6 @@
         tbody.appendChild(tr);
         totalMurid += (kelas.jumlah_murid || 0);
         if (kelas.guru_id) guruSet.add(kelas.guru_id);
-      });
       // Update stat cards
       document.getElementById('stat-kelas').textContent = list.length;
       document.getElementById('stat-murid').textContent = totalMurid;
@@ -551,7 +546,6 @@
           <td data-label="Nama">${murid.nama}</td>
           <td data-label="Email">${murid.email}</td>`;
         tbody.appendChild(tr);
-      });
     } catch (err) {
       console.error(err);
     }
@@ -578,7 +572,6 @@
           opt2.textContent = `${m.nama} (${m.cid})`;
           selectLesson.appendChild(opt2);
         }
-      });
       // Update stat card murid
       document.getElementById('stat-murid').textContent = list.length;
     } catch (err) {
@@ -598,7 +591,6 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ kelas_id, nama_kelas, guru_id })
-      });
       if (res.ok) {
         status.textContent = '✅ Kelas berhasil ditambah.';
         loadClasses();
@@ -632,7 +624,6 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cid, nama, email, password, wa, kelas_id, role })
-      });
       if (res.ok) {
         status.textContent = '✅ Akun berhasil ditambah.';
         e.target.reset();
@@ -660,7 +651,6 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cid, lesson })
-      });
       if (res.ok) {
         status.textContent = '✅ Akses lesson berhasil ditambahkan.';
         e.target.reset();
@@ -678,7 +668,6 @@
       console.error(err);
       status.textContent = '❌ Gagal assign lesson';
     }
-  });
 
   async function assignStudent(e) {
     e.preventDefault();
@@ -690,7 +679,6 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uid, kelas_id })
-      });
       if (res.ok) {
         status.textContent = '✅ Murid berhasil di-assign ke kelas.';
         e.target.reset();
@@ -725,7 +713,6 @@
       document.documentElement.setAttribute('data-theme', currentTheme);
       updateThemeIcon();
       document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
-    });
   </script>
   <script>
     // Chart.js dummy chart
@@ -740,7 +727,6 @@
         options: {
           plugins: { legend: { position: 'bottom' } }
         }
-      });
 
       const barCtx = document.getElementById('barChart').getContext('2d');
       new Chart(barCtx, {
@@ -753,31 +739,28 @@
           plugins: { legend: { display: false } },
           scales: { y: { beginAtZero: true } }
         }
-      });
-    });
   </script>
   <script>
     function scrollToSection(id) {
       const el = document.getElementById(id);
       if (el) el.scrollIntoView({ behavior: 'smooth' });
     }
+    </script>
+  <script>
+    function highlightActiveSidebarMenu(currentPath) {
+      const links = document.querySelectorAll('.sidebar-nav a[href]');
+      links.forEach(link => {
+        const linkPath = new URL(link.href).pathname;
+        if (linkPath === currentPath) {
+          link.classList.add('active');
+          const parentGroup = link.closest('.menu-group');
+          if (parentGroup) parentGroup.classList.add('open');
+        } else {
+          link.classList.remove('active');
+        }
+      });
+    }
   </script>
-</script>
-<script>
-  function highlightActiveSidebarMenu(currentPath) {
-    const links = document.querySelectorAll('.sidebar-nav a[href]');
-    links.forEach(link => {
-      const linkPath = new URL(link.href).pathname;
-      if (linkPath === currentPath) {
-        link.classList.add('active');
-        const parentGroup = link.closest('.menu-group');
-        if (parentGroup) parentGroup.classList.add('open');
-      } else {
-        link.classList.remove('active');
-      }
-    });
-  }
-</script>
 </body>
 <!-- Fallback for sidebar if sidebar-init.js fails -->
 <script>
