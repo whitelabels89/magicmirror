@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Game Coding Matematika</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #fffaf0;
+      padding: 20px;
+    }
+    .card {
+      background-color: #ffffff;
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 600px;
+      margin: 0 auto;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .title {
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 0;
+      color: #f4a300;
+    }
+    .subtitle {
+      text-align: center;
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+    table {
+      border: 1px solid #ccc;
+      border-collapse: collapse;
+      margin: 0 auto 20px auto;
+      text-align: center;
+    }
+    table td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      font-size: 45px;
+    }
+    .grid-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+    .soal-box {
+      background-color: white;
+      border: 2px solid #ffa500;
+      border-radius: 20px;
+      padding: 20px;
+      margin: 10px;
+      width: 260px;
+      display: inline-block;
+      vertical-align: top;
+      box-sizing: border-box;
+      text-align: center;
+    }
+    .angka-input {
+      width: 40px;
+      font-size: 18px;
+      text-align: center;
+      margin: 0 5px;
+    }
+    .button {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    button {
+      padding: 12px 24px;
+      font-size: 18px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    /* Membesarkan emoji/gambar pada baris pertama di dalam .soal-box */
+    .soal-box div:first-child {
+      font-size: 55px;
+      margin-bottom: 10px;
+      padding-right: 79px;
+    }
+    .salah {
+      border: 2px solid red;
+      background-color: #ffe6e6;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="title">CODING MATEMATIKA</div>
+    <p class="subtitle">Petunjuk: isilah pertanyaan sesuai dengan kode pada tabel.</p>
+    <table>
+      <tr>
+        <td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td>
+      </tr>
+      <tr>
+        <td>🍎</td><td>🍌</td><td>🍇</td><td>🍓</td><td>🍍</td><td>🥝</td><td>🍉</td><td>🍒</td><td>🥥</td>
+      </tr>
+    </table>
+    <div class="grid-container" id="grid-container"></div>
+    <div class="button">
+      <button onclick="cekJawaban()">Cek Jawaban</button>
+    </div>
+  </div>
+
+  <script>
+    const emojiMap = {
+      '🍎': 1,
+      '🍌': 2,
+      '🍇': 3,
+      '🍓': 4,
+      '🍍': 5,
+      '🥝': 6,
+      '🍉': 7,
+      '🍒': 8,
+      '🥥': 9
+    };
+
+    const allEmojis = Object.keys(emojiMap);
+    function getRandomPair() {
+      let a = allEmojis[Math.floor(Math.random() * allEmojis.length)];
+      let b;
+      do {
+        b = allEmojis[Math.floor(Math.random() * allEmojis.length)];
+      } while (a === b);
+      return [a, b];
+    }
+
+    function generateRandomSoal() {
+      const container = document.getElementById('grid-container');
+      container.innerHTML = '';
+      for (let i = 0; i < 6; i++) {
+        const [emoji1, emoji2] = getRandomPair();
+        const box = document.createElement('div');
+        box.className = 'soal-box';
+        box.innerHTML = `
+          <div>${emoji1} ${emoji2}</div>
+          <div>
+            <input class="angka-input" type="number" /> + 
+            <input class="angka-input" type="number" /> = 
+            <input class="angka-input" type="number" />
+          </div>
+        `;
+        container.appendChild(box);
+      }
+    }
+
+    window.onload = generateRandomSoal;
+
+    function cekJawaban() {
+      const soalBoxes = document.querySelectorAll('.soal-box');
+      let benar = 0;
+
+      soalBoxes.forEach(box => {
+        // Reset salah class setiap pengecekan
+        box.classList.remove('salah');
+
+        const emojiText = box.querySelector('div:first-child').innerText.trim().split(' ');
+        const inputs = box.querySelectorAll('.angka-input');
+
+        if (emojiText.length !== 2 || inputs.length !== 3) return;
+
+        const val1 = parseInt(inputs[0].value);
+        const val2 = parseInt(inputs[1].value);
+        const hasil = parseInt(inputs[2].value);
+        const angka1 = emojiMap[emojiText[0]];
+        const angka2 = emojiMap[emojiText[1]];
+
+        if (box.innerHTML.includes('+')) {
+          if (val1 === angka1 && val2 === angka2 && hasil === angka1 + angka2) {
+            benar++;
+            box.classList.remove('salah');
+          } else {
+            box.classList.add('salah');
+          }
+        }
+      });
+
+      alert(`Jawaban benar: ${benar} dari ${soalBoxes.length}`);
+    }
+  </script>
+</body>
+</html>

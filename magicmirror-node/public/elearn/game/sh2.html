@@ -1,0 +1,670 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Line Coding Game</title>
+  <style>
+    body {
+      background: #f7faff;
+      font-family: 'Segoe UI', 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 40px auto 0 auto;
+      background: #fffdfa;
+      border-radius: 24px;
+      padding: 36px 32px 28px 32px;
+      box-shadow: 0 6px 30px 0 rgba(60,80,140,0.10);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .title-section {
+      text-align: center;
+      margin-bottom: 18px;
+    }
+    .title-section h2 {
+      font-size: 2rem;
+      margin: 0 0 8px 0;
+      color: #326da8;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+    .title-section p {
+      font-size: 1.08rem;
+      color: #60636b;
+      margin: 0;
+    }
+    .color-instructions {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      margin-bottom: 26px;
+      flex-wrap: wrap;
+    }
+    .color-instruction {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #f2f7fc;
+      border-radius: 12px;
+      padding: 6px 14px;
+      font-size: 1rem;
+      box-shadow: 0 1px 4px #dbeafe40;
+    }
+    .color-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: inline-block;
+      border: 1.5px solid #b1b4cb;
+    }
+    .color-blue { background: #7bb7fa; border-color: #7bb7fa;}
+    .color-green { background: #8be8c8; border-color: #8be8c8;}
+    .color-red { background: #ffb3b3; border-color: #ffb3b3;}
+    .color-yellow { background: #ffe99f; border-color: #ffe99f;}
+    .color-purple { background: #d7b3ff; border-color: #d7b3ff;}
+    .color-orange { background: #ffd0a1; border-color: #ffd0a1;}
+    .game-area {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      margin-bottom: 28px;
+      width: 100%;
+      align-items: center;
+    }
+    .matrix-row {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 36px;
+      margin-bottom: 10px;
+      width: 100%;
+      justify-content: center;
+    }
+    .matrix-card {
+      background: #f8faff;
+      border-radius: 14px;
+      box-shadow: 0 1px 6px #e5e9f7;
+      padding: 12px 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .matrices-pair {
+      display: flex;
+      gap: 30px;
+      align-items: center;
+    }
+    .matrix-label {
+      font-size: 1.08rem;
+      color: #7a7a9c;
+      margin-bottom: 3px;
+      font-weight: 500;
+      text-align: center;
+    }
+    .dot-matrix {
+      width: 120px;
+      height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f3f6fb;
+      border-radius: 10px;
+      box-shadow: 0 1px 3px #e5e9f7;
+      margin-bottom: 0;
+      position: relative;
+      user-select: none;
+    }
+    .dot-matrix svg, .dot-matrix canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: crosshair;
+    }
+    .matrix-arrow {
+      font-size: 1.8rem;
+      color: #b3b8d1;
+      margin: 0 10px;
+      font-weight: 700;
+      user-select: none;
+    }
+    .buttons-row {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      margin-top: 18px;
+    }
+    .btn {
+      padding: 10px 28px;
+      border-radius: 10px;
+      font-size: 1.07rem;
+      font-weight: 600;
+      border: none;
+      background: linear-gradient(90deg, #7bb7fa 0%, #8be8c8 100%);
+      color: #345;
+      box-shadow: 0 1px 6px #e5e9f7;
+      cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    .btn:active {
+      background: linear-gradient(90deg, #8be8c8 0%, #7bb7fa 100%);
+      box-shadow: 0 1px 2px #dbeafe;
+    }
+    @media (max-width: 900px) {
+      .container { padding: 18px 2vw; }
+      .dot-matrix { width: 84px; height: 84px; }
+      .matrix-row { gap: 16px; }
+      .matrices-pair { gap: 10px;}
+    }
+    @media (max-width: 600px) {
+      .container { max-width: 98vw; }
+      .game-area { gap: 12px; }
+      .matrix-row { flex-direction: column; gap: 6px; width: 100%;}
+      .matrices-pair { flex-direction: column; gap: 4px;}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="title-section">
+      <h2>Line Coding Game</h2>
+      <p>Hubungkan titik-titik seperti contoh di samping menggunakan warna sesuai petunjuk!</p>
+    </div>
+    
+    <div class="game-area" id="gameArea">
+      <!-- Matrices will be injected here by JS -->
+    </div>
+    <div class="buttons-row">
+      <button class="btn" id="resetBtn">Reset</button>
+      <button class="btn" id="submitBtn">Submit</button>
+    </div>
+    <div id="resultMsg" style="margin-top:18px;font-size:1.11rem;font-weight:600;text-align:center;min-height:28px;color:#326da8;"></div>
+  </div>
+  <script>
+    // 5x5 grid, 6 matrices
+    // 10 VARIAN BARU + 6x6 grid untuk bentuk kompleks, warna kontras berbeda-beda
+    // color: navy, crimson, darkgreen, purple, orange, cyan, pink, black, darkblue, darkred
+    const EXAMPLES = [
+      // 0: Blue + shape (5x5)
+      [
+        {from:[2,0],to:[2,4],color:'navy'}, // vertical
+        {from:[0,2],to:[4,2],color:'navy'}
+      ],
+      // 1: Green rectangle (5x5)
+      [
+        {from:[0,0],to:[4,0],color:'darkgreen'},
+        {from:[4,0],to:[4,4],color:'darkgreen'},
+        {from:[4,4],to:[0,4],color:'darkgreen'},
+        {from:[0,4],to:[0,0],color:'darkgreen'}
+      ],
+      // 2: Red left diagonal (5x5)
+      [
+        {from:[0,0],to:[4,4],color:'crimson'}
+      ],
+      // 3: Yellow right diagonal (5x5)
+      [
+        {from:[4,0],to:[0,4],color:'orange'}
+      ],
+      // 4: Purple L shape (5x5)
+      [
+        {from:[0,0],to:[0,4],color:'purple'},
+        {from:[0,4],to:[4,4],color:'purple'}
+      ],
+      // 5: Cyan T shape (5x5)
+      [
+        {from:[2,0],to:[2,4],color:'cyan'},
+        {from:[0,0],to:[4,0],color:'cyan'}
+      ],
+      // 6: Rumah (6x6) - valid: rectangle + roof, all snap to grid points
+      [
+        {from:[1,5],to:[4,5],color:'navy'},      // base
+        {from:[1,5],to:[1,2],color:'navy'},      // left wall
+        {from:[4,5],to:[4,2],color:'navy'},      // right wall
+        {from:[1,2],to:[2,0],color:'navy'},      // left roof
+        {from:[2,0],to:[3,0],color:'navy'},      // roof top
+        {from:[3,0],to:[4,2],color:'navy'}       // right roof
+      ],
+      // 7: Pohon (6x6) - trunk and "leaves", all snap to grid points
+      [
+        {from:[2,5],to:[2,3],color:'green'},     // trunk
+        {from:[2,3],to:[1,2],color:'green'},     // left branch
+        {from:[2,3],to:[3,2],color:'green'},     // right branch
+        {from:[1,2],to:[3,2],color:'green'},     // top "leaves"
+      ],
+      // 8: Diamond (6x6) - all corners on grid
+      [
+        {from:[2,0],to:[0,3],color:'black'},
+        {from:[0,3],to:[2,5],color:'black'},
+        {from:[2,5],to:[4,3],color:'black'},
+        {from:[4,3],to:[2,0],color:'black'}
+      ],
+      // 9: Payung (6x6) - all points on grid
+      [
+        {from:[1,4],to:[4,4],color:'cyan'},      // bottom arc
+        {from:[1,4],to:[2,2],color:'cyan'},      // left arc
+        {from:[4,4],to:[2,2],color:'cyan'},      // right arc
+        {from:[2,2],to:[2,5],color:'cyan'}       // handle
+      ],
+      // 10: Wajah (6x6) - rectangle + eyes + mouth, all on grid
+      [
+        {from:[1,1],to:[4,1],color:'pink'},      // top
+        {from:[4,1],to:[4,4],color:'pink'},      // right
+        {from:[4,4],to:[1,4],color:'pink'},      // bottom
+        {from:[1,4],to:[1,1],color:'pink'},      // left
+        {from:[2,2],to:[2,2],color:'pink'},      // left eye (dot)
+        {from:[3,2],to:[3,2],color:'pink'},      // right eye (dot)
+        {from:[2,3],to:[3,3],color:'pink'}       // mouth
+      ],
+      // 11: Kapal (6x6) - all points on grid
+      [
+        {from:[1,4],to:[4,4],color:'darkblue'},  // base
+        {from:[1,4],to:[2,2],color:'darkblue'},  // left
+        {from:[4,4],to:[2,2],color:'darkblue'},  // right
+        {from:[2,2],to:[2,1],color:'darkblue'}   // mast
+      ],
+      // 12: Panah (6x6) - all points on grid
+      [
+        {from:[2,0],to:[2,5],color:'darkred'},   // shaft
+        {from:[0,3],to:[2,5],color:'darkred'},   // left wing
+        {from:[4,3],to:[2,5],color:'darkred'}    // right wing
+      ],
+      // 13: Simetris X (6x6)
+      [
+        {from:[0,0],to:[5,5],color:'black'},
+        {from:[5,0],to:[0,5],color:'black'}
+      ],
+      // 14: Jam pasir (6x6)
+      [
+        {from:[0,0],to:[5,5],color:'crimson'},
+        {from:[5,0],to:[0,5],color:'crimson'},
+        {from:[0,0],to:[5,0],color:'crimson'},
+        {from:[0,5],to:[5,5],color:'crimson'}
+      ],
+      // 15: Persegi kecil (6x6)
+      [
+        {from:[1,1],to:[4,1],color:'green'},
+        {from:[4,1],to:[4,4],color:'green'},
+        {from:[4,4],to:[1,4],color:'green'},
+        {from:[1,4],to:[1,1],color:'green'}
+      ],
+      // 16: Zigzag (6x6, biru terang)
+      [
+        {from:[0,3],to:[1,2],color:'#2196F3'},
+        {from:[1,2],to:[2,3],color:'#2196F3'},
+        {from:[2,3],to:[3,2],color:'#2196F3'},
+        {from:[3,2],to:[4,3],color:'#2196F3'},
+        {from:[4,3],to:[5,2],color:'#2196F3'}
+      ],
+      // 17: bintangX (6x6, hijau terang)
+      [
+        {from:[0,0],to:[5,5],color:'#4CAF50'},
+        {from:[5,0],to:[0,5],color:'#4CAF50'},
+        {from:[0,2],to:[5,2],color:'#4CAF50'},
+        {from:[2,0],to:[2,5],color:'#4CAF50'}
+      ],
+      // 18: panah (6x6, merah terang)
+      [
+        {from:[2,0],to:[2,3],color:'#F44336'},
+        {from:[2,3],to:[0,1],color:'#F44336'},
+        {from:[2,3],to:[4,1],color:'#F44336'}
+      ],
+      // 19: kapal (6x6, oranye terang #ff5e00) -- diperbesar
+      [
+        // Lambung kapal (trapesium besar)
+        {from:[0,4],to:[5,4],color:'#ff5e00'},   // dasar kapal (panjang)
+        {from:[0,4],to:[1,5],color:'#ff5e00'},   // kiri bawah
+        {from:[5,4],to:[4,5],color:'#ff5e00'},   // kanan bawah
+        {from:[1,5],to:[4,5],color:'#ff5e00'},   // bawah
+        // Tiang layar (lebih tinggi)
+        {from:[2,4],to:[2,0],color:'#ff5e00'},   // tiang
+        // Layar kiri
+        {from:[2,0],to:[0,2],color:'#ff5e00'},   // ujung kiri atas ke puncak tiang
+        {from:[0,2],to:[2,4],color:'#ff5e00'},   // sisi kiri layar ke bawah
+        // Layar kanan
+        {from:[2,0],to:[4,2],color:'#ff5e00'},   // ujung kanan atas ke puncak tiang
+        {from:[4,2],to:[2,4],color:'#ff5e00'}    // sisi kanan layar ke bawah
+      ],
+      // 20: robot (6x6, teal gelap #009688)
+      [
+        // Badan (persegi tengah)
+        {from:[2,2],to:[3,2],color:'#009688'},
+        {from:[3,2],to:[3,4],color:'#009688'},
+        {from:[3,4],to:[2,4],color:'#009688'},
+        {from:[2,4],to:[2,2],color:'#009688'},
+        // Kepala (persegi kecil di atas)
+        {from:[2,1],to:[3,1],color:'#009688'},
+        {from:[3,1],to:[3,2],color:'#009688'},
+        {from:[2,1],to:[2,2],color:'#009688'},
+        // Tangan kiri
+        {from:[2,3],to:[1,3],color:'#009688'},
+        // Tangan kanan
+        {from:[3,3],to:[4,3],color:'#009688'},
+        // Kaki kiri
+        {from:[2,4],to:[2,5],color:'#009688'},
+        // Kaki kanan
+        {from:[3,4],to:[3,5],color:'#009688'}
+      ],
+      // 21: kupu-kupu (6x6, ungu terang #8e24aa)
+      [
+        // Badan tengah
+        {from:[2,2],to:[2,4],color:'#8e24aa'},
+        // Sayap kiri atas
+        {from:[2,2],to:[0,1],color:'#8e24aa'},
+        {from:[0,1],to:[1,3],color:'#8e24aa'},
+        {from:[1,3],to:[2,3],color:'#8e24aa'},
+        // Sayap kiri bawah
+        {from:[2,3],to:[1,5],color:'#8e24aa'},
+        {from:[1,5],to:[2,4],color:'#8e24aa'},
+        // Sayap kanan atas
+        {from:[2,2],to:[4,1],color:'#8e24aa'},
+        {from:[4,1],to:[3,3],color:'#8e24aa'},
+        {from:[3,3],to:[2,3],color:'#8e24aa'},
+        // Sayap kanan bawah
+        {from:[2,3],to:[3,5],color:'#8e24aa'},
+        {from:[3,5],to:[2,4],color:'#8e24aa'}
+      ]
+    ];
+    // Helper: check if all lines in a shape only use integer grid points within grid
+    function isValidShape(lines, gridSize) {
+      function isValidPoint(pt) {
+        return Array.isArray(pt) &&
+          pt.length === 2 &&
+          Number.isInteger(pt[0]) && Number.isInteger(pt[1]) &&
+          pt[0] >= 0 && pt[0] < gridSize &&
+          pt[1] >= 0 && pt[1] < gridSize;
+      }
+      for (const line of lines) {
+        if (!isValidPoint(line.from) || !isValidPoint(line.to)) return false;
+      }
+      return true;
+    }
+    // Grid size per matrix (5x5 default, 6x6 for complex)
+    function getGridSize(idx) {
+      // 0-5: 5x5, 6+ : 6x6
+      return idx < 6 ? 5 : 6;
+    }
+    const COLOR_MAP = {
+      navy: '#002366',
+      crimson: '#e10600',
+      darkgreen: '#006400',
+      purple: '#800080',
+      orange: '#ff7f00',
+      cyan: '#00bcd4',
+      pink: '#ec008c',
+      black: '#222',
+      darkblue: '#003399',
+      darkred: '#8b0000',
+      green: '#28a745',
+      // For new shapes
+      '#2196F3': '#2196F3', // zigzag biru terang
+      '#4CAF50': '#4CAF50', // bintangX hijau terang
+      '#F44336': '#F44336',  // panah merah terang
+      // Kapal, robot, kupu-kupu
+      '#ff5e00': '#ff5e00',   // kapal oranye terang
+      '#009688': '#009688',   // robot teal gelap
+      '#8e24aa': '#8e24aa'    // kupu-kupu ungu terang
+    };
+    // For all shapes, use 6x6 or 5x5 grid as needed
+    const DOT_RADIUS = 2.5; // Lebih kecil agar tidak menutupi garis
+    const DOT_MARGIN = 10;
+    const MATRIX_SIZE = 120;
+    // For touch support
+    function getCanvasRelativePos(canvas, e) {
+      const rect = canvas.getBoundingClientRect();
+      let clientX, clientY;
+      if (e.touches) {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+      } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+      }
+      return {
+        x: clientX - rect.left,
+        y: clientY - rect.top
+      };
+    }
+    // Find which dot is closest (within radius) to a point
+    function getDotFromPos(x, y, matrixPx, gridSize) {
+      const gap = (matrixPx - 2*DOT_MARGIN) / (gridSize-1);
+      for(let i=0;i<gridSize;i++) {
+        for(let j=0;j<gridSize;j++) {
+          const cx = DOT_MARGIN + j*gap;
+          const cy = DOT_MARGIN + i*gap;
+          if (Math.hypot(x-cx, y-cy) <= DOT_RADIUS+3) {
+            return [j,i];
+          }
+        }
+      }
+      return null;
+    }
+    // Draws a dot grid plus lines for given gridSize
+    function drawMatrix(ctx, lines, matrixPx, highlightDot, gridSize) {
+      ctx.clearRect(0,0,matrixPx,matrixPx);
+      const gap = (matrixPx - 2*DOT_MARGIN) / (gridSize-1);
+      // Draw lines
+      for (const line of lines) {
+        const [x1,y1] = line.from;
+        const [x2,y2] = line.to;
+        ctx.strokeStyle = COLOR_MAP[line.color] || '#bbb';
+        ctx.lineWidth = 4.2;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(DOT_MARGIN + x1*gap, DOT_MARGIN + y1*gap);
+        ctx.lineTo(DOT_MARGIN + x2*gap, DOT_MARGIN + y2*gap);
+        ctx.stroke();
+      }
+      // Draw dots
+      for(let i=0;i<gridSize;i++) {
+        for(let j=0;j<gridSize;j++) {
+          ctx.beginPath();
+          ctx.arc(DOT_MARGIN + j*gap, DOT_MARGIN + i*gap, DOT_RADIUS, 0, 2*Math.PI);
+          ctx.fillStyle = (highlightDot && highlightDot[0]===j && highlightDot[1]===i) ? "#f7d9ff" : "#fff";
+          ctx.strokeStyle = "#b1b4cb";
+          ctx.lineWidth = 1.5;
+          ctx.fill();
+          ctx.stroke();
+        }
+      }
+    }
+    // Draws static SVG for example matrix
+    function matrixSVG(exampleLines, gridSize) {
+      const gap = (MATRIX_SIZE - 2*DOT_MARGIN) / (gridSize-1);
+      let linesSVG = '';
+      for(const line of exampleLines) {
+        const [x1,y1] = line.from;
+        const [x2,y2] = line.to;
+        linesSVG += `<line x1="${DOT_MARGIN + x1*gap}" y1="${DOT_MARGIN + y1*gap}" x2="${DOT_MARGIN + x2*gap}" y2="${DOT_MARGIN + y2*gap}" stroke="${COLOR_MAP[line.color]}" stroke-width="4.2" stroke-linecap="round"/>`;
+      }
+      let dotsSVG = '';
+      for(let i=0;i<gridSize;i++) {
+        for(let j=0;j<gridSize;j++) {
+          dotsSVG += `<circle cx="${DOT_MARGIN + j*gap}" cy="${DOT_MARGIN + i*gap}" r="${DOT_RADIUS}" fill="#fff" stroke="#b1b4cb" stroke-width="1.5"/>`;
+        }
+      }
+      return `<svg width="${MATRIX_SIZE}" height="${MATRIX_SIZE}">${linesSVG}${dotsSVG}</svg>`;
+    }
+    // Simpan urutan acak agar evaluasi sesuai (6 soal per refresh)
+    let currentOrder = [];
+    function buildGame() {
+      // Filter only valid shapes (all points snap to grid)
+      const validIndexes = EXAMPLES
+        .map((shape, i) => ({shape, i}))
+        .filter(({shape, i}) => isValidShape(shape, getGridSize(i)))
+        .map(({i}) => i);
+      // Acak urutan validIndexes tanpa mengubah aslinya, ambil 6 soal
+      const shuffledIndexes = validIndexes
+        .slice() // shallow copy
+        .sort(() => Math.random() - 0.5)
+        .slice(0,6);
+      currentOrder = shuffledIndexes;
+      const area = document.getElementById('gameArea');
+      area.innerHTML = '';
+      let row = null;
+      for(let idx=0;idx<currentOrder.length;idx++) {
+        // Start new row every two matrices
+        if (idx % 2 === 0) {
+          row = document.createElement('div');
+          row.className = 'matrix-row';
+        }
+        const matricesPair = document.createElement('div');
+        matricesPair.className = 'matrices-pair';
+        // Example
+        const exampleCard = document.createElement('div');
+        exampleCard.className = 'matrix-card';
+        const gridSize = getGridSize(currentOrder[idx]);
+        exampleCard.innerHTML = `<div class="matrix-label">Contoh</div>
+          <div class="dot-matrix">${matrixSVG(EXAMPLES[currentOrder[idx]], gridSize)}</div>`;
+        // User
+        const userCard = document.createElement('div');
+        userCard.className = 'matrix-card';
+        userCard.innerHTML = `<div class="matrix-label">Jawaban</div>
+          <div class="dot-matrix"><canvas width="${MATRIX_SIZE}" height="${MATRIX_SIZE}" data-matrix-idx="${idx}" data-grid-size="${gridSize}"></canvas></div>`;
+        matricesPair.appendChild(exampleCard);
+        // Arrow
+        const arrow = document.createElement('span');
+        arrow.className = 'matrix-arrow';
+        arrow.textContent = '→';
+        matricesPair.appendChild(arrow);
+        matricesPair.appendChild(userCard);
+        row.appendChild(matricesPair);
+        // If it's the end of a row (every 2 items or last item), append the row to area
+        if (idx % 2 === 1 || idx === currentOrder.length - 1) {
+          area.appendChild(row);
+        }
+      }
+    }
+    // Store lines for each user matrix
+    let userLines = Array(6).fill(0).map(()=>[]);
+    let drawingState = [];
+    function setupCanvasEvents() {
+      document.querySelectorAll('.matrix-card .dot-matrix canvas').forEach((canvas, idx) => {
+        const matrixIdx = parseInt(canvas.dataset.matrixIdx);
+        const gridSize = parseInt(canvas.dataset.gridSize);
+        const ctx = canvas.getContext('2d');
+        // Initial draw
+        drawMatrix(ctx, userLines[matrixIdx], MATRIX_SIZE, null, gridSize);
+        // Mouse/touch events
+        function redraw() {
+          drawMatrix(ctx, userLines[matrixIdx], MATRIX_SIZE, drawingState[matrixIdx]?.highlight, gridSize);
+        }
+        function handleDown(e) {
+          e.preventDefault();
+          const pos = getCanvasRelativePos(canvas, e);
+          const dot = getDotFromPos(pos.x, pos.y, MATRIX_SIZE, gridSize);
+          if (dot) {
+            drawingState[matrixIdx].from = dot;
+            drawingState[matrixIdx].highlight = dot;
+            redraw();
+          }
+        }
+        function handleUp(e) {
+          e.preventDefault();
+          const pos = getCanvasRelativePos(canvas, e);
+          const dot = getDotFromPos(pos.x, pos.y, MATRIX_SIZE, gridSize);
+          if (dot && drawingState[matrixIdx].from) {
+            // Prevent same dot
+            if (dot[0]!==drawingState[matrixIdx].from[0] || dot[1]!==drawingState[matrixIdx].from[1]) {
+              userLines[matrixIdx].push({
+                from: drawingState[matrixIdx].from,
+                to: dot,
+                color: drawingState[matrixIdx].color
+              });
+            }
+          }
+          drawingState[matrixIdx].from = null;
+          drawingState[matrixIdx].highlight = null;
+          redraw();
+        }
+        function handleMove(e) {
+          const pos = getCanvasRelativePos(canvas, e);
+          const dot = getDotFromPos(pos.x, pos.y, MATRIX_SIZE, gridSize);
+          drawingState[matrixIdx].highlight = dot;
+          redraw();
+        }
+        // Mouse
+        canvas.addEventListener('mousedown', handleDown);
+        canvas.addEventListener('mouseup', handleUp);
+        canvas.addEventListener('mouseleave', ()=>{drawingState[matrixIdx].highlight=null; redraw();});
+        canvas.addEventListener('mousemove', handleMove);
+        // Touch
+        canvas.addEventListener('touchstart', handleDown);
+        canvas.addEventListener('touchend', handleUp);
+        canvas.addEventListener('touchcancel', ()=>{drawingState[matrixIdx].highlight=null; redraw();});
+        canvas.addEventListener('touchmove', handleMove);
+      });
+    }
+    function redrawAllCanvases() {
+      document.querySelectorAll('.matrix-card .dot-matrix canvas').forEach((canvas, idx) => {
+        const matrixIdx = parseInt(canvas.dataset.matrixIdx);
+        const gridSize = parseInt(canvas.dataset.gridSize);
+        const ctx = canvas.getContext('2d');
+        drawMatrix(ctx, userLines[matrixIdx], MATRIX_SIZE, drawingState[matrixIdx]?.highlight, gridSize);
+      });
+    }
+    // Compare two lines (allow reverse order)
+    function linesEqual(a, b) {
+      return (a.color===b.color) &&
+        ((a.from[0]===b.from[0]&&a.from[1]===b.from[1]&&a.to[0]===b.to[0]&&a.to[1]===b.to[1]) ||
+         (a.from[0]===b.to[0]&&a.from[1]===b.to[1]&&a.to[0]===b.from[0]&&a.to[1]===b.from[1]));
+    }
+    function arraysMatch(user, example) {
+      if (user.length !== example.length) return false;
+      const used = Array(example.length).fill(false);
+      for (const ul of user) {
+        let found = false;
+        for (let i=0;i<example.length;i++) {
+          if (!used[i] && linesEqual(ul, example[i])) {
+            used[i]=true; found=true; break;
+          }
+        }
+        if (!found) return false;
+      }
+      return true;
+    }
+    // Reset game
+    function resetGame() {
+      userLines = Array(currentOrder.length).fill(0).map(()=>[]);
+      drawingState = currentOrder.map(i => ({ from: null, highlight: null, color: EXAMPLES[i][0]?.color || 'navy' }));
+      redrawAllCanvases();
+      document.getElementById('resultMsg').textContent = '';
+    }
+    // Submit check
+    function submitGame() {
+      let correct = 0;
+      for(let i=0;i<currentOrder.length;i++) {
+        if (arraysMatch(userLines[i], EXAMPLES[currentOrder[i]])) correct++;
+      }
+      let msg = '';
+      if (correct === currentOrder.length) {
+        msg = 'Hebat! Semua jawaban BENAR 🎉';
+      } else if (correct===0) {
+        msg = 'Coba lagi! Belum ada yang benar 😅';
+      } else {
+        msg = `Bagus! ${correct} dari ${currentOrder.length} jawaban benar.`;
+      }
+      document.getElementById('resultMsg').textContent = msg;
+    }
+    // Initial load
+    buildGame();
+    // Inisialisasi drawingState sesuai urutan acak
+    drawingState = currentOrder.map(i => ({ from: null, highlight: null, color: EXAMPLES[i][0]?.color || 'navy' }));
+    setupCanvasEvents();
+    document.getElementById('resetBtn').onclick = function() {
+      buildGame();
+      userLines = Array(currentOrder.length).fill(0).map(()=>[]);
+      drawingState = currentOrder.map(i => ({ from: null, highlight: null, color: EXAMPLES[i][0]?.color || 'navy' }));
+      setupCanvasEvents();
+      document.getElementById('resultMsg').textContent = '';
+    };
+    document.getElementById('submitBtn').onclick = submitGame;
+  </script>
+</body>
+</html>
