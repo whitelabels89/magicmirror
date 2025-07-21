@@ -6,6 +6,7 @@ export async function loadSidebar() {
   const html = await res.text();
   const container = document.getElementById('sidebar-placeholder');
   container.innerHTML = html;
+  container.style.visibility = 'visible';
 
   // Re-execute any script tags inside the loaded HTML
   const scripts = container.querySelectorAll("script");

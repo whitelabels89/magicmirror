@@ -322,11 +322,8 @@
     <!-- Sidebar digantikan dengan file terpisah -->
     <div id="sidebar-placeholder"></div>
     <script type="module">
-      import { loadSidebar } from '/elearn/js/sidebar-init.js';
-      loadSidebar().then(() => {
-        if (typeof initSidebar === 'function') initSidebar();
-        highlightActiveSidebarMenu(window.location.pathname);
-      });
+      import { loadSidebar } from '/elearn/sidebar-init.js';
+      loadSidebar();
     </script>
     <script src="/elearn/sidebar-meteor.js" defer></script>
     <main class="main-content">
@@ -396,7 +393,6 @@
           option.textContent = lesson;
           select.appendChild(option);
         }
-      });
     }
 
     function applyFilters() {
@@ -438,7 +434,6 @@
           </td>
         `;
         tbody.appendChild(tr);
-      });
     }
 
     function downloadCSV() {
@@ -459,7 +454,6 @@
           item.quiz_praktek ?? '-',
           item.timestamp ? new Date(item.timestamp).toLocaleString() : '-'
         ]);
-      });
       const csvContent = rows.map(e => e.map(cell => {
         // Escape quotes and commas
         if (typeof cell === 'string' && (cell.includes(',') || cell.includes('"'))) {
@@ -503,7 +497,6 @@
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ id_karya: id })
-        });
         if (res.ok) {
           alert('✅ Marked as highlighted!');
         } else {
@@ -543,7 +536,6 @@
     if (document.getElementById('form-add-student')) {
       document.getElementById('form-add-student').addEventListener('submit', addStudent);
     }
-  });
 
   async function loadClasses() {
     try {
@@ -566,7 +558,6 @@
         tbody.appendChild(tr);
         totalMurid += (kelas.jumlah_murid || 0);
         if (kelas.guru_id) guruSet.add(kelas.guru_id);
-      });
       // Update stat cards
       document.getElementById('stat-kelas').textContent = list.length;
       document.getElementById('stat-murid').textContent = totalMurid;
@@ -589,7 +580,6 @@
           <td data-label="Nama"><a href="/elearn/student-profile.html?cid=${murid.cid}">${murid.nama}</a></td>
           <td data-label="Email">${murid.email}</td>`;
         tbody.appendChild(tr);
-      });
     } catch (err) {
       console.error(err);
     }
@@ -618,7 +608,6 @@
           opt2.textContent = `${m.nama} (${m.cid})`;
           selectLesson.appendChild(opt2);
         }
-      });
       // Update stat card murid
       if (document.getElementById('stat-murid')) {
         document.getElementById('stat-murid').textContent = list.length;
@@ -640,7 +629,6 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ kelas_id, nama_kelas, guru_id })
-      });
       if (res.ok) {
         if (status) status.textContent = '✅ Kelas berhasil ditambah.';
         loadClasses();
@@ -674,7 +662,6 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cid, nama, email, password, wa, kelas_id, role })
-      });
       if (res.ok) {
         if (status) status.textContent = '✅ Akun berhasil ditambah.';
         e.target.reset();
@@ -705,7 +692,6 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ cid, lesson })
-        });
         if (res.ok) {
           if (status) status.textContent = '✅ Akses lesson berhasil ditambahkan.';
           e.target.reset();
@@ -723,7 +709,6 @@
         console.error(err);
         if (status) status.textContent = '❌ Gagal assign lesson';
       }
-    });
   }
 
   async function assignStudent(e) {
@@ -736,7 +721,6 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uid, kelas_id })
-      });
       if (res.ok) {
         if (status) status.textContent = '✅ Murid berhasil di-assign ke kelas.';
         e.target.reset();
@@ -783,7 +767,6 @@
       if (currentTheme === 'dark') {
         document.getElementById('sidebar-container')?.classList.add('dark-theme');
       }
-    });
   </script>
 </body>
 <script>
@@ -792,7 +775,6 @@
       .then(res => res.text())
       .then(html => {
         document.getElementById('sidebar-placeholder').innerHTML = html;
-      });
   }
 </script>
 </html>

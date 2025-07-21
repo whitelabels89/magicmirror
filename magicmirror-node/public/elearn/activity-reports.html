@@ -327,11 +327,8 @@
     <!-- Sidebar digantikan dengan file terpisah -->
     <div id="sidebar-placeholder"></div>
     <script type="module">
-      import { loadSidebar } from '/elearn/js/sidebar-init.js';
-      loadSidebar().then(() => {
-        if (typeof initSidebar === 'function') initSidebar();
-        highlightActiveSidebarMenu(window.location.pathname);
-      });
+      import { loadSidebar } from '/elearn/sidebar-init.js';
+      loadSidebar();
     </script>
     <script src="/elearn/sidebar-meteor.js" defer></script>
     <main style="max-width: 1100px; margin: 0 auto; padding: 2rem 1rem;">
@@ -436,7 +433,6 @@ function renderSummary(data) {
   const topMap = {};
   data.forEach(d => {
     topMap[d.cid] = (topMap[d.cid] || 0) + 1;
-  });
   const topCID = Object.entries(topMap).sort((a,b)=>b[1]-a[1])[0]?.[0] || '-';
   document.getElementById('total-students').textContent = uniqueStudents.size;
   document.getElementById('total-lessons').textContent = lessonDone.size;
@@ -459,7 +455,6 @@ function renderTable(data) {
       <td>${d.link ? `<a href="${d.link}" target="_blank">View</a>` : '-'}</td>
     `;
     tbody.appendChild(tr);
-  });
 }
 
 function applyActivityFilter() {
@@ -473,7 +468,6 @@ function renderChart(data) {
   data.forEach(d => {
     const date = new Date(d.timestamp).toISOString().split('T')[0];
     dailyCount[date] = (dailyCount[date] || 0) + 1;
-  });
   const labels = Object.keys(dailyCount).sort();
   const values = labels.map(k => dailyCount[k]);
 
@@ -493,7 +487,6 @@ function renderChart(data) {
         y: { beginAtZero: true }
       }
     }
-  });
 }
 
 window.addEventListener('DOMContentLoaded', loadActivityLogs);
@@ -524,7 +517,6 @@ window.addEventListener('DOMContentLoaded', loadActivityLogs);
     if (document.getElementById('form-add-student')) {
       document.getElementById('form-add-student').addEventListener('submit', addStudent);
     }
-  });
 
   async function loadClasses() {
     try {
@@ -547,7 +539,6 @@ window.addEventListener('DOMContentLoaded', loadActivityLogs);
         tbody.appendChild(tr);
         totalMurid += (kelas.jumlah_murid || 0);
         if (kelas.guru_id) guruSet.add(kelas.guru_id);
-      });
       // Update stat cards
       document.getElementById('stat-kelas').textContent = list.length;
       document.getElementById('stat-murid').textContent = totalMurid;
@@ -570,7 +561,6 @@ window.addEventListener('DOMContentLoaded', loadActivityLogs);
           <td data-label="Nama"><a href="/elearn/student-profile.html?cid=${murid.cid}">${murid.nama}</a></td>
           <td data-label="Email">${murid.email}</td>`;
         tbody.appendChild(tr);
-      });
     } catch (err) {
       console.error(err);
     }
@@ -599,7 +589,6 @@ window.addEventListener('DOMContentLoaded', loadActivityLogs);
           opt2.textContent = `${m.nama} (${m.cid})`;
           selectLesson.appendChild(opt2);
         }
-      });
       // Update stat card murid
       if (document.getElementById('stat-murid')) {
         document.getElementById('stat-murid').textContent = list.length;
@@ -621,7 +610,6 @@ window.addEventListener('DOMContentLoaded', loadActivityLogs);
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ kelas_id, nama_kelas, guru_id })
-      });
       if (res.ok) {
         if (status) status.textContent = '✅ Kelas berhasil ditambah.';
         loadClasses();
@@ -655,7 +643,6 @@ window.addEventListener('DOMContentLoaded', loadActivityLogs);
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cid, nama, email, password, wa, kelas_id, role })
-      });
       if (res.ok) {
         if (status) status.textContent = '✅ Akun berhasil ditambah.';
         e.target.reset();
@@ -686,7 +673,6 @@ window.addEventListener('DOMContentLoaded', loadActivityLogs);
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ cid, lesson })
-        });
         if (res.ok) {
           if (status) status.textContent = '✅ Akses lesson berhasil ditambahkan.';
           e.target.reset();
@@ -704,7 +690,6 @@ window.addEventListener('DOMContentLoaded', loadActivityLogs);
         console.error(err);
         if (status) status.textContent = '❌ Gagal assign lesson';
       }
-    });
   }
 
   async function assignStudent(e) {
@@ -717,7 +702,6 @@ window.addEventListener('DOMContentLoaded', loadActivityLogs);
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uid, kelas_id })
-      });
       if (res.ok) {
         if (status) status.textContent = '✅ Murid berhasil di-assign ke kelas.';
         e.target.reset();
@@ -764,7 +748,6 @@ window.addEventListener('DOMContentLoaded', loadActivityLogs);
       if (currentTheme === 'dark') {
         document.getElementById('sidebar-container')?.classList.add('dark-theme');
       }
-    });
   </script>
 </body>
 <script>
@@ -773,7 +756,6 @@ window.addEventListener('DOMContentLoaded', loadActivityLogs);
       .then(res => res.text())
       .then(html => {
         document.getElementById('sidebar-placeholder').innerHTML = html;
-      });
   }
 </script>
 </html>

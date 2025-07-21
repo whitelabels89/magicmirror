@@ -320,11 +320,8 @@
     <!-- Sidebar digantikan dengan file terpisah -->
     <div id="sidebar-placeholder"></div>
     <script type="module">
-      import { loadSidebar } from '/elearn/js/sidebar-init.js';
-      loadSidebar().then(() => {
-        if (typeof initSidebar === 'function') initSidebar();
-        highlightActiveSidebarMenu(window.location.pathname);
-      });
+      import { loadSidebar } from '/elearn/sidebar-init.js';
+      loadSidebar();
     </script>
     <script src="/elearn/sidebar-meteor.js" defer></script>
     <main class="main-content">
@@ -381,9 +378,8 @@
     if (document.getElementById('user-name')) {
       document.getElementById('user-name').textContent = userName;
     }
-  });
   // Konstanta endpoint backend Firebase
-  const FIREBASE_API = "https://firebase-upload-backend.onrender.com";
+  const FIREBASE_API = window.location.origin;
   const tableBody = document.getElementById("teacherTableBody");
   const searchInput = document.getElementById("searchInput");
   const totalTeachersEl = document.getElementById("totalTeachers");
@@ -410,7 +406,6 @@
         </td>
       `;
       tableBody.appendChild(row);
-    });
   }
 
   async function fetchTeachers() {
@@ -438,7 +433,6 @@
       t.name.toLowerCase().includes(keyword) || t.email.toLowerCase().includes(keyword)
     );
     renderTeachers(filtered);
-  });
 
   fetchTeachers();
 </script>
@@ -473,7 +467,6 @@
       if (currentTheme === 'dark') {
         document.getElementById('sidebar-container')?.classList.add('dark-theme');
       }
-    });
   </script>
 <script>
   document.addEventListener('DOMContentLoaded', () => {
@@ -495,13 +488,11 @@
             const li = document.createElement("li");
             li.textContent = `${s.name} (CID: ${s.cid})`;
             list.appendChild(li);
-          });
         } else {
           list.innerHTML = '<li>No students linked</li>';
         }
       })
       .catch(err => console.error("Failed to load parent data", err));
-  });
 </script>
 </body>
 <script>
@@ -510,7 +501,6 @@
       .then(res => res.text())
       .then(html => {
         document.getElementById('sidebar-placeholder').innerHTML = html;
-      });
   }
 </script>
 </html>
