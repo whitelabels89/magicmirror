@@ -349,11 +349,8 @@
     <!-- Sidebar digantikan dengan file terpisah -->
     <div id="sidebar-placeholder"></div>
     <script type="module">
-      import { loadSidebar } from '/elearn/js/sidebar-init.js';
-      loadSidebar().then(() => {
-        if (typeof initSidebar === 'function') initSidebar();
-        highlightActiveSidebarMenu(window.location.pathname);
-      });
+      import { loadSidebar } from '/elearn/sidebar-init.js';
+      loadSidebar();
     </script>
     <script src="/elearn/sidebar-meteor.js" defer></script>
     <main class="main-content">
@@ -489,7 +486,7 @@
   </div>
   <script>
   // Konstanta endpoint backend Firebase
-  const FIREBASE_API = "https://firebase-upload-backend.onrender.com";
+  const FIREBASE_API = window.location.origin;
 
   document.addEventListener('DOMContentLoaded', () => {
     const role = localStorage.getItem('role');
@@ -740,7 +737,6 @@
         options: {
           plugins: { legend: { position: 'bottom' } }
         }
-      });
 
       const barCtx = document.getElementById('barChart').getContext('2d');
       new Chart(barCtx, {
@@ -753,40 +749,27 @@
           plugins: { legend: { display: false } },
           scales: { y: { beginAtZero: true } }
         }
-      });
-    });
   </script>
   <script>
     function scrollToSection(id) {
       const el = document.getElementById(id);
       if (el) el.scrollIntoView({ behavior: 'smooth' });
     }
-  </script>
-</script>
-<script>
-  function highlightActiveSidebarMenu(currentPath) {
-    const links = document.querySelectorAll('.sidebar-nav a[href]');
-    links.forEach(link => {
-      const linkPath = new URL(link.href).pathname;
-      if (linkPath === currentPath) {
-        link.classList.add('active');
-        const parentGroup = link.closest('.menu-group');
-        if (parentGroup) parentGroup.classList.add('open');
-      } else {
-        link.classList.remove('active');
-      }
-    });
-  }
-</script>
-</body>
-<!-- Fallback for sidebar if sidebar-init.js fails -->
-<script>
-  if (!window.loadSidebar) {
-    fetch('/elearn/sidebar-mod.html')
-      .then(res => res.text())
-      .then(html => {
-        document.getElementById('sidebar-placeholder').innerHTML = html;
+    </script>
+  <script>
+    function highlightActiveSidebarMenu(currentPath) {
+      const links = document.querySelectorAll('.sidebar-nav a[href]');
+      links.forEach(link => {
+        const linkPath = new URL(link.href).pathname;
+        if (linkPath === currentPath) {
+          link.classList.add('active');
+          const parentGroup = link.closest('.menu-group');
+          if (parentGroup) parentGroup.classList.add('open');
+        } else {
+          link.classList.remove('active');
+        }
       });
-  }
-</script>
+    }
+  </script>
+</body>
 </html>

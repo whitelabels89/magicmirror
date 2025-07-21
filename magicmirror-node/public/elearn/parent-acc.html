@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Teacher Accounts</title>
+  <title>Parent Accounts</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
@@ -320,11 +320,8 @@
     <!-- Sidebar digantikan dengan file terpisah -->
     <div id="sidebar-placeholder"></div>
     <script type="module">
-      import { loadSidebar } from '/elearn/js/sidebar-init.js';
-      loadSidebar().then(() => {
-        if (typeof initSidebar === 'function') initSidebar();
-        highlightActiveSidebarMenu(window.location.pathname);
-      });
+      import { loadSidebar } from '/elearn/sidebar-init.js';
+      loadSidebar();
     </script>
     <script src="/elearn/sidebar-meteor.js" defer></script>
 <main class="main-content">
@@ -390,80 +387,19 @@
   </div>
 
 <script>
+  // Basic auth check and username injection
   document.addEventListener('DOMContentLoaded', () => {
     const role = localStorage.getItem('role');
     if (role !== 'moderator') {
       window.location.href = '/elearn/login.html';
       return;
     }
-    // Set dynamic username
     const userName = localStorage.getItem('nama') || 'Moderator';
-    // Pastikan elemen user-name ada sebelum mengakses
-    if (document.getElementById('user-name')) {
-      document.getElementById('user-name').textContent = userName;
-    }
+    const nameEl = document.getElementById('user-name');
+    if (nameEl) nameEl.textContent = userName;
   });
   // Konstanta endpoint backend Firebase
-  const FIREBASE_API = "https://firebase-upload-backend.onrender.com";
-  const tableBody = document.getElementById("teacherTableBody");
-  const searchInput = document.getElementById("searchInput");
-  const totalTeachersEl = document.getElementById("totalTeachers");
-  const totalClassesEl = document.getElementById("totalClasses");
-  const totalStudentsEl = document.getElementById("totalStudents");
-
-  let teacherList = [];
-
-  function renderTeachers(data) {
-    tableBody.innerHTML = "";
-    data.forEach(t => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${t.name}</td>
-        <td>${t.email}</td>
-        <td>${t.type || "-"}</td>
-        <td>${t.status || "-"}</td>
-        <td>${t.totalClasses || 0}</td>
-        <td>${t.lastLogin || "-"}</td>
-        <td>
-          <a href="teacher-profile.html?uid=${t.uid}" class="btn btn-sm btn-info">View</a>
-          <button class="btn btn-sm btn-primary">Edit</button>
-          <button class="btn btn-sm btn-danger">Remove</button>
-        </td>
-      `;
-      tableBody.appendChild(row);
-    });
-  }
-
-  async function fetchTeachers() {
-    try {
-      const res = await fetch(`${FIREBASE_API}/api/guru`);
-      const data = await res.json();
-      teacherList = data || [];
-      renderTeachers(teacherList);
-
-      // Update summary cards
-      totalTeachersEl.textContent = teacherList.length;
-      const classesCount = teacherList.reduce((sum, t) => sum + (t.totalClasses || 0), 0);
-      totalClassesEl.textContent = classesCount;
-
-      // Assuming totalStudents is not part of teacher data, set to 0 or fetch if available
-      totalStudentsEl.textContent = 0;
-    } catch (err) {
-      console.error("Failed to load teacher data:", err);
-    }
-  }
-
-  searchInput.addEventListener("input", () => {
-    const keyword = searchInput.value.toLowerCase();
-    const filtered = teacherList.filter(t =>
-      t.name.toLowerCase().includes(keyword) || t.email.toLowerCase().includes(keyword)
-    );
-    renderTeachers(filtered);
-  });
-
-  fetchTeachers();
-</script>
-<script>
+  const FIREBASE_API = window.location.origin;
     function toggleTheme() {
       const current = document.documentElement.getAttribute('data-theme') || 'light';
       const next = current === 'light' ? 'dark' : 'light';
@@ -549,16 +485,7 @@
     renderParents(filtered);
   });
 
-  fetchParents();
+fetchParents();
 </script>
 </body>
-<script>
-  if (!window.loadSidebar) {
-    fetch('/elearn/sidebar-mod.html')
-      .then(res => res.text())
-      .then(html => {
-        document.getElementById('sidebar-placeholder').innerHTML = html;
-      });
-  }
-</script>
 </html>

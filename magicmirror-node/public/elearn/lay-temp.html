@@ -320,11 +320,8 @@
     <!-- Sidebar digantikan dengan file terpisah -->
     <div id="sidebar-placeholder"></div>
     <script type="module">
-      import { loadSidebar } from '/elearn/js/sidebar-init.js';
-      loadSidebar().then(() => {
-        if (typeof initSidebar === 'function') initSidebar();
-        highlightActiveSidebarMenu(window.location.pathname);
-      });
+      import { loadSidebar } from '/elearn/sidebar-init.js';
+      loadSidebar();
     </script>
     <script src="/elearn/sidebar-meteor.js" defer></script>
     <main class="main-content">
@@ -401,7 +398,6 @@
     if (document.getElementById('user-name')) {
       document.getElementById('user-name').textContent = userName;
     }
-  });
   // Konstanta endpoint backend Firebase
   const FIREBASE_API = "https://firebase-upload-backend.onrender.com";
   const tableBody = document.getElementById("teacherTableBody");
@@ -430,7 +426,6 @@
         </td>
       `;
       tableBody.appendChild(row);
-    });
   }
 
   async function fetchTeachers() {
@@ -458,7 +453,6 @@
       t.name.toLowerCase().includes(keyword) || t.email.toLowerCase().includes(keyword)
     );
     renderTeachers(filtered);
-  });
 
   fetchTeachers();
 </script>
@@ -497,12 +491,6 @@
   </script>
 </body>
 <script>
-  if (!window.loadSidebar) {
-    fetch('/elearn/sidebar-mod.html')
-      .then(res => res.text())
-      .then(html => {
-        document.getElementById('sidebar-placeholder').innerHTML = html;
-      });
   }
 </script>
 </html>

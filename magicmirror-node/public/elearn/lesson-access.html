@@ -367,11 +367,8 @@
     <!-- Sidebar digantikan dengan file terpisah -->
     <div id="sidebar-placeholder"></div>
     <script type="module">
-      import { loadSidebar } from '/elearn/js/sidebar-init.js';
-      loadSidebar().then(() => {
-        if (typeof initSidebar === 'function') initSidebar();
-        highlightActiveSidebarMenu(window.location.pathname);
-      });
+      import { loadSidebar } from '/elearn/sidebar-init.js';
+      loadSidebar();
     </script>
     <script src="/elearn/sidebar-meteor.js" defer></script>
     <!-- Theme toggle switch -->
@@ -439,7 +436,6 @@
       if (document.getElementById('user-name')) {
         document.getElementById('user-name').textContent = userName;
       }
-    });
   </script>
 </body>
 <script>
@@ -448,7 +444,6 @@
   themeToggle.addEventListener("change", function () {
     document.body.classList.toggle("dark-theme", this.checked);
     localStorage.setItem("theme", this.checked ? "dark" : "light");
-  });
 
   window.addEventListener("DOMContentLoaded", () => {
     const savedTheme = localStorage.getItem("theme");
@@ -456,7 +451,6 @@
       document.body.classList.add("dark-theme");
       themeToggle.checked = true;
     }
-  });
 </script>
 <script>
 async function loadLessons() {
@@ -470,7 +464,6 @@ async function loadLessons() {
       opt.value = lesson.code;
       opt.textContent = `${lesson.title} (${lesson.code})`;
       select.appendChild(opt);
-    });
   } catch (err) {
     console.error('❌ Failed to load lessons:', err);
   }
@@ -492,7 +485,6 @@ async function loadLessonAccessList() {
         <td><button onclick="hapusAksesLesson('${row.cid}', '${row.code}')">❌ Hapus</button></td>
       `;
       tbody.appendChild(tr);
-    });
   } catch (err) {
     console.error('❌ Gagal memuat daftar akses lesson:', err);
   }
@@ -525,11 +517,9 @@ document.addEventListener('DOMContentLoaded', () => {
         opt.value = m.cid;
         opt.textContent = `${m.nama} (${m.cid})`;
         select.appendChild(opt);
-      });
     }
   }).catch(err => {
     console.error('❌ Failed to load students:', err);
-  });
   loadLessons();
   loadLessonAccessList();
   // Handle assign lesson form submission
@@ -546,31 +536,22 @@ document.addEventListener('DOMContentLoaded', () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ cid, lesson })
-        });
         if (res.ok) {
           if (status) status.textContent = '✅ Akses lesson berhasil ditambahkan.';
           form.reset();
           loadLessonAccessList();
         } else {
-          const data = await res.json();
-          if (status) status.textContent = '❌ ' + (data.error || 'Gagal assign lesson');
+      const data = await res.json();
+      if (status) status.textContent = '❌ ' + (data.error || 'Gagal assign lesson');
         }
       } catch (err) {
         console.error(err);
         if (status) status.textContent = '❌ Gagal assign lesson';
       }
-    });
-  }
-});
-</script>
+    }
+  </script>
 </body>
 <script>
-  if (!window.loadSidebar) {
-    fetch('/elearn/sidebar-mod.html')
-      .then(res => res.text())
-      .then(html => {
-        document.getElementById('sidebar-placeholder').innerHTML = html;
-      });
   }
 </script>
 </html>

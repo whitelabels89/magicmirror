@@ -322,11 +322,8 @@
     <!-- Sidebar digantikan dengan file terpisah -->
     <div id="sidebar-placeholder"></div>
     <script type="module">
-      import { loadSidebar } from '/elearn/js/sidebar-init.js';
-      loadSidebar().then(() => {
-        if (typeof initSidebar === 'function') initSidebar();
-        highlightActiveSidebarMenu(window.location.pathname);
-      });
+      import { loadSidebar } from '/elearn/sidebar-init.js';
+      loadSidebar();
     </script>
     <script src="/elearn/sidebar-meteor.js" defer></script>
     <main class="main-content">
@@ -358,7 +355,7 @@
   </div>
   <script>
   // Konstanta endpoint backend Firebase
-  const FIREBASE_API = "https://firebase-upload-backend.onrender.com";
+  const FIREBASE_API = window.location.origin;
   </script>
 
   <script>
@@ -383,16 +380,16 @@
       document.getElementById('theme-icon').textContent = current === 'dark' ? '🌙' : '☀️';
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const currentTheme = localStorage.getItem('theme') || 'light';
-      document.documentElement.setAttribute('data-theme', currentTheme);
-      updateThemeIcon();
-      document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
-      // Add dark-theme class to sidebar if dark mode is active
-      if (currentTheme === 'dark') {
-        document.getElementById('sidebar-container')?.classList.add('dark-theme');
-      }
-    });
+  document.addEventListener('DOMContentLoaded', () => {
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    updateThemeIcon();
+    document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
+    // Add dark-theme class to sidebar if dark mode is active
+    if (currentTheme === 'dark') {
+      document.getElementById('sidebar-container')?.classList.add('dark-theme');
+    }
+  });
   </script>
 
   <script>
@@ -463,13 +460,4 @@
     });
   </script>
 </body>
-<script>
-  if (!window.loadSidebar) {
-    fetch('/elearn/sidebar-mod.html')
-      .then(res => res.text())
-      .then(html => {
-        document.getElementById('sidebar-placeholder').innerHTML = html;
-      });
-  }
-</script>
 </html>
