@@ -463,6 +463,29 @@ app.get('/api/semua-murid', async (req, res) => {
   }
 });
 
+// GET /api/guru - daftar semua guru
+app.get('/api/guru', async (req, res) => {
+  try {
+    const snap = await db.collection('guru').get();
+    const data = snap.docs.map(d => {
+      const val = d.data();
+      return {
+        uid: d.id,
+        name: val.nama || '',
+        email: val.email || '',
+        type: val.tipe || val.role || '',
+        status: val.status || '',
+        totalClasses: Array.isArray(val.kelas_id) ? val.kelas_id.length : val.jumlah_kelas || 0,
+        lastLogin: val.terakhir_login || ''
+      };
+    });
+    res.json(data);
+  } catch (err) {
+    console.error('❌ Error get semua guru:', err);
+    res.status(500).json([]);
+  }
+});
+
 // GET /api/kelas - daftar semua kelas
 app.get('/api/kelas', async (req, res) => {
   try {

@@ -403,7 +403,8 @@
     }
   });
   // Konstanta endpoint backend Firebase
-  const FIREBASE_API = "https://firebase-upload-backend.onrender.com";
+  // Use same origin for API calls by default
+  const FIREBASE_API = window.location.origin;
   const tableBody = document.getElementById("teacherTableBody");
   const searchInput = document.getElementById("searchInput");
   const totalTeachersEl = document.getElementById("totalTeachers");
