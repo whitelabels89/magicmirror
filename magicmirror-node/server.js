@@ -463,6 +463,29 @@ app.get('/api/semua-murid', async (req, res) => {
   }
 });
 
+// GET /api/guru - daftar semua guru
+app.get('/api/guru', async (req, res) => {
+  try {
+    const snap = await db.collection('guru').get();
+    const data = snap.docs.map(d => {
+      const val = d.data();
+      return {
+        uid: d.id,
+        name: val.nama || '',
+        email: val.email || '',
+        type: val.tipe || val.role || '',
+        status: val.status || '',
+        totalClasses: Array.isArray(val.kelas_id) ? val.kelas_id.length : val.jumlah_kelas || 0,
+        lastLogin: val.terakhir_login || ''
+      };
+    });
+    res.json(data);
+  } catch (err) {
+    console.error('❌ Error get semua guru:', err);
+    res.status(500).json([]);
+  }
+});
+
 // GET /api/kelas - daftar semua kelas
 app.get('/api/kelas', async (req, res) => {
   try {
@@ -521,10 +544,17 @@ app.post('/api/kelas', async (req, res) => {
 
 // POST /api/daftar-akun-baru - tambah akun murid/guru/moderator
 app.post('/api/daftar-akun-baru', async (req, res) => {
-  const { nama, email, password, kelas_id, role } = req.body;
-  if (!nama || !email || !password || !kelas_id || !role) {
+  let { nama, email, password, kelas_id, role } = req.body;
+
+  if (!nama || !email || !password || !role || (role === 'student' || role === 'murid') && !kelas_id) {
     return res.status(400).json({ success: false, error: 'Data tidak lengkap' });
   }
+
+  const normalizedRole = (role || '').toLowerCase();
+  const mappedRole = normalizedRole === 'teacher' ? 'guru'
+                   : normalizedRole === 'student' ? 'murid'
+                   : normalizedRole === 'parent' ? 'orangtua'
+                   : normalizedRole;
   try {
     const cid = 'QAC' + Date.now();
     const authUser = await admin.auth().createUser({
@@ -534,18 +564,18 @@ app.post('/api/daftar-akun-baru', async (req, res) => {
     });
     const uid = authUser.uid;
 
-    const akunData = { cid, uid, nama, email, kelas_id, role };
+    const akunData = { cid, uid, nama, email, kelas_id, role: mappedRole };
     await db.collection('akun').doc(cid).set(akunData);
 
-    if (role === 'murid') {
+    if (mappedRole === 'murid') {
       await db.collection('murid').doc(cid).set(akunData);
       await db.collection('kelas').doc(kelas_id).set({ kelas_id }, { merge: true });
       await db.collection('kelas').doc(kelas_id).update({
         murid: admin.firestore.FieldValue.arrayUnion(cid)
       });
-    } else if (role === 'guru') {
+    } else if (mappedRole === 'guru') {
       await db.collection('guru').doc(cid).set(akunData);
-    } else if (role === 'moderator') {
+    } else if (mappedRole === 'moderator') {
       await db.collection('moderator').doc(cid).set(akunData);
     }
 
