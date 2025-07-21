@@ -486,6 +486,29 @@ app.get('/api/guru', async (req, res) => {
   }
 });
 
+// GET /api/orangtua - daftar semua orangtua
+app.get('/api/orangtua', async (req, res) => {
+  try {
+    const snap = await db.collection('orangtua').get();
+    const data = snap.docs.map(d => {
+      const val = d.data();
+      return {
+        uid: d.id,
+        name: val.nama || '',
+        email: val.email || '',
+        phone: val.phone || val.wa || '',
+        linkedStudents: val.students || val.murid_id || [],
+        status: val.status || '',
+        lastLogin: val.terakhir_login || ''
+      };
+    });
+    res.json(data);
+  } catch (err) {
+    console.error('❌ Error get semua orangtua:', err);
+    res.status(500).json([]);
+  }
+});
+
 // GET /api/kelas - daftar semua kelas
 app.get('/api/kelas', async (req, res) => {
   try {
@@ -575,6 +598,8 @@ app.post('/api/daftar-akun-baru', async (req, res) => {
       });
     } else if (mappedRole === 'guru') {
       await db.collection('guru').doc(cid).set(akunData);
+    } else if (mappedRole === 'orangtua') {
+      await db.collection('orangtua').doc(cid).set(akunData);
     } else if (mappedRole === 'moderator') {
       await db.collection('moderator').doc(cid).set(akunData);
     }
