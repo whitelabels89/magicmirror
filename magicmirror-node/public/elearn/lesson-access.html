@@ -458,13 +458,16 @@
   async function loadLessons() {
     try {
       const res = await fetch('/api/lessons');
+      if (!res.ok) throw new Error('HTTP error ' + res.status);
       const data = await res.json();
       const select = document.getElementById('lesson_code');
-      if (!Array.isArray(data)) throw new Error('Format data salah');
-      data.forEach(lesson => {
+      const lessons = Array.isArray(data.lessons) ? data.lessons : data;
+      if (!Array.isArray(lessons)) throw new Error('Format data salah');
+      lessons.forEach(lesson => {
         const opt = document.createElement('option');
-        opt.value = lesson.code;
-        opt.textContent = `${lesson.title} (${lesson.code})`;
+        const code = lesson.code || lesson.lesson_id || lesson.id;
+        opt.value = code;
+        opt.textContent = `${lesson.title || lesson.nama || code} (${code})`;
         select.appendChild(opt);
       });
     } catch (err) {
@@ -475,16 +478,19 @@
   async function loadLessonAccessList() {
     try {
       const res = await fetch('/api/akses-lesson');
+      if (!res.ok) throw new Error('HTTP error ' + res.status);
       const data = await res.json();
       const tbody = document.querySelector('#lesson-access-table tbody');
       tbody.innerHTML = '';
-      data.forEach(row => {
+      const list = Array.isArray(data.data) ? data.data : data;
+      if (!Array.isArray(list)) throw new Error('Format data salah');
+      list.forEach(row => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${row.nama} (${row.cid})</td>
-          <td>${row.title}</td>
+          <td>${row.nama || ''} (${row.cid})</td>
+          <td>${row.title || ''}</td>
           <td>${row.code}</td>
-          <td>${row.status}</td>
+          <td>${row.status || ''}</td>
           <td><button onclick="hapusAksesLesson('${row.cid}', '${row.code}')">❌ Hapus</button></td>
         `;
         tbody.appendChild(tr);
