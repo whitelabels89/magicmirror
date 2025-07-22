@@ -327,6 +327,14 @@
     </script>
     <script src="/elearn/sidebar-meteor.js" defer></script>
     <main class="main-content">
+      <!-- Section: Theme Toggle -->
+      <section class="section-theme-toggle section-spacing" style="margin-bottom: 30px;">
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+          <button id="theme-toggle-btn" style="background: none; border: none; cursor: pointer; font-size: 1.3rem;">
+            <span id="theme-icon">☀️</span>
+          </button>
+        </div>
+      </section>
       <!-- Section: Create New Account -->
       <section class="section-create-account section-spacing">
         <div class="form-card">
@@ -393,68 +401,37 @@
   </script>
 
   <script>
-    document.getElementById('form-create-account')?.addEventListener('submit', async function addStudent(e) {
-      e.preventDefault();
-      const status = document.getElementById('student-status');
-      const nama = document.getElementById('nama').value.trim();
-      const email = document.getElementById('email').value.trim();
-      let wa = document.getElementById('wa').value.trim();
-      if (wa && !wa.startsWith('+62')) {
-        wa = '+62' + wa.replace(/^0+/, '');
-      }
-      const password = document.getElementById('password').value.trim();
-      const kelas_id = document.getElementById('kelas_id_student').value.trim();
-      const role = document.getElementById('role').value;
-      const cid = 'QAC' + String(Date.now()).slice(-7);
-      try {
-        const res = await fetch(`${FIREBASE_API}/api/daftar-akun-baru`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ cid, nama, email, password, wa, kelas_id, role })
-        if (res.ok) {
-          status.textContent = '✅ Akun berhasil ditambah.';
-          e.target.reset();
-        } else {
-          const data = await res.json();
-          status.textContent = '❌ ' + (data.error || 'Gagal menambah akun');
-        }
-      } catch (err) {
-        console.error(err);
-        status.textContent = '❌ Gagal menambah akun';
-      }
-  </script>
-
-  <script>
-    function toggleTheme() {
-      const current = document.documentElement.getAttribute('data-theme') || 'light';
-      const next = current === 'light' ? 'dark' : 'light';
-      document.documentElement.setAttribute('data-theme', next);
-      localStorage.setItem('theme', next);
-      updateThemeIcon();
-      const sidebar = document.getElementById('sidebar-container');
-      if (sidebar) {
-        if (next === 'dark') {
-          sidebar.classList.add('dark-theme');
-        } else {
-          sidebar.classList.remove('dark-theme');
-        }
-      }
+  document.getElementById('form-create-account')?.addEventListener('submit', async function addStudent(e) {
+    e.preventDefault();
+    const status = document.getElementById('student-status');
+    const nama = document.getElementById('nama').value.trim();
+    const email = document.getElementById('email').value.trim();
+    let wa = document.getElementById('wa').value.trim();
+    if (wa && !wa.startsWith('+62')) {
+      wa = '+62' + wa.replace(/^0+/, '');
     }
-
-    function updateThemeIcon() {
-      const current = document.documentElement.getAttribute('data-theme') || 'light';
-      document.getElementById('theme-icon').textContent = current === 'dark' ? '🌙' : '☀️';
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      const currentTheme = localStorage.getItem('theme') || 'light';
-      document.documentElement.setAttribute('data-theme', currentTheme);
-      updateThemeIcon();
-      document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
-      // Add dark-theme class to sidebar if dark mode is active
-      if (currentTheme === 'dark') {
-        document.getElementById('sidebar-container')?.classList.add('dark-theme');
+    const password = document.getElementById('password').value.trim();
+    const kelas_id = document.getElementById('kelas_id_student').value.trim();
+    const role = document.getElementById('role').value;
+    const cid = 'QAC' + String(Date.now()).slice(-7);
+    try {
+      const res = await fetch(`${FIREBASE_API}/api/daftar-akun-baru`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cid, nama, email, password, wa, kelas_id, role })
+      });
+      if (res.ok) {
+        status.textContent = '✅ Akun berhasil ditambah.';
+        e.target.reset();
+      } else {
+        const data = await res.json();
+        status.textContent = '❌ ' + (data.error || 'Gagal menambah akun');
       }
-  </script>
+    } catch (err) {
+      console.error(err);
+      status.textContent = '❌ Gagal menambah akun';
+    }
+  });
+</script>
 </body>
 </html>
