@@ -427,6 +427,8 @@
       document.getElementById('form-add-lesson').addEventListener('submit', addLesson);
     }
 
+  });
+
   // Load lessons and populate lesson table
   async function loadLessons() {
     try {
@@ -655,7 +657,7 @@
       console.error(err);
       if (status) status.textContent = '❌ Gagal assign murid';
     }
-  });
+  }
 </script>
 
 
