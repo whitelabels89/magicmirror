@@ -551,7 +551,7 @@ app.get('/api/kelas/:id', async (req, res) => {
 // POST /api/kelas - tambah kelas baru
 app.post('/api/kelas', async (req, res) => {
   const { kelas_id, nama_kelas, guru_id } = req.body;
-  if (!kelas_id || !nama_kelas || !guru_id) {
+  if (!kelas_id || !nama_kelas) {
     return res.status(400).json({ success: false, error: 'Data tidak lengkap' });
   }
   try {
@@ -560,7 +560,12 @@ app.post('/api/kelas', async (req, res) => {
     if (exist.exists) {
       return res.status(400).json({ success: false, error: 'kelas_id sudah ada' });
     }
-    await ref.set({ kelas_id, nama_kelas, guru_id, murid: [] });
+    await ref.set({
+      kelas_id,
+      nama_kelas,
+      guru_id: guru_id || null,
+      murid: []
+    });
     res.json({ success: true });
   } catch (err) {
     console.error('❌ Error add kelas:', err);
