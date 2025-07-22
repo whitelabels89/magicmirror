@@ -397,6 +397,23 @@
         </div>
       </section>
 
+      <!-- Section: All Students -->
+      <section class="section-data section-spacing" style="margin-bottom: 30px;">
+        <div class="data-table-card">
+          <h2>All Student Accounts</h2>
+          <table id="all-students-table">
+            <thead>
+              <tr>
+                <th>CID</th>
+                <th>Nama</th>
+                <th>Email</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
     </main>
   </div>
   <script>
@@ -479,27 +496,38 @@
     const select = document.getElementById('assign_uid');
     const status = document.getElementById('assign-status');
     const selectLesson = document.getElementById('assign_lesson_uid');
+    const allTableBody = document.querySelector('#all-students-table tbody');
     try {
       const res = await fetch(`${FIREBASE_API}/api/semua-murid`);
       if (!res.ok) throw new Error('Network');
       const list = await res.json();
       if (select) select.innerHTML = '<option value="">Pilih Murid</option>';
       if (selectLesson) selectLesson.innerHTML = '<option value="">Pilih Murid</option>';
-        list.forEach(m => {
-          if (select) {
-            const opt = document.createElement('option');
-            opt.value = m.cid;
-            opt.textContent = `${m.nama} (${m.cid})`;
-            select.appendChild(opt);
-          }
-          if (selectLesson) {
-            const opt2 = document.createElement('option');
-            opt2.value = m.cid;
-            opt2.textContent = `${m.nama} (${m.cid})`;
-            selectLesson.appendChild(opt2);
-          }
-        });
-        // Update stat card murid
+      if (allTableBody) allTableBody.innerHTML = '';
+      list.forEach(m => {
+        const cid = m.cid || m.uid;
+        if (select) {
+          const opt = document.createElement('option');
+          opt.value = cid;
+          opt.textContent = `${m.nama} (${cid})`;
+          select.appendChild(opt);
+        }
+        if (selectLesson) {
+          const opt2 = document.createElement('option');
+          opt2.value = cid;
+          opt2.textContent = `${m.nama} (${cid})`;
+          selectLesson.appendChild(opt2);
+        }
+        if (allTableBody) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td data-label="CID">${cid}</td>
+            <td data-label="Nama">${m.nama}</td>
+            <td data-label="Email">${m.email}</td>`;
+          allTableBody.appendChild(tr);
+        }
+      });
+      // Update stat card murid
       if (document.getElementById('stat-murid')) {
         document.getElementById('stat-murid').textContent = list.length;
       }
