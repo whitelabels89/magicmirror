@@ -436,59 +436,63 @@
       if (document.getElementById('user-name')) {
         document.getElementById('user-name').textContent = userName;
       }
+    });
   </script>
-</body>
-<script>
-  // Theme toggle switch logic
-  const themeToggle = document.getElementById("themeToggle");
-  themeToggle.addEventListener("change", function () {
-    document.body.classList.toggle("dark-theme", this.checked);
-    localStorage.setItem("theme", this.checked ? "dark" : "light");
+  <script>
+    // Theme toggle switch logic
+    const themeToggle = document.getElementById("themeToggle");
+    themeToggle.addEventListener("change", function () {
+      document.body.classList.toggle("dark-theme", this.checked);
+      localStorage.setItem("theme", this.checked ? "dark" : "light");
+    });
 
-  window.addEventListener("DOMContentLoaded", () => {
-    const savedTheme = localStorage.getItem("theme");
-    if (savedTheme === "dark") {
-      document.body.classList.add("dark-theme");
-      themeToggle.checked = true;
+    window.addEventListener("DOMContentLoaded", () => {
+      const savedTheme = localStorage.getItem("theme");
+      if (savedTheme === "dark") {
+        document.body.classList.add("dark-theme");
+        themeToggle.checked = true;
+      }
+    });
+  </script>
+  <script>
+  async function loadLessons() {
+    try {
+      const res = await fetch('/api/lessons');
+      const data = await res.json();
+      const select = document.getElementById('lesson_code');
+      if (!Array.isArray(data)) throw new Error('Format data salah');
+      data.forEach(lesson => {
+        const opt = document.createElement('option');
+        opt.value = lesson.code;
+        opt.textContent = `${lesson.title} (${lesson.code})`;
+        select.appendChild(opt);
+      });
+    } catch (err) {
+      console.error('❌ Failed to load lessons:', err);
     }
-</script>
-<script>
-async function loadLessons() {
-  try {
-    const res = await fetch('/api/lessons');
-    const data = await res.json();
-    const select = document.getElementById('lesson_code');
-    if (!Array.isArray(data)) throw new Error('Format data salah');
-    data.forEach(lesson => {
-      const opt = document.createElement('option');
-      opt.value = lesson.code;
-      opt.textContent = `${lesson.title} (${lesson.code})`;
-      select.appendChild(opt);
-  } catch (err) {
-    console.error('❌ Failed to load lessons:', err);
   }
-}
 
-async function loadLessonAccessList() {
-  try {
-    const res = await fetch('/api/akses-lesson');
-    const data = await res.json();
-    const tbody = document.querySelector('#lesson-access-table tbody');
-    tbody.innerHTML = '';
-    data.forEach(row => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${row.nama} (${row.cid})</td>
-        <td>${row.title}</td>
-        <td>${row.code}</td>
-        <td>${row.status}</td>
-        <td><button onclick="hapusAksesLesson('${row.cid}', '${row.code}')">❌ Hapus</button></td>
-      `;
-      tbody.appendChild(tr);
-  } catch (err) {
-    console.error('❌ Gagal memuat daftar akses lesson:', err);
+  async function loadLessonAccessList() {
+    try {
+      const res = await fetch('/api/akses-lesson');
+      const data = await res.json();
+      const tbody = document.querySelector('#lesson-access-table tbody');
+      tbody.innerHTML = '';
+      data.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${row.nama} (${row.cid})</td>
+          <td>${row.title}</td>
+          <td>${row.code}</td>
+          <td>${row.status}</td>
+          <td><button onclick="hapusAksesLesson('${row.cid}', '${row.code}')">❌ Hapus</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } catch (err) {
+      console.error('❌ Gagal memuat daftar akses lesson:', err);
+    }
   }
-}
 
 async function hapusAksesLesson(cid, code) {
   if (!confirm(`Hapus akses lesson ${code} dari ${cid}?`)) return;
@@ -508,20 +512,27 @@ async function hapusAksesLesson(cid, code) {
 
 document.addEventListener('DOMContentLoaded', () => {
   // Populate student select for assign lesson
-  fetch('/api/semua-murid').then(res => res.json()).then(list => {
-    const select = document.getElementById('assign_lesson_uid');
-    if (select) {
-      select.innerHTML = '<option value="">Pilih Murid</option>';
-      list.forEach(m => {
-        const opt = document.createElement('option');
-        opt.value = m.cid;
-        opt.textContent = `${m.nama} (${m.cid})`;
-        select.appendChild(opt);
-    }
-  }).catch(err => {
-    console.error('❌ Failed to load students:', err);
+  fetch('/api/semua-murid')
+    .then(res => res.json())
+    .then(list => {
+      const select = document.getElementById('assign_lesson_uid');
+      if (select) {
+        select.innerHTML = '<option value="">Pilih Murid</option>';
+        list.forEach(m => {
+          const opt = document.createElement('option');
+          opt.value = m.cid;
+          opt.textContent = `${m.nama} (${m.cid})`;
+          select.appendChild(opt);
+        });
+      }
+    })
+    .catch(err => {
+      console.error('❌ Failed to load students:', err);
+    });
+
   loadLessons();
   loadLessonAccessList();
+
   // Handle assign lesson form submission
   const form = document.getElementById('form-assign-lesson');
   if (form) {
@@ -536,19 +547,22 @@ document.addEventListener('DOMContentLoaded', () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ cid, lesson })
+        });
         if (res.ok) {
           if (status) status.textContent = '✅ Akses lesson berhasil ditambahkan.';
           form.reset();
           loadLessonAccessList();
         } else {
-      const data = await res.json();
-      if (status) status.textContent = '❌ ' + (data.error || 'Gagal assign lesson');
+          const data = await res.json();
+          if (status) status.textContent = '❌ ' + (data.error || 'Gagal assign lesson');
         }
       } catch (err) {
         console.error(err);
         if (status) status.textContent = '❌ Gagal assign lesson';
       }
-    }
-  </script>
+    });
+  }
+});
+</script>
 </body>
 </html>
