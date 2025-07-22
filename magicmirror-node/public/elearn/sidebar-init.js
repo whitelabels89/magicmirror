@@ -22,6 +22,14 @@ export async function loadSidebar() {
   });
 
   initSidebar();
+
+  // Ensure dropdown submenu can be opened without delay after sidebar is dynamically loaded
+  container.querySelectorAll('.menu-group > a').forEach(group => {
+    group.addEventListener('click', (e) => {
+      e.preventDefault();
+      group.parentElement.classList.toggle('open');
+    });
+  });
 }
 
 function initSidebar() {
@@ -39,7 +47,8 @@ function initSidebar() {
   }
 
   document.querySelectorAll('.menu-group > a').forEach(group => {
-    group.addEventListener('click', () => {
+    group.addEventListener('click', (e) => {
+      e.preventDefault();
       if (sidebarContainer.classList.contains('collapsed')) {
         sidebarContainer.classList.remove('collapsed');
       }

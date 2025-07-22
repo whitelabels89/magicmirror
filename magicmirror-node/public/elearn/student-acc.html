@@ -585,6 +585,7 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ cid, lesson })
+        });
         if (res.ok) {
           if (status) status.textContent = '✅ Akses lesson berhasil ditambahkan.';
           e.target.reset();
@@ -602,6 +603,7 @@
         console.error(err);
         if (status) status.textContent = '❌ Gagal assign lesson';
       }
+    });
   }
 
   async function assignStudent(e) {
@@ -614,6 +616,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uid, kelas_id })
+      });
       if (res.ok) {
         if (status) status.textContent = '✅ Murid berhasil di-assign ke kelas.';
         e.target.reset();
@@ -627,7 +630,8 @@
       if (status) status.textContent = '❌ Gagal assign murid';
     }
   }
- </script>
+}); // tutup event listener DOMContentLoaded
+</script>
 
   <script>
     function toggleTheme() {
@@ -660,6 +664,7 @@
       if (currentTheme === 'dark') {
         document.getElementById('sidebar-container')?.classList.add('dark-theme');
       }
+    });
   </script>
 </body>
 </html>
