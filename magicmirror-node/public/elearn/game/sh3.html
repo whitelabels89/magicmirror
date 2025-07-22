@@ -1,0 +1,274 @@
+
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game Mencocokkan Pola dan Bentuk</title>
+  <style>
+    body {
+      font-family: 'Comic Sans MS', 'Comic Sans', cursive, sans-serif;
+      background: #f2f7fd;
+      color: #222;
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      text-align: center;
+      font-size: 2.2em;
+      color: #2a72d4;
+      margin-top: 24px;
+      margin-bottom: 24px;
+    }
+    .game-container {
+      max-width: 750px;
+      margin: 0 auto 36px auto;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 4px 20px rgba(60, 120, 180, 0.13);
+      padding: 36px 20px 28px 20px;
+    }
+    .pattern-grid {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 28px 18px;
+      row-gap: 30px;
+    }
+    .pattern-row {
+      display: contents;
+    }
+    .pattern-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 90px;
+    }
+    .choices-cell {
+      display: flex;
+      gap: 22px;
+      justify-content: flex-start;
+      align-items: center;
+    }
+    .choice-btn {
+      background: #e7f0ff;
+      border: 3px solid #b2cfff;
+      border-radius: 16px;
+      padding: 10px 12px;
+      cursor: pointer;
+      min-width: 64px;
+      min-height: 64px;
+      transition: border-color 0.15s, background 0.15s;
+      outline: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .choice-btn.selected {
+      border-color: #ffb703;
+      background: #fffbe7;
+    }
+    .choice-btn.correct {
+      border-color: #25c94e;
+      background: #e0ffe7;
+    }
+    .choice-btn.incorrect {
+      border-color: #e74242;
+      background: #ffeaea;
+    }
+    .pattern-svg, .choice-svg {
+      width: 54px;
+      height: 54px;
+      display: block;
+    }
+    .check-btn {
+      display: block;
+      margin: 34px auto 0 auto;
+      font-size: 1.4em;
+      background: #2a72d4;
+      color: #fff;
+      border: none;
+      padding: 15px 40px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: bold;
+      letter-spacing: 1px;
+      box-shadow: 0 2px 6px rgba(42,114,212,0.13);
+      transition: background 0.13s;
+    }
+    .check-btn:active {
+      background: #1757a6;
+    }
+    .result-message {
+      text-align: center;
+      font-size: 1.3em;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Game Mencocokkan Pola &amp; Bentuk</h1>
+  <div class="game-container">
+    <div class="pattern-grid" id="patternGrid">
+      <!-- Rows will be rendered by JS -->
+    </div>
+    <button class="check-btn" id="checkBtn">Cek Jawaban</button>
+    <div class="result-message" id="resultMessage"></div>
+  </div>
+  <script>
+    // Data pola & pilihan: bentuk (circle, hex, triangle), warna
+    // Setiap pattern hanya cocok dengan satu kombinasi bentuk-warna di pilihan
+    const patterns = [
+      // row 0: merah lingkaran
+      {
+        shape: "circle", color: "#e74242",
+        choices: [
+          {shape: "circle", color: "#e74242"}, // correct
+          {shape: "hex", color: "#43b0e7"},
+          {shape: "triangle", color: "#f7c325"},
+        ]
+      },
+      // row 1: biru segi enam
+      {
+        shape: "hex", color: "#43b0e7",
+        choices: [
+          {shape: "triangle", color: "#f7c325"},
+          {shape: "hex", color: "#43b0e7"}, // correct
+          {shape: "circle", color: "#e74242"},
+        ]
+      },
+      // row 2: kuning segitiga
+      {
+        shape: "triangle", color: "#f7c325",
+        choices: [
+          {shape: "hex", color: "#43b0e7"},
+          {shape: "triangle", color: "#f7c325"}, // correct
+          {shape: "circle", color: "#e74242"},
+        ]
+      },
+      // row 3: hijau lingkaran
+      {
+        shape: "circle", color: "#25c94e",
+        choices: [
+          {shape: "triangle", color: "#25c94e"},
+          {shape: "hex", color: "#e74242"},
+          {shape: "circle", color: "#25c94e"}, // correct
+        ]
+      },
+    ];
+
+    // Shuffle utility for array
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function renderShapeSVG(shape, color, isPattern=false) {
+      // For pattern: slightly bigger, with border
+      const size = isPattern ? 54 : 48;
+      if (shape === "circle") {
+        return `<svg class="${isPattern ? 'pattern-svg' : 'choice-svg'}" width="${size}" height="${size}" viewBox="0 0 54 54">
+          <circle cx="27" cy="27" r="22" fill="${color}" stroke="#444" stroke-width="2"/>
+        </svg>`;
+      }
+      if (shape === "hex") {
+        // Hexagon
+        return `<svg class="${isPattern ? 'pattern-svg' : 'choice-svg'}" width="${size}" height="${size}" viewBox="0 0 54 54">
+          <polygon points="27,7 47,18 47,36 27,47 7,36 7,18" fill="${color}" stroke="#444" stroke-width="2"/>
+        </svg>`;
+      }
+      if (shape === "triangle") {
+        // Equilateral triangle
+        return `<svg class="${isPattern ? 'pattern-svg' : 'choice-svg'}" width="${size}" height="${size}" viewBox="0 0 54 54">
+          <polygon points="27,9 47,45 7,45" fill="${color}" stroke="#444" stroke-width="2"/>
+        </svg>`;
+      }
+      return '';
+    }
+
+    function renderGame() {
+      const grid = document.getElementById('patternGrid');
+      grid.innerHTML = '';
+      shuffleArray(patterns);
+      patterns.forEach((row, idx) => {
+        // Pattern cell (left)
+        const patternCell = document.createElement('div');
+        patternCell.className = 'pattern-cell pattern-row';
+        patternCell.innerHTML = renderShapeSVG(row.shape, row.color, true);
+        grid.appendChild(patternCell);
+
+        // Choices cell (right)
+        const choicesCell = document.createElement('div');
+        choicesCell.className = 'choices-cell pattern-row';
+        row.choices.forEach((choice, cidx) => {
+          const btn = document.createElement('button');
+          btn.className = 'choice-btn';
+          btn.setAttribute('type', 'button');
+          btn.setAttribute('data-row', idx);
+          btn.setAttribute('data-choice', cidx);
+          btn.innerHTML = renderShapeSVG(choice.shape, choice.color, false);
+          btn.addEventListener('click', () => selectChoice(idx, cidx));
+          choicesCell.appendChild(btn);
+        });
+        grid.appendChild(choicesCell);
+      });
+    }
+
+    // State: selected choice index per row
+    let selected = [null, null, null, null];
+    let checked = false;
+
+    function selectChoice(rowIdx, choiceIdx) {
+      if (checked) return; // prevent change after check
+      selected[rowIdx] = choiceIdx;
+      // Remove selected class from all choices in row
+      const allBtns = document.querySelectorAll(`.choice-btn[data-row="${rowIdx}"]`);
+      allBtns.forEach(btn => btn.classList.remove('selected'));
+      // Add selected to clicked
+      const btn = document.querySelector(`.choice-btn[data-row="${rowIdx}"][data-choice="${choiceIdx}"]`);
+      if (btn) btn.classList.add('selected');
+    }
+
+    function checkAnswers() {
+      let correct = 0;
+      checked = true;
+      for (let i = 0; i < patterns.length; i++) {
+        const row = patterns[i];
+        const correctIdx = row.choices.findIndex(
+          c => c.shape === row.shape && c.color === row.color
+        );
+        const btns = document.querySelectorAll(`.choice-btn[data-row="${i}"]`);
+        btns.forEach((btn, j) => {
+          btn.classList.remove('selected','correct','incorrect');
+          if (selected[i] === j) {
+            if (j === correctIdx) {
+              btn.classList.add('correct');
+              correct++;
+            } else {
+              btn.classList.add('incorrect');
+            }
+          }
+        });
+      }
+      const resultMsg = document.getElementById('resultMessage');
+      if (selected.some(s => s === null)) {
+        resultMsg.textContent = "Yuk, pilih jawaban untuk semua baris!";
+        resultMsg.style.color = "#e74242";
+      } else if (correct === patterns.length) {
+        resultMsg.textContent = "Hebat! Semua jawaban benar 🎉";
+        resultMsg.style.color = "#25c94e";
+      } else {
+        resultMsg.textContent = `Kamu benar ${correct} dari ${patterns.length} jawaban. Coba lagi!`;
+        resultMsg.style.color = "#e74242";
+      }
+    }
+
+    document.getElementById('checkBtn').addEventListener('click', checkAnswers);
+
+    renderGame();
+  </script>
+</body>
+</html>

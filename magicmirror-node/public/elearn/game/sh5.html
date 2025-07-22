@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Menghubungkan Warna yang Sama</title>
+  <style>
+    body {
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background: #fff;
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      text-align: center;
+      font-size: 2em;
+      margin: 20px 0 10px 0;
+    }
+    p {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    canvas {
+      display: block;
+      margin: 0 auto 30px auto;
+      border: 1px solid #ccc;
+      background: #fff;
+      touch-action: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Menghubungkan Warna yang Sama</h1>
+  <p>Gambarlah garis untuk menghubungkan lingkaran yang berwarna sama!</p>
+  <canvas id="gameCanvas" width="400" height="600"></canvas>
+
+  <div style="text-align: center; margin-bottom: 30px;">
+    <button onclick="cekJawaban()" style="padding: 10px 20px; font-size: 1.2em; background-color: #4caf50; color: white; border: none; border-radius: 5px; cursor: pointer;">Cek Jawaban</button>
+    <p id="hasil" style="margin-top: 10px; font-weight: bold;"></p>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const baseColors = [
+      "#e45757", "#bdb6d4", "#66cdd3", "#f4c55d", "#f18192", "#e45757",
+      "#69be7c", "#bdb6d4", "#66cdd3", "#69be7c", "#88a4b0", "#1c8673",
+      "#88a4b0", "#1c8673", "#f18192", "#f4c55d"
+    ];
+
+    const radius = 20;
+
+    const dots = [];
+    while (dots.length < baseColors.length) {
+      const color = baseColors[dots.length];
+      let newDot;
+      let valid = false;
+      while (!valid) {
+        newDot = {
+          x: Math.random() * (canvas.width - 2 * radius) + radius,
+          y: 50 + Math.random() * (canvas.height - 100),
+          color
+        };
+        valid = dots.every(d => Math.hypot(d.x - newDot.x, d.y - newDot.y) > radius * 2.5);
+      }
+      dots.push(newDot);
+    }
+
+    let selected = null;
+    const connections = [];
+    let draggingLine = null;
+
+    function drawDots() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // draw lines
+      connections.forEach(pair => {
+        const a = dots[pair[0]];
+        const b = dots[pair[1]];
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.strokeStyle = a.color;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+      });
+      // draw dragging line if any
+      if (draggingLine) {
+        ctx.beginPath();
+        ctx.moveTo(draggingLine.from.x, draggingLine.from.y);
+        ctx.lineTo(draggingLine.to.x, draggingLine.to.y);
+        ctx.strokeStyle = "#888";
+        ctx.setLineDash([5, 3]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      // draw dots
+      dots.forEach(dot => {
+        ctx.beginPath();
+        ctx.arc(dot.x, dot.y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = dot.color;
+        ctx.fill();
+      });
+    }
+
+    function getDotAt(x, y) {
+      for (let i = 0; i < dots.length; i++) {
+        const d = dots[i];
+        const dist = Math.hypot(d.x - x, d.y - y);
+        if (dist < radius * 1.5) return i;
+      }
+      return null;
+    }
+
+    canvas.addEventListener("pointerdown", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const idx = getDotAt(x, y);
+      if (idx !== null) {
+        if (selected === null) {
+          selected = idx;
+          draggingLine = { from: dots[idx], to: { x, y } };
+        } else {
+          // check if colors match
+          if (dots[selected].color === dots[idx].color && selected !== idx) {
+            // prevent duplicate connection
+            const exists = connections.some(pair =>
+              (pair[0] === selected && pair[1] === idx) ||
+              (pair[1] === selected && pair[0] === idx)
+            );
+            if (!exists) connections.push([selected, idx]);
+          }
+          selected = null;
+          draggingLine = null;
+        }
+        drawDots();
+      }
+    });
+
+    canvas.addEventListener("pointermove", (e) => {
+      if (draggingLine) {
+        const rect = canvas.getBoundingClientRect();
+        draggingLine.to = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        drawDots();
+      }
+    });
+
+    canvas.addEventListener("pointerup", () => {
+      draggingLine = null;
+      drawDots();
+    });
+
+    drawDots();
+
+    function cekJawaban() {
+      const paired = new Set();
+      let benar = 0;
+      baseColors.forEach(color => {
+        const pasangan = dots
+          .map((dot, idx) => ({ ...dot, idx }))
+          .filter(dot => dot.color === color && !paired.has(dot.idx));
+        if (pasangan.length === 2) {
+          const found = connections.some(pair =>
+            (dots[pair[0]].color === color && dots[pair[1]].color === color)
+          );
+          if (found) {
+            benar++;
+            paired.add(pasangan[0].idx);
+            paired.add(pasangan[1].idx);
+          }
+        }
+      });
+
+      const hasilElem = document.getElementById("hasil");
+      if (benar === baseColors.length / 2) {
+        hasilElem.innerText = "Jawaban kamu BENAR semua! 🎉";
+        hasilElem.style.color = "green";
+      } else {
+        hasilElem.innerText = `Kamu baru benar ${benar} dari ${baseColors.length / 2} pasang.`;
+        hasilElem.style.color = "red";
+      }
+    }
+  </script>
+</body>
+</html>
