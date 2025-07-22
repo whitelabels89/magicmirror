@@ -508,8 +508,15 @@ async function hapusAksesLesson(cid, code) {
       alert('✅ Akses lesson berhasil dihapus');
       loadLessonAccessList();
     } else {
-      const data = await res.json();
-      alert('❌ ' + (data.error || 'Gagal menghapus akses'));
+      let msg = 'Gagal menghapus akses';
+      const ct = res.headers.get('content-type') || '';
+      if (ct.includes('application/json')) {
+        const data = await res.json();
+        msg = data.error || msg;
+      } else {
+        msg = await res.text();
+      }
+      alert('❌ ' + msg);
     }
   } catch (err) {
     console.error(err);
@@ -525,9 +532,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (select) {
         select.innerHTML = '<option value="">Pilih Murid</option>';
         list.forEach(m => {
+          const id = m.cid || m.uid || '';
           const opt = document.createElement('option');
-          opt.value = m.cid;
-          opt.textContent = `${m.nama} (${m.cid})`;
+          opt.value = id;
+          opt.textContent = `${m.nama} (${id})`;
           select.appendChild(opt);
         });
       }
@@ -559,8 +567,15 @@ document.addEventListener('DOMContentLoaded', () => {
           form.reset();
           loadLessonAccessList();
         } else {
-          const data = await res.json();
-          if (status) status.textContent = '❌ ' + (data.error || 'Gagal assign lesson');
+          let msg = 'Gagal assign lesson';
+          const ct = res.headers.get('content-type') || '';
+          if (ct.includes('application/json')) {
+            const data = await res.json();
+            msg = data.error || msg;
+          } else {
+            msg = await res.text();
+          }
+          if (status) status.textContent = '❌ ' + msg;
         }
       } catch (err) {
         console.error(err);
