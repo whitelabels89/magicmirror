@@ -1166,21 +1166,6 @@ app.post('/api/karya-anak/highlight', async (req, res) => {
   }
 });
 
-// Default route ke index.html
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public/index.html'));
-});
-
-// Fallback 404
-app.use((req, res) => {
-    res.status(404).send('404 Not Found');
-});
-
-// Start server
-http.listen(PORT, () => {
-    console.log(`🚀 Server jalan di http://localhost:${PORT}`);
-});
-
 // POST /api/assign-lesson - assign akses lesson ke akun berdasarkan cid
 app.post('/api/assign-lesson', async (req, res) => {
   const { cid, lesson } = req.body;
@@ -1276,4 +1261,19 @@ app.post('/api/selesai-kelas', async (req, res) => {
     console.error('❌ Error kirim ke Apps Script:', err);
     res.status(500).json({ success: false, error: 'Gagal menyimpan ke Apps Script' });
   }
+});
+
+// Default route ke index.html
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/index.html'));
+});
+
+// Fallback 404
+app.use((req, res) => {
+  res.status(404).send('404 Not Found');
+});
+
+// Start server
+http.listen(PORT, () => {
+  console.log(`🚀 Server jalan di http://localhost:${PORT}`);
 });

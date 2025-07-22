@@ -525,9 +525,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (select) {
         select.innerHTML = '<option value="">Pilih Murid</option>';
         list.forEach(m => {
+          const id = m.cid || m.uid || '';
           const opt = document.createElement('option');
-          opt.value = m.cid;
-          opt.textContent = `${m.nama} (${m.cid})`;
+          opt.value = id;
+          opt.textContent = `${m.nama} (${id})`;
           select.appendChild(opt);
         });
       }
