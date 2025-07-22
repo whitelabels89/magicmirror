@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create New Class</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script>
+    document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'light');
+  </script>
+  <style>
+    [data-theme='dark'] {
+      --primary: #131313;
+      --primary-light: #1c1c1c;
+      --card-bg: #1e1e1e;
+      --gray: #2a2a2a;
+      --text-main: #f5f5f5;
+      --text-muted: #aaa;
+      --card-radius: 14px;
+      color: var(--text-main);
+      background-color: var(--primary);
+    }
+
+    [data-theme='dark'] body {
+      background: #121212;
+      color: var(--text-main);
+    }
+
+    [data-theme='dark'] .form-card {
+      background: var(--card-bg);
+      color: var(--text-main);
+      box-shadow: 0 0 15px rgba(0,255,255,0.3), 0 0 30px rgba(255,0,255,0.15);
+      border-radius: var(--card-radius);
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    [data-theme='dark'] input {
+      background: #292929;
+      color: #505050;
+      border-color: #444;
+    }
+
+    [data-theme='dark'] input::placeholder {
+      color: var(--text-muted);
+    }
+
+    [data-theme='dark'] button {
+      background: linear-gradient(135deg, #ff00cc, #3333ff);
+      color: #fff;
+      box-shadow: none;
+    }
+
+    [data-theme='dark'] button:hover {
+      background: linear-gradient(135deg, #ff66cc, #5555ff);
+      box-shadow: none;
+    }
+
+    :root {
+      --sidebar-width: 230px;
+      --primary: #2c3e50;
+      --primary-light: #ecf0f1;
+      --card-bg: #fff;
+      --card-radius: 14px;
+      --shadow: 0 2px 8px rgba(0,0,0,0.04);
+      --gray: #f0f4f8;
+      --font-main: 'Inter', sans-serif;
+    }
+
+    body {
+      font-family: var(--font-main);
+      margin: 0;
+      background: #f5f7fa;
+      min-height: 100vh;
+    }
+
+    .dashboard-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 36px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      overflow-x: hidden;
+    }
+
+    .form-card {
+      background: var(--card-bg);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow);
+      padding: 26px 28px 20px 28px;
+      display: flex;
+      flex-direction: column;
+      max-width: 400px;
+    }
+
+    .form-card h2 {
+      margin-top: 0;
+      margin-bottom: 18px;
+      font-size: 1.18rem;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .form-card form {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-card input {
+      padding: 9px 12px;
+      border-radius: 7px;
+      border: 1px solid #dde1ef;
+      font-size: 1rem;
+      background: #f7fafd;
+    }
+
+    .form-card input:focus {
+      outline: none;
+      border: 1.5px solid var(--primary);
+    }
+
+    .form-card button {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 10px 0;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.15s;
+    }
+
+    .form-card button:hover {
+      background: #2445a7;
+    }
+
+    @media (max-width: 1100px) {
+      .main-content { padding: 28px 10px; }
+    }
+  </style>
+  <link rel="stylesheet" href="/elearn/sidebar-mod.css">
+</head>
+<body>
+  <div class="dashboard-layout">
+    <div id="sidebar-placeholder"></div>
+    <script type="module">
+      import { loadSidebar } from '/elearn/sidebar-init.js';
+      loadSidebar();
+    </script>
+    <script src="/elearn/sidebar-meteor.js" defer></script>
+    <main class="main-content">
+      <section class="section-theme-toggle section-spacing" style="margin-bottom:30px;">
+        <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
+          <button id="theme-toggle-btn" style="background:none; border:none; cursor:pointer; font-size:1.3rem;">
+            <span id="theme-icon">☀️</span>
+          </button>
+        </div>
+      </section>
+      <section class="section-create-class section-spacing">
+        <div class="form-card">
+          <h2>Create New Class</h2>
+          <form id="form-create-class">
+            <input type="text" id="kelas_id" placeholder="Class ID" required>
+            <input type="text" id="nama_kelas" placeholder="Class Name" required>
+            <button type="submit">Create Class</button>
+            <p id="class-status"></p>
+          </form>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script>
+    const FIREBASE_API = window.location.origin;
+  </script>
+  <script>
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      const next = current === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      updateThemeIcon();
+      const sidebar = document.getElementById('sidebar-container');
+      if (sidebar) {
+        if (next === 'dark') {
+          sidebar.classList.add('dark-theme');
+        } else {
+          sidebar.classList.remove('dark-theme');
+        }
+      }
+    }
+
+    function updateThemeIcon() {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      document.getElementById('theme-icon').textContent = current === 'dark' ? '🌙' : '☀️';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const currentTheme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      updateThemeIcon();
+      document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
+      if (currentTheme === 'dark') {
+        document.getElementById('sidebar-container')?.classList.add('dark-theme');
+      }
+    });
+  </script>
+  <script>
+    document.getElementById('form-create-class')?.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const status = document.getElementById('class-status');
+      const kelas_id = document.getElementById('kelas_id').value.trim();
+      const nama_kelas = document.getElementById('nama_kelas').value.trim();
+      try {
+        const res = await fetch('/api/kelas', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ kelas_id, nama_kelas })
+        });
+        if (res.ok) {
+          status.textContent = '✅ Kelas berhasil ditambah.';
+          e.target.reset();
+        } else {
+          const data = await res.json();
+          status.textContent = '❌ ' + (data.error || 'Gagal menambah kelas');
+        }
+      } catch (err) {
+        console.error(err);
+        status.textContent = '❌ Gagal menambah kelas';
+      }
+    });
+  </script>
+</body>
+</html>
