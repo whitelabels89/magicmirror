@@ -1166,21 +1166,6 @@ app.post('/api/karya-anak/highlight', async (req, res) => {
   }
 });
 
-// Default route ke index.html
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public/index.html'));
-});
-
-// Fallback 404
-app.use((req, res) => {
-    res.status(404).send('404 Not Found');
-});
-
-// Start server
-http.listen(PORT, () => {
-    console.log(`🚀 Server jalan di http://localhost:${PORT}`);
-});
-
 // POST /api/assign-lesson - assign akses lesson ke akun berdasarkan cid
 app.post('/api/assign-lesson', async (req, res) => {
   const { cid, lesson } = req.body;
@@ -1201,6 +1186,55 @@ app.post('/api/assign-lesson', async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     console.error('❌ Error assign lesson:', err);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
+
+// GET /api/akses-lesson - daftar semua akses lesson
+app.get('/api/akses-lesson', async (req, res) => {
+  try {
+    const akunSnap = await db.collection('akun').get();
+    const lessonSnap = await db.collection('lessons').get();
+    const lessonMap = {};
+    lessonSnap.forEach(d => {
+      const val = d.data();
+      const code = d.id;
+      lessonMap[code] = val.title || val.nama || '';
+    });
+    const result = [];
+    akunSnap.forEach(doc => {
+      const data = doc.data();
+      const akses = Array.isArray(data.akses_lesson) ? data.akses_lesson : [];
+      akses.forEach(code => {
+        result.push({
+          cid: data.cid || doc.id,
+          nama: data.nama || '',
+          code,
+          title: lessonMap[code] || '',
+          status: data.status || ''
+        });
+      });
+    });
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error('❌ Error get akses lesson:', err);
+    res.status(500).json([]);
+  }
+});
+
+// DELETE /api/akses-lesson/:cid/:lesson - hapus akses lesson dari akun
+app.delete('/api/akses-lesson/:cid/:lesson', async (req, res) => {
+  const { cid, lesson } = req.params;
+  if (!cid || !lesson) {
+    return res.status(400).json({ success: false, error: 'Data tidak lengkap' });
+  }
+  try {
+    await db.collection('akun').doc(cid).update({
+      akses_lesson: admin.firestore.FieldValue.arrayRemove(lesson)
+    });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('❌ Error delete akses lesson:', err);
     res.status(500).json({ success: false, error: 'Server error' });
   }
 });
@@ -1227,4 +1261,19 @@ app.post('/api/selesai-kelas', async (req, res) => {
     console.error('❌ Error kirim ke Apps Script:', err);
     res.status(500).json({ success: false, error: 'Gagal menyimpan ke Apps Script' });
   }
+});
+
+// Default route ke index.html
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/index.html'));
+});
+
+// Fallback 404
+app.use((req, res) => {
+  res.status(404).send('404 Not Found');
+});
+
+// Start server
+http.listen(PORT, () => {
+  console.log(`🚀 Server jalan di http://localhost:${PORT}`);
 });
