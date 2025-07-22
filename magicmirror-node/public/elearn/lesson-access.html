@@ -455,42 +455,44 @@
     });
   </script>
   <script>
-async function loadLessons() {
-  try {
-    const res = await fetch('/api/lessons');
-    const data = await res.json();
-    const select = document.getElementById('lesson_code');
-    if (!Array.isArray(data)) throw new Error('Format data salah');
-    data.forEach(lesson => {
-      const opt = document.createElement('option');
-      opt.value = lesson.code;
-      opt.textContent = `${lesson.title} (${lesson.code})`;
-      select.appendChild(opt);
-  } catch (err) {
-    console.error('❌ Failed to load lessons:', err);
+  async function loadLessons() {
+    try {
+      const res = await fetch('/api/lessons');
+      const data = await res.json();
+      const select = document.getElementById('lesson_code');
+      if (!Array.isArray(data)) throw new Error('Format data salah');
+      data.forEach(lesson => {
+        const opt = document.createElement('option');
+        opt.value = lesson.code;
+        opt.textContent = `${lesson.title} (${lesson.code})`;
+        select.appendChild(opt);
+      });
+    } catch (err) {
+      console.error('❌ Failed to load lessons:', err);
+    }
   }
-}
 
-async function loadLessonAccessList() {
-  try {
-    const res = await fetch('/api/akses-lesson');
-    const data = await res.json();
-    const tbody = document.querySelector('#lesson-access-table tbody');
-    tbody.innerHTML = '';
-    data.forEach(row => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${row.nama} (${row.cid})</td>
-        <td>${row.title}</td>
-        <td>${row.code}</td>
-        <td>${row.status}</td>
-        <td><button onclick="hapusAksesLesson('${row.cid}', '${row.code}')">❌ Hapus</button></td>
-      `;
-      tbody.appendChild(tr);
-  } catch (err) {
-    console.error('❌ Gagal memuat daftar akses lesson:', err);
+  async function loadLessonAccessList() {
+    try {
+      const res = await fetch('/api/akses-lesson');
+      const data = await res.json();
+      const tbody = document.querySelector('#lesson-access-table tbody');
+      tbody.innerHTML = '';
+      data.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${row.nama} (${row.cid})</td>
+          <td>${row.title}</td>
+          <td>${row.code}</td>
+          <td>${row.status}</td>
+          <td><button onclick="hapusAksesLesson('${row.cid}', '${row.code}')">❌ Hapus</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } catch (err) {
+      console.error('❌ Gagal memuat daftar akses lesson:', err);
+    }
   }
-}
 
 async function hapusAksesLesson(cid, code) {
   if (!confirm(`Hapus akses lesson ${code} dari ${cid}?`)) return;
