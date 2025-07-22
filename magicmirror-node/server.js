@@ -513,6 +513,9 @@ app.get('/api/orangtua', async (req, res) => {
 app.get('/api/kelas', async (req, res) => {
   try {
     const snap = await db.collection('kelas').get();
+    if (snap.empty) {
+      return res.json({ success: true, data: [] });
+    }
     const data = snap.docs.map(d => {
       const val = d.data();
       return {
