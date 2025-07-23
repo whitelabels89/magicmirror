@@ -381,9 +381,7 @@
       window.location.href = '/elearn/login.html';
       return;
     }
-    // Set dynamic username
     const userName = localStorage.getItem('nama') || 'Moderator';
-    // Pastikan elemen user-name ada sebelum mengakses
     if (document.getElementById('user-name')) {
       document.getElementById('user-name').textContent = userName;
     }
@@ -397,180 +395,188 @@
       document.getElementById('form-add-student').addEventListener('submit', addStudent);
     }
 
-  async function loadClasses() {
-    try {
-      const res = await fetch('/api/kelas');
-      const json = await res.json();
-      const list = Array.isArray(json.data) ? json.data : [];
-      const tbody = document.querySelector('#kelas-table tbody');
-      tbody.innerHTML = '';
-      let totalMurid = 0;
-      let guruSet = new Set();
-      list.forEach(kelas => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td data-label="Kelas ID">${kelas.kelas_id}</td>
-          <td data-label="Nama Kelas">${kelas.nama_kelas}</td>
-          <td data-label="Guru ID">${kelas.guru_id}</td>
-          <td data-label="Jumlah Murid">${kelas.jumlah_murid || 0}</td>
-          <td data-label="Aksi"><button data-id="${kelas.kelas_id}">Lihat Murid</button></td>`;
-        tr.querySelector('button').addEventListener('click', () => loadStudents(kelas.kelas_id));
-        tbody.appendChild(tr);
-        totalMurid += (kelas.jumlah_murid || 0);
-        if (kelas.guru_id) guruSet.add(kelas.guru_id);
-      // Update stat cards
-      document.getElementById('stat-kelas').textContent = list.length;
-      document.getElementById('stat-murid').textContent = totalMurid;
-      document.getElementById('stat-guru').textContent = guruSet.size;
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
-  async function loadStudents(kelasId) {
-    try {
-      const res = await fetch(`/api/kelas/${kelasId}`);
-      const data = await res.json();
-      const tbody = document.querySelector('#students-table tbody');
-      tbody.innerHTML = '';
-      data.forEach(murid => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td data-label="CID">${murid.cid}</td>
-          <td data-label="Nama"><a href="/elearn/student-profile.html?cid=${murid.cid}">${murid.nama}</a></td>
-          <td data-label="Email">${murid.email}</td>`;
-        tbody.appendChild(tr);
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
-  async function loadAllStudents() {
-    const select = document.getElementById('assign_uid');
-    const status = document.getElementById('assign-status');
-    const selectLesson = document.getElementById('assign_lesson_uid');
-    try {
-      const res = await fetch(`${FIREBASE_API}/api/semua-murid`);
-      if (!res.ok) throw new Error('Network');
-      const list = await res.json();
-      if (select) select.innerHTML = '<option value="">Pilih Murid</option>';
-      if (selectLesson) selectLesson.innerHTML = '<option value="">Pilih Murid</option>';
-      list.forEach(m => {
-        if (select) {
-          const opt = document.createElement('option');
-          opt.value = m.cid;
-          opt.textContent = `${m.nama} (${m.cid})`;
-          select.appendChild(opt);
-        }
-        if (selectLesson) {
-          const opt2 = document.createElement('option');
-          opt2.value = m.cid;
-          opt2.textContent = `${m.nama} (${m.cid})`;
-          selectLesson.appendChild(opt2);
-        }
-      // Update stat card murid
-      if (document.getElementById('stat-murid')) {
-        document.getElementById('stat-murid').textContent = list.length;
-      }
-    } catch (err) {
-      console.error(err);
-      if (status) status.textContent = '❌ Gagal memuat daftar murid';
-    }
-  }
-
-  async function addClass(e) {
-    e.preventDefault();
-    const status = document.getElementById('class-status');
-    const kelas_id = document.getElementById('kelas_id').value.trim();
-    const nama_kelas = document.getElementById('nama_kelas').value.trim();
-    const guru_id = document.getElementById('guru_id').value.trim();
-    try {
-      const res = await fetch('/api/kelas', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ kelas_id, nama_kelas, guru_id })
-      if (res.ok) {
-        if (status) status.textContent = '✅ Kelas berhasil ditambah.';
-        loadClasses();
-        e.target.reset();
-      } else {
-        const data = await res.json();
-        if (status) status.textContent = '❌ ' + (data.error || 'Gagal menambah kelas');
-      }
-    } catch (err) {
-      console.error(err);
-      if (status) status.textContent = '❌ Gagal menambah kelas';
-    }
-  }
-
-  async function addStudent(e) {
-    e.preventDefault();
-    const status = document.getElementById('student-status');
-    const nama = document.getElementById('nama').value.trim();
-    const email = document.getElementById('email').value.trim();
-    let wa = document.getElementById('wa').value.trim();
-    if (wa && !wa.startsWith('+62')) {
-      wa = '+62' + wa.replace(/^0+/, '');
-    }
-    const password = document.getElementById('password').value.trim();
-    const kelas_id = document.getElementById('kelas_id_student').value.trim();
-    const role = document.getElementById('role').value;
-    // Generate CID before sending request
-    const cid = 'QAC' + String(Date.now()).slice(-7); // Simple unique 7-digit suffix
-    try {
-      const res = await fetch(`${FIREBASE_API}/api/daftar-akun-baru`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cid, nama, email, password, wa, kelas_id, role })
-      if (res.ok) {
-        if (status) status.textContent = '✅ Akun berhasil ditambah.';
-        e.target.reset();
-        loadClasses();
-      } else {
-        const data = await res.json();
-        if (status) status.textContent = '❌ ' + (data.error || 'Gagal menambah akun');
-      }
-    } catch (err) {
-      console.error(err);
-      if (status) status.textContent = '❌ Gagal menambah akun';
-    }
-  }
-  if (document.getElementById('form-assign-student')) {
-    document.getElementById('form-assign-student').addEventListener('submit', assignStudent);
-  }
-
-  if (document.getElementById('form-assign-lesson')) {
-    document.getElementById('form-assign-lesson').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const cid = document.getElementById('assign_lesson_uid').value.trim();
-      const lesson = document.getElementById('lesson_code').value.trim();
-      const status = document.getElementById('lesson-assign-status');
-      if (!cid || !lesson) return;
-
+    async function loadClasses() {
       try {
-        const res = await fetch(`${FIREBASE_API}/api/assign-lesson`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ cid, lesson })
-        if (res.ok) {
-          if (status) status.textContent = '✅ Akses lesson berhasil ditambahkan.';
-          e.target.reset();
-        } else {
-          try {
-            const data = await res.json();
-            if (status) status.textContent = '❌ ' + (data.error || 'Gagal assign lesson');
-          } catch (err) {
-            const text = await res.text();
-            console.error('❌ Invalid JSON:', text);
-            if (status) status.textContent = '❌ Gagal assign lesson (invalid response)';
+        const res = await fetch('/api/kelas');
+        const json = await res.json();
+        const list = Array.isArray(json.data) ? json.data : [];
+        const tbody = document.querySelector('#kelas-table tbody');
+        tbody.innerHTML = '';
+        let totalMurid = 0;
+        let guruSet = new Set();
+        list.forEach(kelas => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td data-label="Kelas ID">${kelas.kelas_id}</td>
+            <td data-label="Nama Kelas">${kelas.nama_kelas}</td>
+            <td data-label="Guru ID">${kelas.guru_id}</td>
+            <td data-label="Jumlah Murid">${kelas.jumlah_murid || 0}</td>
+            <td data-label="Aksi"><button data-id="${kelas.kelas_id}">Lihat Murid</button></td>`;
+          tr.querySelector('button').addEventListener('click', () => loadStudents(kelas.kelas_id));
+          tbody.appendChild(tr);
+          totalMurid += (kelas.jumlah_murid || 0);
+          if (kelas.guru_id) guruSet.add(kelas.guru_id);
+        });
+        document.getElementById('stat-kelas').textContent = list.length;
+        document.getElementById('stat-murid').textContent = totalMurid;
+        document.getElementById('stat-guru').textContent = guruSet.size;
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function loadStudents(kelasId) {
+      try {
+        const res = await fetch(`/api/kelas/${kelasId}`);
+        const data = await res.json();
+        const tbody = document.querySelector('#students-table tbody');
+        tbody.innerHTML = '';
+        data.forEach(murid => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td data-label="CID">${murid.cid}</td>
+            <td data-label="Nama"><a href="/elearn/student-profile.html?cid=${murid.cid}">${murid.nama}</a></td>
+            <td data-label="Email">${murid.email}</td>`;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function loadAllStudents() {
+      const select = document.getElementById('assign_uid');
+      const status = document.getElementById('assign-status');
+      const selectLesson = document.getElementById('assign_lesson_uid');
+      try {
+        const res = await fetch(`${FIREBASE_API}/api/semua-murid`);
+        if (!res.ok) throw new Error('Network');
+        const list = await res.json();
+        if (select) select.innerHTML = '<option value="">Pilih Murid</option>';
+        if (selectLesson) selectLesson.innerHTML = '<option value="">Pilih Murid</option>';
+        list.forEach(m => {
+          if (select) {
+            const opt = document.createElement('option');
+            opt.value = m.cid;
+            opt.textContent = `${m.nama} (${m.cid})`;
+            select.appendChild(opt);
           }
+          if (selectLesson) {
+            const opt2 = document.createElement('option');
+            opt2.value = m.cid;
+            opt2.textContent = `${m.nama} (${m.cid})`;
+            selectLesson.appendChild(opt2);
+          }
+        });
+        if (document.getElementById('stat-murid')) {
+          document.getElementById('stat-murid').textContent = list.length;
         }
       } catch (err) {
         console.error(err);
-        if (status) status.textContent = '❌ Gagal assign lesson';
+        if (status) status.textContent = '❌ Gagal memuat daftar murid';
       }
-  }
+    }
 
+    async function addClass(e) {
+      e.preventDefault();
+      const status = document.getElementById('class-status');
+      const kelas_id = document.getElementById('kelas_id').value.trim();
+      const nama_kelas = document.getElementById('nama_kelas').value.trim();
+      const guru_id = document.getElementById('guru_id').value.trim();
+      try {
+        const res = await fetch('/api/kelas', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ kelas_id, nama_kelas, guru_id })
+        });
+        if (res.ok) {
+          if (status) status.textContent = '✅ Kelas berhasil ditambah.';
+          loadClasses();
+          e.target.reset();
+        } else {
+          const data = await res.json();
+          if (status) status.textContent = '❌ ' + (data.error || 'Gagal menambah kelas');
+        }
+      } catch (err) {
+        console.error(err);
+        if (status) status.textContent = '❌ Gagal menambah kelas';
+      }
+    }
+
+    async function addStudent(e) {
+      e.preventDefault();
+      const status = document.getElementById('student-status');
+      const nama = document.getElementById('nama').value.trim();
+      const email = document.getElementById('email').value.trim();
+      let wa = document.getElementById('wa').value.trim();
+      if (wa && !wa.startsWith('+62')) {
+        wa = '+62' + wa.replace(/^0+/, '');
+      }
+      const password = document.getElementById('password').value.trim();
+      const kelas_id = document.getElementById('kelas_id_student').value.trim();
+      const role = document.getElementById('role').value;
+      const cid = 'QAC' + String(Date.now()).slice(-7);
+      try {
+        const res = await fetch(`${FIREBASE_API}/api/daftar-akun-baru`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cid, nama, email, password, wa, kelas_id, role })
+        });
+        if (res.ok) {
+          if (status) status.textContent = '✅ Akun berhasil ditambah.';
+          e.target.reset();
+          loadClasses();
+        } else {
+          const data = await res.json();
+          if (status) status.textContent = '❌ ' + (data.error || 'Gagal menambah akun');
+        }
+      } catch (err) {
+        console.error(err);
+        if (status) status.textContent = '❌ Gagal menambah akun';
+      }
+    }
+
+    if (document.getElementById('form-assign-student')) {
+      document.getElementById('form-assign-student').addEventListener('submit', assignStudent);
+    }
+
+    if (document.getElementById('form-assign-lesson')) {
+      document.getElementById('form-assign-lesson').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const cid = document.getElementById('assign_lesson_uid').value.trim();
+        const lesson = document.getElementById('lesson_code').value.trim();
+        const status = document.getElementById('lesson-assign-status');
+        if (!cid || !lesson) return;
+
+        try {
+          const res = await fetch(`${FIREBASE_API}/api/assign-lesson`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cid, lesson })
+          });
+          if (res.ok) {
+            if (status) status.textContent = '✅ Akses lesson berhasil ditambahkan.';
+            e.target.reset();
+          } else {
+            try {
+              const data = await res.json();
+              if (status) status.textContent = '❌ ' + (data.error || 'Gagal assign lesson');
+            } catch (err) {
+              const text = await res.text();
+              console.error('❌ Invalid JSON:', text);
+              if (status) status.textContent = '❌ Gagal assign lesson (invalid response)';
+            }
+          }
+        } catch (err) {
+          console.error(err);
+          if (status) status.textContent = '❌ Gagal assign lesson';
+        }
+      });
+    }
+  });
+  </script>
+
+  <script>
   async function assignStudent(e) {
     e.preventDefault();
     const status = document.getElementById('assign-status');
@@ -581,6 +587,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uid, kelas_id })
+      });
       if (res.ok) {
         if (status) status.textContent = '✅ Murid berhasil di-assign ke kelas.';
         e.target.reset();
@@ -594,8 +601,7 @@
       if (status) status.textContent = '❌ Gagal assign murid';
     }
   }
- </script>
-
+  </script>
   <script>
     function toggleTheme() {
       const current = document.documentElement.getAttribute('data-theme') || 'light';
@@ -623,10 +629,10 @@
       document.documentElement.setAttribute('data-theme', currentTheme);
       updateThemeIcon();
       document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
-      // Add dark-theme class to sidebar if dark mode is active
       if (currentTheme === 'dark') {
         document.getElementById('sidebar-container')?.classList.add('dark-theme');
       }
+    });
   </script>
   <script>
     async function loadActiveLessons() {
@@ -647,6 +653,7 @@
             <td><button onclick="viewLessonLog('${lesson.cid}','${lesson.lesson_kode}')">View Log</button></td>
           `;
           tbody.appendChild(tr);
+        });
       } catch (err) {
         console.error('❌ Gagal memuat lesson aktif', err);
       }
@@ -666,6 +673,7 @@
             <td>${entry.user}</td>
           `;
           tbody.appendChild(tr);
+        });
       } catch (err) {
         console.error('❌ Gagal memuat log aktivitas', err);
       }
@@ -673,6 +681,7 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       loadActiveLessons();
+    });
   </script>
 </body>
 </html>
