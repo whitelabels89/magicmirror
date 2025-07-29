@@ -442,6 +442,8 @@
 
       <h2 class="judul-section">🚀 Learning Journey</h2>
       <div class="game-style-cards">
+        <!-- Worksheet module-group (removed, now inside Calistung) -->
+        <!-- Calistung module-group -->
         <div class="module-group">
           <div class="lesson-card" style="background: linear-gradient(to right, #ec4899, #f472b6);">
             <span class="lesson-number">CA L1</span>
@@ -453,6 +455,57 @@
             <div id="container-CAL1"></div>
             <div id="container-CAL2"></div>
             <div id="container-CAL3"></div>
+            <!-- Worksheet module-group now inside Calistung -->
+            <div class="module-group">
+              <div class="lesson-card mini" onclick="toggleWorksheet()" style="background: linear-gradient(to right, #f472b6, #fb7185); cursor:pointer;">
+                <span class="lesson-number">WS</span>
+                <h3>Worksheet</h3>
+              </div>
+              <div class="lesson-cards-container" id="worksheet-container" style="display:none;">
+                <a href="/elearn/game/al1.html" style="text-decoration:none;">
+                  <div class="lesson-card mini"><span class="lesson-number">WS</span><h3>Alphabet Learning 1</h3></div>
+                </a>
+                <a href="/elearn/game/alp2.html" style="text-decoration:none;">
+                  <div class="lesson-card mini"><span class="lesson-number">WS</span><h3>Alphabet Practice 2</h3></div>
+                </a>
+                <a href="/elearn/game/mg1.html" style="text-decoration:none;">
+                  <div class="lesson-card mini"><span class="lesson-number">WS</span><h3>Math Game 1</h3></div>
+                </a>
+                <a href="/elearn/game/mg2.html" style="text-decoration:none;">
+                  <div class="lesson-card mini"><span class="lesson-number">WS</span><h3>Math Game 2</h3></div>
+                </a>
+                <a href="/elearn/game/mg3.html" style="text-decoration:none;">
+                  <div class="lesson-card mini"><span class="lesson-number">WS</span><h3>Math Game 3</h3></div>
+                </a>
+                <a href="/elearn/game/mg4.html" style="text-decoration:none;">
+                  <div class="lesson-card mini"><span class="lesson-number">WS</span><h3>Math Game 4</h3></div>
+                </a>
+                <a href="/elearn/game/mg5.html" style="text-decoration:none;">
+                  <div class="lesson-card mini"><span class="lesson-number">WS</span><h3>Math Game 5</h3></div>
+                </a>
+                <a href="/elearn/game/sh1.html" style="text-decoration:none;">
+                  <div class="lesson-card mini"><span class="lesson-number">WS</span><h3>Shape Hunt 1</h3></div>
+                </a>
+                <a href="/elearn/game/sh2.html" style="text-decoration:none;">
+                  <div class="lesson-card mini"><span class="lesson-number">WS</span><h3>Shape Hunt 2</h3></div>
+                </a>
+                <a href="/elearn/game/sh3.html" style="text-decoration:none;">
+                  <div class="lesson-card mini"><span class="lesson-number">WS</span><h3>Shape Hunt 3</h3></div>
+                </a>
+                <a href="/elearn/game/sh4.html" style="text-decoration:none;">
+                  <div class="lesson-card mini"><span class="lesson-number">WS</span><h3>Shape Hunt 4</h3></div>
+                </a>
+                <a href="/elearn/game/sh5.html" style="text-decoration:none;">
+                  <div class="lesson-card mini"><span class="lesson-number">WS</span><h3>Shape Hunt 5</h3></div>
+                </a>
+                <a href="/elearn/game/sh6.html" style="text-decoration:none;">
+                  <div class="lesson-card mini"><span class="lesson-number">WS</span><h3>Shape Hunt 6</h3></div>
+                </a>
+                <a href="/elearn/game/sh7.html" style="text-decoration:none;">
+                  <div class="lesson-card mini"><span class="lesson-number">WS</span><h3>Shape Hunt 7</h3></div>
+                </a>
+              </div>
+            </div>
           </div>
         </div>
         <div class="module-group">
@@ -727,6 +780,14 @@
     }
 
     // fungsi sidebar tersedia di sidebar.js
+  </script>
+  <script>
+    function toggleWorksheet() {
+      const cont = document.getElementById('worksheet-container');
+      if (cont) {
+        cont.style.display = (cont.style.display === 'none') ? 'flex' : 'none';
+      }
+    }
   </script>
 <script>
   document.addEventListener('DOMContentLoaded', () => {
