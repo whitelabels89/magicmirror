@@ -105,9 +105,11 @@
       border-radius: 12px;
       padding: 20px;
       margin: 20px auto;
-      max-width: 600px;
+      max-width: 1100px;
+      width: 98vw;
       text-align: center;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      overflow-x: auto;
     }
     .slide h2 {
       margin-bottom: 10px;
@@ -212,6 +214,37 @@
     .puzzle-card:active {
       opacity: 0.6;
     }
+    .card-stack {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 8px;
+      margin-bottom: 24px;
+      min-height: 100px;
+    }
+    .stack-card-back {
+      width: 48px;
+      height: 64px;
+      background: var(--accent-color);
+      border: 2px solid var(--secondary-color);
+      border-radius: 10px;
+      box-shadow: 1px 1px 6px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2em;
+      color: #fff;
+      cursor: pointer;
+      transition: transform 0.2s;
+      position: relative;
+      z-index: 1;
+    }
+    .stack-card-back:active {
+      transform: scale(0.97) translateY(5px);
+    }
+    .puzzle-card.drawn {
+      animation: bounce 0.5s cubic-bezier(.53,1.7,.57,.91);
+    }
     .gift-box::before, .gift-box::after {
       content: "";
       position: absolute;
@@ -248,6 +281,51 @@
       max-width: 90%;
       width: 100%;
       margin: 20px auto;
+    }
+    /* Memperlebar dan membungkus area kartu pada pool */
+    #drawn-pool {
+      flex-wrap: wrap;
+      flex-flow: row wrap;
+      max-width: 1000px;
+      margin: 0 auto;
+      justify-content: flex-start !important;
+      overflow-x: auto;
+    }
+    /* Slide 3 quiz button & container styling - samakan dengan slide 2 */
+    .quiz-btn {
+      background: var(--accent-color);
+      color: var(--text-color);
+      border: none;
+      border-radius: 24px;
+      padding: 12px 24px;
+      font-size: 1.2em;
+      box-shadow: inset 4px 4px 8px rgba(0,0,0,0.1),
+                  4px 4px 8px rgba(0,0,0,0.05);
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin: 8px;
+    }
+    .quiz-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: inset 4px 4px 8px rgba(0,0,0,0.1),
+                  6px 6px 12px rgba(0,0,0,0.08);
+      background: var(--secondary-color);
+    }
+    #playQuiz3:hover {
+      transform: translateY(-3px);
+      box-shadow: inset 4px 4px 8px rgba(0,0,0,0.1), 6px 6px 12px rgba(0,0,0,0.08);
+    }
+    #quiz3-first, #quiz3-second {
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    #quiz3-result {
+      margin-top: 18px;
+      font-size: 1.3em;
+      text-align: center;
+      min-height: 1.5em;
     }
   </style>
 </head>
@@ -342,7 +420,7 @@
     <div class="slide" id="slide-3">
       <h2>Slide 3: Teka-teki Suku Kata Lengkap</h2>
       <p><strong>Tebak dua huruf:</strong> Setelah mendengar, pilih huruf pertama, lalu huruf kedua.</p>
-      <button id="playQuiz3">▶️ Mainkan suara</button>
+      <button id="playQuiz3" style="background: var(--accent-color); color: var(--text-color); border: none; border-radius: 24px; padding: 12px 24px; font-size: 1.2em; box-shadow: inset 4px 4px 8px rgba(0,0,0,0.1),4px 4px 8px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">▶️ Mainkan suara</button>
       <div id="quiz3-first" style="margin-top:20px; display:flex; flex-wrap:wrap; gap:10px; justify-content:center;"></div>
       <div id="quiz3-second" style="margin-top:20px; display:none; flex-wrap:wrap; gap:10px; justify-content:center;"></div>
       <div id="quiz3-result" style="margin-top:15px; font-size:1.3em; text-align:center; min-height:1.5em;"></div>
@@ -366,13 +444,26 @@
     </div>
     <div class="slide" id="slide-5">
       <h2>Slide 5: Menyusun Suku Kata</h2>
-      <p>Gunakan puzzle suku kata untuk membentuk kata sederhana.</p>
-      <div id="puzzle-pool" style="display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-top:20px;"></div>
+      <p>Pilih 2 kartu dari tumpukan untuk membentuk kata sederhana.</p>
+      <div class="card-stack" id="card-stack"></div>
+      <div id="drawn-pool" style="display:flex; justify-content:center; gap:14px; min-height:90px;"></div>
       <div style="display:flex; justify-content:center; gap:10px; margin-top:15px;">
         <div id="puzzle-drop-first" class="drop-zone"></div>
         <div id="puzzle-drop-second" class="drop-zone"></div>
       </div>
+      <button id="reset-drops" style="margin-top:10px; display:block;">🔄 Reset Kotak Jawaban</button>
       <div id="puzzle-result" style="margin-top:15px; font-size:1.3em; text-align:center; min-height:1.5em;"></div>
+    </div>
+    <div class="slide" id="slide-6">
+      <h2>Slide 6: Tanya Jawab Cepat</h2>
+      <p><strong>Apa suku kata favoritmu hari ini?</strong></p>
+      <p>Seret 2 kartu suku kata favorit ke dalam kotak di bawah!</p>
+      <div id="fav-pool" style="display:flex; justify-content:center; gap:14px; flex-wrap:wrap; margin-bottom:20px;"></div>
+      <div style="display:flex; justify-content:center; gap:10px; margin-bottom:15px;">
+        <div id="fav-drop-first" class="drop-zone"></div>
+        <div id="fav-drop-second" class="drop-zone"></div>
+      </div>
+      <div id="fav-result" style="margin-top:15px; font-size:1.3em; text-align:center; min-height:1.5em;"></div>
     </div>
   </div> <!-- end slides-container -->
 
@@ -416,11 +507,27 @@
       SA: {emoji: '🍢', text: 'Sate'}
     });
 
-    // Full-word mappings for puzzle game
+    // Full-word mappings for puzzle game: hanya kata KBBI 2 suku kata yang mudah
     const mappingWords = {
       BAJU: { emoji: '👕', text: 'Baju' },
-      BUKU: { emoji: '📚', text: 'Buku' }
-      // add more word entries here if needed
+      BUKU: { emoji: '📚', text: 'Buku' },
+      MATA: { emoji: '👁️', text: 'Mata' },
+      SATE: { emoji: '🍢', text: 'Sate' },
+      BACA: { emoji: '📖', text: 'Baca' },
+      TEBU: { emoji: '🌱', text: 'Tebu' },
+      KATA: { emoji: '🗣️', text: 'Kata' },
+      DADU: { emoji: '🎲', text: 'Dadu' },
+      DATA: { emoji: '💾', text: 'Data' },
+      DUTA: { emoji: '🏅', text: 'Duta' },
+      BATA: { emoji: '🧱', text: 'Bata' },
+      KAKU: { emoji: '🧊', text: 'Kaku' },
+      KUTA: { emoji: '🏖️', text: 'Kuta' },
+      MAKA: { emoji: '🍽️', text: 'Maka' },
+      KACA: { emoji: '🔍', text: 'Kaca' },
+      DUKA: { emoji: '😢', text: 'Duka' },
+      KUDA: { emoji: '🐴', text: 'Kuda' },
+      SAKU: { emoji: '👖', text: 'Saku' },
+      BAKU: { emoji: '💪', text: 'Baku' }
     };
 
     document.getElementById('combine').addEventListener('click', () => {
@@ -448,6 +555,14 @@
     function showSlide(index) {
       slides.forEach((s,i) => s.classList.toggle('active', i === index));
       if (index === 1) generateQuiz();
+      if (index === 2) generateQuiz3();
+      if (index === 3) initGiftGame();
+      if (index === 4) {
+        const stackEl = document.getElementById('card-stack');
+        stackEl.innerHTML = '<div id="main-deck" class="stack-card-back" title="Klik untuk ambil kartu">🃏</div>';
+        initPuzzleGame();
+      }
+      if (index === 5) initFavSlide();
     }
     document.getElementById('next').addEventListener('click', () => {
       currentSlide = Math.min(currentSlide + 1, slides.length - 1);
@@ -559,12 +674,14 @@
         [distractors1[i], distractors1[j]] = [distractors1[j], distractors1[i]];
       }
       const options1 = [answerFirst, ...distractors1.slice(0, 4)].sort(() => 0.5 - Math.random());
-      options1.forEach(letter => {
+      options1.forEach((letter, idx) => {
         const btn = document.createElement('button');
         btn.className = 'quiz-btn';
         btn.style.fontSize = '1.5em';
         btn.style.padding = '8px 12px';
         btn.textContent = letter;
+        btn.style.backgroundColor = quizColors[idx % quizColors.length];
+        btn.style.color = '#333333';
         firstContainer.appendChild(btn);
         btn.onclick = () => {
           if (letter === answerFirst) {
@@ -574,12 +691,14 @@
             firstContainer.style.display = 'none';
             secondContainer.style.display = 'flex';
             // Populate secondContainer with all vowels
-            vowelsList.forEach(vowel => {
+            vowelsList.forEach((vowel, idx) => {
               const btn2 = document.createElement('button');
               btn2.className = 'quiz-btn';
               btn2.style.fontSize = '1.5em';
               btn2.style.padding = '8px 12px';
               btn2.textContent = vowel;
+              btn2.style.backgroundColor = quizColors[idx % quizColors.length];
+              btn2.style.color = '#333333';
               secondContainer.appendChild(btn2);
               btn2.onclick = () => {
                 if (vowel === answerSecond) {
@@ -598,12 +717,6 @@
 
     // Hook slide-3 navigation and play button
     document.getElementById('playQuiz3').addEventListener('click', generateQuiz3);
-    // Trigger on slide show
-    const originalShow = showSlide;
-    showSlide = function(index) {
-      originalShow(index);
-      if (index === 2) generateQuiz3();
-    };
 
     // Slide 4: Gift Box Blend Game
     function initGiftGame() {
@@ -703,71 +816,173 @@
       };
     }
 
-    // Hook slide-4 activation
-    const prevShow = showSlide;
-    showSlide = function(i) {
-      prevShow(i);
-      if (i === 3) initGiftGame();
-    };
+    // (handled in main showSlide)
 
-    // Slide 5: Puzzle Card Blend Game
+    // Fungsi cek KBBI API
+    async function checkKBBI(word) {
+      try {
+        const response = await fetch(`https://kbbi-api-zhirrr.vercel.app/api/kbbi?text=${word.toLowerCase()}`);
+        const data = await response.json();
+        return data.data && data.data.length > 0;
+      } catch (e) {
+        // Kalau error, fallback ke mappingWords lokal
+        return !!mappingWords[word.toUpperCase()];
+      }
+    }
+
+    // Slide 5: Card Stack Puzzle Game (deck satu tumpukan, validasi dua arah, kata KBBI)
     function initPuzzleGame() {
-      const pool = document.getElementById('puzzle-pool');
+      const mainDeck = document.getElementById('main-deck');
+      const pool = document.getElementById('drawn-pool');
       const dropFirst = document.getElementById('puzzle-drop-first');
       const dropSecond = document.getElementById('puzzle-drop-second');
       const result5 = document.getElementById('puzzle-result');
-      // Clear UI
+      // Reset UI
       pool.innerHTML = '';
       dropFirst.textContent = '';
       dropSecond.textContent = '';
       result5.textContent = '';
-      // Available syllable cards
-      const syllables = ['BA','BU','JU','KU'];
-      // Create draggable puzzle cards
-      syllables.forEach(s => {
-        const card = document.createElement('div');
-        card.className = 'puzzle-card';
-        card.textContent = s.toLowerCase();
-        card.draggable = true;
-        card.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', s));
-        pool.appendChild(card);
+      // Ambil seluruh suku kata unik dari mappingWords
+      const allSyl = [];
+      Object.keys(mappingWords).forEach(w => {
+        allSyl.push(w.slice(0,2), w.slice(2));
       });
-      // Configure drop zones
+      const uniqueSyl = Array.from(new Set(allSyl));
+      for (let i = uniqueSyl.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [uniqueSyl[i], uniqueSyl[j]] = [uniqueSyl[j], uniqueSyl[i]];
+      }
+      let deck = uniqueSyl.slice();
+      mainDeck.style.visibility = deck.length ? 'visible' : 'hidden';
+
+      mainDeck.onclick = function() {
+        if (deck.length === 0) return;
+        const syl = deck.shift();
+        const reveal = document.createElement('div');
+        reveal.className = 'puzzle-card drawn';
+        reveal.textContent = syl.toLowerCase();
+        reveal.draggable = true;
+        reveal.setAttribute('data-syl', syl);
+        reveal.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', syl));
+        pool.appendChild(reveal);
+        if (deck.length === 0) mainDeck.style.visibility = 'hidden';
+      };
+
+      setupDrops();
+      document.getElementById('reset-drops').onclick = function() {
+        dropFirst.textContent = '';
+        dropSecond.textContent = '';
+        result5.textContent = '';
+      };
+
+      function setupDrops() {
+        [dropFirst, dropSecond].forEach((zone, idx) => {
+          zone.textContent = '';
+          zone.ondragover = e => e.preventDefault();
+          zone.ondrop = e => {
+            e.preventDefault();
+            const letter = e.dataTransfer.getData('text/plain');
+            if (zone.textContent) return;
+            zone.textContent = letter.toLowerCase();
+            const f = dropFirst.textContent;
+            const s = dropSecond.textContent;
+            if (f && s) {
+              const try1 = (f + s).toUpperCase();
+              const try2 = (s + f).toUpperCase();
+              // Cek mappingWords dulu, baru KBBI API jika tidak ada
+              if (mappingWords[try1]) {
+                result5.textContent = `✅ ${try1} → ${mappingWords[try1].emoji} ${mappingWords[try1].text}`;
+                speechSynthesis.cancel();
+                const w = new SpeechSynthesisUtterance(mappingWords[try1].text.toLowerCase());
+                w.lang = 'id-ID'; w.rate = 0.6; speechSynthesis.speak(w);
+              } else if (mappingWords[try2]) {
+                result5.textContent = `✅ ${try2} → ${mappingWords[try2].emoji} ${mappingWords[try2].text}`;
+                speechSynthesis.cancel();
+                const w = new SpeechSynthesisUtterance(mappingWords[try2].text.toLowerCase());
+                w.lang = 'id-ID'; w.rate = 0.6; speechSynthesis.speak(w);
+              } else {
+                // Cek KBBI dua arah
+                checkKBBI(try1).then(isValid1 => {
+                  if (isValid1) {
+                    result5.textContent = `✅ ${try1} adalah kata valid di KBBI!`;
+                    speechSynthesis.cancel();
+                    const w = new SpeechSynthesisUtterance(try1.toLowerCase());
+                    w.lang = 'id-ID'; w.rate = 0.6; speechSynthesis.speak(w);
+                  } else {
+                    checkKBBI(try2).then(isValid2 => {
+                      if (isValid2) {
+                        result5.textContent = `✅ ${try2} adalah kata valid di KBBI!`;
+                        speechSynthesis.cancel();
+                        const w = new SpeechSynthesisUtterance(try2.toLowerCase());
+                        w.lang = 'id-ID'; w.rate = 0.6; speechSynthesis.speak(w);
+                      } else {
+                        result5.textContent = '❌ Salah, belum ada di KBBI.';
+                      }
+                    });
+                  }
+                });
+              }
+            }
+          };
+        });
+      }
+    }
+
+    // (handled in main showSlide)
+
+    // Slide 6: Tanya Jawab Cepat - Kartu Suku Kata Favorit
+    function initFavSlide() {
+      // Ambil semua suku kata unik dari mappingWords
+      const allSyl = [];
+      Object.keys(mappingWords).forEach(w => {
+        allSyl.push(w.slice(0,2), w.slice(2));
+      });
+      const uniqueSyl = Array.from(new Set(allSyl));
+      // Pool kartu suku kata (dengan animasi & drag)
+      const favPool = document.getElementById('fav-pool');
+      favPool.innerHTML = '';
+      uniqueSyl.forEach(syl => {
+        const card = document.createElement('div');
+        card.className = 'puzzle-card drawn';
+        card.textContent = syl.toLowerCase();
+        card.draggable = true;
+        card.setAttribute('data-syl', syl);
+        card.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', syl));
+        favPool.appendChild(card);
+      });
+
+      // Setup drop zone
+      const dropFirst = document.getElementById('fav-drop-first');
+      const dropSecond = document.getElementById('fav-drop-second');
+      const resultFav = document.getElementById('fav-result');
+      dropFirst.textContent = '';
+      dropSecond.textContent = '';
+      resultFav.textContent = '';
+
       [dropFirst, dropSecond].forEach((zone, idx) => {
         zone.textContent = '';
         zone.ondragover = e => e.preventDefault();
         zone.ondrop = e => {
           e.preventDefault();
-          const s = e.dataTransfer.getData('text/plain');
+          const syl = e.dataTransfer.getData('text/plain');
           if (zone.textContent) return;
-          zone.textContent = s.toLowerCase();
-          // Check when both are dropped
+          zone.textContent = syl.toLowerCase();
+          // Kalau dua sudah terisi, kasih apresiasi dan suara!
           const f = dropFirst.textContent;
-          const sec = dropSecond.textContent;
-          if (f && sec) {
-            const word = (f + sec).toUpperCase();
-            if (mappingWords[word]) {
-              result5.textContent = `✅ ${word} → ${mappingWords[word].emoji} ${mappingWords[word].text}`;
-              // Pronounce full word
-              speechSynthesis.cancel();
-              const wUtter = new SpeechSynthesisUtterance(mappingWords[word].text.toLowerCase());
-              wUtter.lang = 'id-ID';
-              wUtter.rate = 0.6;
-              speechSynthesis.speak(wUtter);
-            } else {
-              result5.textContent = '❌ Salah, coba lagi.';
-            }
+          const s = dropSecond.textContent;
+          if (f && s) {
+            resultFav.innerHTML = `👍 Wah, favoritmu: <b>${f + s}</b>!`;
+            speechSynthesis.cancel();
+            const w = new SpeechSynthesisUtterance((f + s).toLowerCase());
+            w.lang = 'id-ID'; w.rate = 0.6;
+            speechSynthesis.speak(w);
           }
         };
       });
     }
-
-    // Hook slide-5 activation
-    const prevShow2 = showSlide;
-    showSlide = function(i) {
-      prevShow2(i);
-      if (i === 4) initPuzzleGame();
-    };
   </script>
 </body>
 </html>
+
+    
+    
