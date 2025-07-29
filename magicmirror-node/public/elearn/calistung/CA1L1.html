@@ -62,6 +62,9 @@
       font-weight: bold;
       color: #4caf50;
     }
+    canvas {
+      touch-action: none;
+    }
   </style>
 </head>
 <body>
@@ -167,6 +170,7 @@
     }
 
     function start(e) {
+      e.preventDefault();
       drawing = true;
       const pos = getXY(e);
       ctx.beginPath();
@@ -180,11 +184,13 @@
       ctx.stroke();
     }
 
-    function end() {
+    function end(e) {
+      e.preventDefault();
       drawing = false;
     }
 
     function drawTouch(e) {
+      e.preventDefault();
       const pos = getXY(e);
       // check pixel color under finger as workaround for stroke detection
       const pixel = ctx.getImageData(pos.x, pos.y, 1, 1).data;
@@ -220,6 +226,7 @@
 
     canvas.addEventListener('mouseup', end);
     canvas.addEventListener('mouseout', end);
+    canvas.addEventListener('mousedown', start);
     // Combined mousemove handler for tracing and guide reveal
     canvas.addEventListener('mousemove', (e) => {
       const pos = getXY(e);
@@ -245,6 +252,7 @@
       }
     });
 
+    canvas.addEventListener('touchstart', start);
     canvas.addEventListener('touchend', end);
     canvas.addEventListener('touchcancel', end);
     canvas.addEventListener('touchmove', drawTouch);
