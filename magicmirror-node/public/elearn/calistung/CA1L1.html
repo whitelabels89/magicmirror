@@ -186,7 +186,10 @@
 
     function drawTouch(e) {
       const pos = getXY(e);
-      if (ctx.isPointInPath(letterPath, pos.x, pos.y)) {
+      // check pixel color under finger as workaround for stroke detection
+      const pixel = ctx.getImageData(pos.x, pos.y, 1, 1).data;
+      const isOverStroke = pixel[0] === 204 && pixel[1] === 204 && pixel[2] === 204;
+      if (isOverStroke) {
         drawDot(pos.x, pos.y);
       }
     }

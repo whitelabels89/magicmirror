@@ -13,12 +13,24 @@ async function login() {
   try {
     const userCred = await firebase.auth().signInWithEmailAndPassword(email, pass);
     const uid = userCred.user.uid;
+    const idToken = await userCred.user.getIdToken();
 
     // Ambil info role dan data lain dari Firestore
-    const res = await fetch(`https://firebase-upload-backend.onrender.com/api/get-role-by-uid?uid=${uid}`);
+    const res = await fetch(`https://firebase-upload-backend.onrender.com/api/get-role-by-uid?uid=${uid}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': 'Bearer ' + idToken
+      }
+    });
     const data = await res.json();
 
-    if (!data || !data.role) {
+    console.log('Fetched role data:', data);
+
+    if (data.error) {
+      errorEl.innerText = "❌ " + data.error;
+      return;
+    }
+    if (!data.role) {
       errorEl.innerText = "❌ Role tidak ditemukan. Hubungi admin.";
       return;
     }

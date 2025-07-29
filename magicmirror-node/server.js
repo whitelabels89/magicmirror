@@ -596,10 +596,10 @@ app.post('/api/daftar-akun-baru', async (req, res) => {
     const uid = authUser.uid;
 
     const akunData = { cid, uid, nama, email, kelas_id, role: mappedRole };
-    await db.collection('akun').doc(cid).set(akunData);
+    await db.collection('akun').doc(uid).set(akunData);
 
     if (mappedRole === 'murid') {
-      await db.collection('murid').doc(cid).set(akunData);
+      await db.collection('murid').doc(uid).set(akunData);
       await db.collection('kelas').doc(kelas_id).set({ kelas_id }, { merge: true });
       await db.collection('kelas').doc(kelas_id).update({
         murid: admin.firestore.FieldValue.arrayUnion(cid)
