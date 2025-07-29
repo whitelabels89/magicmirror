@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Belajar Huruf AIUEO</title>
+  <style>
+    body {
+      font-family: 'Comic Sans MS', cursive;
+      background: linear-gradient(to bottom, #a0d8ef, #ffffff);
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      color: #ff4081;
+    }
+    .letter-section {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 20px 0;
+    }
+    .letter-card {
+      background: #fff;
+      border: 3px solid #ffb6c1;
+      border-radius: 20px;
+      width: 120px;
+      margin: 10px;
+      padding: 10px;
+      box-shadow: 2px 2px 10px #ccc;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .letter-card:hover {
+      transform: scale(1.05);
+    }
+    .emoji {
+      font-size: 40px;
+      margin-bottom: 5px;
+    }
+    .trace-box {
+      border: 2px dashed #666;
+      margin: 20px auto;
+      width: 80%;
+      height: 200px;
+      touch-action: none;
+      background: #fff;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 18px;
+      background: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
+      color: #4caf50;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎉 Belajar Huruf A I U E O 🎉</h1>
+  <p>Klik tombol suara lalu pilih gambar yang cocok ya!</p>
+
+  <button onclick="playRandom()">🔊 Mainkan Suara</button>
+  <div class="letter-section" id="options">
+    <div class="letter-card" onclick="checkAnswer('A')">
+      <div class="emoji">🍎</div>
+      <div>A</div>
+    </div>
+    <div class="letter-card" onclick="checkAnswer('I')">
+      <div class="emoji">🐟</div>
+      <div>I</div>
+    </div>
+    <div class="letter-card" onclick="checkAnswer('U')">
+      <div class="emoji">🐍</div>
+      <div>U</div>
+    </div>
+    <div class="letter-card" onclick="checkAnswer('E')">
+      <div class="emoji">🍦</div>
+      <div>E</div>
+    </div>
+    <div class="letter-card" onclick="checkAnswer('O')">
+      <div class="emoji">🦧</div>
+      <div>O</div>
+    </div>
+  </div>
+
+  <div class="result" id="result"></div>
+
+  <h2>✍️ Latihan Tracing Huruf</h2>
+  <h3>Pilih huruf yang ingin kamu tracing:</h3>
+  <select id="selectLetter" onchange="changeGuideLetter(this.value)">
+    <option value="A">A</option>
+    <option value="I">I</option>
+    <option value="U">U</option>
+    <option value="E">E</option>
+    <option value="O">O</option>
+  </select>
+  <div class="trace-container" style="position: relative; width: 85%; height: 350px; margin: 20px auto; border: 2px dashed #666;">
+    <canvas id="traceCanvas" style="position: absolute; top: 0; left: 0; z-index: 1; width: 100%; height: 100%;"></canvas>
+  </div>
+
+  <script>
+    const sounds = {
+      A: new Audio('/audio/a.mp3'),
+      I: new Audio('/audio/i.mp3'),
+      U: new Audio('/audio/u.mp3'),
+      E: new Audio('/audio/e.mp3'),
+      O: new Audio('/audio/o.mp3')
+    };
+
+    let currentAnswer = '';
+
+    function playRandom() {
+      const keys = Object.keys(sounds);
+      currentAnswer = keys[Math.floor(Math.random() * keys.length)];
+      sounds[currentAnswer].play();
+      document.getElementById("result").textContent = "";
+    }
+
+    function checkAnswer(choice) {
+      if (choice === currentAnswer) {
+        document.getElementById("result").textContent = "✅ Benar! Hebat!";
+      } else {
+        document.getElementById("result").textContent = "❌ Coba lagi!";
+        sounds[currentAnswer].play();
+      }
+    }
+
+    // Tracing Logic
+    const canvas = document.getElementById('traceCanvas');
+    // Ensure internal canvas size matches CSS display size for accurate hover detection
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+
+    let letterPath = new Path2D();
+
+    let currentGuideLetter = 'A';
+
+    function getXY(e) {
+      const rect = canvas.getBoundingClientRect();
+      let clientX = e.clientX;
+      let clientY = e.clientY;
+      if (e.touches && e.touches.length > 0) {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+      }
+      return {
+        x: clientX - rect.left,
+        y: clientY - rect.top
+      };
+    }
+    function drawDot(x, y) {
+      ctx.beginPath();
+      ctx.fillStyle = "#000";
+      ctx.arc(x, y, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function start(e) {
+      drawing = true;
+      const pos = getXY(e);
+      ctx.beginPath();
+      ctx.moveTo(pos.x, pos.y);
+    }
+
+    function draw(e) {
+      if (!drawing) return;
+      const pos = getXY(e);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+    }
+
+    function end() {
+      drawing = false;
+    }
+
+    function drawTouch(e) {
+      const pos = getXY(e);
+      if (ctx.isPointInPath(letterPath, pos.x, pos.y)) {
+        drawDot(pos.x, pos.y);
+      }
+    }
+
+    function drawGuideLetter(letter, highlight = false) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.font = "340px Comic Sans MS";
+      ctx.setLineDash([10, 10]);
+      ctx.strokeStyle = "#ccc";
+      ctx.lineWidth = 1;
+      ctx.strokeText(letter, canvas.width / 2 - 120, canvas.height / 2 + 130);
+      ctx.setLineDash([]);
+      if (highlight) {
+        ctx.lineWidth = 6;
+        ctx.strokeStyle = "#ff4081";
+        ctx.strokeText(letter, canvas.width / 2 - 120, canvas.height / 2 + 130);
+        ctx.lineWidth = 1;
+      }
+
+      // Define detection path as rectangle around letter
+      letterPath = new Path2D();
+      letterPath.rect(canvas.width / 2 - 170, canvas.height / 2 - 200, 340, 340);
+    }
+    function changeGuideLetter(letter) {
+      currentGuideLetter = letter;
+      drawGuideLetter(letter, false);
+    }
+
+    canvas.addEventListener('mouseup', end);
+    canvas.addEventListener('mouseout', end);
+    // Combined mousemove handler for tracing and guide reveal
+    canvas.addEventListener('mousemove', (e) => {
+      const pos = getXY(e);
+      if (drawing) {
+        // Freehand dot tracing
+        if (ctx.isPointInPath(letterPath, pos.x, pos.y)) {
+          drawDot(pos.x, pos.y);
+        }
+      } else {
+        // Reveal continuous guide only under cursor
+        if (ctx.isPointInPath(letterPath, pos.x, pos.y)) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, revealRadius, 0, Math.PI * 2);
+          ctx.clip();
+          ctx.font = "340px Comic Sans MS";
+          ctx.setLineDash([]);  // solid line
+          ctx.strokeStyle = revealColors[currentGuideLetter] || "#ccc";
+          ctx.lineWidth = 1;
+          ctx.strokeText(currentGuideLetter, canvas.width / 2 - 120, canvas.height / 2 + 130);
+          ctx.restore();
+        }
+      }
+    });
+
+    canvas.addEventListener('touchend', end);
+    canvas.addEventListener('touchcancel', end);
+    canvas.addEventListener('touchmove', drawTouch);
+
+    drawGuideLetter('A'); // default huruf pertama
+    const revealRadius = 10;
+    const revealColors = {
+      A: 'red',
+      I: 'yellow',
+      U: 'green',
+      E: 'purple',
+      O: 'brown'
+    };
+  </script>
+</body>
+</html>
