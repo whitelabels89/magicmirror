@@ -147,7 +147,15 @@
 
     let letterPath = new Path2D();
 
-    let currentGuideLetter = 'A';
+let currentGuideLetter = 'A';
+const revealRadius = 10;
+const revealColors = {
+  A: 'red',
+  I: 'yellow',
+  U: 'green',
+  E: 'purple',
+  O: 'brown'
+};
 
     function getXY(e) {
       const rect = canvas.getBoundingClientRect();
@@ -189,18 +197,6 @@
       drawing = false;
     }
 
-    function drawTouch(e) {
-      e.preventDefault();
-      if (!drawing) return;
-      const pos = getXY(e);
-      if (ctx.isPointInPath(letterPath, pos.x, pos.y)) {
-        ctx.lineTo(pos.x, pos.y);
-        ctx.strokeStyle = revealColors[currentGuideLetter] || 'red';
-        ctx.setLineDash([]); // solid line
-        ctx.lineWidth = 3;
-        ctx.stroke();
-      }
-    }
 
     function drawGuideLetter(letter, highlight = false) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -257,17 +253,26 @@
     canvas.addEventListener('touchstart', start);
     canvas.addEventListener('touchend', end);
     canvas.addEventListener('touchcancel', end);
-    canvas.addEventListener('touchmove', drawTouch);
+
+    // Touch-based reveal of continuous guide
+    canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      const pos = getXY(e);
+      if (ctx.isPointInPath(letterPath, pos.x, pos.y)) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, revealRadius, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.font = "340px Comic Sans MS";
+        ctx.setLineDash([]);  // solid line
+        ctx.strokeStyle = revealColors[currentGuideLetter] || "#ccc";
+        ctx.lineWidth = 1;
+        ctx.strokeText(currentGuideLetter, canvas.width / 2 - 120, canvas.height / 2 + 130);
+        ctx.restore();
+      }
+    });
 
     drawGuideLetter('A'); // default huruf pertama
-    const revealRadius = 10;
-    const revealColors = {
-      A: 'red',
-      I: 'yellow',
-      U: 'green',
-      E: 'purple',
-      O: 'brown'
-    };
   </script>
 </body>
 </html>
