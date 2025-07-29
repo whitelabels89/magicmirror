@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>CLG L2: Huruf Konsonan + Penggabungan Suku Kata</title>
+  <style>
+    :root {
+      --primary-color: #FF6F61;    /* Cheerful coral */
+      --secondary-color: #6BCB77;  /* Fresh mint green */
+      --accent-color: #FFD93D;     /* Sunny yellow */
+      --text-color: #333333;       /* Dark for readability */
+      --card-bg: #FFFFFF;          /* Clean white */
+    }
+    body {
+      font-family: "Comic Sans MS", cursive, sans-serif;
+      background: #F7EFE5;
+      padding: 20px;
+      margin: 0;
+      color: var(--text-color);
+    }
+    h1, h2 {
+      text-align: center;
+      text-shadow: 2px 2px #fff;
+    }
+    .flashcards {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+    .flashcard {
+      background: var(--card-bg);
+      border: none;
+      border-radius: 24px;
+      box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1), 8px 8px 16px rgba(0,0,0,0.05);
+      padding: 15px;
+      text-align: center;
+      width: 120px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .flashcard:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+    }
+    .flashcard div {
+      font-size: 3em;
+      margin-bottom: 8px;
+      color: var(--secondary-color);
+    }
+    .flashcard button {
+      background: var(--secondary-color);
+      border: none;
+      border-radius: 20px;
+      box-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+      color: #fff;
+      cursor: pointer;
+      padding: 8px 12px;
+      font-size: 1.2em;
+      transition: background 0.2s;
+    }
+    .flashcard button:hover {
+      background: #e6c200;
+    }
+    .blend-area {
+      background: var(--card-bg);
+      border: none;
+      border-radius: 24px;
+      padding: 20px;
+      max-width: 500px;
+      margin: 0 auto;
+      box-shadow: inset 4px 4px 8px rgba(0,0,0,0.05);
+    }
+    select, button#combine {
+      font-family: inherit;
+      font-size: 1.2em;
+      padding: 8px 12px;
+      margin: 5px;
+      border: none;
+      border-radius: 20px;
+      box-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+      background: #fff;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+    }
+    select:hover, button#combine:hover {
+      background: var(--accent-color);
+      transform: scale(1.05);
+    }
+    #combine {
+      background: var(--secondary-color);
+      color: #fff;
+      border-color: var(--secondary-color);
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 1.5em;
+      min-height: 2em;
+      text-align: center;
+    }
+    /* Slide styling */
+    .slide {
+      background: rgba(255,255,255,0.8);
+      border: 3px solid var(--accent-color);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px auto;
+      max-width: 600px;
+      text-align: center;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .slide h2 {
+      margin-bottom: 10px;
+      color: var(--secondary-color);
+    }
+    .slide p {
+      font-size: 1.2em;
+      margin: 8px 0;
+    }
+    .slide { display: none; }
+    .slide.active { display: block; }
+    .nav-buttons { text-align: center; margin: 20px 0; }
+    .nav-buttons button {
+      font-size: 1em;
+      padding: 8px 12px;
+      margin: 0 5px;
+      border: none;
+      border-radius: 6px;
+      background: var(--secondary-color);
+      color: #fff;
+      cursor: pointer;
+    }
+    .nav-buttons button:hover {
+      background: #e6c200;
+    }
+    /* Clay-style button for slide 2 play */
+    #playBA {
+      background: var(--accent-color);
+      color: var(--text-color);
+      border: none;
+      border-radius: 24px;
+      padding: 12px 24px;
+      font-size: 1.2em;
+      box-shadow: inset 4px 4px 8px rgba(0,0,0,0.1),
+                  4px 4px 8px rgba(0,0,0,0.05);
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    #playBA:hover {
+      transform: translateY(-3px);
+      box-shadow: inset 4px 4px 8px rgba(0,0,0,0.1),
+                  6px 6px 12px rgba(0,0,0,0.08);
+    }
+    /* Drag & Blend Game styles */
+    .drag-letter {
+      width: 50px; height: 50px;
+      background: var(--accent-color);
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5em;
+      cursor: grab;
+      margin: 5px;
+    }
+    .drag-letter:active {
+      opacity: 0.6;
+    }
+    .drop-zone {
+      width: 60px; height: 60px;
+      border: 2px dashed var(--accent-color);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5em;
+      margin: 5px;
+      background: var(--card-bg);
+    }
+    /* Gift Box Blend Game styles */
+    .gift-box {
+      width: 80px;
+      height: 80px;
+      background: var(--primary-color);
+      border-radius: 12px;
+      position: relative;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2em;
+      color: transparent;
+      box-shadow: 2px 2px 6px rgba(0,0,0,0.1);
+    }
+    /* Puzzle Card styles for Slide 5 */
+    .puzzle-card {
+      width: 60px;
+      height: 80px;
+      background: var(--card-bg);
+      border: 2px solid var(--secondary-color);
+      border-radius: 12px;
+      box-shadow: 2px 2px 6px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5em;
+      text-transform: uppercase;
+      cursor: grab;
+      margin: 5px;
+    }
+    .puzzle-card:active {
+      opacity: 0.6;
+    }
+    .gift-box::before, .gift-box::after {
+      content: "";
+      position: absolute;
+      background: var(--secondary-color);
+    }
+    /* Horizontal ribbon */
+    .gift-box::before {
+      width: 100%;
+      height: 8px;
+      top: 10%;
+      left: 0;
+      transform: none;
+    }
+    /* Vertical ribbon */
+    .gift-box::after {
+      width: 8px;
+      height: 100%;
+      top: 0;
+      left: 10%;
+      transform: none;
+    }
+    .gift-box.opened {
+      background: var(--card-bg);
+      color: var(--text-color);
+      animation: bounce 0.5s ease;
+    }
+    @keyframes bounce {
+      0%   { transform: translateY(-20px); }
+      50%  { transform: translateY(0); }
+      100% { transform: translateY(-10px); }
+    }
+    /* Make slide-1 container wider */
+    #slide-1 {
+      max-width: 90%;
+      width: 100%;
+      margin: 20px auto;
+    }
+  </style>
+</head>
+<body>
+  <div id="slides-container">
+    <div class="slide active" id="slide-1">
+  <h1>Lesson 2: Huruf Konsonan + Penggabungan Suku Kata</h1>
+  <div class="flashcards">
+    <div class="flashcard"><div>A</div><button onclick="speakLetter('A')">🔊</button></div>
+    <div class="flashcard"><div>B</div><button onclick="speakLetter('B')">🔊</button></div>
+    <div class="flashcard"><div>C</div><button onclick="speakLetter('C')">🔊</button></div>
+    <div class="flashcard"><div>D</div><button onclick="speakLetter('D')">🔊</button></div>
+    <div class="flashcard"><div>E</div><button onclick="speakLetter('E')">🔊</button></div>
+    <div class="flashcard"><div>F</div><button onclick="speakLetter('F')">🔊</button></div>
+    <div class="flashcard"><div>G</div><button onclick="speakLetter('G')">🔊</button></div>
+    <div class="flashcard"><div>H</div><button onclick="speakLetter('H')">🔊</button></div>
+    <div class="flashcard"><div>I</div><button onclick="speakLetter('I')">🔊</button></div>
+    <div class="flashcard"><div>J</div><button onclick="speakLetter('J')">🔊</button></div>
+    <div class="flashcard"><div>K</div><button onclick="speakLetter('K')">🔊</button></div>
+    <div class="flashcard"><div>L</div><button onclick="speakLetter('L')">🔊</button></div>
+    <div class="flashcard"><div>M</div><button onclick="speakLetter('M')">🔊</button></div>
+    <div class="flashcard"><div>N</div><button onclick="speakLetter('N')">🔊</button></div>
+    <div class="flashcard"><div>O</div><button onclick="speakLetter('O')">🔊</button></div>
+    <div class="flashcard"><div>P</div><button onclick="speakLetter('P')">🔊</button></div>
+    <div class="flashcard"><div>Q</div><button onclick="speakLetter('Q')">🔊</button></div>
+    <div class="flashcard"><div>R</div><button onclick="speakLetter('R')">🔊</button></div>
+    <div class="flashcard"><div>S</div><button onclick="speakLetter('S')">🔊</button></div>
+    <div class="flashcard"><div>T</div><button onclick="speakLetter('T')">🔊</button></div>
+    <div class="flashcard"><div>U</div><button onclick="speakLetter('U')">🔊</button></div>
+    <div class="flashcard"><div>V</div><button onclick="speakLetter('V')">🔊</button></div>
+    <div class="flashcard"><div>W</div><button onclick="speakLetter('W')">🔊</button></div>
+    <div class="flashcard"><div>X</div><button onclick="speakLetter('X')">🔊</button></div>
+    <div class="flashcard"><div>Y</div><button onclick="speakLetter('Y')">🔊</button></div>
+    <div class="flashcard"><div>Z</div><button onclick="speakLetter('Z')">🔊</button></div>
+  </div>
+
+  <div class="blend-area">
+    <h2>Gabungkan Konsonan + Vokal</h2>
+    <select id="consonant">
+      <option value="A">A</option>
+      <option value="B">B</option>
+      <option value="C">C</option>
+      <option value="D">D</option>
+      <option value="E">E</option>
+      <option value="F">F</option>
+      <option value="G">G</option>
+      <option value="H">H</option>
+      <option value="I">I</option>
+      <option value="J">J</option>
+      <option value="K">K</option>
+      <option value="L">L</option>
+      <option value="M">M</option>
+      <option value="N">N</option>
+      <option value="O">O</option>
+      <option value="P">P</option>
+      <option value="Q">Q</option>
+      <option value="R">R</option>
+      <option value="S">S</option>
+      <option value="T">T</option>
+      <option value="U">U</option>
+      <option value="V">V</option>
+      <option value="W">W</option>
+      <option value="X">X</option>
+      <option value="Y">Y</option>
+      <option value="Z">Z</option>
+    </select>
+    <select id="vowel">
+      <option value="A">A</option>
+      <option value="I">I</option>
+      <option value="U">U</option>
+      <option value="E">E</option>
+      <option value="O">O</option>
+    </select>
+    <button id="combine">Gabungkan</button>
+    <div id="result"></div>
+  </div>
+    </div>
+    <div class="slide" id="slide-2">
+      <h2>Slide 2: Aktivasi Fokus dan Semangat Belajar</h2>
+      <p>Yuk aktifkan fokus dan semangat belajar!</p>
+      <p><strong>Teka-teki suara:</strong> “Huruf apa ya kalau bunyinya…?”</p>
+      <button id="playBA">▶️ Mainkan suara</button>
+      <div id="quiz-letters" style="margin-top:20px; display:flex; flex-wrap:wrap; gap:10px; justify-content:center;">
+        <button class="quiz-btn" style="font-size:1.5em; padding:8px 12px;">B</button>
+        <button class="quiz-btn" style="font-size:1.5em; padding:8px 12px;">C</button>
+        <button class="quiz-btn" style="font-size:1.5em; padding:8px 12px;">D</button>
+        <button class="quiz-btn" style="font-size:1.5em; padding:8px 12px;">M</button>
+        <button class="quiz-btn" style="font-size:1.5em; padding:8px 12px;">S</button>
+      </div>
+      <div id="quiz-result" style="margin-top:15px; font-size:1.3em; text-align:center; min-height:1.5em;"></div>
+    </div>
+    <div class="slide" id="slide-3">
+      <h2>Slide 3: Teka-teki Suku Kata Lengkap</h2>
+      <p><strong>Tebak dua huruf:</strong> Setelah mendengar, pilih huruf pertama, lalu huruf kedua.</p>
+      <button id="playQuiz3">▶️ Mainkan suara</button>
+      <div id="quiz3-first" style="margin-top:20px; display:flex; flex-wrap:wrap; gap:10px; justify-content:center;"></div>
+      <div id="quiz3-second" style="margin-top:20px; display:none; flex-wrap:wrap; gap:10px; justify-content:center;"></div>
+      <div id="quiz3-result" style="margin-top:15px; font-size:1.3em; text-align:center; min-height:1.5em;"></div>
+    </div>
+    <div class="slide" id="slide-4">
+      <h2>Slide 4: Gift Box Blend Game</h2>
+      <p>Melatih anak membaca suku kata dengan gift box!</p>
+      <div id="gift-container" style="display:flex; justify-content:center; gap:20px; margin-top:20px;">
+        <div id="gift1" class="gift-box"></div>
+        <div id="gift2" class="gift-box"></div>
+      </div>
+      <!-- <div id="reveal-letters" style="display:flex; justify-content:center; gap:20px; margin-top:20px;"></div> -->
+      <button id="playSpell" style="display:none; font-size:1.2em; padding:8px 16px;">🔊 Mainkan eja</button>
+      <div id="drop-game" style="display:none; flex-direction:column; align-items:center; gap:20px; margin-top:20px;">
+        <div id="drop-zones" style="display:flex; gap:10px;">
+          <div id="drop-first" class="drop-zone"></div>
+          <div id="drop-second" class="drop-zone"></div>
+        </div>
+      </div>
+      <div id="drop-result" style="margin-top:15px; font-size:1.3em; text-align:center; min-height:1.5em;"></div>
+    </div>
+    <div class="slide" id="slide-5">
+      <h2>Slide 5: Menyusun Suku Kata</h2>
+      <p>Gunakan puzzle suku kata untuk membentuk kata sederhana.</p>
+      <div id="puzzle-pool" style="display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-top:20px;"></div>
+      <div style="display:flex; justify-content:center; gap:10px; margin-top:15px;">
+        <div id="puzzle-drop-first" class="drop-zone"></div>
+        <div id="puzzle-drop-second" class="drop-zone"></div>
+      </div>
+      <div id="puzzle-result" style="margin-top:15px; font-size:1.3em; text-align:center; min-height:1.5em;"></div>
+    </div>
+  </div> <!-- end slides-container -->
+
+  <div class="nav-buttons">
+    <button id="prev">◀ Sebelumnya</button>
+    <button id="next">Berikutnya ▶</button>
+  </div>
+
+  <script>
+    // Speech Synthesis for single letters or syllables
+    function speakLetter(letter) {
+      speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(letter.toLowerCase());
+      utter.lang = 'id-ID';
+      utter.rate = 0.5;
+      speechSynthesis.speak(utter);
+    }
+
+    // Dynamically generate mapping for all consonant+vowel combinations
+    const vowels = ['A','I','U','E','O'];
+    const consonants = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+    const mapping = {};
+    consonants.forEach(c => {
+      vowels.forEach(v => {
+        const syl = c + v;
+        mapping[syl] = {
+          emoji: '🔠',       // placeholder emoji
+          text: syl.toLowerCase() // placeholder word
+        };
+      });
+    });
+    // Override specific examples
+    Object.assign(mapping, {
+      BA: {emoji: '🎈', text: 'Balon'},
+      BI: {emoji: '👄', text: 'Bibir'},
+      BU: {emoji: '📖', text: 'Buku'},
+      CA: {emoji: '🌶️', text: 'Cabe'},
+      CI: {emoji: '🍜', text: 'Cili'},
+      DA: {emoji: '🎲', text: 'Dadu'},
+      MA: {emoji: '👁️', text: 'Mata'},
+      SA: {emoji: '🍢', text: 'Sate'}
+    });
+
+    // Full-word mappings for puzzle game
+    const mappingWords = {
+      BAJU: { emoji: '👕', text: 'Baju' },
+      BUKU: { emoji: '📚', text: 'Buku' }
+      // add more word entries here if needed
+    };
+
+    document.getElementById('combine').addEventListener('click', () => {
+      const c = document.getElementById('consonant').value;
+      const v = document.getElementById('vowel').value;
+      const syl = c + v;
+      const res = mapping[syl];
+      const resultEl = document.getElementById('result');
+      if (res) {
+        resultEl.textContent = `${syl} → ${res.emoji} ${res.text}`;
+        // Speak consonant, vowel, then combined syllable
+        speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(`${c}, ${v}, ${syl}`.toLowerCase());
+        utter.lang = 'id-ID';
+        utter.rate = 0.6;
+        speechSynthesis.speak(utter);
+      } else {
+        resultEl.textContent = '❌ Kombinasi belum dipelajari, coba lagi!';
+      }
+    });
+
+    // Slide navigation
+    const slides = document.querySelectorAll('.slide');
+    let currentSlide = 0;
+    function showSlide(index) {
+      slides.forEach((s,i) => s.classList.toggle('active', i === index));
+      if (index === 1) generateQuiz();
+    }
+    document.getElementById('next').addEventListener('click', () => {
+      currentSlide = Math.min(currentSlide + 1, slides.length - 1);
+      showSlide(currentSlide);
+    });
+    document.getElementById('prev').addEventListener('click', () => {
+      currentSlide = Math.max(currentSlide - 1, 0);
+      showSlide(currentSlide);
+    });
+
+    // Use restricted easy syllables for quiz variants (ages 3-7)
+    // Playful pastel palette for quiz buttons
+    const quizColors = ['#FFADAD','#FFD6A5','#FDFFB6','#CAFFBF','#9BF6FF','#A0C4FF','#BDB2FF','#FFC6FF'];
+    // Easy quiz syllables for ages 3-7
+    const quizSyllables = ['BA','BI','BU','CA','CI','DA','MA','SA'];
+    let currentQuizSyl = '';
+    let currentQuizAnswerLetter = '';
+
+    // Generate a quiz round: pick variant, play letter, and render options
+    function generateQuiz() {
+      const idx = Math.floor(Math.random() * quizSyllables.length);
+      currentQuizSyl = quizSyllables[idx];
+      currentQuizAnswerLetter = currentQuizSyl.charAt(0);
+      // Play only the first letter
+      speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(currentQuizAnswerLetter.toLowerCase());
+      utter.lang = 'id-ID';
+      utter.rate = 0.6;
+      speechSynthesis.speak(utter);
+      // Clear previous result
+      document.getElementById('quiz-result').textContent = '';
+      // Generate 5 options including the correct letter
+      const allLetters = quizSyllables.map(s => s.charAt(0));
+      const uniqueLetters = Array.from(new Set(allLetters));
+      const others = uniqueLetters.filter(l => l !== currentQuizAnswerLetter);
+      for (let i = others.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [others[i], others[j]] = [others[j], others[i]];
+      }
+      const options = [currentQuizAnswerLetter, ...others.slice(0, 4)];
+      for (let i = options.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [options[i], options[j]] = [options[j], options[i]];
+      }
+      const quizContainer = document.getElementById('quiz-letters');
+      quizContainer.innerHTML = '';
+      options.forEach((letter, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'quiz-btn';
+        // Assign a pastel background color
+        btn.style.backgroundColor = quizColors[idx % quizColors.length];
+        btn.style.color = '#333333';
+        btn.style.border = 'none';
+        btn.style.fontSize = '1.5em';
+        btn.style.padding = '8px 12px';
+        btn.textContent = letter;
+        quizContainer.appendChild(btn);
+      });
+      quizContainer.querySelectorAll('.quiz-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const letter = e.target.textContent;
+          const resultEl = document.getElementById('quiz-result');
+          if (letter === currentQuizAnswerLetter) {
+            resultEl.textContent = `✅ Tepat! Bunyi “${currentQuizAnswerLetter.toLowerCase()}” diawali huruf ${currentQuizAnswerLetter}.`;
+          } else {
+            resultEl.textContent = '❌ Salah, coba lagi!';
+          }
+        });
+      });
+    }
+
+    // Slide 2 interactive quiz
+    document.getElementById('playBA').addEventListener('click', generateQuiz);
+
+    // Slide 3 interactive two-step quiz
+    const vowelsList = ['A','I','U','E','O'];
+    let currentQuiz3Syl = '';
+    let answerFirst = '';
+    let answerSecond = '';
+
+    // Slide 3 interactive two-step quiz
+    function generateQuiz3() {
+      // Pick a random easy syllable
+      const idx = Math.floor(Math.random() * quizSyllables.length);
+      currentQuiz3Syl = quizSyllables[idx];
+      answerFirst = currentQuiz3Syl.charAt(0);
+      answerSecond = currentQuiz3Syl.charAt(1);
+      // Play full syllable sound
+      speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(currentQuiz3Syl.toLowerCase());
+      utter.lang = 'id-ID';
+      utter.rate = 0.6;
+      speechSynthesis.speak(utter);
+      // Prepare UI
+      const firstContainer = document.getElementById('quiz3-first');
+      const secondContainer = document.getElementById('quiz3-second');
+      const resultEl3 = document.getElementById('quiz3-result');
+      // Clear both containers and hide second
+      firstContainer.innerHTML = '';
+      secondContainer.innerHTML = '';
+      secondContainer.style.display = 'none';
+      resultEl3.textContent = '';
+      // Step 1: show options for first letter
+      firstContainer.style.display = 'flex';
+      const uniqueFirst = Array.from(new Set(quizSyllables.map(s => s.charAt(0))));
+      const distractors1 = uniqueFirst.filter(l => l !== answerFirst);
+      for (let i = distractors1.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [distractors1[i], distractors1[j]] = [distractors1[j], distractors1[i]];
+      }
+      const options1 = [answerFirst, ...distractors1.slice(0, 4)].sort(() => 0.5 - Math.random());
+      options1.forEach(letter => {
+        const btn = document.createElement('button');
+        btn.className = 'quiz-btn';
+        btn.style.fontSize = '1.5em';
+        btn.style.padding = '8px 12px';
+        btn.textContent = letter;
+        firstContainer.appendChild(btn);
+        btn.onclick = () => {
+          if (letter === answerFirst) {
+            // Correct first letter
+            resultEl3.textContent = `✅ Benar huruf pertama adalah ${answerFirst}. Sekarang huruf kedua?`;
+            // Hide first, show second
+            firstContainer.style.display = 'none';
+            secondContainer.style.display = 'flex';
+            // Populate secondContainer with all vowels
+            vowelsList.forEach(vowel => {
+              const btn2 = document.createElement('button');
+              btn2.className = 'quiz-btn';
+              btn2.style.fontSize = '1.5em';
+              btn2.style.padding = '8px 12px';
+              btn2.textContent = vowel;
+              secondContainer.appendChild(btn2);
+              btn2.onclick = () => {
+                if (vowel === answerSecond) {
+                  resultEl3.textContent = `✅ Benar! Suku kata ${currentQuiz3Syl.toLowerCase()} adalah gabungan dari huruf ${answerFirst} dan ${answerSecond}.`;
+                } else {
+                  resultEl3.textContent = '❌ Salah, coba lagi huruf kedua!';
+                }
+              };
+            });
+          } else {
+            resultEl3.textContent = '❌ Salah, coba lagi huruf pertama!';
+          }
+        };
+      });
+    }
+
+    // Hook slide-3 navigation and play button
+    document.getElementById('playQuiz3').addEventListener('click', generateQuiz3);
+    // Trigger on slide show
+    const originalShow = showSlide;
+    showSlide = function(index) {
+      originalShow(index);
+      if (index === 2) generateQuiz3();
+    };
+
+    // Slide 4: Gift Box Blend Game
+    function initGiftGame() {
+      const gift1 = document.getElementById('gift1');
+      const gift2 = document.getElementById('gift2');
+      // const reveal = document.getElementById('reveal-letters');
+      const playBtn = document.getElementById('playSpell');
+      const dropGame = document.getElementById('drop-game');
+      // const pool = document.getElementById('letters-pool');
+      const dropFirst = document.getElementById('drop-first');
+      const dropSecond = document.getElementById('drop-second');
+      const result4 = document.getElementById('drop-result');
+
+      // Pick a random easy syllable
+      const syl = quizSyllables[Math.floor(Math.random() * quizSyllables.length)];
+      const letter1 = syl.charAt(0);
+      const letter2 = syl.charAt(1);
+
+      // Reset UI
+      [gift1, gift2].forEach(g => {
+        g.className = 'gift-box';
+        g.textContent = '';
+        g.draggable = false;
+      });
+      // if (reveal) reveal.innerHTML = '';
+      playBtn.style.display = 'none';
+      dropGame.style.display = 'none';
+      result4.textContent = '';
+
+      let opened = 0;
+
+      function openGift(gift, letter) {
+        if (gift.classList.contains('opened')) return;
+        gift.textContent = letter;
+        gift.classList.add('opened');
+        opened++;
+        // animate is handled by CSS
+        if (opened === 2) {
+          // Make gift boxes draggable now that letters are revealed
+          playBtn.style.display = 'inline-block';
+          gift1.draggable = true;
+          gift2.draggable = true;
+          gift1.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', letter1));
+          gift2.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', letter2));
+        }
+      }
+
+      gift1.onclick = () => openGift(gift1, letter1);
+      gift2.onclick = () => openGift(gift2, letter2);
+
+      playBtn.onclick = () => {
+        // spell letters
+        speechSynthesis.cancel();
+        const utter1 = new SpeechSynthesisUtterance(letter1.toLowerCase());
+        utter1.lang = 'id-ID';
+        utter1.rate = 0.6;
+        const utter2 = new SpeechSynthesisUtterance(letter2.toLowerCase());
+        utter2.lang = 'id-ID';
+        utter2.rate = 0.6;
+        // Chain utterances: after first, speak second; after second, reveal drop zones
+        utter1.onend = () => {
+          speechSynthesis.speak(utter2);
+        };
+        utter2.onend = () => {
+          dropGame.style.display = 'flex';
+          // configure drop zones for gift boxes
+          [dropFirst, dropSecond].forEach((zone, i) => {
+            zone.textContent = '';
+            zone.ondragover = e => e.preventDefault();
+            zone.ondrop = e => {
+              e.preventDefault();
+              const l = e.dataTransfer.getData('text/plain');
+              if (zone.textContent) return;
+              zone.textContent = l;
+              if (l === letter1) gift1.draggable = false;
+              if (l === letter2) gift2.draggable = false;
+              const f = dropFirst.textContent;
+              const s = dropSecond.textContent;
+              if (f && s) {
+                if (f + s === syl) {
+                  result4.textContent = `✅ Benar! ${syl} → ${mapping[syl].emoji} ${mapping[syl].text}`;
+                  // Speak the example word
+                  speechSynthesis.cancel();
+                  const wordUtter = new SpeechSynthesisUtterance(mapping[syl].text.toLowerCase());
+                  wordUtter.lang = 'id-ID';
+                  wordUtter.rate = 0.6;
+                  speechSynthesis.speak(wordUtter);
+                } else {
+                  result4.textContent = '❌ Salah, coba lagi.';
+                }
+              }
+            };
+          });
+        };
+        // Start spelling sequence
+        speechSynthesis.speak(utter1);
+      };
+    }
+
+    // Hook slide-4 activation
+    const prevShow = showSlide;
+    showSlide = function(i) {
+      prevShow(i);
+      if (i === 3) initGiftGame();
+    };
+
+    // Slide 5: Puzzle Card Blend Game
+    function initPuzzleGame() {
+      const pool = document.getElementById('puzzle-pool');
+      const dropFirst = document.getElementById('puzzle-drop-first');
+      const dropSecond = document.getElementById('puzzle-drop-second');
+      const result5 = document.getElementById('puzzle-result');
+      // Clear UI
+      pool.innerHTML = '';
+      dropFirst.textContent = '';
+      dropSecond.textContent = '';
+      result5.textContent = '';
+      // Available syllable cards
+      const syllables = ['BA','BU','JU','KU'];
+      // Create draggable puzzle cards
+      syllables.forEach(s => {
+        const card = document.createElement('div');
+        card.className = 'puzzle-card';
+        card.textContent = s.toLowerCase();
+        card.draggable = true;
+        card.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', s));
+        pool.appendChild(card);
+      });
+      // Configure drop zones
+      [dropFirst, dropSecond].forEach((zone, idx) => {
+        zone.textContent = '';
+        zone.ondragover = e => e.preventDefault();
+        zone.ondrop = e => {
+          e.preventDefault();
+          const s = e.dataTransfer.getData('text/plain');
+          if (zone.textContent) return;
+          zone.textContent = s.toLowerCase();
+          // Check when both are dropped
+          const f = dropFirst.textContent;
+          const sec = dropSecond.textContent;
+          if (f && sec) {
+            const word = (f + sec).toUpperCase();
+            if (mappingWords[word]) {
+              result5.textContent = `✅ ${word} → ${mappingWords[word].emoji} ${mappingWords[word].text}`;
+              // Pronounce full word
+              speechSynthesis.cancel();
+              const wUtter = new SpeechSynthesisUtterance(mappingWords[word].text.toLowerCase());
+              wUtter.lang = 'id-ID';
+              wUtter.rate = 0.6;
+              speechSynthesis.speak(wUtter);
+            } else {
+              result5.textContent = '❌ Salah, coba lagi.';
+            }
+          }
+        };
+      });
+    }
+
+    // Hook slide-5 activation
+    const prevShow2 = showSlide;
+    showSlide = function(i) {
+      prevShow2(i);
+      if (i === 4) initPuzzleGame();
+    };
+  </script>
+</body>
+</html>

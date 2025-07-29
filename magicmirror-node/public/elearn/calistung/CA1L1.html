@@ -106,25 +106,30 @@
     <option value="E">E</option>
     <option value="O">O</option>
   </select>
+  <button id="voiceBtn" style="margin-left:10px; padding:8px 12px; font-size:16px;">🎤 Ucap Huruf</button>
   <div class="trace-container" style="position: relative; width: 85%; height: 350px; margin: 20px auto; border: 2px dashed #666;">
     <canvas id="traceCanvas" style="position: absolute; top: 0; left: 0; z-index: 1; width: 100%; height: 100%;"></canvas>
   </div>
 
   <script>
-    const sounds = {
-      A: new Audio('/audio/a.mp3'),
-      I: new Audio('/audio/i.mp3'),
-      U: new Audio('/audio/u.mp3'),
-      E: new Audio('/audio/e.mp3'),
-      O: new Audio('/audio/o.mp3')
-    };
+
+    // Speak a single vowel at an extremely slow rate for natural elongation
+    function speakLetter(letter) {
+      speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(letter.toLowerCase());
+      utter.lang = 'id-ID';
+      utter.rate = 0.02;   // very slow rate
+      utter.pitch = 1.0;   // normal pitch
+      utter.volume = 1.0;  // full volume
+      speechSynthesis.speak(utter);
+    }
 
     let currentAnswer = '';
 
     function playRandom() {
-      const keys = Object.keys(sounds);
-      currentAnswer = keys[Math.floor(Math.random() * keys.length)];
-      sounds[currentAnswer].play();
+      const letters = ['A','I','U','E','O'];
+      currentAnswer = letters[Math.floor(Math.random() * letters.length)];
+      speakLetter(currentAnswer);
       document.getElementById("result").textContent = "";
     }
 
@@ -133,8 +138,19 @@
         document.getElementById("result").textContent = "✅ Benar! Hebat!";
       } else {
         document.getElementById("result").textContent = "❌ Coba lagi!";
-        sounds[currentAnswer].play();
+        speakLetter(currentAnswer);
       }
+    }
+
+    // --- Speech Recognition Setup ---
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition;
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.lang = 'id-ID';
+      recognition.interimResults = false;
+    } else {
+      alert('Browser kamu belum mendukung Speech Recognition 🙁');
     }
 
     // Tracing Logic
@@ -273,6 +289,25 @@ const revealColors = {
     });
 
     drawGuideLetter('A'); // default huruf pertama
+
+    // Voice input handling
+    document.getElementById('voiceBtn').addEventListener('click', () => {
+      if (recognition) recognition.start();
+    });
+    if (recognition) {
+      recognition.addEventListener('result', (e) => {
+        const transcript = e.results[0][0].transcript.trim().toUpperCase();
+        if (transcript === currentGuideLetter) {
+          document.getElementById('result').textContent = `✅ Kamu bilang “${transcript}” tepat!`;
+        } else {
+          document.getElementById('result').textContent = `❌ Kamu bilang “${transcript}”, coba lagi ya!`;
+        }
+      });
+      recognition.addEventListener('error', (e) => {
+        console.error('Speech error', e);
+        document.getElementById('result').textContent = '❌ Gagal mendengar, coba lagi!';
+      });
+    }
   </script>
 </body>
 </html>
