@@ -934,19 +934,30 @@ app.get("/api/get-role-by-uid", async (req, res) => {
     const akunRef = admin.firestore().collection("akun").doc(uid);
     const akunSnap = await akunRef.get();
 
-    if (!akunSnap.exists) {
-      return res.status(404).json({ error: "Akun tidak ditemukan" });
+    let role = "murid";
+    let cid = "";
+    let nama = "";
+    let email = "";
+
+    if (akunSnap.exists) {
+      const akunData = akunSnap.data() || {};
+      role = akunData.role || "murid";
+      cid = akunData.cid || "";
+      nama = akunData.nama || "";
+      email = akunData.email || "";
+    } else {
+      console.warn(`⚠️ Akun dengan UID ${uid} tidak ditemukan, menggunakan role default 'murid'`);
+      try {
+        const authUser = await admin.auth().getUser(uid);
+        email = authUser.email || "";
+        nama = authUser.displayName || "";
+      } catch (authErr) {
+        console.warn("ℹ️ Could not fetch auth user info:", authErr.message);
+      }
+      await akunRef.set({ role: "murid", cid: "", nama, email }, { merge: true });
     }
 
-    const akunData = akunSnap.data();
-
-    return res.json({
-      uid,
-      cid: akunData.cid || "",
-      role: akunData.role || "",
-      nama: akunData.nama || "",
-      email: akunData.email || "",
-    });
+    return res.json({ uid, cid, role, nama, email });
   } catch (err) {
     console.error("❌ Error fetching role by UID:", err);
     return res.status(500).json({ error: "Internal server error" });
