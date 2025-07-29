@@ -940,10 +940,13 @@ app.get("/api/get-role-by-uid", async (req, res) => {
 
     const akunData = akunSnap.data();
 
+    // Default to 'murid' if role field is missing for backward compatibility
+    const role = akunData.role || "murid";
+
     return res.json({
       uid,
       cid: akunData.cid || "",
-      role: akunData.role || "",
+      role,
       nama: akunData.nama || "",
       email: akunData.email || "",
     });
