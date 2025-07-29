@@ -25,7 +25,7 @@ function toggleSubmenu(id) {
 function handleLogout() {
   firebase.auth().signOut().then(() => {
     sessionStorage.clear();
-    window.location.href = '/elearn/login-elearning.html';
+    window.location.href = '/elearn/login.html';
   }).catch(() => {
     alert('❌ Gagal logout. Coba lagi.');
   });
