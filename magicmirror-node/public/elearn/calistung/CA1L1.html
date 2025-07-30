@@ -65,62 +65,346 @@
     canvas {
       touch-action: none;
     }
+    .flashcard {
+      background: #fff7e6;
+      border: 2px solid #ffb6c1;
+      border-radius: 16px;
+      width: 90px;
+      height: 120px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 2px 2px 10px #eee;
+      font-size: 2.6em;
+      cursor: pointer;
+      transition: transform 0.18s, box-shadow 0.18s;
+      margin: 4px;
+    }
+    .flashcard:hover {
+      transform: scale(1.1) rotate(-2deg);
+      box-shadow: 4px 4px 16px #ffc;
+      background: #fffaeb;
+    }
+    #matchingWorksheet {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 32px;
+      margin-top: 16px;
+      margin-bottom: 16px;
+    }
+    .matching-col {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .draggable-item {
+      background: #ffe4e1;
+      border: 2.5px solid #ffb6c1;
+      border-radius: 16px;
+      padding: 18px 28px;
+      font-size: 2.3em;
+      text-align: center;
+      cursor: grab;
+      user-select: none;
+      transition: box-shadow .15s;
+      box-shadow: 2px 2px 8px #fad;
+      font-family: inherit;
+    }
+    .draggable-item:active {
+      box-shadow: none;
+      opacity: .7;
+    }
+    .droppable-area {
+      background: #fff0f5;
+      border: 2.5px dashed #ffb6c1;
+      border-radius: 16px;
+      padding: 18px 20px;
+      font-size: 1.8em;
+      min-width: 160px;
+      min-height: 54px;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      font-family: inherit;
+      transition: background 0.15s, border 0.15s;
+    }
+    .droppable-area.cocok {
+      background: #d6ffd8;
+      border: 2.5px solid #43b663;
+      color: #23934d;
+      font-weight: bold;
+    }
+    .drop-slot {
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      min-height: 34px;
+      margin-top: 4px;
+      margin-bottom: 2px;
+    }
   </style>
 </head>
 <body>
-  <h1>🎉 Belajar Huruf A I U E O 🎉</h1>
-  <p>Klik tombol suara lalu pilih gambar yang cocok ya!</p>
+  <div id="slide1" style="display:block;">
+    <h1>🎉 Belajar Huruf A I U E O 🎉</h1>
+    <p>Klik tombol suara lalu pilih gambar yang cocok ya!</p>
+    <button id="toSlide2Btn" style="margin-bottom:10px;">➡️ Lanjut Pengenalan Vokal</button>
+    <button id="toSlide4Btn" style="margin-left:16px;">➡️ Tracing Huruf A–Z</button>
+    <button onclick="playRandom()">🔊 Mainkan Suara</button>
+    <div class="letter-section" id="options">
+      <div class="letter-card" onclick="checkAnswer('A'); changeGuideLetter('A');">
+        <div class="emoji">🍎</div>
+        <div>A</div>
+      </div>
+      <div class="letter-card" onclick="checkAnswer('I'); changeGuideLetter('I');">
+        <div class="emoji">🐟</div>
+        <div>I</div>
+      </div>
+      <div class="letter-card" onclick="checkAnswer('U'); changeGuideLetter('U');">
+        <div class="emoji">🐍</div>
+        <div>U</div>
+      </div>
+      <div class="letter-card" onclick="checkAnswer('E'); changeGuideLetter('E');">
+        <div class="emoji">🍦</div>
+        <div>E</div>
+      </div>
+      <div class="letter-card" onclick="checkAnswer('O'); changeGuideLetter('O');">
+        <div class="emoji">🦧</div>
+        <div>O</div>
+      </div>
+    </div>
 
-  <button onclick="playRandom()">🔊 Mainkan Suara</button>
-  <div class="letter-section" id="options">
-    <div class="letter-card" onclick="checkAnswer('A')">
-      <div class="emoji">🍎</div>
-      <div>A</div>
-    </div>
-    <div class="letter-card" onclick="checkAnswer('I')">
-      <div class="emoji">🐟</div>
-      <div>I</div>
-    </div>
-    <div class="letter-card" onclick="checkAnswer('U')">
-      <div class="emoji">🐍</div>
-      <div>U</div>
-    </div>
-    <div class="letter-card" onclick="checkAnswer('E')">
-      <div class="emoji">🍦</div>
-      <div>E</div>
-    </div>
-    <div class="letter-card" onclick="checkAnswer('O')">
-      <div class="emoji">🦧</div>
-      <div>O</div>
+    <div class="result" id="result"></div>
+
+    <h2>✍️ Latihan Tracing Huruf</h2>
+    <h3>Pilih huruf yang ingin kamu tracing:</h3>
+    <select id="selectLetter" onchange="changeGuideLetter(this.value)">
+      <option value="A">A</option>
+      <option value="I">I</option>
+      <option value="U">U</option>
+      <option value="E">E</option>
+      <option value="O">O</option>
+    </select>
+    <button id="voiceBtn" style="margin-left:10px; padding:8px 12px; font-size:16px;">🎤 Ucap Huruf</button>
+    <div class="trace-container" style="position: relative; width: 85%; height: 350px; margin: 20px auto; border: 2px dashed #666;">
+      <canvas id="traceCanvas" style="position: absolute; top: 0; left: 0; z-index: 1; width: 100%; height: 100%;"></canvas>
     </div>
   </div>
+  <div id="slide2" style="display:none;">
+    <h2>👀 Mengenal Huruf Vokal & Suaranya</h2>
+    <p>Klik kartu untuk mendengar suara vokal dan lihat contohnya!</p>
+    <div class="flashcard-container" style="display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; margin: 24px 0;"></div>
+    <div id="flashcard-image" style="font-size: 60px; margin: 16px 0;"></div>
+    <div id="flashcard-desc" style="font-size: 1.2em; margin-bottom: 16px; color: #333;"></div>
+    <button id="nextSlideBtn" style="margin-top:18px;">Lanjut ke Quiz</button>
+  </div>
+  <div id="slide3" style="display:none;">
+    <h2>🔗 Menghubungkan Huruf Vokal dengan Kata/Gambar</h2>
+    <p>Ayo, cocokan huruf vokal dengan kata atau gambar yang sesuai! Bisa dicetak atau dikerjakan langsung di layar!</p>
+    <ul style="text-align:left; max-width:500px; margin:16px auto; font-size:1.1em;">
+    </ul>
+    <div id="matchingWorksheet" style="margin:20px auto;max-width:480px;"></div>
+    <div style="font-style:italic; color:#4caf50; margin-bottom:10px;">
+      "Menghubungkan huruf & gambar bikin belajar makin seru!"
+    </div>
+    <button onclick="showSlide2()">⬅️ Kembali ke Slide 2</button>
+    <button onclick="showSlide1()">🏠 Ke Halaman Utama</button>
+  </div>
 
-  <div class="result" id="result"></div>
-
-  <h2>✍️ Latihan Tracing Huruf</h2>
-  <h3>Pilih huruf yang ingin kamu tracing:</h3>
-  <select id="selectLetter" onchange="changeGuideLetter(this.value)">
-    <option value="A">A</option>
-    <option value="I">I</option>
-    <option value="U">U</option>
-    <option value="E">E</option>
-    <option value="O">O</option>
-  </select>
-  <button id="voiceBtn" style="margin-left:10px; padding:8px 12px; font-size:16px;">🎤 Ucap Huruf</button>
-  <div class="trace-container" style="position: relative; width: 85%; height: 350px; margin: 20px auto; border: 2px dashed #666;">
-    <canvas id="traceCanvas" style="position: absolute; top: 0; left: 0; z-index: 1; width: 100%; height: 100%;"></canvas>
+  <div id="slide4" style="display:none;">
+    <h2>✍️ Tracing Huruf A–Z</h2>
+    <p>Pilih huruf kapital A–Z lalu latihan tracing!</p>
+    <select id="azSelectLetter" style="font-size: 1.1em; padding: 7px 18px; margin-bottom:16px;"></select>
+    <select id="azSelectCase" style="font-size:1.1em; margin-left:18px;">
+      <option value="upper">Huruf Besar</option>
+      <option value="lower">Huruf Kecil</option>
+    </select>
+    <div class="trace-container" style="position: relative; width: 85%; height: 350px; margin: 20px auto; border: 2px dashed #666;">
+      <canvas id="azTraceCanvas" style="position: absolute; top: 0; left: 0; z-index: 1; width: 100%; height: 100%;"></canvas>
+    </div>
+    <button onclick="showSlide1()">🏠 Kembali ke Menu Utama</button>
   </div>
 
   <script>
 
-    // Speak a single vowel at an extremely slow rate for natural elongation
+    const flashcards = [
+      { letter: "A", emoji: "🍎", label: "Apel", suara: "A" },
+      { letter: "I", emoji: "🐟", label: "Ikan", suara: "I" },
+      { letter: "U", emoji: "🐍", label: "Ular", suara: "U" },
+      { letter: "E", emoji: "🍦", label: "Es krim", suara: "E" },
+      { letter: "O", emoji: "🦧", label: "Orangutan", suara: "O" }
+    ];
+
+    function showSlide1() {
+      if(document.getElementById('slide1')) document.getElementById('slide1').style.display = 'block';
+      if(document.getElementById('slide2')) document.getElementById('slide2').style.display = 'none';
+      if(document.getElementById('slide3')) document.getElementById('slide3').style.display = 'none';
+      if(document.getElementById('slide4')) document.getElementById('slide4').style.display = 'none';
+    }
+    function showSlide2() {
+      if(document.getElementById('slide1')) document.getElementById('slide1').style.display = 'none';
+      if(document.getElementById('slide2')) document.getElementById('slide2').style.display = 'block';
+      if(document.getElementById('slide3')) document.getElementById('slide3').style.display = 'none';
+      if(document.getElementById('slide4')) document.getElementById('slide4').style.display = 'none';
+    }
+    function showSlide3() {
+      if(document.getElementById('slide1')) document.getElementById('slide1').style.display = 'none';
+      if(document.getElementById('slide2')) document.getElementById('slide2').style.display = 'none';
+      if(document.getElementById('slide3')) document.getElementById('slide3').style.display = 'block';
+      if(document.getElementById('slide4')) document.getElementById('slide4').style.display = 'none';
+    }
+    function showSlide4() {
+      if(document.getElementById('slide1')) document.getElementById('slide1').style.display = 'none';
+      if(document.getElementById('slide2')) document.getElementById('slide2').style.display = 'none';
+      if(document.getElementById('slide3')) document.getElementById('slide3').style.display = 'none';
+      if(document.getElementById('slide4')) document.getElementById('slide4').style.display = 'block';
+      // PATCH: resize & redraw canvas
+      setTimeout(resizeAndDrawAZGuide, 150);
+    }
+    // PATCH: Resize and redraw AZ Guide canvas for slide 4
+    function resizeAndDrawAZGuide() {
+      const azCanvas = document.getElementById('azTraceCanvas');
+      if (!azCanvas) return;
+      const azContainer = azCanvas.parentElement;
+      azCanvas.width = azContainer.offsetWidth;
+      azCanvas.height = azContainer.offsetHeight;
+      // Redraw
+      if(window.currentAZLetter) {
+        window.drawAZGuideLetter(window.currentAZLetter);
+      } else if(typeof window.drawAZGuideLetter === "function") {
+        window.drawAZGuideLetter('A');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('toSlide2Btn').onclick = showSlide2;
+      // Handler tombol ke slide 4
+      document.getElementById('toSlide4Btn').onclick = showSlide4;
+      // Ubah tombol "Lanjut ke Quiz" agar mengarah ke slide 3
+      document.getElementById('nextSlideBtn').onclick = showSlide3;
+      // Generate flashcard
+      const fcContainer = document.querySelector('.flashcard-container');
+      flashcards.forEach(fc => {
+        const card = document.createElement('div');
+        card.className = 'flashcard';
+        card.innerHTML = `<div style="font-size:1.5em;">${fc.letter}</div><div>${fc.emoji}</div>`;
+        card.onclick = () => {
+          speakLetter(fc.suara);
+          document.getElementById('flashcard-image').textContent = fc.emoji;
+          document.getElementById('flashcard-desc').textContent = `${fc.letter} = ${fc.label}`;
+        };
+        fcContainer.appendChild(card);
+      });
+
+      // Worksheet matching click–click (tanpa drag)
+      const kataList = [
+        {kata: "APEL", emoji: "🍎", vokal: ["A","E"]},
+        {kata: "IKAN", emoji: "🐟", vokal: ["I","A"]},
+        {kata: "ULAR", emoji: "🐍", vokal: ["U","A"]},
+        {kata: "ES", emoji: "🍦", vokal: ["E"]},
+        {kata: "ORANG", emoji: "🦧", vokal: ["O","A"]}
+      ];
+      const vokal = ["A","I","U","E","O"];
+
+      const matchingWorksheet = document.getElementById('matchingWorksheet');
+      if (matchingWorksheet) {
+        matchingWorksheet.innerHTML = `
+          <div class="matching-col" id="hurufCol">
+            ${vokal.map(v => `<div class="draggable-item" data-letter="${v}">${v}</div>`).join("")}
+          </div>
+          <div class="matching-col" id="kataCol">
+            ${kataList.map(k => `
+              <div class="droppable-area" data-letters="${k.vokal.join(',')}" style="min-height:64px;flex-direction:column;align-items:flex-start;">
+                <div style="font-size:2em;">${k.emoji} <b>${k.kata}</b></div>
+                <div class="drop-slot"></div>
+              </div>
+            `).join("")}
+          </div>
+        `;
+
+        let selectedLetter = null;
+        // Seleksi huruf vokal klik–klik
+        matchingWorksheet.querySelectorAll('.draggable-item').forEach(item => {
+          item.addEventListener('click', (e) => {
+            // Unselect semua dulu
+            matchingWorksheet.querySelectorAll('.draggable-item').forEach(i => {
+              i.style.outline = '';
+              i.style.background = '#ffe4e1';
+            });
+            // Select yang diklik
+            selectedLetter = e.target.dataset.letter;
+            e.target.style.outline = '3px solid #43b663';
+            e.target.style.background = '#e0ffe9';
+          });
+        });
+
+        matchingWorksheet.querySelectorAll('.droppable-area').forEach(area => {
+          const slot = area.querySelector('.drop-slot');
+          area.addEventListener('click', () => {
+            if (!selectedLetter) return;
+            // Slot penuh?
+            if (slot.children.length >= area.dataset.letters.split(',').length) {
+              alert('Sudah cukup, cek jawaban!');
+              return;
+            }
+            // Biar tidak double klik huruf sama di satu slot
+            const sudahAda = Array.from(slot.children).some(el=>el.textContent===selectedLetter);
+            if (sudahAda) {
+              alert('Huruf itu sudah ada di sini!');
+              return;
+            }
+            // Buat chip huruf vokal
+            const newChip = document.createElement('span');
+            newChip.textContent = selectedLetter;
+            newChip.className = "draggable-item";
+            newChip.style.fontSize = "1.1em";
+            newChip.style.padding = "4px 13px";
+            newChip.style.margin = "4px";
+            newChip.style.display = "inline-block";
+            newChip.style.cursor = "default";
+            newChip.setAttribute("draggable","false");
+            slot.appendChild(newChip);
+
+            // Reset seleksi huruf
+            matchingWorksheet.querySelectorAll('.draggable-item').forEach(i => {
+              i.style.outline = '';
+              i.style.background = '#ffe4e1';
+            });
+            selectedLetter = null;
+
+            // Otomatis cek jika slot sudah penuh
+            const jawaban = Array.from(slot.children).map(el=>el.textContent.trim().toUpperCase());
+            const kunci = area.dataset.letters.split(",");
+            if (jawaban.length === kunci.length) {
+              if (kunci.every(hv => jawaban.includes(hv)) && jawaban.every(hv => kunci.includes(hv))) {
+                area.classList.add('cocok');
+                slot.innerHTML = `<b style="color:#23934d;font-size:1.3em;">✅ ${kunci.join(' & ')}</b>`;
+              } else {
+                slot.innerHTML = `<b style="color:#d32f2f;font-size:1.3em;">❌</b>`;
+                setTimeout(() => slot.innerHTML = "", 800);
+                area.classList.remove('cocok');
+              }
+            }
+          });
+        });
+      }
+
+      // Hapus penambahan tombol "Lanjut ke Slide 4" ke slide 3
+    });
+
     function speakLetter(letter) {
       speechSynthesis.cancel();
-      const utter = new SpeechSynthesisUtterance(letter.toLowerCase());
+      // Cari di flashcards agar bisa sebut contoh kata
+      const fc = flashcards.find(fc => fc.letter === letter);
+      let kata = letter;
+      if (fc) kata = `${letter}, ${fc.label}`;
+      const utter = new SpeechSynthesisUtterance(kata);
       utter.lang = 'id-ID';
-      utter.rate = 0.02;   // very slow rate
-      utter.pitch = 1.0;   // normal pitch
-      utter.volume = 1.0;  // full volume
+      utter.rate = 0.5;
+      utter.pitch = 1.0;
+      utter.volume = 1.0;
       speechSynthesis.speak(utter);
     }
 
@@ -163,15 +447,15 @@
 
     let letterPath = new Path2D();
 
-let currentGuideLetter = 'A';
-const revealRadius = 10;
-const revealColors = {
-  A: 'red',
-  I: 'yellow',
-  U: 'green',
-  E: 'purple',
-  O: 'brown'
-};
+    let currentGuideLetter = 'A';
+    const revealRadius = 10;
+    const revealColors = {
+      A: 'red',
+      I: 'yellow',
+      U: 'green',
+      E: 'purple',
+      O: 'brown'
+    };
 
     function getXY(e) {
       const rect = canvas.getBoundingClientRect();
@@ -214,24 +498,38 @@ const revealColors = {
     }
 
 
-    function drawGuideLetter(letter, highlight = false) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.font = "340px Comic Sans MS";
-      ctx.setLineDash([10, 10]);
-      ctx.strokeStyle = "#ccc";
-      ctx.lineWidth = 1;
-      ctx.strokeText(letter, canvas.width / 2 - 120, canvas.height / 2 + 130);
-      ctx.setLineDash([]);
-      if (highlight) {
-        ctx.lineWidth = 6;
-        ctx.strokeStyle = "#ff4081";
-        ctx.strokeText(letter, canvas.width / 2 - 120, canvas.height / 2 + 130);
-        ctx.lineWidth = 1;
-      }
+    // Fungsi untuk menggambar core guide huruf AIUEO
+    function drawCoreGuide(ctx, letter, color="#bbb", dash=[18,22], lw=4) {
+      ctx.save();
+      ctx.font = "bold 260px 'Comic Sans MS', Arial, sans-serif";
+      ctx.textBaseline = "middle";
+      ctx.textAlign = "center";
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2 + 24;
 
-      // Define detection path as rectangle around letter
+      // Fill transparan
+      ctx.fillStyle = "rgba(133,180,255,0.18)";
+      ctx.fillText(letter, centerX, centerY);
+
+      // Outline putus-putus
+      ctx.strokeStyle = color;
+      ctx.lineWidth = lw;
+      ctx.setLineDash(dash);
+      ctx.strokeText(letter, centerX, centerY);
+
+      ctx.restore();
+    }
+
+    function drawGuideLetter(letter) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawCoreGuide(ctx, letter, "#bbb", [18,22], 4);
+
+      // Rectangle deteksi tracing
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2 + 24;
+      const size = 130;
       letterPath = new Path2D();
-      letterPath.rect(canvas.width / 2 - 170, canvas.height / 2 - 200, 340, 340);
+      letterPath.rect(centerX - size - 28, centerY - size - 28, size * 2 + 56, size * 2 + 56);
     }
     function changeGuideLetter(letter) {
       currentGuideLetter = letter;
@@ -250,17 +548,13 @@ const revealColors = {
           drawDot(pos.x, pos.y);
         }
       } else {
-        // Reveal continuous guide only under cursor
+        // Reveal guide core-line only under cursor
         if (ctx.isPointInPath(letterPath, pos.x, pos.y)) {
           ctx.save();
           ctx.beginPath();
           ctx.arc(pos.x, pos.y, revealRadius, 0, Math.PI * 2);
           ctx.clip();
-          ctx.font = "340px Comic Sans MS";
-          ctx.setLineDash([]);  // solid line
-          ctx.strokeStyle = revealColors[currentGuideLetter] || "#ccc";
-          ctx.lineWidth = 1;
-          ctx.strokeText(currentGuideLetter, canvas.width / 2 - 120, canvas.height / 2 + 130);
+          drawCoreGuide(ctx, currentGuideLetter, "#ff5252", [], 4);
           ctx.restore();
         }
       }
@@ -270,7 +564,7 @@ const revealColors = {
     canvas.addEventListener('touchend', end);
     canvas.addEventListener('touchcancel', end);
 
-    // Touch-based reveal of continuous guide
+    // Touch-based reveal of guide core-line
     canvas.addEventListener('touchmove', (e) => {
       e.preventDefault();
       const pos = getXY(e);
@@ -279,11 +573,7 @@ const revealColors = {
         ctx.beginPath();
         ctx.arc(pos.x, pos.y, revealRadius, 0, Math.PI * 2);
         ctx.clip();
-        ctx.font = "340px Comic Sans MS";
-        ctx.setLineDash([]);  // solid line
-        ctx.strokeStyle = revealColors[currentGuideLetter] || "#ccc";
-        ctx.lineWidth = 1;
-        ctx.strokeText(currentGuideLetter, canvas.width / 2 - 120, canvas.height / 2 + 130);
+        drawCoreGuide(ctx, currentGuideLetter, "#ff5252", [], 4);
         ctx.restore();
       }
     });
@@ -308,6 +598,149 @@ const revealColors = {
         document.getElementById('result').textContent = '❌ Gagal mendengar, coba lagi!';
       });
     }
-  </script>
+
+</script>
+
+    <!-- === Tracing logic for slide 4 (A-Z) === -->
+    <script>
+// === Tracing logic for slide 4 (A-Z) ===
+document.addEventListener('DOMContentLoaded', function() {
+  const azCanvas = document.getElementById('azTraceCanvas');
+  if (!azCanvas) return;
+  // Set canvas size
+  const azContainer = azCanvas.parentElement;
+  azCanvas.width = azContainer.offsetWidth;
+  azCanvas.height = azContainer.offsetHeight;
+  const azCtx = azCanvas.getContext('2d');
+  let azLetterPath = new Path2D();
+  window.currentAZLetter = 'A';
+
+  // Fungsi core-line A–Z: isi transparan + outline putus-putus
+  function drawCoreLineAZ(ctx, letter, color="#bbb", dash=[16,18], lw=4) {
+    ctx.save();
+    // Isi tengah huruf dengan warna transparan
+    ctx.font = "bold 260px 'Comic Sans MS', Arial, sans-serif";
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "center";
+    const centerX = ctx.canvas.width / 2;
+    const centerY = ctx.canvas.height / 2 + 16;
+    // Fill transparan
+    ctx.fillStyle = "rgba(133,180,255,0.18)";
+    ctx.fillText(letter, centerX, centerY);
+    // Outline putus-putus tipis
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lw;
+    ctx.setLineDash(dash);
+    ctx.strokeText(letter, centerX, centerY);
+    ctx.restore();
+  }
+
+  window.drawAZGuideLetter = function(letter) {
+    azCtx.clearRect(0, 0, azCanvas.width, azCanvas.height);
+    drawCoreLineAZ(azCtx, letter, "#bbb", [16,18], 4);
+    azLetterPath = new Path2D();
+    // Simple rectangle area for tracing
+    azLetterPath.rect(
+      azCanvas.width*0.1,
+      azCanvas.height*0.08,
+      azCanvas.width*0.8,
+      azCanvas.height*0.84
+    );
+  }
+
+  function changeAZGuideLetter(letter) {
+    window.currentAZLetter = letter;
+    window.drawAZGuideLetter(letter);
+  }
+
+  // Dropdown A-Z & upper/lower case
+  const azSelectLetter = document.getElementById('azSelectLetter');
+  const azSelectCase = document.getElementById('azSelectCase');
+
+  function populateLetters() {
+    azSelectLetter.innerHTML = "";
+    if (azSelectCase.value === "upper") {
+      for(let i=65;i<=90;i++){
+        const o = document.createElement('option');
+        o.value = String.fromCharCode(i);
+        o.textContent = String.fromCharCode(i);
+        azSelectLetter.appendChild(o);
+      }
+    } else {
+      for(let i=97;i<=122;i++){
+        const o = document.createElement('option');
+        o.value = String.fromCharCode(i);
+        o.textContent = String.fromCharCode(i);
+        azSelectLetter.appendChild(o);
+      }
+    }
+  }
+  azSelectCase.onchange = function() {
+    populateLetters();
+    changeAZGuideLetter(azSelectLetter.value);
+  };
+  azSelectLetter.onchange = function(){ changeAZGuideLetter(this.value); };
+  populateLetters();
+  changeAZGuideLetter(azSelectLetter.value);
+
+  // Default: Tampilkan huruf A
+  window.drawAZGuideLetter('A');
+
+  // Tracing (dot) on canvas
+  function getAZXY(e) {
+    const rect = azCanvas.getBoundingClientRect();
+    let clientX = e.clientX;
+    let clientY = e.clientY;
+    if (e.touches && e.touches.length > 0) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    }
+    return {
+      x: clientX - rect.left,
+      y: clientY - rect.top
+    };
+  }
+  function azDrawDot(x, y) {
+    azCtx.beginPath();
+    azCtx.fillStyle = "#000";
+    azCtx.arc(x, y, 3, 0, Math.PI * 2);
+    azCtx.fill();
+  }
+
+  let azDrawing = false;
+  azCanvas.addEventListener('mousedown', (e) => { azDrawing = true; azCtx.beginPath(); });
+  azCanvas.addEventListener('mouseup', (e) => { azDrawing = false; });
+  azCanvas.addEventListener('mouseout', (e) => { azDrawing = false; });
+  azCanvas.addEventListener('mousemove', (e) => {
+    if (!azDrawing) {
+      // Reveal guide if hover
+      const pos = getAZXY(e);
+      if (azCtx.isPointInPath(azLetterPath, pos.x, pos.y)) {
+        azCtx.save();
+        azCtx.beginPath();
+        azCtx.arc(pos.x, pos.y, 10, 0, Math.PI * 2);
+        azCtx.clip();
+        drawCoreLineAZ(azCtx, window.currentAZLetter, "#ff5252", [], 4);
+        azCtx.restore();
+      }
+      return;
+    }
+    const pos = getAZXY(e);
+    if (azCtx.isPointInPath(azLetterPath, pos.x, pos.y)) {
+      azDrawDot(pos.x, pos.y);
+    }
+  });
+  azCanvas.addEventListener('touchstart', (e) => { azDrawing = true; });
+  azCanvas.addEventListener('touchend', (e) => { azDrawing = false; });
+  azCanvas.addEventListener('touchcancel', (e) => { azDrawing = false; });
+  azCanvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    const pos = getAZXY(e);
+    if (azDrawing && azCtx.isPointInPath(azLetterPath, pos.x, pos.y)) {
+      azDrawDot(pos.x, pos.y);
+    }
+  });
+});
+    </script>
 </body>
 </html>
