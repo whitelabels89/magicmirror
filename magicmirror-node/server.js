@@ -57,8 +57,6 @@ const db = admin.firestore();
 
 const PORT = process.env.PORT || 3000;
 
-// Serve static files from /public
-app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors());
 app.use(express.json({ limit: '10mb' })); // untuk terima JSON besar (seperti foto)
 app.use('/generated_lessons', express.static(path.join(__dirname, '..', 'generated_lessons')));
@@ -671,6 +669,10 @@ app.post('/ai-chat', async (req, res) => {
     res.status(500).json({ reply: 'Maaf, ada masalah di server AI.' });
   }
 });
+// Endpoint: proxy OpenAI untuk Lab Co-Pilot
+
+// Serve static files from /public
+app.use(express.static(path.join(__dirname, 'public')));
 // Endpoint: proxy OpenAI untuk Lab Co-Pilot
 app.post('/openai-api', async (req, res) => {
   const { prompt } = req.body;
