@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Lesson 3: Membaca Kata Benda</title>
+  <style>
+  body, html {
+    height: 100%;
+    min-height: 100vh;
+  }
+  body {
+    font-family: 'Comic Sans MS', Arial, sans-serif;
+    margin:0; background: linear-gradient(150deg,#f5f8ff 0%,#e7eeff 100%);
+  }
+  .slide { 
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh; width: 100vw; box-sizing: border-box;
+    text-align: center;
+    padding: 0;
+  }
+  .active { display: flex !important; }
+  .slide h2 {
+    font-size: 2.1em;
+    letter-spacing: .03em;
+    color: #4674d6;
+    background: linear-gradient(140deg, #fff 60%, #d4e7ff 100%);
+    box-shadow: 0 6px 16px #8ebaff35;
+    border-radius: 1.3em;
+    margin: 0 auto 18px auto;
+    display: inline-block;
+    padding: 18px 42px;
+    border-bottom: 5px solid #bedaff;
+  }
+  /* CARD CLAY STYLE */
+  .slide-card {
+    background: linear-gradient(120deg,#fffbe7 80%,#fff3ce 100%);
+    border-radius: 2em;
+    box-shadow: 0 6px 24px #ffd86b50, 0 1px 0 #ffeaae;
+    border: 2.2px solid #ffe1a0;
+    padding: 32px 38px 32px 38px;
+    max-width: 700px;
+    width: 95vw;
+    min-width: 370px;
+    margin: 0 auto 28px auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: fade-in 0.8s;
+  }
+  .clay-img {
+    width: 124px; height: 124px;
+    margin-bottom: 22px;
+    border-radius: 50%;
+    box-shadow: 0 4px 20px #ffd86b35;
+    background: #fffbe7;
+    object-fit: contain;
+    animation: bounce-in 0.8s;
+  }
+  .clay-btn {
+    background: linear-gradient(90deg,#5db2ff 70%,#8cdbff 100%);
+    color: #fff;
+    font-size: 1.15em;
+    padding: 15px 38px;
+    border: none;
+    border-radius: 1.5em;
+    box-shadow: 0 4px 14px #5db2ff24;
+    font-weight: bold;
+    margin-top: 28px;
+    letter-spacing: .03em;
+    transition: all .18s cubic-bezier(.57,1.6,.33,.99);
+    cursor: pointer;
+    outline: none;
+  }
+  .clay-btn:hover {
+    background: linear-gradient(90deg,#489ceb 60%,#8cdbff 100%);
+    transform: translateY(-4px) scale(1.03);
+    box-shadow: 0 8px 28px #5db2ff33;
+  }
+  /* Animasi */
+  @keyframes fade-in {
+    from { opacity:0; transform: translateY(24px);}
+    to { opacity:1; transform: none;}
+  }
+  @keyframes bounce-in {
+    0% { transform: scale(0.8);}
+    70% { transform: scale(1.09);}
+    100% { transform: scale(1);}
+  }
+  .kata-box {
+    font-size: 2.8em; 
+    margin: 30px 0 18px;
+    background: linear-gradient(100deg, #fffbe7 60%, #fff3ce 100%);
+    border-radius: 1em;
+    padding: 12px 28px 10px 28px;
+    box-shadow: 0 3px 12px #ffd86b29, 0 1px 0 #ffeaae;
+    display: inline-block;
+    font-weight: 700;
+    color: #b28935;
+    letter-spacing: .05em;
+    border-bottom: 3px solid #ffe1a0;
+  }
+  .gambar-emoji, .mewarnai-img {
+    font-size: 7em; 
+    margin: 0 0 0.7em 0;
+    display: inline-block;
+    filter: drop-shadow(0 5px 13px #bfd3f5a2) brightness(1.15) saturate(1.22);
+    background: #fffbe7;
+    border-radius: 50%;
+    padding: 0.15em 0.18em;
+    box-shadow: 0 3px 16px #ffd86b20, 0 0.5px 0 #fffbe7;
+    border: 2.5px solid #ffe1a0;
+  }
+  .isi-kata {
+    font-size: 1.35em; 
+    color: #3a4256; 
+    background: #fff;
+    border-radius: 1.1em;
+    box-shadow: 0 2px 8px #bedaff14;
+    display: inline-block;
+    padding: 10px 32px;
+    margin-top: 8px;
+    border-bottom: 2.5px solid #e7f6ff;
+  }
+  .quiz-zone, .cerita-zone, .warna-zone { 
+    margin: 18px auto; 
+    max-width: 380px;
+    background: #fff; 
+    border-radius: 1.2em; 
+    box-shadow: 0 4px 14px #8ec5ff25;
+    padding: 18px 10px;
+  }
+  .word-highlight { 
+    background: linear-gradient(100deg,#b8e8ff 60%,#fff2 100%);
+    border-radius: 7px; 
+    font-weight: bold; 
+    color: #2082c8;
+    box-shadow: 0 2px 8px #bedaff18;
+    padding: 3px 8px;
+    border-bottom: 2px solid #8edaff50;
+  }
+  .matching-option { 
+    display: inline-block; 
+    margin: 0 16px 10px; 
+    padding: 12px 30px; 
+    border-radius: 1.4em; 
+    border: 2.3px solid #6ecbff; 
+    cursor: pointer; 
+    background: linear-gradient(120deg, #e7f6ff 60%, #d4f1ff 100%);
+    box-shadow: 0 3px 10px #bde1f32c;
+    color: #3888ad;
+    font-weight: bold;
+    font-size: 1.2em;
+    transition: all 0.16s;
+  }
+  .matching-option.selected { 
+    background: linear-gradient(120deg,#4baaff 40%,#92dcff 100%);
+    color: #fff; 
+    border-color: #39a8fa;
+    box-shadow: 0 6px 20px #4baaff34;
+    letter-spacing: .03em;
+  }
+  .matching-img { font-size: 2.3em; margin: 8px 0;}
+  .mewarnai-img { 
+    font-size: 4em; margin: 8px 12px; 
+    background: #e7f6ff;
+    box-shadow: 0 3px 12px #d2ecff47, 0 0.5px 0 #e7f6ff;
+    border: 2px solid #bedaff;
+  }
+  button, button.next {
+    font-size: 1.18em; 
+    margin-top: 2em; 
+    padding: 13px 32px; 
+    border-radius: 1.5em; 
+    background: linear-gradient(90deg,#5db2ff 70%,#8cdbff 100%);
+    color: #fff; 
+    border: none; 
+    box-shadow: 0 4px 14px #5db2ff24;
+    font-weight: bold;
+    letter-spacing: .03em;
+    transition: background .13s;
+  }
+  button:hover { background: linear-gradient(90deg,#489ceb 60%,#8cdbff 100%);}
+  .coloring-objbar {
+    display: flex;
+    gap: 36px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    margin-top: 10px;
+  }
+  .canvas-stack {
+    position: relative;
+    width: 260px;
+    height: 260px;
+    margin: 0 auto 24px auto;
+  }
+  #colorCanvas {
+    background: #fff;
+    border-radius: 1em;
+    box-shadow: 0 2px 14px #b3cdfa24;
+    width: 260px; height: 260px;
+    position: absolute; left: 0; top: 0; z-index: 1;
+  }
+  #colorSVGBox svg {
+    position: absolute;
+    left: 0; top: 0;
+    width: 260px; height: 260px;
+    z-index: 2;
+    pointer-events: none;
+    user-select: none;
+  }
+  .color-btnbar {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-bottom: 12px;
+  }
+  .color-btnbar .color-btn {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 2.5px solid #bbb;
+    cursor: pointer;
+    box-shadow: 0 2px 7px #bbb2;
+    margin-right: 2px;
+  }
+  .color-btnbar .color-btn.selected {
+    border: 2.7px solid #2196f3;
+    box-shadow: 0 4px 12px #2196f355;
+  }
+  #colorCanvas {
+    background: #fff;
+    border-radius: 1em;
+    box-shadow: 0 2px 14px #b3cdfa24;
+    display: block;
+    margin: 0 auto;
+  }
+  .coloring-hint {
+    color: #b28935;
+    font-size: 1.12em;
+    margin: 32px 0 0 0;
+    letter-spacing: 0.03em;
+    font-style: italic;
+  }
+  /* AI Assistant Chat Widget */
+  #ai-assistant {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 280px;
+    max-height: 400px;
+    background: #fff;
+    border: 2px solid #4674d6;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: sans-serif;
+    z-index: 9999;
+  }
+  #ai-assistant .chat-header {
+    background: #4674d6;
+    color: #fff;
+    padding: 8px 12px;
+    font-weight: bold;
+    text-align: center;
+  }
+  #ai-assistant .chat-messages {
+    flex: 1;
+    padding: 8px;
+    overflow-y: auto;
+    background: #f9f9f9;
+  }
+  #ai-assistant .chat-input {
+    display: flex;
+    border-top: 1px solid #ccc;
+  }
+  #ai-assistant .chat-input input {
+    flex: 1;
+    border: none;
+    padding: 8px;
+    font-size: 1em;
+  }
+  #ai-assistant .chat-input button {
+    border: none;
+    background: #4674d6;
+    color: #fff;
+    padding: 0 12px;
+    cursor: pointer;
+  }
+  .chat-message.user {
+    text-align: right;
+    margin: 4px 0;
+  }
+  .chat-message.bot {
+    text-align: left;
+    margin: 4px 0;
+    color: #333;
+  }
+</style>
+  
+</head>
+<body>
+  <div id="slide1" class="slide active">
+    <div class="slide-card">
+      <h2>🎉 Hari ini kita belajar membaca kata benda!</h2>
+      <div>Yuk mulai dengan <b>tebak gambar</b>:<br>
+        <img class="clay-img" src="https://cdn-icons-png.flaticon.com/512/2098/2098611.png" alt="Tebak Baju">
+      </div>
+      <button class="clay-btn" onclick="nextSlide()">Lanjut</button>
+    </div>
+  </div>
+  <div id="slide2" class="slide">
+    <div class="slide-card">
+      <img class="clay-img" src="https://cdn-icons-png.flaticon.com/512/2098/2098611.png" alt="Baju"/>
+      <div class="kata-box">BAJU</div>
+      <div class="isi-kata">Digunakan untuk menutupi tubuh.<br><i>(Ayo ucapkan: “BA – JU”)</i></div>
+      <button class="clay-btn" onclick="nextSlide()">Lanjut</button>
+    </div>
+  </div>
+  <div id="slide3" class="slide">
+    <div class="slide-card">
+      <img class="clay-img" src="https://cdn-icons-png.flaticon.com/512/1946/1946375.png" alt="Buku"/>
+      <div class="kata-box">BUKU</div>
+      <div class="isi-kata">Untuk membaca cerita.<br><i>(Ucapkan: “BU – KU”)</i></div>
+      <button class="clay-btn" onclick="nextSlide()">Lanjut</button>
+    </div>
+  </div>
+  <div id="slide4" class="slide">
+    <div class="slide-card">
+      <img class="clay-img" src="https://cdn-icons-png.flaticon.com/512/766/766179.png" alt="Apel"/>
+      <div class="kata-box">APEL</div>
+      <div class="isi-kata">Buah warna merah yang sehat.<br><i>(Ucapkan: “A – PEL”)</i></div>
+      <button class="clay-btn" onclick="nextSlide()">Lanjut</button>
+    </div>
+  </div>
+  <div id="slide5" class="slide">
+    <div class="slide-card">
+      <img class="clay-img" src="https://cdn-icons-png.flaticon.com/512/1517/1517652.png" alt="Mata"/>
+      <div class="kata-box">MATA</div>
+      <div class="isi-kata">Untuk melihat dunia.<br><i>(Ucapkan: “MA – TA”)</i></div>
+      <button class="clay-btn" onclick="nextSlide()">Lanjut</button>
+    </div>
+  </div>
+  <div id="slide6" class="slide">
+    <div class="slide-card">
+      <img class="clay-img" src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="Sapi"/>
+      <div class="kata-box">SAPI</div>
+      <div class="isi-kata">Hewan yang tinggal di peternakan.<br><i>(Ucapkan: “SA – PI”)</i></div>
+      <button class="clay-btn" onclick="nextSlide()">Lanjut</button>
+    </div>
+  </div>
+  <div id="slide7" class="slide">
+    <div class="slide-card">
+      <h2>📢 Yuk baca bersama!</h2>
+      <div class="kata-box">BAJU • BUKU • MATA • SAPI • APEL</div>
+      <div style="margin:28px 0;">
+        <button type="button" id="micBtn" onclick="startRecognition()">🎤 Ucapkan: BAJU</button>
+        <div id="hasilVoice" style="font-size:1.2em; margin-top:14px;"></div>
+        <audio id="starSound" src="https://assets.mixkit.co/active_storage/sfx/2343/2343-preview.mp3"></audio>
+        <div id="starAnim" style="display:none;font-size:3em;line-height:1;">🌟🌟🌟</div>
+        <button type="button" onclick="nextWord()">Kata Berikutnya</button>
+      </div>
+      <button class="clay-btn" onclick="nextSlide()">Lanjut</button>
+    </div>
+  </div>
+  <div id="slide8" class="slide">
+    <div class="slide-card">
+      <h2>📖 Cerita Bergambar</h2>
+      <div class="cerita-zone" id="ceritaNana"></div>
+      <button class="clay-btn" onclick="nextSlide()">Lanjut</button>
+    </div>
+  </div>
+  <div id="slide9" class="slide">
+    <div class="slide-card">
+      <h2>🎨 Warnai gambar dan kata!</h2>
+      <div class="coloring-objbar" id="coloringObjBar">
+        <span class="mewarnai-img" onclick="showColoring('apel')" id="obj-apel">🍎</span>
+        <span class="mewarnai-img" onclick="showColoring('baju')" id="obj-baju">👕</span>
+        <span class="mewarnai-img" onclick="showColoring('buku')" id="obj-buku">📖</span>
+        <span class="mewarnai-img" onclick="showColoring('mata')" id="obj-mata">👁️</span>
+        <span class="mewarnai-img" onclick="showColoring('sapi')" id="obj-sapi">🐄</span>
+      </div>
+      <div class="color-btnbar" id="colorBtnBar"></div>
+      <div class="canvas-stack">
+        <canvas id="colorCanvas" width="260" height="260"></canvas>
+        <div id="colorSVGBox"></div>
+      </div>
+      <button class="clay-btn" onclick="nextSlide()">Lanjut</button>
+    </div>
+  </div>
+  <div id="slide10" class="slide">
+    <div class="slide-card">
+      <h2>🧠 Kata favoritmu?</h2>
+      <div class="quiz-zone">
+        <div class="matching-option" onclick="selectKata(this)">BAJU</div>
+        <div class="matching-option" onclick="selectKata(this)">BUKU</div>
+        <div class="matching-option" onclick="selectKata(this)">APEL</div>
+        <div class="matching-option" onclick="selectKata(this)">MATA</div>
+        <div class="matching-option" onclick="selectKata(this)">SAPI</div>
+      </div>
+      <div class="isi-kata" id="alasanFav" style="margin-top:20px"></div>
+      <button class="clay-btn" onclick="nextSlide()">Lanjut</button>
+    </div>
+  </div>
+  <div id="slide11" class="slide">
+    <div class="slide-card">
+      <h2>Terima Kasih!</h2>
+      <p>Kamu hebat belajar hari ini.<br>Besok kita lanjut membaca kalimat & cerita!</p>
+      <button class="clay-btn" onclick="location.reload()">Ulangi dari Awal</button>
+    </div>
+  </div>
+
+<script>
+let current = 1;
+let audioUnlocked = false;
+function nextSlide() {
+  document.getElementById("slide"+current).classList.remove("active");
+  current++;
+  document.getElementById("slide"+current).classList.add("active");
+  // Cerita interaktif
+  if(current==8) showCeritaNana();
+}
+function selectKata(el){
+  document.querySelectorAll('.matching-option').forEach(x=>x.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('alasanFav').innerHTML = "Kenapa kamu suka kata <b>"+el.textContent+"</b>? <br><input placeholder='Tulis alasannya di sini...' style='font-size:1.1em; margin-top:12px;'>";
+}
+function toggleWarna(el){
+  el.style.filter = el.style.filter ? "" : "brightness(1.5) saturate(2)";
+}
+// Cerita interaktif: highlight kata benda
+function showCeritaNana(){
+  const kalimat = `
+    <div>
+      <b>Hari di Rumah Nana</b>
+      <p>Nana punya <span class='word-highlight'>baju</span> baru.<br>
+      Dia makan <span class='word-highlight'>apel</span> sambil membaca <span class='word-highlight'>buku</span>.<br>
+      Tiba-tiba <span class='word-highlight'>sapi</span> datang dari jendela!<br>
+      “Moo!” kata si sapi. Nana membuka <span class='word-highlight'>mata</span> lebar-lebar!</p>
+    </div>
+  `;
+  document.getElementById('ceritaNana').innerHTML = kalimat;
+}
+
+// Slide 7 - Voice Recognition & Animasi Bintang
+const readingWords = ["BAJU", "BUKU", "MATA", "SAPI", "APEL"];
+let wordIdx = 0;
+
+function updateCurrentWord() {
+  document.getElementById('micBtn').textContent = "🎤 Ucapkan: " + readingWords[wordIdx];
+  document.getElementById('hasilVoice').innerHTML = "";
+  document.getElementById('starAnim').style.display = "none";
+}
+
+function unlockAudio() {
+  if (!audioUnlocked) {
+    let snd = document.getElementById('starSound');
+    snd.volume = 0;
+    snd.play().then(()=>{ snd.pause(); snd.currentTime = 0; audioUnlocked = true; });
+  }
+}
+
+function startRecognition() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    alert("Browser kamu belum support voice recognition.");
+    return;
+  }
+  const recognition = new SpeechRecognition();
+  recognition.lang = "id-ID";
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+  document.getElementById('micBtn').textContent = "Mendengarkan...";
+  recognition.start();
+  recognition.onresult = function(event) {
+    const hasil = event.results[0][0].transcript.trim().toUpperCase();
+    const target = readingWords[wordIdx];
+    let out = `<b>Kamu bilang:</b> ${hasil}<br>`;
+    if(hasil === target){
+      out += "<span style='color:#25a926;font-weight:bold'>BENAR! 👍</span>";
+      // Animasi bintang & suara
+      document.getElementById('starAnim').style.display = "block";
+      document.getElementById('starAnim').animate(
+        [{ transform: 'scale(1)', opacity:1 }, { transform: 'scale(1.7)', opacity:0.6 }, { transform: 'scale(1)', opacity:1 }], 
+        { duration: 900, iterations: 1 }
+      );
+      let snd = document.getElementById('starSound');
+      snd.volume = 1;
+      try {
+        snd.currentTime = 0;
+        snd.play();
+      } catch(e) {
+        document.getElementById('hasilVoice').innerHTML += "<br><span style='color:#fa2c34;font-size:0.95em;'>Buka kunci audio di browser untuk mendengar efek bintang!</span>";
+      }
+    } else {
+      out += "<span style='color:#fa2c34;font-weight:bold'>Belum tepat, coba lagi ya!</span>";
+      document.getElementById('starAnim').style.display = "none";
+    }
+    document.getElementById('hasilVoice').innerHTML = out;
+    document.getElementById('micBtn').textContent = "🎤 Ucapkan: " + target;
+  }
+  recognition.onerror = function(e) {
+    document.getElementById('hasilVoice').innerHTML = "<span style='color:#fa2c34'>Error: "+e.error+"</span>";
+    updateCurrentWord();
+  }
+}
+
+function nextWord() {
+  wordIdx = (wordIdx + 1) % readingWords.length;
+  updateCurrentWord();
+}
+
+// Inisialisasi dan event listeners
+document.addEventListener("DOMContentLoaded", function() {
+  document.getElementById('micBtn').addEventListener('click', unlockAudio);
+  const btnNext = document.querySelector('button[onclick="nextWord()"]');
+  if(btnNext) btnNext.addEventListener('click', unlockAudio);
+  updateCurrentWord();
+});
+</script>
+  <!-- Modal Coloring -->
+  <div id="colorModal" style="display:none; position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:99;background:rgba(0,0,0,0.12);align-items:center;justify-content:center;">
+    <div style="background:#fffbe7; border-radius:1.5em; box-shadow:0 10px 32px #ffd86b44; padding:32px; position:relative;">
+      <button onclick="closeColorModal()" style="position:absolute;top:12px;right:16px;font-size:1.3em;">✖️</button>
+      <div id="coloringZone" style="display:flex;flex-direction:column;align-items:center;">
+        <!-- Coloring SVG + canvas di sini -->
+      </div>
+    </div>
+  </div>
+<script>
+let currentBrush = "#ff7272";
+const brushColors = ["#ff7272","#FFD447","#8fd85c","#6ad0ff","#bb89e0"];
+
+let coloringObjAktif = null;
+function showColoring(obj) {
+  coloringObjAktif = obj;
+  document.querySelectorAll('.mewarnai-img').forEach(x=>x.style.borderColor="#bedaff");
+  document.getElementById('obj-'+obj).style.borderColor="#2196f3";
+  // Bar warna
+  let colorBtns = '';
+  brushColors.forEach(c=>{
+    colorBtns += `<div class="color-btn${currentBrush===c?' selected':''}" onclick="setBrushColor('${c}',this)" style="background:${c};"></div>`;
+  });
+  document.getElementById('colorBtnBar').innerHTML = colorBtns;
+  // Render outline presisi di atas canvas
+  let svgOutline = '';
+  if(obj === 'apel') {
+    svgOutline = `<svg viewBox="0 0 200 200">
+      <ellipse cx="100" cy="120" rx="60" ry="75" fill="#fff" stroke="#b28935" stroke-width="7"/>
+      <ellipse cx="140" cy="70" rx="18" ry="30" fill="#fff" stroke="#b28935" stroke-width="7"/>
+      <rect x="97" y="50" width="8" height="38" rx="4" fill="#b28935"/>
+      <ellipse cx="102" cy="52" rx="7" ry="7" fill="#a3dc67"/>
+    </svg>`;
+  } else if(obj === 'baju') {
+    svgOutline = `<svg viewBox="0 0 200 200">
+      <path d="M40,65 Q60,25 100,40 Q140,25 160,65 L140,80 L140,180 L60,180 L60,80 Z" fill="#fff" stroke="#b28935" stroke-width="7"/>
+      <rect x="90" y="75" width="20" height="40" fill="#fff" stroke="#b28935" stroke-width="7"/>
+    </svg>`;
+  } else if(obj === 'buku') {
+    svgOutline = `<svg viewBox="0 0 200 200">
+      <rect x="35" y="60" width="130" height="90" fill="#fff" stroke="#b28935" stroke-width="7" rx="20"/>
+      <line x1="100" y1="60" x2="100" y2="150" stroke="#b28935" stroke-width="5"/>
+    </svg>`;
+  } else if(obj === 'mata') {
+    svgOutline = `<svg viewBox="0 0 200 200">
+      <ellipse cx="100" cy="120" rx="70" ry="45" fill="#fff" stroke="#b28935" stroke-width="7"/>
+      <ellipse cx="100" cy="120" rx="18" ry="18" fill="#fff" stroke="#b28935" stroke-width="6"/>
+    </svg>`;
+  } else if(obj === 'sapi') {
+    svgOutline = `<svg viewBox="0 0 200 200">
+      <ellipse cx="100" cy="140" rx="60" ry="40" fill="#fff" stroke="#b28935" stroke-width="7"/>
+      <ellipse cx="70" cy="105" rx="18" ry="10" fill="#fff" stroke="#b28935" stroke-width="5"/>
+      <ellipse cx="130" cy="105" rx="18" ry="10" fill="#fff" stroke="#b28935" stroke-width="5"/>
+    </svg>`;
+  }
+  document.getElementById('colorSVGBox').innerHTML = svgOutline;
+  // Bersihkan canvas
+  const ctx = document.getElementById('colorCanvas').getContext('2d');
+  ctx.clearRect(0, 0, 260, 260);
+  setupColorBrush();
+}
+
+function setBrushColor(c,el) {
+  currentBrush = c;
+  document.querySelectorAll('.color-btn').forEach(btn=>btn.classList.remove('selected'));
+  if(el) el.classList.add('selected');
+}
+
+function setupColorBrush() {
+  const canvas = document.getElementById('colorCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.globalAlpha = 0.85;
+  function paint(x, y) {
+    ctx.beginPath();
+    ctx.arc(x, y, 14, 0, 2*Math.PI);
+    ctx.fillStyle = currentBrush;
+    ctx.fill();
+  }
+  // Mouse events
+  let painting = false;
+  canvas.onmousedown = e => { painting = true; paintEvt(e);}
+  canvas.onmouseup = e => { painting = false;}
+  canvas.onmouseleave = e => { painting = false;}
+  canvas.onmousemove = function(e){ if(painting) paintEvt(e);}
+  function paintEvt(e) {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX-rect.left, y = e.clientY-rect.top;
+    paint(x, y);
+  }
+  // Touch events
+  canvas.ontouchstart = function(e) { painting=true; paintTouch(e);}
+  canvas.ontouchend = function(e) { painting=false;}
+  canvas.ontouchcancel = function(e) { painting=false;}
+  canvas.ontouchmove = function(e){ if(painting) paintTouch(e);}
+  function paintTouch(e){
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    for(let t of e.touches){
+      const x = t.clientX-rect.left, y = t.clientY-rect.top;
+      paint(x, y);
+    }
+  }
+}
+
+// Default: hint jika belum ada coloring
+if(document.getElementById('colorSVGBox')) {
+  document.getElementById('colorSVGBox').innerHTML = `<div class="coloring-hint">Klik gambar untuk mulai mewarnai!</div>`;
+}
+</script>
+</body>
+  <!-- AI Assistant Chat Widget -->
+  <div id="ai-assistant">
+    <div class="chat-header">Guru AI Assistant</div>
+    <div class="chat-messages"></div>
+    <div class="chat-input">
+      <input type="text" id="chatInput" placeholder="Tanya guru AI...">
+      <button id="sendBtn">Kirim</button>
+    </div>
+  </div>
+
+  <script>
+  async function sendMessageToAI(message) {
+    appendMessage('user', message);
+    const response = await fetch('/ai-chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message })
+    });
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error('AI error:', response.status, errText);
+      appendMessage('bot', 'Maaf, server AI bermasalah.');
+      return;
+    }
+    const text = await response.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      console.error('Invalid JSON:', text);
+      appendMessage('bot', 'Maaf, format respon tidak valid.');
+      return;
+    }
+    appendMessage('bot', data.reply || 'Maaf, saya tidak mengerti.');
+  }
+
+  function appendMessage(sender, text) {
+    const container = document.querySelector('#ai-assistant .chat-messages');
+    const msg = document.createElement('div');
+    msg.className = 'chat-message ' + (sender === 'user' ? 'user' : 'bot');
+    msg.textContent = text;
+    container.appendChild(msg);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('sendBtn').addEventListener('click', () => {
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+      sendMessageToAI(text);
+    });
+  });
+  </script>
+</html>

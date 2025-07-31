@@ -644,6 +644,33 @@ app.post('/api/save-karya', async (req, res) => {
   }
 });
 
+// Endpoint: AI chat untuk frontend Guru AI Assistant
+app.post('/ai-chat', async (req, res) => {
+  const { message } = req.body;
+  if (!message) {
+    return res.status(400).json({ error: 'Pesan kosong.' });
+  }
+  try {
+    const aiRes = await axios.post(
+      'https://api.openai.com/v1/chat/completions',
+      {
+        model: 'gpt-3.5-turbo',
+        messages: [{ role: 'user', content: message }],
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        },
+      }
+    );
+    const reply = aiRes.data.choices[0].message.content;
+    res.json({ reply });
+  } catch (err) {
+    console.error('❌ Error /ai-chat:', err?.response?.data || err.message);
+    res.status(500).json({ reply: 'Maaf, ada masalah di server AI.' });
+  }
+});
 // Endpoint: proxy OpenAI untuk Lab Co-Pilot
 app.post('/openai-api', async (req, res) => {
   const { prompt } = req.body;
