@@ -261,6 +261,9 @@
     font-family: sans-serif;
     z-index: 9999;
   }
+  #ai-assistant {
+    display: none !important;
+  }
   #ai-assistant .chat-header {
     background: #4674d6;
     color: #fff;
@@ -299,6 +302,19 @@
     text-align: left;
     margin: 4px 0;
     color: #333;
+  }
+  /* Avatar in AI Assistant header */
+  #ai-assistant .chat-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  #ai-assistant .chat-header .chat-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
   }
 </style>
   
@@ -634,7 +650,10 @@ if(document.getElementById('colorSVGBox')) {
 </body>
   <!-- AI Assistant Chat Widget -->
   <div id="ai-assistant">
-    <div class="chat-header">Guru AI Assistant</div>
+    <div class="chat-header">
+      <img src="/elearn/img/rob.png" alt="Guru AI Assistant" class="chat-avatar">
+      Guru AI Assistant
+    </div>
     <div class="chat-messages"></div>
     <div class="chat-input">
       <input type="text" id="chatInput" placeholder="Tanya guru AI...">
@@ -685,6 +704,9 @@ if(document.getElementById('colorSVGBox')) {
       input.value = '';
       sendMessageToAI(text);
     });
+    // Initial greeting from Guru AI Assistant
+    appendMessage('bot', 'Halo! Saya Guru AI Assistant, ada yang ingin kamu tanyakan?');
+    document.getElementById('chatInput').focus();
   });
   </script>
 </html>

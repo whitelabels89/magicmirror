@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modul 2 - Lesson 1: Mengenal Angka & Jumlah (1–10)</title>
+  <style>
+    :root {
+      --primary: #FFD1DC;
+      --secondary: #C0E7FF;
+      --accent: #FFECB3;
+      --text: #333;
+      --clay-shadow: rgba(0,0,0,0.1);
+    }
+    body {
+      margin: 0;
+      font-family: 'Comic Sans MS', sans-serif;
+      background: var(--accent);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    .slide {
+      display: none;
+      width: 100%;
+      max-width: 600px;
+      background: var(--primary);
+      border-radius: 20px;
+      box-shadow: 8px 8px 0 var(--clay-shadow);
+      padding: 20px;
+      margin-bottom: 10px;
+    }
+    .slide.active { display: block; }
+    .nav-buttons {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 600px;
+      margin-top: 10px;
+    }
+    .btn {
+      background: var(--secondary);
+      border: none;
+      border-radius: 20px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 5px 5px 0 var(--clay-shadow);
+    }
+    .objects { display: flex; gap: 10px; justify-content: center; margin: 20px 0; }
+    .objects span {
+      font-size: 2rem;
+      cursor: pointer;
+    }
+    .match-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .match-item { background: var(--secondary); border-radius: 15px; padding: 10px; text-align: center; }
+    .selected { outline: 3px solid red; }
+  </style>
+</head>
+<body>
+  <!-- Slide 1 -->
+  <section class="slide active" id="slide1">
+    <h2>Selamat Datang di Dunia Angka!</h2>
+    <p>🔢 Hari ini kita akan bertemu dengan angka 1 sampai 10!</p>
+    <p>🎵 Yuk nyanyi lagu angka dulu! (Ayo klik tombol play)</p>
+    <button class="btn" onclick="playSong()">▶️ Play Lagu</button>
+    <audio id="song" src="song1to10.mp3"></audio>
+  </section>
+  <!-- Slide 6: Counting Game -->
+  <section class="slide" id="slide6">
+    <h2>Ayo Main Game Hitung!</h2>
+    <p>🖱️ Klik jumlah benda untuk menghitung.</p>
+    <div class="objects" id="countObjects">
+      <!-- 5 apples example -->
+      <span>🍎</span><span>🍎</span><span>🍎</span><span>🍎</span><span>🍎</span>
+    </div>
+    <p>Jumlah: <span id="countResult">0</span></p>
+    <button class="btn" onclick="resetCount()">Reset</button>
+  </section>
+  <!-- Slide 7: Matching -->
+  <section class="slide" id="slide7">
+    <h2>Cocokkan Angka & Jumlah</h2>
+    <p>🔍 Klik angka lalu klik gambar yang sesuai!</p>
+    <div class="match-grid">
+      <div class="match-item" data-count="3">3</div>
+      <div class="match-item" data-count="5">5</div>
+      <div class="match-item" data-count="3">🐟🐟🐟</div>
+      <div class="match-item" data-count="5">🍰🍰🍰🍰🍰</div>
+    </div>
+    <p id="matchFeedback"></p>
+  </section>
+  <!-- Navigation -->
+  <div class="nav-buttons">
+    <button class="btn" onclick="prevSlide()">⬅️ Prev</button>
+    <button class="btn" onclick="nextSlide()">Next ➡️</button>
+  </div>
+
+  <script>
+    let current = 1;
+    const total = 7; // update if more slides added
+    function showSlide(n) {
+      document.querySelectorAll('.slide').forEach((s, i) => {
+        s.classList.toggle('active', i === n-1);
+      });
+    }
+    function prevSlide(){ if(current>1) current--; showSlide(current); }
+    function nextSlide(){ if(current<total) current++; showSlide(current); }
+    // Slide 1 song
+    function playSong(){ document.getElementById('song').play(); }
+    // Counting game
+    const objs = document.getElementById('countObjects');
+    let count = 0;
+    objs.addEventListener('click', ()=>{
+      count = objs.querySelectorAll('span').length;
+      document.getElementById('countResult').textContent = count;
+    });
+    function resetCount(){ count = 0; document.getElementById('countResult').textContent = 0; }
+    // Matching game
+    let pick = null;
+    document.querySelectorAll('.match-item').forEach(item=>{
+      item.addEventListener('click', ()=>{
+        if(!pick && !item.textContent.match(/\d+/)){
+          pick = item;
+          item.classList.add('selected');
+        } else if(pick && item.textContent.match(/\D/)){
+          const num = pick.dataset.count;
+          const objCount = item.dataset.count;
+          const fb = document.getElementById('matchFeedback');
+          if(num === objCount){ fb.textContent = 'Benar!'; }
+          else { fb.textContent = 'Coba lagi ya 😊'; }
+          pick.classList.remove('selected');
+          pick = null;
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>CLG L4: Kalimat Pendek & Pemahaman</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { background: #f0f4f8; font-family: 'Comic Sans MS', sans-serif; margin:0; padding:0; }
+    #app { max-width:800px; margin: auto; padding:20px; }
+    header h1 { background:#ffd54f; display:inline-block; padding:10px 20px; border-radius:20px; box-shadow:5px 5px 0 #fbc02d; }
+    nav { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin:20px 0; }
+    nav button { background:#81d4fa; border:none; padding:10px 15px; border-radius:15px; box-shadow:3px 3px 0 #0288d1; cursor:pointer; }
+    nav button.active { background:#4fc3f7; }
+    section { display:none; animation:fadeIn .5s; }
+    section.active { display:block; }
+    .card-container { display:flex; flex-wrap:wrap; gap:20px; justify-content:center; }
+    .card { width:150px; height:100px; background:#fff; border-radius:15px; box-shadow:3px 3px 0 #b0bec5; display:flex; align-items:center; justify-content:center; perspective:1000px; cursor:pointer; }
+    .card-inner { width:100%; height:100%; transition:transform .6s; transform-style:preserve-3d; position:relative; }
+    .card.flipped .card-inner { transform:rotateY(180deg); }
+    .card-face { position:absolute; width:100%; height:100%; backface-visibility:hidden; display:flex; align-items:center; justify-content:center; padding:10px; box-sizing:border-box; }
+    .card-back { transform:rotateY(180deg); }
+    .drag-container, .drop-container { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:20px 0; }
+    .draggable { padding:10px 15px; background:#ffcc80; border-radius:10px; box-shadow:2px 2px 0 #fb8c00; cursor:grab; }
+    .droppable { width:100px; height:100px; border:2px dashed #90a4ae; border-radius:10px; display:flex; align-items:center; justify-content:center; background:#e0f7fa; }
+    input[type=text] { width:100%; padding:8px; border-radius:10px; border:1px solid #90a4ae; margin-bottom:10px; }
+    .colorable { width:100px; height:100px; filter:grayscale(100%); cursor:pointer; transition:filter .3s; }
+    .colorable.colored { filter:grayscale(0%); }
+    button.next { display:block; margin:20px auto 0; background:#aed581; border:none; padding:10px 20px; border-radius:15px; box-shadow:3px 3px 0 #7cb342; cursor:pointer; }
+    @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header><h1>Yuk Belajar Kalimat!</h1></header>
+    <nav id="nav">
+      <button data-target="ice">Ice Breaking</button>
+      <button data-target="flash">Baca Kalimat</button>
+      <button data-target="match">Membaca Interaktif</button>
+      <button data-target="quiz">Soal Pemahaman</button>
+      <button data-target="story">Cerita Mini</button>
+      <button data-target="color">Warnai Kalimat</button>
+    </nav>
+    <section id="ice">
+      <h2>Ice Breaking</h2>
+      <p>Siapa yang bilang “Moo”? 🐄</p>
+      <button id="play-sound">Putar Suara Moo</button>
+      <audio id="moo-sound" src="elearn/calistung/audio/moo.mp3"></audio>
+    </section>
+    <section id="flash">
+      <h2>Baca Kalimat Pendek</h2>
+      <div class="card-container">
+        <div class="card" data-back="<img src='elearn/calistung/img/meja.png' width='80'>"><div class="card-inner"><div class="card-face">Ini – Meja</div><div class="card-face card-back"></div></div></div>
+        <div class="card" data-back="<img src='elearn/calistung/img/budi_nasi.png' width='80'>"><div class="card-inner"><div class="card-face">Budi – makan – nasi</div><div class="card-face card-back"></div></div></div>
+        <div class="card" data-back="<img src='elearn/calistung/img/sapi.png' width='80'>"><div class="card-inner"><div class="card-face">Sapi – duduk</div><div class="card-face card-back"></div></div></div>
+        <div class="card" data-back="<img src='elearn/calistung/img/aku_susu.png' width='80'>"><div class="card-inner"><div class="card-face">Aku – minum – susu</div><div class="card-face card-back"></div></div></div>
+      </div>
+    </section>
+    <section id="match">
+      <h2>Membaca Interaktif</h2>
+      <p>Seret kalimat ke gambar:</p>
+      <div class="drag-container"><div class="draggable" draggable="true">Budi makan nasi</div><div class="draggable" draggable="true">Aku minum susu</div></div>
+      <div class="drop-container"><div class="droppable" data-sentence="Budi makan nasi"><img src="elearn/calistung/img/rice.png" width="60"></div><div class="droppable" data-sentence="Aku minum susu"><img src="elearn/calistung/img/glass.png" width="60"></div></div>
+      <button class="next" id="check-match">Periksa Jawaban</button>
+    </section>
+    <section id="quiz">
+      <h2>Soal Pemahaman</h2>
+      <form id="quiz-form">
+        <label>Apa isi kalimat “Budi makan nasi”?<input type="text" name="q1"></label>
+        <label>Siapa yang duduk dalam kalimat “Sapi duduk”?<input type="text" name="q2"></label>
+        <label>Dalam kalimat “Aku minum susu”, apa yang diminum?<input type="text" name="q3"></label>
+        <label>Apa arti dari kalimat “Ini meja”?<input type="text" name="q4"></label>
+        <button type="button" id="submit-quiz" class="next">Kirim Jawaban</button>
+      </form>
+    </section>
+    <section id="story">
+      <h2>Cerita Mini</h2>
+      <p>Susun kalimat:</p>
+      <div class="drag-container" id="story-drag"><div class="draggable" draggable="true">Aku</div><div class="draggable" draggable="true">duduk</div><div class="draggable" draggable="true">meja</div></div>
+      <p>Kalimatmu: <span id="sentence-output"></span></p>
+      <button class="next" id="check-story">Selesai</button>
+    </section>
+    <section id="color">
+      <h2>Warnai Kalimat</h2>
+      <p>Klik gambar:</p>
+      <div class="card-container"><img src="elearn/calistung/img/sapi.png" class="colorable" width="100"><img src="elearn/calistung/img/budi_nasi.png" class="colorable" width="100"></div>
+    </section>
+  </div>
+  <script>
+    document.querySelectorAll('#nav button').forEach(btn=>btn.addEventListener('click',()=>{
+      document.querySelectorAll('#nav button').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+      btn.classList.add('active'); document.getElementById(btn.dataset.target).classList.add('active');
+    })); document.querySelector('#nav button').click();
+    document.getElementById('play-sound').addEventListener('click',()=>document.getElementById('moo-sound').play());
+    document.querySelectorAll('.card').forEach(c=>c.addEventListener('click',()=>{c.classList.toggle('flipped'); if(c.classList.contains('flipped')) c.querySelector('.card-back').innerHTML=c.dataset.back;}));
+    let txt=''; document.querySelectorAll('.draggable').forEach(d=>d.addEventListener('dragstart',e=>{txt=e.target.textContent;}));
+    document.querySelectorAll('.droppable').forEach(z=>{z.addEventListener('dragover',e=>e.preventDefault()); z.addEventListener('drop',e=>{e.preventDefault(); z.textContent=txt;});});
+    document.getElementById('check-match').addEventListener('click',()=>{const ok=[...document.querySelectorAll('.droppable')].filter(z=>z.dataset.sentence===z.textContent.trim()).length; alert(`Benar ${ok}/2`);});
+    document.getElementById('submit-quiz').addEventListener('click',()=>alert('Jawaban terkirim!'));
+    const out=document.getElementById('sentence-output'), words=[];
+    out.addEventListener('dragover',e=>e.preventDefault());
+    out.addEventListener('drop',e=>{
+      e.preventDefault();
+      words.push(txt);
+      out.textContent=words.join(' ');
+    });
+    document.getElementById('check-story').addEventListener('click',()=>alert('Kalimat: '+out.textContent));
+    document.querySelectorAll('.colorable').forEach(i=>i.addEventListener('click',()=>i.classList.toggle('colored')));
+  </script>
+</body>
+</html>

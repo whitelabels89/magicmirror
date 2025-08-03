@@ -1,0 +1,149 @@
+
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lesson 5: Membuat Ceritaku Sendiri</title>
+  <style>
+    body { font-family: 'Comic Sans MS', cursive, sans-serif; background-color: #F0EAEA; margin:0; padding:0; }
+    .container { max-width: 800px; margin: 20px auto; padding: 20px; background: #FFF3E0; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    h1 { text-align: center; color: #5D4037; }
+    .step { display: none; }
+    .step.active { display: block; }
+    button { padding: 10px 20px; margin: 10px 5px; border: none; border-radius: 10px; background-color: #FFCC80; cursor: pointer; font-size: 16px; }
+    button:active { transform: scale(0.98); }
+    .clay-object { width: 120px; margin: 10px; border-radius: 15px; box-shadow: 0 4px 3px rgba(0,0,0,0.2); }
+    #drop-zone { min-height: 150px; border: 2px dashed #D7CCC8; border-radius: 15px; padding: 10px; display: flex; align-items: center; justify-content: center; background: #FFF8E1; }
+    input[type="text"] { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #D7CCC8; margin-bottom: 10px; font-size: 16px; }
+    canvas { border: 2px solid #D7CCC8; border-radius: 15px; display: block; margin: auto; background: #FFFFFF; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Modul 1 - Lesson 5: Membuat Ceritaku Sendiri</h1>
+
+    <!-- Step 1 -->
+    <div id="step1" class="step active">
+      <h2>1. Susun Ceritanya!</h2>
+      <p>Drag gambar berikut ke area cerita sesuai urutan.</p>
+      <div id="images" style="display:flex; justify-content:center;">
+        <img src="images/gambar1.png" draggable="true" id="img1" class="clay-object" alt="Gambar 1" />
+        <img src="images/gambar2.png" draggable="true" id="img2" class="clay-object" alt="Gambar 2" />
+        <img src="images/gambar3.png" draggable="true" id="img3" class="clay-object" alt="Gambar 3" />
+      </div>
+      <div id="drop-zone">
+        <p>Letakkan di sini urutan gambar...</p>
+      </div>
+      <button onclick="nextStep()">Selanjutnya</button>
+    </div>
+
+    <!-- Step 2 -->
+    <div id="step2" class="step">
+      <h2>2. Tulis Kalimat Cerita</h2>
+      <div>
+        <input type="text" placeholder="Kalimat 1: Tulis kalimat di sini" />
+        <input type="text" placeholder="Kalimat 2: Tulis kalimat di sini" />
+        <input type="text" placeholder="Kalimat 3: Tulis kalimat di sini" />
+      </div>
+      <button onclick="prevStep()">Kembali</button>
+      <button onclick="nextStep()">Selanjutnya</button>
+    </div>
+
+    <!-- Step 3 -->
+    <div id="step3" class="step">
+      <h2>3. Rekam Suaramu!</h2>
+      <p>Klik tombol untuk mulai/stop rekaman.</p>
+      <button id="recordBtn">Mulai Rekam</button>
+      <button id="playBtn" disabled>Putar Rekaman</button>
+      <button onclick="prevStep()">Kembali</button>
+      <button onclick="nextStep()">Selanjutnya</button>
+    </div>
+
+    <!-- Step 4 -->
+    <div id="step4" class="step">
+      <h2>4. Hias Kartu Ceritamu</h2>
+      <p>Tekan canvas untuk menambahkan elemen dekorasi.</p>
+      <canvas id="cardCanvas" width="600" height="300"></canvas>
+      <button onclick="prevStep()">Kembali</button>
+      <button onclick="nextStep()">Selesai</button>
+    </div>
+
+    <!-- Step 5 -->
+    <div id="step5" class="step">
+      <h2>5. Lihat dan Dengar Ceritamu!</h2>
+      <div id="finalCard" style="text-align:center;"></div>
+      <button onclick="playRecording()">Putar Rekaman</button>
+      <button onclick="restart()">Ulangi</button>
+    </div>
+
+  </div>
+
+  <script>
+    // Navigation
+    let currentStep = 1;
+    function showStep(n) {
+      document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+      document.getElementById('step' + n).classList.add('active');
+      currentStep = n;
+    }
+    function nextStep() { if (currentStep < 5) showStep(currentStep + 1); }
+    function prevStep() { if (currentStep > 1) showStep(currentStep - 1); }
+    function restart() { showStep(1); }
+
+    // Drag & Drop for Step 1
+    const imgs = document.querySelectorAll('#images img');
+    const dropZone = document.getElementById('drop-zone');
+    imgs.forEach(img => { img.addEventListener('dragstart', drag); });
+    dropZone.addEventListener('dragover', e => e.preventDefault());
+    dropZone.addEventListener('drop', drop);
+    function drag(e) { e.dataTransfer.setData('text', e.target.id); }
+    function drop(e) {
+      e.preventDefault();
+      const id = e.dataTransfer.getData('text');
+      const el = document.getElementById(id);
+      dropZone.appendChild(el);
+    }
+
+    // Recording for Step 3
+    let recorder, audioBlob;
+    const recordBtn = document.getElementById('recordBtn');
+    const playBtn = document.getElementById('playBtn');
+    recordBtn.addEventListener('click', async () => {
+      if (!recorder) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        recorder = new MediaRecorder(stream);
+        const chunks = [];
+        recorder.ondataavailable = e => chunks.push(e.data);
+        recorder.onstop = () => { audioBlob = new Blob(chunks, { type: 'audio/webm' }); playBtn.disabled = false; };
+        recorder.start(); recordBtn.textContent = 'Stop Rekam';
+      } else {
+        recorder.stop(); recorder = null; recordBtn.textContent = 'Mulai Rekam';
+      }
+    });
+    playBtn.addEventListener('click', () => playRecording());
+    function playRecording() { if (audioBlob) { const url = URL.createObjectURL(audioBlob); new Audio(url).play(); } }
+
+    // Canvas for Step 4
+    const canvas = document.getElementById('cardCanvas');
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#FFF'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    canvas.addEventListener('click', () => { ctx.fillStyle = '#FFE0B2'; ctx.fillRect(Math.random()*500, Math.random()*200, 80, 80); });
+
+    // Final Step 5
+    function showFinal() {
+      const finalCard = document.getElementById('finalCard');
+      finalCard.innerHTML = '';
+      document.querySelectorAll('#drop-zone img').forEach(img => {
+        const clone = img.cloneNode(); clone.style.width = '150px'; finalCard.appendChild(clone);
+      });
+      const cardImage = canvas.toDataURL();
+      const imgEl = document.createElement('img'); imgEl.src = cardImage;
+      imgEl.style.display = 'block'; imgEl.style.margin = '10px auto';
+      finalCard.appendChild(imgEl);
+    }
+    document.querySelector('#step4 button[onclick="nextStep()"]').addEventListener('click', showFinal);
+  </script>
+</body>
+</html>
