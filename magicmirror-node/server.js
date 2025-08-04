@@ -22,7 +22,13 @@ async function postToGAS(tabName, dataArray) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ tab: tabName, data: dataArray })
   });
-  return await res.json();
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    console.error('GAS response is not valid JSON:', text);
+    throw new Error('GAS did not return valid JSON');
+  }
 }
 
 // POST /api/assign-murid-ke-kelas - assign murid ke kelas/lesson
