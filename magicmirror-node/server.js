@@ -32,7 +32,7 @@ async function postToGAS(tabName, dataArray) {
 }
 
 async function postAllToGAS(datasets) {
-  const GAS_URL = process.env.WEB_APP_URL || 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+  const GAS_URL = process.env.WEB_APP_URL || 'https://script.google.com/macros/s/AKfycbynFv8gTnczc7abTL5Olq_sKmf1e0y6w9z_KBTKETK8i6NaGd941Cna4QVnoujoCsMdvA/exec';
   if (!GAS_URL.startsWith('http')) throw new Error('Invalid GAS URL');
 
   const res = await fetch(`${GAS_URL}?action=mirrorAllData`, {
