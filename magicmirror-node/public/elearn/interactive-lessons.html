@@ -338,8 +338,9 @@
 
       <!-- Section: Header -->
       <section class="section-welcome section-spacing" style="margin-bottom: 30px;">
-        <div class="header-welcome">
-          🧑‍🏫 Manage Interactive Lessons
+        <div class="header-welcome" style="display:flex;align-items:center;justify-content:space-between;">
+          <span>🧑‍🏫 Manage Interactive Lessons</span>
+          <button id="mirror-lessons-btn" style="padding:6px 12px;border:none;background:#0069d9;color:#fff;border-radius:6px;cursor:pointer;">Mirror Now</button>
         </div>
       </section>
 
@@ -425,6 +426,22 @@
     }
     if (document.getElementById('form-add-lesson')) {
       document.getElementById('form-add-lesson').addEventListener('submit', addLesson);
+    }
+
+    const mirrorBtn = document.getElementById('mirror-lessons-btn');
+    if (mirrorBtn) {
+      mirrorBtn.addEventListener('click', async () => {
+        mirrorBtn.disabled = true;
+        try {
+          await fetch('/api/lessons');
+          alert('✅ Lessons mirrored');
+        } catch (err) {
+          console.error('Mirror lessons failed:', err);
+          alert('❌ Mirror failed');
+        } finally {
+          mirrorBtn.disabled = false;
+        }
+      });
     }
 
   });

@@ -364,7 +364,10 @@
       <!-- Section: Class Table -->
       <section class="section-data section-spacing" style="margin-bottom: 30px;">
         <div class="data-table-card">
-          <h2>Class List</h2>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <h2>Class List</h2>
+            <button id="mirror-kelas-btn" style="padding:6px 12px;border:none;background:#0069d9;color:#fff;border-radius:6px;cursor:pointer;">Mirror Now</button>
+          </div>
           <table id="kelas-table">
             <thead>
               <tr>
@@ -440,6 +443,22 @@
     }
     if (document.getElementById('form-add-student')) {
       document.getElementById('form-add-student').addEventListener('submit', addStudent);
+    }
+
+    const mirrorBtn = document.getElementById('mirror-kelas-btn');
+    if (mirrorBtn) {
+      mirrorBtn.addEventListener('click', async () => {
+        mirrorBtn.disabled = true;
+        try {
+          await fetch('/api/kelas');
+          alert('✅ Class list mirrored');
+        } catch (err) {
+          console.error('Mirror class list failed:', err);
+          alert('❌ Mirror failed');
+        } finally {
+          mirrorBtn.disabled = false;
+        }
+      });
     }
 
     async function loadClasses() {
