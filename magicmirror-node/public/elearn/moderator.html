@@ -482,6 +482,10 @@
           </div>
         </div>
       </section>
+      <section class="section-mirror-login section-spacing" style="margin-bottom: 30px;">
+        <button id="mirrorLoginBtn">Mirror Login Data</button>
+        <div id="mirrorLoginStatus"></div>
+      </section>
     </main>
   </div>
   <script>
@@ -502,6 +506,7 @@
     loadAllStudents();
     document.getElementById('form-add-class').addEventListener('submit', addClass);
     document.getElementById('form-add-student').addEventListener('submit', addStudent);
+    document.getElementById('mirrorLoginBtn').addEventListener('click', mirrorLoginData);
 
     async function loadClasses() {
       try {
@@ -531,6 +536,19 @@
         document.getElementById('stat-guru').textContent = guruSet.size;
       } catch (err) {
         console.error(err);
+      }
+    }
+
+    async function mirrorLoginData() {
+      const statusEl = document.getElementById('mirrorLoginStatus');
+      statusEl.textContent = '⏳ Mirroring...';
+      try {
+        const res = await fetch('/api/mirror-login-data');
+        const json = await res.json();
+        statusEl.textContent = '✅ Mirroring selesai: ' + JSON.stringify(json);
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = '❌ Gagal mirror login data';
       }
     }
 

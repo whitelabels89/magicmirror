@@ -219,6 +219,29 @@ app.get('/api/mirror-all', async (req, res) => {
   }
 });
 
+app.get('/api/mirror-login-data', async (req, res) => {
+  try {
+    const snapshot = await db.collection('akun').get();
+    const dataArray = [];
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      dataArray.push({
+        cid: data.cid || '',
+        uid: doc.id,
+        nama: data.nama || '',
+        email: data.email || '',
+        kelas_id: data.kelas_id || '',
+        role: data.role || ''
+      });
+    });
+    const result = await postToGAS('EL_MASTER_USER', dataArray);
+    res.json(result);
+  } catch (err) {
+    console.error('Mirror login data gagal:', err);
+    res.status(500).json({ error: 'Mirror login data gagal', message: err.message });
+  }
+});
+
 async function verifyRecaptcha(req, res, next) {
   const token = req.body["g-recaptcha-response"];
   if (!token || token.length < 20) {
