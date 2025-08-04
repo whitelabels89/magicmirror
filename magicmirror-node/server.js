@@ -9,6 +9,21 @@ const path = require('path');
 const { google } = require('googleapis');
 const uploadModulRouter = require('./uploadModul');
 const admin = require('firebase-admin');
+const fetch = require('node-fetch');
+
+async function postToGAS(tabName, dataArray) {
+  const GAS_URL = process.env.WEB_APP_URL || 'https://script.google.com/macros/s/AKfycbynFv8gTnczc7abTL5Olq_sKmf1e0y6w9z_KBTKETK8i6NaGd941Cna4QVnoujoCsMdvA/exec';
+  if (!GAS_URL.startsWith('http')) {
+    throw new Error('Invalid WEB_APP_URL. Must be absolute URL.');
+  }
+  console.log(`Mirroring ${tabName} to ${GAS_URL}`);
+  const res = await fetch(`${GAS_URL}?action=mirrorData`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tab: tabName, data: dataArray })
+  });
+  return await res.json();
+}
 
 // POST /api/assign-murid-ke-kelas - assign murid ke kelas/lesson
 app.post('/api/assign-murid-ke-kelas', async (req, res) => {
@@ -409,6 +424,11 @@ app.get('/api/lessons', async (req, res) => {
       ...doc.data()
     }));
     res.json({ success: true, lessons: data });
+    try {
+      await postToGAS('EL_LESSONS_LIST', data);
+    } catch (err) {
+      console.error('Mirror LESSONS_LIST gagal:', err);
+    }
   } catch (err) {
     console.error('❌ Error ambil daftar lessons:', err);
     res.status(500).json({ success: false, error: 'Server error' });
@@ -524,6 +544,11 @@ app.get('/api/kelas', async (req, res) => {
       };
     });
     res.json({ success: true, data });
+    try {
+      await postToGAS('EL_CLASS_LIST', data);
+    } catch (err) {
+      console.error('Mirror CLASS_LIST gagal:', err);
+    }
   } catch (err) {
     console.error('❌ Error get kelas:', err);
     res.status(500).json({ success: false, error: 'Server error' });
@@ -1067,6 +1092,11 @@ app.get('/api/progress-murid', async (req, res) => {
     }
 
     res.json(hasil);
+    try {
+      await postToGAS('EL_STUDENT_PROGRESS', hasil);
+    } catch (err) {
+      console.error('Mirror STUDENT_PROGRESS gagal:', err);
+    }
   } catch (err) {
     console.error('❌ Error get progress murid:', err);
     res.status(500).json([]);
@@ -1167,8 +1197,12 @@ app.get('/api/karya-semua', async (req, res) => {
         status
       });
     }
-
     res.json(hasilGabung);
+    try {
+      await postToGAS('EL_STUDENT_WORKS', hasilGabung);
+    } catch (err) {
+      console.error('Mirror STUDENT_WORKS gagal:', err);
+    }
   } catch (err) {
     console.error('❌ Gagal get karya_semua:', err);
     res.status(500).json({ error: 'Failed to fetch' });

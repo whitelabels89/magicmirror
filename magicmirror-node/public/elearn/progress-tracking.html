@@ -329,7 +329,10 @@
     <main class="main-content">
       <!-- Section: Header -->
       <section class="section-welcome section-spacing" style="margin-bottom: 30px;">
-        <div class="header-welcome">📊 Student Progress Tracker</div>
+        <div class="header-welcome" style="display:flex;align-items:center;justify-content:space-between;">
+          <span>📊 Student Progress Tracker</span>
+          <button id="mirror-progress-btn" style="padding:6px 12px;border:none;background:#0069d9;color:#fff;border-radius:6px;cursor:pointer;">Mirror Now</button>
+        </div>
       </section>
 
       <!-- Section: Student Table -->
@@ -398,6 +401,22 @@
     }
     if (document.getElementById('form-add-student')) {
       document.getElementById('form-add-student').addEventListener('submit', addStudent);
+    }
+
+    const mirrorBtn = document.getElementById('mirror-progress-btn');
+    if (mirrorBtn) {
+      mirrorBtn.addEventListener('click', async () => {
+        mirrorBtn.disabled = true;
+        try {
+          await fetch('/api/progress-murid');
+          alert('✅ Student progress mirrored');
+        } catch (err) {
+          console.error('Mirror student progress failed:', err);
+          alert('❌ Mirror failed');
+        } finally {
+          mirrorBtn.disabled = false;
+        }
+      });
     }
 
   async function loadClasses() {
