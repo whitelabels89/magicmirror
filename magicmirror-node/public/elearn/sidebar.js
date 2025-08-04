@@ -5,6 +5,8 @@ function loadSidebar() {
       const container = document.getElementById('sidebar-container');
       if (container) {
         container.innerHTML = html;
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) sidebar.classList.add('collapsed');
         adjustSidebarByRole();
       }
     });

@@ -395,13 +395,17 @@
       position:absolute; transform:translate(-50%,-50%);
       z-index:2; cursor:pointer; text-align:center;
     }
-    .level-node {
+    .level-node.lesson {
       position: absolute;
       width: 40px;
       height: 40px;
-      background: url('/elearn/img/icon-lesson.png') no-repeat center/contain;
       transform: translate(-50%, -50%);
-      z-index: 10;
+      z-index: 9999;
+    }
+    .level-node.lesson img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
     .map-node .node-icon {
       width:52px; height:52px;
@@ -454,23 +458,13 @@
     /* Animated Arrow for Level Flow */
     .arrow-flow {
       position: absolute;
-      top: 6%;
-      left: 10%;
       width: 30px;
       height: 30px;
       background-image: url('/elearn/img/decor/arrow.png');
       background-size: contain;
       background-repeat: no-repeat;
       z-index: 3;
-      animation: moveArrow 12s linear infinite;
-    }
-    @keyframes moveArrow {
-      0% { top: 6%; left: 10%; }
-      20% { top: 11%; left: 40%; }
-      40% { top: 16%; left: 70%; }
-      60% { top: 21%; left: 40%; }
-      80% { top: 26%; left: 10%; }
-      100% { top: 31%; left: 50%; }
+      animation: none !important;
     }
     /* Lock and Badge Nodes */
     .lock-node {
@@ -537,6 +531,12 @@
       }
     }
 </style>
+  <style>
+    .world-map:hover,
+    .world-map {
+      cursor: url('/elearn/img/decor/arrow.png') 16 16, pointer !important;
+    }
+</style>
   <!-- Firebase App & Auth SDKs (compat) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
@@ -581,31 +581,76 @@
         <!-- Animated Arrow Follows Path -->
         <div class="arrow-flow"></div>
         <!-- LEVEL NODES (zig-zag vertical layout dummy) -->
-        <div class="map-node" style="left:10%;top:5%;" data-lesson="CA1L1"><img src="/elearn/img/map/icon-start.png" class="node-icon"/><span>CA1L1</span></div>
-        <div class="map-node" style="left:40%;top:10%;" data-lesson="CA1L2"><img src="/elearn/img/map/icon-lesson.png" class="node-icon"/><span>CA1L2</span></div>
-        <div class="map-node" style="left:70%;top:15%;" data-lesson="KC1L1"><img src="/elearn/img/map/icon-lesson.png" class="node-icon"/><span>KC1L1</span></div>
-        <div class="map-node" style="left:40%;top:20%;" data-lesson="VP1L1"><img src="/elearn/img/map/icon-lesson.png" class="node-icon"/><span>VP1L1</span></div>
-        <div class="map-node" style="left:10%;top:25%;" data-lesson="M1L1"><img src="/elearn/img/map/icon-boss.png" class="node-icon"/><span>M1L1</span></div>
-        <div class="map-node" style="left:50%;top:30%;" data-lesson="Finish"><img src="/elearn/img/map/icon-finish.png" class="node-icon"/><span>Finish</span></div>
+        <div class="map-node" style="left:27%;top:15%;" data-lesson="CA1L1"><img src="/elearn/img/map/icon-start.png" class="node-icon"/><span>CA1L1</span></div>
+        <div class="map-node" style="left:38%;top:19%;" data-lesson="CA1L2"><img src="/elearn/img/map/icon-lesson.png" class="node-icon"/><span>CA1L2</span></div>
+        <div class="map-node" style="left:72%;top:19%;" data-lesson="KC1L1"><img src="/elearn/img/map/icon-lesson.png" class="node-icon"/><span>KC1L1</span></div>
+        <div class="map-node" style="left:88%;top:55%;" data-lesson="VP1L1"><img src="/elearn/img/map/icon-lesson.png" class="node-icon"/><span>VP1L1</span></div>
+        <div class="map-node" style="left:56.6%;top:40%;" data-lesson="M1L1"><img src="/elearn/img/map/icon-boss.png" class="node-icon"/><span>M1L1</span></div>
+        <div class="map-node" style="left:57%;top:32%;" data-lesson="Finish"><img src="/elearn/img/map/icon-finish.png" class="node-icon"/><span>Finish</span></div>
         <!-- Visual Lock and Badge on Map Path -->
         <div class="map-node lock-node" style="left:70%;top:16%;"></div>
         <div class="map-node badge-node" style="left:50%;top:31%;"></div>
         <!-- LEVEL NODES DUMMY (15 level nodes, campuran sebaran) -->
-        <div class="level-node" style="top: 8%; left: 18%;"></div>
-        <div class="level-node" style="top: 13%; left: 34%;"></div>
-        <div class="level-node" style="top: 21%; left: 42%;"></div>
-        <div class="level-node" style="top: 27%; left: 50%;"></div>
-        <div class="level-node" style="top: 34%; left: 57%;"></div>
-        <div class="level-node" style="top: 41%; left: 66%;"></div>
-        <div class="level-node" style="top: 49%; left: 72%;"></div>
-        <div class="level-node" style="top: 57%; left: 65%;"></div>
-        <div class="level-node" style="top: 63%; left: 52%;"></div>
-        <div class="level-node" style="top: 69%; left: 42%;"></div>
-        <div class="level-node" style="top: 75%; left: 30%;"></div>
-        <div class="level-node" style="top: 80%; left: 20%;"></div>
-        <div class="level-node" style="top: 84%; left: 32%;"></div>
-        <div class="level-node" style="top: 89%; left: 46%;"></div>
-        <div class="level-node" style="top: 94%; left: 58%;"></div>
+        <div class="map-node" style="top:20%;left:50%;" data-lesson="DUMMY1">
+          <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
+          <span>CA1L3</span>
+        </div>
+        <div class="map-node" style="top:20%;left:60%;" data-lesson="DUMMY2">
+          <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
+          <span>CA1L4</span>
+        </div>
+        <div class="map-node" style="top:33%;left:72%;" data-lesson="DUMMY3">
+          <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
+          <span>KC1L2</span>
+        </div>
+        <div class="map-node" style="top:43%;left:78%;" data-lesson="DUMMY4">
+          <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
+          <span>KC1L3</span>
+        </div>
+        <div class="map-node" style="top:73%;left:78%;" data-lesson="DUMMY5">
+          <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
+          <span>DUMMY5</span>
+        </div>
+        <div class="map-node" style="top:80%;left:68%;" data-lesson="DUMMY6">
+          <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
+          <span>DUMMY6</span>
+        </div>
+        <div class="map-node" style="top:49%;left:70%;" data-lesson="DUMMY7">
+          <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
+          <span>DUMMY7</span>
+        </div>
+        <div class="map-node" style="top:49%;left:43%;" data-lesson="DUMMY8">
+          <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
+          <span>DUMMY8</span>
+        </div>
+        <div class="map-node" style="top:63%;left:55%;" data-lesson="DUMMY9">
+          <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
+          <span>DUMMY9</span>
+        </div>
+        <div class="map-node" style="top:80%;left:55%;" data-lesson="DUMMY10">
+          <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
+          <span>DUMMY10</span>
+        </div>
+        <div class="map-node" style="top:77%;left:30%;" data-lesson="DUMMY11">
+          <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
+          <span>DUMMY11</span>
+        </div>
+        <div class="map-node" style="top:79%;left:8%;" data-lesson="DUMMY12">
+          <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
+          <span>DUMMY12</span>
+        </div>
+        <div class="map-node" style="top:54%;left:18%;" data-lesson="DUMMY13">
+          <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
+          <span>DUMMY13</span>
+        </div>
+        <div class="map-node" style="top:39%;left:30%;" data-lesson="DUMMY14">
+          <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
+          <span>DUMMY14</span>
+        </div>
+        <div class="map-node" style="top:94%;left:58%;" data-lesson="DUMMY15">
+          <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
+          <span>DUMMY15</span>
+        </div>
         <!-- Zig-zag SVG path lines -->
         <svg style="position:absolute;left:0;top:0;width:100%;height:100%;z-index:0;pointer-events:none;">
           <path d="M10% 6% C 25% 8%, 25% 10%, 40% 11%" stroke="#6366f1" stroke-width="6" stroke-linecap="round" fill="none" stroke-dasharray="8 10"/>
@@ -1253,6 +1298,71 @@
         });
       });
     });
+  </script>
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    // Ambil semua node di map urut sesuai urutan HTML
+    const nodes = Array.from(document.querySelectorAll('.map-node')).filter(n => n.offsetParent !== null);
+
+    // Debug log!
+    console.log('Keliling semua node:', nodes.map(n => n?.dataset.lesson));
+    if (nodes.length < 2) {
+      alert('Node kurang dari 2! Arrow tidak bisa bergerak');
+      return;
+    }
+    const arrow = document.querySelector('.arrow-flow');
+    if (!arrow) {
+      alert('Elemen .arrow-flow tidak ditemukan!');
+      return;
+    }
+
+    function getNodePos(node) {
+      const rect = node.getBoundingClientRect();
+      const parentRect = node.parentElement.getBoundingClientRect();
+      return {
+        x: rect.left + rect.width / 2 - parentRect.left,
+        y: rect.top + rect.height / 2 - parentRect.top
+      };
+    }
+
+    let current = 0;
+    function moveArrow() {
+      const from = getNodePos(nodes[current]);
+      const to = getNodePos(nodes[(current + 1) % nodes.length]);
+      arrow.style.left = from.x + "px";
+      arrow.style.top = from.y + "px";
+      let progress = 0;
+      function animate() {
+        progress += 0.015;
+        if (progress > 1) progress = 1;
+        const x = from.x + (to.x - from.x) * progress;
+        const y = from.y + (to.y - from.y) * progress;
+        arrow.style.left = x + "px";
+        arrow.style.top = y + "px";
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          current = (current + 1) % nodes.length;
+          setTimeout(moveArrow, 400);
+        }
+      }
+      animate();
+    }
+    moveArrow();
+  });
+  </script>
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const img = document.querySelector('.world-map');
+    if (img) {
+      img.addEventListener('mouseenter', () => {
+        img.style.cursor = "url('/elearn/img/decor/arrow.png') 16 16, pointer";
+      });
+      img.addEventListener('mouseleave', () => {
+        img.style.cursor = "";
+      });
+    }
+  });
   </script>
 </body>
 <script>
