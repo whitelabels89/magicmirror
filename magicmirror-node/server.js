@@ -779,6 +779,22 @@ app.post('/api/daftar-akun-baru', async (req, res) => {
       await db.collection('moderator').doc(uid).set(akunData);
     }
 
+    // Mirror akun baru ke Google Sheet EL_MASTER_USER
+    try {
+      // Format: array of 1 object sesuai header EL_MASTER_USER (mis: cid, uid, nama, email, kelas_id, role)
+      const sheetData = [{
+        cid,
+        uid,
+        nama,
+        email,
+        kelas_id: kelas_id || '',
+        role: mappedRole
+      }];
+      await postToGAS('EL_MASTER_USER', sheetData);
+    } catch (err) {
+      console.error('❌ Mirror EL_MASTER_USER gagal:', err);
+    }
+
     res.json({ success: true, cid, uid });
   } catch (err) {
     console.error('❌ Error daftar akun baru:', err);
