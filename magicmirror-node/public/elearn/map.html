@@ -168,8 +168,9 @@
       overflow-y: auto;
       position: relative;
       height: 100vh;
-      /* Ensure vertical scroll for main content */
-      max-height: 100vh;
+      max-width: 100vw;
+      /* width: 100vw;  JANGAN pakai */
+      /* max-height: 100vh; JANGAN pakai */
     }
 
     .header {
@@ -381,10 +382,13 @@
     .map-container {
       position: relative;
       width: 100%;
-      height: 100%;
+      aspect-ratio: 4/3;  /* Ganti sesuai proporsi image lo, misal 8000/6000 = 4/3 */
       max-width: 100%;
+      margin: 0 auto;
+      height: auto;
       border-radius: 20px;
       overflow: hidden;
+      background: #e0e7ff;
     }
     .world-map {
       width: 100%;
@@ -420,6 +424,15 @@
       box-shadow:0 2px 6px #0001;
     }
     .map-node:hover { transform:translate(-50%,-50%) scale(1.08);}
+    .map-node span {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.22s cubic-bezier(.4,2.4,.4,1);
+    }
+    .map-node:hover span {
+      opacity: 1;
+      pointer-events: auto;
+    }
     /* Cloud Animation Styles */
     .cloud {
       position: absolute;
@@ -571,7 +584,7 @@
         </div>
       </div>
 
-      <section id="game-map" class="map-container" style="width:100vw; height:100vh; background:#e0e7ff; border-radius:40px; position:relative;">
+      <section id="game-map" class="map-container">
         <!-- World Map Image -->
         <img src="/elearn/img/map/worldmap2.jpg" alt="World Map" class="world-map">
         <!-- Cloud Animations -->
@@ -585,13 +598,13 @@
         <div class="map-node" style="left:38%;top:19%;" data-lesson="CA1L2"><img src="/elearn/img/map/icon-lesson.png" class="node-icon"/><span>CA1L2</span></div>
         <div class="map-node" style="left:72%;top:19%;" data-lesson="KC1L1"><img src="/elearn/img/map/icon-lesson.png" class="node-icon"/><span>KC1L1</span></div>
         <div class="map-node" style="left:88%;top:55%;" data-lesson="VP1L1"><img src="/elearn/img/map/icon-lesson.png" class="node-icon"/><span>VP1L1</span></div>
-        <div class="map-node" style="left:56.6%;top:40%;" data-lesson="M1L1"><img src="/elearn/img/map/icon-boss.png" class="node-icon"/><span>M1L1</span></div>
-        <div class="map-node" style="left:57%;top:32%;" data-lesson="Finish"><img src="/elearn/img/map/icon-finish.png" class="node-icon"/><span>Finish</span></div>
+        <div class="map-node" style="left:56.6%;top:36%;" data-lesson="M1L1"><img src="/elearn/img/map/icon-boss.png" class="node-icon"/><span>M1L1</span></div>
+        <div class="map-node" style="left:57%;top:30%;" data-lesson="Finish"><img src="/elearn/img/map/icon-finish.png" class="node-icon"/><span>Finish</span></div>
         <!-- Visual Lock and Badge on Map Path -->
         <div class="map-node lock-node" style="left:70%;top:16%;"></div>
         <div class="map-node badge-node" style="left:50%;top:31%;"></div>
         <!-- LEVEL NODES DUMMY (15 level nodes, campuran sebaran) -->
-        <div class="map-node" style="top:20%;left:50%;" data-lesson="DUMMY1">
+        <div class="map-node" style="top:15%;left:50%;" data-lesson="DUMMY1">
           <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
           <span>CA1L3</span>
         </div>
@@ -607,47 +620,47 @@
           <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
           <span>KC1L3</span>
         </div>
-        <div class="map-node" style="top:73%;left:78%;" data-lesson="DUMMY5">
+        <div class="map-node" style="top:74%;left:95%;" data-lesson="DUMMY5">
           <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
           <span>DUMMY5</span>
         </div>
-        <div class="map-node" style="top:80%;left:68%;" data-lesson="DUMMY6">
+        <div class="map-node" style="top:85%;left:63%;" data-lesson="DUMMY6">
           <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
           <span>DUMMY6</span>
         </div>
-        <div class="map-node" style="top:49%;left:70%;" data-lesson="DUMMY7">
+        <div class="map-node" style="top:65%;left:65%;" data-lesson="DUMMY7">
           <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
           <span>DUMMY7</span>
         </div>
-        <div class="map-node" style="top:49%;left:43%;" data-lesson="DUMMY8">
+        <div class="map-node" style="top:43%;left:43%;" data-lesson="DUMMY8">
           <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
           <span>DUMMY8</span>
         </div>
-        <div class="map-node" style="top:63%;left:55%;" data-lesson="DUMMY9">
+        <div class="map-node" style="top:55%;left:53%;" data-lesson="DUMMY9">
           <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
           <span>DUMMY9</span>
         </div>
-        <div class="map-node" style="top:80%;left:55%;" data-lesson="DUMMY10">
+        <div class="map-node" style="top:88%;left:42%;" data-lesson="DUMMY10">
           <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
           <span>DUMMY10</span>
         </div>
-        <div class="map-node" style="top:77%;left:30%;" data-lesson="DUMMY11">
+        <div class="map-node" style="top:65%;left:30%;" data-lesson="DUMMY11">
           <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
           <span>DUMMY11</span>
         </div>
-        <div class="map-node" style="top:79%;left:8%;" data-lesson="DUMMY12">
+        <div class="map-node" style="top:79%;left:12%;" data-lesson="DUMMY12">
           <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
           <span>DUMMY12</span>
         </div>
-        <div class="map-node" style="top:54%;left:18%;" data-lesson="DUMMY13">
+        <div class="map-node" style="top:54%;left:10%;" data-lesson="DUMMY13">
           <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
           <span>DUMMY13</span>
         </div>
-        <div class="map-node" style="top:39%;left:30%;" data-lesson="DUMMY14">
+        <div class="map-node" style="top:39%;left:25%;" data-lesson="DUMMY14">
           <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
           <span>DUMMY14</span>
         </div>
-        <div class="map-node" style="top:94%;left:58%;" data-lesson="DUMMY15">
+        <div class="map-node" style="top:94%;left:90%;" data-lesson="DUMMY15">
           <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
           <span>DUMMY15</span>
         </div>
