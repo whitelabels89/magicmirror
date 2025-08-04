@@ -60,6 +60,10 @@
           <li><a href="progress-tracking.html"><i class="fas fa-chart-line"></i><span class="sidebar-label">Student Progress</span></a></li>
           <li><a href="student-works.html"><i class="fas fa-paint-brush"></i><span class="sidebar-label">Student Works</span></a></li>
           <li><a href="activity-reports.html"><i class="fas fa-file-alt"></i><span class="sidebar-label">Activity Reports</span></a></li>
+          <li style="padding:8px 0 0 10px;">
+            <button id="mirror-all-btn" style="padding:6px 12px;border:none;background:#0069d9;color:#fff;border-radius:6px;cursor:pointer;">Mirror All Now</button>
+            <div id="mirror-all-status" style="padding-top:4px;color:#fff;"></div>
+          </li>
         </ul>
         <hr class="sidebar-divider">
       </div>
@@ -92,3 +96,17 @@
     </button>
   </aside>
 </div>
+<script>
+document.getElementById('mirror-all-btn')?.addEventListener('click', async () => {
+  const statusEl = document.getElementById('mirror-all-status');
+  if (statusEl) statusEl.textContent = '⏳ Mirroring...';
+  try {
+    const res = await fetch('/api/mirror-all');
+    await res.json();
+    if (statusEl) statusEl.textContent = '✅ Mirror all success';
+  } catch (err) {
+    console.error('Mirror all data failed:', err);
+    if (statusEl) statusEl.textContent = '❌ Mirror all failed';
+  }
+});
+</script>

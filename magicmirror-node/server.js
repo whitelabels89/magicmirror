@@ -31,6 +31,25 @@ async function postToGAS(tabName, dataArray) {
   }
 }
 
+async function postAllToGAS(datasets) {
+  const GAS_URL = process.env.WEB_APP_URL || 'https://script.google.com/macros/s/AKfycbynFv8gTnczc7abTL5Olq_sKmf1e0y6w9z_KBTKETK8i6NaGd941Cna4QVnoujoCsMdvA/exec';
+  if (!GAS_URL.startsWith('http')) throw new Error('Invalid GAS URL');
+
+  const res = await fetch(`${GAS_URL}?action=mirrorAllData`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ datasets })
+  });
+
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    console.error('Invalid JSON from GAS:', text);
+    throw new Error('GAS did not return valid JSON');
+  }
+}
+
 // POST /api/assign-murid-ke-kelas - assign murid ke kelas/lesson
 app.post('/api/assign-murid-ke-kelas', async (req, res) => {
   const { uid, kelas_id } = req.body;
@@ -78,10 +97,150 @@ const db = admin.firestore();
 
 const PORT = process.env.PORT || 3000;
 
+async function getClassList() {
+  const snap = await db.collection('kelas').get();
+  if (snap.empty) return [];
+  return snap.docs.map(d => {
+    const val = d.data();
+    return {
+      kelas_id: val.kelas_id || d.id,
+      nama_kelas: val.nama_kelas || '',
+      guru_id: val.guru_id || '',
+      jumlah_murid: Array.isArray(val.murid) ? val.murid.length : 0
+    };
+  });
+}
+
+async function getLessonsList() {
+  const snap = await db.collection('lessons').get();
+  return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+async function getProgressMurid() {
+  const muridSnap = await db.collection('progress_murid').get();
+  const hasil = [];
+  for (const doc of muridSnap.docs) {
+    const cid = doc.id;
+    const profilSnap = await db.collection('murid').doc(cid).get();
+    const nama = profilSnap.exists ? (profilSnap.data().nama || '') : '';
+    const kelas_id = profilSnap.exists ? (profilSnap.data().kelas_id || '-') : '-';
+
+    const lessonsSnap = await db.collection('progress_murid').doc(cid).collection('lessons').get();
+    const total = lessonsSnap.size;
+    const selesai = lessonsSnap.docs.filter(l => l.data().status === 'selesai').length;
+    const status = total === 0 ? 'Belum mulai' : (selesai === total ? 'Selesai semua' : 'Aktif');
+    const percent = total > 0 ? Math.round((selesai / total) * 100) : 0;
+
+    hasil.push({ cid, nama, kelas_id, total_lesson: total, progress_percent: percent, status });
+  }
+  return hasil;
+}
+
+async function getAllStudentWorks() {
+  const hasilGabung = [];
+  const quizSnap = await db.collection('lesson_results').get();
+
+  for (const doc of quizSnap.docs) {
+    const data = doc.data();
+    const cid = data.cid;
+    const lesson = data.lesson;
+    const nama = data.nama || '';
+    const quiz_teori = data.quiz_teori ?? '-';
+    const quiz_praktek = data.quiz_praktek ?? '-';
+    const timestamp = data.timestamp ?? null;
+
+    let judul = '-', link = '-', tipe = '-', status = '-';
+    try {
+      const karyaRef = await db.collection('karya_anak').doc(cid).collection('lesson').doc(lesson).get();
+      if (karyaRef.exists) {
+        const karyaData = karyaRef.data();
+        judul = karyaData.judul || '-';
+        link = karyaData.link || '-';
+        tipe = karyaData.tipe || '-';
+        status = karyaData.status || '-';
+      }
+    } catch (e) {
+      console.warn(`❗ Tidak ada karya untuk ${cid} - ${lesson}`);
+    }
+
+    hasilGabung.push({ cid, nama, lesson, judul, link, tipe, quiz_teori, quiz_praktek, timestamp, status });
+  }
+
+  return hasilGabung;
+}
+
+async function getActivityReports() {
+  const snap = await db.collection('activity_logs').get();
+  return snap.docs.map(d => {
+    const val = d.data();
+    return {
+      cid: val.cid || '',
+      nama: val.nama || '',
+      lesson: val.lesson || '',
+      timestamp: val.timestamp || null,
+      aktivitas: val.aktivitas || '',
+      quiz_score: val.quiz_score ?? null,
+      link: val.link || ''
+    };
+  });
+}
+
+async function getBadges() {
+  const snap = await db.collection('badges').get();
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+async function getRewardHistory() {
+  const snap = await db.collection('reward_history').get();
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
 app.use(cors());
 app.use(express.json({ limit: '10mb' })); // untuk terima JSON besar (seperti foto)
 app.use('/generated_lessons', express.static(path.join(__dirname, '..', 'generated_lessons')));
 app.use(uploadModulRouter);
+
+app.get('/api/mirror-all', async (req, res) => {
+  try {
+    const datasets = [];
+    datasets.push({ tab: 'EL_CLASS_LIST', data: await getClassList() });
+    datasets.push({ tab: 'EL_LESSONS_LIST', data: await getLessonsList() });
+    datasets.push({ tab: 'EL_STUDENT_PROGRESS', data: await getProgressMurid() });
+    datasets.push({ tab: 'EL_STUDENT_WORKS', data: await getAllStudentWorks() });
+    datasets.push({ tab: 'EL_ACTIVITY_REPORTS', data: await getActivityReports() });
+    datasets.push({ tab: 'EL_BADGES', data: await getBadges() });
+    datasets.push({ tab: 'EL_REWARD_HISTORY', data: await getRewardHistory() });
+
+    const result = await postAllToGAS(datasets);
+    res.json(result);
+  } catch (err) {
+    console.error('Mirror all data failed:', err);
+    res.status(500).json({ error: 'Mirror all data failed', message: err.message });
+  }
+});
+
+app.get('/api/mirror-login-data', async (req, res) => {
+  try {
+    const snapshot = await db.collection('akun').get();
+    const dataArray = [];
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      dataArray.push({
+        cid: data.cid || '',
+        uid: doc.id,
+        nama: data.nama || '',
+        email: data.email || '',
+        kelas_id: data.kelas_id || '',
+        role: data.role || ''
+      });
+    });
+    const result = await postToGAS('EL_MASTER_USER', dataArray);
+    res.json(result);
+  } catch (err) {
+    console.error('Mirror login data gagal:', err);
+    res.status(500).json({ error: 'Mirror login data gagal', message: err.message });
+  }
+});
 
 async function verifyRecaptcha(req, res, next) {
   const token = req.body["g-recaptcha-response"];
