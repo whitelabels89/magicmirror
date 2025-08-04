@@ -12,7 +12,12 @@ const admin = require('firebase-admin');
 const fetch = require('node-fetch');
 
 async function postToGAS(tabName, dataArray) {
-  const res = await fetch(`${process.env.WEB_APP_URL}?action=mirrorData`, {
+  const GAS_URL = process.env.WEB_APP_URL || 'https://script.google.com/macros/s/AKfycbynFv8gTnczc7abTL5Olq_sKmf1e0y6w9z_KBTKETK8i6NaGd941Cna4QVnoujoCsMdvA/exec';
+  if (!GAS_URL.startsWith('http')) {
+    throw new Error('Invalid WEB_APP_URL. Must be absolute URL.');
+  }
+  console.log(`Mirroring ${tabName} to ${GAS_URL}`);
+  const res = await fetch(`${GAS_URL}?action=mirrorData`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ tab: tabName, data: dataArray })
