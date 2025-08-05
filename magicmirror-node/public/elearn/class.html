@@ -548,7 +548,16 @@
       try {
         const res = await fetch('/api/kelas');
         const json = await res.json();
-        const list = Array.isArray(json.data) ? json.data : [];
+        // Cek apakah json.data array, jika tidak cek apakah json sendiri array
+        let list = [];
+        if (Array.isArray(json.data)) {
+          list = json.data;
+        } else if (Array.isArray(json)) {
+          list = json;
+        }
+        // Debug: tampilkan jumlah kelas dan isinya
+        console.log('[loadClassOptions] Jumlah kelas:', list.length);
+        console.log('[loadClassOptions] Data kelas:', list);
         const classSelect = document.getElementById('class-select');
         classSelect.innerHTML = '<option value="" disabled selected>Pilih Kelas</option>';
         list.forEach(kelas => {
