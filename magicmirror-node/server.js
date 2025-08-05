@@ -11,6 +11,10 @@ const uploadModulRouter = require('./uploadModul');
 const admin = require('firebase-admin');
 const fetch = require('node-fetch');
 
+// Apply middleware early so body parsing is available for all routes
+app.use(cors());
+app.use(express.json({ limit: '10mb' })); // handle large JSON bodies
+
 async function postToGAS(tabName, dataArray) {
   const GAS_URL = process.env.WEB_APP_URL || 'https://script.google.com/macros/s/AKfycbynFv8gTnczc7abTL5Olq_sKmf1e0y6w9z_KBTKETK8i6NaGd941Cna4QVnoujoCsMdvA/exec';
   if (!GAS_URL.startsWith('http')) {
@@ -52,7 +56,8 @@ async function postAllToGAS(datasets) {
 
 // POST /api/assign-murid-ke-kelas - assign murid ke kelas/lesson
 app.post('/api/assign-murid-ke-kelas', async (req, res) => {
-  const { uid, kelas_id } = req.body;
+  // Safely extract body fields in case body parsing fails
+  const { uid, kelas_id } = req.body || {};
   if (!uid || !kelas_id) {
     return res.status(400).json({ success: false, error: 'Data tidak lengkap' });
   }
@@ -195,8 +200,7 @@ async function getRewardHistory() {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
-app.use(cors());
-app.use(express.json({ limit: '10mb' })); // untuk terima JSON besar (seperti foto)
+// Static assets and additional routers
 app.use('/generated_lessons', express.static(path.join(__dirname, '..', 'generated_lessons')));
 app.use(uploadModulRouter);
 
