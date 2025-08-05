@@ -591,26 +591,33 @@
         statusEl.textContent = 'Silakan pilih murid dan kelas.';
         return;
       }
-      try {
-        const res = await fetch('/api/assign-murid-ke-kelas', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ uid, kelas_id })
-        });
-        if (res.ok) {
-          statusEl.style.color = 'green';
-          statusEl.textContent = 'Berhasil assign/move murid ke kelas.';
-          if (kelas_id === currentSelectedClassId) {
-            loadStudents(kelas_id);
+        try {
+          const res = await fetch('/api/assign-murid-ke-kelas', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ uid, kelas_id })
+          });
+          const raw = await res.text();
+          if (res.ok) {
+            statusEl.style.color = 'green';
+            statusEl.textContent = 'Berhasil assign/move murid ke kelas.';
+            if (kelas_id === currentSelectedClassId) {
+              loadStudents(kelas_id);
+            }
+          } else {
+            let message = res.statusText;
+            try {
+              const errorData = JSON.parse(raw);
+              message = errorData.message || errorData.error || message;
+            } catch (e) {
+              if (raw) message = raw;
+            }
+            statusEl.style.color = 'red';
+            statusEl.textContent = 'Gagal assign murid: ' + message;
           }
-        } else {
-          const errorData = await res.json();
-          statusEl.style.color = 'red';
-          statusEl.textContent = 'Gagal assign murid: ' + (errorData.message || res.statusText);
-        }
-      } catch (err) {
+        } catch (err) {
         statusEl.style.color = 'red';
         statusEl.textContent = 'Error saat assign murid.';
         console.error(err);
