@@ -523,7 +523,8 @@ app.get('/api/lesson-aktif', async (req, res) => {
       const lessonSnap = await db.collection('progress_murid').doc(cid).collection('lessons').get();
       for (const l of lessonSnap.docs) {
         const data = l.data();
-        if (data.status === 'berlangsung') {
+        // Consider lessons with status 'aktif' (active) or 'berlangsung' (ongoing)
+        if (data.status === 'aktif' || data.status === 'berlangsung') {
           hasil.push({
             cid,
             nama_murid: nama,
