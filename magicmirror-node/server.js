@@ -630,19 +630,25 @@ app.post('/api/lessons', async (req, res) => {
   }
 });
 
-// ======= E-learning Moderator Endpoints =======
-// GET /api/semua-murid - daftar semua murid (uid, nama, email)
+// PATCH: GET /api/semua-murid - return juga field cid untuk dropdown!
 app.get('/api/semua-murid', async (req, res) => {
   try {
     const snap = await db.collection('murid').get();
     const data = snap.docs.map(d => {
       const val = d.data();
-      return { uid: d.id, nama: val.nama || '', email: val.email || '' };
+      return {
+        uid: d.id,
+        cid: val.cid || '',
+        nama: val.nama || '',
+        email: val.email || '',
+        kelas_id: val.kelas_id || '',
+        role: val.role || ''
+      };
     });
-    res.json(data);
+    res.json({ data });
   } catch (err) {
     console.error('❌ Error get semua murid:', err);
-    res.status(500).json([]);
+    res.status(500).json({ data: [] });
   }
 });
 
