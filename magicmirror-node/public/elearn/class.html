@@ -540,11 +540,13 @@
         const studentSelect = document.getElementById('student-select');
         studentSelect.innerHTML = '<option value="" disabled selected>Pilih Murid</option>';
         list.forEach(murid => {
-          const cid = murid.cid || murid.uid || '';
-          const nama = murid.nama || murid.name || cid;
+          const uid = murid.uid || murid.cid || '';
+          const cid = murid.cid || '';
+          const nama = murid.nama || murid.name || cid || uid;
           const email = murid.email || '';
           const option = document.createElement('option');
-          option.value = cid;
+          option.value = uid; // gunakan uid dokumen untuk assign
+          option.dataset.cid = cid;
           option.textContent = `${nama} (${email})`;
           studentSelect.appendChild(option);
         });

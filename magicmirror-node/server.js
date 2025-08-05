@@ -62,10 +62,18 @@ app.post('/api/assign-murid-ke-kelas', async (req, res) => {
     return res.status(400).json({ success: false, error: 'Data tidak lengkap' });
   }
   try {
-    const muridRef = db.collection('murid').doc(uid);
-    const muridSnap = await muridRef.get();
+    let targetUid = uid;
+    let muridRef = db.collection('murid').doc(targetUid);
+    let muridSnap = await muridRef.get();
+    // Jika tidak ditemukan, coba cari berdasarkan field cid
     if (!muridSnap.exists) {
-      return res.status(404).json({ success: false, error: 'Murid tidak ditemukan' });
+      const byCid = await db.collection('murid').where('cid', '==', uid).limit(1).get();
+      if (byCid.empty) {
+        return res.status(404).json({ success: false, error: 'Murid tidak ditemukan' });
+      }
+      muridSnap = byCid.docs[0];
+      targetUid = muridSnap.id;
+      muridRef = db.collection('murid').doc(targetUid);
     }
 
     // Tambahkan kelas_id ke array akses_lesson murid
@@ -78,7 +86,7 @@ app.post('/api/assign-murid-ke-kelas', async (req, res) => {
     const kelasRef = db.collection('kelas').doc(kelas_id);
     await kelasRef.set({ kelas_id }, { merge: true });
     await kelasRef.update({
-      murid: admin.firestore.FieldValue.arrayUnion(uid)
+      murid: admin.firestore.FieldValue.arrayUnion(targetUid)
     });
 
     res.json({ success: true });
