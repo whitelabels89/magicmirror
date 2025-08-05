@@ -517,11 +517,14 @@
           console.error('Format response tidak sesuai:', json);
         }
         muridList.forEach(murid => {
+          const cid = murid.cid || murid.uid || '';
+          const nama = murid.nama || murid.name || '';
+          const email = murid.email || '';
           const tr = document.createElement('tr');
           tr.innerHTML = `
-            <td data-label="CID">${murid.cid}</td>
-            <td data-label="Nama"><a href="/elearn/student-profile.html?cid=${murid.cid}">${murid.nama}</a></td>
-            <td data-label="Email">${murid.email}</td>`;
+            <td data-label="CID">${cid}</td>
+            <td data-label="Nama"><a href="/elearn/student-profile.html?cid=${cid}">${nama}</a></td>
+            <td data-label="Email">${email}</td>`;
           tbody.appendChild(tr);
         });
       } catch (err) {
@@ -533,13 +536,16 @@
       try {
         const res = await fetch('/api/semua-murid');
         const json = await res.json();
-        const list = Array.isArray(json.data) ? json.data : [];
+        const list = Array.isArray(json.data) ? json.data : (Array.isArray(json) ? json : []);
         const studentSelect = document.getElementById('student-select');
         studentSelect.innerHTML = '<option value="" disabled selected>Pilih Murid</option>';
         list.forEach(murid => {
+          const cid = murid.cid || murid.uid || '';
+          const nama = murid.nama || murid.name || cid;
+          const email = murid.email || '';
           const option = document.createElement('option');
-          option.value = murid.cid;
-          option.textContent = murid.nama + ' (' + murid.email + ')';
+          option.value = cid;
+          option.textContent = `${nama} (${email})`;
           studentSelect.appendChild(option);
         });
       } catch (err) {
@@ -577,21 +583,21 @@
     const assignForm = document.getElementById('assign-form');
     assignForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const cid = document.getElementById('student-select').value;
+      const uid = document.getElementById('student-select').value;
       const kelas_id = document.getElementById('class-select').value;
       const statusEl = document.getElementById('assign-status');
       statusEl.textContent = '';
-      if (!cid || !kelas_id) {
+      if (!uid || !kelas_id) {
         statusEl.textContent = 'Silakan pilih murid dan kelas.';
         return;
       }
       try {
-        const res = await fetch('/api/assign-student-to-class', {
+        const res = await fetch('/api/assign-murid-ke-kelas', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ cid, kelas_id })
+          body: JSON.stringify({ uid, kelas_id })
         });
         if (res.ok) {
           statusEl.style.color = 'green';
