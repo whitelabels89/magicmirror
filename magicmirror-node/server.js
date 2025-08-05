@@ -754,6 +754,23 @@ app.get('/api/kelas/:id', async (req, res) => {
   }
 });
 
+// DELETE /api/kelas/:id - hapus kelas
+app.delete('/api/kelas/:id', async (req, res) => {
+  try {
+    const kelasId = req.params.id;
+    const ref = db.collection('kelas').doc(kelasId);
+    const doc = await ref.get();
+    if (!doc.exists) {
+      return res.status(404).json({ success: false, error: 'Kelas tidak ditemukan' });
+    }
+    await ref.delete();
+    res.json({ success: true });
+  } catch (err) {
+    console.error('❌ Error delete kelas:', err);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
+
 // POST /api/kelas - tambah kelas baru
 app.post('/api/kelas', async (req, res) => {
   const { kelas_id, nama_kelas, guru_id } = req.body;

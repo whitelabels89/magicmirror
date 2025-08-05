@@ -479,8 +479,15 @@
                   loadClasses();
                   loadClassOptions();
                 } else {
-                  const errData = await res.json();
-                  alert('Gagal menghapus kelas: ' + (errData.message || res.statusText));
+                  const text = await res.text();
+                  let msg = '';
+                  try {
+                    const errJson = JSON.parse(text);
+                    msg = errJson.message || errJson.error || '';
+                  } catch (e) {
+                    msg = text;
+                  }
+                  alert('Gagal menghapus kelas: ' + (msg || res.statusText));
                 }
               } catch (err) {
                 alert('Terjadi kesalahan saat menghapus kelas.');
