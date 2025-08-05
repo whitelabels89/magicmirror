@@ -397,6 +397,22 @@
         </div>
       </section>
 
+      <!-- Section: Assign / Move Student to Class -->
+      <section class="section-assign form-card section-spacing" style="margin-bottom: 30px;">
+        <h2>Assign / Move Student to Class</h2>
+        <form id="assign-form">
+          <label for="student-select">Pilih Murid:</label>
+          <select id="student-select" required>
+            <option value="" disabled selected>Pilih Murid</option>
+          </select>
+          <label for="class-select">Pilih Kelas:</label>
+          <select id="class-select" required>
+            <option value="" disabled selected>Pilih Kelas</option>
+          </select>
+          <button type="submit">Assign</button>
+        </form>
+        <p id="assign-status" style="margin-top: 10px;"></p>
+      </section>
 
     </main>
   </div>
@@ -417,7 +433,11 @@
       document.getElementById('user-name').textContent = userName;
     }
 
+    let currentSelectedClassId = null;
+
     loadClasses();
+    loadAllStudentsList();
+    loadClassOptions();
 
     async function loadClasses() {
       try {
@@ -435,8 +455,39 @@
             <td data-label="Nama Kelas">${kelas.nama_kelas}</td>
             <td data-label="Guru ID">${kelas.guru_id}</td>
             <td data-label="Jumlah Murid">${kelas.jumlah_murid || 0}</td>
-            <td data-label="Aksi"><button data-id="${kelas.kelas_id}">Lihat Murid</button></td>`;
-          tr.querySelector('button').addEventListener('click', () => loadStudents(kelas.kelas_id));
+            <td data-label="Aksi">
+              <button data-action="lihat" data-id="${kelas.kelas_id}">Lihat Murid</button>
+              <button data-action="hapus" data-id="${kelas.kelas_id}" style="background:#c0392b; margin-left:7px;">Hapus</button>
+            </td>`;
+          // Lihat Murid
+          tr.querySelector('button[data-action="lihat"]').addEventListener('click', () => {
+            currentSelectedClassId = kelas.kelas_id;
+            loadStudents(kelas.kelas_id);
+            // Also update the class-select dropdown to reflect selected class
+            const classSelect = document.getElementById('class-select');
+            if (classSelect) {
+              classSelect.value = kelas.kelas_id;
+            }
+          });
+          // Hapus
+          tr.querySelector('button[data-action="hapus"]').addEventListener('click', async () => {
+            if (confirm('Yakin ingin menghapus kelas ini? Semua data murid di kelas ini tidak akan ikut terhapus.')) {
+              try {
+                const res = await fetch(`/api/kelas/${kelas.kelas_id}`, { method: 'DELETE' });
+                if (res.ok) {
+                  // Berhasil, refresh daftar kelas
+                  loadClasses();
+                  loadClassOptions();
+                } else {
+                  const errData = await res.json();
+                  alert('Gagal menghapus kelas: ' + (errData.message || res.statusText));
+                }
+              } catch (err) {
+                alert('Terjadi kesalahan saat menghapus kelas.');
+                console.error(err);
+              }
+            }
+          });
           tbody.appendChild(tr);
           totalMurid += (kelas.jumlah_murid || 0);
           if (kelas.guru_id) guruSet.add(kelas.guru_id);
@@ -453,21 +504,101 @@
     async function loadStudents(kelasId) {
       try {
         const res = await fetch(`/api/kelas/${kelasId}`);
-        const data = await res.json();
+        const json = await res.json();
         const tbody = document.querySelector('#students-table tbody');
         tbody.innerHTML = '';
-        data.forEach(murid => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td data-label="CID">${murid.cid}</td>
-            <td data-label="Nama"><a href="/elearn/student-profile.html?cid=${murid.cid}">${murid.nama}</a></td>
-            <td data-label="Email">${murid.email}</td>`;
-          tbody.appendChild(tr);
+        // Cek apakah response memiliki property data dan berupa array
+        if (json && Array.isArray(json.data)) {
+          json.data.forEach(murid => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td data-label="CID">${murid.cid}</td>
+              <td data-label="Nama"><a href="/elearn/student-profile.html?cid=${murid.cid}">${murid.nama}</a></td>
+              <td data-label="Email">${murid.email}</td>`;
+            tbody.appendChild(tr);
+          });
+        } else {
+          // Jika format tidak sesuai, log error
+          console.error('Format response tidak sesuai:', json);
+        }
+      } catch (err) {
+        console.error('Gagal memuat murid:', err);
+      }
+    }
+
+    async function loadAllStudentsList() {
+      try {
+        const res = await fetch('/api/semua-murid');
+        const json = await res.json();
+        const list = Array.isArray(json.data) ? json.data : [];
+        const studentSelect = document.getElementById('student-select');
+        studentSelect.innerHTML = '<option value="" disabled selected>Pilih Murid</option>';
+        list.forEach(murid => {
+          const option = document.createElement('option');
+          option.value = murid.cid;
+          option.textContent = murid.nama + ' (' + murid.email + ')';
+          studentSelect.appendChild(option);
         });
       } catch (err) {
         console.error(err);
       }
     }
+
+    async function loadClassOptions() {
+      try {
+        const res = await fetch('/api/kelas');
+        const json = await res.json();
+        const list = Array.isArray(json.data) ? json.data : [];
+        const classSelect = document.getElementById('class-select');
+        classSelect.innerHTML = '<option value="" disabled selected>Pilih Kelas</option>';
+        list.forEach(kelas => {
+          const option = document.createElement('option');
+          option.value = kelas.kelas_id;
+          option.textContent = kelas.nama_kelas;
+          classSelect.appendChild(option);
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    const assignForm = document.getElementById('assign-form');
+    assignForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const cid = document.getElementById('student-select').value;
+      const kelas_id = document.getElementById('class-select').value;
+      const statusEl = document.getElementById('assign-status');
+      statusEl.textContent = '';
+      if (!cid || !kelas_id) {
+        statusEl.textContent = 'Silakan pilih murid dan kelas.';
+        return;
+      }
+      try {
+        const res = await fetch('/api/assign-student-to-class', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ cid, kelas_id })
+        });
+        if (res.ok) {
+          statusEl.style.color = 'green';
+          statusEl.textContent = 'Berhasil assign/move murid ke kelas.';
+          if (kelas_id === currentSelectedClassId) {
+            loadStudents(kelas_id);
+          }
+        } else {
+          const errorData = await res.json();
+          statusEl.style.color = 'red';
+          statusEl.textContent = 'Gagal assign murid: ' + (errorData.message || res.statusText);
+        }
+      } catch (err) {
+        statusEl.style.color = 'red';
+        statusEl.textContent = 'Error saat assign murid.';
+        console.error(err);
+      }
+    });
+
 }); // tutup event listener DOMContentLoaded
 </script>
 
