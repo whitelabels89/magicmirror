@@ -541,7 +541,7 @@
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td data-label="CID">${cid}</td>
-            <td data-label="Nama">${m.nama}</td>
+            <td data-label="Nama"><a href="/elearn/student-profile.html?cid=${encodeURIComponent(cid)}">${m.nama}</a></td>
             <td data-label="Email">${m.email}</td>`;
           allTableBody.appendChild(tr);
         }

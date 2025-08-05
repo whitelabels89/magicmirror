@@ -352,7 +352,35 @@
             <input type="email" id="email" placeholder="Email" required>
             <input type="text" id="wa" placeholder="WhatsApp Number (e.g. 0812xxxx)">
             <input type="password" id="password" placeholder="Password" required>
-            <input type="text" id="kelas_id_student" placeholder="Class ID (optional for non-student)">
+            <select id="kelas_id_student">
+              <option value="">Select Class (optional)</option>
+            </select>
+  <script>
+  // Function to load class options for the dropdown
+  async function loadClassOptions() {
+    const select = document.getElementById('kelas_id_student');
+    if (!select) return;
+    // Remove all except the default option
+    select.innerHTML = '<option value="">Select Class (optional)</option>';
+    try {
+      const res = await fetch(`${FIREBASE_API}/api/kelas`);
+      if (!res.ok) throw new Error('Failed to fetch class list');
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        data.forEach(item => {
+          // Expect item has kelas_id and nama_kelas
+          const opt = document.createElement('option');
+          opt.value = item.kelas_id || '';
+          opt.textContent = item.nama_kelas ? `${item.nama_kelas} (${item.kelas_id})` : item.kelas_id;
+          select.appendChild(opt);
+        });
+      }
+    } catch (err) {
+      // Optionally show error or keep dropdown empty
+      // console.error('Error loading class options:', err);
+    }
+  }
+  </script>
             
             <button type="submit">Create Account</button>
             <p id="student-status"></p>
@@ -397,6 +425,8 @@
     if (currentTheme === 'dark') {
       document.getElementById('sidebar-container')?.classList.add('dark-theme');
     }
+    // Load class options into the dropdown
+    loadClassOptions();
   });
   </script>
 
