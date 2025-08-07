@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Level A5</title>
+  <style>
+    body {
+      font-family: Comic Sans MS, cursive, sans-serif;
+      background-color: #FFF8DC;
+      text-align: center;
+      padding: 20px;
+    }
+    .color-circle {
+      display: inline-block;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 30px;
+      font-weight: bold;
+      margin: 0 5px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    }
+    .red { background-color: red; color: white; }
+    .yellow { background-color: yellow; }
+    .green { background-color: green; color: white; }
+    .blue { background-color: blue; color: white; }
+    .purple { background-color: purple; color: white; }
+
+    .color-circle:focus,
+    .color-circle:active {
+      outline: 3px solid black;
+    }
+
+    .grid {
+      display: flex;
+      flex-wrap: wrap;
+      width: 360px;
+      margin: 20px auto 0;
+      gap: 5px;
+      justify-content: center;
+    }
+    .cell {
+      width: 40px;
+      height: 40px;
+      font-size: 18px;
+      text-align: center;
+      line-height: 40px;
+      border: 2px solid #ccc;
+      border-radius: 50%;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.2s;
+    }
+    .cell:hover {
+      transform: scale(1.1);
+    }
+    .instruction {
+      font-family: Arial, sans-serif;
+      margin-top: 20px;
+    }
+    .legend {
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+    #resultMessage {
+      margin-top: 15px;
+      font-weight: bold;
+      font-size: 18px;
+    }
+    #checkButton {
+      margin-top: 15px; 
+      padding: 8px 16px; 
+      font-size: 16px; 
+      cursor: pointer;
+      background-color: #FF69B4;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-weight: bold;
+      transition: transform 0.2s;
+    }
+    #checkButton:hover {
+      transform: scale(1.1);
+    }
+  </style>
+</head>
+<body>
+  <h2 class="instruction" style="color: #FF69B4; font-size: 28px;">Lingkari Sesuai Petunjuk Warna</h2>
+  <div class="legend">
+    <div class="color-circle red">1</div>
+    <div class="color-circle yellow">2</div>
+    <div class="color-circle green">3</div>
+    <div class="color-circle blue">4</div>
+    <div class="color-circle purple">5</div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <button id="checkButton">Cek Jawaban</button>
+  <div id="resultMessage"></div>
+
+  <script>
+    const colorMap = {
+      1: 'red',
+      2: 'yellow',
+      3: 'green',
+      4: 'blue',
+      5: 'purple'
+    };
+
+    let activeColor = null;
+    const colorButtons = document.querySelectorAll('.color-circle');
+    colorButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        activeColor = button.innerText;
+        colorButtons.forEach(btn => btn.style.outline = '');
+        button.style.outline = '3px solid black';
+      });
+    });
+
+    // Generate 8x8 grid with random numbers 1-5
+    const grid = document.getElementById('grid');
+    const size = 8;
+    const cells = [];
+
+    for(let i = 0; i < size * size; i++) {
+      const cell = document.createElement('div');
+      cell.classList.add('cell');
+      const num = Math.floor(Math.random() * 5) + 1;
+      cell.innerText = num;
+      cell.dataset.number = num;
+      cell.dataset.marked = 'false';
+      grid.appendChild(cell);
+      cells.push(cell);
+
+      cell.addEventListener('click', () => {
+        if (!activeColor) return;
+        if (cell.dataset.marked === activeColor) {
+          cell.style.borderColor = '#ccc';
+          cell.dataset.marked = 'false';
+        } else {
+          const color = colorMap[activeColor];
+          cell.style.borderColor = color;
+          cell.dataset.marked = activeColor;
+        }
+      });
+    }
+
+    // For checking the answer, we define a correct pattern:
+    // The correct answer is to mark cells where the marked color matches the number.
+    // Any cell not marked or marked incorrectly is wrong.
+
+    document.getElementById('checkButton').addEventListener('click', () => {
+      let allCorrect = true;
+      for (const cell of cells) {
+        const num = parseInt(cell.dataset.number);
+        const marked = cell.dataset.marked;
+
+        if (marked === num.toString()) {
+          cell.style.backgroundColor = 'lightgreen'; // benar
+          cell.style.outline = '2px solid black';
+        } else {
+          allCorrect = false;
+          cell.style.backgroundColor = 'lightcoral'; // salah atau tidak diwarnai
+          cell.style.outline = 'none';
+        }
+      }
+
+      const resultMessage = document.getElementById('resultMessage');
+      if (allCorrect) {
+        resultMessage.innerText = "Selamat!";
+        resultMessage.style.color = "green";
+      } else {
+        resultMessage.innerText = "Coba lagi ya!";
+        resultMessage.style.color = "red";
+      }
+    });
+  </script>
+</body>
+</html>

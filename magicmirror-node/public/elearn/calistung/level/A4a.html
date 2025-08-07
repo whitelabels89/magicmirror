@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Angka Berwarna</title>
+  <style>
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .judul {
+      font-size: 2em;
+      margin-bottom: 0.2em;
+    }
+    .instruksi {
+      font-size: 1.1em;
+      margin-bottom: 1em;
+      color: #333;
+    }
+    .hints {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .hint {
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-weight: bold;
+      font-size: 1.2em;
+      line-height: 40px;
+      color: white;
+      user-select: none;
+      box-shadow: 0 0 3px rgba(0,0,0,0.3);
+      transition: transform 0.2s;
+    }
+    .hint[data-color="black"] {
+      background-color: black;
+    }
+    .hint[data-color="#ff4b5c"] {
+      background-color: #ff4b5c;
+    }
+    .hint[data-color="#baff39"] {
+      background-color: #baff39;
+      color: black;
+    }
+    .hint[data-color="#00bfff"] {
+      background-color: #00bfff;
+    }
+    .hint[data-color="#ff4fff"] {
+      background-color: #ff4fff;
+    }
+    .hint.selected {
+      outline: 3px solid #333;
+      transform: scale(1.1);
+    }
+    .grid {
+      position: relative;
+      width: 100%;
+      max-width: 600px;
+      margin-top: 0;
+      margin-bottom: 0;
+      height: 400px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      margin-left: auto;
+      margin-right: auto;
+      transform: translateX(-20px);
+    }
+    .button-wrapper {
+      margin-top: 50px;
+      display: flex;
+      justify-content: center;
+    }
+    .colorable-number {
+      font-family: 'Arial Black', 'Comic Sans MS', sans-serif;
+      font-size: 2.5em;
+      padding: 4px;
+      -webkit-text-stroke: 1.5px gray;
+      color: transparent;
+      user-select: none;
+      cursor: pointer;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 10px;
+      transition: color 0.3s ease, text-shadow 0.3s ease;
+    }
+    .colorable-number.random {
+      position: absolute;
+      transform: rotate(var(--angle));
+      left: var(--left);
+      top: var(--top);
+      font-size: 5em;
+      width: 100px;
+      height: 100px;
+    }
+    button#check-btn {
+      padding: 10px 20px;
+      font-size: 1.1em;
+      border-radius: 8px;
+      border: none;
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+      user-select: none;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+      transition: background-color 0.3s;
+    }
+    button#check-btn:hover {
+      background-color: #45a049;
+    }
+    .result-message {
+      margin-top: 20px;
+      font-size: 1.2em;
+      font-weight: bold;
+      position: relative;
+      z-index: 5;
+      text-align: center;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 class="judul">Angka Berwarna</h2>
+    <p class="instruksi">Perhatikan angka-angka yang berwarna, warnai angka-angka di bawahnya.</p>
+    <div class="hints">
+      <div class="hint" data-color="black">0</div>
+      <div class="hint" data-color="#ff4b5c">1</div>
+      <div class="hint" data-color="#baff39">2</div>
+      <div class="hint" data-color="#00bfff">3</div>
+      <div class="hint" data-color="#ff4fff">4</div>
+    </div>
+    <div style="display: flex; justify-content: center; width: 100%;">
+      <div class="grid" id="number-grid"></div>
+    </div>
+  </div>
+
+  <div class="button-wrapper">
+    <button id="check-btn">Cek Jawaban</button>
+  </div>
+  <div class="result-message" id="result-message"></div>
+
+  <audio id="win-sound" src="sound_win.mp3"></audio>
+
+  <script>
+    const hintElements = document.querySelectorAll('.hint');
+    const gridContainer = document.getElementById('number-grid');
+    const checkBtn = document.getElementById('check-btn');
+    const resultMessage = document.getElementById('result-message');
+    const winSound = document.getElementById('win-sound');
+
+    // Reference colors for numbers 0-4
+    const numberColors = {
+      0: 'black',
+      1: '#ff4b5c',
+      2: '#baff39',
+      3: '#00bfff',
+      4: '#ff4fff'
+    };
+
+    // Store selected color (default to black)
+    let selectedColor = 'black';
+
+    // Highlight selected hint
+    function selectHint(hint) {
+      hintElements.forEach(h => h.classList.remove('selected'));
+      hint.classList.add('selected');
+      selectedColor = hint.getAttribute('data-color');
+    }
+
+    hintElements.forEach(hint => {
+      hint.addEventListener('click', () => selectHint(hint));
+    });
+
+    // Initialize with first hint selected
+    selectHint(hintElements[0]);
+
+    // Generate random 6x5 grid (30 numbers) with values 0-4
+    const rows = 5;
+    const cols = 6;
+    const totalNumbers = rows * cols;
+
+    // Create an array of random numbers 0-4
+    const randomNumbers = Array.from({length: totalNumbers}, () => Math.floor(Math.random() * 5));
+
+    // Array to keep track of placed positions to avoid overlap
+    const placedPositions = [];
+
+    // Create grid elements
+    randomNumbers.forEach((num, index) => {
+      const numberDiv = document.createElement('div');
+      numberDiv.classList.add('colorable-number');
+      numberDiv.classList.add('random');
+
+      const row = Math.floor(index / cols);
+      const col = index % cols;
+      const cellWidth = 100;
+      const cellHeight = 80;
+      const offsetX = 10 + Math.random() * 10; // acak dikit biar gak kaku
+      const offsetY = 10 + Math.random() * 10;
+      const angle = Math.floor(Math.random() * 40 - 20);
+
+      numberDiv.style.setProperty('--left', `${col * cellWidth + offsetX}px`);
+      numberDiv.style.setProperty('--top', `${row * cellHeight + offsetY}px`);
+      numberDiv.style.setProperty('--angle', `${angle}deg`);
+
+      numberDiv.textContent = num;
+      numberDiv.dataset.number = num;
+      numberDiv.dataset.index = index;
+      // Initially outlined gray with transparent fill
+      numberDiv.style.color = 'transparent';
+      numberDiv.style.webkitTextStroke = '1.5px gray';
+
+      // On click, apply selected color as fill color, keep stroke black and add textShadow
+      numberDiv.addEventListener('click', () => {
+        numberDiv.style.color = selectedColor;
+        numberDiv.style.webkitTextStroke = '1.5px black';
+        numberDiv.style.textShadow = '0 0 2px white';
+      });
+
+      gridContainer.appendChild(numberDiv);
+    });
+
+    // Shuffle grid elements for random placement
+    /*
+    function shuffleGrid() {
+      for (let i = gridContainer.children.length; i >= 0; i--) {
+        gridContainer.appendChild(gridContainer.children[Math.random() * i | 0]);
+      }
+    }
+    shuffleGrid();
+    */
+
+    // Check answers function
+    checkBtn.addEventListener('click', () => {
+      let allCorrect = true;
+      const numbers = document.querySelectorAll('.colorable-number');
+      numbers.forEach(numberDiv => {
+        const num = numberDiv.dataset.number;
+        const appliedColor = rgbToHex(window.getComputedStyle(numberDiv).color);
+        const correctColor = numberColors[num];
+
+        // Reset border dulu
+        numberDiv.style.border = 'none';
+
+        if (appliedColor.toLowerCase() !== correctColor.toLowerCase()) {
+          allCorrect = false;
+          numberDiv.style.border = '2px solid red'; // Tambahkan tanda salah
+        }
+      });
+
+      if (allCorrect) {
+        resultMessage.textContent = "Selamat! Semua jawaban benar.";
+        winSound.play();
+      } else {
+        resultMessage.textContent = "Ada jawaban yang salah, coba lagi.";
+      }
+    });
+
+    // Helper function to convert rgb color to hex
+    function rgbToHex(rgb) {
+      if (rgb === "rgb(0, 0, 0)") return "black";
+      const result = rgb.match(/\d+/g);
+      if (!result) return "";
+      return "#" + result.slice(0,3).map(x => {
+        const hex = parseInt(x).toString(16);
+        return hex.length === 1 ? "0" + hex : hex;
+      }).join('');
+    }
+  </script>
+</body>
+</html>

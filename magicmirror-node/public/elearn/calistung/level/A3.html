@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Level A3</title>
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Comic Neue', cursive;
+      background-color: #fefae0;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h2 {
+      color: #333;
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    p {
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+
+    #colorPalette {
+      margin: 10px auto;
+    }
+
+    .color-btn {
+      width: 70px;
+      height: 70px;
+      margin: 0 5px;
+      border-radius: 50%;
+      border: none;
+      color: white;
+      font-size: 26px;
+      cursor: pointer;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+      transition: transform 0.2s;
+    }
+
+    .color-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .circle-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 100px);
+      grid-gap: 20px;
+      justify-content: center;
+      margin-top: 20px;
+      background: white;
+      border-radius: 20px;
+      padding: 30px 40px;
+      width: fit-content;
+      margin: 30px auto;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .circle {
+      width: 100px;
+      height: 100px;
+      border: 2px solid black;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      font-weight: bold;
+      cursor: pointer;
+      background-color: white;
+      transition: background-color 0.3s;
+    }
+  </style>
+</head>
+<body>
+  <h2>Mengenal dan Mewarnai Angka</h2>
+  <p>Warnai angka dalam lingkaran sesuai dengan contoh di bawah ini!</p>
+  <div id="colorPalette">
+    <button class="color-btn" data-color="red" data-number="1" style="background-color:red;">1</button>
+    <button class="color-btn" data-color="gold" data-number="2" style="background-color:gold;">2</button>
+    <button class="color-btn" data-color="green" data-number="3" style="background-color:green;">3</button>
+    <button class="color-btn" data-color="blue" data-number="4" style="background-color:blue;">4</button>
+  </div>
+
+  <div class="circle-grid" id="circleGrid"></div>
+  <button id="cekJawabanBtn" style="margin-top: 20px; padding: 15px 30px; font-size: 20px; background-color: #ff9800; color: white; border: none; border-radius: 15px; box-shadow: 2px 4px 6px rgba(0,0,0,0.2); cursor: pointer;">
+    Cek Jawaban
+  </button>
+
+  <script>
+    let selectedColor = null;
+    let selectedNumber = null;
+
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectedColor = btn.getAttribute('data-color');
+        selectedNumber = btn.getAttribute('data-number');
+      });
+    });
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    // Generate random grid
+    const gridContainer = document.getElementById('circleGrid');
+    const randomAngka = Array.from({ length: 12 }, () => Math.floor(Math.random() * 4) + 1);
+    randomAngka.forEach(angka => {
+      const div = document.createElement('div');
+      div.classList.add('circle');
+      div.setAttribute('data-angka', angka);
+      div.textContent = angka;
+      div.addEventListener('click', () => {
+        if (selectedNumber && div.textContent === selectedNumber) {
+          div.style.backgroundColor = selectedColor;
+        }
+      });
+      gridContainer.appendChild(div);
+    });
+
+    // Randomize hint buttons
+    const colorPalette = document.getElementById('colorPalette');
+    const buttons = Array.from(colorPalette.querySelectorAll('button'));
+    const shuffledButtons = shuffle(buttons);
+    colorPalette.innerHTML = '';
+    shuffledButtons.forEach(btn => colorPalette.appendChild(btn));
+
+    document.getElementById('cekJawabanBtn').addEventListener('click', () => {
+      let allCorrect = true;
+      document.querySelectorAll('.circle').forEach(circle => {
+        const expectedColor = {
+          1: 'red',
+          2: 'gold',
+          3: 'green',
+          4: 'blue'
+        }[parseInt(circle.getAttribute('data-angka'))];
+
+        if (circle.style.backgroundColor === expectedColor) {
+          circle.style.border = '4px solid limegreen';
+        } else {
+          circle.style.border = '4px solid crimson';
+          allCorrect = false;
+        }
+      });
+
+      if (allCorrect) {
+        const winSound = new Audio('https://cdn.pixabay.com/download/audio/2022/03/15/audio_2d7c6939cc.mp3?filename=casino-win-2-183949.mp3');
+        winSound.volume = 1.0;
+        winSound.play().catch(e => console.log("❌ Gagal memutar audio:", e));
+      }
+    });
+  </script>
+</body>
+</html>

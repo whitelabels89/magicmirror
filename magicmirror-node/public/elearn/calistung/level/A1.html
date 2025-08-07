@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tracing Huruf A - Level A1</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand+SC&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 10px;
+            padding: 0;
+            background: #f9f9f9;
+        }
+        #worksheet-container {
+            width: 794px;
+            height: 1123px;
+            margin: 0 auto;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .trace-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .trace-letter {
+            position: relative;
+            border: 2px solid #aaa;
+            border-radius: 6px;
+            height: auto;
+            aspect-ratio: 1 / 1;
+            padding: 10px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 48px;
+            color: transparent;
+            -webkit-text-stroke: 1.5px #333;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        .trace-letter.outlined {
+            color: transparent;
+            -webkit-text-stroke: 1.5px #333;
+        }
+        .trace-letter .step-number {
+            position: absolute;
+            top: 4px;
+            left: 6px;
+            font-size: 14px;
+            color: #555;
+            font-weight: 600;
+            user-select: none;
+            z-index: 3;
+        }
+        .trace-letter canvas.trace-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: auto;
+            background-color: transparent;
+        }
+        #image-letter-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        #image-letter-container > div {
+            flex: 1 1 150px;
+            text-align: center;
+        }
+        #image-letter-container .chicken {
+            font-size: 120px;
+            user-select: none;
+        }
+        #image-letter-container .big-letter {
+            font-size: 120px;
+            font-weight: 700;
+            color: #d33;
+            user-select: none;
+        }
+        #writing-steps {
+            font-size: 18px;
+            color: #444;
+            margin-top: 10px;
+            line-height: 1.4;
+        }
+        #message {
+            margin-top: 20px;
+            font-size: 22px;
+            font-weight: 700;
+            color: green;
+            text-align: center;
+            user-select: none;
+        }
+        /* Responsive for small screens */
+        @media (max-width: 480px) {
+            #image-letter-container {
+                flex-direction: column;
+            }
+            .trace-letter {
+                height: 60px;
+                font-size: 36px;
+            }
+            #image-letter-container .chicken,
+            #image-letter-container .big-letter {
+                font-size: 90px;
+            }
+            #writing-steps {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="worksheet-container">
+        <div id="image-letter-container">
+            <div class="chicken" aria-label="Gambar ayam" role="img">
+                <img src="/elearn/calistung/assets/alfabet/a-image.png" alt="Gambar ayam" style="width: 350px; height: auto;" />
+            </div>
+            <div>
+                <img src="/elearn/calistung/assets/alfabet/a-judul.png" alt="Huruf A" style="width: 200px; height: auto;" />
+                <div id="writing-steps" aria-live="polite">
+                    Langkah menulis huruf a:<br>
+                    1. Mulai dari atas ke bawah.<br>
+                    2. Mulai dari atas melingkar ke bawah dan ke kanan.<br>
+                </div>
+            </div>
+        </div>
+        <div class="trace-grid" id="trace-grid" aria-label="Soal tracing huruf a">
+            <!-- Kotak tracing huruf akan dibuat di sini oleh JS -->
+        </div>
+        <div id="message" role="alert" aria-live="assertive"></div>
+    </div>
+
+    <script>
+        (function(){
+            const grid = document.getElementById('trace-grid');
+            const message = document.getElementById('message');
+            const totalCells = 15; // 3 rows x 5 cols
+
+            // Use fixed array for letters to match worksheet layout
+            const letters = ['A','A','A','a','a','a','A','A','A','a','a','a','A','A','A'];
+
+            // Use fixed array for steps to match worksheet order
+            const stepsAll = [1,2,3,1,2,3,1,2,3,1,2,3,1,2,3];
+
+            // Store canvas contexts and drawing state
+            const canvases = [];
+            const isDrawing = new Array(totalCells).fill(false);
+            const paths = new Array(totalCells).fill(null).map(() => []);
+
+            // Create each trace-letter div
+            for(let i=0; i<totalCells; i++) {
+                const div = document.createElement('div');
+                div.classList.add('trace-letter', 'outlined');
+                div.setAttribute('tabindex', '0');
+                div.setAttribute('role', 'button');
+                div.setAttribute('aria-pressed', 'false');
+                div.setAttribute('aria-label', `Huruf ${letters[i]}, langkah ${stepsAll[i]}`);
+                div.dataset.index = i;
+                div.dataset.step = stepsAll[i];
+                div.dataset.letter = letters[i];
+
+                // Create canvas for tracing
+                const canvas = document.createElement('canvas');
+                canvas.className = 'trace-canvas';
+                // Set canvas size attributes fixed for crisp drawing
+                canvas.width = 150;
+                canvas.height = 150;
+                canvas.style.width = '100%';
+                canvas.style.height = '100%';
+                // Prevent touch gestures like scroll/zoom on canvas
+                canvas.style.touchAction = 'none';
+                // Ensure canvas is absolutely positioned inside .trace-letter
+                canvas.style.position = 'absolute';
+                const ctx = canvas.getContext('2d');
+                // Removed ctx.scale to avoid offset
+
+                // Ganti huruf dengan gambar a.png untuk huruf A dan a
+                if (letters[i] === 'A' || letters[i] === 'a') {
+                    const img = new Image();
+                    img.src = "/elearn/calistung/assets/alfabet/a.png";
+                    img.onload = () => {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.globalAlpha = 0.5;
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        ctx.globalAlpha = 1.0;
+                    };
+                } else {
+                    ctx.clearRect(0,0,canvas.width,canvas.height);
+                    ctx.font = 'bold 100px "Comic Sans MS", Arial, sans-serif';
+                    ctx.lineWidth = 4;
+                    ctx.strokeStyle = '#333';
+                    ctx.fillStyle = 'transparent';
+                    ctx.textBaseline = 'middle';
+                    ctx.textAlign = 'center';
+                    ctx.strokeText(letters[i], canvas.width / 2, canvas.height / 2 + 10);
+                    ctx.fillStyle = 'rgba(100, 100, 100, 0.15)';
+                    ctx.fillText(letters[i], canvas.width / 2, canvas.height / 2 + 10);
+                }
+
+                // Add step number in corner
+                const stepSpan = document.createElement('span');
+                stepSpan.className = 'step-number';
+                stepSpan.textContent = stepsAll[i];
+                div.appendChild(stepSpan);
+
+                // Append canvas after step number
+                div.appendChild(canvas);
+
+                // Store canvas and context
+                canvases.push({canvas, ctx});
+
+                // Drawing event handlers for canvas
+                let lastX = 0;
+                let lastY = 0;
+
+                function getPointerPos(evt) {
+                    const rect = canvas.getBoundingClientRect();
+                    const scaleX = canvas.width / rect.width;
+                    const scaleY = canvas.height / rect.height;
+                    let clientX, clientY;
+                    if(evt.touches && evt.touches.length > 0) {
+                        clientX = evt.touches[0].clientX;
+                        clientY = evt.touches[0].clientY;
+                    } else {
+                        clientX = evt.clientX;
+                        clientY = evt.clientY;
+                    }
+                    return {
+                        x: (clientX - rect.left) * scaleX,
+                        y: (clientY - rect.top) * scaleY
+                    };
+                }
+
+                function startDrawing(evt) {
+                    evt.preventDefault();
+                    isDrawing[i] = true;
+                    const pos = getPointerPos(evt);
+                    lastX = pos.x;
+                    lastY = pos.y;
+                    paths[i].push([{x: lastX, y: lastY}]);
+                }
+
+                function draw(evt) {
+                    if(!isDrawing[i]) return;
+                    evt.preventDefault();
+                    const pos = getPointerPos(evt);
+                    const path = paths[i][paths[i].length -1];
+                    path.push({x: pos.x, y: pos.y});
+                    ctx.strokeStyle = '#000';
+                    ctx.lineWidth = 2;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.beginPath();
+                    ctx.moveTo(lastX, lastY);
+                    ctx.lineTo(pos.x, pos.y);
+                    ctx.stroke();
+                    lastX = pos.x;
+                    lastY = pos.y;
+                }
+
+                function stopDrawing(evt) {
+                    if(!isDrawing[i]) return;
+                    evt.preventDefault();
+                    isDrawing[i] = false;
+                }
+
+                canvas.addEventListener('mousedown', startDrawing);
+                canvas.addEventListener('mousemove', draw);
+                canvas.addEventListener('mouseup', stopDrawing);
+                canvas.addEventListener('mouseleave', stopDrawing);
+
+                canvas.addEventListener('touchstart', startDrawing, {passive:false});
+                canvas.addEventListener('touchmove', draw, {passive:false});
+                canvas.addEventListener('touchend', stopDrawing);
+                canvas.addEventListener('touchcancel', stopDrawing);
+
+                grid.appendChild(div);
+            }
+        })();
+    </script>
+</body>
+</html>

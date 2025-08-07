@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Belajar Coding Matematika</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&display=swap');
+  body {
+    margin: 0;
+    font-family: 'Comic Neue', cursive, sans-serif;
+    background: #fffbf2;
+    color: #5d5a6d;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .container {
+    background: #f9f3f7;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    max-width: 900px;
+    width: 100%;
+    padding: 30px;
+    box-sizing: border-box;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  h1 {
+    width: 100%;
+    text-align: center;
+    font-size: 2.5rem;
+    color: #a97c9e;
+    margin-bottom: 30px;
+    text-shadow: 1px 1px 2px #f7d6e0;
+  }
+  .left, .right {
+    box-sizing: border-box;
+    padding: 10px 20px;
+  }
+  .left {
+    flex: 1 1 320px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-gap: 25px 40px;
+    align-items: center;
+    justify-items: center;
+  }
+  .fruit-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-direction: column;
+  }
+  .fruit-img {
+    width: 70px;
+    height: 70px;
+    object-fit: contain;
+  }
+  .input-circle {
+    width: 45px;
+    height: 45px;
+    border: 3px solid #a97c9e;
+    border-radius: 50%;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #5d5a6d;
+    outline: none;
+    background: #fff8fb;
+    transition: border-color 0.3s, background-color 0.3s;
+  }
+  .input-circle:focus {
+    border-color: #d38eb3;
+    background-color: #fff0f6;
+  }
+  .input-circle.correct {
+    border-color: #6fcf97;
+    background-color: #d9f6e7;
+    color: #2f7a43;
+  }
+  .input-circle.wrong {
+    border-color: #f28b82;
+    background-color: #fce8e6;
+    color: #a73a3a;
+  }
+  .right {
+    flex: 0 1 280px;
+    background: #f3e9f0;
+    border-radius: 15px;
+    padding: 20px 25px;
+    box-shadow: inset 0 0 10px #ebd7e4;
+  }
+  .key-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: #a97c9e;
+    text-align: center;
+  }
+  .key-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 1.5rem;
+    color: #5d5a6d;
+  }
+  .key-list li {
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: #f9f3f7;
+    box-shadow: 1px 1px 4px #e6d7e3;
+  }
+  .key-list li span.emoji {
+    font-size: 2rem;
+  }
+  .check-btn {
+    margin-top: 30px;
+    width: 100%;
+    padding: 15px 0;
+    border: none;
+    border-radius: 40px;
+    background: #d38eb3;
+    color: #fff;
+    font-size: 1.4rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 6px 12px #c17aa1;
+    transition: background-color 0.3s;
+  }
+  .check-btn:hover {
+    background-color: #b86a95;
+  }
+  .rating {
+    margin-top: 25px;
+    text-align: center;
+    font-size: 2.2rem;
+    color: #f7b500;
+    user-select: none;
+  }
+  /* Responsive tablet */
+  @media (max-width: 768px) {
+    .container {
+      flex-direction: column;
+      padding: 20px 15px;
+    }
+    .left, .right {
+      flex: 1 1 100%;
+      padding: 10px 0;
+    }
+    .left {
+      grid-template-columns: repeat(5, 1fr);
+      grid-gap: 20px 30px;
+      justify-content: center;
+    }
+    .right {
+      margin-top: 20px;
+      max-width: 100%;
+    }
+  }
+</style>
+</head>
+<body>
+  <main class="container" role="main" aria-label="Belajar Coding Matematika interactive game">
+    <h1>Belajar Coding Matematika</h1>
+    <section class="left" aria-label="Fruit inputs">
+      <div class="fruit-item" data-fruit="🍎">
+        <div class="fruit-img" style="font-size: 2.5rem;">🍎</div>
+        <input class="input-circle" type="text" maxlength="2" inputmode="numeric" aria-label="Answer for fruit" />
+      </div>
+      <div class="fruit-item" data-fruit="🍎">
+        <div class="fruit-img" style="font-size: 2.5rem;">🍎</div>
+        <input class="input-circle" type="text" maxlength="2" inputmode="numeric" aria-label="Answer for fruit" />
+      </div>
+      <div class="fruit-item" data-fruit="🍎">
+        <div class="fruit-img" style="font-size: 2.5rem;">🍎</div>
+        <input class="input-circle" type="text" maxlength="2" inputmode="numeric" aria-label="Answer for fruit" />
+      </div>
+      <div class="fruit-item" data-fruit="🍉">
+        <div class="fruit-img" style="font-size: 2.5rem;">🍉</div>
+        <input class="input-circle" type="text" maxlength="2" inputmode="numeric" aria-label="Answer for fruit" />
+      </div>
+      <div class="fruit-item" data-fruit="🍊">
+        <div class="fruit-img" style="font-size: 2.5rem;">🍊</div>
+        <input class="input-circle" type="text" maxlength="2" inputmode="numeric" aria-label="Answer for fruit" />
+      </div>
+    </section>
+    <section class="right" aria-label="Reference key">
+      <h2 class="key-title">Kunci Referensi</h2>
+      <ul class="key-list">
+        <li><span class="emoji" aria-hidden="true">🍇</span> <span>= 10</span></li>
+        <li><span class="emoji" aria-hidden="true">🍌</span> <span>= 9</span></li>
+        <li><span class="emoji" aria-hidden="true">🍉</span> <span>= 7</span></li>
+        <li><span class="emoji" aria-hidden="true">🍊</span> <span>= 6</span></li>
+        <li><span class="emoji" aria-hidden="true">🍎</span> <span>= 8</span></li>
+      </ul>
+      <button type="button" class="check-btn" aria-label="Check your answers">Check Answer</button>
+      <div class="rating" aria-live="polite" aria-atomic="true" role="status"></div>
+    </section>
+  </main>
+<script>
+  (function() {
+    // Randomize fruit values from a fixed pool
+    const valuePool = [6, 7, 8, 9, 10];
+    const shuffledValues = [...valuePool].sort(() => Math.random() - 0.5);
+    const fruitEmojis = ['🍇', '🍌', '🍉', '🍊', '🍎'];
+    const fruitValues = Object.fromEntries(fruitEmojis.map((emoji, i) => [emoji, shuffledValues[i]]));
+    const allFruits = fruitEmojis;
+    const fruits = Array.from({ length: 5 }, () => allFruits[Math.floor(Math.random() * allFruits.length)]);
+    const inputs = Array.from(document.querySelectorAll('.left .input-circle'));
+
+    // Assign data-fruit attributes and update emoji in div.fruit-img
+    const fruitItems = document.querySelectorAll('.fruit-item');
+    console.log("Randomized fruits:", fruits);
+    fruitItems.forEach((item, i) => {
+      const emoji = fruits[i];
+      const fruitImgDiv = item.querySelector('.fruit-img');
+      fruitImgDiv.textContent = emoji;
+      item.setAttribute('data-fruit', emoji);
+      const input = item.querySelector('input');
+      input.setAttribute('aria-label', `Answer for ${emoji}`);
+      input.value = '';
+      input.classList.remove('correct', 'wrong');
+    });
+    // Dynamically update the key-list to reflect fruitValues
+    const keyListEl = document.querySelector('.key-list');
+    keyListEl.innerHTML = fruitEmojis.map(emoji => {
+      return `<li><span class="emoji" aria-hidden="true">${emoji}</span> <span>= ${fruitValues[emoji]}</span></li>`;
+    }).join('');
+
+    const checkBtn = document.querySelector('.check-btn');
+    const ratingEl = document.querySelector('.rating');
+
+    function clearStyles() {
+      inputs.forEach(input => {
+        input.classList.remove('correct', 'wrong');
+      });
+      ratingEl.textContent = '';
+    }
+
+    function starRating(correctCount) {
+      const maxStars = 5;
+      let stars = '';
+      for (let i = 0; i < maxStars; i++) {
+        stars += i < correctCount ? '⭐' : '☆';
+      }
+      return stars;
+    }
+
+    checkBtn.addEventListener('click', () => {
+      clearStyles();
+      let correctCount = 0;
+      inputs.forEach((input, i) => {
+        let val = input.value.trim();
+        if (val === String(fruitValues[fruits[i]])) {
+          input.classList.add('correct');
+          correctCount++;
+        } else {
+          input.classList.add('wrong');
+        }
+      });
+      ratingEl.textContent = starRating(correctCount);
+    });
+
+    // Allow only numeric input in circles
+    inputs.forEach(input => {
+      input.addEventListener('input', e => {
+        e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 2);
+      });
+    });
+  })();
+</script>
+</body>
+</html>

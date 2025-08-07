@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Color by Number - Truck</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0; padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #f0f0f0;
+  }
+  h1 {
+    margin-bottom: 10px;
+  }
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .color-box {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  .color-swatch {
+    width: 30px;
+    height: 30px;
+    border: 2px solid #333;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+  .color-swatch.selected {
+    border: 4px solid #000;
+  }
+  svg {
+    max-width: 90vw;
+    height: auto;
+    touch-action: manipulation;
+  }
+  .clickable-area {
+    cursor: pointer;
+    stroke: #333;
+    stroke-width: 2;
+    transition: fill 0.3s;
+  }
+  /* Responsive text inside SVG */
+  text {
+    pointer-events: none;
+    font-weight: bold;
+    font-size: 16px;
+    fill: #222;
+    user-select: none;
+  }
+</style>
+</head>
+<body>
+<h1>Color by Number: Truck</h1>
+<div class="legend" aria-label="Color legend">
+  <div class="color-box" data-index="0"><div class="color-swatch" style="background:#E74C3C"></div> 1</div>
+  <div class="color-box" data-index="1"><div class="color-swatch" style="background:#85C1E9"></div> 2</div>
+  <div class="color-box" data-index="2"><div class="color-swatch" style="background:#27AE60"></div> 3</div>
+  <div class="color-box" data-index="3"><div class="color-swatch" style="background:#2E86C1"></div> 4</div>
+  <div class="color-box" data-index="4"><div class="color-swatch" style="background:#F4D03F"></div> 5</div>
+  <div class="color-box" data-index="5"><div class="color-swatch" style="background:#000000"></div> 6</div>
+</div>
+
+<svg viewBox="0 0 300 150" aria-label="Color by number truck" role="img" tabindex="0" >
+  <!-- Truck body -->
+  <rect id="area1" class="clickable-area" x="10" y="70" width="180" height="50" fill="#fff" />
+  <text x="100" y="100" text-anchor="middle" dominant-baseline="middle">1</text>
+  <!-- Truck cabin -->
+  <rect id="area2" class="clickable-area" x="190" y="50" width="80" height="70" fill="#fff" />
+  <text x="230" y="85" text-anchor="middle" dominant-baseline="middle">2</text>
+  <!-- Truck window -->
+  <rect id="area3" class="clickable-area" x="210" y="60" width="40" height="30" fill="#fff" />
+  <text x="230" y="75" text-anchor="middle" dominant-baseline="middle" fill="#222">3</text>
+  <!-- Front bumper -->
+  <rect id="area4" class="clickable-area" x="270" y="100" width="20" height="20" fill="#fff" />
+  <text x="280" y="110" text-anchor="middle" dominant-baseline="middle">4</text>
+  <!-- Left wheel -->
+  <circle id="area5" class="clickable-area" cx="50" cy="130" r="20" fill="#fff" />
+  <text x="50" y="130" text-anchor="middle" dominant-baseline="middle">5</text>
+  <!-- Right wheel -->
+  <circle id="area6" class="clickable-area" cx="230" cy="130" r="20" fill="#fff" />
+  <text x="230" y="130" text-anchor="middle" dominant-baseline="middle">6</text>
+  <text x="200" y="100" text-anchor="middle" dominant-baseline="middle">1</text>
+</svg>
+
+<script>
+  const colors = [
+    '#E74C3C', // 1 - Red
+    '#85C1E9', // 2 - Light Blue
+    '#27AE60', // 3 - Green
+    '#2E86C1', // 4 - Dark Blue
+    '#F4D03F', // 5 - Yellow
+    '#000000'  // 6 - Black
+  ];
+
+  let selectedColorIndex = null;
+
+  const legendBoxes = document.querySelectorAll('.legend .color-box');
+  legendBoxes.forEach(box => {
+    box.addEventListener('click', () => {
+      selectedColorIndex = parseInt(box.getAttribute('data-index'));
+      // Remove selected class from all swatches
+      legendBoxes.forEach(b => b.querySelector('.color-swatch').classList.remove('selected'));
+      // Add selected class to clicked swatch
+      box.querySelector('.color-swatch').classList.add('selected');
+    });
+  });
+
+  function cycleColor(areaId) {
+    if (selectedColorIndex === null) return;
+    const element = document.getElementById(areaId);
+    element.setAttribute('fill', colors[selectedColorIndex]);
+  }
+
+  const areaIds = ['area1', 'area2', 'area3', 'area4', 'area5', 'area6'];
+  areaIds.forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('click', () => cycleColor(id));
+    el.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      cycleColor(id);
+    }, {passive: false});
+  });
+
+  // Added airplane SVG to svgs array (assuming svgs array exists elsewhere)
+  // Example airplane SVG structure with 6 parts labeled 1 to 6
+  const airplaneSVG = `
+    <svg viewBox="0 0 300 150" aria-label="Color by number airplane" role="img" tabindex="0">
+      <!-- Body -->
+      <rect id="area1" class="clickable-area" x="50" y="60" width="200" height="30" fill="#fff" />
+      <text x="150" y="75" text-anchor="middle" dominant-baseline="middle">1</text>
+      <!-- Left wing -->
+      <polygon id="area2" class="clickable-area" points="50,60 20,90 50,90" fill="#fff" />
+      <text x="35" y="80" text-anchor="middle" dominant-baseline="middle">2</text>
+      <!-- Right wing -->
+      <polygon id="area3" class="clickable-area" points="250,60 280,90 250,90" fill="#fff" />
+      <text x="265" y="80" text-anchor="middle" dominant-baseline="middle">3</text>
+      <!-- Tail -->
+      <rect id="area4" class="clickable-area" x="230" y="40" width="20" height="20" fill="#fff" />
+      <text x="240" y="50" text-anchor="middle" dominant-baseline="middle">4</text>
+      <!-- Cockpit -->
+      <rect id="area5" class="clickable-area" x="60" y="50" width="40" height="20" fill="#fff" />
+      <text x="80" y="60" text-anchor="middle" dominant-baseline="middle">5</text>
+      <!-- Engine -->
+      <rect id="area6" class="clickable-area" x="140" y="90" width="40" height="20" fill="#fff" />
+      <text x="160" y="105" text-anchor="middle" dominant-baseline="middle">6</text>
+    </svg>
+  `;
+</script>
+</body>
+</html>

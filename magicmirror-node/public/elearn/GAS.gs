@@ -253,10 +253,11 @@ function mirrorToSheet(tab, dataArray) {
     sheet = ss.insertSheet(tab);
   }
 
-  // Clear all contents
-  sheet.clearContents();
-
   if (dataArray.length === 0) return 'No data to write';
+
+  function normVal(val) {
+    return (val === undefined || val === null) ? '' : String(val).trim().toLowerCase();
+  }
 
   let headers = [];
   const lastCol = sheet.getLastColumn();
@@ -267,17 +268,83 @@ function mirrorToSheet(tab, dataArray) {
     headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
   }
 
-  // Get headers from keys of first object if headers empty after clearContents
-  if (headers.length === 0) {
-    headers = Object.keys(dataArray[0]);
-    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  // Make a lowercased version of headers for case-insensitive matching
+  const lowerHeaders = headers.map(h => (h || '').toString().toLowerCase());
+
+  // Get index for cid and uid columns
+  const cidIndex = lowerHeaders.indexOf('cid');
+  const uidIndex = lowerHeaders.indexOf('uid');
+  // Get index for kelas_id and lesson_id columns
+  const kelasIndex = lowerHeaders.indexOf('kelas_id');
+  const lessonIndex = lowerHeaders.indexOf('lesson_id');
+
+  // Get existing data from sheet to check duplicates
+  let existingData = [];
+  if (sheet.getLastRow() > 1) {
+    existingData = sheet.getRange(2, 1, sheet.getLastRow() - 1, headers.length).getValues();
   }
 
-  // Prepare rows
-  const rows = dataArray.map(item => headers.map(key => item[key] || ''));
+  const existingKeys = new Set();
+  existingData.forEach(row => {
+    if (kelasIndex !== -1 && lessonIndex !== -1) {
+      const kVal = normVal(row[kelasIndex]);
+      const lVal = normVal(row[lessonIndex]);
+      if (!kVal && lVal) {
+        existingKeys.add(lVal); // jika kelas_id kosong, simpan lesson_id saja
+      } else if (kVal && lVal) {
+        existingKeys.add(`${kVal}||${lVal}`);
+      }
+    } else if (kelasIndex !== -1) {
+      const kVal = normVal(row[kelasIndex]);
+      if (kVal) {
+        existingKeys.add(kVal);
+      }
+    } else if (cidIndex !== -1 && uidIndex !== -1) {
+      const cVal = normVal(row[cidIndex]);
+      const uVal = normVal(row[uidIndex]);
+      if (cVal && uVal) {
+        existingKeys.add(`${cVal}||${uVal}`);
+      }
+    }
+  });
 
-  // Write data rows
-  sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
+  const filteredDataArray = dataArray.filter(item => {
+    if (existingKeys.size === 0) return true; // sheet kosong, semua data masuk
+    if (kelasIndex !== -1 && lessonIndex !== -1) {
+      const kVal = normVal(item.kelas_id || item.KELAS_ID || item.Kelas_Id);
+      const lVal = normVal(item.lesson_id || item.LESSON_ID || item.Lesson_Id);
+      if (!kVal && lVal) {
+        return !existingKeys.has(lVal); // jika kelas_id kosong, cek hanya lesson_id
+      }
+      if (!kVal || !lVal) return true;
+      return !existingKeys.has(`${kVal}||${lVal}`);
+    } else if (kelasIndex !== -1) {
+      const kVal = normVal(item.kelas_id || item.KELAS_ID || item.Kelas_Id);
+      if (!kVal) return true;
+      return !existingKeys.has(kVal);
+    } else if (cidIndex !== -1 && uidIndex !== -1) {
+      const cVal = normVal(item.cid || item.CID || item.Cid);
+      const uVal = normVal(item.uid || item.UID || item.Uid);
+      if (!cVal || !uVal) return true;
+      return !existingKeys.has(`${cVal}||${uVal}`);
+    }
+    return true;
+  });
 
-  return `${rows.length} rows mirrored to ${tab}`;
+  if (filteredDataArray.length === 0) return 'No new data to append';
+
+  const startRow = sheet.getLastRow() + 1;
+  const rows = filteredDataArray.map(item => {
+    // Create a lowercased-keyed object for the current item
+    const lowerItem = {};
+    Object.keys(item).forEach(k => {
+      lowerItem[(k || '').toString().toLowerCase()] = item[k];
+    });
+    // Map values based on lowerHeaders
+    return lowerHeaders.map(lh => lowerItem.hasOwnProperty(lh) ? lowerItem[lh] : '');
+  });
+
+  sheet.getRange(startRow, 1, rows.length, headers.length).setValues(rows);
+
+  return `${rows.length} rows appended to ${tab}`;
 }

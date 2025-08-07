@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>D2 - Apple Counting Game</title>
+<style>
+  body {
+    position: relative;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 20px;
+  }
+  #connector-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+  .container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+  }
+  .apple-group, .drop-circle, .dice {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 60px;
+  }
+  .apples {
+    font-size: 32px;
+    user-select: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.2;
+  }
+  /*
+  .drop-circle {
+    margin-top: 30px;
+    width: 50px;
+    height: 50px;
+    border: 2px solid #555;
+    border-radius: 50%;
+    line-height: 50px;
+    font-size: 24px;
+    color: #222;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .drop-circle.correct {
+    border-color: green;
+    background-color: #c8f7c5;
+    color: green;
+    font-weight: bold;
+  }
+  .drop-circle.incorrect {
+    border-color: red;
+    background-color: #f7c5c5;
+    color: red;
+    font-weight: bold;
+  }
+  */
+  .answer-circle {
+    width: 70px;
+    height: 70px;
+    background-color: #007bff;
+    color: #fff;
+    font-size: 32px;
+    font-weight: bold;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .dice {
+    font-size: 180px;     /* larger die */
+    transform: none;
+    user-select: none;
+    margin-top: -25px;    /* nudge upward */
+  }
+  .dice-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 200px;
+  }
+  button {
+    margin-top: 30px;
+    padding: 10px 20px;
+    font-size: 18px;
+    cursor: pointer;
+  }
+  .three-column-layout {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    justify-items: center;
+    margin-top: 20px;
+  }
+  .apple-group {
+    min-width: 100px;
+    min-height: 160px;
+  }
+  .apple-box {
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #fff8f0;
+  }
+
+  .question-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    border: 2px solid #ccc;
+    border-radius: 12px;
+    background-color: #fff8f0;
+    width: 120px;
+  }
+  .main-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    justify-items: center;
+    align-items: start;
+    margin-top: 30px;
+    gap: 40px;
+  }
+  .column.number {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    gap: 20px;
+    align-items: center;
+    text-align: center;
+    height: 100%;
+  }
+
+  .column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+  }
+
+  .apple-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    row-gap: 10px;
+    column-gap: 10px;
+    padding: 5px;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    width: 200px;
+    min-height: 100px;
+    background-color: #fff8f0;
+    font-size: 48px;
+  }
+
+  .item-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .connector-dot {
+    width: 12px;
+    height: 12px;
+    margin: 15px;
+    background-color: #000;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  /* Dice container centered vertically and horizontally */
+  .dice-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 130px; /* increased to accommodate larger dice */
+    padding: 0;    /* no extra padding */
+  }
+  /* 2.5D Clay-style button */
+  .clay-button {
+    background-color: #FFD66B;
+    border: none;
+    border-radius: 24px;
+    padding: 12px 28px;
+    font-size: 18px;
+    color: #333;
+    font-weight: bold;
+    box-shadow: 0 8px 0 #E6C34E, 0 12px 12px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+  .clay-button:active {
+    transform: translateY(6px);
+    box-shadow: 0 2px 0 #E6C34E, 0 6px 8px rgba(0,0,0,0.1);
+  }
+  </style>
+<svg id="connector-svg"></svg>
+  
+</head>
+<body>
+
+<h2>Hitung Jumlah Apel dan Sambungkan Angka yang Benar</h2>
+
+<script>
+  // Generate 4 random numbers between 1 and 6 inclusive
+  let appleCounts = [];
+  while (appleCounts.length < 4) {
+    let n = Math.floor(Math.random() * 6) + 1;
+    appleCounts.push(n);
+  }
+
+  // Shuffle function for arrays
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
+  // Create shuffled answer order
+  const shuffledAnswers = appleCounts.slice();
+  shuffle(shuffledAnswers);
+
+  const layout = document.createElement('div');
+  layout.className = 'main-layout';
+
+  const colApples = document.createElement('div');
+  colApples.className = 'column';
+  const colDrop = document.createElement('div');
+  colDrop.className = 'column number';
+  const colDice = document.createElement('div');
+  colDice.className = 'column';
+
+  appleCounts.forEach((count, index) => {
+    // Apple container with right-hand dot
+    const appleBox = document.createElement('div');
+    appleBox.className = 'apple-container';
+    for (let i = 0; i < count; i++) {
+      const apple = document.createElement('div');
+      apple.textContent = '🍎';
+      appleBox.appendChild(apple);
+    }
+    const appleWrapper = document.createElement('div');
+    appleWrapper.className = 'item-wrapper';
+    appleWrapper.appendChild(appleBox);
+    const appleDot = document.createElement('div');
+    appleDot.className = 'connector-dot right';
+    appleDot.dataset.count = count;
+    appleWrapper.appendChild(appleDot);
+    colApples.appendChild(appleWrapper);
+
+    // Dice inside container box, centered, with connector dot on the left outside
+    const dice = document.createElement('div');
+    dice.className = 'dice';
+    dice.textContent = String.fromCharCode(0x267F + count);
+
+    // Connector dot on left
+    const diceDot = document.createElement('div');
+    diceDot.className = 'connector-dot left';
+    diceDot.dataset.count = count;
+
+    // Create dice container box (same style as apple-container) and center the dice
+    const diceBox = document.createElement('div');
+    diceBox.className = 'apple-container dice-box';
+    diceBox.style.display = 'flex';
+    diceBox.style.alignItems = 'center';
+    diceBox.style.justifyContent = 'center';
+    diceBox.appendChild(dice);
+
+    // Wrap dot and dice box together
+    const diceContainer = document.createElement('div');
+    diceContainer.className = 'item-wrapper';
+    diceContainer.appendChild(diceDot);
+    diceContainer.appendChild(diceBox);
+
+    colDice.appendChild(diceContainer);
+  });
+
+  // Append answer circles in shuffled order
+  shuffledAnswers.forEach(count => {
+    const answerCircle = document.createElement('div');
+    answerCircle.className = 'answer-circle';
+    answerCircle.textContent = count;
+    const answerWrapper = document.createElement('div');
+    answerWrapper.className = 'item-wrapper';
+    const dotL = document.createElement('div');
+    dotL.className = 'connector-dot left';
+    const dotR = document.createElement('div');
+    dotR.className = 'connector-dot right';
+    answerWrapper.appendChild(dotL);
+    answerWrapper.appendChild(answerCircle);
+    answerWrapper.appendChild(dotR);
+    colDrop.appendChild(answerWrapper);
+  });
+
+  layout.appendChild(colApples);
+  layout.appendChild(colDrop);
+  layout.appendChild(colDice);
+  document.body.appendChild(layout);
+  // Enable dragging lines between connector dots
+  (function() {
+    const svg = document.getElementById('connector-svg');
+    const svgNS = 'http://www.w3.org/2000/svg';
+    let tempLine = null;
+    let startDot = null;
+    // Only allow drag start from answer dots (middle column)
+    document.querySelectorAll('.column.number .connector-dot').forEach(dot => {
+      dot.addEventListener('mousedown', e => {
+        e.preventDefault();
+        // (Removed: If this dot already has a line, remove it to allow replacement)
+        startDot = dot;
+        const rect = svg.getBoundingClientRect();
+        tempLine = document.createElementNS(svgNS, 'line');
+        svg.appendChild(tempLine);
+        const { left, top } = startDot.getBoundingClientRect();
+        const x = left + startDot.offsetWidth / 2 - rect.left;
+        const y = top + startDot.offsetHeight / 2 - rect.top;
+        tempLine.setAttribute('x1', x);
+        tempLine.setAttribute('y1', y);
+        tempLine.setAttribute('x2', x);
+        tempLine.setAttribute('y2', y);
+        tempLine.setAttribute('stroke', '#000');
+        tempLine.setAttribute('stroke-width', '2');
+        function onMouseMove(me) {
+          tempLine.setAttribute('x2', me.clientX - rect.left);
+          tempLine.setAttribute('y2', me.clientY - rect.top);
+        }
+        function onMouseUp(ue) {
+          document.removeEventListener('mousemove', onMouseMove);
+          document.removeEventListener('mouseup', onMouseUp);
+          const target = document.elementFromPoint(ue.clientX, ue.clientY);
+          if (target && target.classList.contains('connector-dot') && target !== startDot) {
+            // Remove existing lines on both start and target before drawing new one
+            if (startDot._line) {
+              svg.removeChild(startDot._line);
+              startDot._line = null;
+            }
+            if (target._line) {
+              svg.removeChild(target._line);
+              target._line = null;
+            }
+            const tRect = target.getBoundingClientRect();
+            const tx = tRect.left + target.offsetWidth / 2 - rect.left;
+            const ty = tRect.top + target.offsetHeight / 2 - rect.top;
+            tempLine.setAttribute('x2', tx);
+            tempLine.setAttribute('y2', ty);
+            // Store references so each dot knows its line
+            startDot._line = tempLine;
+            // Store connected dot reference
+            startDot._connectedDot = target;
+            target._connectedDot = startDot;
+            target._line = tempLine;
+          } else {
+            svg.removeChild(tempLine);
+          }
+          tempLine = null;
+          startDot = null;
+        }
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+      });
+    });
+  })();
+
+  // Check answers: verify each answer circle is connected correctly after DOM loads
+  window.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('check-btn').addEventListener('click', () => {
+      let allCorrect = true;
+      document.querySelectorAll('.column.number .item-wrapper').forEach(wrapper => {
+        const count = parseInt(wrapper.querySelector('.answer-circle').textContent);
+        const leftDot = wrapper.querySelector('.connector-dot.left');
+        const rightDot = wrapper.querySelector('.connector-dot.right');
+        const correctLeft = leftDot._connectedDot && leftDot._connectedDot.dataset.count == count;
+        const correctRight = rightDot._connectedDot && rightDot._connectedDot.dataset.count == count;
+        const circle = wrapper.querySelector('.answer-circle');
+        if (correctLeft || correctRight) {
+          circle.style.border = '3px solid green';
+        } else {
+          circle.style.border = '3px solid red';
+          allCorrect = false;
+        }
+      });
+      if (allCorrect) alert('Semua jawaban benar!');
+    });
+  });
+</script>
+
+<button id="check-btn" class="clay-button">Periksa Jawaban</button>
+</body>
+</html>

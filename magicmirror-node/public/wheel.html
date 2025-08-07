@@ -1,0 +1,133 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Wheel of Treats 🎡</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Poppins', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #fffaf7; }
+    #wheelcanvas { border-radius: 50%; background: #ffe3b3; box-shadow: 0 0 16px #ffcf76; }
+    .spin-btn {
+      margin-top: 24px; background: #f28500; color: #fff; border: none; font-size: 1.5rem; padding: 16px 48px; border-radius: 32px; cursor: pointer; font-weight: bold; transition: 0.2s;
+      box-shadow: 0 2px 8px #ffcf76;
+    }
+    .spin-btn:active { background: #d47702; }
+    .result-pop {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 10;
+      font-size: 2rem; color: #444;
+    }
+    .result-card {
+      background: #fffbe6; border-radius: 24px; padding: 36px 56px; box-shadow: 0 4px 32px #f5c664; text-align: center;
+    }
+    .result-card button {
+      margin-top: 18px; padding: 10px 36px; font-size: 1.1rem; border-radius: 18px; border: none; background: #f28500; color: #fff; cursor: pointer; font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="wheelcanvas" width="400" height="400"></canvas>
+  <button class="spin-btn" id="spinbtn">SPIN 🎡</button>
+  <div id="result" style="display:none"></div>
+  <script>
+    // Pilihan hadiah
+    const rewards = [
+      "🎁 Hair Serum Mini",
+      "💸 Potongan Harga Kunjungan Berikutnya",
+      "💆‍♀️ Cuci Blow Gratis Bulan Depan",
+      "🙌 Free Masker Wajah",
+      "🎉 Voucher Produk 20rb",
+      "🎀 Sisir Lucu",
+      "🍃 Hair Mist Travel Size"
+    ];
+
+    // Render Wheel
+    const wheel = document.getElementById('wheelcanvas');
+    const ctx = wheel.getContext('2d');
+    const slices = rewards.length;
+    const colors = ["#FFB347", "#FFD580", "#FFC94D", "#FFE066", "#FFF2CC", "#FFD6A5", "#FFDF91"];
+    let angle = 0, spinning = false, winner = null;
+
+    function drawWheel(rot = 0) {
+      ctx.clearRect(0, 0, 400, 400);
+      let start = rot;
+      for (let i = 0; i < slices; i++) {
+        ctx.beginPath();
+        ctx.moveTo(200,200);
+        ctx.arc(200,200,190, start, start + 2*Math.PI/slices, false);
+        ctx.closePath();
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.fill();
+        // Tulis hadiah
+        ctx.save();
+        ctx.translate(200,200);
+        ctx.rotate(start + Math.PI/slices);
+        ctx.textAlign = "right";
+        ctx.font = "bold 20px Poppins, sans-serif";
+        ctx.fillStyle = "#744e17";
+        ctx.fillText(rewards[i], 170, 8);
+        ctx.restore();
+        start += 2*Math.PI/slices;
+      }
+      // Center circle
+      ctx.beginPath();
+      ctx.arc(200,200,40,0,2*Math.PI);
+      ctx.fillStyle="#fffbe6";
+      ctx.fill();
+      ctx.font="bold 24px Poppins, sans-serif";
+      ctx.fillStyle="#f28500";
+      ctx.textAlign="center";
+      ctx.fillText("SPIN!",200,210);
+      // Arrow
+      ctx.beginPath();
+      ctx.moveTo(200,12);
+      ctx.lineTo(188,46);
+      ctx.lineTo(212,46);
+      ctx.closePath();
+      ctx.fillStyle="#f28500";
+      ctx.fill();
+    }
+    drawWheel(angle);
+
+    // Spin logic
+    document.getElementById('spinbtn').onclick = () => {
+      if (spinning) return;
+      spinning = true;
+      let spinAngle = Math.random()*360 + 1440; // min 4 putaran
+      let duration = 3800;
+      let start = null;
+      function animateSpin(ts) {
+        if (!start) start = ts;
+        let progress = (ts-start)/duration;
+        let ease = 1-Math.pow(1-progress, 3);
+        let currentAngle = angle + (spinAngle * ease);
+        drawWheel(currentAngle*Math.PI/180);
+        if (progress < 1) {
+          requestAnimationFrame(animateSpin);
+        } else {
+          angle = (angle + spinAngle) % 360;
+          let idx = slices - Math.floor(((angle%360)/360)*slices) - 1;
+          winner = rewards[idx];
+          setTimeout(showResult, 700);
+          spinning = false;
+        }
+      }
+      requestAnimationFrame(animateSpin);
+    };
+
+    function showResult() {
+      const result = document.getElementById('result');
+      result.innerHTML = `
+        <div class="result-pop" onclick="this.style.display='none'">
+          <div class="result-card">
+            <div>Selamat! Kamu mendapatkan:</div>
+            <div style="font-size:2.2rem; margin:18px 0 12px">${winner}</div>
+            <button onclick="document.getElementById('result').style.display='none'">Tutup</button>
+          </div>
+        </div>`;
+      result.style.display = 'block';
+    }
+  </script>
+</body>
+</html>

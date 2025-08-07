@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Menulis Angka</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 0.1rem;
+  }
+  p {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 1rem;
+  }
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .legend-box {
+    width: 60px;
+    height: 60px;
+    color: #333;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 4px;
+    user-select: none;
+    border: 1px solid #ccc;
+    font-size: 1.5rem;
+  }
+  .grid-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    column-gap: 2rem;
+  }
+  .block {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    column-gap: 0rem;
+    row-gap: 0.3rem;
+    padding: 0.3rem;
+  }
+  .color-box {
+    width: 60px;
+    height: 60px;
+    border-radius: 6px;
+    position: relative;
+    cursor: pointer;
+    border: 1px solid #999;
+    box-sizing: border-box;
+  }
+  .color-box input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    outline: none;
+    text-align: center;
+    font-size: 1.5rem;
+    background: transparent;
+    font-weight: bold;
+    color: #111;
+    user-select: none;
+  }
+  .color-box input::placeholder {
+    color: #555;
+  }
+  @media (max-width: 480px) {
+    .color-box {
+      width: 45px;
+      height: 45px;
+    }
+  }
+  #checkButton {
+    display: block;
+    margin: 1.5rem auto 0 auto;
+    padding: 0.75rem 2rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #fff;
+    background: linear-gradient(145deg, #c9d6e3, #e2ebf3);
+    border: none;
+    border-radius: 12px;
+    box-shadow: 5px 5px 10px #a1b0c0, -5px -5px 10px #ffffff;
+    cursor: pointer;
+    transition: box-shadow 0.3s ease, background 0.3s ease;
+  }
+  #checkButton:hover {
+    background: linear-gradient(145deg, #e2ebf3, #c9d6e3);
+    box-shadow: inset 5px 5px 10px #a1b0c0, inset -5px -5px 10px #ffffff;
+  }
+</style>
+</head>
+<body>
+<h1>Menulis Angka</h1>
+<p>Tulislah angka pada kotak-kotak berikut sesuai dengan kode warna yang ada!</p>
+<div class="legend">
+  <div class="legend-box" style="background:#f5b7b1">1</div>
+  <div class="legend-box" style="background:#f9e79f">2</div>
+  <div class="legend-box" style="background:#aed6f1">3</div>
+  <div class="legend-box" style="background:#5dade2">4</div>
+  <div class="legend-box" style="background:#d7bde2">5</div>
+  <div class="legend-box" style="background:#a9dfbf">6</div>
+</div>
+
+<div class="grid-wrapper">
+  <div class="grid">
+    <!-- Block 1 -->
+    <div class="block">
+      <div class="color-box" style="background:#f5b7b1"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#f9e79f"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#aed6f1"><input maxlength="1" placeholder=" "></div>
+
+      <div class="color-box" style="background:#5dade2"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#d7bde2"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#a9dfbf"><input maxlength="1" placeholder=" "></div>
+
+      <div class="color-box" style="background:#f5b7b1"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#f9e79f"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#aed6f1"><input maxlength="1" placeholder=" "></div>
+    </div>
+
+    <!-- Block 2 -->
+    <div class="block">
+      <div class="color-box" style="background:#f9e79f"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#5dade2"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#a9dfbf"><input maxlength="1" placeholder=" "></div>
+
+      <div class="color-box" style="background:#d7bde2"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#aed6f1"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#f5b7b1"><input maxlength="1" placeholder=" "></div>
+
+      <div class="color-box" style="background:#f9e79f"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#5dade2"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#a9dfbf"><input maxlength="1" placeholder=" "></div>
+    </div>
+
+    <!-- Block 3 -->
+    <div class="block">
+      <div class="color-box" style="background:#aed6f1"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#d7bde2"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#f5b7b1"><input maxlength="1" placeholder=" "></div>
+
+      <div class="color-box" style="background:#a9dfbf"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#f9e79f"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#5dade2"><input maxlength="1" placeholder=" "></div>
+
+      <div class="color-box" style="background:#aed6f1"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#d7bde2"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#f5b7b1"><input maxlength="1" placeholder=" "></div>
+    </div>
+
+    <!-- Block 4 -->
+    <div class="block">
+      <div class="color-box" style="background:#5dade2"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#a9dfbf"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#f9e79f"><input maxlength="1" placeholder=" "></div>
+
+      <div class="color-box" style="background:#f5b7b1"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#aed6f1"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#d7bde2"><input maxlength="1" placeholder=" "></div>
+
+      <div class="color-box" style="background:#5dade2"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#a9dfbf"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#f9e79f"><input maxlength="1" placeholder=" "></div>
+    </div>
+
+    <!-- Block 5 -->
+    <div class="block">
+      <div class="color-box" style="background:#d7bde2"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#f5b7b1"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#a9dfbf"><input maxlength="1" placeholder=" "></div>
+
+      <div class="color-box" style="background:#f9e79f"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#5dade2"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#aed6f1"><input maxlength="1" placeholder=" "></div>
+
+      <div class="color-box" style="background:#d7bde2"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#f5b7b1"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#a9dfbf"><input maxlength="1" placeholder=" "></div>
+    </div>
+
+    <!-- Block 6 -->
+    <div class="block">
+      <div class="color-box" style="background:#f5b7b1"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#f9e79f"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#aed6f1"><input maxlength="1" placeholder=" "></div>
+
+      <div class="color-box" style="background:#5dade2"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#d7bde2"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#a9dfbf"><input maxlength="1" placeholder=" "></div>
+
+      <div class="color-box" style="background:#f5b7b1"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#f9e79f"><input maxlength="1" placeholder=" "></div>
+      <div class="color-box" style="background:#aed6f1"><input maxlength="1" placeholder=" "></div>
+    </div>
+  </div>
+
+  <button id="checkButton">Check Answers</button>
+</div>
+
+<script>
+  // Map colors to numbers
+  const colorNumberMap = {
+    '#f5b7b1': '1',
+    '#f9e79f': '2',
+    '#aed6f1': '3',
+    '#5dade2': '4',
+    '#d7bde2': '5',
+    '#a9dfbf': '6'
+  };
+
+  // Normalize color strings to lowercase hex for matching
+  function normalizeColor(color) {
+    const ctx = document.createElement('canvas').getContext('2d');
+    ctx.fillStyle = color;
+    return ctx.fillStyle.toLowerCase();
+  }
+
+  // Pre-normalize keys
+  const normalizedColorNumberMap = {};
+  for (const key in colorNumberMap) {
+    normalizedColorNumberMap[normalizeColor(key)] = colorNumberMap[key];
+  }
+
+  document.querySelectorAll('.color-box').forEach(box => {
+    box.addEventListener('click', () => {
+      const input = box.querySelector('input');
+      if (!input.value) {
+        input.value = '0';
+        input.focus();
+        input.select();
+      } else {
+        input.select();
+      }
+    });
+  });
+
+  document.getElementById('checkButton').addEventListener('click', () => {
+    console.log("Checking answers...");
+    // Placeholder: logic to check answers will be added here later
+  });
+</script>
+</body>
+</html>
