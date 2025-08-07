@@ -88,24 +88,8 @@
       height: 45px;
     }
   }
-  #checkButton {
-    display: block;
-    margin: 1.5rem auto 0 auto;
-    padding: 0.75rem 2rem;
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #fff;
-    background: linear-gradient(145deg, #c9d6e3, #e2ebf3);
-    border: none;
-    border-radius: 12px;
-    box-shadow: 5px 5px 10px #a1b0c0, -5px -5px 10px #ffffff;
-    cursor: pointer;
-    transition: box-shadow 0.3s ease, background 0.3s ease;
-  }
-  #checkButton:hover {
-    background: linear-gradient(145deg, #e2ebf3, #c9d6e3);
-    box-shadow: inset 5px 5px 10px #a1b0c0, inset -5px -5px 10px #ffffff;
-  }
+</style>
+<link rel="stylesheet" href="button.css">
 </style>
 </head>
 <body>
@@ -213,7 +197,7 @@
     </div>
   </div>
 
-  <button id="checkButton">Check Answers</button>
+  <button id="checkButton" class="clay-button">Periksa Jawaban</button>
 </div>
 
 <script>
@@ -253,10 +237,24 @@
     });
   });
 
-  document.getElementById('checkButton').addEventListener('click', () => {
-    console.log("Checking answers...");
-    // Placeholder: logic to check answers will be added here later
+document.getElementById('checkButton').addEventListener('click', () => {
+  let allCorrect = true;
+  document.querySelectorAll('.color-box').forEach(box => {
+    const input = box.querySelector('input');
+    const userValue = input.value.trim();
+    const bgColor = normalizeColor(box.style.backgroundColor);
+    const correctValue = normalizedColorNumberMap[bgColor];
+    if (userValue === correctValue) {
+      box.style.border = '2px solid green';
+    } else {
+      box.style.border = '2px solid red';
+      allCorrect = false;
+    }
   });
+  if (allCorrect) {
+    alert('Semua jawaban benar!');
+  }
+});
 </script>
 </body>
 </html>

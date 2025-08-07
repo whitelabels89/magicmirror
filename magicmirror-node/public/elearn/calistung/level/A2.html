@@ -103,24 +103,7 @@
       transform: translateY(2px);
     }
   </style>
-  <style>
-    #checkButton {
-      background: linear-gradient(to bottom, #90ee90, #32cd32);
-      border: 4px solid #2e8b57;
-      border-radius: 12px;
-      box-shadow: 0 4px #228b22;
-      color: #004d00;
-      font-weight: bold;
-      font-size: 18px;
-      padding: 10px 20px;
-      transition: all 0.1s ease-in-out;
-      margin-top: 20px;
-    }
-    #checkButton:active {
-      box-shadow: 0 2px #228b22;
-      transform: translateY(2px);
-    }
-  </style>
+  <link rel="stylesheet" href="button.css">
 
   <div class="mobil-container" id="mobilContainer">
     <!-- Mobil akan dirender di sini -->
@@ -282,7 +265,7 @@ document.querySelectorAll(".color-code div").forEach((el) => {
       });
     });
   </script>
-  <button id="checkButton">Cek Jawaban</button>
+  <button id="checkButton" class="clay-button">Periksa Jawaban</button>
   <div id="result" style="margin-top: 15px; font-weight: bold;"></div>
 </body>
 </html>

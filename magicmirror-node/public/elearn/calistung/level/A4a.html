@@ -107,21 +107,6 @@
       width: 100px;
       height: 100px;
     }
-    button#check-btn {
-      padding: 10px 20px;
-      font-size: 1.1em;
-      border-radius: 8px;
-      border: none;
-      background-color: #4CAF50;
-      color: white;
-      cursor: pointer;
-      user-select: none;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.3);
-      transition: background-color 0.3s;
-    }
-    button#check-btn:hover {
-      background-color: #45a049;
-    }
     .result-message {
       margin-top: 20px;
       font-size: 1.2em;
@@ -132,6 +117,7 @@
       width: 100%;
     }
   </style>
+  <link rel="stylesheet" href="button.css">
 </head>
 <body>
   <div class="container">
@@ -150,7 +136,7 @@
   </div>
 
   <div class="button-wrapper">
-    <button id="check-btn">Cek Jawaban</button>
+    <button id="check-btn" class="clay-button">Periksa Jawaban</button>
   </div>
   <div class="result-message" id="result-message"></div>
 

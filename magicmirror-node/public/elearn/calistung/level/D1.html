@@ -94,6 +94,10 @@
     padding: 20px 25px;
     box-shadow: inset 0 0 10px #ebd7e4;
   }
+  .right .clay-button {
+    display: block;
+    margin: 20px auto 0 auto;
+  }
   .key-title {
     font-size: 1.3rem;
     font-weight: 700;
@@ -119,23 +123,6 @@
   }
   .key-list li span.emoji {
     font-size: 2rem;
-  }
-  .check-btn {
-    margin-top: 30px;
-    width: 100%;
-    padding: 15px 0;
-    border: none;
-    border-radius: 40px;
-    background: #d38eb3;
-    color: #fff;
-    font-size: 1.4rem;
-    font-weight: 700;
-    cursor: pointer;
-    box-shadow: 0 6px 12px #c17aa1;
-    transition: background-color 0.3s;
-  }
-  .check-btn:hover {
-    background-color: #b86a95;
   }
   .rating {
     margin-top: 25px;
@@ -165,6 +152,7 @@
     }
   }
 </style>
+<link rel="stylesheet" href="button.css">
 </head>
 <body>
   <main class="container" role="main" aria-label="Belajar Coding Matematika interactive game">
@@ -200,7 +188,7 @@
         <li><span class="emoji" aria-hidden="true">🍊</span> <span>= 6</span></li>
         <li><span class="emoji" aria-hidden="true">🍎</span> <span>= 8</span></li>
       </ul>
-      <button type="button" class="check-btn" aria-label="Check your answers">Check Answer</button>
+      <button type="button" class="clay-button" aria-label="Check your answers">Periksa Jawaban</button>
       <div class="rating" aria-live="polite" aria-atomic="true" role="status"></div>
     </section>
   </main>
@@ -234,7 +222,7 @@
       return `<li><span class="emoji" aria-hidden="true">${emoji}</span> <span>= ${fruitValues[emoji]}</span></li>`;
     }).join('');
 
-    const checkBtn = document.querySelector('.check-btn');
+    const checkBtn = document.querySelector('.clay-button');
     const ratingEl = document.querySelector('.rating');
 
     function clearStyles() {

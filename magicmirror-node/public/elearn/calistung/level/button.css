@@ -1,0 +1,19 @@
+
+
+/* 2.5D Clay-style button */
+.clay-button {
+  background-color: #FFD66B;
+  border: none;
+  border-radius: 24px;
+  padding: 12px 28px;
+  font-size: 18px;
+  color: #333;
+  font-weight: bold;
+  box-shadow: 0 8px 0 #E6C34E, 0 12px 12px rgba(0,0,0,0.1);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.clay-button:active {
+  transform: translateY(6px);
+  box-shadow: 0 2px 0 #E6C34E, 0 6px 8px rgba(0,0,0,0.1);
+}
