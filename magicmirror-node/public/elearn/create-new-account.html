@@ -63,9 +63,21 @@
       border-color: #444;
     }
 
-    [data-theme='dark'] input::placeholder,
-    [data-theme='dark'] select option {
+    [data-theme='dark'] input::placeholder {
       color: var(--text-muted);
+    }
+
+    /* Dark mode: for Role & Class, keep light box but make text black */
+    [data-theme='dark'] select#role,
+    [data-theme='dark'] select#kelas_id_student {
+      color: #000 !important;          /* font dihitamkan */
+      background: #f7fafd !important;  /* tetap terang seperti light mode */
+      border-color: #dde1ef !important;
+    }
+    [data-theme='dark'] select#role option,
+    [data-theme='dark'] select#kelas_id_student option {
+      color: #000 !important;          /* isi opsi juga hitam */
+      background: #ffffff !important;  /* dropdown list terang */
     }
 
     [data-theme='dark'] button {
@@ -364,7 +376,7 @@
     // Reset UI
     select.innerHTML = '<option value="">Select Class (optional)</option>';
     const statusEl = document.getElementById('student-status');
-    if (statusEl) statusEl.textContent = '⏳ Memuat daftar kelas...';
+    // (status messages reserved for account create only)
 
     const pick = (obj, keys) => { for (const k of keys) { if (obj && obj[k] != null && obj[k] !== '') return obj[k]; } };
 
@@ -409,7 +421,7 @@
           count++;
         });
         if (count === 0) { lastErr = new Error(`No items @ ${url}`); continue; }
-        if (statusEl) statusEl.textContent = `✅ ${count} kelas dimuat. Sumber: ${new URL(url).pathname}`;
+        // No UI status for class loading success
         console.info('[loadClassOptions] loaded from', url);
         return; // success
       } catch (err) {
@@ -419,7 +431,8 @@
     }
 
     // If here, all candidates failed
-    if (statusEl) statusEl.textContent = `⚠️ Gagal memuat daftar kelas. ${lastErr ? lastErr.message : ''}`.trim();
+    // No UI status for class loading failures; keep console log only
+    // (status messages reserved for account create only)
     if (select && select.options.length <= 1) {
       const opt = document.createElement('option');
       opt.value = '';
@@ -428,6 +441,32 @@
       select.appendChild(opt);
     }
     console.error('[loadClassOptions] all endpoints failed', { lastErr, candidates });
+  }
+  // Endpoint settings for CLASS_API_URL (save/test), suppress UI status messages
+  function initClassEndpointSettings() {
+    const input = document.getElementById('class-endpoint-input');
+    const btnSave = document.getElementById('class-endpoint-save');
+    const btnTest = document.getElementById('class-endpoint-test');
+    if (!input || !btnSave || !btnTest) return;
+    btnSave.addEventListener('click', () => {
+      const v = (input.value || '').trim();
+      if (v) localStorage.setItem('CLASS_API_URL', v);
+      else localStorage.removeItem('CLASS_API_URL');
+      window.CLASS_API_URL = v;
+      loadClassOptions();
+    });
+    btnTest.addEventListener('click', async () => {
+      const url = (input.value || '').trim();
+      if (!url) { console.info('[CLASS_API_URL] kosong'); return; }
+      try {
+        const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        await res.json();
+        console.info('✅ Endpoint OK:', url);
+      } catch (e){
+        console.error('❌ Endpoint gagal:', url, e);
+      }
+    });
   }
   </script>
             
@@ -495,6 +534,10 @@
     const kelas_id = document.getElementById('kelas_id_student').value.trim();
     const role = document.getElementById('role').value;
     const cid = 'QAC' + String(Date.now()).slice(-7);
+    if (!role || !nama || !email || !password) {
+      status.textContent = '❌ Data belum lengkap';
+      return;
+    }
     try {
       const res = await fetch(`${FIREBASE_API}/api/daftar-akun-baru`, {
         method: 'POST',
@@ -505,12 +548,13 @@
         status.textContent = '✅ Akun berhasil ditambah.';
         e.target.reset();
       } else {
-        const data = await res.json();
-        status.textContent = '❌ ' + (data.error || 'Gagal menambah akun');
+        // const data = await res.json();
+        // status.textContent = '❌ ' + (data.error || 'Gagal menambah akun');
+        status.textContent = '❌ Data belum lengkap atau tidak valid';
       }
     } catch (err) {
       console.error(err);
-      status.textContent = '❌ Gagal menambah akun';
+      status.textContent = '❌ Data belum lengkap atau tidak valid';
     }
   });
 </script>
