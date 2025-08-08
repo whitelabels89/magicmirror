@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Color By Number - Game E1</title>
+  <link rel="stylesheet" href="button.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background-color: #f8f8f8;
+    }
+    h2 {
+      margin: 16px 0;
+    }
+    #game-container {
+      display: flex;
+      align-items: center; /* center vertically */
+      justify-content: center; /* center horizontally */
+      gap: 24px;
+      position: relative;
+    }
+    svg {
+      width: 330px; /* was 600px */
+      height: auto;
+    }
+    .segment {
+      fill: #fff8f0;
+      stroke: #ccc;
+      stroke-width: 2;
+      cursor: pointer;
+      transition: fill 0.2s;
+      pointer-events: all;
+    }
+    #palette {
+      display: flex;
+      flex-direction: column;
+      gap: 45px;
+      align-items: center;
+      width: 64px; /* fixed column width */
+      margin-top: 90px;   /* no bottom margin */
+    }
+    .color-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+      line-height: 1;
+      color: #000; /* will be overridden in JS for contrast */
+      user-select: none;
+    }
+    .color-btn.selected {
+      border-color: #333;
+    }
+    .button-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: nowrap; /* keep in one line */
+      margin-top: 16px;
+      margin-bottom: 24px;
+      position: relative;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <h2 id="level-title">Warna Berdasarkan Nomor — Level 1: Es Krim</h2>
+  <div id="game-container">
+    <div id="svg-container"></div>
+    <div id="palette"></div>
+  </div>
+
+  <div class="button-row">
+    <button id="reset-btn" class="clay-button">Reset</button>
+    <button id="check-btn" class="clay-button">Periksa Jawaban</button>
+    <button id="next-level-btn" class="clay-button">Lanjut Level 2</button>
+  </div>
+
+  <script>
+    let resizeSyncFn = null; // to avoid stacking resize listeners
+
+    function loadLevel(assetPath, levelName, options = {}) {
+      const titleEl = document.getElementById('level-title');
+      if (titleEl) titleEl.textContent = `Warna Berdasarkan Nomor — ${levelName}`;
+
+      // Clear previous SVG
+      document.getElementById('svg-container').innerHTML = '';
+
+      fetch(assetPath)
+        .then(res => res.text())
+        .then(text => {
+          document.getElementById('svg-container').innerHTML = text;
+          // Select all basic shape elements in the SVG
+          const allShapes = document.querySelectorAll('#svg-container svg path, #svg-container svg rect, #svg-container svg polygon, #svg-container svg circle, #svg-container svg ellipse');
+          // Filter out tiny/decorative shapes or those marked data-ignore
+          const shapes = Array.from(allShapes).filter(shape => {
+            if (shape.hasAttribute('data-ignore')) return false;
+            const bbox = shape.getBBox();
+            const minDimOK = bbox.width >= 24 && bbox.height >= 24;
+            const areaOK   = (bbox.width * bbox.height) >= 1200;
+            return minDimOK && areaOK;
+          });
+
+          // === Determine numbering strategy ===
+          const cycle = options.cycle || 7;
+          const strategy = options.strategy || 'random'; // 'random' | 'topLeft' | 'angle' | 'radius'
+
+          // Prepare shape centers
+          const withCenters = shapes.map(shape => {
+            const b = shape.getBBox();
+            return {
+              shape,
+              cx: b.x + b.width / 2,
+              cy: b.y + b.height / 2
+            };
+          });
+
+          // Compute global center once (for angle/radius strategies)
+          const Cx = withCenters.reduce((s, o) => s + o.cx, 0) / (withCenters.length || 1);
+          const Cy = withCenters.reduce((s, o) => s + o.cy, 0) / (withCenters.length || 1);
+
+          // Build assignment order based on strategy
+          let ordered = withCenters.slice();
+          if (strategy === 'topLeft') {
+            ordered.sort((a, b) => (a.cy - b.cy) || (a.cx - b.cx));
+          } else if (strategy === 'angle') {
+            ordered.sort((a, b) => {
+              const aa = Math.atan2(a.cy - Cy, a.cx - Cx);
+              const bb = Math.atan2(b.cy - Cy, b.cx - Cx);
+              return aa - bb;
+            });
+          } else if (strategy === 'radius') {
+            ordered.sort((a, b) => {
+              const ra = Math.hypot(a.cx - Cx, a.cy - Cy);
+              const rb = Math.hypot(b.cx - Cx, b.cy - Cy);
+              if (ra !== rb) return ra - rb; // inner to outer
+              const aa = Math.atan2(a.cy - Cy, a.cx - Cx);
+              const bb = Math.atan2(b.cy - Cy, b.cx - Cx);
+              return aa - bb; // clockwise within same ring
+            });
+          } else {
+            // random: shuffle order
+            for (let i = ordered.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [ordered[i], ordered[j]] = [ordered[j], ordered[i]];
+            }
+          }
+
+          // Assign numbers 1..cycle to ordered shapes
+          const assigned = new Map();
+          ordered.forEach((o, idx) => {
+            assigned.set(o.shape, (idx % cycle) + 1);
+          });
+
+          // Apply classes, base styles, and data-number (do not override if already set in SVG)
+          shapes.forEach(shape => {
+            shape.classList.add('segment');
+            shape.style.pointerEvents = 'all';
+            if (shape.hasAttribute('fill')) shape.removeAttribute('fill');
+            shape.style.fill = '#fff8f0';
+            if (!shape.hasAttribute('data-number')) {
+              shape.dataset.number = assigned.get(shape);
+            }
+          });
+
+          const svgEl = document.querySelector('#svg-container svg');
+          // === Crop SVG viewBox to the union of interactive shapes ===
+          (function cropToShapes() {
+            if (!shapes.length) return;
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            shapes.forEach(s => {
+              const b = s.getBBox();
+              minX = Math.min(minX, b.x);
+              minY = Math.min(minY, b.y);
+              maxX = Math.max(maxX, b.x + b.width);
+              maxY = Math.max(maxY, b.y + b.height);
+            });
+            const pad = 10;
+            const vbX = Math.max(0, minX - pad);
+            const vbY = Math.max(0, minY - pad);
+            const vbW = (maxX - minX) + pad * 2;
+            const vbH = (maxY - minY) + pad * 2;
+            svgEl.setAttribute('viewBox', `${vbX} ${vbY} ${vbW} ${vbH}`);
+            svgEl.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+            svgEl.removeAttribute('width');
+            svgEl.removeAttribute('height');
+          })();
+
+          // Sync palette height
+          const paletteEl = document.getElementById('palette');
+          const syncPaletteHeight = () => {
+            const r = svgEl.getBoundingClientRect();
+            paletteEl.style.height = `${r.height}px`;
+          };
+          syncPaletteHeight();
+          if (resizeSyncFn) window.removeEventListener('resize', resizeSyncFn);
+          resizeSyncFn = syncPaletteHeight;
+          window.addEventListener('resize', resizeSyncFn);
+
+          // Place number labels (avoid stacking)
+          const placedCenters = [];
+          shapes.forEach(shape => {
+            const bbox = shape.getBBox();
+            const cx = bbox.x + bbox.width / 2;
+            const cy = bbox.y + bbox.height / 2;
+            const tooClose = placedCenters.some(p => Math.hypot(p.x - cx, p.y - cy) < 12);
+            if (tooClose) return;
+            const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            textEl.setAttribute('x', cx);
+            textEl.setAttribute('y', cy);
+            textEl.setAttribute('text-anchor', 'middle');
+            textEl.setAttribute('dominant-baseline', 'middle');
+            textEl.setAttribute('pointer-events', 'none');
+            textEl.setAttribute('font-size', '24');
+            textEl.setAttribute('fill', '#333');
+            textEl.textContent = shape.dataset.number;
+            svgEl.appendChild(textEl);
+            placedCenters.push({ x: cx, y: cy });
+          });
+
+          initGame();
+        })
+        .catch(err => console.error('Failed to load SVG:', err));
+    }
+
+    // Initial load: Level 1 (Es Krim)
+    loadLevel('/elearn/calistung/assets/shape/eskrim-path.svg', 'Level 1: Es Krim', { strategy: 'random' });
+
+    // Lanjut ke Level 2 (Lolipop) tanpa pindah halaman
+    document.getElementById('next-level-btn').addEventListener('click', () => {
+      // For lollipop, radius-based ordering follows the spiral from center → outward
+      loadLevel('/elearn/calistung/assets/shape/lolipop.svg', 'Level 2: Lolipop', { strategy: 'radius' });
+    });
+
+    function initGame() {
+      // Peta warna: nomor ke warna
+      const colorMap = {
+        1: '#4CAF50',  // hijau
+        2: '#2196F3',  // biru
+        3: '#A52A2A',  // coklat
+        4: '#D8BFD8',  // ungu muda
+        5: '#90EE90',  // hijau muda
+        6: '#FFD700',  // kuning
+        7: '#FF8C00'   // oranye
+      };
+
+      const toHexColor = (c) => {
+        if (!c) return '';
+        c = c.toString().trim().toLowerCase();
+        if (c.startsWith('#')) return c.length === 4
+          ? `#${c[1]}${c[1]}${c[2]}${c[2]}${c[3]}${c[3]}`
+          : c;
+        // rgb or rgba
+        const m = c.match(/rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*[^\)]+)?\)/);
+        if (m) {
+          const r = parseInt(m[1], 10).toString(16).padStart(2, '0');
+          const g = parseInt(m[2], 10).toString(16).padStart(2, '0');
+          const b = parseInt(m[3], 10).toString(16).padStart(2, '0');
+          return `#${r}${g}${b}`;
+        }
+        return c;
+      };
+
+      const normalizedColorMap = Object.fromEntries(
+        Object.entries(colorMap).map(([k, v]) => [k, toHexColor(v)])
+      );
+
+      const getContrastColor = (hex) => {
+        const c = hex.replace('#','');
+        const r = parseInt(c.substring(0,2),16);
+        const g = parseInt(c.substring(2,4),16);
+        const b = parseInt(c.substring(4,6),16);
+        // Perceived luminance
+        const L = (0.299*r + 0.587*g + 0.114*b)/255;
+        return L > 0.6 ? '#000' : '#fff';
+      };
+
+      let currentNumber = null;
+
+      // Inisialisasi palette
+      const palette = document.getElementById('palette');
+      palette.innerHTML = '';
+      Object.keys(colorMap).forEach(num => {
+        const btn = document.createElement('button');
+        btn.className = 'color-btn';
+        btn.style.backgroundColor = colorMap[num];
+        btn.title = `Nomor ${num}`;
+        btn.dataset.number = num;
+        btn.textContent = num; // show the number label on the swatch
+        btn.style.color = getContrastColor(colorMap[num]);
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          currentNumber = parseInt(num);
+        });
+        palette.appendChild(btn);
+      });
+
+      // Set up segment click
+      document.querySelectorAll('.segment').forEach(seg => {
+        seg.addEventListener('click', () => {
+          if (currentNumber !== null) {
+            seg.style.fill = colorMap[currentNumber];
+          }
+        });
+      });
+
+      // Reset listener (rebinding safely)
+      const oldReset = document.getElementById('reset-btn');
+      const resetBtn = oldReset.cloneNode(true);
+      oldReset.parentNode.replaceChild(resetBtn, oldReset);
+      resetBtn.addEventListener('click', () => {
+        document.querySelectorAll('.segment').forEach(seg => {
+          seg.style.fill = '#fff8f0';
+          seg.style.stroke = '#ccc';
+          seg.style.strokeWidth = '2';
+        });
+        currentNumber = null;
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('selected'));
+      });
+
+      // Check answers listener (rebinding safely)
+      const oldCheck = document.getElementById('check-btn');
+      const checkBtn = oldCheck.cloneNode(true);
+      oldCheck.parentNode.replaceChild(checkBtn, oldCheck);
+      checkBtn.addEventListener('click', () => {
+        let allCorrect = true;
+        document.querySelectorAll('.segment').forEach(seg => {
+          const correctNum = parseInt(seg.dataset.number);
+          const computedFill = getComputedStyle(seg).fill;
+          const fillHex = toHexColor(computedFill);
+          if (fillHex === (normalizedColorMap[correctNum] || '')) {
+            seg.style.stroke = 'green';
+            seg.style.strokeWidth = '4';
+          } else {
+            seg.style.stroke = 'red';
+            seg.style.strokeWidth = '4';
+            allCorrect = false;
+          }
+        });
+        if (allCorrect) alert('Semua jawaban benar!');
+      });
+    }
+  </script>
+</body>
+</html>
