@@ -178,6 +178,14 @@
     cursor: pointer;
   }
   .connector-dot { touch-action: none; }
+  body { overscroll-behavior: none; touch-action: manipulation; }
+  .connector-dot { position: relative; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; -webkit-user-drag: none; -webkit-touch-callout: none; }
+  .connector-dot::after { content: ""; position: absolute; top: -14px; left: -14px; width: 40px; height: 40px; border-radius: 50%; background: transparent; }
+  @media (pointer: coarse) {
+    .connector-dot { width: 24px; height: 24px; margin: 18px; }
+    .connector-dot::after { top: -18px; left: -18px; width: 56px; height: 56px; }
+  }
+  .connector-dot.selected { outline: 3px solid #2d8cff; box-shadow: 0 0 0 6px rgba(45,140,255,0.2); }
   /* Dice container centered vertically and horizontally */
   .dice-box {
     display: flex;
@@ -313,14 +321,27 @@
     let tempLine = null;
     let startDot = null;
     let svgRect = null;
+    let restoreTouchAction = null;
+    let restoreTimer = null;
 
     function centerOf(dot, rect){
       const b = dot.getBoundingClientRect();
       return { x: b.left + b.width/2 - rect.left, y: b.top + b.height/2 - rect.top };
     }
 
-    function beginDrag(dot, clientX, clientY, moveEvt, endEvt, isTouch){
+    function beginDrag(dot, clientX, clientY, moveEvt, endEvt, isTouch, targetEl){
       startDot = dot;
+      // disable page gestures during drag (esp. iPad Safari)
+      if (isTouch) {
+        const prev = document.body.style.touchAction;
+        restoreTouchAction = () => { document.body.style.touchAction = prev; restoreTouchAction = null; };
+        document.body.style.touchAction = 'none';
+        // start watchdog to auto-restore if end/cancel never fires
+        if (restoreTimer) clearTimeout(restoreTimer);
+        restoreTimer = setTimeout(() => {
+          if (restoreTouchAction) restoreTouchAction();
+        }, 1500);
+      }
       svgRect = svg.getBoundingClientRect();
       tempLine = document.createElementNS(svgNS, 'line');
       tempLine.setAttribute('stroke', '#000');
@@ -334,13 +355,18 @@
       tempLine.setAttribute('y2', c.y);
 
       function onMove(e){
+        // keep watchdog alive while moving
+        if (restoreTimer) { clearTimeout(restoreTimer); }
+        restoreTimer = setTimeout(() => { if (restoreTouchAction) restoreTouchAction(); }, 1200);
+
         if(isTouch){ e.preventDefault(); const t = e.touches[0] || e.changedTouches[0]; if(!t) return; tempLine.setAttribute('x2', t.clientX - svgRect.left); tempLine.setAttribute('y2', t.clientY - svgRect.top); }
         else { tempLine.setAttribute('x2', e.clientX - svgRect.left); tempLine.setAttribute('y2', e.clientY - svgRect.top); }
       }
 
       function onEnd(e){
-        document.removeEventListener(moveEvt, onMove, {passive:false});
-        document.removeEventListener(endEvt, onEnd, {passive:false});
+        (targetEl || window).removeEventListener(moveEvt, onMove, {passive:false});
+        (targetEl || window).removeEventListener(endEvt, onEnd, {passive:false});
+        try { startDot && startDot.releasePointerCapture && e.pointerId !== undefined && startDot.releasePointerCapture(e.pointerId); } catch(_){}
         let cx, cy;
         if(isTouch){ const t = (e.changedTouches && e.changedTouches[0]) || (e.touches && e.touches[0]); if(!t){ if(tempLine) svg.removeChild(tempLine); tempLine=null; startDot=null; return; } cx=t.clientX; cy=t.clientY; }
         else { cx=e.clientX; cy=e.clientY; }
@@ -357,23 +383,41 @@
         } else {
           if (tempLine) svg.removeChild(tempLine);
         }
+        if (restoreTimer) { clearTimeout(restoreTimer); restoreTimer = null; }
+        if (restoreTouchAction) restoreTouchAction();
         tempLine = null; startDot = null;
       }
 
-      document.addEventListener(moveEvt, onMove, {passive:false});
-      document.addEventListener(endEvt, onEnd, {passive:false});
+      (targetEl || window).addEventListener(moveEvt, onMove, {passive:false});
+      (targetEl || window).addEventListener(endEvt, onEnd, {passive:false});
     }
 
-    const dots = document.querySelectorAll('.column.number .connector-dot');
+    // Allow start from ANY connector dot (left/middle/right)
+    const dots = document.querySelectorAll('.connector-dot');
 
     if (window.PointerEvent) {
       dots.forEach(dot => {
         dot.addEventListener('pointerdown', (e) => {
-          if (e.button !== undefined && e.button !== 0 && e.pointerType !== 'touch') return;
+          // Drag only for mouse; touch/pen will use tap-to-connect
+          if (e.pointerType !== 'mouse') return;
+          if (e.button !== 0) return;
           e.preventDefault();
-          beginDrag(dot, e.clientX, e.clientY, 'pointermove', 'pointerup', e.pointerType === 'touch');
+          dot.setPointerCapture(e.pointerId);
+          beginDrag(dot, e.clientX, e.clientY, 'pointermove', 'pointerup', e.pointerType === 'touch', dot);
+        }, {passive:false});
+        dot.addEventListener('pointercancel', (e) => {
+          // simulate end if pointer is canceled
+          const evt = new PointerEvent('pointerup', {pointerId: e.pointerId, clientX: e.clientX, clientY: e.clientY});
+          window.dispatchEvent(evt);
         }, {passive:false});
       });
+      window.addEventListener('pointerup', (e) => {
+        // if a drag is active but somehow no end fired on targetEl, force-restore
+        if (restoreTimer && restoreTouchAction && startDot && tempLine) {
+          if (restoreTimer) { clearTimeout(restoreTimer); restoreTimer = null; }
+          restoreTouchAction();
+        }
+      }, {passive:false});
     } else {
       // Mouse fallback
       dots.forEach(dot => {
@@ -389,6 +433,98 @@
         }, {passive:false});
       });
     }
+
+    // global failsafe: always restore touchAction on blur/visibility change
+    window.addEventListener('blur', () => { if (restoreTimer) { clearTimeout(restoreTimer); restoreTimer = null; } if (restoreTouchAction) restoreTouchAction(); });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) { if (restoreTimer) { clearTimeout(restoreTimer); restoreTimer = null; } if (restoreTouchAction) restoreTouchAction(); } });
+
+    // extra safety: global touch listeners during drag on iOS
+    window.addEventListener('touchmove', function(e){ if (tempLine) { e.preventDefault(); } }, {passive:false});
+    // === TAP-TO-CONNECT MODE (for coarse pointers / touch & pen) ===
+    (function(){
+      const svg = document.getElementById('connector-svg');
+      const svgNS = 'http://www.w3.org/2000/svg';
+      let selectedDot = null;
+
+      function centerOf(dot, rect){
+        const b = dot.getBoundingClientRect();
+        return { x: b.left + b.width/2 - rect.left, y: b.top + b.height/2 - rect.top };
+      }
+
+      function clearSelected(){
+        if(selectedDot){ selectedDot.classList.remove('selected'); selectedDot = null; }
+      }
+
+      function connectDots(a,b){
+        const rect = svg.getBoundingClientRect();
+        // remove previous lines on both ends and clear partner locks
+        if (a._line) { try{svg.removeChild(a._line);}catch(_){} a._line=null; if (a._connectedDot){ a._connectedDot._line=null; a._connectedDot._connectedDot=null; a._connectedDot._locked=false; a._connectedDot._isStart=false; } }
+        if (b._line) { try{svg.removeChild(b._line);}catch(_){} b._line=null; if (b._connectedDot){ b._connectedDot._line=null; b._connectedDot._connectedDot=null; b._connectedDot._locked=false; b._connectedDot._isStart=false; } }
+        const line = document.createElementNS(svgNS, 'line');
+        line.setAttribute('stroke', '#000');
+        line.setAttribute('stroke-width', '2');
+        const ac = centerOf(a, rect);
+        const bc = centerOf(b, rect);
+        line.setAttribute('x1', ac.x); line.setAttribute('y1', ac.y);
+        line.setAttribute('x2', bc.x); line.setAttribute('y2', bc.y);
+        svg.appendChild(line);
+        a._line = line; a._connectedDot = b;
+        b._line = line; b._connectedDot = a;
+        a._isStart = true; b._isStart = false;
+        a._locked = true; b._locked = true;
+      }
+
+      function handleTap(e){
+        const dot = e.currentTarget;
+        // FIRST TAP
+        if(!selectedDot){
+          // if this dot is already locked, only allow re-activation if it's the original start dot
+          if (dot._locked) {
+            if (dot._isStart) {
+              // reactivate correction mode: remove current line and unlock both ends
+              const partner = dot._connectedDot;
+              if (dot._line) { try{svg.removeChild(dot._line);}catch(_){} }
+              if (partner) { partner._line=null; partner._connectedDot=null; partner._locked=false; partner._isStart=false; }
+              dot._line=null; dot._connectedDot=null; dot._locked=false; // keep _isStart true for semantic, but selection governs behavior
+            } else {
+              // tapping end point does nothing when locked
+              return;
+            }
+          }
+          selectedDot = dot;
+          selectedDot.classList.add('selected');
+          return;
+        }
+        // SECOND TAP: if tapping the same selected dot, clear selection
+        if(selectedDot === dot){ clearSelected(); return; }
+        // If target is locked and is not the original start, ignore to avoid altering existing connection
+        if (dot._locked && !dot._isStart) { clearSelected(); return; }
+        // Connect and clear selection
+        connectDots(selectedDot, dot);
+        clearSelected();
+      }
+
+      // Attach tap handlers on all dots
+      const dots = document.querySelectorAll('.connector-dot');
+      dots.forEach(d => {
+        // Mouse: click is fine
+        d.addEventListener('click', handleTap, {passive:true});
+        // Touch: fast path without long-press delay
+        d.addEventListener('touchend', function(ev){ handleTap(ev); }, {passive:true});
+        // Stylus/Pen: trigger immediately on pointerup (no long-press)
+        d.addEventListener('pointerup', function(ev){
+          if (ev.pointerType && ev.pointerType !== 'mouse') handleTap(ev);
+        }, {passive:true});
+        // Prevent long-press context menu interfering on iPad
+        d.addEventListener('contextmenu', function(e){ e.preventDefault(); }, {passive:false});
+      });
+
+      // If user taps outside, clear selection
+      document.addEventListener('click', (ev)=>{
+        const t = ev.target;
+        if(!t || !t.classList || !t.classList.contains('connector-dot')) clearSelected();
+      }, {passive:true});
+    })();
   })();
 
   // Check answers: verify each answer circle is connected correctly after DOM loads
