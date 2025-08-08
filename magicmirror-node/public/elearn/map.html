@@ -594,39 +594,39 @@
         <!-- Animated Arrow Follows Path -->
         <div class="arrow-flow"></div>
         <!-- LEVEL NODES (zig-zag vertical layout dummy) -->
-        <div class="map-node" style="left:27%;top:15%;" data-lesson="CA1L1"><img src="/elearn/img/map/icon-start.png" class="node-icon"/><span>CA1L1</span></div>
-        <div class="map-node" style="left:38%;top:19%;" data-lesson="CA1L2"><img src="/elearn/img/map/icon-lesson.png" class="node-icon"/><span>CA1L2</span></div>
-        <div class="map-node" style="left:72%;top:19%;" data-lesson="KC1L1"><img src="/elearn/img/map/icon-lesson.png" class="node-icon"/><span>KC1L1</span></div>
-        <div class="map-node" style="left:88%;top:55%;" data-lesson="VP1L1"><img src="/elearn/img/map/icon-lesson.png" class="node-icon"/><span>VP1L1</span></div>
+        <div class="map-node" style="left:27%;top:15%;" data-lesson="Level 1"><img src="/elearn/img/map/icon-start.png" class="node-icon"/><span>Level 1</span></div>
+        <div class="map-node" style="left:38%;top:19%;" data-lesson="Level 2"><img src="/elearn/img/map/icon-lesson.png" class="node-icon"/><span>Level 2</span></div>
+        <div class="map-node" style="left:72%;top:19%;" data-lesson="Level 5"><img src="/elearn/img/map/icon-lesson.png" class="node-icon"/><span>Level 5</span></div>
+        <div class="map-node" style="left:88%;top:55%;" data-lesson="Level 8"><img src="/elearn/img/map/icon-lesson.png" class="node-icon"/><span>Level 8</span></div>
         <div class="map-node" style="left:56.6%;top:36%;" data-lesson="M1L1"><img src="/elearn/img/map/icon-boss.png" class="node-icon"/><span>M1L1</span></div>
         <div class="map-node" style="left:57%;top:30%;" data-lesson="Finish"><img src="/elearn/img/map/icon-finish.png" class="node-icon"/><span>Finish</span></div>
         <!-- Visual Lock and Badge on Map Path -->
         <div class="map-node lock-node" style="left:70%;top:16%;"></div>
         <div class="map-node badge-node" style="left:50%;top:31%;"></div>
         <!-- LEVEL NODES DUMMY (15 level nodes, campuran sebaran) -->
-        <div class="map-node" style="top:15%;left:50%;" data-lesson="DUMMY1">
+        <div class="map-node" style="top:15%;left:50%;" data-lesson="CA1L3">
           <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
-          <span>CA1L3</span>
+          <span>Level 3</span>
         </div>
-        <div class="map-node" style="top:20%;left:60%;" data-lesson="DUMMY2">
+        <div class="map-node" style="top:20%;left:60%;" data-lesson="CA1L4">
           <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
-          <span>CA1L4</span>
+          <span>Level 4</span>
         </div>
-        <div class="map-node" style="top:33%;left:72%;" data-lesson="DUMMY3">
+        <div class="map-node" style="top:33%;left:72%;" data-lesson="Level 6">
           <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
-          <span>KC1L2</span>
+          <span>Level 6</span>
         </div>
-        <div class="map-node" style="top:43%;left:78%;" data-lesson="DUMMY4">
+        <div class="map-node" style="top:43%;left:78%;" data-lesson="Level 7">
           <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
-          <span>KC1L3</span>
+          <span>Level 7</span>
         </div>
-        <div class="map-node" style="top:74%;left:95%;" data-lesson="DUMMY5">
+        <div class="map-node" style="top:74%;left:95%;" data-lesson="Level 9">
           <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
-          <span>DUMMY5</span>
+          <span>Level 9</span>
         </div>
-        <div class="map-node" style="top:85%;left:63%;" data-lesson="DUMMY6">
+        <div class="map-node" style="top:85%;left:63%;" data-lesson="Level 11">
           <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
-          <span>DUMMY6</span>
+          <span>Level 11</span>
         </div>
         <div class="map-node" style="top:65%;left:65%;" data-lesson="DUMMY7">
           <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
@@ -640,9 +640,9 @@
           <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
           <span>DUMMY9</span>
         </div>
-        <div class="map-node" style="top:88%;left:42%;" data-lesson="DUMMY10">
+        <div class="map-node" style="top:88%;left:42%;" data-lesson="Level 12">
           <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
-          <span>DUMMY10</span>
+          <span>Level 12</span>
         </div>
         <div class="map-node" style="top:65%;left:30%;" data-lesson="DUMMY11">
           <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
@@ -660,9 +660,9 @@
           <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
           <span>DUMMY14</span>
         </div>
-        <div class="map-node" style="top:94%;left:90%;" data-lesson="DUMMY15">
+        <div class="map-node" style="top:94%;left:90%;" data-lesson="Level 10">
           <img src="/elearn/img/map/icon-lesson.png" class="node-icon"/>
-          <span>DUMMY15</span>
+          <span>Level 10</span>
         </div>
         <!-- Zig-zag SVG path lines -->
         <svg style="position:absolute;left:0;top:0;width:100%;height:100%;z-index:0;pointer-events:none;">
@@ -1381,17 +1381,32 @@
 <script>
   // mapping kode lesson ke url lesson
   const lessonUrlMap = {
-    "CA1L1": "/elearn/calistung/CA1L1.html",
-    "CA1L2": "/elearn/calistung/CA1L2.html",
-    "KC1L1": "/elearn/kindercoder/KC1L1.html",
-    "VP1L1": "/elearn/visualprogramming/VP1L1.html",
+    "Level 1": "/elearn/calistung/level/A1.html",
+    "Level 2": "/elearn/calistung/level/A2.html",
+    "Level 3": "/elearn/calistung/level/A3.html",
+    "Level 4": "/elearn/calistung/level/A4a.html",
+    "Level 5": "/elearn/calistung/level/A5.html",
+    "Level 6": "/elearn/calistung/level/B1.html",
+    "Level 7": "/elearn/calistung/level/B2.html",
+    "Level 8": "/elearn/calistung/level/C1.html",
+    "Level 9": "/elearn/calistung/level/C2.html",
+    "Level 10": "/elearn/calistung/level/D1.html",
+    "Level 11": "/elearn/calistung/level/D2.html",
+    "Level 12": "/elearn/calistung/level/E1.html",
     "M1L1": "/elearn/M1L1.html",
     "Finish": "/elearn/final-stage.html"
   };
   document.querySelectorAll('.map-node').forEach(node=>{
     node.onclick=()=>{
       const lesson = node.dataset.lesson;
-      if(lessonUrlMap[lesson]) window.location=lessonUrlMap[lesson];
+      // Try Level X mapping for CA1L1-4
+      let mapKey = lesson;
+      if (/^CA1L[1-4]$/.test(lesson)) {
+        const num = lesson.replace('CA1L','');
+        mapKey = `Level ${num}`;
+      }
+      if(lessonUrlMap[mapKey]) window.location=lessonUrlMap[mapKey];
+      else if(lessonUrlMap[lesson]) window.location=lessonUrlMap[lesson];
       else alert('Lesson belum tersedia, sabar dulu ya!');
     }
   });

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Tracing Huruf A - Level A1</title>
+    <title>Tracing Huruf - Level A1</title>
     <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand+SC&display=swap" rel="stylesheet">
     <style>
         body {
@@ -123,176 +123,213 @@
                 font-size: 16px;
             }
         }
+        .worksheet-slide { width: 100%; }
     </style>
 </head>
 <body>
-    <div id="worksheet-container">
-        <div id="image-letter-container">
-            <div class="chicken" aria-label="Gambar ayam" role="img">
-                <img src="/elearn/calistung/assets/alfabet/a-image.png" alt="Gambar ayam" style="width: 350px; height: auto;" />
-            </div>
-            <div>
-                <img src="/elearn/calistung/assets/alfabet/a-judul.png" alt="Huruf A" style="width: 200px; height: auto;" />
-                <div id="writing-steps" aria-live="polite">
-                    Langkah menulis huruf a:<br>
-                    1. Mulai dari atas ke bawah.<br>
-                    2. Mulai dari atas melingkar ke bawah dan ke kanan.<br>
+    <div style="max-width:794px;margin:0 auto 10px auto;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap">
+        <label for="worksheet-select" style="font-weight:600">Pilih Worksheet:</label>
+        <select id="worksheet-select" aria-label="Pilih worksheet huruf" style="padding:8px 10px;border-radius:6px;border:1px solid #ccc;min-width:160px;">
+            <option value="a" selected>Huruf A</option>
+            <option value="b">Huruf B</option>
+            <option value="c">Huruf C (coming soon)</option>
+            <option value="d">Huruf D (coming soon)</option>
+            <option value="e">Huruf E (coming soon)</option>
+            <option value="f">Huruf F (coming soon)</option>
+            <option value="g">Huruf G (coming soon)</option>
+            <option value="h">Huruf H (coming soon)</option>
+            <option value="i">Huruf I (coming soon)</option>
+            <option value="j">Huruf J (coming soon)</option>
+            <option value="k">Huruf K (coming soon)</option>
+            <option value="l">Huruf L (coming soon)</option>
+            <option value="m">Huruf M (coming soon)</option>
+            <option value="n">Huruf N (coming soon)</option>
+            <option value="o">Huruf O (coming soon)</option>
+            <option value="p">Huruf P (coming soon)</option>
+            <option value="q">Huruf Q (coming soon)</option>
+            <option value="r">Huruf R (coming soon)</option>
+            <option value="s">Huruf S (coming soon)</option>
+            <option value="t">Huruf T (coming soon)</option>
+            <option value="u">Huruf U (coming soon)</option>
+            <option value="v">Huruf V (coming soon)</option>
+            <option value="w">Huruf W (coming soon)</option>
+            <option value="x">Huruf X (coming soon)</option>
+            <option value="y">Huruf Y (coming soon)</option>
+            <option value="z">Huruf Z (coming soon)</option>
+        </select>
+        <small id="coming-soon-note" style="color:#777;display:none">Worksheet huruf ini sedang disiapkan.</small>
+    </div>
+    <div id="slide-a" class="worksheet-slide" data-letter="a" style="display:block;">
+        <div id="worksheet-container" aria-label="Worksheet huruf a">
+            <div id="image-letter-container">
+                <div class="chicken" aria-label="Gambar ayam" role="img">
+                    <img src="/elearn/calistung/assets/alfabet/a-image.png" alt="Gambar ayam" style="width: 350px; height: auto;" />
+                </div>
+                <div>
+                    <img src="/elearn/calistung/assets/alfabet/a-judul.png" alt="Huruf A" style="width: 200px; height: auto;" />
+                    <div id="writing-steps" aria-live="polite">
+                        Langkah menulis huruf a:<br>
+                        1. Mulai dari atas ke bawah.<br>
+                        2. Mulai dari atas melingkar ke bawah dan ke kanan.<br>
+                    </div>
                 </div>
             </div>
+            <div class="trace-grid" id="trace-grid-a" aria-label="Soal tracing huruf a">
+                <!-- Kotak tracing huruf akan dibuat di sini oleh JS -->
+            </div>
+            <div id="message-a" role="alert" aria-live="assertive"></div>
         </div>
-        <div class="trace-grid" id="trace-grid" aria-label="Soal tracing huruf a">
-            <!-- Kotak tracing huruf akan dibuat di sini oleh JS -->
+    </div>
+    <div id="slide-b" class="worksheet-slide" data-letter="b" style="display:none;">
+        <div id="worksheet-container-b" aria-label="Worksheet huruf b" style="width:794px;height:1123px;margin:0 auto;background:white;padding:15px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+            <div id="image-letter-container-b" style="display:flex;justify-content:center;align-items:center;gap:20px;margin-bottom:15px;flex-wrap:wrap;">
+                <div class="chicken" aria-label="Gambar hewan" role="img">
+                    <img src="/elearn/calistung/assets/alfabet/b-image.png" alt="Gambar untuk huruf b" style="width: 350px; height: auto;" />
+                </div>
+                <div>
+                    <img src="/elearn/calistung/assets/alfabet/b-judul.png" alt="Huruf B" style="width: 200px; height: auto;" />
+                    <div id="writing-steps-b" aria-live="polite">
+                        Langkah menulis huruf b:<br>
+                        1. Tarik garis lurus dari atas ke bawah.<br>
+                        2. Buat setengah lingkaran dari tengah ke kanan lalu ke bawah.<br>
+                    </div>
+                </div>
+            </div>
+            <div class="trace-grid" id="trace-grid-b" aria-label="Soal tracing huruf b"></div>
+            <div id="message-b" role="alert" aria-live="assertive"></div>
         </div>
-        <div id="message" role="alert" aria-live="assertive"></div>
     </div>
 
     <script>
-        (function(){
-            const grid = document.getElementById('trace-grid');
-            const message = document.getElementById('message');
-            const totalCells = 15; // 3 rows x 5 cols
+    (function(){
+        const select = document.getElementById('worksheet-select');
+        const slideA = document.getElementById('slide-a');
+        const slideB = document.getElementById('slide-b');
+        const comingNote = document.getElementById('coming-soon-note');
 
-            // Use fixed array for letters to match worksheet layout
-            const letters = ['A','A','A','a','a','a','A','A','A','a','a','a','A','A','A'];
-
-            // Use fixed array for steps to match worksheet order
+        function buildTracing(gridEl, messageEl, letter) {
+            gridEl.innerHTML = '';
+            const totalCells = 15; // 3x5
+            const upper = letter.toUpperCase();
+            const lower = letter.toLowerCase();
+            const letters = [upper,upper,upper,lower,lower,lower,upper,upper,upper,lower,lower,lower,upper,upper,upper];
             const stepsAll = [1,2,3,1,2,3,1,2,3,1,2,3,1,2,3];
 
-            // Store canvas contexts and drawing state
             const canvases = [];
             const isDrawing = new Array(totalCells).fill(false);
             const paths = new Array(totalCells).fill(null).map(() => []);
 
-            // Create each trace-letter div
-            for(let i=0; i<totalCells; i++) {
+            for(let i=0;i<totalCells;i++){
                 const div = document.createElement('div');
-                div.classList.add('trace-letter', 'outlined');
-                div.setAttribute('tabindex', '0');
-                div.setAttribute('role', 'button');
-                div.setAttribute('aria-pressed', 'false');
+                div.classList.add('trace-letter','outlined');
+                div.setAttribute('tabindex','0');
+                div.setAttribute('role','button');
+                div.setAttribute('aria-pressed','false');
                 div.setAttribute('aria-label', `Huruf ${letters[i]}, langkah ${stepsAll[i]}`);
                 div.dataset.index = i;
                 div.dataset.step = stepsAll[i];
                 div.dataset.letter = letters[i];
 
-                // Create canvas for tracing
                 const canvas = document.createElement('canvas');
                 canvas.className = 'trace-canvas';
-                // Set canvas size attributes fixed for crisp drawing
-                canvas.width = 150;
-                canvas.height = 150;
+                canvas.width = 150; canvas.height = 150;
                 canvas.style.width = '100%';
                 canvas.style.height = '100%';
-                // Prevent touch gestures like scroll/zoom on canvas
                 canvas.style.touchAction = 'none';
-                // Ensure canvas is absolutely positioned inside .trace-letter
                 canvas.style.position = 'absolute';
                 const ctx = canvas.getContext('2d');
-                // Removed ctx.scale to avoid offset
 
-                // Ganti huruf dengan gambar a.png untuk huruf A dan a
-                if (letters[i] === 'A' || letters[i] === 'a') {
-                    const img = new Image();
-                    img.src = "/elearn/calistung/assets/alfabet/a.png";
-                    img.onload = () => {
-                        ctx.clearRect(0, 0, canvas.width, canvas.height);
-                        ctx.globalAlpha = 0.5;
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        ctx.globalAlpha = 1.0;
-                    };
-                } else {
+                // background guideline image per letter
+                const img = new Image();
+                img.src = `/elearn/calistung/assets/alfabet/${letter}.png`;
+                img.onload = () => {
                     ctx.clearRect(0,0,canvas.width,canvas.height);
-                    ctx.font = 'bold 100px "Comic Sans MS", Arial, sans-serif';
-                    ctx.lineWidth = 4;
-                    ctx.strokeStyle = '#333';
-                    ctx.fillStyle = 'transparent';
-                    ctx.textBaseline = 'middle';
-                    ctx.textAlign = 'center';
-                    ctx.strokeText(letters[i], canvas.width / 2, canvas.height / 2 + 10);
-                    ctx.fillStyle = 'rgba(100, 100, 100, 0.15)';
-                    ctx.fillText(letters[i], canvas.width / 2, canvas.height / 2 + 10);
-                }
+                    ctx.globalAlpha = 0.5;
+                    ctx.drawImage(img,0,0,canvas.width,canvas.height);
+                    ctx.globalAlpha = 1.0;
+                };
 
-                // Add step number in corner
                 const stepSpan = document.createElement('span');
                 stepSpan.className = 'step-number';
                 stepSpan.textContent = stepsAll[i];
                 div.appendChild(stepSpan);
-
-                // Append canvas after step number
                 div.appendChild(canvas);
 
-                // Store canvas and context
                 canvases.push({canvas, ctx});
+                let lastX=0,lastY=0;
 
-                // Drawing event handlers for canvas
-                let lastX = 0;
-                let lastY = 0;
-
-                function getPointerPos(evt) {
+                function getPointerPos(evt){
                     const rect = canvas.getBoundingClientRect();
                     const scaleX = canvas.width / rect.width;
                     const scaleY = canvas.height / rect.height;
                     let clientX, clientY;
-                    if(evt.touches && evt.touches.length > 0) {
+                    if(evt.touches && evt.touches.length>0){
                         clientX = evt.touches[0].clientX;
                         clientY = evt.touches[0].clientY;
                     } else {
                         clientX = evt.clientX;
                         clientY = evt.clientY;
                     }
-                    return {
-                        x: (clientX - rect.left) * scaleX,
-                        y: (clientY - rect.top) * scaleY
-                    };
+                    return { x: (clientX-rect.left)*scaleX, y: (clientY-rect.top)*scaleY };
                 }
-
-                function startDrawing(evt) {
+                function startDrawing(evt){
                     evt.preventDefault();
-                    isDrawing[i] = true;
+                    isDrawing[i]=true;
                     const pos = getPointerPos(evt);
-                    lastX = pos.x;
-                    lastY = pos.y;
-                    paths[i].push([{x: lastX, y: lastY}]);
+                    lastX = pos.x; lastY = pos.y;
+                    paths[i].push([{x:lastX,y:lastY}]);
                 }
-
-                function draw(evt) {
-                    if(!isDrawing[i]) return;
-                    evt.preventDefault();
+                function draw(evt){
+                    if(!isDrawing[i]) return; evt.preventDefault();
                     const pos = getPointerPos(evt);
-                    const path = paths[i][paths[i].length -1];
-                    path.push({x: pos.x, y: pos.y});
+                    const path = paths[i][paths[i].length-1];
+                    path.push({x:pos.x,y:pos.y});
+                    const ctx = canvases[i].ctx;
                     ctx.strokeStyle = '#000';
                     ctx.lineWidth = 2;
                     ctx.lineCap = 'round';
                     ctx.lineJoin = 'round';
                     ctx.beginPath();
-                    ctx.moveTo(lastX, lastY);
-                    ctx.lineTo(pos.x, pos.y);
+                    ctx.moveTo(lastX,lastY);
+                    ctx.lineTo(pos.x,pos.y);
                     ctx.stroke();
-                    lastX = pos.x;
-                    lastY = pos.y;
+                    lastX = pos.x; lastY = pos.y;
                 }
-
-                function stopDrawing(evt) {
-                    if(!isDrawing[i]) return;
-                    evt.preventDefault();
-                    isDrawing[i] = false;
-                }
+                function stopDrawing(evt){ if(!isDrawing[i]) return; evt.preventDefault(); isDrawing[i]=false; }
 
                 canvas.addEventListener('mousedown', startDrawing);
                 canvas.addEventListener('mousemove', draw);
                 canvas.addEventListener('mouseup', stopDrawing);
                 canvas.addEventListener('mouseleave', stopDrawing);
-
                 canvas.addEventListener('touchstart', startDrawing, {passive:false});
                 canvas.addEventListener('touchmove', draw, {passive:false});
                 canvas.addEventListener('touchend', stopDrawing);
                 canvas.addEventListener('touchcancel', stopDrawing);
 
-                grid.appendChild(div);
+                gridEl.appendChild(div);
             }
-        })();
+            if(messageEl){ messageEl.textContent=''; }
+        }
+
+        // Initialize A and B once
+        buildTracing(document.getElementById('trace-grid-a'), document.getElementById('message-a'), 'a');
+        buildTracing(document.getElementById('trace-grid-b'), document.getElementById('message-b'), 'b');
+
+        function setSlide(letter){
+            const isAvailable = (letter==='a' || letter==='b');
+            comingNote.style.display = isAvailable ? 'none' : 'inline';
+            slideA.style.display = (letter==='a') ? 'block' : 'none';
+            slideB.style.display = (letter==='b') ? 'block' : 'none';
+        }
+
+        // Initial state
+        setSlide('a');
+
+        select.addEventListener('change', (e)=>{
+            const val = (e.target.value||'a').toLowerCase();
+            setSlide(val);
+        });
+    })();
     </script>
 </body>
 </html>
