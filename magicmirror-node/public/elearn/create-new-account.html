@@ -342,10 +342,10 @@
           <form id="form-create-account">
             <select id="role" required>
               <option value="">Select Role</option>
-              <option value="student">👧 Student</option>
-              <option value="teacher">🧑‍🏫 Teacher</option>
-              <option value="parent">👨‍👩‍👧 Parent</option>
-              <option value="moderator">🛡️ Moderator</option>
+              <option value="student">Student</option>
+              <option value="teacher">Teacher</option>
+              <option value="parent">Parent</option>
+              <option value="moderator">Moderator</option>
             </select>
 
             <input type="text" id="nama" placeholder="Full Name" required>
@@ -356,29 +356,78 @@
               <option value="">Select Class (optional)</option>
             </select>
   <script>
-  // Function to load class options for the dropdown
+  // Function to load class options for the dropdown (multi-endpoint fallback + detailed status)
   async function loadClassOptions() {
     const select = document.getElementById('kelas_id_student');
     if (!select) return;
-    // Remove all except the default option
+
+    // Reset UI
     select.innerHTML = '<option value="">Select Class (optional)</option>';
-    try {
-      const res = await fetch(`${FIREBASE_API}/api/kelas`);
-      if (!res.ok) throw new Error('Failed to fetch class list');
-      const data = await res.json();
-      if (Array.isArray(data)) {
+    const statusEl = document.getElementById('student-status');
+    if (statusEl) statusEl.textContent = '⏳ Memuat daftar kelas...';
+
+    const pick = (obj, keys) => { for (const k of keys) { if (obj && obj[k] != null && obj[k] !== '') return obj[k]; } };
+
+    const base = (window.FIREBASE_API || window.location.origin).replace(/\/+$/,'');
+    const overrides = [];
+    if (window.CLASS_API_URL) overrides.push(String(window.CLASS_API_URL));
+
+    const candidates = [
+      ...overrides,
+      `${base}/api/kelas`,
+      `${base}/kelas`,
+      `${base}/api/classes`,
+      `${base}/classes`,
+      `${base}/api/v1/kelas`,
+      `${base}/v1/kelas`
+    ];
+
+    let lastErr = null;
+    for (const url of candidates) {
+      try {
+        const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+        if (!res.ok) { lastErr = new Error(`HTTP ${res.status} @ ${url}`); continue; }
+        let data;
+        try { data = await res.json(); }
+        catch { lastErr = new Error(`Non-JSON response @ ${url}`); continue; }
+        if (!Array.isArray(data)) {
+          if (Array.isArray(data?.data)) data = data.data;
+          else if (Array.isArray(data?.items)) data = data.items;
+        }
+        if (!Array.isArray(data)) { lastErr = new Error(`Unexpected shape @ ${url}`); continue; }
+
+        // Populate options
+        let count = 0;
         data.forEach(item => {
-          // Expect item has kelas_id and nama_kelas
+          const kelasId = pick(item, ['kelas_id','kelasId','id','docId']);
+          const namaKelas = pick(item, ['nama_kelas','namaKelas','name','nama','title']);
+          if (!kelasId && !namaKelas) return;
           const opt = document.createElement('option');
-          opt.value = item.kelas_id || '';
-          opt.textContent = item.nama_kelas ? `${item.nama_kelas} (${item.kelas_id})` : item.kelas_id;
+          opt.value = String(kelasId ?? namaKelas);
+          opt.textContent = namaKelas ? `${namaKelas}${kelasId ? ` (${kelasId})` : ''}` : String(kelasId);
           select.appendChild(opt);
+          count++;
         });
+        if (count === 0) { lastErr = new Error(`No items @ ${url}`); continue; }
+        if (statusEl) statusEl.textContent = `✅ ${count} kelas dimuat. Sumber: ${new URL(url).pathname}`;
+        console.info('[loadClassOptions] loaded from', url);
+        return; // success
+      } catch (err) {
+        lastErr = err;
+        continue;
       }
-    } catch (err) {
-      // Optionally show error or keep dropdown empty
-      // console.error('Error loading class options:', err);
     }
+
+    // If here, all candidates failed
+    if (statusEl) statusEl.textContent = `⚠️ Gagal memuat daftar kelas. ${lastErr ? lastErr.message : ''}`.trim();
+    if (select && select.options.length <= 1) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = '— Gagal memuat kelas —';
+      opt.disabled = true; opt.selected = true;
+      select.appendChild(opt);
+    }
+    console.error('[loadClassOptions] all endpoints failed', { lastErr, candidates });
   }
   </script>
             
@@ -427,6 +476,8 @@
     }
     // Load class options into the dropdown
     loadClassOptions();
+    // Retry loading class list when tab regains focus (e.g., backend cold start)
+    window.addEventListener('focus', () => { if (document.getElementById('kelas_id_student')?.options.length <= 1) { loadClassOptions(); } });
   });
   </script>
 
