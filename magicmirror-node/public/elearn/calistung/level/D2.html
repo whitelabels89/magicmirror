@@ -177,6 +177,7 @@
     border-radius: 50%;
     cursor: pointer;
   }
+  .connector-dot { touch-action: none; }
   /* Dice container centered vertically and horizontally */
   .dice-box {
     display: flex;
@@ -305,69 +306,89 @@
   layout.appendChild(colDrop);
   layout.appendChild(colDice);
   document.body.appendChild(layout);
-  // Enable dragging lines between connector dots
+  // Enable dragging lines between connector dots (mouse & touch friendly)
   (function() {
     const svg = document.getElementById('connector-svg');
     const svgNS = 'http://www.w3.org/2000/svg';
     let tempLine = null;
     let startDot = null;
-    // Only allow drag start from answer dots (middle column)
-    document.querySelectorAll('.column.number .connector-dot').forEach(dot => {
-      dot.addEventListener('mousedown', e => {
-        e.preventDefault();
-        // (Removed: If this dot already has a line, remove it to allow replacement)
-        startDot = dot;
-        const rect = svg.getBoundingClientRect();
-        tempLine = document.createElementNS(svgNS, 'line');
-        svg.appendChild(tempLine);
-        const { left, top } = startDot.getBoundingClientRect();
-        const x = left + startDot.offsetWidth / 2 - rect.left;
-        const y = top + startDot.offsetHeight / 2 - rect.top;
-        tempLine.setAttribute('x1', x);
-        tempLine.setAttribute('y1', y);
-        tempLine.setAttribute('x2', x);
-        tempLine.setAttribute('y2', y);
-        tempLine.setAttribute('stroke', '#000');
-        tempLine.setAttribute('stroke-width', '2');
-        function onMouseMove(me) {
-          tempLine.setAttribute('x2', me.clientX - rect.left);
-          tempLine.setAttribute('y2', me.clientY - rect.top);
+    let svgRect = null;
+
+    function centerOf(dot, rect){
+      const b = dot.getBoundingClientRect();
+      return { x: b.left + b.width/2 - rect.left, y: b.top + b.height/2 - rect.top };
+    }
+
+    function beginDrag(dot, clientX, clientY, moveEvt, endEvt, isTouch){
+      startDot = dot;
+      svgRect = svg.getBoundingClientRect();
+      tempLine = document.createElementNS(svgNS, 'line');
+      tempLine.setAttribute('stroke', '#000');
+      tempLine.setAttribute('stroke-width', '2');
+      svg.appendChild(tempLine);
+
+      const c = centerOf(startDot, svgRect);
+      tempLine.setAttribute('x1', c.x);
+      tempLine.setAttribute('y1', c.y);
+      tempLine.setAttribute('x2', c.x);
+      tempLine.setAttribute('y2', c.y);
+
+      function onMove(e){
+        if(isTouch){ e.preventDefault(); const t = e.touches[0] || e.changedTouches[0]; if(!t) return; tempLine.setAttribute('x2', t.clientX - svgRect.left); tempLine.setAttribute('y2', t.clientY - svgRect.top); }
+        else { tempLine.setAttribute('x2', e.clientX - svgRect.left); tempLine.setAttribute('y2', e.clientY - svgRect.top); }
+      }
+
+      function onEnd(e){
+        document.removeEventListener(moveEvt, onMove, {passive:false});
+        document.removeEventListener(endEvt, onEnd, {passive:false});
+        let cx, cy;
+        if(isTouch){ const t = (e.changedTouches && e.changedTouches[0]) || (e.touches && e.touches[0]); if(!t){ if(tempLine) svg.removeChild(tempLine); tempLine=null; startDot=null; return; } cx=t.clientX; cy=t.clientY; }
+        else { cx=e.clientX; cy=e.clientY; }
+        const target = document.elementFromPoint(cx, cy);
+        if (target && target.classList.contains('connector-dot') && target !== startDot) {
+          // remove existing lines
+          if (startDot._line) { svg.removeChild(startDot._line); startDot._line = null; }
+          if (target._line)   { svg.removeChild(target._line);   target._line = null; }
+          const tC = centerOf(target, svgRect);
+          tempLine.setAttribute('x2', tC.x);
+          tempLine.setAttribute('y2', tC.y);
+          startDot._line = tempLine; startDot._connectedDot = target;
+          target._line = tempLine;   target._connectedDot = startDot;
+        } else {
+          if (tempLine) svg.removeChild(tempLine);
         }
-        function onMouseUp(ue) {
-          document.removeEventListener('mousemove', onMouseMove);
-          document.removeEventListener('mouseup', onMouseUp);
-          const target = document.elementFromPoint(ue.clientX, ue.clientY);
-          if (target && target.classList.contains('connector-dot') && target !== startDot) {
-            // Remove existing lines on both start and target before drawing new one
-            if (startDot._line) {
-              svg.removeChild(startDot._line);
-              startDot._line = null;
-            }
-            if (target._line) {
-              svg.removeChild(target._line);
-              target._line = null;
-            }
-            const tRect = target.getBoundingClientRect();
-            const tx = tRect.left + target.offsetWidth / 2 - rect.left;
-            const ty = tRect.top + target.offsetHeight / 2 - rect.top;
-            tempLine.setAttribute('x2', tx);
-            tempLine.setAttribute('y2', ty);
-            // Store references so each dot knows its line
-            startDot._line = tempLine;
-            // Store connected dot reference
-            startDot._connectedDot = target;
-            target._connectedDot = startDot;
-            target._line = tempLine;
-          } else {
-            svg.removeChild(tempLine);
-          }
-          tempLine = null;
-          startDot = null;
-        }
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
+        tempLine = null; startDot = null;
+      }
+
+      document.addEventListener(moveEvt, onMove, {passive:false});
+      document.addEventListener(endEvt, onEnd, {passive:false});
+    }
+
+    const dots = document.querySelectorAll('.column.number .connector-dot');
+
+    if (window.PointerEvent) {
+      dots.forEach(dot => {
+        dot.addEventListener('pointerdown', (e) => {
+          if (e.button !== undefined && e.button !== 0 && e.pointerType !== 'touch') return;
+          e.preventDefault();
+          beginDrag(dot, e.clientX, e.clientY, 'pointermove', 'pointerup', e.pointerType === 'touch');
+        }, {passive:false});
       });
-    });
+    } else {
+      // Mouse fallback
+      dots.forEach(dot => {
+        dot.addEventListener('mousedown', (e) => { e.preventDefault(); beginDrag(dot, e.clientX, e.clientY, 'mousemove', 'mouseup', false); });
+      });
+      // Touch fallback
+      dots.forEach(dot => {
+        dot.addEventListener('touchstart', (e) => {
+          e.preventDefault();
+          const t = e.touches[0];
+          if(!t) return;
+          beginDrag(dot, t.clientX, t.clientY, 'touchmove', 'touchend', true);
+        }, {passive:false});
+      });
+    }
   })();
 
   // Check answers: verify each answer circle is connected correctly after DOM loads
