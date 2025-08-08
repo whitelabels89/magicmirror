@@ -71,6 +71,10 @@
     img.colored {
       filter: none !important;
     }
+    /* Lock page scrolling while brushing (touch/stylus) */
+    body.brush-lock { touch-action: none; overscroll-behavior: none; }
+    /* Canvas should not trigger touch gestures */
+    canvas { touch-action: none; }
   </style>
 </head>
 <body>
@@ -127,6 +131,11 @@
     let selectedColor = null;
     let brushActive = false;
 
+function setBrushLock(on){
+  if(on) document.body.classList.add('brush-lock');
+  else document.body.classList.remove('brush-lock');
+}
+
 document.querySelectorAll(".color-code div").forEach((el) => {
   el.addEventListener("click", () => {
     selectedColor = colorMap[el.dataset.code];
@@ -138,6 +147,7 @@ document.querySelectorAll(".color-code div").forEach((el) => {
       c.style.pointerEvents = "none";
     });
     document.getElementById("brushMode").textContent = "🖌️ Mode Kuas";
+    document.body.classList.remove('brush-lock');
   });
 });
 
@@ -247,13 +257,13 @@ document.querySelectorAll(".color-code div").forEach((el) => {
           ctx.fill();
         };
 
-        canvas.addEventListener("mousedown", startPos);
+        canvas.addEventListener("mousedown", (e)=>{ if(brushActive){ e.preventDefault(); } startPos(e); });
         canvas.addEventListener("mouseup", endPos);
         canvas.addEventListener("mousemove", draw);
 
-        canvas.addEventListener("touchstart", startPos);
-        canvas.addEventListener("touchend", endPos);
-        canvas.addEventListener("touchmove", draw);
+        canvas.addEventListener("touchstart", (e)=>{ if(brushActive){ e.preventDefault(); } startPos(e); }, {passive:false});
+        canvas.addEventListener("touchend",   (e)=>{ if(brushActive){ e.preventDefault(); } endPos(e); },   {passive:false});
+        canvas.addEventListener("touchmove",  (e)=>{ if(brushActive){ e.preventDefault(); } draw(e); },     {passive:false});
       });
 
       document.getElementById("brushMode").addEventListener("click", () => {
@@ -262,6 +272,7 @@ document.querySelectorAll(".color-code div").forEach((el) => {
           c.style.pointerEvents = brushActive ? "auto" : "none";
         });
         document.getElementById("brushMode").textContent = brushActive ? "🖌️ Mode Kuas (Aktif)" : "🖌️ Mode Kuas";
+        setBrushLock(brushActive);
       });
     });
   </script>
