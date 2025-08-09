@@ -76,10 +76,25 @@
             align-items: center;
             gap: 20px;
             margin-bottom: 15px;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
         }
-        #image-letter-container > div {
-            flex: 1 1 150px;
+        /* Force all image+judul containers to sit on one row */
+        [id^="image-letter-container"] {
+            display: flex !important;
+            align-items: center !important;
+            gap: 20px !important;
+            flex-wrap: nowrap !important;
+        }
+        /* Make images scale responsively without squashing */
+        [id^="image-letter-container"] img {
+            height: auto;
+            width: auto;
+            max-width: 100%;
+            object-fit: contain;
+            display: inline-block;
+        }
+        [id^="image-letter-container"] > div {
+            flex: 0 0 auto; /* jangan menyusut, biar ukuran gambar tetap proporsional */
             text-align: center;
         }
         #image-letter-container .chicken {
@@ -108,8 +123,9 @@
         }
         /* Responsive for small screens */
         @media (max-width: 480px) {
-            #image-letter-container {
-                flex-direction: column;
+            [id^="image-letter-container"] {
+                flex-direction: row !important;
+                overflow-x: auto;
             }
             .trace-letter {
                 height: 60px;
@@ -184,7 +200,7 @@
         <div id="worksheet-container-b" aria-label="Worksheet huruf b" style="width:794px;height:1123px;margin:0 auto;background:white;padding:15px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.1);">
             <div id="image-letter-container-b" style="display:flex;justify-content:center;align-items:center;gap:20px;margin-bottom:15px;flex-wrap:wrap;">
                 <div class="chicken" aria-label="Gambar hewan" role="img">
-                    <img src="/elearn/calistung/assets/alfabet/b-image.png" alt="Gambar untuk huruf b" style="width: 350px; height: auto;" />
+                    <img src="/elearn/calistung/assets/alfabet/b-image.png" alt="Gambar untuk huruf b" style="width: 320px; height: auto;" />
                 </div>
                 <div>
                     <img src="/elearn/calistung/assets/alfabet/b-judul.png" alt="Huruf B" style="width: 200px; height: auto;" />
@@ -204,14 +220,14 @@
         <div id="worksheet-container-c" aria-label="Worksheet huruf c" style="width:794px;height:1123px;margin:0 auto;background:white;padding:15px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.1);">
             <div id="image-letter-container-c" style="display:flex;justify-content:center;align-items:center;gap:20px;margin-bottom:15px;flex-wrap:wrap;">
                 <div class="chicken" aria-label="Gambar hewan" role="img">
-                    <img src="/elearn/calistung/assets/alfabet/c-image.png" alt="Gambar untuk huruf c" style="width: 350px; height: auto;" />
+                    <img src="/elearn/calistung/assets/alfabet/c-image.png" alt="Gambar untuk huruf c" style="width: 300px; height: auto;" />
                 </div>
                 <div>
                     <img src="/elearn/calistung/assets/alfabet/c-judul.png" alt="Huruf C" style="width: 200px; height: auto;" />
                     <div id="writing-steps-c" aria-live="polite">
                         Langkah menulis huruf c:<br>
                         1. Mulai dari tengah atas melengkung ke kiri bawah.<br>
-                        2. Lanjutkan lengkungan hingga kembali ke sisi kanan atas tanpa menutup lingkaran.<br>
+                        2. Lanjutkan lengkungan hingga kembali ke sisi kanan atas<br>tanpa menutup lingkaran.<br>
                     </div>
                 </div>
             </div>
@@ -249,8 +265,8 @@
                     <img src="/elearn/calistung/assets/alfabet/e-judul.png" alt="Huruf E" style="width: 200px; height: auto;" />
                     <div id="writing-steps-e" aria-live="polite">
                         Langkah menulis huruf e:<br>
-                        1. Buat lengkungan kecil ke kanan dari tengah, seperti setengah lingkaran.<br>
-                        2. Lanjutkan garis melengkung ke kiri bawah untuk membentuk huruf e kecil.<br>
+                        1. Buat lengkungan kecil ke kanan dari tengah,<br>seperti setengah lingkaran.<br>
+                        2. Lanjutkan garis melengkung ke kiri bawah<br>untuk membentuk huruf e kecil.<br>
                     </div>
                 </div>
             </div>
@@ -289,7 +305,7 @@
                     <div id="writing-steps-g" aria-live="polite">
                         Langkah menulis huruf g:<br>
                         1. Buat lingkaran kecil (seperti huruf o).<br>
-                        2. Tambahkan ekor ke bawah di sisi kanan, melengkung ke kiri bawah.<br>
+                        2. Tambahkan ekor ke bawah di sisi kanan,<br>melengkung ke kiri bawah.<br>
                     </div>
                 </div>
             </div>
@@ -308,7 +324,7 @@
                     <div id="writing-steps-h" aria-live="polite">
                         Langkah menulis huruf h:<br>
                         1. Tarik garis lurus dari atas ke bawah di kiri.<br>
-                        2. Dari tengah, buat lengkungan kecil ke kanan lalu turun ke bawah.<br>
+                        2. Dari tengah, buat lengkungan kecil ke kanan<br>lalu turun ke bawah.<br>
                     </div>
                 </div>
             </div>
@@ -345,7 +361,7 @@
                     <img src="/elearn/calistung/assets/alfabet/j-judul.png" alt="Huruf J" style="width: 200px; height: auto;" />
                     <div id="writing-steps-j" aria-live="polite">
                         Langkah menulis huruf j:<br>
-                        1. Tarik garis lurus ke bawah dan lengkungkan sedikit ke kiri bawah.<br>
+                        1. Tarik garis lurus ke bawah<br>dan lengkungkan sedikit ke kiri bawah.<br>
                         2. Tambahkan titik kecil di atas untuk huruf j kecil.<br>
                     </div>
                 </div>
@@ -365,7 +381,7 @@
                     <div id="writing-steps-k" aria-live="polite">
                         Langkah menulis huruf k:<br>
                         1. Tarik garis lurus ke bawah di sebelah kiri.<br>
-                        2. Dari tengah, buat garis miring ke kanan atas lalu ke kanan bawah (membentuk kaki k).<br>
+                        2. Dari tengah, buat garis miring ke kanan atas<br>lalu ke kanan bawah.<br>
                     </div>
                 </div>
             </div>
@@ -385,7 +401,7 @@
                     <div id="writing-steps-l" aria-live="polite">
                         Langkah menulis huruf l:<br>
                         1. Tarik garis lurus dari atas ke bawah.<br>
-                        2. Tambahkan sedikit kait di bagian bawah jika perlu (variasi gaya tulisan).<br>
+                        2. Tambahkan sedikit kait di bagian bawah jika perlu.<br>
                     </div>
                 </div>
             </div>
@@ -444,7 +460,7 @@
                     <img src="/elearn/calistung/assets/alfabet/o-judul.png" alt="Huruf O" style="width: 200px; height: auto;" />
                     <div id="writing-steps-o" aria-live="polite">
                         Langkah menulis huruf o:<br>
-                        1. Buat lingkaran kecil dari kiri ke kanan hingga kembali ke titik awal.<br>
+                        1. Buat lingkaran kecil dari kiri ke kanan<br>hingga kembali ke titik awal.<br>
                     </div>
                 </div>
             </div>
@@ -464,7 +480,7 @@
                     <div id="writing-steps-p" aria-live="polite">
                         Langkah menulis huruf p:<br>
                         1. Tarik garis lurus ke bawah di sebelah kiri.<br>
-                        2. Tambahkan setengah lingkaran kecil di bagian atas sisi kanan garis.<br>
+                        2. Tambahkan setengah lingkaran kecil <br> di bagian atas sisi kanan garis.<br>
                     </div>
                 </div>
             </div>
@@ -484,7 +500,7 @@
                     <div id="writing-steps-q" aria-live="polite">
                         Langkah menulis huruf q:<br>
                         1. Buat lingkaran kecil (seperti o).<br>
-                        2. Tambahkan garis pendek ke bawah di sisi kanan lalu kait kecil ke kanan bawah.<br>
+                        2. Tambahkan garis pendek ke bawah di sisi kanan<br> lalu kait kecil ke kanan bawah.<br>
                     </div>
                 </div>
             </div>
@@ -504,7 +520,7 @@
                     <div id="writing-steps-r" aria-live="polite">
                         Langkah menulis huruf r:<br>
                         1. Buat garis vertikal pendek.<br>
-                        2. Tambahkan lengkungan kecil di atas ke kanan (tanpa kaki panjang).<br>
+                        2. Tambahkan lengkungan kecil di atas ke kanan.<br>
                     </div>
                 </div>
             </div>
@@ -642,7 +658,7 @@
                     <img src="/elearn/calistung/assets/alfabet/y-judul.png" alt="Huruf Y" style="width: 200px; height: auto;" />
                     <div id="writing-steps-y" aria-live="polite">
                         Langkah menulis huruf y:<br>
-                        1. Buat bentuk v kecil.
+                        1. Buat bentuk v kecil.<br>
                         2. Tambahkan garis turun ke bawah di sisi kanan.
                     </div>
                 </div>
@@ -662,8 +678,8 @@
                     <img src="/elearn/calistung/assets/alfabet/z-judul.png" alt="Huruf Z" style="width: 200px; height: auto;" />
                     <div id="writing-steps-z" aria-live="polite">
                         Langkah menulis huruf z:<br>
-                        1. Tarik garis datar ke kanan.
-                        2. Tarik garis miring turun ke kiri.
+                        1. Tarik garis datar ke kanan.<br>
+                        2. Tarik garis miring turun ke kiri.<br>
                         3. Tarik garis datar ke kanan lagi di bawah.
                     </div>
                 </div>
