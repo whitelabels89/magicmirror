@@ -1,3 +1,4 @@
+import { getCompletedLocal } from '/elearn/worlds/utils/progress.js';
 // Reusable world map renderer
 export async function initWorld({ rootSelector = '#worldRoot', configPath }) {
   const root = document.querySelector(rootSelector);

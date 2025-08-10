@@ -140,6 +140,18 @@
             }
         }
         .worksheet-slide { width: 100%; }
+        /* Finish button (Level 1) */
+        .finish-bar { position: fixed; right: 16px; bottom: 16px; z-index: 1000; }
+        #btnSelesai {
+            background: #22c55e; color: #fff; border: none; cursor: pointer;
+            padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 16px;
+            box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4);
+        }
+        #btnSelesai:hover { filter: brightness(1.05); }
+        #btnSelesai:active { transform: translateY(1px); }
+        @media (max-width: 480px) {
+            #btnSelesai { padding: 10px 14px; font-size: 15px; }
+        }
     </style>
 </head>
 <body>
@@ -894,6 +906,9 @@
         });
     })();
     </script>
+<div class="finish-bar">
+  <button id="btnSelesai" type="button" aria-label="Tandai selesai Level 1">Selesai Level 1</button>
+</div>
 <script type="module">
   import { markCompletedLocal } from '/elearn/worlds/utils/progress.js';
   document.querySelector('#btnSelesai')?.addEventListener('click', ()=>{

@@ -16,8 +16,21 @@
   content:"";position:absolute;inset:4px;background:#111827;border-radius:50%
 }
 .world-root{position:relative;min-height:100vh;background:#f8fafc;color:#0f172a}
-.map-container{position:relative;width:100%;max-width:1200px;margin:0 auto}
-.world-map{width:100%;display:block;border-radius:20px}
+.map-container{
+  position:relative;
+  width:100vw;    /* penuh lebar layar */
+  height:auto;    /* tinggi mengikuti proporsi gambar */
+  margin:0;       /* tanpa jarak kiri/kanan */
+  max-width:none; /* jangan dibatasi */
+}
+.world-map{
+  position:static; 
+  width:100vw;   /* lebar penuh */
+  height:auto;   /* proporsional, tidak crop */
+  display:block; 
+  object-fit:unset; /* pastikan tidak memaksa crop */
+  border-radius:0;  /* tidak ada sudut membulat agar benar2 mepet tepi */
+}
 .map-node{position:absolute;transform:translate(-50%,-50%);cursor:pointer;text-align:center;z-index:2}
 .map-node .node-icon{width:48px;height:48px;background:#fff;border-radius:16px;border:3px solid #a5b4fc;box-shadow:0 2px 10px #0002;margin-bottom:6px}
 .map-node span{display:inline-block;padding:4px 10px;border-radius:10px;background:#6366f1;color:#fff;font-weight:700;font-size:12px;opacity:.95}
@@ -28,3 +41,87 @@
 .arrow-flow{position:absolute;width:30px;height:30px;background-image:url('/elearn/img/decor/arrow.png');background-size:contain;background-repeat:no-repeat;z-index:3}
 .world-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;max-width:1200px;margin:10px auto}
 .world-topbar a{background:#111827;color:#fff;text-decoration:none;padding:8px 12px;border-radius:12px}
+
+/* =====================
+   HUD (Top Game Navbar)
+   ===================== */
+.hud-bar{position:fixed;top:0;left:0;right:0;z-index:60;display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(15,23,42,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid rgba(31,41,55,.6)}
+.hud-bar .hud-btn{display:flex;align-items:center;gap:8px;background:#111827;border:1px solid #243249;color:#fff;padding:8px 12px;border-radius:12px;cursor:pointer;font-weight:700;white-space:nowrap}
+.hud-bar .hud-btn:hover{filter:brightness(1.05)}
+.hud-bar .hud-right{margin-left:auto;display:flex;align-items:center;gap:10px;color:#fff}
+#hudCoins{font-weight:800}
+.hud-avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #0b1220}
+
+/* Clay-style background for HUD panel (ensures it overrides base background) */
+.hud-panel.skin-clay{
+  background: none !important;
+  border-top: none;  /* image includes frame */
+  border-bottom: none;
+  min-height: 260px; /* visible even when empty */
+}
+
+/* Inventory layout */
+.equip-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.slot{background:#111827;border:1px solid #1f2937;border-radius:12px;padding:12px}
+.slot-title{font-weight:800;margin-bottom:6px}
+.slot-current{margin-bottom:8px;display:flex;gap:6px;align-items:center}
+.slot-items{display:flex;flex-wrap:wrap;gap:8px}
+.item{display:flex;gap:6px;align-items:center;padding:8px 10px;background:#0b1220;border:1px solid #243249;border-radius:10px;color:#fff;cursor:pointer}
+.item:hover{background:#0e1628}
+.ico{font-size:18px}
+.badge-grid{display:flex;gap:8px;flex-wrap:wrap}
+.badge{background:#111827;border:1px solid #1f2937;border-radius:10px;padding:6px 10px}
+
+/* Small screens */
+@media (max-width: 640px){
+  .hud-bar{gap:8px;padding:8px 10px}
+  .hud-bar .hud-btn{padding:7px 10px}
+  .hud-panel{top:52px;max-height:55vh}
+}
+
+/* Fullscreen world map tanpa crop */
+.map-container.fullscreen {
+  width: 100vw;
+  height: auto;
+  overflow: hidden;
+}
+
+.world-map.fullscreen {
+  width: 100%;
+  height: auto;
+  max-height: 100vh;
+  object-fit: contain; /* tidak crop, proporsional */
+  display: block;
+}
+
+/* ========== HUD Panel Positioning (Centered) ========== */
+.hud-panel.centered{
+    position: fixed;
+  top: -25px;
+  left: 50%;
+  /* transform:translate(-50%, -10px); */ /* commented out to remove vertical offset */
+  transform: translateX(-50%);
+  z-index: 9999;
+  width: min(1100px, 92vw);
+  max-width: 90%;
+  right: auto;                 /* jangan stretch penuh */
+} 
+@media (max-width: 640px){
+  .hud-panel.centered{ width:94vw; top:64px; }
+}
+
+/* ========== HUD Panel Docked to Top Bar ========== */
+.hud-panel.docked{
+  position: fixed;
+  left: var(--hud-left, 0px);
+  top: var(--hud-top, 56px);            /* default fallback ke tinggi bar */
+  width: var(--hud-width, 980px);
+  right: auto;
+  transform: none;                       /* jangan center, ikut bar */
+  z-index: 9999;
+  max-height: 38vh;                      /* biar world map tetap terlihat */
+  overflow: auto;
+}
+@media (max-width: 640px){
+  .hud-panel.docked{ max-height: 46vh; }
+}

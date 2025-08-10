@@ -53,7 +53,24 @@
   "unlockRules": [
     { "target":"Level 2",  "requires":["Level 1"] },
     { "target":"Level 3",  "requires":["Level 2"] },
-    { "target":"Level 4",  "requires":["Level 3"] }
+    { "target":"Level 4",  "requires":["Level 3"] },
+    { "target":"Level 5",  "requires":["Level 4"] },
+    { "target":"Level 6",  "requires":["Level 5"] },
+    { "target":"Level 7",  "requires":["Level 6"] },
+    { "target":"Level 8",  "requires":["Level 7"] },
+    { "target":"Level 9",  "requires":["Level 8"] },
+    { "target":"Level 10", "requires":["Level 9"] },
+    { "target":"Level 11", "requires":["Level 10"] },
+    { "target":"Level 12", "requires":["Level 11"] },
+    { "target":"Level 13", "requires":["Level 12"] },
+    { "target":"Level 14", "requires":["Level 13"] },
+    { "target":"Level 15", "requires":["Level 14"] },
+    { "target":"Level 16", "requires":["Level 15"] },
+    { "target":"Level 17", "requires":["Level 16"] },
+    { "target":"Level 18", "requires":["Level 17"] },
+    { "target":"Level 19", "requires":["Level 18"] },
+    { "target":"Level 20", "requires":["Level 19"] },
+    { "target":"Level 21", "requires":["Level 20"] }
   ],
   "rewards": {
     "Level 5":  { "coins": 10, "badge": "reader-bronze" },
