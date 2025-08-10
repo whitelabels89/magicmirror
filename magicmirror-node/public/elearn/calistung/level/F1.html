@@ -215,5 +215,13 @@
 
   function toast(msg){ document.getElementById('toast').textContent = msg; }
   </script>
+<script type="module">
+  import { markCompletedLocal } from '/elearn/worlds/utils/progress.js';
+  document.querySelector('#btnSelesai')?.addEventListener('click', ()=>{
+    markCompletedLocal('calistung','Level 14');
+    alert('Progres tersimpan! Kembali ke map.');
+    window.location = '/elearn/worlds/calistung/index.html';
+  });
+</script>
 </body>
 </html>

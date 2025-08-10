@@ -396,5 +396,13 @@
     // Recompute line anchors on resize
     window.addEventListener('resize', ()=>{ layoutArc(); computePositions(); drawPuzzleLines(); });
   </script>
+<script type="module">
+  import { markCompletedLocal } from '/elearn/worlds/utils/progress.js';
+  document.querySelector('#btnSelesai')?.addEventListener('click', ()=>{
+    markCompletedLocal('calistung','Level 18');
+    alert('Progres tersimpan! Kembali ke map.');
+    window.location = '/elearn/worlds/calistung/index.html';
+  });
+</script>
 </body>
 </html>
