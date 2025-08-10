@@ -1,0 +1,219 @@
+
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>F1 – Coding Warna</title>
+  <style>
+    :root{
+      --c1:#1e64c8; /* biru */
+      --c2:#f2c94c; /* kuning */
+      --c3:#47b37a; /* hijau */
+      --c4:#e06666; /* merah */
+      --c5:#6c63ff; /* ungu */
+      --ink:#222;
+      --bg:#fff;
+      --muted:#f6f7fb;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,sans-serif;background:var(--muted);color:#1e1e1e}
+    .wrap{max-width:960px;margin:auto;padding:20px}
+    header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:12px;margin-bottom:16px}
+    header h1{margin:0;font-size:clamp(22px,4vw,34px);letter-spacing:1px}
+    .meta{display:flex;gap:10px;flex-wrap:wrap}
+    .meta label{font-size:14px;color:#555}
+    .card{background:#fff;border:1px solid #e6e6e6;border-radius:12px;padding:16px}
+
+    /* Legend */
+    .legend{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:8px}
+    .legend .cell{display:flex;flex-direction:column;align-items:center;gap:6px;border:1px solid #e4e4e8;border-radius:10px;padding:8px;background:#fafafa}
+    .sw{width:100%;height:30px;border-radius:8px;border:1px solid #d9d9de}
+    .n{font-weight:600}
+
+    /* Board */
+    .board{display:grid;grid-template-columns:repeat(2,minmax(240px,1fr));gap:18px;margin-top:18px}
+    .pieCard{background:#fff;border:1px solid #e6e6e6;border-radius:14px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:8px}
+    .pieWrap{width:min(92vw,360px);max-width:360px;display:flex;justify-content:center}
+    svg{width:100%;height:auto;max-width:320px;touch-action:manipulation}
+
+    .controls{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+    button{appearance:none;border:1px solid #222;border-radius:10px;padding:10px 14px;background:#111;color:#fff;font-weight:700;cursor:pointer}
+    button.secondary{background:#fff;color:#111;border-color:#bbb}
+
+    .slice{stroke:#222;stroke-width:3px;cursor:pointer;transition:transform 120ms ease}
+    .slice:hover{transform:scale(1.01)}
+    .wrong{stroke:#e00000;animation:shake .25s linear 0s 2}
+    .correct{stroke:#2e7d32}
+    @keyframes shake{0%{transform:translateX(0)}25%{transform:translateX(-2px)}50%{transform:translateX(2px)}75%{transform:translateX(-1px)}100%{transform:translateX(0)}}
+
+    .centerText{font-size:18px;fill:#111;user-select:none}
+    .toast{margin-top:10px;font-weight:700}
+
+    @media (max-width:680px){
+      .board{grid-template-columns:1fr}
+      .pieWrap{max-width:300px}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>CODING WARNA</h1>
+    </header>
+
+    <div class="card">
+      <p>Warnai lingkaran sesuai dengan <strong>kode warna</strong> di bawah ini. Klik pada setiap irisan untuk mengganti warna (berputar 1 → 5).</p>
+      <div class="legend">
+        <div class="cell"><div class="sw" style="background:var(--c1)"></div><div class="n">1</div></div>
+        <div class="cell"><div class="sw" style="background:var(--c2)"></div><div class="n">2</div></div>
+        <div class="cell"><div class="sw" style="background:var(--c3)"></div><div class="n">3</div></div>
+        <div class="cell"><div class="sw" style="background:var(--c4)"></div><div class="n">4</div></div>
+        <div class="cell"><div class="sw" style="background:var(--c5)"></div><div class="n">5</div></div>
+      </div>
+    </div>
+
+    <div class="board" id="board">
+      <!-- 4 lingkaran seperti contoh: 2 slice, 3 slice, 4 slice (2-5), 5 slice (1-5) -->
+    </div>
+
+    <div class="controls">
+      <button id="checkBtn">Periksa Jawaban</button>
+      <button class="secondary" id="resetBtn">Reset</button>
+      <button class="secondary" id="shuffleBtn" title="Acak angka di setiap lingkaran">Acak Soal</button>
+      <span id="toast" class="toast"></span>
+    </div>
+    <footer style="margin-top:20px;font-size:12px;color:#555;text-align:center;">
+      © Queen's Academy – F1
+    </footer>
+  </div>
+
+  <script>
+  // ----- Konfigurasi warna sesuai kode -----
+  const COLOR_BY_CODE = {
+    0: 'transparent',          // 0 = belum diwarnai
+    1: getCss('--c1'),
+    2: getCss('--c2'),
+    3: getCss('--c3'),
+    4: getCss('--c4'),
+    5: getCss('--c5')
+  };
+  function getCss(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()}
+
+  // Util random & shuffle
+  const rand = (n)=>Math.floor(Math.random()*n);
+  function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=rand(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
+
+  // ------- PIE BUILDER (SVG) -------
+  function polar(cx, cy, r, angle){
+    const rad = (angle - 90) * Math.PI/180; // start at 12 o'clock
+    return {x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad)};
+  }
+
+  function makePie(container, labels){
+    const size = 320, r = 140, cx = size/2, cy = size/2;
+    const n = labels.length;
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', `0 0 ${size} ${size}`);
+
+    // Circle outline
+    const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    circle.setAttribute('cx', cx);circle.setAttribute('cy', cy);circle.setAttribute('r', r);
+    circle.setAttribute('fill','#fff');circle.setAttribute('stroke','#222');circle.setAttribute('stroke-width','3');
+    svg.appendChild(circle);
+
+    const step = 360/n;
+    const slices=[];
+    for(let i=0;i<n;i++){
+      const a0 = i*step, a1 = (i+1)*step;
+      const p0 = polar(cx,cy,r,a0); const p1 = polar(cx,cy,r,a1);
+      const largeArc = (a1 - a0) > 180 ? 1 : 0;
+      const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+      const d = [
+        `M ${cx} ${cy}`,
+        `L ${p0.x} ${p0.y}`,
+        `A ${r} ${r} 0 ${largeArc} 1 ${p1.x} ${p1.y}`,
+        'Z'
+      ].join(' ');
+      path.setAttribute('d', d);
+      path.setAttribute('class','slice');
+      path.dataset.expected = labels[i];
+      path.dataset.state = '0'; // 0=belum, 1..5 warna
+      path.setAttribute('fill','#fff');
+
+      path.addEventListener('click', ()=>{
+        let st = Number(path.dataset.state);
+        st = (st + 1) % 6; // 0..5
+        if(st===0) st = 1; // langsung mulai dari 1 biar cepat
+        path.dataset.state = String(st);
+        path.setAttribute('fill', COLOR_BY_CODE[st]);
+        path.classList.remove('wrong','correct');
+        toast('');
+      });
+
+      svg.appendChild(path);
+      slices.push(path);
+
+      // Center label for each slice
+      const mid = a0 + step/2;
+      const midP = polar(cx, cy, r*0.6, mid);
+      const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+      text.setAttribute('x', midP.x);text.setAttribute('y', midP.y);
+      text.setAttribute('text-anchor','middle');text.setAttribute('dominant-baseline','middle');
+      text.setAttribute('class','centerText');
+      text.textContent = labels[i];
+      svg.appendChild(text);
+    }
+
+    const wrap = document.createElement('div');
+    wrap.className='pieCard';
+    const title = document.createElement('div');
+    title.textContent = `${n} bagian`;
+    title.style.fontWeight='700';
+    const pieWrap = document.createElement('div');
+    pieWrap.className='pieWrap';
+    pieWrap.appendChild(svg);
+    wrap.append(title, pieWrap);
+    container.appendChild(wrap);
+
+    return slices; // for checking later
+  }
+
+  // ------- INIT BOARD -------
+  const board = document.getElementById('board');
+  let allSlices = [];
+
+  function buildBoard(){
+    board.innerHTML='';
+    allSlices = [];
+    const sets = [shuffle([1,2]), shuffle([1,2,3]), shuffle([2,3,4,5]), shuffle([1,2,3,4,5])];
+    sets.forEach(set=>{ allSlices.push(...makePie(board, set)); });
+  }
+
+  buildBoard();
+
+  // ------- Actions -------
+  document.getElementById('shuffleBtn').addEventListener('click', ()=>{buildBoard(); toast('Soal diacak.')} );
+  document.getElementById('resetBtn').addEventListener('click', ()=>{
+    allSlices.forEach(s=>{s.dataset.state='0';s.setAttribute('fill','#fff');s.classList.remove('wrong','correct')});
+    toast('Kanvas dikosongkan.');
+  });
+
+  document.getElementById('checkBtn').addEventListener('click', ()=>{
+    let correct=0; let total=allSlices.length;
+    allSlices.forEach(s=>{
+      const exp = Number(s.dataset.expected);
+      const st  = Number(s.dataset.state);
+      s.classList.remove('wrong','correct');
+      if(st===exp){ s.classList.add('correct'); correct++; }
+      else{ s.classList.add('wrong'); }
+    });
+    if(correct===total) toast('🎉 Benar semua! Keren!');
+    else toast(`Benar ${correct}/${total}. Ayo cek yang merah!`);
+  });
+
+  function toast(msg){ document.getElementById('toast').textContent = msg; }
+  </script>
+</body>
+</html>

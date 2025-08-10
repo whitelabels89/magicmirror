@@ -1,0 +1,225 @@
+
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>J1 – Tarik Garis Sesuai Petunjuk Angka</title>
+<style>
+  :root{
+    --red:#F04D4D; --yellow:#F7D66B; --green:#78D26B; --blue:#4FC3F7; --teal:#0FA3B1; --purple:#C779E8;
+    --ink:#262B33; --bg:#fff; --card:#f9fafb; --brand:#5e7cf7;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0; font-family:ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji"; background:var(--bg); color:var(--ink)}
+
+  .viewport{ display:flex; flex-direction:column; align-items:center; gap:14px; padding:16px; transform-origin: top center; }
+
+  .title{ background:#6f89ff; color:#fff; font-weight:800; letter-spacing:.5px; padding:14px 18px; border-radius:18px; text-align:center; font-size:clamp(16px,3.5vw,28px); box-shadow:0 6px 0 #4d65e6}
+
+  .legend{display:grid; grid-template-columns:repeat(6,minmax(56px,1fr)); gap:18px; width:min(920px,100%); justify-items:center; align-items:center}
+  .legend .cell{display:grid; place-items:center; gap:6px}
+  .legend .dot{ width:58px; height:58px; border-radius:50%; border:4px solid #111; }
+  .legend .num{ width:46px; height:46px; border-radius:50%; border:4px solid #111; display:grid; place-items:center; font-weight:800; font-size:18px; background:#fff }
+
+  .toolbar{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; width:min(980px,100%)}
+  .btn{border:none; padding:10px 14px; border-radius:10px; font-weight:700; box-shadow:0 2px 0 #cdd3df; background:#eef2ff; cursor:pointer}
+  .btn:active{transform:translateY(1px)}
+  .btn.primary{background:#111; color:#fff}
+  .btn.warn{background:#ffe9e9}
+
+  .grid{ width:min(1000px,100%); display:grid; grid-template-columns:1fr; gap:20px}
+  @media(min-width:860px){ .grid{ grid-template-columns:1fr 1fr } }
+
+  .puzzle{ background:var(--card); border:2px solid #e7eaef; border-radius:16px; padding:16px; display:grid; gap:10px; position:relative }
+  .seq{ display:flex; gap:6px; justify-content:center; flex-wrap:wrap }
+  .seq .box{ min-width:36px; padding:6px 10px; border:2px solid #111; border-radius:8px; background:#fff; display:grid; place-items:center; font-weight:800 }
+
+  .board{ position:relative; width:100%; aspect-ratio: 3 / 2; border-radius:12px; background:#fff; display:grid; place-items:center }
+  .board-inner{ position:relative; width:92%; height:86%; margin:auto; }
+  .nodes{ position:absolute; inset:0; display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(2,1fr); align-items:center; justify-items:center; }
+  .node{ width:42px; height:42px; border:4px solid #111; border-radius:50%; box-shadow: inset 0 0 0 2px rgba(0,0,0,.02); cursor:pointer; display:block }
+  .node:focus{ outline:3px dashed #333; outline-offset:3px }
+  svg.paths{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:1 }
+  .nodes{ z-index:2 }
+  .msg{ text-align:center; font-weight:700; min-height:20px }
+  .ok{ color:#1a7f37 } .bad{ color:#b42318 }
+
+  .footer-note{opacity:.8; font-size:12px; text-align:center; margin-top:8px}
+</style>
+</head>
+<body>
+  <div id="root" class="viewport">
+    <div class="title">TARIK GARIS SESUAI PETUNJUK ANGKA</div>
+
+    <!-- Legend 1→6 -->
+    <div class="legend" id="legend"></div>
+
+    <div class="toolbar">
+      <button class="btn" id="zoomOut">Zoom −</button>
+      <button class="btn" id="zoomIn">Zoom +</button>
+      <button class="btn" id="zoomReset">Reset Zoom</button>
+      <button class="btn primary" id="shuffleAll">Acak Semua Soal</button>
+    </div>
+
+    <div class="grid" id="grid"></div>
+
+    <div class="footer-note">© Queen's Academy – J1</div>
+  </div>
+
+<script>
+(function(){
+  // ---------- Data & Utilities ----------
+  const COLORS = {
+    1: getCss('--red'), 2: getCss('--yellow'), 3: getCss('--green'),
+    4: getCss('--blue'), 5: getCss('--teal'), 6: getCss('--purple')
+  };
+  function getCss(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+  const root = document.getElementById('root');
+
+  // Legend
+  const legend = document.getElementById('legend');
+  [1,2,3,4,5,6].forEach(n=>{
+    const cell = el('div',{class:'cell'});
+    const d = el('div',{class:'dot'}); d.style.background = COLORS[n];
+    const num = el('div',{class:'num'}, n);
+    cell.append(d,num); legend.append(cell);
+  });
+
+  // Generate 6 puzzles (2 kolom x 3 baris)
+  const grid = document.getElementById('grid');
+
+  function makePuzzles(count=6){
+    grid.innerHTML='';
+    for(let i=0;i<count;i++) grid.append(makePuzzle());
+  }
+
+  function makePuzzle(){
+    const cont = el('div',{class:'puzzle'});
+    const seqView = el('div',{class:'seq'});
+    const msg = el('div',{class:'msg'});
+    const board = el('div',{class:'board'});
+    const inner = el('div',{class:'board-inner'});
+    const svg = svgEl('svg',{class:'paths'});
+    const nodesWrap = el('div',{class:'nodes'});
+
+    // sequence: 5 langkah, angka 1..6 tanpa satu angka
+    const numbers = [1,2,3,4,5,6];
+    const removed = numbers.splice(Math.floor(Math.random()*6),1)[0];
+    const seq = shuffle(numbers).slice(0,5); // panjang 5
+
+    seq.forEach(n => seqView.append(el('div',{class:'box'}, n)));
+
+    // positions: 6 nodes (2x3) -> assign numbers randomly
+    const perm = shuffle([1,2,3,4,5,6]);
+
+    const state = { clicks:[], points:[], correct:seq.map(n=>n) };
+
+    for(let i=0;i<6;i++){
+      const num = perm[i];
+      const node = el('button',{class:'node', "data-num":num});
+      node.style.background = COLORS[num];
+      node.addEventListener('click',()=>onPick(num, node));
+      nodesWrap.append(node);
+    }
+
+    function onPick(num, node){
+      if(state.clicks.length>=state.correct.length) return; // sudah penuh
+      const idx = state.clicks.length;
+      // draw from previous node center to this node center
+      const pt = centerOf(node, inner);
+      state.points.push(pt);
+      state.clicks.push(num);
+      draw();
+    }
+
+    function draw(highlightIdx=-1){
+      svg.innerHTML='';
+      if(state.points.length===1){
+        const p=state.points[0];
+        const c=svgEl('circle',{cx:p.x, cy:p.y, r:4, fill:'#111'});
+        svg.append(c);
+      }
+      for(let i=1;i<state.points.length;i++){
+        const a=state.points[i-1], b=state.points[i];
+        const line = svgEl('line',{
+          x1:a.x, y1:a.y, x2:b.x, y2:b.y,
+          stroke: (highlightIdx===i-1? '#e11d48':'#111'), 'stroke-width':4, 'stroke-linecap':'round'
+        });
+        svg.append(line);
+      }
+    }
+
+    // buttons per puzzle
+    const tools = el('div',{class:'toolbar'});
+    const bCheck = btn('Periksa Jawaban',()=>{
+      const need = state.correct.join(',');
+      const got = state.clicks.join(',');
+      if(got.length===0){ setMsg('Yuk mulai dari angka pertama di petunjuk!', ''); return; }
+      // find first wrong index
+      const n = Math.min(state.clicks.length, state.correct.length);
+      let wrongAt = -1;
+      for(let i=0;i<n;i++){ if(state.clicks[i]!==state.correct[i]){ wrongAt=i; break; } }
+      if(wrongAt>=0){
+        draw(wrongAt);
+        setMsg('Ada yang melenceng di langkah ke‑'+(wrongAt+1)+'. Coba lagi 🙂', 'bad');
+      }else if(state.clicks.length<state.correct.length){
+        setMsg('Sudah benar sejauh ini. Lanjutkan!', 'ok');
+      }else{
+        setMsg('Mantap! Jalurnya tepat 👏', 'ok');
+      }
+    });
+    const bReset = btn('Reset Jawaban',()=>{ state.clicks=[]; state.points=[]; svg.innerHTML=''; setMsg('',''); });
+    const bShuffle = btn('Acak Soal',()=>{
+      // rebuild puzzle in place
+      const fresh = makePuzzle();
+      cont.replaceWith(fresh);
+    });
+
+    tools.append(bCheck,bReset,bShuffle);
+
+    inner.append(svg,nodesWrap);
+    board.append(inner);
+    cont.append(seqView, board, tools, msg);
+    return cont;
+
+    function setMsg(t,cls){ msg.className='msg '+(cls||''); msg.textContent=t; }
+  }
+
+  // ---------- Helpers ----------
+  function btn(label, onClick){
+    const b = el('button',{class:'btn'}, label);
+    b.addEventListener('click', onClick);
+    return b;
+  }
+  function el(tag, attrs={}, text){
+    const d = document.createElement(tag);
+    Object.entries(attrs).forEach(([k,v])=>{ if(k==='style') Object.assign(d.style,v); else d.setAttribute(k,v); });
+    if(text!=null) d.textContent=text; return d;
+  }
+  function svgEl(tag, attrs={}){ const s=document.createElementNS('http://www.w3.org/2000/svg', tag); Object.entries(attrs).forEach(([k,v])=>s.setAttribute(k,v)); return s; }
+  function shuffle(arr){ return arr.slice().sort(()=>Math.random()-0.5); }
+  function centerOf(elem, within){
+    const r1 = elem.getBoundingClientRect();
+    const r2 = within.getBoundingClientRect();
+    return { x: r1.left - r2.left + r1.width/2, y: r1.top - r2.top + r1.height/2 };
+  }
+
+  // ---------- Zoom Controls ----------
+  let scale = 1;
+  function applyZoom(){ root.style.transform = `scale(${scale})`; }
+  document.getElementById('zoomIn').onclick = ()=>{ scale = Math.min(1.4, +(scale+0.1).toFixed(2)); applyZoom(); };
+  document.getElementById('zoomOut').onclick = ()=>{ scale = Math.max(0.6, +(scale-0.1).toFixed(2)); applyZoom(); };
+  document.getElementById('zoomReset').onclick = ()=>{ scale = 1; applyZoom(); };
+
+  // Shuffle all
+  document.getElementById('shuffleAll').onclick = ()=> makePuzzles();
+
+  // Initialize
+  makePuzzles(6);
+})();
+</script>
+</body>
+</html>

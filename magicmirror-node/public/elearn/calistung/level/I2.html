@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>I2 – Numbers and Colors (Interactive)</title>
+  <style>
+    :root{
+      --bg:#f7f9fb; --card:#ffffff; --ink:#222; --muted:#6b7280; --brand:#7c3aed;
+      --ok:#16a34a; --bad:#dc2626; --ring:#d9d9d9; --circle:#e7e7e7;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,'Noto Sans',sans-serif;background:var(--bg);color:var(--ink)}
+
+    .page{max-width:980px;margin:clamp(8px,2vw,24px) auto;padding:clamp(10px,2vw,20px);background:var(--card);border-radius:18px;box-shadow:0 6px 24px rgb(0 0 0 / 8%)}
+
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+    header h1{font-size:clamp(20px,3vw,28px);margin:0;padding:.35rem .75rem;background:#f39c6b;color:#fff;border-radius:10px;font-weight:800}
+    header .name{flex:1;text-align:right;color:var(--muted);font-size:clamp(12px,2vw,14px)}
+
+    .instructions{margin:8px 0 14px 0;color:#111}
+    .instructions li{margin:.25rem 0}
+
+    /* Top answer row */
+    .answer-row{display:grid;grid-template-columns:repeat(8,1fr);gap:10px;margin:10px 0 18px}
+    .answer{display:flex;flex-direction:column;align-items:center;gap:8px}
+    .answer .num{font-weight:800}
+    .answer.active .hole{outline:4px solid var(--brand);outline-offset:2px}
+    .hole{width:42px;height:42px;border:3px solid #000;border-radius:50%;background:#fff;display:grid;place-items:center}
+    .hole-inner{width:28px;height:28px;border-radius:50%}
+
+    /* Arena */
+    .arena-wrap{--zoom:1;transform:scale(var(--zoom));transform-origin:center top;width:100%;display:flex;justify-content:center;overflow:auto}
+    .arena{position:relative;aspect-ratio:1/1;width:min(100%,740px);margin:0 auto;border-radius:24px;padding:14px;background:linear-gradient(#f5f5f5,#ededed);user-select:none}
+    .ring{position:relative;inset:0;border-radius:50%;border:18px solid #d6d6d6;aspect-ratio:1/1;margin:auto;}
+
+    .nums{position:absolute;inset:0;z-index:2}
+    .num-item{position:absolute; width:0; height:0;}
+    .num-item .dot-left{position:absolute; left:0; top:0; width:36px;height:36px;border-radius:50%;border:3px dashed #888;background:#fff;transform:translate(-50%,-50%)}
+    .num-item .label{position:absolute; left:-18px; top:0; transform:translate(-100%,-50%); font-weight:800;font-size:20px}
+    .num-item button.pick{position:absolute; left:0; top:0; width:44px; height:44px; transform:translate(-50%,-50%); border:0;background:transparent;cursor:pointer}
+    .num-item.active .dot-left{outline:4px solid var(--brand);outline-offset:2px}
+
+    .side-colors{position:absolute;inset:0;z-index:2}
+    .dot{position:absolute;width:64px;height:64px;border-radius:50%;border:4px solid #000;cursor:pointer;transition:transform .12s;transform:translate(-50%,-50%)}
+
+    /* Background wiggle/dashed lines */
+    .bg-wire{stroke:#cfcfcf;stroke-width:5;stroke-dasharray:10 8;stroke-linecap:round;opacity:.9}
+
+    /* SVG lines */
+    svg.lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+    .wire{stroke:#9aa0a6;stroke-width:5;stroke-dasharray:10 8;stroke-linecap:round;filter:drop-shadow(0 1px 0 rgba(0,0,0,.15))}
+    .wire.live{stroke:#64748b}
+    .wire.ok{stroke:var(--ok);stroke-dasharray:0}
+    .wire.bad{stroke:var(--bad);stroke-dasharray:0}
+
+    .toolbar{display:flex;gap:10px;justify-content:center;margin:16px 0 6px;flex-wrap:wrap;position:relative;z-index:5}
+    button{padding:10px 14px;border-radius:10px;border:0;background:#111;color:#fff;font-weight:700;cursor:pointer;pointer-events:auto}
+    button.secondary{background:#334155}
+    button.ghost{background:#e5e7eb;color:#111}
+
+    .status{min-height:22px;text-align:center;font-weight:700;margin-top:8px}
+
+    footer{margin-top:14px;color:#444;text-align:center;font-size:12px}
+
+    @media (max-width:780px){
+      .side-colors{right:4%;gap:10px}
+      .nums{left:4%;gap:16px}
+      .dot{width:48px;height:48px}
+      .ring{border-width:12px}
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <h1>Numbers and Colors</h1>
+    </header>
+
+    <ul class="instructions">
+      <li>Hubungkan <b>angka</b> ke <b>warna</b> dengan klik angka lalu klik warna.</li>
+      <li>Warna jawaban tiap angka muncul di lingkaran kecil di baris atas.</li>
+    </ul>
+
+    <div class="answer-row" id="answerRow"></div>
+
+    <div class="arena-wrap">
+      <div class="arena">
+        <div class="ring">
+        <!-- Clickable numbers (kiri) -->
+        <div class="nums" id="nums">
+          <!-- items will be injected -->
+        </div>
+        <!-- Clickable colors (kanan) -->
+        <div class="side-colors" id="palette"></div>
+        <!-- Lines -->
+        <svg class="lines" id="wires" viewBox="0 0 1000 1000">
+          <g id="bgLines"></g>
+        </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <button id="checkBtn">Periksa Jawaban</button>
+      <button id="resetAns" class="secondary">Reset Jawaban</button>
+      <button class="ghost" id="shuffleBtn">Acak Soal</button>
+      <button id="zoomOut" class="ghost" title="Zoom Out">−</button>
+      <button id="zoomIn" class="ghost" title="Zoom In">+</button>
+      <button id="zoomReset" class="ghost" title="Reset Zoom">Reset</button>
+    </div>
+    <div class="status" id="status"></div>
+
+    <footer>© Queen's Academy – I2</footer>
+  </div>
+
+  <script>
+    // --- Data warna (tetap), mapping angka→warna diacak setiap permainan ---
+    const COLORS = [
+      {key:'merah', hex:'#e74c3c'},
+      {key:'ungu', hex:'#8e67b9'},
+      {key:'biru-muda', hex:'#5aa7d9'},
+      {key:'kuning', hex:'#f2d264'},
+      {key:'hijau', hex:'#7ccc66'},
+      {key:'pink', hex:'#e98bb7'},
+      {key:'biru-tua', hex:'#1f4a8a'},
+      {key:'coklat', hex:'#9c613f'}
+    ];
+
+    const state = {
+      correctMap: {},       // number (1..8) -> colorIndex (0..7)
+      chosenMap: {},        // number (1..8) -> colorIndex user picked
+      activeNum: null,      // currently selected number
+      positions: {          // DOM center positions mapped to svg coords (0..1000)
+        nums: {},           // n -> {x,y}
+        colors: {}          // i -> {x,y}
+      }
+    };
+
+    // Helpers
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => [...document.querySelectorAll(sel)];
+
+    function shuffle(arr){
+      const a = arr.slice();
+      for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
+      return a;
+    }
+
+    function buildUI(){
+      // Build top answer row
+      const row = $('#answerRow');
+      row.innerHTML = '';
+      for(let n=1;n<=8;n++){
+        const box = document.createElement('div');
+        box.className='answer';
+        box.innerHTML = `\n          <div class="num">${n}</div>\n          <div class="hole"><div class="hole-inner" id="hole-${n}"></div></div>\n        `;
+        box.addEventListener('click', ()=>selectAnswer(n, box));
+        row.appendChild(box);
+      }
+
+      // Build numbers (left)
+      const nums = $('#nums'); nums.innerHTML='';
+      for(let n=1;n<=8;n++){
+        const wrap = document.createElement('div');
+        wrap.className='num-item';
+        wrap.dataset.n=n;
+        wrap.innerHTML = `<span class="label">${n}</span><div class="dot-left"></div><button class="pick" aria-label="pilih ${n}"></button>`;
+        wrap.querySelector('button.pick').addEventListener('click',()=>selectNumber(n,wrap));
+        nums.appendChild(wrap);
+      }
+
+      // Build palette (right)
+      const pal = $('#palette'); pal.innerHTML='';
+      COLORS.forEach((c,i)=>{
+        const d=document.createElement('div');
+        d.className='dot';
+        d.style.background=c.hex;
+        d.title=c.key;
+        d.dataset.i=i;
+        d.addEventListener('click',()=>pickColor(i));
+        pal.appendChild(d);
+      });
+
+      computePositions();
+      layoutArc();
+      computePositions();
+      drawPuzzleLines();
+    }
+
+    function layoutArc(){
+      const ring = document.querySelector('.ring');
+      const rRect = ring.getBoundingClientRect();
+      const cx = rRect.left + rRect.width/2;
+      const cy = rRect.top + rRect.height/2 - 16; // nudge up 16px
+      // Compute radii based on ring thickness + element sizes so dots never overlap ring
+      const ringStroke = 18; // must match .ring border-width
+      const numRadius = 18;  // dashed circle radius (36/2)
+      const colRadius = 32;  // color circle radius (64/2)
+      const margin = 6;      // breathing space from inner border
+      const Rin = rRect.width/2 - ringStroke; // inner radius of the grey ring
+      const Rnums = Rin - numRadius - margin; // keep number dots fully inside
+      const Rcols = Rin - colRadius - margin; // keep color dots fully inside
+
+      // helper to set position by angle (deg) and radius
+      const place = (el, deg, R)=>{
+        const rad = (deg*Math.PI)/180;
+        const x = cx + R * Math.cos(rad);
+        const y = cy + R * Math.sin(rad);
+        el.style.left = (x - rRect.left) + 'px';
+        el.style.top  = (y - rRect.top)  + 'px';
+      };
+
+      // numbers on left arc: 110°..250° (top-left to bottom-left)
+      const leftStart=110, leftEnd=250;
+      const leftStep=(leftEnd-leftStart)/(8-1);
+      $$('#nums .num-item').forEach((el,idx)=>{
+        const deg = leftStart + leftStep*idx;
+        place(el, deg, Rnums);
+      });
+
+      // colors on right arc: -70°..70° (top-right to bottom-right)
+      const rightStart=-70, rightEnd=70;
+      const rightStep=(rightEnd-rightStart)/(8-1);
+      $$('#palette .dot').forEach((el,idx)=>{
+        const deg = rightStart + rightStep*idx;
+        place(el, deg, Rcols);
+      });
+    }
+
+    function computePositions(){
+      // Map DOM centers to SVG 1000x1000 coords
+      const svg = $('#wires');
+      const rect = svg.getBoundingClientRect();
+      // numbers
+      $$('#nums .num-item').forEach(el=>{
+        const d = el.querySelector('.dot-left').getBoundingClientRect();
+        const cx = ((d.left + d.width/2) - rect.left) / rect.width * 1000;
+        const cy = ((d.top + d.height/2) - rect.top) / rect.height * 1000;
+        state.positions.nums[el.dataset.n] = {x:cx,y:cy};
+      });
+      // colors
+      $$('#palette .dot').forEach(el=>{
+        const r = el.getBoundingClientRect();
+        const cx = ((r.left + r.width/2) - rect.left) / rect.width * 1000;
+        const cy = ((r.top + r.height/2) - rect.top) / rect.height * 1000;
+        state.positions.colors[el.dataset.i] = {x:cx,y:cy};
+      });
+    }
+
+    function selectNumber(n,el){
+      $$('#nums .num-item').forEach(b=>b.classList.remove('active'));
+      el.classList.add('active');
+      state.activeNum=n;
+    }
+
+    function selectAnswer(n, el){
+      $$('#answerRow .answer').forEach(a=>a.classList.remove('active'));
+      el.classList.add('active');
+      state.activeNum = n;
+    }
+
+    function pickColor(i){
+      if(!state.activeNum){
+        // auto pick the first number without answer yet
+        for(let n=1;n<=8;n++){ if(state.chosenMap[n]===undefined){ state.activeNum=n; break; }}
+      }
+      if(!state.activeNum) return;
+      state.chosenMap[state.activeNum]=i;
+      // update top mini circle color
+      const hole = $('#hole-'+state.activeNum);
+      hole.style.background = COLORS[i].hex;
+      // next number auto-focus
+      const next = [...Array(8).keys()].map(x=>x+1).find(n=>state.chosenMap[n]===undefined);
+      $$('#answerRow .answer').forEach(a=>a.classList.toggle('active', Number(a.querySelector('.num').textContent)===(next??state.activeNum)));
+      state.activeNum = next ?? null;
+    }
+
+    function checkAnswers(){
+      const resultClassPerNumber = {};
+      let correct=0;
+      for(let n=1;n<=8;n++){
+        const chosen = state.chosenMap[n];
+        const correctColor = state.correctMap[n];
+        const ok = chosen!==undefined && chosen===correctColor;
+        resultClassPerNumber[n] = ok? 'ok' : 'bad';
+        // outline the small circle
+        const hole = $('#hole-'+n).parentElement; // outer ring
+        hole.style.borderColor = ok? 'var(--ok)' : 'var(--bad)';
+        if(ok) correct++;
+      }
+      const status = $('#status');
+      if(correct===8){
+        status.textContent = 'Mantap! Semua benar 🎉';
+        status.style.color='var(--ok)';
+      }else{
+        status.textContent = `Benar ${correct}/8. Coba lagi!`;
+        status.style.color='var(--bad)';
+      }
+    }
+
+    function resetLines(){
+      state.chosenMap={}; state.activeNum=null; $('#status').textContent='';
+      $$('#nums .num-item').forEach(b=>b.classList.remove('active'));
+      $$('#answerRow .answer').forEach(a=>a.classList.remove('active'));
+      for(let n=1;n<=8;n++){
+        const inner = $('#hole-'+n); inner.style.background='transparent';
+        inner.parentElement.style.borderColor = '#000';
+      }
+    }
+
+    function resetAnswers(){
+      state.chosenMap = {};
+      $$('#answerRow .answer').forEach(a=>a.classList.remove('active'));
+      for(let n=1;n<=8;n++){
+        const inner = $('#hole-'+n); if(inner){ inner.style.background='transparent'; inner.parentElement.style.borderColor = '#000'; }
+      }
+      $('#status').textContent='';
+      state.activeNum = null;
+      const firstAns = $('#answerRow .answer'); if(firstAns) firstAns.click();
+    }
+
+    function newRound(){
+      // assign random color indices to numbers 1..8 without repetition
+      const order = shuffle([0,1,2,3,4,5,6,7]);
+      state.correctMap={};
+      for(let n=1;n<=8;n++) state.correctMap[n]=order[n-1];
+      resetLines();
+      layoutArc();
+      computePositions();
+      drawPuzzleLines();
+      $('#status').textContent='';
+    }
+
+    // Draw puzzle lines (the real tangled mapping shown to the student)
+    function drawPuzzleLines(){
+      const g = $('#bgLines');
+      if(!g) return;
+      g.innerHTML='';
+      const numsPos = Object.values(state.positions.nums);
+      const colorsPos = Object.values(state.positions.colors);
+      if(numsPos.length<8 || colorsPos.length<8) return;
+      for(let n=1;n<=8;n++){
+        const colorIndex = state.correctMap[n];
+        const a = state.positions.nums[n];
+        const b = state.positions.colors[colorIndex];
+        if(!a||!b) continue;
+        const dx=(b.x-a.x), dy=(b.y-a.y);
+        // add a little curvy randomness so it looks like a maze
+        const r1 = 0.15 + Math.random()*0.2;
+        const r2 = 0.85 - Math.random()*0.2;
+        const c1={x:a.x+dx*0.25, y:a.y+dy*r1};
+        const c2={x:a.x+dx*0.75, y:a.y+dy*r2};
+        const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+        p.setAttribute('d', `M ${a.x} ${a.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${b.x} ${b.y}`);
+        p.setAttribute('class','bg-wire');
+        p.setAttribute('fill','none');
+        g.appendChild(p);
+      }
+    }
+
+    // Init
+    buildUI();
+    newRound();
+    // focus first answer circle
+    const firstAns = $('#answerRow .answer'); if(firstAns) firstAns.click();
+
+    // Buttons
+    const checkBtn = document.querySelector('#checkBtn');
+    const resetAnsBtn = document.querySelector('#resetAns');
+    const shuffleBtn = document.querySelector('#shuffleBtn');
+    const zoomInBtn = document.querySelector('#zoomIn');
+    const zoomOutBtn = document.querySelector('#zoomOut');
+    const zoomResetBtn = document.querySelector('#zoomReset');
+
+    checkBtn && checkBtn.addEventListener('click', checkAnswers);
+    resetAnsBtn && resetAnsBtn.addEventListener('click', resetAnswers);
+    shuffleBtn && shuffleBtn.addEventListener('click', ()=>{
+      newRound();
+      $('#status').textContent='Soal diacak ulang.';
+      $('#status').style.color='#111';
+    });
+
+    // Zoom controls
+    let Z = 1;
+    function applyZoom(){
+      const wrapEl = document.querySelector('.arena-wrap');
+      if(!wrapEl) return;
+      wrapEl.style.setProperty('--zoom', Z);
+    }
+    zoomInBtn && zoomInBtn.addEventListener('click', ()=>{ Z = Math.min(1.75, +(Z+0.1).toFixed(2)); applyZoom(); });
+    zoomOutBtn && zoomOutBtn.addEventListener('click', ()=>{ Z = Math.max(0.6, +(Z-0.1).toFixed(2)); applyZoom(); });
+    zoomResetBtn && zoomResetBtn.addEventListener('click', ()=>{ Z = 1; applyZoom(); });
+
+    // Recompute line anchors on resize
+    window.addEventListener('resize', ()=>{ layoutArc(); computePositions(); drawPuzzleLines(); });
+  </script>
+</body>
+</html>

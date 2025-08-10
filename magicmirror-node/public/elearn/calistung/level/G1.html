@@ -1,0 +1,211 @@
+
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>G1 – Fractional Numbers (Game)</title>
+  <style>
+    :root{
+      --card:#ffffff; --ink:#222; --muted:#6b7280; --accent:#f59e0b; --ok:#10b981; --bad:#ef4444;
+      --bg:#f3f4f6; --border:#e5e7eb;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+    .wrap{max-width:980px;margin:24px auto;padding:16px}
+    header{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    header h1{font-size:clamp(20px,3vw,28px);margin:0}
+    .tag{background:#ffeec0;border:1px solid #ffd271;padding:4px 10px;border-radius:999px;font-weight:600}
+
+    .paper{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;margin-top:12px}
+    .intro{margin:4px 0 12px;color:var(--muted)}
+
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+    @media (max-width:780px){.grid{grid-template-columns:1fr}}
+
+    .question{display:grid;grid-template-columns:120px 1fr;gap:14px;align-items:center;border:1px dashed var(--border);padding:12px;border-radius:12px;background:#fafafa}
+    @media (max-width:520px){.question{grid-template-columns:100px 1fr}}
+
+    .shape{width:100%;aspect-ratio:1/1;border:3px solid #111;border-radius:4px;background:#fff;position:relative;overflow:hidden}
+
+    /* fraction input */
+    .answer{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .answer input{width:110px;max-width:45vw;padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-size:16px}
+    .answer small{color:var(--muted)}
+
+    .tools{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    button{border:1px solid var(--border);background:#fff;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:600}
+    button.primary{background:#111;color:#fff;border-color:#111}
+
+    .mark{font-weight:700;margin-left:6px}
+    .mark.ok{color:var(--ok)}
+    .mark.bad{color:var(--bad)}
+
+    footer{margin:18px 0 30px;text-align:center;color:#777}
+
+    /* helpers for drawing */
+    .slice{position:absolute;top:0;bottom:0}
+    .cell{float:left;width:33.3333%;height:33.3333%}
+    .striped{display:block}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <span class="tag">Level G1</span>
+      <h1>Fractional Numbers – Game</h1>
+    </header>
+
+    <div class="paper">
+      <p class="intro">Tugasmu: tulis pecahan bagian <b>berwarna</b> untuk setiap kotak. Jawaban dalam format <code>a/b</code>. Contoh: <code>3/5</code>. (Psst… pecahan ekuivalen seperti <code>2/4</code> ≡ <code>1/2</code> juga dianggap benar 😉)</p>
+
+      <div id="list" class="grid"></div>
+
+      <div class="tools">
+        <button class="primary" id="checkBtn">Periksa Jawaban</button>
+        <button id="newBtn">Soal Baru</button>
+        <button id="resetBtn">Reset</button>
+        <span id="score" style="margin-left:auto;font-weight:700"></span>
+      </div>
+    </div>
+
+    <footer>© Queen's Academy – G1</footer>
+  </div>
+
+  <script>
+    // ---------- Utilities ----------
+    const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+    const gcd=(a,b)=>b?gcd(b,a%b):Math.abs(a);
+    const norm=(n,d)=>{const g=gcd(n,d)||1;return [n/g,d/g]};
+
+    function parseFrac(text){
+      if(!text) return null;
+      const t=text.replace(/\s+/g,'');
+      const m=t.match(/^(-?\d+)\/(\d+)$/);
+      if(!m) return null;
+      let n=parseInt(m[1],10), d=parseInt(m[2],10);
+      if(d===0) return null;
+      const k=norm(n,d); return {n:k[0], d:k[1]};
+    }
+
+    // ---------- Problem generators ----------
+    // 1) Vertical stripes: denominator 4..8, shade k leftmost slices
+    function makeStripeProblem(){
+      const den=rnd(4,8); const num=rnd(1,den-1);
+      const el=document.createElement('div'); el.className='shape';
+      const sliceW=100/den;
+      for(let i=0;i<den;i++){
+        const s=document.createElement('div');
+        s.className='slice';
+        s.style.left=`${i*sliceW}%`; s.style.width=`${sliceW}%`;
+        s.style.background=i<num? palette.pick() : '#fff';
+        s.style.borderRight='1px solid #111';
+        el.appendChild(s);
+      }
+      return {el, answer:`${num}/${den}`};
+    }
+
+    // 2) 3x3 grid: denominator 9, shade k random cells
+    function makeGridProblem(){
+      const den=9; const num=rnd(1,8);
+      const el=document.createElement('div'); el.className='shape';
+      // draw 3x3 with borders
+      el.style.display='block';
+      const idxs=[...Array(9).keys()];
+      // pick k unique indexes
+      for(let i=idxs.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idxs[i],idxs[j]]=[idxs[j],idxs[i]]}
+      const painted=new Set(idxs.slice(0,num));
+      for(let i=0;i<9;i++){
+        const c=document.createElement('div'); c.className='cell';
+        c.style.borderRight=(i%3!==2)?'1px solid #111':'none';
+        c.style.borderBottom=(i<6)?'1px solid #111':'none';
+        c.style.background=painted.has(i)?palette.pick(): '#fff';
+        el.appendChild(c);
+      }
+      return {el, answer:`${num}/${den}`};
+    }
+
+    const palette={
+      colors:['#f59e0b','#f97316','#22c55e','#60a5fa','#e879f9','#ef4444','#a3a3a3','#14b8a6'],
+      pick(){return this.colors[rnd(0,this.colors.length-1)]}
+    };
+
+    // ---------- Render & Logic ----------
+    const list=document.getElementById('list');
+
+    function makeQuestion(problem){
+      const q=document.createElement('div'); q.className='question';
+      const left=document.createElement('div');
+      left.appendChild(problem.el);
+
+      const right=document.createElement('div');
+      right.className='answer';
+      const input=document.createElement('input');
+      input.placeholder='a/b'; input.autocomplete='off'; input.inputMode='numeric';
+      const hint=document.createElement('small'); hint.textContent='Tulis pecahan berwarna';
+      const mark=document.createElement('span'); mark.className='mark';
+      right.append(input, hint, mark);
+
+      q.append(left,right);
+      return {node:q, input, mark, expected:problem.answer};
+    }
+
+    let state=[];
+
+    function generate(){
+      list.innerHTML=''; state=[];
+      const makers=[makeStripeProblem, makeGridProblem];
+      const total=8; // 8 soal seperti contoh
+      for(let i=0;i<total;i++){
+        const pb=makers[i%2===0?0:1]();
+        const q=makeQuestion(pb);
+        list.appendChild(q.node);
+        state.push(q);
+      }
+      updateScore();
+    }
+
+    function check(){
+      let correct=0;
+      state.forEach(q=>{
+        const f=parseFrac(q.input.value);
+        const exp=parseFrac(q.expected);
+        if(f && exp && f.n===exp.n && f.d===exp.d){
+          q.mark.textContent='✓ Benar'; q.mark.className='mark ok'; correct++;
+        }else{
+          q.mark.textContent=`✗ Salah (jawaban: ${q.expected})`; q.mark.className='mark bad';
+        }
+      });
+      updateScore(correct, state.length);
+    }
+
+    function reset(){
+      state.forEach(q=>{q.input.value=''; q.mark.textContent=''; q.mark.className='mark'});
+      updateScore();
+    }
+
+    function updateScore(c=0, t=state.length){
+      document.getElementById('score').textContent = t? `Skor: ${c}/${t}` : '';
+    }
+
+    // Events
+    document.getElementById('checkBtn').addEventListener('click', check);
+    document.getElementById('resetBtn').addEventListener('click', reset);
+    document.getElementById('newBtn').addEventListener('click', generate);
+
+    // Normalize all expected answers to simplest terms once
+    function normalizeExpected(){
+      state.forEach(q=>{
+        const [n,d]=q.expected.split('/').map(Number);
+        const k=norm(n,d); q.expected=`${k[0]}/${k[1]}`;
+      })
+    }
+
+    // First load
+    generate();
+    // after render, normalize stored answers
+    setTimeout(normalizeExpected, 0);
+  </script>
+</body>
+</html>

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G2 – Lengkapi Kotak yang Kosong</title>
+  <style>
+    :root{
+      --brand:#5c79ff;
+      --ink:#0f1222;
+      --line:#8f82ff55;
+      --ok:#1bb35b;
+      --no:#ff4d4f;
+      --card:#ffffff;
+      --bg:#f6f8ff;
+      --zoom:0.9;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,'Noto Sans',sans-serif;
+      background:var(--bg); color:var(--ink);
+      display:flex; min-height:100dvh; align-items:center; justify-content:center;
+      padding:18px;
+    }
+    .board{
+      width:min(980px, 100%);
+      background:var(--card);
+      border-radius:24px; border:4px solid #f0f3ff; box-shadow:0 10px 40px #0000000f;
+      padding:20px 20px 12px;
+      transform: scale(var(--zoom, .9));
+      transform-origin: top center;
+    }
+    .topbar{display:flex; gap:12px; align-items:center; justify-content:center; margin:4px 0 6px; font-weight:700}
+    .topbar input[type="range"]{width:220px}
+    .btnNew{background:#ffe69b;}
+    .title{
+      text-align:center; margin:10px 0 18px; font-weight:800; letter-spacing:.5px;
+      font-size: clamp(18px, 3.8vw, 30px);
+    }
+    .title span{
+      background:var(--brand); color:#fff; padding:10px 18px; border-radius:16px;
+      display:inline-block;
+    }
+
+    /* GRID */
+    .gridWrap{padding:10px 8px 0}
+    .grid{
+       display:grid; grid-template-columns: repeat(5, 1fr);
+       gap:8px; border:4px solid #8f82ff66; border-radius:12px; padding:10px; background:#fff;
+    }
+    .cell{
+      aspect-ratio:1/1; border:3px solid #8f82ff66; border-radius:10px;
+      display:flex; align-items:center; justify-content:center;
+      font-size: clamp(26px, 5vw, 44px); font-weight:800; position:relative;
+      user-select:none; background:#fff;
+    }
+    .cell[data-filled="false"]{background:#fafaff}
+    .cell[data-correct="true"]{outline:4px solid var(--ok)}
+    .cell[data-correct="false"]{outline:4px solid var(--no)}
+    .cell .placeholder{color:#c6c9e9}
+
+    /* BANK */
+    .bankWrap{margin-top:16px}
+    .bankTitle{font-weight:700; margin:0 0 8px 4px; font-size:14px; opacity:.7}
+    .bank{
+      display:flex; gap:8px; flex-wrap:wrap; border:3px dashed #c8d0ff; padding:10px; border-radius:12px; background:#fbfcff;
+      min-height:64px;
+    }
+    .chip{
+      background:var(--brand); color:#fff; padding:10px 14px; border-radius:12px; font-weight:800; font-size:20px;
+      cursor:grab; user-select:none; box-shadow:0 3px 0 #3048c8; transition:transform .08s;
+    }
+    .chip:active{cursor:grabbing; transform:translateY(2px)}
+    .chip.hidden{display:none}
+
+    /* CONTROLS */
+    .controls{display:flex; gap:10px; justify-content:center; margin:18px 4px 6px}
+    button{
+      border:none; padding:10px 16px; border-radius:12px; font-weight:800; font-size:16px; cursor:pointer;
+    }
+    .btnCheck{background:var(--ok); color:#fff}
+    .btnReset{background:#e9ecff}
+
+    .foot{margin:8px 6px 2px; text-align:center; font-size:12px; opacity:.7}
+
+    @media (max-width:640px){
+      .grid{gap:6px; padding:8px}
+      .chip{font-size:18px; padding:8px 12px}
+    }
+  </style>
+</head>
+<body>
+  <main class="board" aria-label="Lengkapi Kotak yang Kosong">
+    <h1 class="title"><span>LENGKAPI KOTAK YANG KOSONG</span></h1>
+    <div class="topbar">
+      <label for="zoom">Zoom</label>
+      <input id="zoom" type="range" min="0.6" max="1" step="0.05" value="0.85" />
+      <button class="btnNew" id="newBtn">Soal Baru</button>
+    </div>
+
+    <section class="gridWrap">
+      <div id="grid" class="grid" aria-live="polite"></div>
+    </section>
+
+    <section class="bankWrap">
+      <p class="bankTitle">Seret angka ke kotak kosong</p>
+      <div id="bank" class="bank"></div>
+    </section>
+
+    <div class="controls">
+      <button class="btnCheck" id="checkBtn">Periksa Jawaban</button>
+      <button class="btnReset" id="resetBtn">Reset</button>
+    </div>
+
+    <p class="foot">© Queen's Academy – G2</p>
+  </main>
+
+<script>
+(function(){
+  const rows = 4, cols = 5; // 4 baris x 5 kolom seperti contoh
+  const start = 1; // angka ganjil mulai dari 1
+  const lastOdd = start + (rows*cols-1)*2; // 39
+
+  // jumlah hint seperti contoh (11 buah), tetapi acak setiap soal baru
+  const HINT_COUNT = 11;
+  let fixedHints = new Set();
+
+  const gridEl = document.getElementById('grid');
+  const bankEl = document.getElementById('bank');
+  const checkBtn = document.getElementById('checkBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const zoomInput = document.getElementById('zoom');
+  const newBtn = document.getElementById('newBtn');
+
+  let cells = []; // {correct:number, value:number|null, el:HTMLElement}
+
+  document.documentElement.style.setProperty('--zoom', zoomInput.value);
+  init();
+
+  function init(newRandom=false){
+    gridEl.innerHTML = '';
+    bankEl.innerHTML = '';
+    cells = [];
+
+    const allOdds = [];
+    for(let i=0;i<rows*cols;i++) allOdds.push(start + i*2);
+
+    if(newRandom || fixedHints.size===0){
+      fixedHints = new Set();
+      const picks = shuffle([...allOdds]).slice(0,HINT_COUNT);
+      picks.forEach(n=>fixedHints.add(n));
+    }
+
+    // Build grid
+    allOdds.forEach((num, idx)=>{
+      const el = document.createElement('div');
+      el.className = 'cell';
+      el.dataset.correct = '';
+      el.dataset.index = idx;
+      el.dataset.filled = fixedHints.has(num) ? 'true' : 'false';
+
+      if(fixedHints.has(num)){
+        el.textContent = num;
+      }else{
+        el.innerHTML = '<span class="placeholder">&nbsp;</span>';
+        // make it droppable
+        el.addEventListener('dragover', e=> e.preventDefault());
+        el.addEventListener('drop', onDrop);
+        el.addEventListener('click', ()=>{ // clear mark if needed
+          if(el.firstElementChild && el.firstElementChild.classList.contains('chip')){
+            const chip = el.firstElementChild;
+            bankEl.appendChild(chip);
+            chip.classList.remove('in-cell');
+            el.innerHTML = '<span class="placeholder">&nbsp;</span>';
+            el.dataset.filled = 'false';
+            setValue(el, null);
+          }
+        });
+      }
+
+      gridEl.appendChild(el);
+      cells.push({correct:num, value: fixedHints.has(num)?num:null, el});
+    });
+
+    // Build bank with the missing numbers
+    const missing = allOdds.filter(n=>!fixedHints.has(n));
+    shuffle(missing).forEach(n=>{
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+      chip.draggable = true;
+      chip.textContent = n;
+      chip.dataset.value = n;
+      chip.addEventListener('dragstart', e=>{
+        e.dataTransfer.setData('text/plain', String(n));
+      });
+      bankEl.appendChild(chip);
+    });
+  }
+
+  function onDrop(e){
+    e.preventDefault();
+    const value = Number(e.dataTransfer.getData('text/plain'));
+    if(!value) return;
+    // If cell already has a chip, return it to bank
+    if(this.firstElementChild && this.firstElementChild.classList.contains('chip')){
+      bankEl.appendChild(this.firstElementChild);
+    }
+    // Move chosen chip from bank
+    const chip = [...bankEl.querySelectorAll('.chip')].find(c=>Number(c.dataset.value)===value);
+    if(!chip) return; // already used elsewhere
+    this.innerHTML = '';
+    this.appendChild(chip);
+    chip.classList.add('in-cell');
+    this.dataset.filled = 'true';
+    setValue(this, value);
+  }
+
+  function setValue(cellEl, value){
+    const idx = Number(cellEl.dataset.index);
+    cells[idx].value = value;
+    // Hapus penanda benar/salah sampai tombol Periksa ditekan
+    cellEl.dataset.correct = '';
+  }
+
+  function shuffle(a){
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+
+  checkBtn.addEventListener('click', ()=>{
+    cells.forEach(c=>{
+      if(!fixedHints.has(c.correct)){
+        if(c.el.dataset.filled === 'true' && c.value != null){
+          c.el.dataset.correct = String(c.value === c.correct);
+        }else{
+          // kosong: tandai salah agar anak tahu masih ada yang belum diisi
+          c.el.dataset.correct = 'false';
+        }
+      }
+    });
+  });
+
+  resetBtn.addEventListener('click', ()=>{
+    init(false);
+  });
+
+  zoomInput.addEventListener('input', ()=>{
+    document.documentElement.style.setProperty('--zoom', zoomInput.value);
+  });
+  newBtn.addEventListener('click', ()=> init(true));
+})();
+</script>
+</body>
+</html>

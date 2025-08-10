@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>J2a — Coding Warna (Game)</title>
+  <style>
+    :root{
+      --bg:#fffef9; --ink:#1b1b1b; --muted:#6b7280; --accent:#ffd54f; --border:#e5e7eb;
+      --red:#e86565; --purple:#b9a3ff; --yellow:#ffd27b; --green:#67c59b; --pink:#f7a0d3;
+      --nodeStroke:#9ca3af; --good:#16a34a; --bad:#ef4444;
+    }
+    *{box-sizing:border-box}
+    html,body{height:auto; min-height:100%;}
+    body{
+      margin:0; font-family:ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      color:var(--ink); background:var(--bg);
+      display:flex; justify-content:center; align-items:flex-start;
+      padding: calc(16px + env(safe-area-inset-top)) 16px 48px; /* extra bottom for zoom */
+      overflow:auto;
+    }
+    .page{width:min(980px,100%); background:white; border:8px solid #f4d24d; border-radius:16px; padding:20px 20px 28px; box-shadow:0 8px 24px rgba(0,0,0,.06)}
+    .header{display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap}
+    .title{width:100%; text-align:center; font-weight:900; font-size:38px; letter-spacing:1px; margin:8px 0 12px}
+    .subtitle{width:100%; text-align:center; color:var(--muted); margin-bottom:8px}
+    .nameRow{display:flex; gap:20px; width:100%; justify-content:space-between}
+    .nameRow label{flex:1; display:flex; align-items:center; gap:8px; font-weight:600}
+    .nameRow input{flex:1; border:none; border-bottom:2px solid var(--border); padding:6px 4px; outline:none}
+
+    .palette{display:grid; grid-template-columns:repeat(5,1fr); border:2px solid var(--ink); border-radius:6px; overflow:hidden; width:min(720px,100%); margin:0 auto 18px}
+    .palette > div{padding:8px 6px; display:grid; grid-template-rows:54px 34px}
+    .swatch{border:2px solid var(--ink); border-radius:50%; width:54px; height:54px; margin:0 auto}
+    .num{border-top:2px solid var(--ink); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:20px}
+
+    .toolbar{display:flex; gap:8px; justify-content:center; align-items:center; margin:10px 0 18px}
+    .btn{appearance:none; border:none; background:#111827; color:white; padding:10px 14px; border-radius:10px; font-weight:700; cursor:pointer; box-shadow:0 4px 0 #000; transform:translateY(0); transition:.12s}
+    .btn:active{transform:translateY(2px); box-shadow:0 2px 0 #000}
+    .btn.secondary{background:#374151}
+    .zoomWrap{display:flex; align-items:center; gap:6px}
+
+    .boardWrap{transform-origin:50% 0; transition:transform .18s ease; overflow:visible}
+
+    .boards{display:grid; grid-template-columns:repeat(2,minmax(260px,1fr)); gap:22px; width:100%;}
+    @media (max-width:700px){.boards{grid-template-columns:1fr}}
+
+    .puzzle{background:#fafafa; border:2px solid var(--border); border-radius:14px; padding:14px}
+    .seq{display:inline-block; background:#bde3ff; color:#0f172a; padding:6px 10px; border-radius:10px; font-weight:900; letter-spacing:.5px; margin:0 auto 10px; font-size:18px}
+    .canvasWrap{position:relative; width:100%; aspect-ratio:1/1}
+    svg{width:100%; height:100%; display:block}
+    .edge{stroke:var(--nodeStroke); stroke-width:6; stroke-linecap:round; fill:none}
+    .node{stroke:#111827; stroke-width:3; cursor:pointer}
+    .node:focus{outline:none}
+    .trace{stroke:#111827; stroke-width:5; stroke-linecap:round; fill:none}
+    .status{min-height:22px; text-align:center; font-weight:700; margin-top:8px}
+    .good{color:var(--good)} .bad{color:var(--bad)}
+    .actions{display:flex; gap:8px; justify-content:center; margin-top:10px}
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="header">
+      <div class="title">CODING WARNA</div>
+      <div class="subtitle">Sambungkan garis sesuai urutan angka yang tersedia.</div>
+    </div>
+
+    <!-- Palet angka → warna -->
+    <section class="palette" id="palette">
+      <div>
+        <div class="swatch" style="background:var(--red)"></div>
+        <div class="num">1</div>
+      </div>
+      <div>
+        <div class="swatch" style="background:var(--purple)"></div>
+        <div class="num">2</div>
+      </div>
+      <div>
+        <div class="swatch" style="background:var(--yellow)"></div>
+        <div class="num">3</div>
+      </div>
+      <div>
+        <div class="swatch" style="background:var(--green)"></div>
+        <div class="num">4</div>
+      </div>
+      <div>
+        <div class="swatch" style="background:var(--pink)"></div>
+        <div class="num">5</div>
+      </div>
+    </section>
+
+    <div class="toolbar">
+      <div class="zoomWrap">
+        <button class="btn secondary" id="zoomOut">Zoom −</button>
+        <button class="btn" id="zoomIn">Zoom +</button>
+        <button class="btn secondary" id="zoomReset">Reset Zoom</button>
+      </div>
+    </div>
+
+    <div class="boardWrap" id="boardWrap">
+      <section class="boards" id="boards"></section>
+    </div>
+  </main>
+
+<script>
+(() => {
+  // --- Utilities
+  const COLORS = {
+    1: getCSS('--red'),
+    2: getCSS('--purple'),
+    3: getCSS('--yellow'),
+    4: getCSS('--green'),
+    5: getCSS('--pink'),
+  };
+  // Visual order of colors around the ring based on worksheet reference (clockwise, start from top):
+  // top: 4 (green), right: 2 (purple), bottom-right: 5 (pink), bottom-left: 3 (yellow), left: 1 (red)
+  const DEFAULT_ORDER = [4,2,5,3,1];
+
+  // Reference-style sequences (displayed as labels)
+  const SEQUENCES = [
+    [4,5,1,2,3],
+    [5,1,2,3,4],
+    [3,4,5,1,2],
+    [2,1,5,4,3],
+  ];
+
+  function getCSS(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+
+  // Build 4 puzzles
+  const boardsEl = document.getElementById('boards');
+  SEQUENCES.forEach((seq, idx) => boardsEl.appendChild(createPuzzle(seq, idx)));
+
+  // Global zoom controls
+  let zoom = 1; const wrap = document.getElementById('boardWrap');
+  document.getElementById('zoomIn').onclick = () => setZoom(zoom + 0.1);
+  document.getElementById('zoomOut').onclick = () => setZoom(Math.max(0.5, zoom - 0.1));
+  document.getElementById('zoomReset').onclick = () => setZoom(1);
+  function setZoom(z){ zoom = +z.toFixed(2); wrap.style.transform = `scale(${zoom})`; }
+
+  // Puzzle factory
+  function createPuzzle(targetSeq, id){
+    const card = el('div', {class:'puzzle'});
+    const seqLabel = el('div', {class:'seq', text: targetSeq.join('-')});
+    const canvasWrap = el('div', {class:'canvasWrap'});
+    const status = el('div', {class:'status'});
+
+    // Controls
+    const actions = el('div', {class:'actions'});
+    const btnCheck = el('button', {class:'btn', text:'Periksa Jawaban'});
+    const btnReset = el('button', {class:'btn secondary', text:'Reset'});
+    const btnShuffle = el('button', {class:'btn secondary', text:'Acak Soal'});
+    actions.append(btnCheck, btnReset, btnShuffle);
+
+    // SVG Stage
+    const svg = ns('svg');
+    svg.setAttribute('viewBox','0 0 100 100');
+
+    // Pentagon coordinates
+    const R = 38, CX = 50, CY = 50; // keep it inside viewBox
+    const orderAround = DEFAULT_ORDER.slice(); // clockwise order of numbers around the ring (by color mapping)
+    const points = orderAround.map((num, i) => {
+      const angle = -90 + i*72; // start top, clockwise
+      const x = CX + R*Math.cos(angle*Math.PI/180);
+      const y = CY + R*Math.sin(angle*Math.PI/180);
+      return {num, x, y};
+    });
+
+    // Grey edges
+    for(let i=0;i<5;i++){
+      const a = points[i], b = points[(i+1)%5];
+      svg.appendChild(pathLine(a.x,a.y,b.x,b.y,'edge'));
+    }
+
+    // User trace group
+    const traceG = ns('g'); svg.appendChild(traceG);
+
+    // Nodes
+    const nodes = {};
+    points.forEach(({num,x,y}) => {
+      const c = ns('circle');
+      c.setAttribute('cx', x); c.setAttribute('cy', y); c.setAttribute('r', 6.8);
+      c.setAttribute('fill', COLORS[num]);
+      c.setAttribute('class','node');
+      c.setAttribute('tabindex','0');
+      c.dataset.num = String(num);
+      c.addEventListener('click', onPick);
+      c.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); onPick(); } });
+      function onPick(){
+        if(selection.length && selection[selection.length-1] === num) return; // avoid double click same point consecutively
+        selection.push(num);
+        drawTrace();
+      }
+      svg.appendChild(c); nodes[num] = c;
+    });
+
+    canvasWrap.appendChild(svg);
+
+    // State
+    let selection = [];
+
+    function drawTrace(){
+      // Clear
+      while(traceG.firstChild) traceG.removeChild(traceG.firstChild);
+      // Draw successive lines
+      for(let i=0;i<selection.length-1;i++){
+        const a = getPoint(selection[i]);
+        const b = getPoint(selection[i+1]);
+        traceG.appendChild(pathLine(a.x,a.y,b.x,b.y,'trace'));
+      }
+    }
+    function getPoint(num){
+      const p = points.find(p=>p.num===num); return p;
+    }
+
+    // Actions
+    btnReset.onclick = () => { selection = []; drawTrace(); status.textContent=''; status.className='status'; };
+
+    btnCheck.onclick = () => {
+      if(selection.length !== targetSeq.length){
+        status.textContent = 'Masih kurang langkahnya. Lanjutkan!';
+        status.className = 'status bad';
+        return;
+      }
+      const ok = selection.every((n,i)=> n===targetSeq[i]);
+      const adj = countAdjacentSteps(selection);
+      if(ok && adj <= 1){
+        status.textContent = 'Mantap! Garis melintas tengah dan urutan benar ✅';
+        status.className = 'status good';
+      } else if (ok) {
+        status.textContent = 'Urutan betul, tapi garis masih mengikuti pinggir prisma. Coba lagi agar melintas tengah.';
+        status.className = 'status bad';
+      } else {
+        status.textContent = 'Belum tepat. Coba lagi ya.';
+        status.className = 'status bad';
+      }
+    };
+
+    btnShuffle.onclick = () => {
+      // New target that encourages center-crossing (not outline)
+      targetSeq = randomStarSequence();
+      seqLabel.textContent = targetSeq.join('-');
+      // Keep ring order (matches reference). Just reset trace.
+      btnReset.click();
+    };
+
+    card.append(seqLabel, canvasWrap, actions, status);
+    return card;
+  }
+
+  // Helpers
+  function el(tag, attrs={}){
+    const n = document.createElement(tag);
+    for(const k in attrs){
+      if(k==='text') n.textContent = attrs[k]; else n.setAttribute(k, attrs[k]);
+    }
+    return n;
+  }
+  function ns(tag){ return document.createElementNS('http://www.w3.org/2000/svg', tag); }
+  function pathLine(x1,y1,x2,y2, cls){
+    const p = ns('path');
+    p.setAttribute('d', `M ${x1} ${y1} L ${x2} ${y2}`);
+    p.setAttribute('class', cls);
+    return p;
+  }
+  function shuffle(arr){
+    const a = arr.slice();
+    for(let i=a.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+    return a;
+  }
+
+  // Given a sequence, count how many steps follow the visual outline (adjacent along DEFAULT_ORDER)
+  function countAdjacentSteps(seq){
+    const ord = DEFAULT_ORDER;
+    const idx = n => ord.indexOf(n);
+    let adj = 0;
+    for(let i=0;i<seq.length-1;i++){
+      const a = idx(seq[i]);
+      const b = idx(seq[i+1]);
+      if( (a+1)%5===b || (b+1)%5===a ) adj++;
+    }
+    return adj;
+  }
+  function randomStarSequence(){
+    // Try random perms until at most 1 adjacent step remains (force center-crossing)
+    for(let tries=0; tries<200; tries++){
+      const s = shuffle([1,2,3,4,5]);
+      if(countAdjacentSteps(s) <= 1) return s;
+    }
+    return [1,3,5,2,4]; // fallback classic star
+  }
+})();
+</script>
+</body>
+</html>
