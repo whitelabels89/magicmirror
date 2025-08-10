@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>World — Calistung</title>
+  <link rel="stylesheet" href="/elearn/worlds/styles.css">
+</head>
+<body class="world-root">
+  <div id="worldRoot"></div>
+
+  <script type="module">
+    import { initWorld } from '/elearn/worlds/map.js';
+    // Optional: progress utils (untuk nanti dipakai di level pages)
+    import '/elearn/worlds/utils/progress.js';
+
+    initWorld({
+      rootSelector: '#worldRoot',
+      configPath: '/elearn/worlds/calistung/config.json'
+    });
+  </script>
+</body>
+</html>
