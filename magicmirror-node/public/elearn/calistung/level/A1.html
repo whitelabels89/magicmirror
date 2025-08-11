@@ -743,6 +743,8 @@
             const canvases = [];
             const isDrawing = new Array(totalCells).fill(false);
             const paths = new Array(totalCells).fill(null).map(() => []);
+            // Per-cell rainbow pen hue (start random so each cell feels unique)
+            const penHue = new Array(totalCells).fill(0).map(() => Math.floor(Math.random()*360));
 
             for(let i=0;i<totalCells;i++){
                 const div = document.createElement('div');
@@ -800,6 +802,8 @@
                 function startDrawing(evt){
                     evt.preventDefault();
                     isDrawing[i]=true;
+                    // Tiny hue nudge so first stroke is colorful
+                    penHue[i] = (penHue[i] + 5) % 360;
                     const pos = getPointerPos(evt);
                     lastX = pos.x; lastY = pos.y;
                     paths[i].push([{x:lastX,y:lastY}]);
@@ -810,17 +814,53 @@
                     const path = paths[i][paths[i].length-1];
                     path.push({x:pos.x,y:pos.y});
                     const ctx = canvases[i].ctx;
-                    ctx.strokeStyle = '#000';
-                    ctx.lineWidth = 2;
+                    // Cycle hue for rainbow pen
+                    penHue[i] = (penHue[i] + 2) % 360;
+                    const color = `hsl(${penHue[i]}, 95%, 55%)`;
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 6; // a bit thicker so kids can see clearly
                     ctx.lineCap = 'round';
                     ctx.lineJoin = 'round';
+                    // --- Glitter effect ---
+                    // Draw 3 glowing particles per draw
+                    for (let g = 0; g < 3; g++) {
+                        // Random offset within ~10px radius
+                        const angle = Math.random() * 2 * Math.PI;
+                        const radius = Math.random() * 10;
+                        const gx = pos.x + Math.cos(angle) * radius;
+                        const gy = pos.y + Math.sin(angle) * radius;
+                        // Use white or lighter pen color
+                        let glitterColor = "#fff";
+                        // Optionally, use a lighter HSL version of pen color:
+                        // let glitterColor = `hsl(${penHue[i]},100%,90%)`;
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.arc(gx, gy, 1 + Math.random(), 0, 2 * Math.PI);
+                        ctx.fillStyle = glitterColor;
+                        ctx.shadowColor = glitterColor;
+                        ctx.shadowBlur = 8;
+                        ctx.globalAlpha = 0.8 + Math.random() * 0.2;
+                        ctx.fill();
+                        ctx.globalAlpha = 1.0;
+                        ctx.restore();
+                    }
+                    // --- End glitter effect ---
+                    // Soft glow to make the color pop
+                    ctx.shadowColor = color;
+                    ctx.shadowBlur = 6;
                     ctx.beginPath();
-                    ctx.moveTo(lastX,lastY);
-                    ctx.lineTo(pos.x,pos.y);
+                    ctx.moveTo(lastX, lastY);
+                    ctx.lineTo(pos.x, pos.y);
                     ctx.stroke();
                     lastX = pos.x; lastY = pos.y;
                 }
-                function stopDrawing(evt){ if(!isDrawing[i]) return; evt.preventDefault(); isDrawing[i]=false; }
+                function stopDrawing(evt){
+                    if(!isDrawing[i]) return; evt.preventDefault();
+                    isDrawing[i]=false;
+                    // Remove the glow when not drawing
+                    const ctx = canvases[i].ctx;
+                    ctx.shadowBlur = 0;
+                }
 
                 canvas.addEventListener('mousedown', startDrawing);
                 canvas.addEventListener('mousemove', draw);
