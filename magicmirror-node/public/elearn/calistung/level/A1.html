@@ -152,6 +152,10 @@
         @media (max-width: 480px) {
             #btnSelesai { padding: 10px 14px; font-size: 15px; }
         }
+        /* Tool bar for brush/eraser */
+        .tool-bar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+        .tool-btn { padding:8px 10px; border:1px solid #ccc; background:#fff; border-radius:8px; cursor:pointer; font-weight:600; }
+        .tool-btn[aria-pressed="true"] { border-color:#111827; box-shadow:0 0 0 2px rgba(59,130,246,.25) inset; }
     </style>
 </head>
 <body>
@@ -185,6 +189,10 @@
             <option value="y">Huruf Y</option>
             <option value="z">Huruf Z</option>
         </select>
+        <div class="tool-bar" role="group" aria-label="Alat menggambar">
+          <button id="btnBrush" type="button" class="tool-btn" aria-pressed="true" aria-label="Pena warna-warni">🖊️ Brush</button>
+          <button id="btnEraser" type="button" class="tool-btn" aria-pressed="false" aria-label="Penghapus">🧽 Eraser</button>
+        </div>
         <small id="coming-soon-note" style="color:#777;display:none">Worksheet huruf ini sedang disiapkan.</small>
     </div>
     <div id="slide-a" class="worksheet-slide" data-letter="a" style="display:block;">
@@ -732,6 +740,25 @@
         const slideZ = document.getElementById('slide-z');
         const comingNote = document.getElementById('coming-soon-note');
 
+        // === Tool state ===
+        const btnBrush = document.getElementById('btnBrush');
+        const btnEraser = document.getElementById('btnEraser');
+        let currentTool = 'brush';
+        const brushSize = 10;   // default brush size
+        const eraserSize = 20;  // eraser a bit bigger for convenience
+
+        function setTool(tool){
+          currentTool = tool;
+          if(btnBrush && btnEraser){
+            const isBrush = tool === 'brush';
+            btnBrush.setAttribute('aria-pressed', isBrush ? 'true' : 'false');
+            btnEraser.setAttribute('aria-pressed', isBrush ? 'false' : 'true');
+          }
+        }
+        btnBrush?.addEventListener('click', ()=> setTool('brush'));
+        btnEraser?.addEventListener('click', ()=> setTool('eraser'));
+        // === End tool state ===
+
         function buildTracing(gridEl, messageEl, letter) {
             gridEl.innerHTML = '';
             const totalCells = 15; // 3x5
@@ -757,6 +784,16 @@
                 div.dataset.step = stepsAll[i];
                 div.dataset.letter = letters[i];
 
+                // --- Create background canvas before drawing canvas ---
+                const bgCanvas = document.createElement('canvas');
+                bgCanvas.className = 'trace-canvas';
+                bgCanvas.width = 150; bgCanvas.height = 150;
+                bgCanvas.style.width = '100%';
+                bgCanvas.style.height = '100%';
+                bgCanvas.style.touchAction = 'none';
+                bgCanvas.style.position = 'absolute';
+                bgCanvas.style.zIndex = '1';
+
                 const canvas = document.createElement('canvas');
                 canvas.className = 'trace-canvas';
                 canvas.width = 150; canvas.height = 150;
@@ -764,22 +801,25 @@
                 canvas.style.height = '100%';
                 canvas.style.touchAction = 'none';
                 canvas.style.position = 'absolute';
+                canvas.style.zIndex = '2';
                 const ctx = canvas.getContext('2d');
+                const bgCtx = bgCanvas.getContext('2d');
 
                 // background guideline image per letter
                 const img = new Image();
                 img.src = `/elearn/calistung/assets/alfabet/${letter}.png`;
                 img.onload = () => {
-                    ctx.clearRect(0,0,canvas.width,canvas.height);
-                    ctx.globalAlpha = 0.5;
-                    ctx.drawImage(img,0,0,canvas.width,canvas.height);
-                    ctx.globalAlpha = 1.0;
+                    bgCtx.clearRect(0,0,bgCanvas.width,bgCanvas.height);
+                    bgCtx.globalAlpha = 0.5;
+                    bgCtx.drawImage(img,0,0,bgCanvas.width,bgCanvas.height);
+                    bgCtx.globalAlpha = 1.0;
                 };
 
                 const stepSpan = document.createElement('span');
                 stepSpan.className = 'step-number';
                 stepSpan.textContent = stepsAll[i];
                 div.appendChild(stepSpan);
+                div.appendChild(bgCanvas);
                 div.appendChild(canvas);
 
                 canvases.push({canvas, ctx});
@@ -814,25 +854,31 @@
                     const path = paths[i][paths[i].length-1];
                     path.push({x:pos.x,y:pos.y});
                     const ctx = canvases[i].ctx;
-                    // Cycle hue for rainbow pen
-                    penHue[i] = (penHue[i] + 2) % 360;
-                    const color = `hsl(${penHue[i]}, 95%, 55%)`;
-                    ctx.strokeStyle = color;
-                    ctx.lineWidth = 10; // a bit thicker so kids can see clearly
+                    // Tool-aware drawing
                     ctx.lineCap = 'round';
                     ctx.lineJoin = 'round';
-                    // --- Glitter effect ---
-                    // Draw 3 glowing particles per draw
-                    for (let g = 0; g < 3; g++) {
-                        // Random offset within ~10px radius
+
+                    if (currentTool === 'eraser') {
+                      // ERASER: punch holes in the drawing layer only
+                      ctx.globalCompositeOperation = 'destination-out';
+                      ctx.shadowBlur = 0;
+                      ctx.strokeStyle = 'rgba(0,0,0,1)';
+                      ctx.lineWidth = eraserSize;
+                    } else {
+                      // BRUSH: rainbow pen with glitter
+                      ctx.globalCompositeOperation = 'source-over';
+                      penHue[i] = (penHue[i] + 2) % 360;
+                      const color = `hsl(${penHue[i]}, 95%, 55%)`;
+                      ctx.strokeStyle = color;
+                      ctx.lineWidth = brushSize;
+
+                      // --- Glitter effect (only for brush) ---
+                      for (let g = 0; g < 3; g++) {
                         const angle = Math.random() * 2 * Math.PI;
                         const radius = Math.random() * 10;
                         const gx = pos.x + Math.cos(angle) * radius;
                         const gy = pos.y + Math.sin(angle) * radius;
-                        // Use white or lighter pen color
-                        let glitterColor = "#fff";
-                        // Optionally, use a lighter HSL version of pen color:
-                        // let glitterColor = `hsl(${penHue[i]},100%,90%)`;
+                        const glitterColor = '#fff';
                         ctx.save();
                         ctx.beginPath();
                         ctx.arc(gx, gy, 1 + Math.random(), 0, 2 * Math.PI);
@@ -843,11 +889,12 @@
                         ctx.fill();
                         ctx.globalAlpha = 1.0;
                         ctx.restore();
+                      }
+                      // Soft glow on the stroke
+                      ctx.shadowColor = color;
+                      ctx.shadowBlur = 6;
                     }
-                    // --- End glitter effect ---
-                    // Soft glow to make the color pop
-                    ctx.shadowColor = color;
-                    ctx.shadowBlur = 6;
+
                     ctx.beginPath();
                     ctx.moveTo(lastX, lastY);
                     ctx.lineTo(pos.x, pos.y);
@@ -860,6 +907,7 @@
                     // Remove the glow when not drawing
                     const ctx = canvases[i].ctx;
                     ctx.shadowBlur = 0;
+                    ctx.globalCompositeOperation = 'source-over';
                 }
 
                 canvas.addEventListener('mousedown', startDrawing);
