@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Calistung — Sub World</title>
+  <title>World — Calistung</title>
   <link rel="stylesheet" href="/elearn/worlds/styles.css">
 </head>
-<body class="world-root" data-world-id="calistung-number">
+<body class="world-root" data-world-id="calistung">
   <div class="hud-bar">
     <div class="hud-left">
       <a class="hud-btn" href="/elearn/worlds/calistung/index.html">⟵ Kembali</a>
@@ -30,15 +30,15 @@
 
   <script type="module">
     import { initWorld } from '/elearn/worlds/map.js';
-    import { initHud } from '/elearn/worlds/ui/hud.js';
+    // Optional: progress utils (untuk nanti dipakai di level pages)
     import '/elearn/worlds/utils/progress.js';
-
-    // Penting: worldId unik agar progress/badge/coins tidak bercampur
-    initHud({ worldId: 'calistung-number' });
+    import { initHud } from '/elearn/worlds/ui/hud.js';
+    initHud({ worldId: 'calistung' });
+    setTimeout(()=>document.querySelector('.hud-btn')?.click(), 200);
 
     initWorld({
       rootSelector: '#worldRoot',
-      configPath: '/elearn/worlds/calistung/number/config.json'
+      configPath: '/elearn/worlds/calistung/config.json'
     });
   </script>
 </body>
