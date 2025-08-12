@@ -1,13 +1,13 @@
 {
   "worlds": [
-    { "id": "calistung",      "name": "Calistung",            "theme": "pastel-garden", "cover": "/elearn/img/map/portal-calistung.webp",      "entry": "/elearn/worlds/calistung/index.html" },
-    { "id": "kinder-coder",   "name": "Kinder Coder",         "theme": "lego-lab",      "cover": "/elearn/img/map/portal-kc.webp",             "entry": "/elearn/worlds/kinder-coder/index.html" },
-    { "id": "visual-programming","name": "Visual Programming","theme": "blocky",        "cover": "/elearn/img/map/portal-vp.webp",             "entry": "/elearn/worlds/visual-programming/index.html" },
-    { "id": "python",         "name": "Python",               "theme": "neon-blue",     "cover": "/elearn/img/map/portal-python.webp",         "entry": "/elearn/worlds/python/index.html" },
-    { "id": "web",            "name": "Website Development",  "theme": "sunset",        "cover": "/elearn/img/map/portal-web.webp",            "entry": "/elearn/worlds/web/index.html" },
-    { "id": "mobile",         "name": "Mobile Apps",          "theme": "teal",          "cover": "/elearn/img/map/portal-mobile.webp",         "entry": "/elearn/worlds/mobile/index.html" },
-    { "id": "robotic",        "name": "Robotic",              "theme": "steel",         "cover": "/elearn/img/map/portal-robotic.webp",        "entry": "/elearn/worlds/robotic/index.html" },
-    { "id": "ai",             "name": "Artificial Intelligence","theme": "purple",     "cover": "/elearn/img/map/portal-ai.webp",             "entry": "/elearn/worlds/ai/index.html" },
-    { "id": "open-world",     "name": "Open World",           "theme": "open",          "cover": "/elearn/img/map/portal-openworld.webp",      "entry": "/elearn/worlds/open-world/index.html" }
+    { "id": "calistung",      "name": "Calistung",            "theme": "pastel-garden", "cover": "/elearn/img/map/portal-calistung.jpg",      "entry": "/elearn/worlds/calistung/index.html" },
+    { "id": "kinder-coder",   "name": "Kinder Coder",         "theme": "lego-lab",      "cover": "/elearn/img/map/portal-kc.jpg",             "entry": "/elearn/worlds/kinder-coder/index.html" },
+    { "id": "visual-programming","name": "Visual Programming","theme": "blocky",        "cover": "/elearn/img/map/portal-vp.jpg",             "entry": "/elearn/worlds/visual-programming/index.html" },
+    { "id": "python",         "name": "Pythonia",             "theme": "neon-blue",     "cover": "/elearn/img/map/portal-python.jpg",         "entry": "/elearn/worlds/python/index.html" },
+    { "id": "web",            "name": "Webtopia",             "theme": "sunset",        "cover": "/elearn/img/map/portal-web.jpg",            "entry": "/elearn/worlds/web/index.html" },
+    { "id": "mobile",         "name": "Applandia",            "theme": "teal",          "cover": "/elearn/img/map/portal-mobile.jpg",         "entry": "/elearn/worlds/mobile/index.html" },
+    { "id": "robotic",        "name": "Robonix",              "theme": "steel",         "cover": "/elearn/img/map/portal-robotic.jpg",        "entry": "/elearn/worlds/robotic/index.html" },
+    { "id": "ai",             "name": "Aitheris",             "theme": "purple",        "cover": "/elearn/img/map/portal-ai.jpg",             "entry": "/elearn/worlds/ai/index.html" },
+    { "id": "open-world",     "name": "Open World",           "theme": "open",          "cover": "/elearn/img/map/portal-openworld.jpg",      "entry": "/elearn/worlds/open-world/index.html" }
   ]
 }

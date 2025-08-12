@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Edu Portal — 9 Worlds</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/elearn/worlds/styles.css">
+  <style>
+    /* Faux-3D globe icon */
+    .globe3d{display:inline-block;width:28px;height:28px;vertical-align:-4px;margin-right:6px}
+    .globe3d .svg-globe{width:100%;height:100%;filter:drop-shadow(0 1px 1px rgba(0,0,0,.25))}
+    .globe3d .spin{animation:globe-spin 12s linear infinite;transform-origin:50px 50px}
+    .globe3d .rim{fill:url(#ocean-grad)}
+    .globe3d .shine{fill:url(#shine-grad);mix-blend-mode:screen}
+    .globe3d .grid{stroke:rgba(255,255,255,.35);stroke-width:.8;fill:none}
+    @keyframes globe-spin{to{transform:rotate(360deg)}}
+    @media (prefers-reduced-motion: reduce){.globe3d .spin{animation:none}}
+  </style>
+</head>
+<body class="portal-body">
+  <header class="portal-header">
+    <h1>
+      <span class="globe3d" aria-hidden="true">
+        <svg viewBox="0 0 100 100" class="svg-globe" role="img" aria-label="World">
+          <defs>
+            <radialGradient id="ocean-grad" cx="35%" cy="35%" r="70%">
+              <stop offset="0%" stop-color="#a8e6ff"/>
+              <stop offset="55%" stop-color="#4db8ff"/>
+              <stop offset="100%" stop-color="#0b79c1"/>
+            </radialGradient>
+            <radialGradient id="shine-grad" cx="25%" cy="25%" r="60%">
+              <stop offset="0%" stop-color="rgba(255,255,255,.55)"/>
+              <stop offset="60%" stop-color="rgba(255,255,255,.0)"/>
+            </radialGradient>
+            <mask id="globe-mask">
+              <rect x="0" y="0" width="100" height="100" fill="#fff"/>
+              <circle cx="50" cy="50" r="48" fill="#000"/>
+            </mask>
+          </defs>
+          <!-- Sphere base -->
+          <circle cx="50" cy="50" r="48" class="rim"/>
+          <!-- Subtle highlight -->
+          <circle cx="50" cy="50" r="48" class="shine"/>
+          <!-- Rotating grid inside the circle to give a 3D feel -->
+          <g class="spin" mask="url(#globe-mask)">
+            <g class="grid">
+              <!-- latitudes (ellipses) -->
+              <ellipse cx="50" cy="50" rx="44" ry="14"/>
+              <ellipse cx="50" cy="35" rx="38" ry="10"/>
+              <ellipse cx="50" cy="65" rx="38" ry="10"/>
+              <!-- longitudes (ellipses rotated) -->
+              <g transform="scale(1,0.45)">
+                <ellipse cx="50" cy="111" rx="44" ry="44" transform="rotate(0 50 111)"/>
+                <ellipse cx="50" cy="111" rx="44" ry="44" transform="rotate(30 50 111)"/>
+                <ellipse cx="50" cy="111" rx="44" ry="44" transform="rotate(60 50 111)"/>
+                <ellipse cx="50" cy="111" rx="44" ry="44" transform="rotate(90 50 111)"/>
+                <ellipse cx="50" cy="111" rx="44" ry="44" transform="rotate(120 50 111)"/>
+                <ellipse cx="50" cy="111" rx="44" ry="44" transform="rotate(150 50 111)"/>
+              </g>
+            </g>
+          </g>
+        </svg>
+      </span>
+      Choose Your World
+    </h1>
+    <p>Pilih dunia belajar kamu. Progres & badge akan tersimpan otomatis.</p>
+  </header>
+
+  <main class="portal-grid" id="worldGrid"></main>
+
+  <script>
+    async function loadWorlds(){
+      const res = await fetch('/elearn/worlds/worlds.json');
+      const data = await res.json();
+      const grid = document.getElementById('worldGrid');
+      grid.innerHTML = data.worlds.map(w=>`
+        <article class="portal-card" data-entry="${w.entry}">
+          <div class="portal-cover" style="background-image:url('${w.cover || "/elearn/img/map/worldmap3.webp"}')"></div>
+          <div class="portal-meta">
+            <h3>${w.name}</h3>
+            <div class="portal-progress" data-world="${w.id}">
+              <span class="ring" title="progress"></span>
+              <small>loading...</small>
+            </div>
+          </div>
+        </article>
+      `).join('');
+
+      // klik kartu
+      grid.querySelectorAll('.portal-card').forEach(card=>{
+        card.addEventListener('click', ()=>{
+          const entry = card.dataset.entry;
+          if (entry) window.location = entry;
+        });
+      });
+
+      // progress (dummy localStorage; bisa ganti Firestore)
+      grid.querySelectorAll('.portal-progress').forEach(el=>{
+        const key = `progress:${el.dataset.world}`;
+        const raw = localStorage.getItem(key);
+        const pct = raw ? JSON.parse(raw).percent||0 : 0;
+        el.querySelector('small').textContent = `${pct}%`;
+        el.querySelector('.ring').style.setProperty('--pct', pct);
+      });
+    }
+    loadWorlds();
+  </script>
+</body>
+</html>

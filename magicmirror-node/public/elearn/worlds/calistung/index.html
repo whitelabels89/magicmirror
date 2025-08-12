@@ -3,41 +3,72 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>World — Calistung</title>
+  <title>Calistung — Pilih Dunia</title>
+  <link rel="stylesheet" href="/elearn/worlds/portal.css">
   <link rel="stylesheet" href="/elearn/worlds/styles.css">
 </head>
-<body class="world-root" data-world-id="calistung">
-  <div class="hud-bar">
-    <div class="hud-left">
-      <button class="hud-btn" data-panel="inventory">Inventory</button>
-      <button class="hud-btn" data-panel="skills">Skills</button>
-      <button class="hud-btn" data-panel="badges">Badges</button>
-      <button class="hud-btn" data-panel="progress">Progress</button>
+<body class="portal-body">
+  <header class="portal-header">
+    <h1>Calistung</h1>
+    <p>Pilih dunia belajar kamu</p>
+    <div class="world-topbar" style="justify-content:center;padding-top:10px;">
+      <a href="/elearn/worlds/portal.html">⟵ Kembali ke Portal</a>
     </div>
-    <div class="hud-right">
-      <span class="hud-coins">🪙 <span id="hudCoins">0</span></span>
-      <img id="hudAvatar" src="/elearn/worlds/assets/default-avatar.png" class="hud-avatar" alt="Avatar">
-    </div>
-  </div>
+  </header>
 
-  <div id="hudPanel" class="hud-panel">
-    <h3 id="hudPanelTitle">Panel</h3>
-    <div id="hudPanelContent"></div>
-  </div>
+  <main>
+    <section id="worlds" class="portal-grid" aria-label="Pilihan dunia Calistung"></section>
+  </main>
 
-  <div id="worldRoot"></div>
+  <script>
+    // Empat world di dalam Calistung
+    const items = [
+      {
+        id: "alphabet",
+        name: "Kelas Alphabet",
+        cover: "/elearn/worlds/calistung/thumbs/alphabet.webp",
+        entry: "/elearn/worlds/calistung/alphabet/index.html"
+      },
+      {
+        id: "number",
+        name: "Kelas Number",
+        cover: "/elearn/worlds/calistung/thumbs/number.webp",
+        entry: "/elearn/worlds/calistung/number/index.html"
+      },
+      {
+        id: "shape",
+        name: "Kelas Shape",
+        cover: "/elearn/worlds/calistung/thumbs/shape.webp",
+        entry: "/elearn/worlds/calistung/shape/index.html"
+      },
+      {
+        id: "math-game",
+        name: "Kelas Math Game",
+        cover: "/elearn/worlds/calistung/thumbs/mathgame.webp",
+        entry: "/elearn/worlds/calistung/math-game/index.html"
+      }
+    ];
 
-  <script type="module">
-    import { initWorld } from '/elearn/worlds/map.js';
-    // Optional: progress utils (untuk nanti dipakai di level pages)
-    import '/elearn/worlds/utils/progress.js';
-    import { initHud } from '/elearn/worlds/ui/hud.js';
-    initHud({ worldId: 'calistung' });
-    setTimeout(()=>document.querySelector('.hud-btn')?.click(), 200);
+    // Render kartu bergaya portal
+    const root = document.getElementById('worlds');
+    root.innerHTML = items.map(w => `
+      <a class="portal-card" href="${w.entry}" data-id="${w.id}">
+        <div class="portal-cover" style="background-image:url('${w.cover || "/elearn/img/map/worldmap3.webp"}')"></div>
+        <div class="portal-meta">
+          <h3>${w.name}</h3>
+          <!-- Optional progress ring, tinggal aktifkan kalau sudah ada datanya
+          <div class="portal-progress"><span class="ring" style="--pct:42"></span></div>
+          -->
+        </div>
+      </a>
+    `).join('');
 
-    initWorld({
-      rootSelector: '#worldRoot',
-      configPath: '/elearn/worlds/calistung/config.json'
+    // Fallback cover jika gambar belum ada
+    document.querySelectorAll('.portal-cover').forEach(el => {
+      const url = el.style.backgroundImage.slice(5, -2);
+      const img = new Image();
+      img.src = url;
+      img.onerror = () => { el.style.background = '#334155'; };
     });
   </script>
 </body>
