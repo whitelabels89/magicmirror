@@ -9,7 +9,7 @@ export async function initWorld({ rootSelector = '#worldRoot', configPath }) {
 
   root.innerHTML = `
     <div class="world-topbar">
-      <a href="/elearn/portal.html">⟵ Portal</a>
+      <a href="/elearn/worlds/portal.html">⟵ Portal</a>
       <h2>${cfg.meta?.name || 'World'}</h2>
       <div></div>
     </div>

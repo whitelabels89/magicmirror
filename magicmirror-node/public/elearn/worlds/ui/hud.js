@@ -302,6 +302,38 @@ function check(ok){ return ok ? '✅' : '🔒'; }
   document.head.appendChild(style);
 })();
 
+// ===== HUD Visibility Toggle =====
+function applyHudVisibility(show) {
+  const hudBar = document.querySelector('.hud-bar');
+  if (!hudBar) return;
+  if (show) {
+    hudBar.style.visibility = 'visible';
+    hudBar.style.opacity = '1';
+  } else {
+    hudBar.style.opacity = '0';
+    hudBar.style.visibility = 'hidden';
+  }
+}
+
+function ensureHudToggleButton() {
+  const hudBar = document.querySelector('.hud-bar');
+  if (!hudBar) return;
+  // Add transition style for fade effect
+  hudBar.style.transition = 'opacity 0.3s ease';
+  // Create toggle button
+  let btn = document.createElement('button');
+  btn.textContent = 'Toggle HUD';
+  btn.className = 'hud-toggle-btn';
+  hudBar.appendChild(btn);
+  // Initial visibility
+  let visible = true;
+  applyHudVisibility(visible);
+  btn.addEventListener('click', () => {
+    visible = !visible;
+    applyHudVisibility(visible);
+  });
+}
+
 // Safe auto-init if developer forgets to call initHud()
 if (!window.__HUD_INITED__) {
   window.__HUD_INITED__ = true;
@@ -309,6 +341,7 @@ if (!window.__HUD_INITED__) {
     try {
       const worldId = document.body?.dataset?.worldId || 'calistung';
       initHud({ worldId });
+      ensureHudToggleButton();
     } catch (e) {
       console.warn('[HUD] auto-init failed', e);
     }
