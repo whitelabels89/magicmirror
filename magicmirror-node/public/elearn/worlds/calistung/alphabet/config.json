@@ -1,0 +1,23 @@
+{
+  "id": "calistung-alphabet",
+  "title": "Calistung — Alphabet",
+  "map": {
+    "image": "/elearn/img/map/worldmap3.webp",
+    "nodes": [
+      {
+        "id": "A1",
+        "x": 22,
+        "y": 48,
+        "label": "Tracing A",
+        "entry": "/elearn/calistung/level/A1.html"
+      },
+      {
+        "id": "A2",
+        "x": 48,
+        "y": 62,
+        "label": "Tracing B",
+        "entry": "/elearn/calistung/level/A2.html"
+      }
+    ]
+  }
+}

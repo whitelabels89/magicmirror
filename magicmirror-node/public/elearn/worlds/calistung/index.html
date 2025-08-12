@@ -3,72 +3,51 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Calistung — Pilih Dunia</title>
-  <link rel="stylesheet" href="/elearn/worlds/portal.css">
+  <title>Calistung — Pilih Mode</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/elearn/worlds/styles.css">
 </head>
 <body class="portal-body">
   <header class="portal-header">
     <h1>Calistung</h1>
-    <p>Pilih dunia belajar kamu</p>
-    <div class="world-topbar" style="justify-content:center;padding-top:10px;">
-      <a href="/elearn/worlds/portal.html">⟵ Kembali ke Portal</a>
-    </div>
+    <p>Pilih aktivitas belajar</p>
   </header>
-
-  <main>
-    <section id="worlds" class="portal-grid" aria-label="Pilihan dunia Calistung"></section>
-  </main>
-
+  <main class="portal-grid" id="worldGrid"></main>
   <script>
-    // Empat world di dalam Calistung
-    const items = [
-      {
-        id: "alphabet",
-        name: "Kelas Alphabet",
-        cover: "/elearn/worlds/calistung/thumbs/alphabet.webp",
-        entry: "/elearn/worlds/calistung/alphabet/index.html"
-      },
-      {
-        id: "number",
-        name: "Kelas Number",
-        cover: "/elearn/worlds/calistung/thumbs/number.webp",
-        entry: "/elearn/worlds/calistung/number/index.html"
-      },
-      {
-        id: "shape",
-        name: "Kelas Shape",
-        cover: "/elearn/worlds/calistung/thumbs/shape.webp",
-        entry: "/elearn/worlds/calistung/shape/index.html"
-      },
-      {
-        id: "math-game",
-        name: "Kelas Math Game",
-        cover: "/elearn/worlds/calistung/thumbs/mathgame.webp",
-        entry: "/elearn/worlds/calistung/math-game/index.html"
-      }
+    const worlds = [
+      { id: 'calistung-alphabet', name: 'Alphabet', entry: '/elearn/worlds/calistung/alphabet/index.html', cover: '/elearn/worlds/calistung/thumbs/alphabet.webp' },
+      { id: 'calistung-number', name: 'Number', entry: '/elearn/worlds/calistung/number/index.html', cover: '/elearn/worlds/calistung/thumbs/number.webp' },
+      { id: 'calistung-shape', name: 'Shape', entry: '/elearn/worlds/calistung/shape/index.html', cover: '/elearn/worlds/calistung/thumbs/shape.webp' },
+      { id: 'calistung-mathgame', name: 'Math Game', entry: '/elearn/worlds/calistung/math-game/index.html', cover: '/elearn/worlds/calistung/thumbs/mathgame.webp' }
     ];
-
-    // Render kartu bergaya portal
-    const root = document.getElementById('worlds');
-    root.innerHTML = items.map(w => `
-      <a class="portal-card" href="${w.entry}" data-id="${w.id}">
-        <div class="portal-cover" style="background-image:url('${w.cover || "/elearn/img/map/worldmap3.webp"}')"></div>
+    const grid = document.getElementById('worldGrid');
+    grid.innerHTML = worlds.map(w=>`
+      <article class="portal-card" data-entry="${w.entry}">
+        <div class="portal-cover" style="background-image:url('${w.cover}')"></div>
         <div class="portal-meta">
           <h3>${w.name}</h3>
-          <!-- Optional progress ring, tinggal aktifkan kalau sudah ada datanya
-          <div class="portal-progress"><span class="ring" style="--pct:42"></span></div>
-          -->
+          <div class="portal-progress" data-world="${w.id}">
+            <span class="ring" title="progress"></span>
+            <small>loading...</small>
+          </div>
         </div>
-      </a>
+      </article>
     `).join('');
 
-    // Fallback cover jika gambar belum ada
-    document.querySelectorAll('.portal-cover').forEach(el => {
-      const url = el.style.backgroundImage.slice(5, -2);
-      const img = new Image();
-      img.src = url;
-      img.onerror = () => { el.style.background = '#334155'; };
+    grid.querySelectorAll('.portal-card').forEach(card=>{
+      card.addEventListener('click', ()=>{
+        const entry = card.dataset.entry;
+        if (entry) window.location = entry;
+      });
+    });
+
+    grid.querySelectorAll('.portal-progress').forEach(el=>{
+      const key = `progress:${el.dataset.world}`;
+      const raw = localStorage.getItem(key);
+      const pct = raw ? JSON.parse(raw).percent||0 : 0;
+      el.querySelector('small').textContent = `${pct}%`;
+      el.querySelector('.ring').style.setProperty('--pct', pct);
     });
   </script>
 </body>
