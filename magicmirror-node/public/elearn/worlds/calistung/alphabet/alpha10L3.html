@@ -1,0 +1,240 @@
+
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alpha10L3 – Spring Coding (Match Letters)</title>
+  <style>
+    :root{
+      --bg:#fffdf6;
+      --ink:#2d2a26;
+      --accent:#4a8f3a;
+      --soft:#f0eddc;
+      --card:#ffffff;
+      --warn:#d9534f;
+      --ok:#2cb67d;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
+      background:var(--bg); color:var(--ink);
+      display:flex; flex-direction:column; min-height:100vh;
+    }
+    header{
+      padding:16px 20px; background:#eaf5e4; border-bottom:2px solid #d8ecd2;
+    }
+    header h1{margin:0; font-size:1.4rem; line-height:1.2}
+    header p{margin:4px 0 0; font-size:.95rem}
+
+    .container{width:min(1000px,92vw); margin:16px auto 24px;}
+
+    /* Mapping area */
+    .map-grid{
+      display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+      gap:14px; margin-top:12px;
+    }
+    .card{
+      background:var(--card); border:1px solid #e7e3cf; border-radius:12px; padding:12px;
+      display:flex; align-items:center; gap:10px; min-height:74px;
+      box-shadow:0 1px 0 rgba(0,0,0,.04);
+    }
+    .badge{width:56px; height:56px; border-radius:50%; background:#f3f6ea; 
+      display:grid; place-items:center; flex:0 0 auto; border:1px solid #e1e6d5}
+    .badge svg{width:36px; height:36px}
+    .label{
+      display:flex; flex-direction:column; gap:2px; line-height:1.1
+    }
+    .letter{
+      font-weight:800; font-size:1.1rem; color:var(--accent)
+    }
+    .name{font-size:.9rem; opacity:.8}
+
+    /* Puzzle strip */
+    .strip{
+      background:#f8f7ee; border:1px solid #ece7cf; border-radius:14px; padding:14px; margin-top:22px;
+    }
+    .icons-row{display:flex; flex-wrap:wrap; gap:10px; justify-content:center}
+
+    .tiny{width:48px; height:48px; border-radius:50%; background:#eef2e3; border:1px solid #dde4cc; display:grid; place-items:center}
+    .tiny svg{width:28px; height:28px}
+
+    /* Answer boxes */
+    .answers{display:flex; gap:8px; justify-content:center; margin-top:14px; flex-wrap:wrap}
+    .box{width:48px; height:54px; border:2px solid #cfd6b6; border-radius:8px; background:#fff; display:grid; place-items:center; font-size:1.35rem; font-weight:800}
+    .box.active{outline:3px solid #a7d08c}
+
+    /* Keyboard */
+    .keys{display:grid; grid-template-columns:repeat(13,1fr); gap:6px; margin-top:14px}
+    .key{padding:8px 0; text-align:center; border:1px solid #dfe6cc; background:#ffffff; border-radius:8px; font-weight:700; cursor:pointer; user-select:none}
+    .key:hover{background:#f2f6ea}
+    .key[disabled]{opacity:.3; cursor:not-allowed}
+
+    /* Controls */
+    .controls{display:flex; gap:10px; justify-content:center; margin-top:14px; flex-wrap:wrap}
+    button{border:none; border-radius:10px; padding:10px 14px; font-weight:700; cursor:pointer}
+    .primary{background:var(--accent); color:white}
+    .ghost{background:#ffffff; border:1px solid #dfe6cc}
+    .warn{background:var(--warn); color:white}
+
+    .result{margin-top:10px; text-align:center; font-weight:800}
+    .ok{color:var(--ok)}
+    .bad{color:var(--warn)}
+
+    footer{margin-top:auto; padding:14px; text-align:center; font-size:.85rem; color:#7a776c}
+
+    /* Mobile spacing helpers */
+    @media (max-width:640px){
+      header{padding:14px 16px}
+      .card{min-height:68px}
+      .badge{width:50px;height:50px}
+      .box{width:44px;height:50px}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Spring Coding – Cocokkan Huruf pada Alat Berkebun</h1>
+    <p>Tugasmu: lihat peta kode huruf ↘ lalu isi huruf untuk ikon di baris soal. Tebak "password of the day" ✨</p>
+  </header>
+
+  <main class="container">
+    <!-- Mapping cards -->
+    <section aria-label="Peta Kode" class="map">
+      <div class="map-grid" id="mapGrid"></div>
+    </section>
+
+    <!-- Puzzle strip -->
+    <section class="strip" id="puzzle">
+      <div class="icons-row" id="iconsRow" aria-label="Soal ikon"></div>
+      <div class="answers" id="answersRow" aria-label="Kotak jawaban"></div>
+      <div class="keys" id="keys"></div>
+      <div class="controls">
+        <button class="ghost" id="btnShuffle">Acak Soal</button>
+        <button class="ghost" id="btnClear">Reset Jawaban</button>
+        <button class="primary" id="btnCheck">Periksa Jawaban</button>
+      </div>
+      <div class="result" id="result"></div>
+    </section>
+  </main>
+
+  <footer>© Queen's Academy – Alpha10L3</footer>
+
+  <script>
+  // --- Minimal pictogram factory (inline SVG) ---
+  const ICONS = {
+    trowel:`<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M6 38 L34 10 q4-4 8 0 q4 4 0 8 L14 50 L6 42 Z" fill="#e6d9a2" stroke="#a08357" stroke-width="2"/><rect x="4" y="40" width="10" height="8" rx="2" fill="#8b4e3a"/></svg>`,
+    jug:`<svg viewBox="0 0 64 64"><path d="M14 20 h26 a10 10 0 0 1 10 10 v8 a12 12 0 0 1-12 12 H16 a6 6 0 0 1-6-6 V26 a6 6 0 0 1 6-6z" fill="#f2a33b" stroke="#7a4d1f" stroke-width="2"/><path d="M40 24 h8 a6 6 0 0 1 0 12 h-6" fill="none" stroke="#7a4d1f" stroke-width="3"/></svg>`,
+    pruner:`<svg viewBox="0 0 64 64"><path d="M10 38 q12-8 20 0" stroke="#c25b4a" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M34 38 q12 8 20 0" stroke="#9f503f" stroke-width="8" fill="none" stroke-linecap="round"/><circle cx="32" cy="38" r="4" fill="#f1e3b0"/></svg>`,
+    rake:`<svg viewBox="0 0 64 64"><rect x="8" y="28" width="40" height="8" rx="2" fill="#9bbb59"/><rect x="48" y="10" width="6" height="44" rx="3" fill="#8b5a2b"/><g fill="#9bbb59"><rect x="8" y="24" width="3" height="4"/><rect x="14" y="24" width="3" height="4"/><rect x="20" y="24" width="3" height="4"/><rect x="26" y="24" width="3" height="4"/><rect x="32" y="24" width="3" height="4"/><rect x="38" y="24" width="3" height="4"/></g></svg>`,
+    pot:`<svg viewBox="0 0 64 64"><rect x="12" y="22" width="40" height="10" rx="4" fill="#f0a54e"/><rect x="16" y="30" width="32" height="18" rx="6" fill="#cb7a2f"/></svg>`,
+    miniShovel:`<svg viewBox="0 0 64 64"><path d="M40 18 l10 10 l-14 14 l-10-10 z" fill="#e6d9a2" stroke="#a08357" stroke-width="2"/><rect x="16" y="36" width="16" height="6" rx="3" fill="#8b5a2b"/></svg>`,
+    wheelbarrow:`<svg viewBox="0 0 64 64"><path d="M10 34 h36 l6-10 h-30z" fill="#8bb54a"/><rect x="44" y="34" width="12" height="4" fill="#8b5a2b"/><circle cx="42" cy="40" r="6" fill="#333"/><circle cx="42" cy="40" r="3" fill="#bbb"/></svg>`,
+    gloveRed:`<svg viewBox="0 0 64 64"><path d="M18 16 v18 l-6 6 v8 h20 v-8 l-4-4 v-20z" fill="#c85b42"/></svg>`,
+    can:`<svg viewBox="0 0 64 64"><rect x="16" y="22" width="28" height="22" rx="6" fill="#6b8f3a"/><rect x="22" y="18" width="16" height="6" rx="3" fill="#88a85b"/><path d="M44 32 h10" stroke="#6b8f3a" stroke-width="4"/><circle cx="52" cy="32" r="2" fill="#6b8f3a"/></svg>`,
+    gloveCream:`<svg viewBox="0 0 64 64"><path d="M16 20 v16 l-6 6 v8 h22 v-8 l-6-6 v-16z" fill="#f3e6c3"/><rect x="16" y="44" width="22" height="6" fill="#d7926f"/></svg>`,
+  };
+
+  // Mapping derived from worksheet letters
+  const TOOL_MAP = [
+    {id:'trowel', letter:'S', name:'Trowel'},
+    {id:'jug', letter:'D', name:'Water Jug'},
+    {id:'pruner', letter:'E', name:'Pruning Shears'},
+    {id:'rake', letter:'A', name:'Rake'},
+    {id:'pot', letter:'L', name:'Pot'},
+    {id:'miniShovel', letter:'M', name:'Mini Shovel'},
+    {id:'wheelbarrow', letter:'G', name:'Wheelbarrow'},
+    {id:'gloveRed', letter:'R', name:'Glove (Red)'},
+    {id:'can', letter:'N', name:'Watering Can'},
+    {id:'gloveCream', letter:'C', name:'Glove (Cream)'}
+  ];
+
+  // Render mapping cards
+  const mapGrid = document.getElementById('mapGrid');
+  TOOL_MAP.forEach(t=>{
+    const card = document.createElement('div'); card.className='card';
+    card.innerHTML = `<div class="badge">${ICONS[t.id]}</div>
+      <div class="label"><span class="letter">${t.letter}</span><span class="name">${t.name}</span></div>`;
+    mapGrid.appendChild(card);
+  });
+
+  // Create a puzzle from icons (bottom row)
+  const iconsRow = document.getElementById('iconsRow');
+  const answersRow = document.getElementById('answersRow');
+  const result = document.getElementById('result');
+
+  function makePuzzle(len=7){
+    result.textContent = '';
+    iconsRow.innerHTML = ''; answersRow.innerHTML = '';
+    // pick random sequence (no constraints)
+    const seq = Array.from({length:len},()=>TOOL_MAP[Math.floor(Math.random()*TOOL_MAP.length)]);
+    // render icons
+    seq.forEach(s=>{
+      const t = document.createElement('div'); t.className='tiny'; t.innerHTML = ICONS[s.id];
+      t.title = s.name;
+      iconsRow.appendChild(t);
+    });
+    // render answer boxes with truth stored on dataset
+    seq.forEach((s,i)=>{
+      const b = document.createElement('div'); b.className='box'; b.dataset.correct = s.letter;
+      b.setAttribute('role','textbox'); b.setAttribute('aria-label',`Kotak ${i+1}`);
+      b.addEventListener('click',()=> setActiveBox(i));
+      answersRow.appendChild(b);
+    });
+    activeIndex = 0; setActiveBox(0);
+  }
+
+  // Simple on-screen keyboard A–Z
+  const keysEl = document.getElementById('keys');
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+  letters.forEach(ch=>{
+    const k = document.createElement('button'); k.className='key'; k.textContent = ch; k.type='button';
+    k.addEventListener('click',()=> placeLetter(ch));
+    keysEl.appendChild(k);
+  });
+
+  let activeIndex = 0;
+  function setActiveBox(i){
+    const boxes = [...answersRow.children];
+    boxes.forEach(b=>b.classList.remove('active'));
+    const target = boxes[i];
+    if(target){ target.classList.add('active'); activeIndex = i; }
+  }
+
+  function placeLetter(ch){
+    const boxes = [...answersRow.children];
+    const target = boxes[activeIndex];
+    if(!target) return;
+    target.textContent = ch;
+    // move to next empty box automatically
+    const next = boxes.findIndex((b,idx)=> idx>activeIndex && !b.textContent);
+    setActiveBox(next === -1 ? Math.min(activeIndex+1, boxes.length-1) : next);
+  }
+
+  // Controls
+  document.getElementById('btnClear').addEventListener('click',()=>{
+    [...answersRow.children].forEach(b=>{b.textContent=''; b.style.borderColor='#cfd6b6';});
+    result.textContent=''; setActiveBox(0);
+  });
+
+  document.getElementById('btnShuffle').addEventListener('click',()=>{
+    makePuzzle(7);
+  });
+
+  document.getElementById('btnCheck').addEventListener('click',()=>{
+    const boxes = [...answersRow.children];
+    const filled = boxes.every(b=>b.textContent);
+    if(!filled){ result.innerHTML = '<span class="bad">Isi semua kotak dulu ya.</span>'; return; }
+    let correctCount = 0; let word='';
+    boxes.forEach(b=>{ word += b.textContent; if(b.textContent === b.dataset.correct){ correctCount++; b.style.borderColor = '#a7d08c'; } else { b.style.borderColor = '#d9534f'; } });
+    if(correctCount === boxes.length){ result.innerHTML = `<span class="ok">Mantap! Password: ${word}</span>`; }
+    else{ result.innerHTML = `<span class="bad">Belum tepat. Coba lagi!</span>`; }
+  });
+
+  // First render
+  makePuzzle(7);
+  </script>
+</body>
+</html>

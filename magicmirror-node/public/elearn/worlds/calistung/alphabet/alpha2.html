@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Alpha2 – Mengenal Huruf Vokal (Game)</title>
+  <style>
+    :root{
+      --a:#e74c3c;   /* merah */
+      --i:#f1c40f;   /* kuning */
+      --u:#27ae60;   /* hijau */
+      --e:#3498db;   /* biru */
+      --o:#5b3fbf;   /* ungu */
+      --ink:#222;
+      --ring:#111;
+      --bg:#fafafa;
+      --paper:#fff;
+      --ok:#16a34a;
+      --bad:#e11d48;
+      --controlsH: 64px;
+    }
+    *{box-sizing:border-box}
+    html,body{min-height:100%;}
+    body{
+      margin:0; background:var(--bg); color:var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+      display:flex; flex-direction: column; align-items:center; justify-content:flex-start;
+      min-height:100dvh;
+      padding:12px;
+      padding-top: calc(12px + env(safe-area-inset-top));
+      overflow:auto;
+    }
+    .sheet{
+      width:min(760px,100%); background:var(--paper); border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.08);
+      padding:20px 20px 28px; border:4px solid #f3b6c2;
+      margin: 0 auto;
+      max-height: calc(100dvh - 24px - env(safe-area-inset-top));
+      overflow: auto;
+      display:flex; flex-direction:column;
+    }
+    header{ text-align:center; margin-bottom:8px }
+    h1{ margin:6px 0 2px; font-size:clamp(20px,2.6vw,28px)}
+    .subtitle{color:#555; font-size:clamp(12px,1.8vw,14px)}
+
+    /* Legend row */
+    .legend{display:flex; gap:10px; justify-content:center; margin:8px auto 8px; flex-wrap:wrap}
+    .chip{width:40px; height:40px; border-radius:999px; display:grid; place-items:center; font-weight:700; color:#fff; border:2px solid rgba(0,0,0,.15)}
+    .chip[data-k="a"]{background:var(--a)}
+    .chip[data-k="i"]{background:var(--i)}
+    .chip[data-k="u"]{background:var(--u)}
+    .chip[data-k="e"]{background:var(--e)}
+    .chip[data-k="o"]{background:var(--o)}
+
+    /* Grid targets */
+    .board{ display:grid; place-items:center; align-content:start; grid-template-columns: repeat(4, 1fr); gap:14px; padding:6px 6px; margin-top:4px; flex:1 1 auto; min-height:0; padding-bottom: 8px; }
+    @media (max-width:560px){
+      :root{ --controlsH: 56px; }
+      .board{ grid-template-columns: repeat(3, 1fr); gap:12px; }
+      .controls{ position: static; box-shadow:none; padding-bottom: 0; }
+      .sheet{ max-height:none; }
+    }
+    .ring{
+      aspect-ratio:1/1;
+      width: 100%;
+      height: auto;
+      border-radius:999px; border:1.8px solid #333; display:grid; place-items:center; position:relative; cursor:pointer; user-select:none; transition:transform .08s ease;
+      background: radial-gradient(circle at 50% 40%, rgba(255,255,255,.95), rgba(245,245,245,.95));
+    }
+    .ring:active{ transform:scale(.97) }
+    .letter{ font-size:clamp(18px,2.8vw,24px); font-weight:800 }
+    .ring[data-color="a"]{ background:var(--a) }
+    .ring[data-color="i"]{ background:var(--i) }
+    .ring[data-color="u"]{ background:var(--u) }
+    .ring[data-color="e"]{ background:var(--e) }
+    .ring[data-color="o"]{ background:var(--o) }
+    .ring[data-color]{ color:#fff; border-color:rgba(0,0,0,.25) }
+
+    /* Remove tap highlight & focus outline on touch devices */
+    .ring, .controls button {
+      -webkit-tap-highlight-color: transparent;
+      outline: none;
+    }
+    .ring:focus, .controls button:focus {
+      outline: none;
+    }
+
+    /* UI controls */
+    .controls{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center;
+      width:min(760px, 100%);
+      margin:12px auto 0;
+      background: transparent;
+      padding: 0;
+      box-shadow: none;
+    }
+    button{
+      padding:10px 14px; border-radius:10px; border:2px solid #222; background:#fff; cursor:pointer; font-weight:700
+    }
+    button:active{ transform:translateY(1px) }
+
+    .toast{ position:fixed; inset:auto 0 20px 0; margin:auto; width:fit-content; background:#111; color:#fff; padding:10px 14px; border-radius:999px; font-weight:700; box-shadow:0 8px 24px rgba(0,0,0,.2); opacity:0; transform:translateY(10px); transition:all .2s ease; pointer-events: none; }
+    .toast.show{ opacity:1; transform:translateY(0) }
+  </style>
+</head>
+<body>
+  <div class="sheet">
+    <header>
+      <h1>Mengenal Huruf Vokal</h1>
+      <div class="subtitle">Warnai lingkaran berisi huruf vokal sesuai contoh warna:</div>
+      <div class="legend" id="legend"></div>
+    </header>
+
+    <main class="board" id="board" aria-live="polite"></main>
+  </div>
+
+  <div class="controls">
+    <button id="btnShuffle">Acak Soal</button>
+    <button id="btnReset">Reset</button>
+    <button id="btnCheck">Periksa Jawaban</button>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // Mapping warna yang harus diikuti anak
+    const COLOR_ORDER = ['a','i','u','e','o'];
+    const MAP = { a:'var(--a)', i:'var(--i)', u:'var(--u)', e:'var(--e)', o:'var(--o)' };
+
+    const legend = document.getElementById('legend');
+    const board  = document.getElementById('board');
+    const toast  = document.getElementById('toast');
+
+    // Render legenda contoh warna
+    function renderLegend(){
+      legend.innerHTML = '';
+      for(const k of COLOR_ORDER){
+        const el = document.createElement('div');
+        el.className = 'chip';
+        el.dataset.k = k;
+        el.textContent = k;
+        el.title = `Warna untuk huruf "${k}"`;
+        legend.appendChild(el);
+      }
+    }
+
+    // Buat daftar huruf acak untuk papan (12–14 butir)
+    function makeLetters(){
+      const pool = [...'aiueo'];
+      const count = 12; // sesuaikan kalau perlu
+      const arr = [];
+      for(let i=0;i<count;i++) arr.push(pool[Math.floor(Math.random()*pool.length)]);
+      // opsional: pastikan tiap huruf minimal muncul sekali
+      for(const k of pool){ if(!arr.includes(k)) arr[Math.floor(Math.random()*arr.length)] = k; }
+      return arr;
+    }
+
+    // Render papan permainan
+    function renderBoard(letters){
+      board.innerHTML = '';
+      letters.forEach((ch, idx) => {
+        const cell = document.createElement('button');
+        cell.className = 'ring';
+        cell.setAttribute('aria-label',`Lingkaran ${idx+1} huruf ${ch}. Ketuk untuk ganti warna.`);
+        cell.dataset.letter = ch;
+        const span = document.createElement('span');
+        span.className = 'letter';
+        span.textContent = ch;
+        cell.appendChild(span);
+        board.appendChild(cell);
+      });
+    }
+
+    // Siklus warna ketika lingkaran ditekan
+    function cycleColor(el){
+      const current = el.dataset.color || '';
+      const next = COLOR_ORDER[(COLOR_ORDER.indexOf(current)+1) % COLOR_ORDER.length];
+      el.dataset.color = next;
+    }
+
+    // Reset semua warna
+    function resetBoard(){
+      document.querySelectorAll('.ring').forEach(r => delete r.dataset.color);
+    }
+
+    // Periksa jawaban
+    function checkAnswers(){
+      let correct = 0; let total = 0;
+      document.querySelectorAll('.ring').forEach(r => {
+        total++;
+        const need = r.dataset.letter;
+        const have = r.dataset.color;
+        if(have === need) correct++;
+      });
+      const ok = correct === total;
+      showToast(ok ? `Mantap! Semua benar (${correct}/${total}).` : `Masih ada yang salah (${correct}/${total}). Coba lagi ya!`);
+    }
+
+    function showToast(msg){
+      toast.textContent = msg;
+      toast.classList.remove('show');
+      toast.classList.add('show');
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(()=> toast.classList.remove('show'), 1600);
+    }
+
+    // Event listeners global
+    board.addEventListener('click', (e)=>{
+      const ring = e.target.closest('.ring');
+      if(!ring) return;
+      cycleColor(ring);
+    });
+
+    document.getElementById('btnShuffle').addEventListener('click', ()=>{
+      renderBoard(makeLetters());
+    });
+    document.getElementById('btnReset').addEventListener('click', resetBoard);
+    document.getElementById('btnCheck').addEventListener('click', checkAnswers);
+
+    // Init
+    renderLegend();
+    renderBoard(makeLetters());
+  </script>
+</body>
+</html>

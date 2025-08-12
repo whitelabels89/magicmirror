@@ -1,0 +1,733 @@
+
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ALPHA6 – Mixed Tracing & Numbers</title>
+  <style>
+    :root{
+      --bg:#f7f9fc; --ink:#111; --muted:#6b7280; --brand:#2563eb; --ok:#16a34a; --bad:#dc2626; --panel:#ffffff;
+      --ring: rgba(37,99,235,.15);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background:var(--bg); color:var(--ink)}
+    header{
+      position:sticky; top:0; z-index:5; backdrop-filter:saturate(1.1) blur(6px);
+      background:linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,.6));
+      border-bottom:1px solid #e5e7eb;
+    }
+    .bar{max-width:1200px;margin:auto;display:grid;gap:.5rem;grid-template-columns:1fr auto auto auto auto;align-items:center;padding:.6rem 1rem}
+    h1{font-size:1rem;margin:0;font-weight:700;letter-spacing:.2px}
+    select,button{appearance:none;border:1px solid #d1d5db;border-radius:.6rem;background:#fff;color:#111;padding:.55rem .8rem;font-weight:600}
+    button{cursor:pointer}
+    button.primary{background:var(--brand);color:#fff;border-color:transparent}
+    button.ghost{background:#fff}
+    button:disabled{opacity:.5;cursor:not-allowed}
+
+    .wrap{max-width:1200px;margin:1rem auto;display:grid;grid-template-columns:320px 1fr;gap:1rem;padding:0 1rem}
+    .panel{background:var(--panel);border:1px solid #e5e7eb;border-radius:1rem;box-shadow:0 10px 20px rgba(0,0,0,.04)}
+    .p20{padding:1rem}
+    .muted{color:var(--muted)}
+    .hud{display:grid;gap:.6rem}
+    .stat{display:flex;gap:.5rem;align-items:center}
+    .dot{width:.65rem;height:.65rem;border-radius:999px;background:var(--ring)}
+    .score{font-weight:800}
+
+    .stage{position:relative;aspect-ratio:4/3; width:100%; background:#fff; border-radius:1rem; overflow:hidden; border:1px dashed #e5e7eb}
+    .stage-inner{position:absolute; inset:0; display:grid; place-items:center}
+    .canvasWrap{position:relative; width:100%; height:100%;}
+    svg.traceBoard{width:100%;height:100%;background:#fff;touch-action:none}
+    .dotted{fill:none; stroke:#94a3b8; stroke-width:12; stroke-linecap:round; stroke-dasharray:2 28}
+    .guide{fill:none; stroke:#cbd5e1; stroke-width:1}
+    .userStroke{fill:none; stroke:var(--brand); stroke-width:18; stroke-linecap:round; opacity:.85}
+    .hit-ok{box-shadow:inset 0 0 0 4px var(--ring)}
+
+    .tools{display:flex;flex-wrap:wrap;gap:.6rem}
+    .footer{max-width:1200px;margin:1rem auto 2rem;padding:0 1rem;color:var(--muted);font-size:.875rem}
+
+    .gridBg{background-size:40px 40px;background-image:linear-gradient(90deg, #f2f4f7 1px, transparent 1px),linear-gradient(0deg, #f2f4f7 1px, transparent 1px)}
+
+    /* Simple cards for other mini-games */
+    .choices{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.6rem}
+    .choice{padding:.8rem;border:1px solid #e5e7eb;border-radius:.8rem;text-align:center;background:#fff;cursor:pointer;user-select:none}
+    .choice[aria-pressed="true"]{outline:3px solid var(--ring)}
+
+    .rects{display:grid;grid-template-columns:repeat(5,1fr);gap:.5rem}
+    .rect{aspect-ratio:4/3;border-radius:.5rem;border:1px dashed #cbd5e1;background:#fafafa;cursor:pointer}
+
+    @media (max-width: 960px){
+      .wrap{grid-template-columns:1fr}
+      .bar{grid-template-columns:1fr 1fr 1fr;}
+      .bar>*:nth-child(n+4){grid-column:span 3}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="bar">
+      <h1>ALPHA6 · Tracing & Numbers (Game Engine)</h1>
+      <select id="modeSel" title="Pilih jenis aktivitas">
+        <option value="trace-letter">Tracing Huruf (A–Z)</option>
+        <option value="trace-number">Tracing Angka (0–10)</option>
+        <option value="circle-number">Lingkari Angka</option>
+        <option value="color-rect">Warnai Kotak (sesuai angka)</option>
+        <option value="spelling">Pilih Ejaan Angka</option>
+        <option value="ordinal">Pilih Ejaan Ordinal</option>
+      </select>
+      <select id="itemSel" title="Pilih item"></select>
+      <div class="tools">
+        <button id="btnRandom" class="ghost">Acak</button>
+        <button id="btnReset" class="ghost">Reset</button>
+        <button id="btnCheck" class="primary">Periksa Jawaban</button>
+      </div>
+    </div>
+  </header>
+
+  <div id="author-panel" style="position:fixed;top:10px;right:10px;background:#fff;border:1px solid #ccc;padding:10px;z-index:1000;font-family:sans-serif;font-size:14px;max-width:200px;">
+    <h4>Author Mode</h4>
+    <label><input type="checkbox" id="authorModeToggle"> Enable</label>
+    <hr/>
+    <label><small>Upload BG</small><br><input type="file" id="bgUpload" accept="image/*"></label>
+    <label><small>Opacity</small><br><input type="range" id="bgOpacity" min="0" max="1" step="0.05" value="0.35"></label>
+    <label><small>Huruf referensi</small><br><input type="text" id="bgText" placeholder="cth: a"></label>
+    <hr/>
+    <div>
+      <button id="startRecord">Start Rekam</button>
+      <button id="stopRecord">Stop</button>
+    </div>
+    <div style="margin-top:6px">
+      <button id="undoStroke">Undo</button>
+      <button id="clearStrokes">Clear</button>
+    </div>
+    <hr/>
+    <label><small>Simplify ε: <span id="simpEpsVal">3</span></small><br><input type="range" id="simpEps" min="0" max="20" step="0.5" value="3"></label>
+    <label style="display:block;margin-top:6px"><input type="checkbox" id="smoothChk" checked> Smooth</label>
+    <button id="copyPath" style="margin-top:8px;width:100%">Copy Path</button>
+  </div>
+  <main class="wrap">
+    <aside class="panel p20">
+      <div class="hud">
+        <div class="stat"><span class="dot"></span><span class="muted">Aktivitas</span> <strong id="hudActivity">Tracing Huruf</strong></div>
+        <div class="stat"><span class="dot"></span><span class="muted">Item</span> <strong id="hudItem">A</strong></div>
+        <div class="stat"><span class="dot"></span><span class="muted">Nilai Tracing</span> <span class="score" id="hudScore">–</span></div>
+        <div class="stat"><span class="dot"></span><span class="muted">Terbaik</span> <span id="hudBest">–</span></div>
+        <hr/>
+        <p class="muted">Tip: gunakan jari/stylus. Sistem menilai kedekatan coretan ke jalur titik dan seberapa banyak jalur tertutup. Ini sama dengan preset <em>“nilai tracing”</em> yang kita pakai di file alpha4.</p>
+        <details>
+          <summary>Pengaturan</summary>
+          <label class="muted" style="display:block;margin:.4rem 0">Toleransi <input id="tolInp" type="range" min="6" max="40" step="1" value="18"/> <span id="tolVal">18</span>px</label>
+          <label class="muted" style="display:block;margin:.4rem 0">Grid latar <input id="gridChk" type="checkbox"/></label>
+        </details>
+      </div>
+    </aside>
+
+    <section class="panel p20">
+      <div id="stage" class="stage">
+        <div class="stage-inner">
+          <!-- Dynamic content mounts here -->
+        </div>
+      </div>
+      <div class="tools" style="margin-top:.8rem">
+        <button id="btnUndo" class="ghost">Undo Coretan</button>
+        <button id="btnErase" class="ghost">Hapus Semua Coretan</button>
+        <button id="btnHelp" class="ghost">Petunjuk</button>
+      </div>
+    </section>
+  </main>
+
+  <div class="footer">© Queen's Academy – ALPHA6. Engine ini mendukung: tracing huruf/angka, melingkari angka target, mewarnai kotak sesuai angka, ejaan angka & ordinal. Semua skor disimpan lokal (localStorage) per item.</div>
+
+  <script>
+  /*********************************
+   * DATASET (ringkas – contoh awal)
+   * Huruf A–Z & Angka 0–10 dapat ditambahkan mudah.
+   *********************************/
+  const LETTERS = [
+    // Separate entries for uppercase & lowercase. We'll auto-fit each path to its box.
+    { key:'A', label:'A', type:'letter', path:'M 200 560 L 320 140 L 440 560 M 240 360 L 400 360', box:[60,80,560,560]},
+    { key:'a', label:'a', type:'letter', path:'M 420 480 Q 470 480 470 520 Q 470 560 420 560 Q 370 560 370 520 Q 370 480 420 480 Z M 470 520 L 470 490', box:[60,80,560,560]},
+    { key:'B', label:'B', type:'letter', path:'M 180 140 L 180 560 M 180 140 Q 360 170 360 260 Q 360 330 180 360 M 180 360 Q 360 390 360 470 Q 360 570 180 560', box:[60,80,560,560]},
+    { key:'b', label:'b', type:'letter', path:'M 240 140 L 240 560 M 240 420 Q 320 420 320 480 Q 320 540 240 540', box:[60,80,560,560]},
+  ];
+  // Helper: fit an SVG element (group or path) into a guide box with padding
+  function fitIntoBox(el, box, padding=36){
+    const [x1,y1,x2,y2] = box; const W = x2 - x1, H = y2 - y1; const padX = padding, padY = padding;
+    // compute bbox in current user space
+    const bb = el.getBBox();
+    const sx = (W - 2*padX) / bb.width;
+    const sy = (H - 2*padY) / bb.height;
+    const s = Math.min(sx, sy);
+    // after scaling around (bb.x, bb.y), translate to centered position in box
+    const w2 = bb.width * s, h2 = bb.height * s;
+    const tx = x1 + padX + (W - 2*padX - w2)/2 - bb.x * s;
+    const ty = y1 + padY + (H - 2*padY - h2)/2 - bb.y * s;
+    el.setAttribute('transform', `matrix(${s} 0 0 ${s} ${tx} ${ty})`);
+  }
+  const NUMBERS = [
+    { key:'0', label:'0', type:'number', path:'M 320 160 Q 520 160 520 350 Q 520 540 320 540 Q 120 540 120 350 Q 120 160 320 160 Z', box:[60,80,560,560]},
+    { key:'1', label:'1', type:'number', path:'M 220 240 L 320 160 L 320 560 M 220 560 L 420 560', box:[60,80,560,560]},
+    { key:'2', label:'2', type:'number', path:'M 140 240 Q 220 160 340 160 Q 460 160 500 220 Q 540 280 480 340 Q 440 380 340 440 Q 220 520 160 560 L 520 560', box:[60,80,560,560]},
+    { key:'3', label:'3', type:'number', path:'M 160 200 Q 240 160 340 160 Q 480 160 460 260 Q 440 320 360 340 Q 460 360 460 440 Q 460 560 320 560 Q 240 560 180 520', box:[60,80,560,560]},
+  ];
+
+  const SPELLING = [
+    { key:'ONE', correct:'ONE', options:['UNE','ONE','SIX','TWO'] },
+    { key:'TWO', correct:'TWO', options:['TOO','TWO','TEN','FIVE'] },
+    { key:'THREE', correct:'THREE', options:['TREE','THREE','FOUR','NINE'] },
+    { key:'EIGHT', correct:'EIGHT', options:['EIGTH','EIGHT','SEVEN','SIX'] },
+    { key:'TEN', correct:'TEN', options:['TEN','TENTH','FIVETH','NINTH'] },
+  ];
+
+  const ORDINAL = [
+    { key:'1ST', correct:'FIRST', options:['FIRST','FIRSTH']},
+    { key:'2ND', correct:'SECOND', options:['SECON','SECOND']},
+    { key:'3RD', correct:'THIRD', options:['THISTH','THIRD']},
+    { key:'6TH', correct:'SIXTH', options:['SIXTH','SIXHT']},
+    { key:'8TH', correct:'EIGHTH', options:['EIGTH','EIGHTH']},
+  ];
+
+  const $ = sel => document.querySelector(sel);
+  const stage = $('#stage');
+  const inner = stage.querySelector('.stage-inner');
+  const modeSel = $('#modeSel');
+  const itemSel = $('#itemSel');
+  const btnRandom = $('#btnRandom');
+  const btnReset  = $('#btnReset');
+  const btnCheck  = $('#btnCheck');
+  const btnUndo   = $('#btnUndo');
+  const btnErase  = $('#btnErase');
+  const btnHelp   = $('#btnHelp');
+  const tolInp = $('#tolInp');
+  const tolVal = $('#tolVal');
+  const gridChk = $('#gridChk');
+  const hud = { activity: $('#hudActivity'), item: $('#hudItem'), score: $('#hudScore'), best: $('#hudBest') };
+
+  tolInp.addEventListener('input', () => tolVal.textContent = tolInp.value);
+  gridChk.addEventListener('change', () => stage.classList.toggle('gridBg', gridChk.checked));
+
+  const store = {
+    get(key){ try{ return JSON.parse(localStorage.getItem(key)||'null'); }catch{return null} },
+    set(key,val){ localStorage.setItem(key, JSON.stringify(val)); }
+  };
+
+  // PUBLIC: nilai tracing (dipanggil juga di file lain bila perlu)
+  window.nilaiTracing = function scoreTracing(samplePts, userPts, tolerance=18){
+    // coverage: berapa % titik sampel yang tersentuh user
+    // penalty: panjang coretan yang terlalu jauh dari jalur
+    const tol2 = tolerance*tolerance;
+    let covered = 0;
+    const hit = new Array(samplePts.length).fill(false);
+    for(const up of userPts){
+      for(let i=0;i<samplePts.length;i++){
+        const dx = up.x - samplePts[i].x; const dy = up.y - samplePts[i].y;
+        if(!hit[i] && (dx*dx+dy*dy) <= tol2){ hit[i] = true; covered++; }
+      }
+    }
+    const coverage = covered / samplePts.length; // 0..1
+
+    // penalty: % dari user pts yang tidak dekat jalur
+    let far = 0;
+    for(const up of userPts){
+      let ok=false; for(let i=0;i<samplePts.length;i++){
+        const dx = up.x - samplePts[i].x; const dy = up.y - samplePts[i].y;
+        if((dx*dx+dy*dy) <= tol2){ ok=true; break; }
+      }
+      if(!ok) far++;
+    }
+    const penalty = userPts.length? (far/userPts.length) : 0; // 0..1
+
+    // final score
+    let score = Math.max(0, Math.min(100, Math.round(100*(coverage - 0.5*penalty))));
+    return {score, coverage: +(coverage*100).toFixed(1), penalty: +(penalty*100).toFixed(1)};
+  }
+
+  function mount(){
+    const mode = modeSel.value;
+    hud.activity.textContent = modeLabel(mode);
+    // populate items
+    itemSel.innerHTML = '';
+    let list=[];
+    if(mode==='trace-letter') list = LETTERS;
+    if(mode==='trace-number') list = NUMBERS;
+    if(mode==='circle-number') list = Array.from({length:10}, (_,i)=>({key:''+i,label:'Target '+i}));
+    if(mode==='color-rect') list = Array.from({length:10}, (_,i)=>({key:''+i,label:'Warnai '+i}));
+    if(mode==='spelling') list = SPELLING.map((x,i)=>({key:''+i,label:x.key}));
+    if(mode==='ordinal') list = ORDINAL.map((x,i)=>({key:''+i,label:x.key}));
+
+    for(const item of list){
+      const o = document.createElement('option'); o.value=item.key; o.textContent=item.label; itemSel.appendChild(o);
+    }
+    // default random on mode change to make it lively
+    randomize();
+  }
+
+  function modeLabel(m){
+    return {
+      'trace-letter':'Tracing Huruf', 'trace-number':'Tracing Angka', 'circle-number':'Lingkari Angka', 'color-rect':'Warnai Kotak', 'spelling':'Ejaan Angka', 'ordinal':'Ejaan Ordinal'
+    }[m]||m;
+  }
+
+  function randomize(){
+    const opts = [...itemSel.options];
+    if(!opts.length) return;
+    const pick = Math.floor(Math.random()*opts.length);
+    itemSel.selectedIndex = pick;
+    render();
+  }
+
+  function render(){
+    const mode = modeSel.value; const key = itemSel.value;
+    hud.item.textContent = key || '-';
+    inner.innerHTML = '';
+
+    if(mode==='trace-letter' || mode==='trace-number'){
+      const data = (mode==='trace-letter'? LETTERS: NUMBERS).find(x=>x.key===key) || (mode==='trace-letter'? LETTERS[0]: NUMBERS[0]);
+      mountTraceBoard(data);
+    }
+    else if(mode==='circle-number'){
+      mountCircleNumber(+key);
+    }
+    else if(mode==='color-rect'){
+      mountColorRect(+key);
+    }
+    else if(mode==='spelling'){
+      const idx = +key; mountSpelling(SPELLING[idx]);
+    }
+    else if(mode==='ordinal'){
+      const idx = +key; mountSpelling(ORDINAL[idx]);
+    }
+    updateBestHUD();
+  }
+
+  function updateBestHUD(){
+    const mode=modeSel.value, key=itemSel.value;
+    const best = store.get(`alpha6-best-${mode}-${key}`);
+    hud.best.textContent = best? `${best.score}/100 (${best.coverage}% cover, ${best.penalty}% off)` : '–';
+  }
+
+  /*************** TRACING BOARD ***************/
+  function mountTraceBoard(data){
+    hud.item.textContent = data.label;
+    const toler = +tolInp.value;
+    const board = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    board.classList.add('traceBoard');
+    board.setAttribute('viewBox','0 0 640 720');
+
+    // Guide box
+    const [x1,y1,x2,y2] = data.box;
+    const guide = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    guide.setAttribute('x', x1); guide.setAttribute('y', y1); guide.setAttribute('width', x2-x1); guide.setAttribute('height', y2-y1);
+    guide.setAttribute('class','guide'); guide.setAttribute('rx','18');
+    board.appendChild(guide);
+
+    // Dotted path
+    const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('d', data.path);
+    p.setAttribute('class','dotted');
+    // group for glyph so we can transform as a whole
+    const gGlyph = document.createElementNS('http://www.w3.org/2000/svg','g');
+    gGlyph.appendChild(p);
+    board.appendChild(gGlyph);
+    // auto-fit the glyph into guide box
+    fitIntoBox(gGlyph, data.box, 36);
+
+    // user strokes layer
+    const strokeLayer = document.createElementNS('http://www.w3.org/2000/svg','g');
+    board.appendChild(strokeLayer);
+
+    // sample path points AFTER transform by temporarily cloning into a standalone path
+    const pClone = p.cloneNode(true);
+    const t = gGlyph.getAttribute('transform') || '';
+    pClone.setAttribute('transform', t);
+    board.appendChild(pClone);
+    const samples = samplePathPoints(pClone, 260);
+    board.removeChild(pClone);
+    let userPts = []; // flat array of points from all strokes
+    let current = null;
+
+    function pointerXY(evt){
+      const pt = board.createSVGPoint();
+      pt.x = (evt.touches? evt.touches[0].clientX: evt.clientX);
+      pt.y = (evt.touches? evt.touches[0].clientY: evt.clientY);
+      const m = board.getScreenCTM().inverse();
+      const {x,y} = pt.matrixTransform(m); return {x,y};
+    }
+
+    function startDraw(e){ e.preventDefault(); current = [];
+      const poly = document.createElementNS('http://www.w3.org/2000/svg','polyline');
+      poly.setAttribute('class','userStroke'); poly.setAttribute('points','');
+      strokeLayer.appendChild(poly); strokeLayer.lastChild._pts = current;
+      draw(e);
+    }
+    function draw(e){ if(!current) return; const {x,y} = pointerXY(e); current.push({x,y});
+      strokeLayer.lastChild.setAttribute('points', current.map(p=>`${p.x},${p.y}`).join(' '));
+    }
+    function endDraw(){ if(!current) return; userPts.push(...current); current=null; }
+
+    board.addEventListener('pointerdown', startDraw);
+    board.addEventListener('pointermove', draw);
+    window.addEventListener('pointerup', endDraw);
+    board.addEventListener('touchstart', startDraw, {passive:false});
+    board.addEventListener('touchmove', draw, {passive:false});
+    window.addEventListener('touchend', endDraw);
+
+    inner.appendChild(board);
+
+    // Controls
+    btnUndo.onclick = () => { const last = strokeLayer.lastChild; if(last){ strokeLayer.removeChild(last); const len = (last._pts||[]).length; userPts.splice(Math.max(0,userPts.length-len), len); hud.score.textContent='–'; }}
+    btnErase.onclick = () => { strokeLayer.innerHTML=''; userPts=[]; hud.score.textContent='–'; stage.classList.remove('hit-ok'); }
+    btnCheck.onclick = () => {
+      const res = window.nilaiTracing(samples, userPts, toler);
+      hud.score.textContent = `${res.score}/100 (cover ${res.coverage}%, off ${res.penalty}%)`;
+      const key = `alpha6-best-${modeSel.value}-${itemSel.value}`;
+      const best = store.get(key);
+      if(!best || res.score > best.score){ store.set(key, {...res, t:Date.now()}); }
+      updateBestHUD();
+      if(res.score>=70){ stage.classList.add('hit-ok'); } else { stage.classList.remove('hit-ok'); }
+    }
+    btnReset.onclick = () => { btnErase.click(); }
+    btnRandom.onclick = () => { randomize(); }
+    btnHelp.onclick = () => alert('Tarik garis mengikuti titik-titik. Skor = cakupan jalur – penalti coretan jauh. Minimal lulus 70. Toleransi bisa diatur di samping.');
+  }
+
+  function samplePathPoints(pathEl, n=200){
+    const len = pathEl.getTotalLength();
+    const pts = [];
+    for(let i=0;i<n;i++){
+      const p = pathEl.getPointAtLength((i/(n-1))*len);
+      pts.push({x:p.x, y:p.y});
+    }
+    return pts;
+  }
+
+  /*************** CIRCLE NUMBER ***************/
+  function mountCircleNumber(target){
+    hud.item.textContent = `Target ${target}`;
+    const wrap = document.createElement('div'); wrap.style.padding='1rem';
+    const grid = document.createElement('div'); grid.className='choices';
+    // generate 25 cells with random 0..9 ensuring at least 4 target
+    const nums = [];
+    let targetCount = 0;
+    for(let i=0;i<25;i++){
+      let v = Math.floor(Math.random()*10);
+      if(25-i<= (4-targetCount)) v = target; // force quota
+      if(v===target) targetCount++;
+      nums.push(v);
+    }
+    nums.forEach(v=>{
+      const c = document.createElement('button'); c.type='button'; c.className='choice'; c.textContent=v; c.setAttribute('aria-pressed','false');
+      c.onclick=()=> c.setAttribute('aria-pressed', c.getAttribute('aria-pressed')==='true'?'false':'true');
+      grid.appendChild(c);
+    });
+    wrap.appendChild(grid);
+    inner.appendChild(wrap);
+
+    btnCheck.onclick = () => {
+      const cells = [...grid.children];
+      let correct=0, wrong=0, missed=0;
+      cells.forEach(el=>{
+        const chosen = el.getAttribute('aria-pressed')==='true';
+        const val = +el.textContent;
+        if(chosen && val===target) correct++; else if(chosen && val!==target) wrong++; else if(!chosen && val===target) missed++;
+      });
+      const score = Math.max(0, 100 - (wrong*20 + missed*20));
+      hud.score.textContent = `${score}/100 (✅${correct} ❌${wrong} ❗${missed})`;
+      const key = `alpha6-best-${modeSel.value}-${itemSel.value}`; const best=store.get(key);
+      if(!best||score>best.score) store.set(key,{score,coverage:0,penalty:0,t:Date.now()});
+      updateBestHUD();
+      if(score>=70) stage.classList.add('hit-ok'); else stage.classList.remove('hit-ok');
+    }
+    btnReset.onclick = () => { [...grid.children].forEach(el=>el.setAttribute('aria-pressed','false')); hud.score.textContent='–'; stage.classList.remove('hit-ok'); }
+    btnRandom.onclick = () => randomize();
+  }
+
+  /*************** COLOR RECT ***************/
+  function mountColorRect(target){
+    hud.item.textContent = `Warnai ${target} kotak`;
+    const wrap = document.createElement('div'); wrap.style.padding='1rem';
+    const grid = document.createElement('div'); grid.className='rects';
+    const total=20; let colored=0;
+    for(let i=0;i<total;i++){
+      const r = document.createElement('div'); r.className='rect'; r.dataset.on='0';
+      r.onclick=()=>{
+        if(r.dataset.on==='0'){ r.style.background='var(--ring)'; r.style.borderColor='transparent'; r.dataset.on='1'; colored++; }
+        else{ r.style.background='#fafafa'; r.style.border='1px dashed #cbd5e1'; r.dataset.on='0'; colored--; }
+      };
+      grid.appendChild(r);
+    }
+    wrap.appendChild(grid); inner.appendChild(wrap);
+
+    btnCheck.onclick = () => {
+      const chosen = [...grid.children].filter(x=>x.dataset.on==='1').length;
+      const diff = Math.abs(chosen - target);
+      const score = Math.max(0, 100 - diff*25);
+      hud.score.textContent = `${score}/100 (dipilih ${chosen})`;
+      const key = `alpha6-best-${modeSel.value}-${itemSel.value}`; const best=store.get(key);
+      if(!best||score>best.score) store.set(key,{score,coverage:0,penalty:0,t:Date.now()});
+      updateBestHUD(); if(score>=70) stage.classList.add('hit-ok'); else stage.classList.remove('hit-ok');
+    }
+    btnReset.onclick = () => { [...grid.children].forEach(r=>{ r.dataset.on='0'; r.style.background='#fafafa'; r.style.border='1px dashed #cbd5e1'; }); hud.score.textContent='–'; stage.classList.remove('hit-ok'); }
+    btnRandom.onclick = () => randomize();
+  }
+
+  /*************** SPELLING (angka & ordinal) ***************/
+  function mountSpelling(pack){
+    const wrap = document.createElement('div'); wrap.style.padding='1rem';
+    const title = document.createElement('h2'); title.textContent = `Pilih ejaan untuk: ${pack.key}`; wrap.appendChild(title);
+    const grid = document.createElement('div'); grid.className='choices'; wrap.appendChild(grid);
+    const options = [...pack.options].sort(()=>Math.random()-.5);
+    options.forEach(op=>{
+      const b = document.createElement('button'); b.type='button'; b.className='choice'; b.textContent = op; b.setAttribute('aria-pressed','false');
+      b.onclick = () => {
+        // single-select
+        [...grid.children].forEach(c=>c.setAttribute('aria-pressed','false'));
+        b.setAttribute('aria-pressed','true');
+      }
+      grid.appendChild(b);
+    })
+    inner.appendChild(wrap);
+
+    btnCheck.onclick = () => {
+      const sel = [...grid.children].find(c=>c.getAttribute('aria-pressed')==='true');
+      const correct = sel && sel.textContent===pack.correct;
+      const score = correct? 100: 0;
+      hud.score.textContent = correct? '100/100 (Benar!)' : '0/100 (Coba lagi)';
+      const key = `alpha6-best-${modeSel.value}-${itemSel.value}`; const best=store.get(key);
+      if(!best||score>best.score) store.set(key,{score,coverage:0,penalty:0,t:Date.now()});
+      updateBestHUD(); if(score>=70) stage.classList.add('hit-ok'); else stage.classList.remove('hit-ok');
+    }
+    btnReset.onclick = () => { [...grid.children].forEach(c=>c.setAttribute('aria-pressed','false')); hud.score.textContent='–'; stage.classList.remove('hit-ok'); }
+    btnRandom.onclick = () => randomize();
+  }
+
+  // Events
+  modeSel.addEventListener('change', mount);
+  itemSel.addEventListener('change', render);
+  btnRandom.addEventListener('click', randomize);
+  btnReset.addEventListener('click', ()=>{});
+
+  // Init
+  mount();
+  </script>
+</body>
+
+<script>
+// ===== AUTHOR MODE: Tahap 2 – logic rekam, BG, dan export path =====
+(function(){
+  const panel = document.getElementById('author-panel');
+  if(!panel) return;
+  const toggle = document.getElementById('authorModeToggle');
+  const up     = document.getElementById('bgUpload');
+  const txt    = document.getElementById('bgText');
+  const btnStart = document.getElementById('startRecord');
+  const btnStop  = document.getElementById('stopRecord');
+  const btnCopy  = document.getElementById('copyPath');
+  const btnUndo  = document.getElementById('undoStroke');
+  const btnClear = document.getElementById('clearStrokes');
+  const epsInp   = document.getElementById('simpEps');
+  const epsVal   = document.getElementById('simpEpsVal');
+  const smoothChk= document.getElementById('smoothChk');
+  const opSlider = document.getElementById('bgOpacity');
+  const stageEl  = document.getElementById('stage');
+  const inner    = stageEl.querySelector('.stage-inner');
+
+  let authorOn=false, svg=null, guide=null, gBG=null, gDraw=null, imgBG=null, textBG=null;
+  let recording=false, strokes=[], cur=[];
+
+  // ==== Tahap 3B: Helper Functions for Simplify & Smoothing ====
+  function douglasPeucker(points, epsilon) {
+    if (points.length < 3) return points;
+    const lineDist = (p, a, b) => {
+      const t = ((p.x-a.x)*(b.x-a.x) + (p.y-a.y)*(b.y-a.y)) / ((b.x-a.x)**2 + (b.y-a.y)**2);
+      const proj = { x: a.x + t*(b.x-a.x), y: a.y + t*(b.y-a.y) };
+      return Math.hypot(p.x - proj.x, p.y - proj.y);
+    };
+    let dmax = 0, index = 0;
+    for (let i=1; i<points.length-1; i++) {
+      const d = lineDist(points[i], points[0], points[points.length-1]);
+      if (d > dmax) { index = i; dmax = d; }
+    }
+    if (dmax > epsilon) {
+      const res1 = douglasPeucker(points.slice(0, index+1), epsilon);
+      const res2 = douglasPeucker(points.slice(index), epsilon);
+      return res1.slice(0, -1).concat(res2);
+    } else {
+      return [points[0], points[points.length-1]];
+    }
+  }
+
+  function catmullRom2bezier(points) {
+    let d = "";
+    for (let i=0; i<points.length-1; i++) {
+      const p0 = points[i-1] || points[i];
+      const p1 = points[i];
+      const p2 = points[i+1];
+      const p3 = points[i+2] || p2;
+      const cp1x = p1.x + (p2.x - p0.x) / 6;
+      const cp1y = p1.y + (p2.y - p0.y) / 6;
+      const cp2x = p2.x - (p3.x - p1.x) / 6;
+      const cp2y = p2.y - (p3.y - p1.y) / 6;
+      d += `C${cp1x},${cp1y} ${cp2x},${cp2y} ${p2.x},${p2.y} `;
+    }
+    return d.trim();
+  }
+
+  function polyToPath(points, smooth=false) {
+    if (!points.length) return "";
+    let d = `M${points[0].x},${points[0].y} `;
+    if (smooth && points.length > 2) {
+      d += catmullRom2bezier(points);
+    } else {
+      for (let i=1; i<points.length; i++) {
+        d += `L${points[i].x},${points[i].y} `;
+      }
+    }
+    return d.trim();
+  }
+
+  function ensureLayer(){
+    if(svg) return; // already exists
+    svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('viewBox','0 0 640 720');
+    svg.classList.add('traceBoard');
+    svg.style.position='absolute';
+    svg.style.inset='0';
+    svg.style.zIndex='10';
+
+    // Guide box (sama seperti board lain)
+    guide = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    guide.setAttribute('x','60'); guide.setAttribute('y','80'); guide.setAttribute('width','500'); guide.setAttribute('height','480');
+    guide.setAttribute('rx','18'); guide.setAttribute('class','guide');
+
+    // BG group (image + text)
+    gBG = document.createElementNS('http://www.w3.org/2000/svg','g');
+    imgBG = document.createElementNS('http://www.w3.org/2000/svg','image');
+    imgBG.setAttribute('x','60'); imgBG.setAttribute('y','80'); imgBG.setAttribute('width','500'); imgBG.setAttribute('height','480');
+    imgBG.setAttribute('opacity','0.35');
+
+    textBG = document.createElementNS('http://www.w3.org/2000/svg','text');
+    textBG.setAttribute('x','310'); textBG.setAttribute('y','320');
+    textBG.setAttribute('text-anchor','middle');
+    textBG.setAttribute('dominant-baseline','middle');
+    textBG.setAttribute('font-size','260');
+    textBG.setAttribute('fill','#9ca3af');
+    textBG.setAttribute('opacity','0.25');
+
+    gBG.appendChild(imgBG); gBG.appendChild(textBG);
+
+    // Draw layer
+    gDraw = document.createElementNS('http://www.w3.org/2000/svg','g');
+
+    svg.appendChild(guide);
+    svg.appendChild(gBG);
+    svg.appendChild(gDraw);
+
+    // block pointer to layer di bawah saat author aktif
+    disableUnderBoards(true);
+
+    // pointer handlers
+    function pt(evt){ const p=svg.createSVGPoint(); p.x=(evt.touches?evt.touches[0].clientX:evt.clientX); p.y=(evt.touches?evt.touches[0].clientY:evt.clientY); const m=svg.getScreenCTM().inverse(); const q=p.matrixTransform(m); return {x:q.x,y:q.y}; }
+
+    svg.addEventListener('pointerdown', (e)=>{ if(!recording) return; cur=[pt(e)]; drawPreview(); e.stopPropagation(); });
+    svg.addEventListener('pointermove', (e)=>{ if(!recording||!cur) return; cur.push(pt(e)); drawPreview(); e.stopPropagation(); });
+    window.addEventListener('pointerup', ()=>{ if(!recording) return; if(cur&&cur.length){ strokes.push(cur); cur=[]; drawPreview(); }});
+
+    inner.appendChild(svg);
+  }
+
+  function removeLayer(){
+    if(!svg) return;
+    try{ inner.removeChild(svg); }catch{}
+    svg=null; guide=null; gBG=null; gDraw=null; imgBG=null; textBG=null;
+    disableUnderBoards(false);
+  }
+
+  function disableUnderBoards(disable){
+    // Matikan pointer-events untuk konten board bawaan supaya nggak konflik saat rekam
+    const kids=[...inner.children].filter(n=>n!==svg);
+    kids.forEach(n=>{ n.style.pointerEvents = disable? 'none':'auto'; });
+  }
+
+  // Tahap 3B: drawPreview with dotted preview using simplify & smoothing
+  function drawPreview(){
+    ensureLayer();
+    // Remove all previous preview paths
+    [...svg.querySelectorAll('.previewPath')].forEach(el=>el.remove());
+    const eps = parseFloat(epsInp.value || "0");
+    const useSmooth = smoothChk.checked;
+    // Draw user strokes as blue dotted preview
+    strokes.concat(cur.length ? [cur]:[]).forEach(stk=>{
+      if(!stk.length) return;
+      let pts = stk.map(p=>({x:p.x, y:p.y}));
+      if(eps>0) pts = douglasPeucker(pts, eps);
+      const pathData = polyToPath(pts, useSmooth);
+      const p = document.createElementNS("http://www.w3.org/2000/svg","path");
+      p.setAttribute("d", pathData);
+      p.setAttribute("fill","none");
+      p.setAttribute("stroke","#00f");
+      p.setAttribute("stroke-width","2");
+      p.setAttribute("stroke-dasharray","4,4");
+      p.classList.add("previewPath");
+      svg.appendChild(p);
+    });
+    // (Optional: still show polyline overlay for feedback if needed)
+    // gDraw.innerHTML='';
+    // const all = [...strokes]; if(cur && cur.length) all.push(cur);
+    // for(const s of all){ const pl=document.createElementNS('http://www.w3.org/2000/svg','polyline'); pl.setAttribute('class','userStroke'); pl.setAttribute('points', s.map(p=>`${p.x},${p.y}`).join(' ')); gDraw.appendChild(pl); }
+  }
+
+  // (not used anymore, replaced by new copy logic)
+  // function toPathData(){
+  //   // Export jadi satu path M/L (tanpa simplify di tahap 2; simplify & smoothing bisa ditambah di tahap 3)
+  //   const flat = strokes.flat();
+  //   if(cur && cur.length) flat.push(...cur);
+  //   if(!flat.length) return '';
+  //   let d='M '+flat[0].x+' '+flat[0].y; for(let i=1;i<flat.length;i++){ d += ' L '+flat[i].x+' '+flat[i].y; }
+  //   return d;
+  // }
+
+  // ==== wiring panel ====
+  toggle.addEventListener('change', ()=>{
+    authorOn = toggle.checked;
+    if(authorOn){ ensureLayer(); } else { recording=false; strokes=[]; cur=[]; removeLayer(); }
+  });
+
+  btnStart.addEventListener('click', ()=>{ if(!authorOn){ toggle.checked=true; toggle.dispatchEvent(new Event('change')); } ensureLayer(); recording=true; });
+  btnStop .addEventListener('click', ()=>{ recording=false; if(cur && cur.length){ strokes.push(cur); cur=[]; drawPreview(); } });
+  // Tahap 3B: Copy Path with simplify/smooth options
+  if(btnCopy){ btnCopy.addEventListener('click', ()=>{
+    const eps = parseFloat(epsInp.value || "0");
+    const useSmooth = smoothChk.checked;
+    let allPts = [];
+    strokes.forEach(stk=>{
+      if(!stk.length) return;
+      let pts = stk.map(p=>({x:p.x, y:p.y}));
+      if(eps>0) pts = douglasPeucker(pts, eps);
+      allPts.push(polyToPath(pts, useSmooth));
+    });
+    const fullPath = allPts.join(" ");
+    navigator.clipboard.writeText(fullPath).then(()=>{ alert("Path copied!"); });
+  }); }
+
+  up.addEventListener('change', ()=>{
+    if(!up.files || !up.files[0]) return; ensureLayer(); const r=new FileReader(); r.onload=()=>{ imgBG.setAttributeNS('http://www.w3.org/1999/xlink','href', r.result); }; r.readAsDataURL(up.files[0]);
+  });
+  txt.addEventListener('input', ()=>{ ensureLayer(); textBG.textContent = txt.value || ''; });
+
+  // ===== Kontrol tambahan tahap 3A
+  if(opSlider){ opSlider.addEventListener('input', ()=>{ ensureLayer(); if(imgBG) imgBG.setAttribute('opacity', opSlider.value); }); }
+  if(btnUndo){ btnUndo.addEventListener('click', ()=>{
+    if(recording){ cur=[]; } else { strokes.pop(); }
+    drawPreview();
+  }); }
+  if(btnClear){ btnClear.addEventListener('click', ()=>{ strokes=[]; cur=[]; drawPreview(); }); }
+  if(epsInp && epsVal){ epsInp.addEventListener('input', ()=>{ epsVal.textContent = epsInp.value; drawPreview(); }); }
+  if(smoothChk){ smoothChk.addEventListener('change', ()=>{ drawPreview(); }); }
+
+})();
+</script>
+</html>

@@ -295,6 +295,7 @@ function check(ok){ return ok ? '✅' : '🔒'; }
   .badge-grid{display:flex;gap:8px;flex-wrap:wrap}
   .badge{background:#111827;border:1px solid #1f2937;border-radius:10px;padding:6px 10px}
   .hud-avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #0b1220}
+  .hud-toggle-btn{font-weight:700}
   `;
   const style = document.createElement('style');
   style.id = 'hud-inline-style';
@@ -309,29 +310,60 @@ function applyHudVisibility(show) {
   if (show) {
     hudBar.style.visibility = 'visible';
     hudBar.style.opacity = '1';
+    hudBar.style.pointerEvents = 'auto';
   } else {
     hudBar.style.opacity = '0';
     hudBar.style.visibility = 'hidden';
+    hudBar.style.pointerEvents = 'none';
   }
 }
 
 function ensureHudToggleButton() {
   const hudBar = document.querySelector('.hud-bar');
   if (!hudBar) return;
-  // Add transition style for fade effect
+  // Ensure transition on HUD bar for fade
   hudBar.style.transition = 'opacity 0.3s ease';
-  // Create toggle button
-  let btn = document.createElement('button');
-  btn.textContent = 'Toggle HUD';
-  btn.className = 'hud-toggle-btn';
-  hudBar.appendChild(btn);
-  // Initial visibility
-  let visible = true;
-  applyHudVisibility(visible);
-  btn.addEventListener('click', () => {
-    visible = !visible;
-    applyHudVisibility(visible);
-  });
+
+  // Use per-world storage key so preference is remembered
+  const worldId = document.body?.dataset?.worldId || 'calistung';
+  const KEY = `hud:hidden:${worldId}`;
+  const getPref = () => localStorage.getItem(KEY) === '1';
+  const setPref = (v) => localStorage.setItem(KEY, v ? '1' : '0');
+
+  // Create floating toggle button outside the HUD bar so it stays visible
+  let btn = document.getElementById('hudToggleFloating');
+  if (!btn) {
+    btn = document.createElement('button');
+    btn.id = 'hudToggleFloating';
+    btn.className = 'hud-toggle-btn';
+    btn.setAttribute('aria-label', 'Toggle HUD');
+    btn.style.position = 'fixed';
+    btn.style.top = '12px';
+    btn.style.right = '12px';
+    btn.style.zIndex = '1000';
+    btn.style.background = '#111827';
+    btn.style.color = '#fff';
+    btn.style.border = '1px solid #243249';
+    btn.style.borderRadius = '12px';
+    btn.style.padding = '8px 10px';
+    btn.style.cursor = 'pointer';
+    btn.style.boxShadow = '0 4px 10px rgba(0,0,0,.25)';
+    document.body.appendChild(btn);
+  }
+
+  // Apply initial state
+  const hidden = getPref();
+  applyHudVisibility(!hidden);
+  btn.textContent = hidden ? '⬇ Show HUD' : '⬆ Hide HUD';
+
+  // Toggle handler
+  btn.onclick = () => {
+    const nowHidden = hudBar.style.visibility === 'hidden';
+    applyHudVisibility(nowHidden); // if hidden -> show; if shown -> hide
+    const afterHidden = hudBar.style.visibility === 'hidden';
+    setPref(afterHidden);
+    btn.textContent = afterHidden ? '⬇ Show HUD' : '⬆ Hide HUD';
+  };
 }
 
 // Safe auto-init if developer forgets to call initHud()

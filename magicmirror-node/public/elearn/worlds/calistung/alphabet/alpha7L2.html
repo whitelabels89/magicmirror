@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Alpha7L2 – Hubungkan Huruf</title>
+  <style>
+    :root{
+      --bg:#ffffff;
+      --ink:#111;
+      --dot:#000;
+      --ok:#2e7d32;
+      --no:#e53935;
+      --ui:#0d47a1;
+      --dot-shift: clamp(20px,4vw,64px);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji"; background:var(--bg); color:var(--ink);}
+
+    .wrap{
+      display:flex;flex-direction:column;min-height:100dvh;max-width:980px;margin:0 auto;padding:16px 16px 24px;gap:14px;
+    }
+    header h1{font-size:clamp(18px,2.2vw,22px);font-weight:700;margin:0;text-align:center}
+    header p{margin:0;text-align:center;font-size:clamp(14px,2vw,16px);opacity:.8}
+
+    .board{
+      position:relative;
+      background:#fafafa;
+      border:1px solid #e7e7e7;border-radius:14px;
+      padding:18px 10px; 
+    }
+
+    /* 4 kolom: Huruf besar | Titik kiri | Titik kanan | huruf kecil */
+    .grid{
+      display:grid;
+      grid-template-columns: clamp(60px,8vw,170px) clamp(180px,20vw,340px) clamp(180px,20vw,240px) clamp(60px,8vw,160px);
+      align-items:center;
+      row-gap: clamp(28px,6.5vh,72px);
+      column-gap: clamp(24px,4vw,40px);
+      padding: clamp(6px,1.2vw,14px) clamp(6px,2vw,20px);
+    }
+
+    .big{font-weight:900; font-size: clamp(42px, 7.8vw, 96px); text-align:left; line-height:1}
+    .small{font-weight:900; font-size: clamp(42px, 7.8vw, 96px); text-align:right; line-height:1}
+
+    .dot{
+      width:clamp(12px,2vw,18px);height:clamp(12px,2vw,18px);border-radius:50%;background:var(--dot);margin:0;
+      box-shadow:0 0 0 2px #fff; /* supaya garis terlihat menempel rapi */
+      touch-action:none;
+      transform-origin: 50% 50%;
+      transform-box: border-box;
+    }
+
+    /* Geser titik saja, huruf tetap di tempatnya */
+    .dot[data-side="left"]{ justify-self:start; transform: translateX(calc(-1 * var(--dot-shift))); }
+    .dot[data-side="right"]{ justify-self:end;   transform: translateX(var(--dot-shift)); }
+
+    .ui{
+      display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px
+    }
+    button{
+      appearance:none;border:0;border-radius:999px;padding:10px 16px;font-weight:700;cursor:pointer;
+      background:var(--ui);color:#fff;box-shadow:0 3px 0 rgba(0,0,0,.12);
+    }
+    button.secondary{background:#616161}
+
+    .hint{font-size:13px;text-align:center;opacity:.7}
+
+    /* SVG garis di atas grid */
+    svg.canvas{position:absolute;inset:0;pointer-events:none;z-index:0}
+
+    /* warna huruf */
+    .c-red{color:#e53935}
+    .c-blue{color:#1565c0}
+    .c-green{color:#2e7d32}
+    .c-orange{color:#fb8c00}
+    .c-yellow{color:#fdd835}
+
+    .toast{ text-align:center; font-weight:700; }
+  </style>
+  <style>
+    @media (max-width: 600px){
+      /* Perkecil shift titik agar tidak keluar layar mobile */
+      :root{ --dot-shift: clamp(6px,4vw,14px); }
+
+      .board{ padding: 12px 8px; }
+
+      .grid{
+        /* Huruf tetap di sisi, dot diberi ruang cukup namun tidak berlebihan di mobile */
+        grid-template-columns: clamp(44px,12vw,60px) clamp(78px,26vw,116px) clamp(70px,24vw,100px) clamp(28px,10vw,44px);
+        row-gap: clamp(18px,5vh,36px);
+        column-gap: clamp(12px,4vw,18px);
+        padding: 8px 8px;
+      }
+
+      .big, .small{ font-size: clamp(28px,12vw,48px); }
+
+      .dot{ 
+        width: clamp(10px,3.5vw,14px); 
+        height: clamp(10px,3.5vw,14px); 
+        box-shadow: 0 0 0 1.5px #fff; 
+      }
+      .dot[data-side="right"]{ transform: translateX(calc(var(--dot-shift) * 0.5)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Tarik garis untuk memasangkan huruf besar dengan huruf kecilnya</h1>
+      <p>(Mulai dari titik hitam di sisi kiri ➜ lepaskan di titik hitam sisi kanan)</p>
+    </header>
+
+    <div class="board" id="board">
+      <svg class="canvas" id="lines" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+      <div class="grid" id="grid">
+        <!-- rows will be generated dynamically -->
+      </div>
+    </div>
+
+    <div class="ui">
+      <button id="checkBtn">Periksa Jawaban</button>
+      <button class="secondary" id="resetBtn">Reset</button>
+      <button id="shuffleBtn">Acak Soal</button>
+    </div>
+    <div class="toast" id="toast" aria-live="polite"></div>
+    <p class="hint">Tip: jika salah sambung, cukup mulai ulang dari titik kiri yang sama – garis lamanya akan diganti otomatis.</p>
+  </div>
+
+<script>
+(function(){
+  const board = document.getElementById('board');
+  const grid = document.getElementById('grid');
+  const svg = document.getElementById('lines');
+  let leftDots = [];
+  let rightDots = [];
+  const toast = document.getElementById('toast');
+  const checkBtn = document.getElementById('checkBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const shuffleBtn = document.getElementById('shuffleBtn');
+
+  const COLORS = ['c-red','c-blue','c-green','c-orange','c-yellow'];
+  function randColor(i){ return COLORS[i % COLORS.length]; }
+  function shuffleArr(arr){
+    for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
+    return arr;
+  }
+  function pickUniqueLetters(n){
+    const ALPH = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const pool = ALPH.split('');
+    shuffleArr(pool);
+    return pool.slice(0,n);
+  }
+
+  // Map koneksi: leftIndex -> rightIndex
+  const links = new Map();
+  // Reverse: rightIndex -> leftIndex
+  const rev = new Map();
+
+  let correct = new Map();
+
+  function buildGrid(uppers, lowers){
+    // uppers: array of uppercase letters (length N)
+    // lowers: array of lowercase letters in DISPLAY ORDER (length N)
+    const rows = uppers.map((U, i)=>{
+      const L = lowers[i];
+      return `
+        <div class="big ${randColor(i)}">${U}</div>
+        <div class="dot" data-side="left" data-index="${i}" aria-label="titik ${U}"></div>
+        <div class="dot" data-side="right" data-index="${i}" aria-label="titik ${L}"></div>
+        <div class="small ${randColor(i+1)}">${L}</div>
+      `;
+    }).join('');
+    grid.innerHTML = rows;
+    leftDots = [...grid.querySelectorAll('.dot[data-side="left"]')];
+    rightDots = [...grid.querySelectorAll('.dot[data-side="right"]')];
+    // Rebind listeners to the fresh nodes
+    attachDotListeners();
+    // Refresh lines & links state
+    links.clear(); rev.clear(); svg.innerHTML=''; toast.textContent='';
+    redrawAll();
+  }
+
+  function attachDotListeners(){
+    leftDots.forEach((el, li)=>{
+      el.addEventListener('pointerdown', (e)=>{ e.preventDefault(); startDragFromLeft(li, el, e); });
+      el.addEventListener('touchstart', (e)=>{ e.preventDefault(); startDragFromLeft(li, el, e); }, {passive:false});
+    });
+    rightDots.forEach((el, ri)=>{
+      el.addEventListener('pointerup', (e)=>{ e.preventDefault(); finishDragToRight(ri); });
+      el.addEventListener('touchend', (e)=>{ e.preventDefault(); finishDragToRight(ri); });
+    });
+  }
+
+  // Global drag helpers for perfect pointer tracking
+  let globalBound = false;
+  function onGlobalPointerUp(e){
+    if(e.target && e.target.dataset && e.target.dataset.side === 'right') return; // right dot will finish
+    cancelDrag();
+  }
+  function onGlobalTouchEnd(e){
+    const t = e.target;
+    if(t && t.dataset && t.dataset.side === 'right') return;
+    cancelDrag();
+  }
+  function attachGlobal(){
+    if(globalBound) return;
+    window.addEventListener('pointermove', updateTempToPointer);
+    window.addEventListener('touchmove', updateTempToPointer, {passive:false});
+    window.addEventListener('pointerup', onGlobalPointerUp);
+    window.addEventListener('touchend', onGlobalTouchEnd);
+    globalBound = true;
+  }
+  function detachGlobal(){
+    if(!globalBound) return;
+    window.removeEventListener('pointermove', updateTempToPointer);
+    window.removeEventListener('touchmove', updateTempToPointer);
+    window.removeEventListener('pointerup', onGlobalPointerUp);
+    window.removeEventListener('touchend', onGlobalTouchEnd);
+    globalBound = false;
+  }
+
+  // Buat path svg helper
+  function makePath(){
+    const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('fill','none');
+    p.setAttribute('stroke','#444');
+    p.setAttribute('stroke-width','0.9');
+    p.setAttribute('stroke-linecap','round');
+    p.setAttribute('vector-effect','non-scaling-stroke');
+    svg.appendChild(p);
+    return p;
+  }
+
+  // Hitung posisi relatif dot (0–100) sesuai viewBox svg
+  function dotPos(el){
+    const sr = svg.getBoundingClientRect();
+    const er = el.getBoundingClientRect();
+    const cx = er.left + er.width/2;
+    const cy = er.top + er.height/2;
+    const x = ((cx - sr.left) / sr.width) * 100;
+    const y = ((cy - sr.top) / sr.height) * 100;
+    return {x,y};
+  }
+
+  function drawCurve(p1, p2, path){
+    const d = `M ${p1.x} ${p1.y} L ${p2.x} ${p2.y}`;
+    path.setAttribute('d', d);
+  }
+
+  function removeLinkByLeft(li){
+    if(!links.has(li)) return;
+    const ri = links.get(li);
+    const path = svg.querySelector(`path[data-left='${li}']`);
+    if(path) path.remove();
+    links.delete(li);
+    rev.delete(ri);
+  }
+  function removeLinkByRight(ri){
+    if(!rev.has(ri)) return;
+    const li = rev.get(ri);
+    const path = svg.querySelector(`path[data-left='${li}']`);
+    if(path) path.remove();
+    links.delete(li);
+    rev.delete(ri);
+  }
+
+  // Handle drag dari kiri ke kanan
+  let dragging = null; // {li, tempPath, startEl, pointerId}
+  let lastClientPos = null; // {x, y}
+
+  function startDragFromLeft(li, startEl, ev){
+    removeLinkByLeft(li); // ganti jika ada lama
+    const temp = makePath();
+    temp.setAttribute('stroke','#888');
+    temp.setAttribute('stroke-dasharray','4 4');
+    temp.setAttribute('stroke-width','0.9');
+    temp.setAttribute('vector-effect','non-scaling-stroke');
+    dragging = {li, tempPath: temp, startEl, pointerId: (ev && 'pointerId' in ev) ? ev.pointerId : undefined};
+    // Capture pointer (when available) and attach global listeners so the line always follows the pointer
+    try{ if(dragging.pointerId !== undefined) board.setPointerCapture(dragging.pointerId); }catch{}
+    attachGlobal();
+    updateTempToPointer(ev);
+  }
+
+  function updateTempToPointer(e){
+    if(!dragging) return;
+    const p1 = dotPos(dragging.startEl);
+    // Ambil posisi pointer relatif board
+    const sr = svg.getBoundingClientRect();
+    const touch = e.touches && e.touches[0];
+    const clientX = (touch ? touch.clientX : e.clientX);
+    const clientY = (touch ? touch.clientY : e.clientY);
+    lastClientPos = {x: clientX, y: clientY};
+    const x = ((clientX ?? sr.left) - sr.left) / sr.width * 100;
+    const y = ((clientY ?? sr.top) - sr.top) / sr.height * 100;
+    drawCurve(p1, {x, y}, dragging.tempPath);
+  }
+
+  function getRightDotIndexAtPos(clientX, clientY){
+    for(let i=0;i<rightDots.length;i++){
+      const rect = rightDots[i].getBoundingClientRect();
+      if(clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom){
+        return i;
+      }
+    }
+    return null;
+  }
+
+  function finishDragToRight(ri){
+    if(!dragging) return;
+    removeLinkByRight(ri); // pastikan one-to-one
+    const li = dragging.li;
+    const pid = dragging.pointerId;
+    const p = makePath();
+    p.dataset.left = String(li);
+    const p1 = dotPos(leftDots[li]);
+    const p2 = dotPos(rightDots[ri]);
+    drawCurve(p1, p2, p);
+    // Style normal
+    p.setAttribute('stroke','#444');
+    p.removeAttribute('stroke-dasharray');
+    dragging.tempPath.remove();
+    dragging = null;
+    if(pid !== undefined){ try{ board.releasePointerCapture(pid); }catch{} }
+    detachGlobal();
+
+    links.set(li, ri);
+    rev.set(ri, li);
+  }
+
+  function cancelDrag(){
+    if(!dragging) return;
+    const pid = dragging.pointerId;
+    if(dragging.tempPath){ dragging.tempPath.remove(); }
+    dragging = null;
+    if(pid !== undefined){ try{ board.releasePointerCapture(pid); }catch{} }
+    detachGlobal();
+  }
+
+  board.addEventListener('pointermove', updateTempToPointer);
+  board.addEventListener('touchmove', (e)=>{ updateTempToPointer(e); }, {passive:false});
+  board.addEventListener('pointerup', (e)=>{
+    if(!dragging){ return; }
+    if(lastClientPos){
+      const ri = getRightDotIndexAtPos(lastClientPos.x, lastClientPos.y);
+      if(ri !== null){ finishDragToRight(ri); return; }
+    }
+    cancelDrag();
+  });
+  board.addEventListener('touchend', (e)=>{
+    if(!dragging){ return; }
+    if(lastClientPos){
+      const ri = getRightDotIndexAtPos(lastClientPos.x, lastClientPos.y);
+      if(ri !== null){ finishDragToRight(ri); return; }
+    }
+    cancelDrag();
+  });
+
+  window.addEventListener('resize', redrawAll);
+  window.addEventListener('orientationchange', redrawAll);
+  document.fonts && document.fonts.ready && document.fonts.ready.then(redrawAll);
+
+  // Akan diisi ulang setiap kali soal diacak
+
+  function generateRound(N=5){
+    const uppers = pickUniqueLetters(N); // e.g., [Q, A, M, ...]
+    const lowersPool = uppers.map(c=>c.toLowerCase());
+    const lowersShuffled = shuffleArr([...lowersPool]);
+    // correct: left index i (letter uppers[i]) should map to the index in lowersShuffled where its lowercase appears
+    correct = new Map();
+    uppers.forEach((U, i)=>{
+      const target = lowersShuffled.indexOf(U.toLowerCase());
+      correct.set(i, target);
+    });
+    buildGrid(uppers, lowersShuffled);
+  }
+
+  checkBtn.addEventListener('click', ()=>{
+    // reset warna
+    svg.querySelectorAll('path').forEach(p=>p.setAttribute('stroke','#444'));
+    let benar = 0;
+    for(const [li,ri] of links){
+      const p = svg.querySelector(`path[data-left='${li}']`);
+      if(!p) continue;
+      if(correct.get(li) === ri){
+        benar++;
+        p.setAttribute('stroke', getComputedStyle(document.documentElement).getPropertyValue('--ok').trim());
+      }else{
+        p.setAttribute('stroke', getComputedStyle(document.documentElement).getPropertyValue('--no').trim());
+      }
+    }
+    const total = leftDots.length;
+    toast.textContent = benar===total ? 'Mantap! Semua benar 🎉' : `Betul ${benar} dari ${total}. Coba lagi ya!`;
+  });
+
+  resetBtn.addEventListener('click', ()=>{
+    links.clear(); rev.clear(); svg.innerHTML=''; toast.textContent='';
+  });
+
+  shuffleBtn.addEventListener('click', ()=> generateRound(5));
+  // generate first round on load
+  generateRound(5);
+
+  // Re-draw semua garis ketika layout berubah (resize, rotate)
+  function redrawAll(){
+    svg.innerHTML = '';
+    for(const [li,ri] of links){
+      const p = makePath();
+      p.dataset.left = String(li);
+      drawCurve(dotPos(leftDots[li]), dotPos(rightDots[ri]), p);
+    }
+  }
+})();
+</script>
+</body>
+</html>

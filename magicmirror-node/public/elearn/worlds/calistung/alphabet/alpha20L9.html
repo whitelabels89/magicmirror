@@ -1,0 +1,215 @@
+
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alpha20 L9 – Mengisi Kosa Kata</title>
+  <style>
+    :root{
+      --bg:#fff7fb; --card:#ffffff; --ink:#222; --muted:#666; --ok:#18a558; --bad:#e74c3c; --brand:#7a3cff;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+    header{position:sticky;top:0;background:linear-gradient(180deg,#fff,rgba(255,255,255,.9));backdrop-filter:saturate(1.2) blur(4px);z-index:10;border-bottom:1px solid #f0e9ff}
+    .wrap{max-width:1100px;margin:auto;padding:16px}
+    h1{margin:4px 0 0;font-size:24px}
+    .sub{margin:6px 0 0;color:var(--muted);font-size:14px}
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .btn{border:0;border-radius:10px;padding:10px 14px;background:var(--brand);color:#fff;font-weight:700;cursor:pointer}
+    .btn.secondary{background:#e6e0ff;color:#3c2a9e}
+    .btn.ghost{background:#fff;border:1px solid #e6e0ff;color:#3c2a9e}
+    .score{margin-left:auto;font-weight:700}
+
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:16px}
+    @media (max-width:900px){.grid{grid-template-columns:repeat(3,1fr)}}
+    @media (max-width:650px){.grid{grid-template-columns:repeat(2,1fr)}}
+
+    .card{background:var(--card);border:1px solid #efe7ff;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px;min-height:150px;box-shadow:0 4px 10px rgba(122,60,255,.06)}
+    .pic{font-size:44px;line-height:1;text-align:center}
+    .prompt{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;align-items:center;font-size:20px}
+    .prefix{font-weight:800;letter-spacing:.5px}
+    .boxes{display:flex;gap:6px}
+    .boxes input{width:38px;height:44px;border-radius:10px;border:2px solid #d9ccff;text-align:center;font-size:20px;font-weight:800}
+    .boxes input:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px #efe9ff}
+
+    .status{height:20px;text-align:center;font-size:13px;color:var(--muted)}
+    .card.ok{border-color:#c9f3df}
+    .card.ok .status{color:var(--ok);font-weight:700}
+    .card.bad{border-color:#ffd5d0}
+    .card.bad .status{color:var(--bad);font-weight:700}
+
+    footer.wrap{padding-bottom:36px}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>MENGISI KOSA KATA</h1>
+      <p class="sub">Tulislah kosa kata yang tepat pada tempat yang kosong. Ketik huruf yang hilang.</p>
+      <div class="toolbar">
+        <button class="btn" id="checkBtn">Periksa Jawaban</button>
+        <button class="btn secondary" id="shuffleBtn">Acak Soal</button>
+        <button class="btn ghost" id="resetBtn">Reset</button>
+        <div class="score" id="scoreBox">Skor: 0/16</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div id="grid" class="grid" aria-live="polite"></div>
+  </main>
+
+  <footer class="wrap">
+    <small style="color:var(--muted)">© Queen's Academy – Alpha20L9</small>
+  </footer>
+
+  <script>
+    // Data soal – emoji digunakan sebagai pengganti gambar agar ringan
+    const ITEMS = [
+      {emoji:'🖐️', word:'jari', prefix:'ja'},
+      {emoji:'📘', word:'buku', prefix:'bu'},
+      {emoji:'🧢', word:'topi', prefix:'to'},
+      {emoji:'😁', word:'gigi', prefix:'gi'},
+      {emoji:'👀', word:'mata', prefix:'ma'},
+      {emoji:'⚽', word:'bola', prefix:'bo'},
+      {emoji:'🪟', word:'kaca', prefix:'ka'},
+      {emoji:'👕', word:'baju', prefix:'ba'},
+      {emoji:'🎀', word:'pita', prefix:'pi'},
+      {emoji:'🐄', word:'sapi', prefix:'sa'},
+      {emoji:'🪢', word:'tali', prefix:'ta'},
+      {emoji:'🍚', word:'nasi', prefix:'na'},
+      {emoji:'🛏️', word:'meja', prefix:'me'},
+      {emoji:'👶', word:'bayi', prefix:'ba'},
+      {emoji:'💅', word:'kuku', prefix:'ku'},
+      {emoji:'🧹', word:'sapu', prefix:'sa'},
+    ];
+
+    const grid = document.getElementById('grid');
+    const scoreBox = document.getElementById('scoreBox');
+
+    function sampleShuffle(arr){
+      return arr.map(v=>({v, r:Math.random()})).sort((a,b)=>a.r-b.r).map(o=>o.v);
+    }
+
+    function build(){
+      grid.innerHTML='';
+      const order = sampleShuffle(ITEMS.slice());
+      order.forEach((it, idx)=>{
+        const miss = it.word.slice(it.prefix.length);
+        const card = document.createElement('article');
+        card.className='card';
+        card.dataset.answer = miss;
+
+        const pic = document.createElement('div');
+        pic.className='pic';
+        pic.textContent = it.emoji;
+
+        const prompt = document.createElement('div');
+        prompt.className='prompt';
+        const pre = document.createElement('span');
+        pre.className='prefix';
+        pre.textContent = it.prefix;
+        const boxes = document.createElement('div');
+        boxes.className='boxes';
+
+        // create inputs for each missing letter
+        [...miss].forEach((_,i)=>{
+          const inp = document.createElement('input');
+          inp.maxLength = 1;
+          inp.autocomplete = 'off';
+          inp.setAttribute('aria-label', `Huruf ke-${i+1} untuk kata ${it.word}`);
+          inp.addEventListener('input', (e)=>{
+            e.target.value = e.target.value.replace(/[^a-zA-Z]/g,'').toLowerCase();
+            if(e.target.value && inp.nextElementSibling){ inp.nextElementSibling.focus(); }
+          });
+          inp.addEventListener('keydown', (e)=>{
+            if(e.key==='Backspace' && !e.target.value && inp.previousElementSibling){
+              inp.previousElementSibling.focus();
+            }
+            if(e.key==='Enter'){ document.getElementById('checkBtn').click(); }
+          });
+          boxes.appendChild(inp);
+        });
+
+        const status = document.createElement('div');
+        status.className='status';
+        status.textContent='';
+
+        prompt.appendChild(pre);
+        prompt.appendChild(document.createTextNode('_'.repeat(miss.length)));
+        prompt.appendChild(boxes);
+
+        // Show pattern like "ja__" above inputs
+        const pattern = document.createElement('div');
+        pattern.style.textAlign='center';
+        pattern.style.fontSize='14px';
+        pattern.style.color='var(--muted)';
+        pattern.textContent = `${it.prefix}${'_'.repeat(miss.length)}`;
+
+        card.appendChild(pic);
+        card.appendChild(pattern);
+        card.appendChild(prompt);
+        card.appendChild(status);
+        grid.appendChild(card);
+      });
+      updateScore();
+    }
+
+    function getCardAnswer(card){
+      const letters = [...card.querySelectorAll('input')].map(i=>i.value.toLowerCase()).join('');
+      return letters;
+    }
+
+    function check(){
+      let correct=0;
+      const cards = [...grid.querySelectorAll('.card')];
+      cards.forEach(card=>{
+        const ans = card.dataset.answer;
+        const got = getCardAnswer(card);
+        if(got.length!==ans.length){
+          card.classList.remove('ok','bad');
+          card.querySelector('.status').textContent = '';
+          return;
+        }
+        if(got===ans){
+          correct++;
+          card.classList.add('ok');
+          card.classList.remove('bad');
+          card.querySelector('.status').textContent = 'Benar!';
+        }else{
+          card.classList.add('bad');
+          card.classList.remove('ok');
+          card.querySelector('.status').textContent = 'Coba lagi…';
+        }
+      });
+      updateScore(correct);
+    }
+
+    function resetAll(){
+      grid.querySelectorAll('input').forEach(i=>i.value='');
+      grid.querySelectorAll('.card').forEach(c=>{c.classList.remove('ok','bad'); c.querySelector('.status').textContent='';});
+      updateScore();
+      const first = grid.querySelector('input');
+      if(first) first.focus();
+    }
+
+    function updateScore(val){
+      if(typeof val==='number'){
+        scoreBox.textContent = `Skor: ${val}/16`;
+        try{ localStorage.setItem('alpha20L9_best', Math.max(val, +(localStorage.getItem('alpha20L9_best')||0))); }catch{}
+      }else{
+        scoreBox.textContent = `Skor: 0/16`;
+      }
+    }
+
+    document.getElementById('checkBtn').addEventListener('click', check);
+    document.getElementById('resetBtn').addEventListener('click', resetAll);
+    document.getElementById('shuffleBtn').addEventListener('click', ()=>{ build(); });
+
+    // Init
+    build();
+  </script>
+</body>
+</html>

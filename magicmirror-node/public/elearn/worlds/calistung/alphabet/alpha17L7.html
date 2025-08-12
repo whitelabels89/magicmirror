@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Alpha17 L7 – Melingkari Kata</title>
+  <style>
+    :root{
+      --bg:#f7f8fc;--card:#ffffff;--ink:#222;--muted:#6b7280;--ok:#10b981;--no:#ef4444;--accent:#6366f1;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";background:var(--bg);color:var(--ink);display:flex;min-height:100vh}
+    .wrap{max-width:960px;margin:auto;padding:16px;display:flex;flex-direction:column;gap:16px;width:100%}
+    header{display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center}
+    h1{margin:0;font-size:clamp(22px,4.4vw,36px);letter-spacing:.5px}
+    .subtitle{color:var(--muted);font-size:clamp(14px,2.6vw,16px)}
+
+    .rows{display:flex;flex-direction:column;gap:12px}
+    .row{display:grid;grid-template-columns:110px 1fr;gap:12px;align-items:center;background:var(--card);border-radius:14px;padding:10px;box-shadow:0 1px 0 rgba(0,0,0,.05)}
+    .pic{display:grid;place-items:center;background:#fff;border:1px solid #e5e7eb;border-radius:12px;aspect-ratio:4/3;overflow:hidden}
+    .choices{display:grid;grid-template-columns:repeat(3, minmax(0,1fr));gap:10px}
+    .choice{position:relative;display:grid;place-items:center;border:2px dashed #d1d5db;border-radius:999px;padding:12px 10px;font-weight:700;font-size:clamp(16px,2.8vw,22px);cursor:pointer;background:#fafafa;user-select:none;transition:transform .05s}
+    .choice:active{transform:scale(.98)}
+    .choice.circled{border-style:solid;border-color:var(--accent);box-shadow:0 0 0 4px rgba(99,102,241,.15) inset}
+    .choice.correct{border-color:var(--ok);background:rgba(16,185,129,.08)}
+    .choice.wrong{border-color:var(--no);background:rgba(239,68,68,.08)}
+
+    .controls{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+    .btn{border:none;border-radius:999px;padding:10px 16px;font-weight:700;cursor:pointer}
+    .btn.primary{background:var(--accent);color:#fff}
+    .btn.ghost{background:#fff}
+    .score{font-weight:800}
+
+    /* simple SVG icons fit */
+    .icon{width:110px;height:84px}
+
+    @media (max-width:640px){
+      .row{grid-template-columns:84px 1fr;padding:10px}
+      .choices{grid-template-columns:1fr;gap:8px}
+      .choice{padding:12px}
+      .icon{width:72px;height:54px}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>MELINGKARI KATA</h1>
+      <div class="subtitle">Lingkari kata yang cocok dengan gambar. Ketuk katanya untuk <b>melingkari</b>, lalu tekan <b>Periksa Jawaban</b>.</div>
+      <div class="subtitle">Skor: <span id="score" class="score">0</span>/<span id="total">0</span></div>
+    </header>
+
+    <div id="rows" class="rows" aria-live="polite"></div>
+
+    <div class="controls">
+      <button class="btn ghost" id="shuffleBtn">Acak Soal</button>
+      <button class="btn primary" id="checkBtn">Periksa Jawaban</button>
+      <button class="btn ghost" id="resetBtn">Reset</button>
+    </div>
+  </div>
+
+  <script>
+    // --- Data Soal ---
+    const BANK = [
+      {
+        key: 'sapu', correct: 'Sapu', distractors: ['Saku','Suka'],
+        svg: svgSapu()
+      },
+      {
+        key: 'bola', correct: 'Bola', distractors: ['Boba','Buka'],
+        svg: svgBoba()
+      },
+      {
+        key: 'sofa', correct: 'Sofa', distractors: ['Sapu','Sapi'],
+        svg: svgSofa()
+      },
+      {
+        key: 'meja', correct: 'Meja', distractors: ['Maju','Muka'],
+        svg: svgMeja()
+      },
+      {
+        key: 'buku', correct: 'Buku', distractors: ['Buka','Bika'],
+        svg: svgBuku()
+      },
+      {
+        key: 'roti', correct: 'Roti', distractors: ['Roda','Roma'],
+        svg: svgRoti()
+      },
+    ];
+
+    const rowsEl = document.getElementById('rows');
+    const scoreEl = document.getElementById('score');
+    const totalEl = document.getElementById('total');
+    const state = { selections: new Map(), locked:false };
+
+    function shuffle(arr){
+      return arr.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(v=>v[1]);
+    }
+
+    function build(){
+      rowsEl.innerHTML = '';
+      state.selections.clear();
+      state.locked = false;
+      let data = shuffle([...BANK]);
+      totalEl.textContent = data.length;
+      scoreEl.textContent = '0';
+
+      data.forEach((item, idx)=>{
+        const row = document.createElement('div');
+        row.className = 'row';
+        const pic = document.createElement('div');
+        pic.className = 'pic';
+        pic.innerHTML = item.svg;
+        row.appendChild(pic);
+
+        const choices = document.createElement('div');
+        choices.className = 'choices';
+        const words = shuffle([item.correct, ...item.distractors]);
+        words.forEach(word=>{
+          const btn = document.createElement('button');
+          btn.type='button';
+          btn.className = 'choice';
+          btn.textContent = word;
+          btn.addEventListener('click', ()=>{
+            if(state.locked) return;
+            // toggle circled per row (single selection)
+            [...choices.children].forEach(c=>c.classList.remove('circled'));
+            btn.classList.toggle('circled');
+            state.selections.set(idx, word);
+          });
+          choices.appendChild(btn);
+        });
+        row.appendChild(choices);
+        rowsEl.appendChild(row);
+      });
+    }
+
+    function check(){
+      if(state.locked) return;
+      let correct = 0;
+      [...rowsEl.children].forEach((row, idx)=>{
+        const item = [...BANK].find(()=>true); // placeholder to avoid linter
+      });
+      // Evaluate using current DOM order
+      const currentRows = [...rowsEl.children];
+      currentRows.forEach((row, idx)=>{
+        const svgTitle = row.querySelector('.pic img')?.getAttribute('data-key');
+        const item = BANK.find(x=>x.key===svgTitle);
+        const chosen = state.selections.get(idx);
+        const buttons = row.querySelectorAll('.choice');
+        buttons.forEach(b=>b.classList.remove('correct','wrong'));
+        if(!chosen){ return; }
+        if(chosen === item.correct){
+          correct++;
+          [...buttons].find(b=>b.textContent===chosen)?.classList.add('correct');
+        }else{
+          [...buttons].find(b=>b.textContent===chosen)?.classList.add('wrong');
+        }
+      });
+      scoreEl.textContent = String(correct);
+      state.locked = true;
+    }
+
+    function resetChoices(){
+      state.locked = false;
+      state.selections.clear();
+      rowsEl.querySelectorAll('.choice').forEach(c=>c.classList.remove('circled','correct','wrong'));
+      scoreEl.textContent = '0';
+    }
+
+    document.getElementById('shuffleBtn').addEventListener('click', build);
+    document.getElementById('checkBtn').addEventListener('click', check);
+    document.getElementById('resetBtn').addEventListener('click', resetChoices);
+
+    // --- Image functions ---
+    function svgSapu(){
+      return `<img src="/elearn/worlds/assets/alpha17L7/sapu.png" alt="sapu" class="icon" data-key="sapu">`;
+    }
+    function svgBoba(){
+      return `<img src="/elearn/worlds/assets/alpha17L7/bola.png" alt="bola" class="icon" data-key="bola">`;
+    }
+    function svgSofa(){
+      return `<img src="/elearn/worlds/assets/alpha17L7/sofa.png" alt="sofa" class="icon" data-key="sofa">`;
+    }
+    function svgMeja(){
+      return `<img src="/elearn/worlds/assets/alpha17L7/meja.png" alt="meja" class="icon" data-key="meja">`;
+    }
+    function svgBuku(){
+      return `<img src="/elearn/worlds/assets/alpha17L7/buku.png" alt="buku" class="icon" data-key="buku">`;
+    }
+    function svgRoti(){
+      return `<img src="/elearn/worlds/assets/alpha17L7/roti.png" alt="roti" class="icon" data-key="roti">`;
+    }
+
+    // Initial render
+    build();
+  </script>
+</body>
+</html>

@@ -1,0 +1,339 @@
+
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>alpha12L4 – Melengkapi Alfabet</title>
+  <style>
+    :root{
+      --bg:#fff8fb;
+      --ink:#333;
+      --accent:#ff5aa5;
+      --good:#1aa86b;
+      --bad:#e03b3b;
+      --ring:#101010;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background:var(--bg);
+      color:var(--ink);
+      display:flex;flex-direction:column;align-items:center;gap:.75rem;
+    }
+    header{width:min(100%,900px);padding:1rem .75rem .25rem}
+    h1{margin:.25rem 0 .5rem;font-size:clamp(20px,3.6vw,32px);color:var(--accent);text-align:center}
+    .wrap{width:min(1000px,96vw);display:grid;grid-template-columns:1fr;gap:12px;align-items:start;}
+
+    /* Board */
+    .boardCard{background:#fff;border-radius:16px;box-shadow:0 6px 20px rgba(0,0,0,.06);padding:clamp(8px,1.6vw,18px)}
+    .board{
+      --size: clamp(54px, 15vw, 96px); /* circle diameter */
+      display:grid;
+      grid-template-columns: repeat(5, var(--size));
+      grid-auto-rows: var(--size);
+      gap: clamp(8px,1.8vw,16px);
+      justify-content:center;
+      margin:auto;
+      user-select:none;
+      touch-action: manipulation;
+    }
+
+    .slot{
+      width:var(--size); height:var(--size);
+      border:4px solid var(--ring);
+      border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      font-size: calc(var(--size) * .42);
+      background:#fff;
+      position:relative;
+      transition: transform .08s ease;
+    }
+    .slot.fixed{background:#fff}
+    .slot.fixed .letter{pointer-events:none;color:#111;}
+    .slot[data-letter=""]{border-color:transparent;background:transparent;}
+
+    .slot.drop-ready{outline:4px dashed #bbb; outline-offset:6px}
+    .slot.correct{border-color:var(--good)}
+    .slot.wrong{border-color:var(--bad)}
+
+    .letter{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:calc(var(--size)*.9);
+      height:calc(var(--size)*.9);
+      border-radius:50%;
+      background:#f7f7f7;
+      border:2px solid #ddd;
+      cursor:grab;
+    }
+    .bank .letter{
+      background:#ffeef6;
+      border-color:#ffd2e6;
+      font-size: 1.4em;
+      font-weight: bold;
+      color: #ff2d7a;
+    }
+    .letter:active{cursor:grabbing}
+
+    .bankCard{background:#fff;border-radius:16px;box-shadow:0 6px 20px rgba(0,0,0,.06); padding:12px; position:sticky; top:8px; z-index:2}
+    .bankTitle{margin:.25rem 0 .5rem; font-weight:700; text-align:center}
+    .bank{display:flex;flex-wrap:wrap; gap:8px; justify-content:center}
+
+    .controls{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:.25rem auto 0}
+    button{padding:.6rem .9rem;border-radius:10px;border:none;background:#111;color:#fff;font-weight:700;cursor:pointer}
+    button.secondary{background:#555}
+    button.ghost{background:#eee;color:#222}
+
+    .toast{min-height:36px;padding:.5rem .8rem;border-radius:10px;background:#111;color:#fff;font-weight:600;display:inline-flex;align-items:center;gap:.5rem}
+    .sr{position:absolute !important; clip:rect(1px,1px,1px,1px); padding:0;border:0;height:1px;width:1px; overflow:hidden;}
+
+    /* Prevent layout from overflowing on very small phones */
+    @media (max-width:400px){
+      .board{gap:8px}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Melengkapi Alfabet</h1>
+    <p style="text-align:center;margin:0 .5rem">Tarik huruf yang hilang ke lingkaran kosong. Klik satu kali untuk pilih huruf, lalu klik slot (untuk layar sentuh).</p>
+  </header>
+
+  <main class="wrap" aria-live="polite">
+    <section class="bankCard">
+      <div class="bankTitle">Huruf yang tersedia</div>
+      <div id="bank" class="bank" aria-label="Bank huruf"></div>
+      <div id="toast" class="toast" style="display:none;margin-top:10px"></div>
+    </section>
+
+    <section class="boardCard">
+      <div id="board" class="board" aria-label="Papan huruf"></div>
+      <div class="controls">
+        <button id="checkBtn">Periksa Jawaban</button>
+        <button id="resetBtn" class="secondary">Reset</button>
+        <button id="shuffleBtn" class="ghost">Acak Soal</button>
+      </div>
+    </section>
+  </main>
+
+  <div class="sr" id="live" aria-live="polite"></div>
+
+  <script>
+  (function(){
+    // Layout: 5 x 6 grid, letters placed sequentially a..z across rows.
+    // Some are fixed like pada gambar referensi.
+
+    const letters = "abcdefghijklmnopqrstuvwxyz".split("");
+
+    // Build grid mapping for 5x6 (30 cells). Last row has only 'z' as target; others filler.
+    const targets = [];
+    let idx = 0;
+    for(let r=0;r<6;r++){
+      for(let c=0;c<5;c++){
+        const k = r*5+c;
+        if(idx < letters.length){
+          targets.push({ letter: letters[idx], fixed:false });
+          idx++;
+        }else{
+          // filler empty cell
+          targets.push({ letter: "", fixed:false });
+        }
+      }
+    }
+
+    // Fix the letters according to the reference image positions
+    // Row-major positions (0-based). Fixed letters list from image:
+    // a,c,d on row1; f,g,i on row2; m,o on row3; p,s on row4; x on row5; z on row6.
+    const fixedLetters = new Set(['a','c','d','f','g','i','m','o','p','s','x','z']);
+
+    targets.forEach(t=>{ if(fixedLetters.has(t.letter)) t.fixed = true; });
+
+    const board = document.getElementById('board');
+    const bank = document.getElementById('bank');
+    const toast = document.getElementById('toast');
+    const live = document.getElementById('live');
+
+    function el(tag, cls, html){
+      const e = document.createElement(tag);
+      if(cls) e.className = cls;
+      if(html!==undefined) e.innerHTML = html;
+      return e;
+    }
+
+    function buildBoard(){
+      board.innerHTML = '';
+      targets.forEach((t,i)=>{
+        const slot = el('div','slot');
+        slot.dataset.index = i;
+        slot.dataset.letter = t.letter; // empty string for filler
+        if(!t.letter){
+          // filler cell, hide ring
+          slot.setAttribute('aria-hidden','true');
+          slot.style.borderColor = 'transparent';
+          slot.style.background = 'transparent';
+        } else if(t.fixed){
+          slot.classList.add('fixed');
+          const l = el('div','letter'); l.textContent = t.letter; slot.appendChild(l);
+        } else {
+          // dropzone
+          slot.setAttribute('data-accept', t.letter);
+          slot.addEventListener('dragover', onDragOver);
+          slot.addEventListener('drop', onDrop);
+          slot.addEventListener('click', ()=> placeSelected(slot));
+        }
+        board.appendChild(slot);
+      });
+    }
+
+    function missingLetters(){
+      return targets.filter(t=>t.letter && !t.fixed).map(t=>t.letter);
+    }
+
+    function shuffle(arr){
+      for(let i=arr.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [arr[i],arr[j]]=[arr[j],arr[i]];
+      }
+      return arr;
+    }
+
+    function buildBank(){
+      bank.innerHTML = '';
+      const letters = shuffle(missingLetters().slice());
+      letters.forEach(ch=> bank.appendChild(makeTile(ch)) );
+    }
+
+    function makeTile(ch){
+      const t = el('div','letter');
+      t.setAttribute('draggable','true');
+      t.dataset.letter = ch;
+      t.textContent = ch;
+      t.addEventListener('dragstart', e=>{
+        e.dataTransfer.setData('text/plain', ch);
+        selected = t; // also mark as selected for touch fallback
+        setTimeout(()=> t.classList.add('dragging'),0);
+      });
+      t.addEventListener('dragend', ()=> t.classList.remove('dragging'));
+      t.addEventListener('click', ()=>{
+        // select/unselect for touch
+        if(selected===t){ selected=null; t.style.outline=''; live.textContent='Batal pilih'; return; }
+        if(selected) selected.style.outline='';
+        selected = t; t.style.outline='3px solid #999'; live.textContent = `Huruf ${ch} dipilih`;
+      });
+      return t;
+    }
+
+    function onDragOver(e){ e.preventDefault(); }
+
+    function onDrop(e){
+      e.preventDefault();
+      const ch = e.dataTransfer.getData('text/plain');
+      const slot = e.currentTarget;
+      dropInto(slot, ch);
+    }
+
+    function dropInto(slot, ch){
+      if(!slot || !ch) return;
+      const existing = slot.querySelector('.letter');
+      // If tile comes from bank or another slot
+      let tile = selected && selected.dataset.letter===ch ? selected : null;
+      if(!tile){
+        // find a tile in bank with that letter
+        tile = [...bank.children].find(n=>n.dataset.letter===ch);
+      }
+      if(!tile) return;
+
+      // If slot already has a tile, send it back to bank
+      if(existing){ bank.appendChild(existing); existing.style.outline=''; }
+      slot.appendChild(tile); tile.style.outline=''; selected=null;
+    }
+
+    // Click-to-place fallback
+    let selected = null;
+    function placeSelected(slot){
+      if(!selected) return;
+      dropInto(slot, selected.dataset.letter);
+    }
+
+    function showToast(msg, ok=false){
+      toast.textContent = msg;
+      toast.style.background = ok ? 'var(--good)' : '#111';
+      toast.style.display = 'inline-flex';
+      setTimeout(()=> toast.style.display='none', 2200);
+    }
+
+    function check(){
+      let all = true; let filled=0; let correct=0;
+      board.querySelectorAll('.slot').forEach(slot=>{
+        slot.classList.remove('correct','wrong');
+        const key = slot.dataset.letter;
+        if(!key) return; // filler
+        if(slot.classList.contains('fixed')) return; // fixed
+        const tile = slot.querySelector('.letter');
+        if(!tile){ all=false; return; }
+        filled++;
+        const ok = tile.dataset.letter === key;
+        if(ok){ slot.classList.add('correct'); correct++; }
+        else { slot.classList.add('wrong'); all=false; }
+      });
+      if(filled===0){ showToast('Isi dulu beberapa huruf ya 😊'); return; }
+      if(all){ showToast('Mantap! Semua huruf benar! 🎉', true); }
+      else { showToast(`Benar ${correct} / ${missingLetters().length}. Coba lagi!`); }
+    }
+
+    function resetBoard(){
+      // Move all non-fixed letters back to bank
+      board.querySelectorAll('.slot').forEach(slot=>{
+        slot.classList.remove('correct','wrong');
+        if(!slot.dataset.letter || slot.classList.contains('fixed')) return;
+        const tile = slot.querySelector('.letter');
+        if(tile){ bank.appendChild(tile); }
+      });
+      // clear selection/outline
+      [...bank.children].forEach(n=> n.style.outline='');
+      selected=null; showToast('Sudah di-reset');
+    }
+
+    function shuffleBank(){
+      // Keep order a..z; only change which letters are fixed (shown) vs blank (to be filled)
+      // Count current number of fixed letters among non-empty targets
+      const letterIndices = [];
+      let fixedCount = 0;
+      targets.forEach((t, i) => {
+        if(t.letter){
+          letterIndices.push(i);
+          if(t.fixed) fixedCount++;
+        }
+      });
+
+      // Clear fixed flags
+      letterIndices.forEach(i => { targets[i].fixed = false; });
+
+      // Randomly choose which letters will be fixed, preserving the same count
+      const pick = letterIndices.slice();
+      shuffle(pick);
+      const chosen = pick.slice(0, fixedCount);
+      chosen.forEach(i => { targets[i].fixed = true; });
+
+      // Rebuild UI
+      buildBoard();
+      buildBank();
+      showToast('Urutan a–z tetap, posisi kosong diacak');
+    }
+
+    // Build UI
+    buildBoard();
+    buildBank();
+
+    document.getElementById('checkBtn').addEventListener('click', check);
+    document.getElementById('resetBtn').addEventListener('click', resetBoard);
+    document.getElementById('shuffleBtn').addEventListener('click', shuffleBank);
+  })();
+  </script>
+</body>
+</html>

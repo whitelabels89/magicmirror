@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Menulis Huruf Vokal</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    margin: 0;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  h1 {
+    font-weight: bold;
+    margin-bottom: 5px;
+    text-align: center;
+  }
+  p.instruction {
+    margin-top: 0;
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 1.1em;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(5, 80px);
+    grid-template-rows: repeat(5, 80px);
+    gap: 14px;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  .box {
+    width: 80px;
+    height: 80px;
+    color: black;
+    font-size: 42px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid transparent;
+    box-sizing: border-box;
+    user-select: none;
+  }
+  .green { background-color: #6BBF59; }
+  .pink { background-color: #F28C8C; }
+  .yellow { background-color: #F6D55C; }
+  .blue { background-color: #70C1B3; }
+  .purple { background-color: #A594F9; }
+  input.vowel-input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    font-size: 42px;
+    font-weight: bold;
+    text-align: center;
+    background: transparent;
+    outline: none;
+    color: black;
+    font-family: Arial, sans-serif;
+  }
+  button {
+    padding: 10px 20px;
+    font-size: 1.1em;
+    cursor: pointer;
+    border: none;
+    background-color: #6BBF59;
+    color: white;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+    margin-top: 10px;
+  }
+  button:hover {
+    background-color: #5aa34b;
+  }
+  /* Border colors for check results */
+  .correct {
+    border-color: green !important;
+  }
+  .wrong {
+    border-color: red !important;
+  }
+  /* Responsive */
+  @media (max-width: 400px) {
+    .grid {
+      grid-template-columns: repeat(5, 60px);
+      grid-template-rows: repeat(5, 60px);
+      gap: 12px;
+    }
+    .box {
+      width: 60px;
+      height: 60px;
+      font-size: 32px;
+    }
+    input.vowel-input {
+      font-size: 32px;
+    }
+    button {
+      font-size: 1em;
+      padding: 8px 16px;
+    }
+  }
+</style>
+</head>
+<body>
+<h1>Menulis Huruf Vokal</h1>
+<p class="instruction">Tulis huruf vokal pada setiap kotak sesuai dengan warnanya!</p>
+<div class="grid" aria-label="Grid menulis huruf vokal" id="gridContainer">
+  <!-- Grid cells will be populated dynamically -->
+</div>
+<button id="checkBtn" type="button">Periksa Jawaban</button>
+<button id="shuffleBtn" type="button">Acak Ulang</button>
+
+<script>
+  (function() {
+    const vowelMap = {
+      green: 'a',
+      pink: 'i',
+      yellow: 'u',
+      blue: 'e',
+      purple: 'o'
+    };
+
+    // Data for all 25 grid cells (5x5)
+    // Each item: { color: string, value: string|null }
+    // value null means input box, otherwise pre-filled letter
+    // Based on original layout:
+    // Row 1: all prefilled
+    // Row 2: green input, pink input, yellow input, blue prefilled 'e', purple input
+    // Row 3: blue input, pink input, green input, yellow input, purple input
+    // Row 4: yellow input, purple input, blue input, pink input, green input
+    // Row 5: (no row 5 originally, so fill with inputs or prefilled as needed - original only 4 rows)
+    // The original code only has 4 rows, but grid is 5x5, so we will fill last row with inputs with colors cycling
+
+    const baseData = [
+      // Row 1
+      {color: 'green', value: 'a'},
+      {color: 'pink', value: 'i'},
+      {color: 'yellow', value: 'u'},
+      {color: 'blue', value: 'e'},
+      {color: 'purple', value: 'o'},
+      // Row 2
+      {color: 'green', value: null},
+      {color: 'pink', value: null},
+      {color: 'yellow', value: null},
+      {color: 'blue', value: null},
+      {color: 'purple', value: null},
+      // Row 3
+      {color: 'blue', value: null},
+      {color: 'pink', value: null},
+      {color: 'green', value: null},
+      {color: 'yellow', value: null},
+      {color: 'purple', value: null},
+      // Row 4
+      {color: 'yellow', value: null},
+      {color: 'purple', value: null},
+      {color: 'blue', value: null},
+      {color: 'pink', value: null},
+      {color: 'green', value: null},
+      // Row 5 - fill with inputs cycling colors for balance
+      {color: 'purple', value: null},
+      {color: 'blue', value: null},
+      {color: 'yellow', value: null},
+      {color: 'pink', value: null},
+      {color: 'green', value: null}
+    ];
+
+    // Fisher-Yates shuffle
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    const gridContainer = document.getElementById('gridContainer');
+
+    const fixedRow = [
+      {color: 'green', value: 'a'},
+      {color: 'pink', value: 'i'},
+      {color: 'yellow', value: 'u'},
+      {color: 'blue', value: 'e'},
+      {color: 'purple', value: 'o'},
+    ];
+
+    function renderGrid() {
+      gridContainer.innerHTML = '';
+      const remainingCells = baseData.slice(5);
+      shuffle(remainingCells);
+      const gridData = fixedRow.concat(remainingCells);
+
+      gridData.forEach((cellData, index) => {
+        const box = document.createElement('div');
+        box.classList.add('box', cellData.color);
+        box.setAttribute('data-color', cellData.color);
+        if (cellData.value === null) {
+          // Create input
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.maxLength = 1;
+          input.classList.add('vowel-input');
+          input.setAttribute('aria-label', `Kotak ${cellData.color} nomor ${index + 1}`);
+          box.appendChild(input);
+        } else {
+          box.textContent = cellData.value;
+        }
+        gridContainer.appendChild(box);
+      });
+    }
+
+    renderGrid();
+
+    const checkBtn = document.getElementById('checkBtn');
+    checkBtn.addEventListener('click', () => {
+      const boxes = document.querySelectorAll('.box');
+      boxes.forEach(box => {
+        box.classList.remove('correct', 'wrong');
+        const color = box.getAttribute('data-color');
+        const expected = vowelMap[color];
+        // Check if box has input or text
+        const input = box.querySelector('input.vowel-input');
+        let value = '';
+        if (input) {
+          value = input.value.trim().toLowerCase();
+        } else {
+          value = box.textContent.trim().toLowerCase();
+        }
+        if (value === expected) {
+          box.classList.add('correct');
+        } else {
+          // Only mark wrong if input box (empty or wrong)
+          if (input) {
+            box.classList.add('wrong');
+          }
+        }
+      });
+    });
+
+    const shuffleBtn = document.getElementById('shuffleBtn');
+    shuffleBtn.addEventListener('click', () => {
+      renderGrid();
+    });
+  })();
+</script>
+</body>
+</html>

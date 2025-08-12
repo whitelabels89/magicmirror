@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Alpha22 L10 – Word Search Sekolah</title>
+  <style>
+    :root{
+      --bg:#ffffff;
+      --ink:#222;
+      --primary:#5f7cff; /* judul biru seperti referensi */
+      --ok:#2ecc71;
+      --warn:#ff7675;
+      --grid:#111;
+      --cell:#fff;
+      --found:#d8f9e6;
+      --hover:#eef2ff;
+    }
+    html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
+    .wrap{max-width:960px;margin:0 auto;padding:16px 16px 96px}
+
+    /* Judul pill seperti gambar */
+    .pill{
+      display:inline-block;
+      background:var(--primary);
+      color:#fff;
+      font-weight:800;
+      font-size:clamp(18px,2.8vw,32px);
+      line-height:1.2;
+      padding:14px 20px;
+      border-radius:18px;
+      box-shadow:0 6px 0 #3d57d7;
+    }
+
+    .subtitle{margin-top:6px;opacity:.9}
+
+    .board{
+      margin:28px auto 16px;
+      width:min(92vw,900px);
+      aspect-ratio:12/9; /* 12 kolom x 9 baris */
+      display:grid;
+      grid-template-columns:repeat(12,1fr);
+      grid-template-rows:repeat(9,1fr);
+      border:4px solid var(--grid);
+      border-radius:8px;
+      overflow:hidden;
+      user-select:none;
+      -webkit-user-select:none;
+      touch-action:none;
+      background:#fff;
+    }
+    .cell{
+      position:relative;
+      display:flex;align-items:center;justify-content:center;
+      border:1px solid #00000020;
+      font-weight:800;
+      font-size:clamp(18px,2.8vw,28px);
+      background:var(--cell);
+      transition:background .08s, color .08s, transform .06s;
+    }
+    .cell.hover{background:var(--hover)}
+    .cell.selected{background:#cfe3ff}
+    .cell.found{background:var(--found); color:#12834a}
+
+    .words{
+      display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:8px 22px; margin-top:18px; font-weight:700; font-size:18px;
+    }
+    .word{display:flex;align-items:center;gap:8px}
+    .dot{width:10px;height:10px;border-radius:50%;background:#ddd;box-shadow:inset 0 0 0 2px #bbb}
+    .word.found .dot{background:var(--ok); box-shadow:inset 0 0 0 2px #0e8a47}
+
+    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+    button{border:0;padding:10px 14px;border-radius:10px;font-weight:800;cursor:pointer}
+    .reset{background:#f1f3f9}
+    .check{background:var(--primary);color:#fff}
+
+    .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#111;color:#fff;padding:10px 14px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s}
+    .toast.show{opacity:1}
+
+    /* Pastikan tidak ketutup HUD / safe area */
+    @media (max-width:768px){
+      .wrap{padding-bottom:140px}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="pill">TARIK GARIS KATA YANG SESUAI</div>
+
+    <div id="board" class="board" aria-label="Word Search Grid"></div>
+
+    <div class="words" id="wordList"></div>
+
+    <div class="controls">
+      <button class="reset" id="btnReset">Ulangi</button>
+      <button class="reset" id="btnShuffle">Acak Kata</button>
+      <button class="check" id="btnCheck">Periksa Jawaban</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Mantap! Semua kata ditemukan 🎉</div>
+
+  <script>
+    // ====== Bangun Grid berisi kata Indonesia ======
+    const ROWS = 9, COLS = 12;
+    let GRID_ROWS = null; // akan diisi oleh generateGrid()
+
+    // Pool kata (key = huruf Indonesia yang akan dicari)
+    const WORD_POOL = [
+      {key:"SEKOLAH", label:"SEKOLAH"},
+      {key:"KELAS", label:"KELAS"},
+      {key:"GURU", label:"GURU"},
+      {key:"MURID", label:"MURID"},
+      {key:"BUKU", label:"BUKU"},
+      {key:"TAS", label:"TAS"},
+      {key:"PENSIL", label:"PENSIL"},
+      {key:"MEJA", label:"MEJA"},
+      {key:"PELAJARAN", label:"PELAJARAN"},
+      {key:"UJIAN", label:"UJIAN"},
+      {key:"LAB", label:"LAB"},
+      {key:"PERPUSTAKAAN", label:"PERPUSTAKAAN"},
+    ];
+
+    // Generator penempatan kata ke dalam grid
+    function createEmptyGrid(r,c){ return Array.from({length:r},()=>Array(c).fill(null)); }
+    function randInt(n){ return Math.floor(Math.random()*n); }
+    const GEN_DIRS = [[0,1],[1,0]]; // hanya kiri->kanan dan atas->bawah
+
+    function canPlace(grid, word, r,c, dr,dc){
+      const R=grid.length, C=grid[0].length;
+      for(let i=0;i<word.length;i++){
+        const rr=r+i*dr, cc=c+i*dc;
+        if(rr<0||rr>=R||cc<0||cc>=C) return false;
+        const ch=grid[rr][cc];
+        if(ch!==null && ch!==word[i]) return false;
+      }
+      return true;
+    }
+    function placeWord(grid, word){
+      const tries=400;
+      for(let t=0;t<tries;t++){
+        const [dr,dc] = GEN_DIRS[randInt(GEN_DIRS.length)];
+        const r = randInt(grid.length);
+        const c = randInt(grid[0].length);
+        if(canPlace(grid,word,r,c,dr,dc)){
+          for(let i=0;i<word.length;i++){
+            const rr=r+i*dr, cc=c+i*dc;
+            grid[rr][cc]=word[i];
+          }
+          return true;
+        }
+      }
+      return false;
+    }
+    function fillRandom(grid){
+      const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      for(let r=0;r<grid.length;r++) for(let c=0;c<grid[0].length;c++){
+        if(grid[r][c]==null) grid[r][c]=letters[randInt(letters.length)];
+      }
+      return grid;
+    }
+    function generateGrid(words, rows=ROWS, cols=COLS){
+      const grid = createEmptyGrid(rows, cols);
+      // Urutkan dari terpanjang biar gampang muat
+      const list = words.slice().sort((a,b)=>b.length-a.length);
+      list.forEach(w=>placeWord(grid, w));
+      fillRandom(grid);
+      return grid.map(row=>row.join(""));
+    }
+    // Bangun GRID_ROWS berdasarkan semua key Indonesia
+    GRID_ROWS = generateGrid(WORD_POOL.map(w=>w.key), ROWS, COLS);
+
+
+    // Build board
+    const boardEl = document.getElementById('board');
+    const wordListEl = document.getElementById('wordList');
+
+    const rows = GRID_ROWS.length, cols = GRID_ROWS[0].length;
+    const cells = []; // 2D array of elements
+
+    function buildBoard(){
+      boardEl.innerHTML = "";
+      const rows = GRID_ROWS.length, cols = GRID_ROWS[0].length;
+      cells.length = 0;
+      for(let r=0;r<rows;r++){
+        cells[r] = [];
+        for(let c=0;c<cols;c++){
+          const ch = GRID_ROWS[r][c];
+          const div = document.createElement('div');
+          div.className = 'cell';
+          div.textContent = ch;
+          div.dataset.r = r;
+          div.dataset.c = c;
+          boardEl.appendChild(div);
+          cells[r][c] = div;
+        }
+      }
+    }
+    // Initial build
+    buildBoard();
+
+    function shuffle(arr){
+      for(let i=arr.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [arr[i],arr[j]]=[arr[j],arr[i]];
+      }
+      return arr;
+    }
+    function existsInGrid(key){
+      return !!findWordAnywhere(key);
+    }
+    let WORDS = []; // active round
+    let wordState = new Map();
+    function initWordList(randomize=true){
+      // Filter hanya kata yang benar-benar ada di grid
+      const available = WORD_POOL.filter(w => existsInGrid(w.key));
+      // Jika minta acak, pilih subset; default pilih 8-12 kata (atau semua jika kurang)
+      let picked = available.slice();
+      if(randomize){
+        shuffle(picked);
+        const n = Math.min(10, picked.length); // tampilkan 10 bila tersedia
+        picked = picked.slice(0, n);
+      }
+      WORDS = picked;
+      wordState = new Map();
+      // Render list
+      wordListEl.innerHTML = "";
+      WORDS.forEach(w=>{
+        const item = document.createElement('div');
+        item.className = 'word';
+        item.dataset.key=w.key;
+        item.innerHTML = `<span class="dot"></span><span>${w.label}</span>`;
+        wordListEl.appendChild(item);
+        wordState.set(w.key,{found:false, path:[]});
+      });
+    }
+
+    // Word list UI
+    // Removed old initialization block
+
+    // Search utilities
+    const DIRS = [
+      [0,1],[1,0],[0,-1],[-1,0], // 4 arah
+      [1,1],[1,-1],[-1,1],[-1,-1] // diagonal
+    ];
+
+    function isInside(r,c){return r>=0 && r<rows && c>=0 && c<cols}
+
+    function findWordFrom(r,c, key){
+      key = key.toUpperCase();
+      if(GRID_ROWS[r][c]!==key[0]) return null;
+      for(const [dr,dc] of DIRS){
+        let rr=r, cc=c; const path=[[r,c]]; let ok=true;
+        for(let i=1;i<key.length;i++){
+          rr+=dr; cc+=dc;
+          if(!isInside(rr,cc) || GRID_ROWS[rr][cc]!==key[i]){ ok=false; break; }
+          path.push([rr,cc]);
+        }
+        if(ok) return path;
+      }
+      return null;
+    }
+
+    function findWordAnywhere(key){
+      for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+        const path = findWordFrom(r,c,key);
+        if(path) return path;
+      }
+      return null;
+    }
+
+    // Cocokkan trail (mungkin terlalu panjang) dengan kata manapun.
+    // Mengembalikan {word, slicePath} bila cocok; jika tidak, null.
+    function matchTrailToAnyWord(trail){
+      if(trail.length < 2) return null;
+
+      // Pastikan trail berada pada satu garis lurus (8 arah). Ambil arah dari 2 titik pertama.
+      const [r0,c0] = trail[0];
+      let dr = 0, dc = 0;
+      for(let i=1;i<trail.length;i++){
+        const rr = trail[i][0]-trail[i-1][0];
+        const cc = trail[i][1]-trail[i-1][1];
+        if(rr!==0 || cc!==0){ dr = Math.sign(rr); dc = Math.sign(cc); break; }
+      }
+      if(dr===0 && dc===0) return null;
+
+      // Normalkan trail agar benar-benar lurus di arah (dr,dc) dengan menghapus langkah yang menyimpang.
+      const straight = [trail[0]];
+      for(let i=1;i<trail.length;i++){
+        const [pr,pc] = straight[straight.length-1];
+        const [cr,cc] = trail[i];
+        const rr = cr - pr, cc2 = cc - pc;
+        if(Math.sign(rr)===dr && Math.sign(cc2)===dc && Math.abs(rr)<=1 && Math.abs(cc2)<=1){
+          straight.push([cr,cc]);
+        }
+      }
+
+      // Bentuk string huruf dari jalur "straight"
+      const letters = straight.map(([r,c]) => GRID_ROWS[r][c]).join('');
+
+      // Cek tiap kata: hanya arah maju (tidak menerima kebalikan)
+      for(const w of WORDS){
+        const st = wordState.get(w.key);
+        if(st?.found) continue;
+
+        const key = w.key;
+        const idx = letters.indexOf(key);
+        if(idx !== -1){
+          const slicePath = straight.slice(idx, idx + key.length);
+          return { word:w, slicePath };
+        }
+      }
+      return null;
+    }
+
+    // Pointer selection logic (mouse + touch)
+    let selecting=false; let startCell=null; let trail=[];
+
+    function cellFromPoint(x,y){
+      const el = document.elementFromPoint(x,y);
+      return el?.classList.contains('cell')? el : null;
+    }
+
+    function onPointerDown(e){
+      const t = e.target.closest('.cell');
+      if(!t) return;
+      // jika sebelumnya ada trail yang belum diperiksa, bersihkan seleksi lama
+      if(trail.length){
+        document.querySelectorAll('.cell.selected').forEach(el=>el.classList.remove('selected'));
+        trail = [];
+        startCell = null;
+      }
+      selecting=true; startCell=t; trail=[[+t.dataset.r,+t.dataset.c]];
+      t.classList.add('selected');
+    }
+
+    function onPointerMove(e){
+      if(!selecting) return;
+      const p = (e.touches? e.touches[0] : e);
+      const t = cellFromPoint(p.clientX,p.clientY);
+      if(!t || t===trail.at(-1)?.el) return;
+      if(!t.classList.contains('cell')) return;
+      const r=+t.dataset.r,c=+t.dataset.c;
+      const last=trail.at(-1); const lr=last[0], lc=last[1];
+      // ensure continuous straight line (8 dirs). If not aligned, ignore.
+      const dr = Math.sign(r-lr), dc=Math.sign(c-lc);
+      if(Math.abs(r-lr)<=1 && Math.abs(c-lc)<=1){
+        if(trail.length===1 || (r-lr===dr && c-lc===dc)){
+          trail.push([r,c]);
+          t.classList.add('selected');
+        }
+      }
+    }
+
+    function onPointerUp(){
+      if(!selecting) return;
+      selecting=false;
+      if(trail.length === 0) return;
+      const result = matchTrailToAnyWord(trail);
+      if(result){
+        const { word, slicePath } = result;
+        // Langsung tandai found
+        document.querySelectorAll('.cell.selected').forEach(el=>el.classList.remove('selected'));
+        markWordFound(word.key, slicePath);
+        trail = [];
+        startCell = null;
+      }
+      // Jika salah, biarkan seleksi tetap agar bisa diperiksa manual via tombol
+    }
+
+    boardEl.addEventListener('mousedown', onPointerDown);
+    boardEl.addEventListener('mousemove', onPointerMove);
+    window.addEventListener('mouseup', onPointerUp);
+
+    boardEl.addEventListener('touchstart', (e)=>{e.preventDefault(); onPointerDown(e)} ,{passive:false});
+    boardEl.addEventListener('touchmove', (e)=>{e.preventDefault(); onPointerMove(e)}, {passive:false});
+    boardEl.addEventListener('touchend', (e)=>{e.preventDefault(); onPointerUp(e)}, {passive:false});
+
+    // Buttons
+    document.getElementById('btnReset').addEventListener('click', resetBoard);
+    document.getElementById('btnShuffle').addEventListener('click', ()=>{
+      // regenerate the GRID_ROWS with a new random grid
+      GRID_ROWS = generateGrid(WORD_POOL.map(w=>w.key), ROWS, COLS);
+      // rebuild the visual board
+      buildBoard();
+      // re-initialize the word list
+      initWordList(true);
+    });
+    document.getElementById('btnCheck').addEventListener('click', ()=>{
+      if(trail.length === 0){
+        showToast('Pilih huruf berurutan dulu.');
+        return;
+      }
+      const result = matchTrailToAnyWord(trail);
+      if(result){
+        const { word, slicePath } = result;
+        // Hapus highlight selected dulu, lalu tandai found
+        document.querySelectorAll('.cell.selected').forEach(el=>el.classList.remove('selected'));
+        markWordFound(word.key, slicePath);
+      }else{
+        // Salah: bersihkan seleksi dan beri pesan
+        document.querySelectorAll('.cell.selected').forEach(el=>el.classList.remove('selected'));
+        showToast('Belum tepat. Tarik dari kiri→kanan atau atas→bawah.');
+      }
+      // reset buffer apapun hasilnya
+      trail = [];
+      startCell = null;
+    });
+
+    function markWordFound(key, path){
+      const st = wordState.get(key);
+      if(st.found) return; // already
+      st.found = true; st.path = path;
+      path.forEach(([r,c])=>cells[r][c].classList.add('found'));
+      document.querySelector(`.word[data-key="${key}"]`)?.classList.add('found');
+      checkAllDone();
+    }
+
+    function resetBoard(){
+      document.querySelectorAll('.cell.selected,.cell.found').forEach(el=>{
+        el.classList.remove('selected','found');
+      });
+      document.querySelectorAll('.word.found').forEach(el=>el.classList.remove('found'));
+      wordState.forEach((v,k)=>{v.found=false; v.path=[]});
+    }
+
+    function checkAllDone(){
+      const allFound = [...wordState.values()].every(v => v.found);
+      if(allFound){
+        showToast('Mantap! Semua kata ditemukan 🎉');
+      }
+    }
+
+    function showToast(msg){
+      const t=document.getElementById('toast');
+      t.textContent=msg; t.classList.add('show');
+      clearTimeout(showToast._t);
+      showToast._t=setTimeout(()=>t.classList.remove('show'),2000);
+    }
+
+    // Initialize word list with random selection
+    initWordList(true);
+  </script>
+</body>
+</html>

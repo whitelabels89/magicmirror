@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alpha8L2 – Sambungkan Huruf a–z</title>
+  <style>
+    :root{
+      --bg:#fffaf6;
+      --ink:#222;
+      --accent:#4f46e5;
+      --good:#16a34a;
+      --bad:#ef4444;
+      --node:#ffe6e6;
+      --shadow:0 6px 18px rgba(0,0,0,.08);
+    }
+    html,body{height:100%;}
+    body{
+      margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+      background:var(--bg); color:var(--ink); overflow:hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+    header{
+      display:flex; gap:.5rem; align-items:center; justify-content:space-between;
+      padding:.75rem 1rem; background:#ffffffcc; backdrop-filter: blur(6px);
+      border-bottom:1px solid #eee; position:sticky; top:0; z-index:5;
+    }
+    .left, .right{display:flex; gap:.5rem; align-items:center}
+    h1{font-size:clamp(16px,2.6vw,22px); margin:0; font-weight:800; letter-spacing:.4px}
+    .hint{font-size:clamp(12px,2vw,14px); opacity:.8}
+
+    button{
+      border:1px solid #e6e6e6; background:#fff; padding:.55rem .8rem; border-radius:.6rem; cursor:pointer;
+      font-weight:600; box-shadow:var(--shadow); transition:.2s transform, .2s box-shadow;
+    }
+    button:active{ transform:translateY(1px); box-shadow:0 2px 10px rgba(0,0,0,.06)}
+
+    .wrap{ position:relative; height: calc(100vh - 64px); }
+    .board{
+      position:absolute; inset:0; padding: clamp(10px, 3vw, 24px);
+    }
+    canvas{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+
+    .nodes{ position:absolute; inset:0; }
+    .node{
+      position:absolute; display:grid; place-items:center; user-select:none; -webkit-user-select:none; touch-action:manipulation;
+      width:clamp(44px, 7vw, 70px); height:clamp(44px, 7vw, 70px);
+      background:var(--node); border-radius:14px; border:2px solid #efefef; box-shadow:var(--shadow);
+      font-weight:800; font-size:clamp(20px, 3.8vw, 28px);
+      transform: translate(-50%, -50%);
+    }
+    .node.hintpair{
+      background:#1d4ed8; /* blue-700 */
+      border-color:#93c5fd; /* blue-300 */
+      color:#fff;
+      box-shadow:0 0 0 0 rgba(29,78,216,.35);
+      animation:hintPulse 1.2s ease-in-out infinite;
+    }
+    @keyframes hintPulse{
+      0%{ transform:translate(-50%,-50%) scale(1); box-shadow:0 0 0 0 rgba(29,78,216,.35)}
+      70%{ transform:translate(-50%,-50%) scale(1.06); box-shadow:0 0 0 14px rgba(29,78,216,0)}
+      100%{ transform:translate(-50%,-50%) scale(1); box-shadow:0 0 0 0 rgba(29,78,216,0)}
+    }
+    .node.done{ background:#e8ffe8; border-color:#d1fadf; color:#155e29 }
+    .node.bad{ animation:shake .25s linear 1 }
+    @keyframes shake{0%,100%{transform:translate(-50%,-50%) translateX(0)}25%{transform:translate(-50%,-50%) translateX(-4px)}75%{transform:translate(-50%,-50%) translateX(4px)}}
+
+    .footer{
+      position:absolute; left:0; right:0; bottom:0; padding:.5rem 1rem; display:flex; justify-content:center; gap:.75rem; z-index:4;
+    }
+    .badge{padding:.35rem .6rem; border-radius:.5rem; background:#f3f4f6; font-size:12px}
+    .success{color:var(--good)}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="left">
+      <h1>Menyambungkan Huruf a–z</h1>
+      <div class="hint" id="nextHint">Huruf berikutnya: <strong>a</strong></div>
+    </div>
+    <div class="right">
+      <button id="btnShuffle" title="Acak posisi huruf">🔀 Acak Soal</button>
+      <button id="btnReset" title="Hapus garis">↺ Reset</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="board" id="board">
+      <canvas id="lines"></canvas>
+      <div class="nodes" id="nodes"></div>
+    </div>
+    <div class="footer">
+      <span class="badge">Tips: klik huruf sesuai urutan abjad (a → b → c …).</span>
+      <span class="badge" id="status"></span>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const letters = Array.from({length:26}, (_,i)=>String.fromCharCode(97+i)); // a..z
+  const nodesEl = document.getElementById('nodes');
+  const board = document.getElementById('board');
+  const canvas = document.getElementById('lines');
+  const ctx = canvas.getContext('2d');
+  const nextHint = document.getElementById('nextHint');
+  const status = document.getElementById('status');
+  const btnShuffle = document.getElementById('btnShuffle');
+  const btnReset = document.getElementById('btnReset');
+  const footerEl = document.querySelector('.footer');
+
+  let expectedIndex = 0; // expecting letters[expectedIndex]
+  let order = [];        // shuffled layout letters
+  let positions = new Map(); // letter -> {x,y} in px relative to board
+  let lastLetter = null;
+
+  function resizeCanvas(){
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+    const rect = board.getBoundingClientRect();
+    canvas.width = Math.floor(rect.width * dpr);
+    canvas.height = Math.floor(rect.height * dpr);
+    canvas.style.width = rect.width + 'px';
+    canvas.style.height = rect.height + 'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    redrawLines();
+  }
+
+  function percentToPx(xPercent, yPercent){
+    const rect = board.getBoundingClientRect();
+    return { x: rect.width * xPercent/100, y: rect.height * yPercent/100 };
+  }
+
+  function drawLine(a, b, color){
+    ctx.lineWidth = 3; ctx.lineJoin='round'; ctx.lineCap='round';
+    ctx.strokeStyle = color || getComputedStyle(document.documentElement).getPropertyValue('--accent') || '#4f46e5';
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+  }
+
+  function redrawLines(){
+    ctx.clearRect(0,0,canvas.width, canvas.height); // canvas already scaled in CSS
+    // draw lines between a->b->c already done
+    let prev = null;
+    for(let i=0;i<expectedIndex;i++){
+      const letter = letters[i];
+      const point = positions.get(letter);
+      if(prev) drawLine(prev, point);
+      prev = point;
+    }
+  }
+
+  function setNextHint(){
+    const next = letters[expectedIndex] || null;
+    nextHint.innerHTML = next ? `Huruf berikutnya: <strong>${next}</strong>` : `<span class="success">Selesai! 🎉</span>`;
+    // Only a & b have blue hint cards (set at creation). Nothing else changes here.
+  }
+
+  function clearBoard(){
+    nodesEl.innerHTML='';
+    positions.clear();
+    lastLetter=null; expectedIndex=0; status.textContent='';
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+
+  function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
+  function rand(min, max){ return Math.random()*(max-min)+min; }
+  function dist(a,b){ const dx=a.x-b.x, dy=a.y-b.y; return Math.hypot(dx,dy); }
+
+  function createBoard(){
+    clearBoard();
+    order = [...letters];
+    for(let i=order.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [order[i],order[j]]=[order[j],order[i]]; }
+
+    const rect = board.getBoundingClientRect();
+    const footerSafe = (footerEl?.getBoundingClientRect().height || 0) + 8; // px to avoid footer overlap
+    const nodeSize = clamp(rect.width*0.06, 44, 70);
+    const minDist = nodeSize*1.1;
+    const half = nodeSize/2;
+    const edge = Math.max(16, nodeSize*0.25); // visual margin from edges
+    const minX = half + edge;
+    const maxX = rect.width - half - edge;
+    const minY = half + edge;
+    const maxY = rect.height - half - edge - footerSafe;
+
+    const placed = []; // array of {x,y,letter}
+
+    function placeNear(prev){
+      const rMin = nodeSize*1.6, rMax = nodeSize*3.2;
+      for(let tries=0; tries<60; tries++){
+        const ang = rand(0, Math.PI*2);
+        const r = rand(rMin, rMax) * (1 + tries/80);
+        let x = prev.x + Math.cos(ang)*r;
+        let y = prev.y + Math.sin(ang)*r;
+        x = clamp(x, minX, maxX);
+        y = clamp(y, minY, maxY);
+        const ok = placed.every(p => dist(p,{x,y}) > minDist);
+        if(ok) return {x,y};
+      }
+      // fallback: random anywhere but collision-free
+      for(let tries=0; tries<80; tries++){
+        const x = rand(minX, maxX);
+        const y = rand(minY, maxY);
+        const ok = placed.every(p => dist(p,{x,y}) > minDist);
+        if(ok) return {x,y};
+      }
+      // last resort: nudge slightly from prev
+      return { x: clamp(prev.x+rand(-nodeSize*2,nodeSize*2), minX, maxX), y: clamp(prev.y+rand(-nodeSize*2,nodeSize*2), minY, maxY) };
+    }
+
+    // Determine actual positions for a..z (sequential proximity), independent from `order`
+    const seqPositions = new Map();
+    // start at random center-ish
+    const start = { x: rand(minX, maxX), y: rand(minY, maxY) };
+    seqPositions.set('a', start); placed.push({ ...start, letter:'a' });
+    for(let i=1;i<letters.length;i++){
+      const prevLetter = letters[i-1];
+      const prev = seqPositions.get(prevLetter);
+      const pos = placeNear(prev);
+      seqPositions.set(letters[i], pos);
+      placed.push({ ...pos, letter: letters[i] });
+    }
+
+    // Render nodes in a visually shuffled order, but their coordinates come from seqPositions
+    order.forEach((letter, idx)=>{
+      const node = document.createElement('div');
+      node.className = 'node';
+      if(letter==='a' || letter==='b') node.classList.add('hintpair');
+      node.textContent = letter;
+      node.dataset.letter = letter;
+      const hue = (idx*27) % 360;
+      node.style.background = (letter==='a'||letter==='b') ? '' : `hsl(${hue} 100% 95%)`;
+      node.style.borderColor = (letter==='a'||letter==='b') ? '' : `hsl(${hue} 40% 88%)`;
+
+      const p = seqPositions.get(letter);
+      const leftPct = (p.x/rect.width)*100;
+      const topPct = (p.y/rect.height)*100;
+      node.style.left = `${leftPct}%`;
+      node.style.top = `${topPct}%`;
+      positions.set(letter, {x:p.x, y:p.y});
+
+      node.addEventListener('click', ()=>onPick(letter, node));
+      node.addEventListener('touchstart', (e)=>{ e.preventDefault(); onPick(letter, node); }, {passive:false});
+      nodesEl.appendChild(node);
+    });
+
+    setNextHint();
+    resizeCanvas();
+  }
+
+  function onPick(letter, el){
+    const need = letters[expectedIndex];
+    if(letter !== need){
+      el.classList.remove('bad'); void el.offsetWidth; el.classList.add('bad');
+      status.textContent = `Belum, cari huruf "${need}" dulu ya.`;
+      return;
+    }
+
+    // mark done and draw from previous
+    el.classList.add('done');
+    if(lastLetter){
+      const a = positions.get(lastLetter);
+      const b = positions.get(letter);
+      drawLine(a,b);
+    }
+    lastLetter = letter;
+    expectedIndex++;
+    status.textContent = '';
+    setNextHint();
+
+    if(expectedIndex>=letters.length){
+      status.innerHTML = 'Mantap! Semua huruf tersambung urut. 🎉';
+    }
+  }
+
+  // controls
+  btnShuffle.addEventListener('click', createBoard);
+  btnReset.addEventListener('click', ()=>{ expectedIndex=0; lastLetter=null; document.querySelectorAll('.node').forEach(n=>n.classList.remove('done')); resizeCanvas(); setNextHint(); status.textContent=''; });
+
+  window.addEventListener('resize', ()=>{
+    // recompute pixel positions based on percentage left/top
+    positions.clear();
+    document.querySelectorAll('.node').forEach(node=>{
+      const rectBoard = board.getBoundingClientRect();
+      const leftPercent = parseFloat(node.style.left);
+      const topPercent = parseFloat(node.style.top);
+      const px = percentToPx(leftPercent, topPercent);
+      positions.set(node.dataset.letter, {x:px.x, y:px.y});
+    });
+    resizeCanvas();
+  });
+
+  // boot
+  createBoard();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Alpha4 – Tracing Vokal</title>
+  <style>
+    :root{
+      --pink:#ffd7ea; --panel:#fff8fe; --accent:#2a7de1; --good:#18aa5c; --bad:#e14a2a;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;background:var(--pink)}
+    .wrap{max-width:1100px;margin:24px auto;padding:16px;border-radius:18px;background:var(--panel);box-shadow:0 6px 18px rgba(0,0,0,.06)}
+    h1{margin:0 0 8px;font-size:20px;text-align:center;color:#444}
+    .sub{margin:0 0 16px;text-align:center;color:#666;font-size:14px}
+
+    .cols{display:grid;grid-template-columns:repeat(5,1fr);gap:16px}
+    .col{background:#fff;border-radius:16px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 2px 10px rgba(0,0,0,.04)}
+    .letter{font-size:44px;font-weight:900;color:var(--accent);text-shadow:0 2px 0 rgba(0,0,0,.08)}
+    canvas{width:100%;height:320px;border-radius:14px;background:#fff8ff;border:2px dashed rgba(0,0,0,.12)}
+    .pic{display:flex;flex-direction:column;align-items:center;gap:2px}
+    .emoji{font-size:36px}
+    .label{font-weight:700;color:#555}
+    .meter{width:100%;height:8px;background:#f1f5f9;border-radius:999px;overflow:hidden}
+    .meter>span{display:block;height:100%;background:linear-gradient(90deg,#60d394,#2ab7ca);width:0%}
+
+    .controls{display:flex;gap:10px;justify-content:center;align-items:center;margin-top:16px;flex-wrap:wrap}
+    button{border:0;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer;background:#111;color:#fff}
+    button.secondary{background:#6b7280}
+    button.warning{background:#b45309}
+    .chip{font-size:13px;background:#fff;border:2px dashed rgba(0,0,0,.15);padding:8px 12px;border-radius:999px}
+    .toast{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);background:#111;color:#fff;padding:10px 14px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .25s}
+    .toast.show{opacity:1}
+
+    @media (max-width:860px){canvas{height:260px}.letter{font-size:36px}}
+    @media (max-width:680px){.cols{grid-template-columns:repeat(2,1fr)}.wrap{margin:8px}.letter{font-size:32px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Trace Garis Putus: a i u e o</h1>
+    <p class="sub">Anak menelusuri garis putus dari huruf ke gambar. Target minimal 80% per lajur. (Gunakan jari/stylus di mobile)</p>
+
+    <div class="cols" id="cols">
+      <!-- Kolom di-generate via JS agar mudah diacak -->
+    </div>
+
+    <div class="controls">
+      <button id="checkBtn">Periksa</button>
+      <button id="resetBtn" class="secondary">Reset</button>
+      <button id="shuffleBtn" class="warning">Acak Pola</button>
+      <label class="chip"><input type="checkbox" id="toggleGuide" checked> Tampilkan garis putus</label>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  const emojis={apel:'🍎',ikan:'🐟',udang:'🦐',ember:'🪣',obat:'💊'};
+  const labels={apel:'apel',ikan:'ikan',udang:'udang',ember:'ember',obat:'obat'};
+  const letters=['a','i','u','e','o'];
+  const objects=['apel','ikan','udang','ember','obat'];
+  const patterns=['zigzag','stairs','scallop','wave','squiggle'];
+
+  const colsEl=document.getElementById('cols');
+
+  // Utility path builders (return points in [0..1]x[0..1])
+  function makeZigZag(n=6){const pts=[];for(let i=0;i<=n;i++){const y=i/n;const x=(i%2?0.15:0.85);pts.push([x,y]);}return pts}
+  function makeStairs(n=5){const pts=[[0.15,0]];for(let i=1;i<=n;i++){const y=i/n;const x=i%2?0.85:0.15;pts.push([x,y]);}return pts}
+  function makeScallop(n=4){const pts=[];for(let i=0;i<n;i++){const y0=i/n, y1=(i+1)/n;const xm= i%2?0.2:0.8;const x0= i%2?0.8:0.2;const x1=x0;pts.push([x0,y0],[xm,(y0+y1)/2],[x1,y1]);}return pts}
+  function makeWave(n=6){const pts=[];for(let i=0;i<=n;i++){const t=i/n;const x=0.5+0.35*Math.sin(t*Math.PI*2);const y=t;pts.push([x,y]);}return pts}
+  function makeSquiggle(n=7){const pts=[];let x=0.5;for(let i=0;i<=n;i++){const t=i/n; x = 0.5+0.4*Math.sin(t*3*Math.PI); const y=t; pts.push([x,y]);}return pts}
+
+  function build(pattern){
+    switch(pattern){
+      case 'zigzag': return makeZigZag();
+      case 'stairs': return makeStairs();
+      case 'scallop': return makeScallop();
+      case 'wave': return makeWave();
+      default: return makeSquiggle();
+    }
+  }
+
+  function createColumn(letter, obj, pattern){
+    const col=document.createElement('div'); col.className='col';
+    const h=document.createElement('div'); h.className='letter'; h.textContent=letter; col.appendChild(h);
+
+    const cvs=document.createElement('canvas'); cvs.width=300; cvs.height=520; col.appendChild(cvs);
+    const meter=document.createElement('div'); meter.className='meter'; const bar=document.createElement('span'); meter.appendChild(bar); col.appendChild(meter);
+    const pic=document.createElement('div'); pic.className='pic'; pic.innerHTML=`<div class="emoji">${emojis[obj]}</div><div class="label">${labels[obj]}</div>`; col.appendChild(pic);
+
+    const ctx=cvs.getContext('2d');
+    const guidePts=build(pattern);
+    const guideSamples=samplePath(guidePts, 140); // points along guide (0..1)
+    let visited=new Array(guideSamples.length).fill(false);
+
+    const state={drawing:false,last:null,progress:0,pattern};
+
+    function drawGuide(){
+      const show=document.getElementById('toggleGuide').checked;
+      ctx.clearRect(0,0,cvs.width,cvs.height);
+      if(show){
+        ctx.setLineDash([8,10]); ctx.lineWidth=3; ctx.strokeStyle='rgba(0,0,0,.35)';
+        ctx.beginPath();
+        guidePts.forEach((p,i)=>{ const [x,y]=normToPx(p); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      // redraw user trace from visited mask (optional)
+      // We keep strokes on an offscreen canvas for performance
+      ctx.drawImage(traceCanvas,0,0);
+    }
+
+    // Offscreen for smooth traces
+    const traceCanvas=document.createElement('canvas'); traceCanvas.width=cvs.width; traceCanvas.height=cvs.height; const tctx=traceCanvas.getContext('2d');
+    tctx.lineWidth=6; tctx.lineCap='round'; tctx.strokeStyle='#222';
+
+    function normToPx([nx,ny]){ return [nx*(cvs.width-24)+12, ny*(cvs.height-24)+12]; }
+
+    function samplePath(pts,count){
+      // linear interpolation sampling
+      const res=[]; let total=0; const segs=[];
+      for(let i=0;i<pts.length-1;i++){
+        const a=pts[i], b=pts[i+1]; const dx=b[0]-a[0], dy=b[1]-a[1]; const d=Math.hypot(dx,dy); total+=d; segs.push({a,b,d});
+      }
+      for(let i=0;i<count;i++){
+        const t=i/(count-1)*total; let acc=0; let s=0; for(;s<segs.length;s++){ if(acc+segs[s].d>=t) break; acc+=segs[s].d; }
+        const seg=segs[s]||segs[segs.length-1]; const u=(t-acc)/seg.d; res.push([seg.a[0]+(seg.b[0]-seg.a[0])*u, seg.a[1]+(seg.b[1]-seg.a[1])*u]);
+      }
+      return res;
+    }
+
+    function distance(a,b){ const dx=a[0]-b[0], dy=a[1]-b[1]; return Math.hypot(dx,dy); }
+
+    function pointerPos(ev){
+      const r=cvs.getBoundingClientRect();
+      const dpr=window.devicePixelRatio || 1;
+      const pt = ev.touches ? ev.touches[0] : ev;
+      const x = (pt.clientX - r.left) * dpr;
+      const y = (pt.clientY - r.top) * dpr;
+      return [x,y];
+    }
+
+    function updateProgress(){
+      const pct=visited.filter(Boolean).length/visited.length; state.progress=pct; bar.style.width=Math.round(pct*100)+'%';
+    }
+
+    function markVisited(px,py){
+      // compare with samples in px space
+      const thresh=16; // px tolerance
+      for(let i=0;i<guideSamples.length;i++){
+        if(visited[i]) continue; const [nx,ny]=guideSamples[i]; const [gx,gy]=normToPx([nx,ny]);
+        if(Math.abs(gx-px)<thresh && Math.abs(gy-py)<thresh){ visited[i]=true; }
+      }
+      updateProgress();
+    }
+
+    function startDraw(e){ state.drawing=true; const [x,y]=pointerPos(e); state.last=[x,y]; tctx.beginPath(); tctx.moveTo(x,y); markVisited(x,y); drawGuide(); e.preventDefault(); }
+    function moveDraw(e){ if(!state.drawing) return; const [x,y]=pointerPos(e); tctx.lineTo(x,y); tctx.stroke(); markVisited(x,y); drawGuide(); e.preventDefault(); }
+    function endDraw(){ state.drawing=false; state.last=null; }
+
+    cvs.addEventListener('mousedown',startDraw); cvs.addEventListener('mousemove',moveDraw); window.addEventListener('mouseup',endDraw);
+    cvs.addEventListener('touchstart',startDraw,{passive:false}); cvs.addEventListener('touchmove',moveDraw,{passive:false}); window.addEventListener('touchend',endDraw);
+
+    function reset(){ visited.fill(false); tctx.clearRect(0,0,traceCanvas.width,traceCanvas.height); updateProgress(); drawGuide(); }
+
+    // Expose helpers on node
+    col._reset=reset; col._progress=()=>state.progress; col._redraw=drawGuide; col._pattern=pattern; col._setPattern=(p)=>{ while(cvs.width==0){}; // ensure ready
+      // update pattern
+      const newPts=build(p); guidePts.length=0; Array.prototype.push.apply(guidePts,newPts); guideSamples.length=0; Array.prototype.push.apply(guideSamples, samplePath(guidePts,140)); reset(); }
+
+    // First paint
+    // fix hiDPI crispness and match pixel size to CSS size for both main canvas and trace canvas
+    function fitCanvas(){
+      const r = cvs.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      // match pixel size to CSS size for both main canvas and trace canvas
+      const pxW = Math.max(1, Math.round(r.width * dpr));
+      const pxH = Math.max(1, Math.round(r.height * dpr));
+      cvs.width = pxW; cvs.height = pxH;
+      traceCanvas.width = pxW; traceCanvas.height = pxH;
+      // adjust stroke width according to DPR
+      tctx.lineWidth = 6 * dpr; tctx.lineCap = 'round'; tctx.strokeStyle = '#222';
+      drawGuide();
+    }
+    new ResizeObserver(fitCanvas).observe(cvs);
+    window.addEventListener('resize', fitCanvas);
+    setTimeout(fitCanvas,0);
+
+    return col;
+  }
+
+  function buildAll(){
+    colsEl.innerHTML='';
+    const pat=[...patterns]; // copy
+    // shuffle patterns so tiap lajur beda
+    for(let i=pat.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [pat[i],pat[j]]=[pat[j],pat[i]]; }
+    letters.forEach((ltr,idx)=>{
+      const col=createColumn(ltr,objects[idx],pat[idx]); colsEl.appendChild(col);
+    });
+  }
+
+  function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('show'),1400); }
+
+  buildAll();
+
+  document.getElementById('resetBtn').addEventListener('click',()=>{
+    Array.from(colsEl.children).forEach(c=>c._reset()); toast('Di-reset');
+  });
+
+  document.getElementById('checkBtn').addEventListener('click',()=>{
+    const ps=Array.from(colsEl.children).map(c=>c._progress());
+    const ok=ps.every(p=>p>=0.8);
+    toast(ok? 'Hebat! Tracing rapi semua 🎉' : `Progres: ${ps.map(p=>Math.round(p*100)+'%').join(' • ')} — Minimal 80% ya`);
+  });
+
+  document.getElementById('shuffleBtn').addEventListener('click',()=>{
+    const pats=[...patterns]; for(let i=pats.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [pats[i],pats[j]]=[pats[j],pats[i]];}
+    Array.from(colsEl.children).forEach((c,i)=>c._setPattern(pats[i])); toast('Pola diacak!');
+  });
+
+  document.getElementById('toggleGuide').addEventListener('change',()=>{
+    Array.from(colsEl.children).forEach(c=>c._redraw());
+  });
+})();
+</script>
+</body>
+</html>

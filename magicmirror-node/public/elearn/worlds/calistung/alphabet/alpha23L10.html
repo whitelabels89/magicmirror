@@ -1,0 +1,307 @@
+
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ALPHA23L10 — Temukan Koordinat</title>
+<style>
+  :root{
+    --grid-size: 9;          /* jumlah baris */
+    --grid-cols: 9;          /* jumlah kolom (A–I) */
+    --cell: 56px;            /* ukuran sel desktop */
+  }
+  *{box-sizing:border-box}
+  body{
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+    margin:0; padding:16px;
+    background:#fafafa; color:#222;
+  }
+  .wrap{
+    max-width: 980px; margin: 0 auto;
+    display:grid; gap:18px;
+  }
+  h1{margin:0 0 6px;font-size:clamp(18px,3.4vw,28px)}
+  .sub{color:#666; font-size:14px}
+  /* GRID BOARD */
+  .board{
+    position:relative;
+    width:max-content;
+    border:3px solid #111; background:#fff;
+    box-shadow: 0 10px 30px rgba(0,0,0,.06);
+    /* beri gutter untuk label kolom & baris */
+    padding-top:28px;
+    padding-left:28px;
+    overflow:hidden;
+  }
+  .labels-top, .labels-left{
+    position:absolute; inset:auto;
+    pointer-events:none; user-select:none;
+    font-weight:700; color:#111;
+  }
+  .labels-top{ top:0; left:28px; right:0; height:28px; display:grid; grid-template-columns: repeat(var(--grid-cols), var(--cell)); }
+  .labels-top span{ display:flex; align-items:center; justify-content:center; }
+  .labels-left{ top:28px; left:0; bottom:0; width:28px; display:grid; grid-template-rows: repeat(var(--grid-size), var(--cell));}
+  .labels-left span{ display:flex; align-items:center; justify-content:center; }
+
+  .grid{
+    position:relative;
+    display:grid;
+    grid-template-columns: repeat(var(--grid-cols), var(--cell));
+    grid-template-rows: repeat(var(--grid-size), var(--cell));
+  }
+  .grid > div{
+    border:1.8px solid #2222;
+    width:var(--cell); height:var(--cell);
+  }
+  .item{
+    position:absolute; font-size:28px; line-height:1;
+    display:flex; align-items:center; justify-content:center;
+    width:calc(var(--cell) * 0.8); height:calc(var(--cell) * 0.8);
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,.12));
+    transform: translate(-50%, -50%);
+  }
+  .legend{
+    background:#fff; border:1px solid #eee; border-radius:12px;
+    padding:12px; box-shadow:0 8px 20px rgba(0,0,0,.05);
+  }
+  .legend h2{margin:0 0 10px; font-size:18px}
+  .q{
+    display:grid; gap:10px;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  }
+  .card{
+    border:1px solid #e8e8e8; border-radius:10px; padding:10px;
+    display:flex; align-items:center; gap:10px; background:#fcfcfc;
+  }
+  .icon{ font-size:26px; width:32px; text-align:center }
+  .ans{ margin-left:auto; display:flex; gap:6px; align-items:center }
+  select{
+    padding:6px 8px; border-radius:8px; border:1px solid #ddd; background:#fff;
+    font-weight:600; min-width:60px;
+  }
+  .pill{
+    font-size:12px; padding:4px 8px; border-radius:999px; border:1px solid #ddd; background:#fff; color:#666;
+  }
+  .pill.ok{ background:#e8ffe8; border-color:#58c279; color:#1a7f3c; font-weight:700 }
+  .pill.no{ background:#ffecec; border-color:#ff9aa7; color:#b00020 }
+  .controls{ display:flex; gap:8px; margin-top:10px; align-items:center; flex-wrap:wrap }
+  .btn{
+    border:0; background:#111; color:#fff; padding:10px 14px; border-radius:10px; font-weight:700; cursor:pointer;
+  }
+  .btn.ghost{ background:#fff; color:#111; border:1px solid #111 }
+  .allgood{ display:none; padding:10px 12px; border-radius:10px; background:#e8ffe8; color:#126b38; font-weight:700 }
+  .allgood.show{ display:inline-block }
+
+  /* Responsif */
+  @media (max-width: 640px){
+    :root{ --cell: 40px; }
+    .item{ font-size:22px }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div>
+      <h1>Temukan Koordinat (A–I, 1–9)</h1>
+      <div class="sub">Tulis posisi tiap benda: format <b>(Kolom, Baris)</b> → contoh: <code>(A, 1)</code>. Hint: kolom = huruf, baris = angka.</div>
+    </div>
+
+    <!-- PAPAN KOORDINAT -->
+    <div class="board" id="board" aria-label="Papan Koordinat">
+      <div class="labels-top" id="labelTop"></div>
+      <div class="labels-left" id="labelLeft"></div>
+      <div class="grid" id="grid"></div>
+      <!-- item emoji ditempatkan via JS (absolute di sel grid) -->
+    </div>
+
+    <!-- LEGEND & JAWABAN -->
+    <div class="legend">
+      <h2>Isikan Koordinat Benda</h2>
+      <div class="q" id="questionList"></div>
+      <div class="controls">
+        <button class="btn" id="checkBtn">Periksa Jawaban</button>
+        <button class="btn ghost" id="resetBtn">Reset</button>
+        <span class="allgood" id="allGood">Semua benar! Mantap 🎉</span>
+      </div>
+    </div>
+  </div>
+
+<script>
+/** Data posisi: kolom (A–I) & baris (1–9) sesuai worksheet **/
+const ITEMS = [
+  { key:'car',        label:'Mobil',        emoji:'🚗', col:'A', row:1 },
+  { key:'ball',       label:'Bola Basket', emoji:'🏀', col:'C', row:2 },
+  { key:'plane',      label:'Pesawat',     emoji:'✈️', col:'E', row:3 },
+  { key:'fish',       label:'Ikan',        emoji:'🐟', col:'H', row:4 },
+  { key:'scissors',   label:'Gunting',     emoji:'✂️', col:'H', row:2 },
+  { key:'bear',       label:'Boneka',      emoji:'🧸', col:'G', row:1 },
+  { key:'heli',       label:'Helikopter',  emoji:'🚁', col:'B', row:6 },
+  { key:'shrimp',     label:'Udang',       emoji:'🦐', col:'D', row:5 },
+  { key:'starfish',   label:'Bintang Laut',emoji:'⭐', col:'F', row:7 },
+  { key:'house',      label:'Rumah',       emoji:'🏠', col:'B', row:9 },
+  { key:'bird',       label:'Burung',      emoji:'🐦', col:'F', row:9 },
+  { key:'soccer',     label:'Bola',        emoji:'⚽', col:'H', row:8 },
+];
+
+// Kolom A–I
+const COLS = Array.from({length:9}, (_,i)=> String.fromCharCode(65+i)); // ["A".."I"]
+const ROWS = Array.from({length:9}, (_,i)=> i+1); // [1..9]
+
+/* Render label & grid */
+const labelTop = document.getElementById('labelTop');
+const labelLeft = document.getElementById('labelLeft');
+const grid = document.getElementById('grid');
+const board = document.getElementById('board');
+
+COLS.forEach(c=>{
+  const s=document.createElement('span'); s.textContent=c; labelTop.appendChild(s);
+});
+ROWS.forEach(r=>{
+  const s=document.createElement('span'); s.textContent=r; labelLeft.appendChild(s);
+});
+
+grid.style.setProperty('--grid-cols', COLS.length);
+grid.style.setProperty('--grid-size', ROWS.length);
+
+for(let r=0; r<ROWS.length; r++){
+  for(let c=0; c<COLS.length; c++){
+    const cell = document.createElement('div');
+    grid.appendChild(cell);
+  }
+}
+
+/* Tempatkan emoji pada koordinat */
+function placeItems(){
+  // bersihkan yang lama
+  board.querySelectorAll('.item').forEach(n=>n.remove());
+  ITEMS.forEach(it=>{
+    const el = document.createElement('div');
+    el.className = 'item';
+    el.textContent = it.emoji;
+    // posisi absolut: (col index, row index)
+    const ci = COLS.indexOf(it.col);
+    const ri = ROWS.indexOf(it.row);
+    const cellSize = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cell'));
+    const padTop = parseFloat(getComputedStyle(board).paddingTop);
+    const padLeft = parseFloat(getComputedStyle(board).paddingLeft);
+    el.style.left = (padLeft + (ci + 0.5) * cellSize) + 'px';
+    el.style.top  = (padTop + (ri + 0.5) * cellSize) + 'px';
+    board.appendChild(el);
+  });
+}
+placeItems();
+
+/* Render daftar pertanyaan */
+const qList = document.getElementById('questionList');
+
+function optionList(arr, placeholder){
+  const sel = document.createElement('select');
+  const opt0 = document.createElement('option');
+  opt0.value=''; opt0.textContent = placeholder ?? '—';
+  sel.appendChild(opt0);
+  arr.forEach(v=>{
+    const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o);
+  });
+  return sel;
+}
+
+ITEMS.forEach(it=>{
+  const card = document.createElement('div');
+  card.className='card';
+  card.dataset.key = it.key;
+
+  const icon = document.createElement('div');
+  icon.className='icon';
+  icon.textContent = it.emoji;
+
+  const label = document.createElement('div');
+  label.textContent = it.label;
+
+  const ansWrap = document.createElement('div');
+  ansWrap.className='ans';
+
+  const selCol = optionList(COLS, 'Kolom');
+  selCol.className='sel col';
+  const selRow = optionList(ROWS, 'Baris');
+  selRow.className='sel row';
+
+  const pill = document.createElement('span');
+  pill.className='pill'; pill.textContent='( ?, ? )';
+
+  ansWrap.appendChild(selCol);
+  ansWrap.appendChild(selRow);
+  ansWrap.appendChild(pill);
+
+  card.appendChild(icon);
+  card.appendChild(label);
+  card.appendChild(ansWrap);
+
+  // simpan referensi
+  card._selCol = selCol;
+  card._selRow = selRow;
+  card._pill = pill;
+
+  // auto cek setiap perubahan
+  function autoCheck(){
+    const res = checkOne(it, selCol.value, selRow.value, pill);
+    updateAllGood();
+    return res;
+  }
+  selCol.addEventListener('change', autoCheck);
+  selRow.addEventListener('change', autoCheck);
+
+  qList.appendChild(card);
+});
+
+/* Cek 1 jawaban */
+function checkOne(it, cVal, rVal, pill){
+  if(!cVal || !rVal){
+    pill.className='pill';
+    pill.textContent = `(${cVal||'?'}, ${rVal||'?'})`;
+    return false;
+  }
+  const ok = (String(cVal).toUpperCase()===it.col && Number(rVal)===it.row);
+  pill.className = 'pill ' + (ok? 'ok':'no');
+  pill.textContent = `(${cVal}, ${rVal})`;
+  // jika benar, kunci select
+  if(ok){ pill.title='Benar'; }
+  return ok;
+}
+
+/* Tombol periksa (cek semua) */
+document.getElementById('checkBtn').addEventListener('click', ()=>{
+  document.querySelectorAll('.card').forEach(card=>{
+    const key = card.dataset.key;
+    const it = ITEMS.find(x=>x.key===key);
+    checkOne(it, card._selCol.value, card._selRow.value, card._pill);
+  });
+  updateAllGood(true);
+});
+
+/* Reset */
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  document.querySelectorAll('.card').forEach(card=>{
+    card._selCol.value=''; card._selRow.value='';
+    card._pill.className='pill'; card._pill.textContent='( ?, ? )';
+  });
+  document.getElementById('allGood').classList.remove('show');
+});
+
+/* Tampilkan banner jika semua benar */
+function updateAllGood(onClick=false){
+  const allOk = Array.from(document.querySelectorAll('.card')).every(card=>{
+    const it = ITEMS.find(x=>x.key===card.dataset.key);
+    return String(card._selCol.value).toUpperCase()===it.col && Number(card._selRow.value)===it.row;
+  });
+  const banner = document.getElementById('allGood');
+  if(allOk){ banner.classList.add('show'); if(onClick) banner.focus(); }
+  else { banner.classList.remove('show'); }
+}
+
+/* Safety: cegah zoom pinch di iOS saat spam tap */
+document.addEventListener('gesturestart', e=> e.preventDefault());
+</script>
+</body>
+</html>

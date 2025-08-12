@@ -1,0 +1,193 @@
+
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alpha9 L2 – Melingkari huruf a i u e o</title>
+  <style>
+    :root{
+      --c-a:#e74c3c;   /* merah */
+      --c-i:#27ae60;   /* hijau */
+      --c-u:#2980b9;   /* biru */
+      --c-e:#f1c40f;   /* kuning */
+      --c-o:#2c3e50;   /* hitam tua */
+      --radius:18px;
+    }
+    html,body{height:100%;}
+    body{
+      margin:0; font-family: "Comic Sans MS", "Fredoka", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:#fff; color:#111; display:flex; flex-direction:column; align-items:center; gap:1rem;
+    }
+    .wrap{ width:min(920px, 94vw); padding:1rem 1rem 1.25rem; }
+
+    h1{font-size: clamp(18px, 2.6vw, 28px); text-align:center; margin:6px 0 2px;}
+
+    /* Palette contoh + selector */
+    .examples{ display:flex; align-items:center; justify-content:center; gap:10px; margin:.25rem 0 .5rem; flex-wrap:wrap; }
+    .eg{ position:relative; width:56px; height:56px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:26px; user-select:none; cursor:pointer;}
+    .eg[data-letter="a"]{ outline:4px solid var(--c-a);} 
+    .eg[data-letter="i"]{ outline:4px solid var(--c-i);} 
+    .eg[data-letter="u"]{ outline:4px solid var(--c-u);} 
+    .eg[data-letter="e"]{ outline:4px solid var(--c-e);} 
+    .eg[data-letter="o"]{ outline:4px solid var(--c-o);} 
+    .eg.active{ box-shadow:0 0 0 6px rgba(0,0,0,.08), 0 0 10px rgba(0,0,0,.25) inset; }
+
+    /* Board */
+    .board-wrap{ position:relative; margin:10px auto 6px; }
+    .board{ position:relative; border:4px solid #111; border-radius:24px; padding:18px 18px 24px; background:#fff; }
+
+    .grid{ display:grid; grid-template-columns: repeat(7, 1fr); gap: clamp(8px, 1.2vw, 16px); }
+
+    .cell{ display:flex; align-items:center; justify-content:center; min-height: clamp(42px, 7.5vw, 64px);}
+
+    .letter{ position:relative; font-size: clamp(24px, 4.4vw, 38px); font-weight:700; line-height:1; padding:10px; border-radius:999px; cursor:pointer; user-select:none; }
+    .letter.circled{ outline: 6px solid currentColor; }
+
+    /* Buttons */
+    .controls{ display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:10px 0 0; }
+    button{ font-size: clamp(14px, 1.9vw, 16px); border:none; border-radius:12px; padding:10px 14px; cursor:pointer; background:#111; color:#fff; }
+    button.secondary{ background:#f0f0f0; color:#111; border:2px solid #111; }
+
+    .status{ text-align:center; min-height:24px; font-weight:700; margin-top:6px; }
+
+    /* Mobile friendliness */
+    @media (max-width: 520px){
+      .eg{ width:50px; height:50px; font-size:24px; }
+      .board{ padding:14px; }
+      .grid{ grid-template-columns: repeat(6, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Melingkari huruf <b>a i u e o</b> seperti contoh</h1>
+
+    <!-- Selector warna/contoh -->
+    <div class="examples" id="palette" aria-label="Pilih warna untuk melingkari huruf">
+      <div class="eg active" data-letter="a" title="Pilih warna untuk huruf a">a</div>
+      <div class="eg" data-letter="i" title="Pilih warna untuk huruf i">i</div>
+      <div class="eg" data-letter="u" title="Pilih warna untuk huruf u">u</div>
+      <div class="eg" data-letter="e" title="Pilih warna untuk huruf e">e</div>
+      <div class="eg" data-letter="o" title="Pilih warna untuk huruf o">o</div>
+    </div>
+
+    <!-- Papan huruf -->
+    <div class="board-wrap">
+      <div class="board">
+        <div class="grid" id="grid"></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="check">Periksa Jawaban</button>
+      <button id="reset" class="secondary">Reset</button>
+      <button id="shuffle" class="secondary">Acak Soal</button>
+    </div>
+    <div class="status" id="status"></div>
+  </div>
+
+  <script>
+    const palette = document.getElementById('palette');
+    const grid = document.getElementById('grid');
+    const statusBox = document.getElementById('status');
+
+    const colorFor = { a: getComputedStyle(document.documentElement).getPropertyValue('--c-a').trim(),
+                       i: getComputedStyle(document.documentElement).getPropertyValue('--c-i').trim(),
+                       u: getComputedStyle(document.documentElement).getPropertyValue('--c-u').trim(),
+                       e: getComputedStyle(document.documentElement).getPropertyValue('--c-e').trim(),
+                       o: getComputedStyle(document.documentElement).getPropertyValue('--c-o').trim() };
+
+    let active = 'a';
+
+    // Activate palette
+    palette.addEventListener('click', (e)=>{
+      const eg = e.target.closest('.eg');
+      if(!eg) return;
+      active = eg.dataset.letter;
+      document.querySelectorAll('.eg').forEach(x=>x.classList.toggle('active', x===eg));
+    }, {passive:true});
+
+    // Generate letters (vowels only, random order and count)
+    function generateLetters(){
+      grid.innerHTML = '';
+      const vowels = ['a','i','u','e','o'];
+      // 35–45 items
+      const count = 36 + Math.floor(Math.random()*8);
+      const letters = Array.from({length:count}, ()=> vowels[Math.floor(Math.random()*vowels.length)]);
+      // random slight extra of some letters
+      letters.sort(()=> Math.random() - 0.5);
+
+      for(const ch of letters){
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        const span = document.createElement('div');
+        span.className = 'letter';
+        span.textContent = ch;
+        span.dataset.letter = ch;
+        span.addEventListener('click', ()=> toggleCircle(span), {passive:true});
+        span.addEventListener('touchend', (ev)=>{ ev.preventDefault(); toggleCircle(span); }, {passive:false});
+        cell.appendChild(span);
+        grid.appendChild(cell);
+      }
+      statusBox.textContent = '';
+    }
+
+    function toggleCircle(el){
+      // Apply currently selected color around tapped letter
+      if(!el.classList.contains('circled')){
+        el.classList.add('circled');
+        // color uses CSS currentColor; set it based on active selection
+        const sel = active;
+        el.style.color = colorFor[sel];
+        el.dataset.color = sel; // store which palette chosen
+      } else {
+        // If already circled, cycle off if tapping again OR recolor when palette differs
+        const was = el.dataset.color;
+        if(was !== active){
+          el.style.color = colorFor[active];
+          el.dataset.color = active;
+        } else {
+          el.classList.remove('circled');
+          el.style.color = '';
+          el.removeAttribute('data-color');
+        }
+      }
+    }
+
+    // Check answers: all letters must be circled with matching color based on type
+    function check(){
+      const letters = [...grid.querySelectorAll('.letter')];
+      let correct = 0, wrong = 0, missing = 0;
+      letters.forEach(l=>{
+        const ch = l.dataset.letter;
+        if(!l.classList.contains('circled')){ missing++; return; }
+        const picked = l.dataset.color; // a/i/u/e/o
+        if(picked === ch){ correct++; } else { wrong++; }
+      });
+      if(wrong===0 && missing===0){
+        statusBox.textContent = '🎉 Mantap! Semua huruf sudah dilingkari dengan warna yang tepat.';
+      }else{
+        const pieces = [];
+        if(missing>0) pieces.push(`${missing} huruf belum dilingkari`);
+        if(wrong>0) pieces.push(`${wrong} warna belum sesuai contoh`);
+        statusBox.textContent = 'Cek lagi ya: ' + pieces.join(' • ');
+      }
+    }
+
+    function resetAll(){
+      grid.querySelectorAll('.letter').forEach(l=>{ l.classList.remove('circled'); l.style.color=''; l.removeAttribute('data-color'); });
+      statusBox.textContent = '';
+    }
+
+    // Controls
+    document.getElementById('check').addEventListener('click', check);
+    document.getElementById('reset').addEventListener('click', resetAll);
+    document.getElementById('shuffle').addEventListener('click', ()=>{ generateLetters(); });
+
+    // kick off
+    generateLetters();
+  </script>
+</body>
+</html>
