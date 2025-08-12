@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Calistung — Sub World</title>
+  <link rel="stylesheet" href="/elearn/worlds/styles.css">
+</head>
+<body class="world-root" data-world-id="calistung-shape">
+  <div class="hud-bar">
+    <div class="hud-left">
+      <a class="hud-btn" href="/elearn/worlds/calistung/index.html">⟵ Kembali</a>
+      <button class="hud-btn" data-panel="inventory">Inventory</button>
+      <button class="hud-btn" data-panel="skills">Skills</button>
+      <button class="hud-btn" data-panel="badges">Badges</button>
+      <button class="hud-btn" data-panel="progress">Progress</button>
+    </div>
+    <div class="hud-right">
+      <span class="hud-coins">🪙 <span id="hudCoins">0</span></span>
+      <img id="hudAvatar" src="/elearn/worlds/assets/default-avatar.png" class="hud-avatar" alt="Avatar">
+    </div>
+  </div>
+
+  <div id="hudPanel" class="hud-panel">
+    <h3 id="hudPanelTitle">Panel</h3>
+    <div id="hudPanelContent"></div>
+  </div>
+
+  <div id="worldRoot"></div>
+
+  <script type="module">
+    import { initWorld } from '/elearn/worlds/map.js';
+    import { initHud } from '/elearn/worlds/ui/hud.js';
+    import '/elearn/worlds/utils/progress.js';
+
+    // Penting: worldId unik agar progress/badge/coins tidak bercampur
+    initHud({ worldId: 'calistung-shape' });
+
+    initWorld({
+      rootSelector: '#worldRoot',
+      configPath: '/elearn/worlds/calistung/shape/config.json'
+    });
+  </script>
+</body>
+</html>

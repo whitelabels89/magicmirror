@@ -1,0 +1,23 @@
+{
+  "id": "calistung-shape",
+  "title": "Calistung — Shape",
+  "map": {
+    "image": "/elearn/img/map/worldmap3.webp",
+    "nodes": [
+      {
+        "id": "S1",
+        "x": 30,
+        "y": 40,
+        "label": "Circle",
+        "entry": "/elearn/calistung/level/S1.html"
+      },
+      {
+        "id": "S2",
+        "x": 65,
+        "y": 55,
+        "label": "Square",
+        "entry": "/elearn/calistung/level/S2.html"
+      }
+    ]
+  }
+}

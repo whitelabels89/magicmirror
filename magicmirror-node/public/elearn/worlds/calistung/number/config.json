@@ -1,0 +1,23 @@
+{
+  "id": "calistung-number",
+  "title": "Calistung — Number",
+  "map": {
+    "image": "/elearn/img/map/worldmap3.webp",
+    "nodes": [
+      {
+        "id": "N1",
+        "x": 25,
+        "y": 50,
+        "label": "Counting 1",
+        "entry": "/elearn/calistung/level/N1.html"
+      },
+      {
+        "id": "N2",
+        "x": 60,
+        "y": 70,
+        "label": "Counting 2",
+        "entry": "/elearn/calistung/level/N2.html"
+      }
+    ]
+  }
+}
