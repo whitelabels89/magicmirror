@@ -38,7 +38,7 @@
       font-size: 1rem;
       box-shadow: 0 4px 8px rgba(0, 114, 255, 0.3);
       transition: background 0.3s ease, transform 0.2s ease;
-      z-index: 3;
+      z-index: 1;
       position: relative;
       pointer-events: auto;
     }
@@ -83,8 +83,9 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      height: 100vh;
     }
-    html, body { overflow-x: hidden; }
+    html, body { overflow-x: hidden; overflow-y: auto; }
     body {
       background: #ffffff;
     }
@@ -101,8 +102,70 @@
       transform-origin: bottom center;
       z-index: 2;
       left: 50%;
-      /* Hapus batasan bottom/top agar transform bisa atur posisi vertikal */
       pointer-events: none;
+      /* Hapus batasan bottom/top agar transform bisa atur posisi vertikal */
+    }
+    @media (orientation: landscape) and (min-width: 700px) and (max-width: 1200px) {
+      /* Pastikan konten tidak ketiban dekorasi */
+      .panel-group, .right-panel, .login-container { position: relative; z-index: 5; }
+
+      /* Panjangin card supaya input & tombol muat */
+      .right-panel { display: flex; justify-content: center; align-items: center; }
+      #main-wrapper > .container { align-items: center; }
+      .login-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        gap: 16px;
+        min-height: 80vh; /* sedikit lebih pendek supaya tidak menabrak atas */
+        box-sizing: border-box;
+        padding: 32px 24px 56px; /* tambah padding atas & bawah */
+        width: min(92vw, 560px);
+        margin: 0 auto;
+      }
+
+      /* Tombol mengikuti alur layout, tidak sticky */
+      .button-row {
+        position: static !important;
+        bottom: auto; z-index: auto; background: transparent; backdrop-filter: none;
+        padding: 0; border-radius: 0; margin-top: 16px;
+      }
+
+      /* Kecilkan & geser maskot agar tidak menutupi form */
+      .robot-mascot { width: 120px; bottom: 20px; top: auto; left: 20%; transform: translateX(-50%); z-index: 2; }
+    }
+
+    /* Universal centering for ANY landscape tablet size */
+    @media (orientation: landscape) and (max-height: 900px) {
+      /* Keep each slide exactly one viewport tall */
+      #main-wrapper > .container,
+      #main-wrapper > .side-slide { height: 100vh; }
+
+      /* Center both panels vertically & horizontally */
+      #main-wrapper > .container { align-items: center !important; }
+      .panel-group { width: 100%; display: flex; justify-content: center; align-items: center; }
+      .right-panel { display: flex; justify-content: center; align-items: center; max-height: 100vh; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 24px 0; }
+      .left-panel { display: flex; justify-content: center; align-items: center; }
+      .left-panel .hook-text { position: static; inset: auto; padding: 0 24px; text-align: center; }
+
+      /* Card sizing that adapts but stays centered */
+      .login-container {
+        width: min(92vw, 560px);
+        margin: 0 auto;
+        max-height: calc(100vh - 96px);
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        padding: 28px 24px 40px;
+        box-sizing: border-box;
+      }
+
+      /* Buttons follow the flow (no sticky) */
+      .button-row { position: static !important; margin-top: 16px; }
+
+      /* Make headline on right slides slightly smaller to avoid overlaps */
+      .side-slide.custom-slide .slide-banner h1 { font-size: 2.3rem; }
+      .cta-digital-experience { z-index: 1 !important; }
     }
     .robot-mascot.peek {
       animation: peekMotion 3s ease-in-out forwards;
@@ -448,21 +511,32 @@
         display: none !important;
       }
     }
-    @media (min-width: 481px) and (max-width: 1024px) {
-      .panel-group, .right-panel, .login-container {
-        position: relative;
-        z-index: 5;
+
+    @media (min-width: 700px) {
+      /* Prevent vertical page scroll; panels handle their own overflow */
+      html, body { overflow-y: hidden; }
+
+      /* Ensure hook text sits above CTA */
+      .left-panel .hook-text { z-index: 4; }
+      .cta-digital-experience {
+        z-index: 1 !important;
+        margin-top: 180px; /* push CTA below hook text */
       }
-      .robot-mascot {
-        width: 120px;
-        bottom: 20px;
-        top: auto;
-        left: 20%;
-        transform: translateX(-50%);
+
+      /* Left panel: use normal document flow instead of absolute overlay */
+      .left-panel { display: flex; flex-direction: column; justify-content: center; align-items: center; }
+      .left-panel .hook-text {
+        position: static; inset: auto; /* cancel absolute full overlay */
+        display: block; padding: 0 24px; text-align: center; z-index: 3;
       }
-      /* Extra padding so buttons never get clipped by viewport */
-      .login-container { padding-bottom: 140px; }
+      .left-panel .input-wrapper { margin-top: 12px; z-index: 2; }
+      .cta-digital-experience { margin-top: 8px; }
+
+      /* Make big red headline a bit smaller on tablet/desktop to avoid visual collision */
+      .side-slide.custom-slide .slide-banner h1 { font-size: 2.4rem; }
     }
+    /* Prevent login title from overflowing the rounded card */
+    .login-container h2 { margin: 8px 0 12px; line-height: 1.2; word-break: break-word; }
         /* Ensure enough bottom padding in login container to prevent button cutoff */
     .login-container {
       padding-bottom: 100px;
@@ -966,6 +1040,46 @@ wrapper.addEventListener('scroll', () => {
 window.addEventListener('load', () => wrapper.dispatchEvent(new Event('scroll')));
 </script>
 
+</script>
+<script>
+(function(){
+  const btn = document.getElementById('login-btn');
+  const emailEl = document.getElementById('email');
+  const passEl  = document.getElementById('password');
+  let pressedOnce = false;
+
+  function isLandscapeTablet(){
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    return (w > h) && (w >= 700 && w <= 1200);
+  }
+  function inViewport(el){
+    if(!el) return true;
+    const r = el.getBoundingClientRect();
+    return r.top >= 0 && r.bottom <= (window.innerHeight || document.documentElement.clientHeight);
+  }
+  function tryAutoPress(){
+    if(!btn || pressedOnce) return;
+    if(!isLandscapeTablet()) return;
+
+    const email = (emailEl?.value || '').trim();
+    const pass  = (passEl?.value  || '').trim();
+
+    if(!inViewport(btn)){
+      btn.scrollIntoView({behavior:'smooth', block:'center'});
+    }
+    if(email && pass && !inViewport(btn)){
+      pressedOnce = true;
+      setTimeout(()=>btn.click(), 300);
+    }
+  }
+  window.addEventListener('load', tryAutoPress);
+  window.addEventListener('resize', tryAutoPress);
+  emailEl?.addEventListener('input', tryAutoPress);
+  passEl?.addEventListener('input', tryAutoPress);
+  let checks = 0; const timer = setInterval(()=>{ tryAutoPress(); checks++; if(checks>12||pressedOnce) clearInterval(timer); }, 500);
+})();
+</script>
 </body>
 </html>
 
