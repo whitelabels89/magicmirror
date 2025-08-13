@@ -288,13 +288,10 @@
   }
 })();
 </script>
+
 <script type="module">
-  import { markCompletedLocal } from '/elearn/worlds/utils/progress.js';
-  document.querySelector('#btnSelesai')?.addEventListener('click', ()=>{
-    markCompletedLocal('calistung','Level 20');
-    alert('Progres tersimpan! Kembali ke map.');
-    window.location = '/elearn/worlds/calistung/index.html';
-  });
+  import { addFinishButton } from '/elearn/worlds/utils/finish-button.js';
+  addFinishButton('calistung','Level 20','/elearn/calistung/level/J3.html');
 </script>
 </body>
 </html>
