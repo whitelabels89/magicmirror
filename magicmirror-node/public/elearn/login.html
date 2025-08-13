@@ -99,9 +99,10 @@
       position: absolute;
       width: 180px;
       transform-origin: bottom center;
-      z-index: 9999;
+      z-index: 2;
       left: 50%;
       /* Hapus batasan bottom/top agar transform bisa atur posisi vertikal */
+      pointer-events: none;
     }
     .robot-mascot.peek {
       animation: peekMotion 3s ease-in-out forwards;
@@ -446,6 +447,21 @@
       #hi-bubble {
         display: none !important;
       }
+    }
+    @media (min-width: 481px) and (max-width: 1024px) {
+      .panel-group, .right-panel, .login-container {
+        position: relative;
+        z-index: 5;
+      }
+      .robot-mascot {
+        width: 120px;
+        bottom: 20px;
+        top: auto;
+        left: 20%;
+        transform: translateX(-50%);
+      }
+      /* Extra padding so buttons never get clipped by viewport */
+      .login-container { padding-bottom: 140px; }
     }
         /* Ensure enough bottom padding in login container to prevent button cutoff */
     .login-container {
@@ -863,11 +879,11 @@ if (window.innerWidth <= 480) {
     mouseX = daftarBtn.left + daftarBtn.width / 2 - panel.left - panel.width / 2;
     mouseY = daftarBtn.top + daftarBtn.height / 2 - panel.top - panel.height / 2;
 
-    robot.style.zIndex = 9999;
+    robot.style.zIndex = 2;
     isIdle = false;
 
     setTimeout(() => {
-      robot.style.zIndex = 3;
+      robot.style.zIndex = 2;
     }, 3000); // reset z-index setelah 3 detik
   });
 
@@ -942,6 +958,8 @@ wrapper.addEventListener('scroll', () => {
     robot.style.top = `${rect.top + rect.height / 2}px`;
     // Reset transform to center at those coords
     robot.style.transform = 'translate(-50%, -50%)';
+    robot.style.zIndex = 2;
+    robot.style.pointerEvents = 'none';
   }
 });
 // Trigger initial position on load
