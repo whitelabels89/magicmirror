@@ -1,7 +1,7 @@
 (function(){
   async function fetchUser(){
     try{
-      const res = await fetch('/api/auth/me');
+      const res = await fetch('/api/auth/me',{credentials:'include'});
       if(!res.ok) return null;
       return await res.json();
     }catch(err){
@@ -92,6 +92,23 @@
     return {courseId, lessonId};
   }
 
+  function showSuccessModal(storageUrl, driveUrl){
+    const modal = document.createElement('div');
+    Object.assign(modal.style,{
+      position:'fixed',top:'20%',left:'50%',transform:'translateX(-50%)',
+      background:'#fff',border:'1px solid #ccc',padding:'16px',zIndex:9999,
+      boxShadow:'0 2px 8px rgba(0,0,0,0.3)'
+    });
+    modal.innerHTML = `
+      <p>Worksheet tersimpan \u2705</p>
+      <p><a href="${storageUrl}" target="_blank" rel="noopener">View Storage</a></p>
+      <p><a href="${driveUrl}" target="_blank" rel="noopener">View Drive</a></p>
+      <button id="wsCloseModal">Tutup</button>
+    `;
+    document.body.appendChild(modal);
+    modal.querySelector('#wsCloseModal').addEventListener('click',()=>modal.remove());
+  }
+
   window.initWorksheetSubmit = function initWorksheetSubmit(opts = {}){
     const btn = document.querySelector('#btnSelesai, .btn-selesai');
     if(!btn) return;
@@ -138,11 +155,12 @@
           const res = await fetch('/api/worksheet/submit',{
             method:'POST',
             headers:{'Content-Type':'application/json'},
+            credentials:'include',
             body: JSON.stringify(payload)
           });
           const data = await res.json();
           if(res.ok && data.ok){
-            alert('Worksheet tersimpan \u2705\nStorage: '+data.storage_url+'\nDrive: '+data.drive_url);
+            showSuccessModal(data.storage_url, data.drive_url);
           }else{
             throw new Error(data.message || 'Gagal');
           }
