@@ -212,27 +212,43 @@ document.querySelectorAll(".color-code div").forEach((el) => {
       const resultBox = document.getElementById("result");
 
       checkButton.addEventListener("click", () => {
-        let correct = 0;
+  let correct = 0;
 
-        document.querySelectorAll(".mobil").forEach((mobilDiv, index) => {
-          const expectedColor = colorMap[(index + 1)];
+  document.querySelectorAll(".mobil").forEach((mobilDiv) => {
+    // Ambil ID soal dari atribut data pada IMG
+    const imgEl = mobilDiv.querySelector("img[data-id]");
+    const id = parseInt(imgEl?.dataset.id || "", 10);
+    const expectedColor = colorMap[id];
 
-          const appliedColor = (mobilDiv.getAttribute("data-color") || "").replace(/\s/g, "").toLowerCase();
-          const expected = expectedColor.replace(/\s/g, "").toLowerCase();
+    // Warna yang diterapkan: utamakan atribut data-color (klik gambar),
+    // jika kosong coba tebak dari img.src yang sudah berubah.
+    let appliedColor = (mobilDiv.getAttribute("data-color") || "").trim().toLowerCase();
 
-          if (appliedColor === expected || appliedColor.includes(expected)) {
-              correct++;
-          }
-        });
-
-        if (correct === 4) {
-          resultBox.textContent = "✅ Semua warna sudah benar!";
-          resultBox.style.color = "green";
-        } else {
-          resultBox.textContent = `❌ Masih ada ${4 - correct} yang salah, coba lagi ya!`;
-          resultBox.style.color = "red";
+    if (!appliedColor && imgEl) {
+      const imgSrc = imgEl.src; // absolute URL
+      for (const [clr, url] of Object.entries(mobilColorImages)) {
+        // Cocokkan bagian akhir path agar robust ke origin absolute
+        if (imgSrc.endsWith(url)) {
+          appliedColor = clr.toLowerCase();
+          break;
         }
-      });
+      }
+    }
+
+    const expected = (expectedColor || "").trim().toLowerCase();
+    if (appliedColor && expected && appliedColor === expected) {
+      correct++;
+    }
+  });
+
+  if (correct === 4) {
+    resultBox.textContent = "✅ Semua warna sudah benar!";
+    resultBox.style.color = "green";
+  } else {
+    resultBox.textContent = `❌ Masih ada ${4 - correct} yang salah, coba lagi ya!`;
+    resultBox.style.color = "red";
+  }
+});
 
       document.querySelectorAll("canvas").forEach((canvas) => {
         const ctx = canvas.getContext("2d");
@@ -247,15 +263,18 @@ document.querySelectorAll(".color-code div").forEach((el) => {
           ctx.beginPath();
         };
         const draw = (e) => {
-          if (!painting || !selectedColor) return;
-          const rect = canvas.getBoundingClientRect();
-          const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-          const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
-          ctx.fillStyle = selectedColor;
-          ctx.beginPath();
-          ctx.arc(x, y, 8, 0, Math.PI * 2);
-          ctx.fill();
-        };
+  if (!painting || !selectedColor) return;
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+  const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+  ctx.fillStyle = selectedColor;
+  ctx.beginPath();
+  ctx.arc(x, y, 8, 0, Math.PI * 2);
+  ctx.fill();
+  // Tandai warna yang dipilih pada wrapper saat melukis
+  const wrapper = canvas.closest('.mobil');
+  if (wrapper) wrapper.setAttribute('data-color', selectedColor);
+};
 
         canvas.addEventListener("mousedown", (e)=>{ if(brushActive){ e.preventDefault(); } startPos(e); });
         canvas.addEventListener("mouseup", endPos);
