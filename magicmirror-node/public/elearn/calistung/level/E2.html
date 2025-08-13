@@ -283,13 +283,10 @@
     // Inisialisasi
     init();
   </script>
+
 <script type="module">
-  import { markCompletedLocal } from '/elearn/worlds/utils/progress.js';
-  document.querySelector('#btnSelesai')?.addEventListener('click', ()=>{
-    markCompletedLocal('calistung','Level 13');
-    alert('Progres tersimpan! Kembali ke map.');
-    window.location = '/elearn/worlds/calistung/index.html';
-  });
+  import { addFinishButton } from '/elearn/worlds/utils/finish-button.js';
+  addFinishButton('calistung','Level 13','/elearn/calistung/level/F1.html');
 </script>
 </body>
 </html>

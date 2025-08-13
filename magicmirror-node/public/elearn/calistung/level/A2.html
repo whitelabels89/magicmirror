@@ -278,13 +278,10 @@ document.querySelectorAll(".color-code div").forEach((el) => {
   </script>
   <button id="checkButton" class="clay-button">Periksa Jawaban</button>
   <div id="result" style="margin-top: 15px; font-weight: bold;"></div>
+
 <script type="module">
-  import { markCompletedLocal } from '/elearn/worlds/utils/progress.js';
-  document.querySelector('#btnSelesai')?.addEventListener('click', ()=>{
-    markCompletedLocal('calistung','Level 2');
-    alert('Progres tersimpan! Kembali ke map.');
-    window.location = '/elearn/worlds/calistung/index.html';
-  });
+  import { addFinishButton } from '/elearn/worlds/utils/finish-button.js';
+  addFinishButton('calistung','Level 2','/elearn/calistung/level/A3.html');
 </script>
 </body>
 </html>

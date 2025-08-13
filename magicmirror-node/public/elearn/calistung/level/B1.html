@@ -256,13 +256,10 @@ document.getElementById('checkButton').addEventListener('click', () => {
   }
 });
 </script>
+
 <script type="module">
-  import { markCompletedLocal } from '/elearn/worlds/utils/progress.js';
-  document.querySelector('#btnSelesai')?.addEventListener('click', ()=>{
-    markCompletedLocal('calistung','Level 6');
-    alert('Progres tersimpan! Kembali ke map.');
-    window.location = '/elearn/worlds/calistung/index.html';
-  });
+  import { addFinishButton } from '/elearn/worlds/utils/finish-button.js';
+  addFinishButton('calistung','Level 6','/elearn/calistung/level/B2.html');
 </script>
 </body>
 </html>
