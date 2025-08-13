@@ -85,7 +85,18 @@
       align-items: center;
       height: 100vh;
     }
-    html, body { overflow-x: hidden; overflow-y: auto; }
+    html, body {
+      overflow-x: hidden;
+      overflow-y: hidden; /* lock page vertical scroll */
+      height: 100vh;
+      overscroll-behavior: none;
+    }
+
+    #main-wrapper {
+      height: 100vh;
+      overflow-y: hidden; /* no vertical scroll outside */
+      overflow-x: auto;   /* keep horizontal slider */
+    }
     body {
       background: #ffffff;
     }
@@ -105,6 +116,15 @@
       pointer-events: none;
       /* Hapus batasan bottom/top agar transform bisa atur posisi vertikal */
     }
+
+    /* Make login card handle its own vertical scroll on all sizes */
+    .login-container {
+      max-height: calc(100vh - 140px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain; /* stop bubbling to page */
+      scroll-padding-bottom: 96px;
+    }
     @media (orientation: landscape) and (min-width: 700px) and (max-width: 1200px) {
       /* Pastikan konten tidak ketiban dekorasi */
       .panel-group, .right-panel, .login-container { position: relative; z-index: 5; }
@@ -119,9 +139,14 @@
         gap: 16px;
         min-height: 80vh; /* sedikit lebih pendek supaya tidak menabrak atas */
         box-sizing: border-box;
-        padding: 32px 24px 56px; /* tambah padding atas & bawah */
+        padding: 32px 24px 72px; /* tambah padding atas & bawah, prevent button cutoff */
         width: min(92vw, 560px);
         margin: 0 auto;
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+        scroll-padding-bottom: 80px; /* keep buttons usable */
       }
 
       /* Tombol mengikuti alur layout, tidak sticky */
@@ -535,12 +560,32 @@
       /* Make big red headline a bit smaller on tablet/desktop to avoid visual collision */
       .side-slide.custom-slide .slide-banner h1 { font-size: 2.4rem; }
     }
+    @media (min-width: 1201px) {
+      /* Desktop: prevent page vertical scroll (handled by login card) */
+      html, body { overflow-y: hidden; }
+
+      /* Desktop: panels don’t need forced max-height; let content size naturally */
+      .right-panel {
+        max-height: 100vh;
+        overflow: hidden;
+      }
+
+      /* Extra cushion for the login card so the button row stays visible */
+      .login-container { padding-bottom: 72px; }
+      .login-container {
+        max-height: calc(100vh - 140px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+        scroll-padding-bottom: 96px;
+      }
+    }
     /* Prevent login title from overflowing the rounded card */
     .login-container h2 { margin: 8px 0 12px; line-height: 1.2; word-break: break-word; }
-        /* Ensure enough bottom padding in login container to prevent button cutoff */
-    .login-container {
-      padding-bottom: 100px;
-    }
+    /* Subtle scrollbar for the login card */
+    .login-container::-webkit-scrollbar { width: 8px; }
+    .login-container::-webkit-scrollbar-track { background: rgba(255,255,255,0.2); border-radius: 8px; }
+    .login-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.45); border-radius: 8px; }
   </style>
 </head>
 <body>
