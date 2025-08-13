@@ -1,0 +1,158 @@
+(function(){
+  async function fetchUser(){
+    try{
+      const res = await fetch('/api/auth/me');
+      if(!res.ok) return null;
+      return await res.json();
+    }catch(err){
+      return null;
+    }
+  }
+
+  function collectAnswers(){
+    const els = document.querySelectorAll('[data-answers="true"], textarea, .code-editor');
+    const arr = [];
+    els.forEach(el=>{
+      if(el.matches('[data-answers="true"]')){
+        const val = el.value || el.textContent || '';
+        if(val) arr.push(val);
+      }else if(el.tagName === 'TEXTAREA'){
+        if(el.value) arr.push(el.value);
+      }else if(el.classList.contains('code-editor')){
+        const val = el.value || el.textContent || '';
+        if(val) arr.push(val);
+      }
+    });
+    return arr.join('\n---\n');
+  }
+
+  async function capture(selector){
+    const el = document.querySelector(selector);
+    if(!el) throw new Error('container not found');
+    window.scrollTo(0,0);
+    const canvas = await html2canvas(el,{scale:1.5,useCORS:true,backgroundColor:'#fff'});
+    let dataUrl = canvas.toDataURL('image/png');
+    if(dataUrl.length > 2*1024*1024){
+      dataUrl = canvas.toDataURL('image/jpeg',0.92);
+    }
+    return dataUrl.replace(/^data:image\/\w+;base64,/,'');
+  }
+
+  function slugify(s){
+    return String(s || '').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,'');
+  }
+
+  function guessCourseIdFromPath(pathname){
+    const segs = pathname.split('/').filter(Boolean);
+    const idx = segs.indexOf('calistung');
+    const domain = idx >= 0 ? segs[idx + 1] : '';
+    if(!domain) return '';
+    const map = {
+      number: 'numbers-basic',
+      numbers: 'numbers-basic',
+      alphabet: 'alphabet-basic',
+      huruf: 'alphabet-basic',
+      python: 'python-basic',
+    };
+    return map[slugify(domain)] || `${slugify(domain)}-basic`;
+  }
+
+  function guessLessonIdFromPath(pathname){
+    const patterns = [
+      /L(\d+)\.html$/i,
+      /alpha(\d+)\.html$/i,
+      /level[-_]?(\d+)\.html$/i
+    ];
+    for(const rx of patterns){
+      const m = pathname.match(rx);
+      if(m && m[1]) return 'L' + m[1];
+    }
+    return '';
+  }
+
+  function resolveIds(){
+    const root = document.getElementById('worksheetRoot');
+    let courseId = root?.dataset?.courseId || '';
+    let lessonId = root?.dataset?.lessonId || '';
+
+    if(!courseId && window.SIDEBAR?.selectedCourseId) courseId = window.SIDEBAR.selectedCourseId;
+    if(!lessonId && window.SIDEBAR?.selectedLessonId) lessonId = window.SIDEBAR.selectedLessonId;
+
+    const p = location.pathname;
+    const mf = window.LESSON_MANIFEST?.[p];
+    if(!courseId && mf?.course_id) courseId = mf.course_id;
+    if(!lessonId && mf?.lesson_id) lessonId = mf.lesson_id;
+
+    if(!courseId) courseId = guessCourseIdFromPath(p);
+    if(!lessonId) lessonId = guessLessonIdFromPath(p);
+
+    if(!courseId || !lessonId){
+      throw new Error(`Course/Lesson ID tidak ditemukan. \n    Path: ${p}\n    courseId: ${courseId || '-'} \n    lessonId: ${lessonId || '-'}\n    Pastikan salah satu tersedia: data-attribute di #worksheetRoot, sidebar.mod, manifest-lessons.js, atau penamaan file yang konsisten.`);
+    }
+    return {courseId, lessonId};
+  }
+
+  window.initWorksheetSubmit = function initWorksheetSubmit(opts = {}){
+    const btn = document.querySelector('#btnSelesai, .btn-selesai');
+    if(!btn) return;
+
+    let courseId = opts.courseId;
+    let lessonId = opts.lessonId;
+
+    try{
+      if(!courseId || !lessonId){
+        const ids = resolveIds();
+        courseId = courseId || ids.courseId;
+        lessonId = lessonId || ids.lessonId;
+      }
+    }catch(e){
+      console.error(e);
+      btn.disabled = true;
+      btn.title = 'ID pelajaran tidak ditemukan. Hubungi admin untuk memperbaiki konfigurasi halaman.';
+      return;
+    }
+
+    fetchUser().then(user=>{
+      if(!user || !['guru','moderator'].includes(user.role)){
+        btn.disabled = true;
+        btn.title = 'Khusus Guru/Moderator';
+        return;
+      }
+      btn.addEventListener('click', async function(e){
+        e.preventDefault();
+        btn.disabled = true;
+        const original = btn.textContent;
+        btn.textContent = 'Menyimpan...';
+        try{
+          const answers = collectAnswers();
+          const screenshot = await capture('#worksheetRoot');
+          const payload = {
+            murid_uid: opts.muridUid,
+            cid: opts.cid || '',
+            nama_anak: opts.namaAnak || '',
+            course_id: courseId,
+            lesson_id: lessonId,
+            answers_text: answers,
+            screenshot_base64: screenshot
+          };
+          const res = await fetch('/api/worksheet/submit',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json();
+          if(res.ok && data.ok){
+            alert('Worksheet tersimpan \u2705\nStorage: '+data.storage_url+'\nDrive: '+data.drive_url);
+          }else{
+            throw new Error(data.message || 'Gagal');
+          }
+        }catch(err){
+          alert('Gagal menyimpan worksheet: '+err.message);
+        }finally{
+          btn.disabled = false;
+          btn.textContent = original;
+        }
+      });
+    });
+  };
+})();
