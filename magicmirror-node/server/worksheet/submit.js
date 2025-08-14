@@ -3,6 +3,8 @@ const router = express.Router();
 const admin = require('firebase-admin');
 const { google } = require('googleapis');
 const stream = require('stream');
+const fs = require('fs');
+const path = require('path');
 
 // Debug logger (set DEBUG_WORKSHEET=1 to enable)
 const DEBUG_WORKSHEET = process.env.DEBUG_WORKSHEET === '1';
@@ -126,8 +128,9 @@ router.post('/submit', rateLimiter, async (req, res) => {
     const ts = Date.now();
     const buffer = Buffer.from(screenshot_base64, 'base64');
 
-    // --- Stage: Firebase Storage ---
+    // --- Stage: Firebase Storage (with local fallback) ---
     let storageUrl = '';
+    let storageErr = null;
     try {
       const bucketName = process.env.FIREBASE_STORAGE_BUCKET;
       if (!bucketName) throw new Error('FIREBASE_STORAGE_BUCKET env not set (expected <project-id>.appspot.com)');
@@ -138,8 +141,23 @@ router.post('/submit', rateLimiter, async (req, res) => {
       await file.save(buffer, { contentType: 'image/png' });
       [storageUrl] = await file.getSignedUrl({ action: 'read', expires: '03-01-2500' });
     } catch (e) {
+      storageErr = e;
       console.error('storage error', e);
-      return res.status(500).json({ ok:false, code:'storage_error', message:e.message || 'Storage error' });
+    }
+
+    if (!storageUrl) {
+      try {
+        const localDir = path.join(__dirname, '..', '..', 'uploads', 'worksheets', course_id, lesson_id, murid_uid);
+        await fs.promises.mkdir(localDir, { recursive: true });
+        const localPath = path.join(localDir, `${ts}.png`);
+        await fs.promises.writeFile(localPath, buffer);
+        storageUrl = `/uploads/worksheets/${course_id}/${lesson_id}/${murid_uid}/${ts}.png`;
+        dlog('stored locally at', storageUrl);
+      } catch (localErr) {
+        console.error('local storage error', localErr);
+        const msg = storageErr ? storageErr.message : localErr.message;
+        return res.status(500).json({ ok:false, code:'storage_error', message: msg || 'Storage error' });
+      }
     }
 
     // --- Stage: Google Drive ---
