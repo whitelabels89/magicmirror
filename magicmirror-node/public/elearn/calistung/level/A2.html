@@ -307,11 +307,56 @@ document.querySelectorAll(".color-code div").forEach((el) => {
     };
   </script>
   <script src="/elearn/common/worksheet-submit.js"></script>
-</script>
   <script type="module">
     import { addFinishButton } from '/elearn/worlds/utils/finish-button.js';
     // game=calistung, label=Level 2, next URL to A3
     addFinishButton('calistung', 'Level 2', '/elearn/calistung/level/A3.html');
+  </script>
+  <script>
+  (function(){
+    function findFinishBtn(){
+      const all = Array.from(document.querySelectorAll('button, a'));
+      const found = all.find(el => {
+        const t = (el.textContent || '').toLowerCase().trim();
+        return el.id === 'finishButton'
+          || el.classList.contains('finish-button')
+          || el.dataset?.role === 'finish'
+          || t.includes('selesai');
+      });
+      return found || null;
+    }
+    function setDisabled(btn, disabled){
+      if(!btn) return;
+      btn.disabled = !!disabled;
+      btn.style.opacity = disabled ? 0.5 : 1;
+      btn.style.pointerEvents = disabled ? 'none' : 'auto';
+      btn.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+      if (disabled) {
+        btn.title = 'Selesaikan tugas dulu ya 😊';
+      } else {
+        btn.title = '';
+      }
+    }
+    // Wait until finish button is injected by addFinishButton
+    function init(){
+      const btn = findFinishBtn();
+      if (!btn) { setTimeout(init, 150); return; }
+      // Start disabled like A1 flow (aktifkan setelah jawaban benar)
+      setDisabled(btn, true);
+      // Enable when all correct
+      const checkBtn = document.getElementById('checkButton');
+      const resultEl = document.getElementById('result');
+      if (checkBtn) {
+        checkBtn.addEventListener('click', () => {
+          const txt = (resultEl && resultEl.textContent) ? resultEl.textContent : '';
+          if (txt.includes('✅') || /semua warna sudah benar/i.test(txt)) {
+            setDisabled(btn, false);
+          }
+        });
+      }
+    }
+    init();
+  })();
   </script>
 </body>
 </html>
