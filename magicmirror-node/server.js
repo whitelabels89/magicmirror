@@ -158,14 +158,28 @@ app.post('/api/assign-murid-ke-kelas', async (req, res) => {
   }
 });
 
-// Init Firebase Admin
+// Init Firebase Admin (accept GOOGLE_SERVICE_ACCOUNT_KEY_BASE64 or SERVICE_ACCOUNT_KEY_BASE64)
 if (!admin.apps.length) {
-  const saBase64 = process.env.SERVICE_ACCOUNT_KEY_BASE64;
-  if (saBase64) {
-    const serviceAccount = JSON.parse(Buffer.from(saBase64, 'base64').toString('utf8'));
-    admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
-  } else {
-    admin.initializeApp();
+  try {
+    const b64 =
+      process.env.GOOGLE_SERVICE_ACCOUNT_KEY_BASE64 ||
+      process.env.SERVICE_ACCOUNT_KEY_BASE64;
+    if (b64) {
+      const serviceAccount = JSON.parse(Buffer.from(b64, 'base64').toString('utf8'));
+      const storageBucket = process.env.FIREBASE_STORAGE_BUCKET || undefined;
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        projectId: serviceAccount.project_id,
+        storageBucket
+      });
+      console.log('[admin-init] OK project_id=', serviceAccount.project_id, ' bucket=', storageBucket || '(none)');
+    } else {
+      console.warn('[admin-init] No SA key in env; initializing with default credentials');
+      admin.initializeApp();
+    }
+  } catch (e) {
+    console.error('[admin-init] FAILED:', e.message);
+    admin.initializeApp(); // last-resort
   }
 }
 const db = admin.firestore();
@@ -273,7 +287,66 @@ async function getRewardHistory() {
 // Static assets and additional routers
 app.use('/generated_lessons', express.static(path.join(__dirname, '..', 'generated_lessons')));
 app.use(uploadModulRouter);
+
 app.use('/api/worksheet', require('./server/worksheet/submit'));
+
+// Debug endpoint to verify worksheet env / bucket (quick diagnosis)
+app.get('/api/worksheet/debug', async (req, res) => {
+  const out = {
+    ok: true,
+    env_bucket: process.env.FIREBASE_STORAGE_BUCKET || null,
+    sa_present: !!(process.env.GOOGLE_SERVICE_ACCOUNT_KEY_BASE64 || process.env.SERVICE_ACCOUNT_KEY_BASE64),
+    admin_inited: !!admin.apps.length,
+    admin_project_id: null,
+    bucket_exists: null,
+    test_write: null,
+    message: null
+  };
+  try {
+    const appInst = admin.app();
+    out.admin_project_id = (appInst.options && (appInst.options.projectId || appInst.options.projectID)) || null;
+    const bucketName = process.env.FIREBASE_STORAGE_BUCKET;
+    if (!bucketName) {
+      out.ok = false;
+      out.message = 'FIREBASE_STORAGE_BUCKET env not set';
+      return res.status(500).json(out);
+    }
+    const bucket = admin.storage().bucket(bucketName);
+    try {
+      const [exists] = await bucket.exists();
+      out.bucket_exists = !!exists;
+      if (!exists) {
+        out.ok = false;
+        out.message = 'Bucket does not exist or not accessible';
+        return res.status(500).json(out);
+      }
+    } catch (e) {
+      out.ok = false;
+      out.bucket_exists = false;
+      out.message = 'Error checking bucket: ' + e.message;
+      return res.status(500).json(out);
+    }
+    // optional quick test: append ?test=1 to try a tiny write
+    if (String(req.query.test || '0') === '1') {
+      try {
+        const path = `diagnostic/test-${Date.now()}.txt`;
+        await bucket.file(path).save(Buffer.from('ping'), { contentType: 'text/plain' });
+        const [exists2] = await bucket.file(path).exists();
+        out.test_write = exists2 ? 'ok' : 'not_found_after_write';
+      } catch (e) {
+        out.test_write = 'error: ' + e.message;
+        out.ok = false;
+        out.message = 'Test write failed';
+        return res.status(500).json(out);
+      }
+    }
+    return res.json(out);
+  } catch (e) {
+    out.ok = false;
+    out.message = e.message;
+    return res.status(500).json(out);
+  }
+});
 
 app.get('/api/mirror-all', async (req, res) => {
   try {
