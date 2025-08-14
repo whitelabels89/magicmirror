@@ -298,7 +298,6 @@ document.querySelectorAll(".color-code div").forEach((el) => {
   <button id="checkButton" class="clay-button">Periksa Jawaban</button>
   <div id="result" style="margin-top: 15px; font-weight: bold;"></div>
 
-</script>
   <script>
     // Worksheet metadata for submitter (picked up by /elearn/common/worksheet-submit.js)
     window.WORKSHEET_META = {
@@ -308,5 +307,11 @@ document.querySelectorAll(".color-code div").forEach((el) => {
     };
   </script>
   <script src="/elearn/common/worksheet-submit.js"></script>
+</script>
+  <script type="module">
+    import { addFinishButton } from '/elearn/worlds/utils/finish-button.js';
+    // game=calistung, label=Level 2, next URL to A3
+    addFinishButton('calistung', 'Level 2', '/elearn/calistung/level/A3.html');
+  </script>
 </body>
 </html>
