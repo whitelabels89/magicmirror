@@ -83,7 +83,12 @@ router.post('/submit', rateLimiter, async (req, res) => {
     const buffer = Buffer.from(screenshot_base64, 'base64');
 
     // upload to Firebase Storage
-    const bucket = admin.storage().bucket();
+    const bucketName = process.env.FIREBASE_STORAGE_BUCKET;
+    if (!bucketName) {
+      throw new Error('FIREBASE_STORAGE_BUCKET env not set (expected something like <project-id>.appspot.com)');
+    }
+    dlog('using storage bucket:', bucketName);
+    const bucket = admin.storage().bucket(bucketName);
     const storagePath = `worksheets/${course_id}/${lesson_id}/${murid_uid}/${ts}.png`;
     const file = bucket.file(storagePath);
     await file.save(buffer, { contentType: 'image/png' });
