@@ -159,6 +159,7 @@
     </style>
 </head>
 <body>
+  <div id="worksheetRoot" data-course-id="number-basic" data-lesson-id="L1">
     <div style="max-width:794px;margin:0 auto 10px auto;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap">
         <label for="worksheet-select" style="font-weight:600">Pilih Worksheet:</label>
         <select id="worksheet-select" aria-label="Pilih worksheet huruf" style="padding:8px 10px;border-radius:6px;border:1px solid #ccc;min-width:160px;">
@@ -994,10 +995,21 @@
         });
     })();
     </script>
+</div>
 
 <script type="module">
   import { addFinishButton } from '/elearn/worlds/utils/finish-button.js';
   addFinishButton('calistung','Level 1','/elearn/calistung/level/A2.html');
+</script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="/elearn/manifest-lessons.js"></script>
+<script src="/elearn/common/worksheet-submit.js"></script>
+<script>
+  initWorksheetSubmit({
+    muridUid: window.ACTIVE_MURID_UID,
+    cid: window.ACTIVE_MURID_CID || '',
+    namaAnak: window.ACTIVE_MURID_NAMA || ''
+  });
 </script>
 </body>
 </html>
