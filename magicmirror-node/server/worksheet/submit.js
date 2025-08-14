@@ -45,6 +45,49 @@ router.get('/ping', (req, res) => {
   res.json({ ok: true, enabled, user: req.user || null, time: Date.now() });
 });
 
+// Quick debug endpoint (diagnose SA & bucket)
+router.get('/debug', async (req, res) => {
+  try {
+    const bucketName = process.env.FIREBASE_STORAGE_BUCKET || null;
+    const out = {
+      ok: true,
+      env_bucket: bucketName,
+      admin_inited: !!admin.apps.length,
+      admin_project_id: admin.apps.length ? (admin.app().options.projectId || admin.app().options.projectID || null) : null,
+      bucket_exists: null,
+      test_write: null
+    };
+    if (!bucketName) {
+      out.ok = false;
+      out.bucket_exists = false;
+      return res.status(500).json(out);
+    }
+    const bucket = admin.storage().bucket(bucketName);
+    const [exists] = await bucket.exists().catch(e => {
+      out.ok = false;
+      out.bucket_exists = false;
+      out.test_write = 'exists_error: ' + e.message;
+      return [false];
+    });
+    out.bucket_exists = !!exists;
+    if (exists && String(req.query.test || '0') === '1') {
+      try {
+        const p = `diagnostic/test-${Date.now()}.txt`;
+        await bucket.file(p).save(Buffer.from('ping'), { contentType: 'text/plain' });
+        const [exists2] = await bucket.file(p).exists();
+        out.test_write = exists2 ? 'ok' : 'not_found_after_write';
+      } catch (e) {
+        out.ok = false;
+        out.test_write = 'write_error: ' + e.message;
+        return res.status(500).json(out);
+      }
+    }
+    return res.json(out);
+  } catch (e) {
+    return res.status(500).json({ ok:false, message:e.message });
+  }
+});
+
 router.post('/submit', rateLimiter, async (req, res) => {
   try {
     dlog('POST /submit hit');
@@ -56,7 +99,8 @@ router.post('/submit', rateLimiter, async (req, res) => {
     }
 
     const user = req.user || {};
-    if (!['guru', 'moderator'].includes(user.role)) {
+    const role = (user.role || '').toLowerCase();
+    if (!['guru', 'moderator'].includes(role)) {
       return res.status(403).json({ ok: false, code: 'forbidden', message: 'Forbidden' });
     }
 
@@ -82,86 +126,111 @@ router.post('/submit', rateLimiter, async (req, res) => {
     const ts = Date.now();
     const buffer = Buffer.from(screenshot_base64, 'base64');
 
-    // upload to Firebase Storage
-    const bucketName = process.env.FIREBASE_STORAGE_BUCKET;
-    if (!bucketName) {
-      throw new Error('FIREBASE_STORAGE_BUCKET env not set (expected something like <project-id>.appspot.com)');
-    }
-    dlog('using storage bucket:', bucketName);
-    const bucket = admin.storage().bucket(bucketName);
-    const storagePath = `worksheets/${course_id}/${lesson_id}/${murid_uid}/${ts}.png`;
-    const file = bucket.file(storagePath);
-    await file.save(buffer, { contentType: 'image/png' });
-    const [storageUrl] = await file.getSignedUrl({ action: 'read', expires: '03-01-2500' });
-
-    // upload to Google Drive
-    const client = await getGoogleClient();
-    const drive = google.drive({ version: 'v3', auth: client });
-    const bufferStream = new stream.PassThrough();
-    bufferStream.end(buffer);
-    const driveResp = await drive.files.create({
-      requestBody: {
-        name: `${ts}_${course_id}_${lesson_id}_${murid_uid}.png`,
-        parents: [process.env.GDRIVE_WORKSHEET_FOLDER_ID].filter(Boolean),
-        mimeType: 'image/png'
-      },
-      media: { mimeType: 'image/png', body: bufferStream },
-      fields: 'id, webViewLink, webContentLink'
-    });
-    const driveFileId = driveResp.data.id;
+    // --- Stage: Firebase Storage ---
+    let storageUrl = '';
     try {
-      await drive.permissions.create({ fileId: driveFileId, requestBody: { role: 'reader', type: 'anyone' } });
+      const bucketName = process.env.FIREBASE_STORAGE_BUCKET;
+      if (!bucketName) throw new Error('FIREBASE_STORAGE_BUCKET env not set (expected <project-id>.appspot.com)');
+      dlog('using storage bucket:', bucketName);
+      const bucket = admin.storage().bucket(bucketName);
+      const storagePath = `worksheets/${course_id}/${lesson_id}/${murid_uid}/${ts}.png`;
+      const file = bucket.file(storagePath);
+      await file.save(buffer, { contentType: 'image/png' });
+      [storageUrl] = await file.getSignedUrl({ action: 'read', expires: '03-01-2500' });
     } catch (e) {
-      console.error('drive permission error', e);
+      console.error('storage error', e);
+      return res.status(500).json({ ok:false, code:'storage_error', message:e.message || 'Storage error' });
     }
-    const driveUrl = driveResp.data.webViewLink || driveResp.data.webContentLink || '';
 
-    // append to Google Sheets
-    const sheets = google.sheets({ version: 'v4', auth: client });
-    const sheetRow = [
-      new Date(ts).toISOString(),
-      murid_uid,
-      cid,
-      nama_anak,
-      course_id,
-      lesson_id,
-      user.uid,
-      user.role,
-      answers_text.slice(0, 5000),
-      storageUrl,
-      driveUrl
-    ];
-    await sheets.spreadsheets.values.append({
-      spreadsheetId: process.env.SPREADSHEET_ID,
-      range: 'EL_WORKSHEET',
-      valueInputOption: 'RAW',
-      requestBody: { values: [sheetRow] }
-    });
+    // --- Stage: Google Drive ---
+    let driveUrl = '';
+    let driveFileId = '';
+    try {
+      const client = await getGoogleClient();
+      const drive = google.drive({ version: 'v3', auth: client });
+      const bufferStream = new stream.PassThrough();
+      bufferStream.end(buffer);
+      const parents = [process.env.GDRIVE_WORKSHEET_FOLDER_ID].filter(Boolean);
+      const driveResp = await drive.files.create({
+        requestBody: {
+          name: `${ts}_${course_id}_${lesson_id}_${murid_uid}.png`,
+          parents,
+          mimeType: 'image/png'
+        },
+        media: { mimeType: 'image/png', body: bufferStream },
+        fields: 'id, webViewLink, webContentLink'
+      });
+      driveFileId = driveResp.data.id;
+      try {
+        await drive.permissions.create({ fileId: driveFileId, requestBody: { role: 'reader', type: 'anyone' } });
+      } catch (permErr) {
+        console.error('drive permission error', permErr);
+      }
+      driveUrl = driveResp.data.webViewLink || driveResp.data.webContentLink || '';
+    } catch (e) {
+      console.error('drive error', e);
+      return res.status(500).json({ ok:false, code:'drive_error', message:e.message || 'Drive error' });
+    }
 
-    // save to Firestore
-    const db = admin.firestore();
-    const docId = `${murid_uid}_${course_id}_${lesson_id}_${ts}`;
-    await db.collection('worksheets').doc(docId).set({
-      ts,
-      murid_uid,
-      cid,
-      nama_anak,
-      course_id,
-      lesson_id,
-      submitted_by_uid: user.uid,
-      submitted_by_role: user.role,
-      answers_text: answers_text,
-      storage_url: storageUrl,
-      drive_file_id: driveFileId,
-      drive_url: driveUrl,
-      sheet_row_url_storage: storageUrl,
-      sheet_row_url_drive: driveUrl
-    });
+    // --- Stage: Google Sheets ---
+    try {
+      const spreadsheetId = process.env.SPREADSHEET_ID;
+      if (!spreadsheetId) throw new Error('SPREADSHEET_ID env not set');
+      const client = await getGoogleClient();
+      const sheets = google.sheets({ version: 'v4', auth: client });
+      const sheetRow = [
+        new Date(ts).toISOString(),
+        murid_uid,
+        cid,
+        nama_anak,
+        course_id,
+        lesson_id,
+        user.uid,
+        role,
+        (answers_text || '').slice(0, 5000),
+        storageUrl,
+        driveUrl
+      ];
+      await sheets.spreadsheets.values.append({
+        spreadsheetId,
+        range: 'EL_WORKSHEET',
+        valueInputOption: 'RAW',
+        requestBody: { values: [sheetRow] }
+      });
+    } catch (e) {
+      console.error('sheets error', e);
+      return res.status(500).json({ ok:false, code:'sheets_error', message:e.message || 'Sheets error' });
+    }
 
-    res.json({ ok: true, storage_url: storageUrl, drive_url: driveUrl, sheet: { tab: 'EL_WORKSHEET' } });
+    // --- Stage: Firestore ---
+    try {
+      const db = admin.firestore();
+      const docId = `${murid_uid}_${course_id}_${lesson_id}_${ts}`;
+      await db.collection('worksheets').doc(docId).set({
+        ts,
+        murid_uid,
+        cid,
+        nama_anak,
+        course_id,
+        lesson_id,
+        submitted_by_uid: user.uid,
+        submitted_by_role: role,
+        answers_text: answers_text,
+        storage_url: storageUrl,
+        drive_file_id: driveFileId,
+        drive_url: driveUrl,
+        sheet_row_url_storage: storageUrl,
+        sheet_row_url_drive: driveUrl
+      });
+    } catch (e) {
+      console.error('firestore error', e);
+      return res.status(500).json({ ok:false, code:'firestore_error', message:e.message || 'Firestore error' });
+    }
+
+    return res.json({ ok: true, storage_url: storageUrl, drive_url: driveUrl, sheet: { tab: 'EL_WORKSHEET' } });
   } catch (err) {
     console.error('worksheet submit error:', err && err.stack ? err.stack : err);
-    res.status(500).json({ ok: false, code: 'internal', message: 'Server error' });
+    res.status(500).json({ ok: false, code: 'internal', message: err.message || 'Server error' });
   }
 });
 
