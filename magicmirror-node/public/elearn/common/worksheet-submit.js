@@ -151,11 +151,24 @@
         return;
       }
 
-      // Role check at click-time
-      const user = await fetchUser();
-      if(!user || !['guru','moderator'].includes(user.role)){
+      // Role check at click-time (prefer FE userInfo, fallback to /api/auth/me)
+      let role = (opts.role || '').toLowerCase();
+      if (!role && typeof getUserInfo === 'function') {
+        try {
+          const info = getUserInfo() || {};
+          role = (info.role || '').toLowerCase();
+          dlog('role from getUserInfo():', role || '(none)');
+        } catch(e){}
+      }
+      let apiUser = null;
+      if (!role) {
+        apiUser = await fetchUser();
+        role = (apiUser && apiUser.role || '').toLowerCase();
+        dlog('role from /api/auth/me:', role || '(none)');
+      }
+      if(!['guru','moderator'].includes(role)){
         btn.title = 'Khusus Guru/Moderator';
-        dlog('blocked: role not allowed or user missing', user);
+        dlog('blocked: role not allowed or user missing', { role, apiUser });
         return;
       }
 
@@ -174,10 +187,11 @@
       try{
         const answers = collectAnswers();
         const screenshot = await capture('#worksheetRoot');
+        const info = (typeof getUserInfo === 'function') ? (getUserInfo() || {}) : {};
         const payload = {
-          murid_uid: opts.muridUid,
-          cid: opts.cid || '',
-          nama_anak: opts.namaAnak || '',
+          murid_uid: opts.muridUid || info.uid || '',
+          cid: opts.cid || info.cid || '',
+          nama_anak: opts.namaAnak || info.nama || '',
           course_id: courseId,
           lesson_id: lessonId,
           answers_text: answers,
