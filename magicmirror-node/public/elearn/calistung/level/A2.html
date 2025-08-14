@@ -77,7 +77,7 @@
     canvas { touch-action: none; }
   </style>
 </head>
-<body id="worksheet-root" data-course-id="numbers-basic" data-lesson-id="L2">
+<body id="worksheetRoot" data-course-id="numbers-basic" data-lesson-id="L2">
   <h2>Mewarnai Mobil</h2>
   <p>Warnailah gambar mobil sesuai dengan kode angka berikut ini!</p>
 
@@ -298,19 +298,25 @@ document.querySelectorAll(".color-code div").forEach((el) => {
   <button id="checkButton" class="clay-button">Periksa Jawaban</button>
   <div id="result" style="margin-top: 15px; font-weight: bold;"></div>
 
-  <script>
-    // Worksheet metadata for submitter (picked up by /elearn/common/worksheet-submit.js)
-    window.WORKSHEET_META = {
-      course_id: 'numbers-basic',
-      lesson_id: 'L2',
-      captureSelector: '#worksheet-root' // allow capturer to snapshot the whole body
-    };
-  </script>
-  <script src="/elearn/common/worksheet-submit.js"></script>
   <script type="module">
     import { addFinishButton } from '/elearn/worlds/utils/finish-button.js';
     // game=calistung, label=Level 2, next URL to A3
     addFinishButton('calistung', 'Level 2', '/elearn/calistung/level/A3.html');
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="/elearn/manifest-lessons.js"></script>
+  <script src="/elearn/userInfo.js"></script>
+  <script src="/elearn/common/worksheet-submit.js"></script>
+  <script>
+    window.WORKSHEET_DEBUG = true;
+    const info = (typeof getUserInfo === 'function') ? getUserInfo() : {};
+    const role = (info.role || '').toLowerCase();
+    initWorksheetSubmit({
+      muridUid: info.uid || '',
+      cid: info.cid || '',
+      namaAnak: info.nama || '',
+      role: role
+    });
   </script>
   <script>
   (function(){
