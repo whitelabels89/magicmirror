@@ -1,6 +1,6 @@
 (function(){
-  const WS_DEBUG = (window.WORKSHEET_DEBUG === true);
-  function clog(...args){ if(WS_DEBUG) console.log('[worksheet-submit]', ...args); }
+  const DEBUG_WORKSHEET = process.env.DEBUG_WORKSHEET === '1';
+  function dlog(...args){ if (DEBUG_WORKSHEET) console.log('[worksheet]', ...args); }
   const API_BASE = window.API_BASE || '';
 
   async function fetchUser(){
@@ -131,7 +131,7 @@
 
     // Avoid duplicate delegated binding
     if (document.__WS_DELEGATED_BOUND__) {
-      clog('delegated click already bound');
+      dlog('delegated click already bound');
       return;
     }
     document.__WS_DELEGATED_BOUND__ = true;
@@ -140,7 +140,7 @@
       const btn = e.target && e.target.closest && e.target.closest('#btnSelesai, .btn-selesai, button[data-action="finish"], button.hud-btn.finish, a#btnSelesai, a.btn-selesai');
       if(!btn) return;
 
-      clog('delegated click on finish button');
+      dlog('delegated click on finish button');
       e.preventDefault();
       e.stopPropagation();
 
@@ -155,7 +155,7 @@
       const user = await fetchUser();
       if(!user || !['guru','moderator'].includes(user.role)){
         btn.title = 'Khusus Guru/Moderator';
-        clog('blocked: role not allowed or user missing', user);
+        dlog('blocked: role not allowed or user missing', user);
         return;
       }
 
@@ -163,7 +163,7 @@
       const root = document.querySelector('#worksheetRoot');
       if(!root){
         alert('Gagal: #worksheetRoot tidak ditemukan di halaman.');
-        clog('no #worksheetRoot found');
+        dlog('no #worksheetRoot found');
         return;
       }
 
@@ -191,7 +191,7 @@
           body: JSON.stringify(payload)
         });
         const data = await res.json().catch(()=>({ok:false,message:'Invalid JSON'}));
-        clog('submit response status:', res.status);
+        dlog('submit response status:', res.status);
         if(res.ok && data.ok){
           showSuccessModal(data.storage_url, data.drive_url);
         }else{
@@ -205,6 +205,6 @@
         btn.textContent = original;
       }
     }, true); // capture phase
-    clog('delegated click handler bound (capture)');
+    dlog('delegated click handler bound (capture)');
   };
 })();
