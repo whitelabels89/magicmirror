@@ -11,9 +11,54 @@ const uploadModulRouter = require('./uploadModul');
 const admin = require('firebase-admin');
 const fetch = require('node-fetch');
 
-// Apply middleware early so body parsing is available for all routes
-app.use(cors());
+// CORS (allow credentials; restrict origins via FRONTEND_ORIGINS env if provided)
+const allowedOrigins = (process.env.FRONTEND_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+app.set('trust proxy', 1);
+app.use(cors({
+  origin(origin, cb) {
+    if (!origin) return cb(null, true); // allow same-origin / curl
+    if (allowedOrigins.length === 0) return cb(null, true); // allow all if not configured
+    if (allowedOrigins.includes(origin)) return cb(null, true);
+    return cb(new Error('Not allowed by CORS'), false);
+  },
+  credentials: true
+}));
 app.use(express.json({ limit: '10mb' })); // handle large JSON bodies
+
+// --- Minimal auth bootstrap for worksheet submit ---
+// If DEV_ENABLE_FAKE_AUTH=1, we attach a fake user (for local/dev testing).
+app.use((req, res, next) => {
+  try {
+    if (process.env.DEV_ENABLE_FAKE_AUTH === '1' && !req.user) {
+      req.user = {
+        uid: process.env.DEV_FAKE_UID || 'DEV_UID',
+        role: process.env.DEV_FAKE_ROLE || 'moderator'
+      };
+    }
+    // Also allow overriding via headers for quick testing
+    const hdrUid = req.headers['x-uid'];
+    const hdrRole = req.headers['x-role'];
+    if ((hdrUid || hdrRole)) {
+      req.user = {
+        uid: String(hdrUid || (req.user && req.user.uid) || 'HDR_UID'),
+        role: String(hdrRole || (req.user && req.user.role) || 'moderator')
+      };
+    }
+  } catch (e) {
+    // ignore
+  }
+  next();
+});
+
+app.get('/api/auth/me', (req, res) => {
+  if (!req.user) return res.status(401).json({ ok: false });
+  res.json({ uid: req.user.uid, role: req.user.role });
+});
+
+// Simple health check
+app.get('/api/health', (req, res) => {
+  res.json({ ok: true, time: Date.now() });
+});
 
 async function postToGAS(tabName, dataArray) {
   const GAS_URL = process.env.WEB_APP_URL || 'https://script.google.com/macros/s/AKfycbynFv8gTnczc7abTL5Olq_sKmf1e0y6w9z_KBTKETK8i6NaGd941Cna4QVnoujoCsMdvA/exec';

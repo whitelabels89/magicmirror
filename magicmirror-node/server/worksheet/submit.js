@@ -1,130 +1,163 @@
-(function(){
-  const WS_DEBUG = (window.WORKSHEET_DEBUG === true);
-  function clog(...args){ if(WS_DEBUG) console.log('[worksheet-submit]', ...args); }
+const express = require('express');
+const router = express.Router();
+const admin = require('firebase-admin');
+const { google } = require('googleapis');
+const stream = require('stream');
 
-  function resolveSubmitButton(){
-    // try several common selectors
-    return document.querySelector('#btnSelesai') ||
-           document.querySelector('.btn-selesai') ||
-           document.querySelector('button[data-action="finish"]') ||
-           document.querySelector('button.hud-btn.finish') ||
-           null;
-  }
-  function waitForButton(timeoutMs = 10000){
-    return new Promise((resolve, reject)=>{
-      const btn0 = resolveSubmitButton();
-      if(btn0){ return resolve(btn0); }
-      let found = null;
-      const obs = new MutationObserver(()=>{
-        const b = resolveSubmitButton();
-        if(b){
-          found = b;
-          obs.disconnect();
-          resolve(b);
-        }
-      });
-      obs.observe(document.documentElement, { childList: true, subtree: true });
-      setTimeout(()=>{
-        if(!found){
-          obs.disconnect();
-          reject(new Error('Submit button not found within timeout'));
-        }
-      }, timeoutMs);
-    });
-  }
+// Debug logger (set DEBUG_WORKSHEET=1 to enable)
+const DEBUG_WORKSHEET = process.env.DEBUG_WORKSHEET === '1';
+function dlog(...args){ if (DEBUG_WORKSHEET) console.log('[worksheet]', ...args); }
 
-  async function capture(selector){
-    const el = document.querySelector(selector);
-    if(!el) throw new Error('Element not found: ' + selector);
-    const canvas = await html2canvas(el);
-    clog('captured canvas', canvas.width, canvas.height);
-    return canvas.toDataURL('image/png').split(',')[1];
+// simple in-memory rate limit: 10 requests per minute per IP
+const RATE_LIMIT = 10;
+const rateMap = new Map();
+function rateLimiter(req, res, next) {
+  const ip = req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  const now = Date.now();
+  const windowMs = 60 * 1000;
+  const timestamps = rateMap.get(ip) || [];
+  const recent = timestamps.filter(t => now - t < windowMs);
+  recent.push(now);
+  rateMap.set(ip, recent);
+  if (recent.length > RATE_LIMIT) {
+    return res.status(429).json({ ok: false, code: 'rate_limit', message: 'Too many requests' });
   }
+  next();
+}
 
-  window.initWorksheetSubmit = async function initWorksheetSubmit(opts = {}){
-    // wait for button (it may be injected after init)
-    let btn;
-    try{
-      btn = await waitForButton(12000);
-      clog('button resolved:', btn);
-    }catch(e){
-      console.warn('Worksheet submit: button not found.', e.message);
-      return;
+async function getGoogleClient() {
+  const base64 = process.env.GOOGLE_SERVICE_ACCOUNT_KEY_BASE64 || process.env.SERVICE_ACCOUNT_KEY_BASE64;
+  if (!base64) throw new Error('Missing service account key');
+  const credentials = JSON.parse(Buffer.from(base64, 'base64').toString('utf8'));
+  const auth = new google.auth.GoogleAuth({
+    credentials,
+    scopes: [
+      'https://www.googleapis.com/auth/drive.file',
+      'https://www.googleapis.com/auth/spreadsheets'
+    ]
+  });
+  return await auth.getClient();
+}
+
+// Health/auth check
+router.get('/ping', (req, res) => {
+  const enabled = process.env.ENABLE_WORKSHEET_SUBMIT === '1';
+  res.json({ ok: true, enabled, user: req.user || null, time: Date.now() });
+});
+
+router.post('/submit', rateLimiter, async (req, res) => {
+  try {
+    dlog('POST /submit hit');
+    dlog('req.user:', req.user);
+    dlog('content-type:', req.headers['content-type']);
+
+    if (process.env.ENABLE_WORKSHEET_SUBMIT !== '1') {
+      return res.status(503).json({ ok: false, code: 'disabled', message: 'Worksheet submit disabled' });
     }
 
-    let courseId, lessonId;
+    const user = req.user || {};
+    if (!['guru', 'moderator'].includes(user.role)) {
+      return res.status(403).json({ ok: false, code: 'forbidden', message: 'Forbidden' });
+    }
+
+    const {
+      murid_uid,
+      cid = '',
+      nama_anak = '',
+      course_id,
+      lesson_id,
+      answers_text = '',
+      screenshot_base64
+    } = req.body || {};
+
+    dlog('payload meta:', { murid_uid, cid, nama_anak, course_id, lesson_id, answers_len: (answers_text||'').length, screenshot_len: (screenshot_base64||'').length });
+
+    if (!murid_uid || !course_id || !lesson_id || !screenshot_base64) {
+      return res.status(400).json({ ok: false, code: 'invalid', message: 'Missing required fields' });
+    }
+    if (!screenshot_base64 || screenshot_base64.length < 100) {
+      return res.status(400).json({ ok: false, code: 'invalid_image', message: 'Screenshot is missing or too small' });
+    }
+
+    const ts = Date.now();
+    const buffer = Buffer.from(screenshot_base64, 'base64');
+
+    // upload to Firebase Storage
+    const bucket = admin.storage().bucket();
+    const storagePath = `worksheets/${course_id}/${lesson_id}/${murid_uid}/${ts}.png`;
+    const file = bucket.file(storagePath);
+    await file.save(buffer, { contentType: 'image/png' });
+    const [storageUrl] = await file.getSignedUrl({ action: 'read', expires: '03-01-2500' });
+
+    // upload to Google Drive
+    const client = await getGoogleClient();
+    const drive = google.drive({ version: 'v3', auth: client });
+    const bufferStream = new stream.PassThrough();
+    bufferStream.end(buffer);
+    const driveResp = await drive.files.create({
+      requestBody: {
+        name: `${ts}_${course_id}_${lesson_id}_${murid_uid}.png`,
+        parents: [process.env.GDRIVE_WORKSHEET_FOLDER_ID].filter(Boolean),
+        mimeType: 'image/png'
+      },
+      media: { mimeType: 'image/png', body: bufferStream },
+      fields: 'id, webViewLink, webContentLink'
+    });
+    const driveFileId = driveResp.data.id;
     try {
-      courseId = opts.courseId || window.COURSE_ID || null;
-      lessonId = opts.lessonId || window.LESSON_ID || null;
-    } catch(e){
-      console.warn('Failed to resolve course/lesson IDs', e);
-      return;
+      await drive.permissions.create({ fileId: driveFileId, requestBody: { role: 'reader', type: 'anyone' } });
+    } catch (e) {
+      console.error('drive permission error', e);
     }
+    const driveUrl = driveResp.data.webViewLink || driveResp.data.webContentLink || '';
 
-    if (btn.dataset.wsBound === '1') {
-      clog('button already bound, skipping rebind');
-      return;
-    }
-
-    async function fetchUser(){
-      // existing fetchUser code here
-    }
-
-    const user = await fetchUser();
-    if(!user || !['guru','moderator'].includes(user.role)){
-      btn.disabled = true;
-      btn.title = 'Khusus Guru/Moderator';
-      clog('blocked: role not allowed or user missing', user);
-      return;
-    }
-    btn.dataset.wsBound = '1';
-    btn.addEventListener('click', async function(e){
-      e.preventDefault();
-      const original = btn.textContent;
-      btn.disabled = true;
-      btn.textContent = 'Mengirim...';
-
-      const root = document.querySelector('#worksheetRoot');
-      if(!root){
-        alert('Gagal: #worksheetRoot tidak ditemukan di halaman.');
-        clog('no #worksheetRoot found');
-        btn.disabled = false; btn.textContent = original;
-        return;
-      }
-
-      try {
-        const screenshot = await capture('#worksheetRoot');
-        const payload = {
-          murid_uid: user.uid || '',
-          cid: opts.cid || '',
-          nama_anak: opts.namaAnak || '',
-          course_id: courseId,
-          lesson_id: lessonId,
-          answers_text: opts.answersText || '',
-          screenshot_base64: screenshot
-        };
-
-        const res = await fetch('/worksheet/submit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        clog('submit response status:', res.status);
-        if(res.ok){
-          alert('Berhasil mengirim worksheet!');
-          btn.textContent = 'Terkirim';
-        } else {
-          const data = await res.json();
-          alert('Gagal mengirim worksheet: ' + (data.message || 'Unknown error'));
-          btn.disabled = false;
-          btn.textContent = original;
-        }
-      } catch(err) {
-        alert('Terjadi kesalahan saat mengirim worksheet.');
-        clog('submit error', err);
-        btn.disabled = false;
-        btn.textContent = original;
-      }
+    // append to Google Sheets
+    const sheets = google.sheets({ version: 'v4', auth: client });
+    const sheetRow = [
+      new Date(ts).toISOString(),
+      murid_uid,
+      cid,
+      nama_anak,
+      course_id,
+      lesson_id,
+      user.uid,
+      user.role,
+      answers_text.slice(0, 5000),
+      storageUrl,
+      driveUrl
+    ];
+    await sheets.spreadsheets.values.append({
+      spreadsheetId: process.env.SPREADSHEET_ID,
+      range: 'EL_WORKSHEET',
+      valueInputOption: 'RAW',
+      requestBody: { values: [sheetRow] }
     });
-  };
-})();
+
+    // save to Firestore
+    const db = admin.firestore();
+    const docId = `${murid_uid}_${course_id}_${lesson_id}_${ts}`;
+    await db.collection('worksheets').doc(docId).set({
+      ts,
+      murid_uid,
+      cid,
+      nama_anak,
+      course_id,
+      lesson_id,
+      submitted_by_uid: user.uid,
+      submitted_by_role: user.role,
+      answers_text: answers_text,
+      storage_url: storageUrl,
+      drive_file_id: driveFileId,
+      drive_url: driveUrl,
+      sheet_row_url_storage: storageUrl,
+      sheet_row_url_drive: driveUrl
+    });
+
+    res.json({ ok: true, storage_url: storageUrl, drive_url: driveUrl, sheet: { tab: 'EL_WORKSHEET' } });
+  } catch (err) {
+    console.error('worksheet submit error:', err && err.stack ? err.stack : err);
+    res.status(500).json({ ok: false, code: 'internal', message: 'Server error' });
+  }
+});
+
+module.exports = router;
