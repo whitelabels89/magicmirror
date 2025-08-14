@@ -51,13 +51,30 @@ app.use((req, res, next) => {
 });
 
 app.get('/api/auth/me', (req, res) => {
-  if (!req.user) return res.status(401).json({ ok: false });
-  res.json({ uid: req.user.uid, role: req.user.role });
+  if (!req.user) {
+    console.warn('[auth/me] no req.user, unauthorized');
+    return res.status(401).json({ ok: false });
+  }
+  console.log('[auth/me] user:', { uid: req.user.uid, role: req.user.role });
+  res.json({ ok: true, uid: req.user.uid, role: req.user.role });
 });
 
 // Simple health check
 app.get('/api/health', (req, res) => {
   res.json({ ok: true, time: Date.now() });
+});
+
+// Tiny version/info endpoint for quick sanity checks
+app.get('/api/version', (req, res) => {
+  res.json({
+    ok: true,
+    name: 'magicmirror-node',
+    env: {
+      ENABLE_WORKSHEET_SUBMIT: process.env.ENABLE_WORKSHEET_SUBMIT === '1',
+      DEV_ENABLE_FAKE_AUTH: process.env.DEV_ENABLE_FAKE_AUTH === '1'
+    },
+    time: Date.now()
+  });
 });
 
 async function postToGAS(tabName, dataArray) {
