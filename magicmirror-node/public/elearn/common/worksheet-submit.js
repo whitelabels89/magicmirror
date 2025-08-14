@@ -198,9 +198,15 @@
           screenshot_base64: screenshot
         };
 
+        // Pass FE identity to backend via headers (server reads x-uid/x-role)
+        const headers = { 'Content-Type': 'application/json' };
+        const feRole = role || (info.role && String(info.role).toLowerCase()) || '';
+        if (info.uid) headers['X-UID'] = info.uid;
+        if (feRole) headers['X-ROLE'] = feRole;
+
         const res = await fetch(`${API_BASE}/api/worksheet/submit`,{
           method:'POST',
-          headers:{'Content-Type':'application/json'},
+          headers,
           credentials:'include',
           body: JSON.stringify(payload)
         });
