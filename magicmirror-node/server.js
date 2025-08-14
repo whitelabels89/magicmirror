@@ -158,14 +158,28 @@ app.post('/api/assign-murid-ke-kelas', async (req, res) => {
   }
 });
 
-// Init Firebase Admin
+// Init Firebase Admin (support GOOGLE_SERVICE_ACCOUNT_KEY_BASE64 or SERVICE_ACCOUNT_KEY_BASE64)
 if (!admin.apps.length) {
-  const saBase64 = process.env.SERVICE_ACCOUNT_KEY_BASE64;
-  if (saBase64) {
-    const serviceAccount = JSON.parse(Buffer.from(saBase64, 'base64').toString('utf8'));
-    admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
-  } else {
-    admin.initializeApp();
+  try {
+    const saBase64 =
+      process.env.GOOGLE_SERVICE_ACCOUNT_KEY_BASE64 ||
+      process.env.SERVICE_ACCOUNT_KEY_BASE64;
+    if (saBase64) {
+      const serviceAccount = JSON.parse(Buffer.from(saBase64, 'base64').toString('utf8'));
+      const storageBucket = process.env.FIREBASE_STORAGE_BUCKET || undefined; // e.g. queens-academy-icoding.appspot.com
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        projectId: serviceAccount.project_id,
+        storageBucket
+      });
+      console.log('[admin-init] OK project_id=', serviceAccount.project_id, ' bucket=', storageBucket || '(none)');
+    } else {
+      console.warn('[admin-init] No SA key provided; initializing with default credentials');
+      admin.initializeApp();
+    }
+  } catch (e) {
+    console.error('[admin-init] FAILED:', e.message);
+    try { admin.initializeApp(); } catch (_) {}
   }
 }
 const db = admin.firestore();
