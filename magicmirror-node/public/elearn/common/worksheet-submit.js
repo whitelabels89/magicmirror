@@ -1,6 +1,6 @@
 (function(){
-  const DEBUG_WORKSHEET = process.env.DEBUG_WORKSHEET === '1';
-  function dlog(...args){ if (DEBUG_WORKSHEET) console.log('[worksheet]', ...args); }
+  const WS_DEBUG = (window.WORKSHEET_DEBUG === true);
+  function dlog(...args){ if (WS_DEBUG) console.log('[worksheet-submit]', ...args); }
   const API_BASE = window.API_BASE || '';
 
   async function fetchUser(){
