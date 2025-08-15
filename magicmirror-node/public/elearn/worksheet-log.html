@@ -1,3 +1,122 @@
+// magicmirror-node/server/worksheet/log.js
+const express = require('express');
+const router = express.Router();
+const { google } = require('googleapis');
+
+function getSheetsClient() {
+  const b64 = process.env.GOOGLE_SERVICE_ACCOUNT_KEY_BASE64 || process.env.SERVICE_ACCOUNT_KEY_BASE64;
+  if (!b64) throw new Error('Missing GOOGLE_SERVICE_ACCOUNT_KEY_BASE64 for Sheets');
+  const credentials = JSON.parse(Buffer.from(b64, 'base64').toString('utf8'));
+  const auth = new google.auth.JWT(
+    credentials.client_email,
+    null,
+    credentials.private_key,
+    ['https://www.googleapis.com/auth/spreadsheets.readonly']
+  );
+  return google.sheets({ version: 'v4', auth });
+}
+
+function parseDate(s) {
+  if (!s) return null;
+  const d = new Date(s);
+  return isNaN(d) ? null : d;
+}
+
+function like(haystack, needle) {
+  if (!needle) return true;
+  return String(haystack || '').toLowerCase().includes(String(needle).toLowerCase());
+}
+
+function norm(s){ return String(s||'').trim().toLowerCase(); }
+
+function findIdx(headers, names){
+  const set = headers.map(h => norm(h));
+  for(const name of names){
+    const i = set.indexOf(norm(name));
+    if(i !== -1) return i;
+  }
+  return -1;
+}
+
+router.get('/log', async (req, res) => {
+  try {
+    const spreadsheetId = process.env.SPREADSHEET_ID;
+    if (!spreadsheetId) return res.status(500).json({ ok:false, error:'SPREADSHEET_ID env not set' });
+
+    const sheetName = process.env.GSHEET_TAB_WORKSHEET || 'EL_WORKSHEET';
+    const limit = Math.min(parseInt(req.query.limit || '100', 10), 1000);
+    const offset = Math.max(parseInt(req.query.offset || '0', 10), 0);
+    const debug = String(req.query.debug||'').toLowerCase() === '1';
+
+    const sheets = getSheetsClient();
+    const range = `${sheetName}!A1:CZ`;
+    const resp = await sheets.spreadsheets.values.get({ spreadsheetId, range });
+    const rows = resp.data.values || [];
+    if (rows.length < 2) return res.json({ ok:true, total:0, items:[], headers: rows[0] || [] });
+
+    const headers = rows[0];
+
+    const idx = {
+      ts:         findIdx(headers, ['ts','timestamp','time','waktu','created_at','date','Timestamp']),
+      cid:        findIdx(headers, ['cid','customer_id','class_id','CID']),
+      murid_uid:  findIdx(headers, ['murid_uid','uid','user_id','siswa_uid','student_uid','UID_Murid','Submitted By UID']),
+      nama_anak:  findIdx(headers, ['nama_anak','nama','name','student_name','siswa','Nama Anak']),
+      course_id:  findIdx(headers, ['course_id','course','kelas','mapel','Course']),
+      lesson_id:  findIdx(headers, ['lesson_id','lesson','level','materi','Lesson']),
+      drive_url:  findIdx(headers, ['drive_url','drive link','gdrive_url','gdrive','drive','URL_Drive','Drive URL']),
+      storage_url:findIdx(headers, ['storage_url','storage','cdn_url','file_url','URL_Storage','Storage URL']),
+      answers_text: findIdx(headers, ['answers_text','answers','jawaban','response','kunci_jawaban','Answers Text'])
+    };
+
+    function rowToObj(arr){
+      const get = (i) => (i>=0 && i<arr.length) ? arr[i] : '';
+      return {
+        ts: get(idx.ts),
+        cid: get(idx.cid),
+        murid_uid: get(idx.murid_uid),
+        nama_anak: get(idx.nama_anak),
+        course_id: get(idx.course_id),
+        lesson_id: get(idx.lesson_id),
+        drive_url: get(idx.drive_url),
+        storage_url: get(idx.storage_url),
+        answers_text: get(idx.answers_text),
+      };
+    }
+
+    const { cid, murid, course_id, lesson_id, q } = req.query;
+    const dateFrom = parseDate(req.query.date_from);
+    const dateTo   = parseDate(req.query.date_to && req.query.date_to + 'T23:59:59');
+
+    const data = rows.slice(1).map(rowToObj).filter(r => {
+      let passDate = true;
+      if (dateFrom || dateTo) {
+        const d = parseDate(r.ts);
+        passDate = !!d && (!dateFrom || d >= dateFrom) && (!dateTo || d <= dateTo);
+      }
+      return (
+        passDate &&
+        (!cid || String(r.cid || '').toLowerCase() === String(cid).toLowerCase()) &&
+        (!murid || like(r.nama_anak || r.murid_uid, murid)) &&
+        (!course_id || String(r.course_id || '').toLowerCase() === String(course_id).toLowerCase()) &&
+        (!lesson_id || String(r.lesson_id || '').toLowerCase() === String(lesson_id).toLowerCase()) &&
+        (!q || (like(r.nama_anak, q) || like(r.murid_uid, q) || like(r.answers_text, q) || like(r.drive_url, q)))
+      );
+    });
+
+    const total = data.length;
+    const items = data.slice(offset, offset + limit);
+
+    if (debug) {
+      return res.json({ ok:true, total, limit, offset, headers, idx, sample: rows[1] || null, items });
+    }
+    return res.json({ ok:true, total, limit, offset, items });
+  } catch (e) {
+    console.error('[worksheet-log] error:', e);
+    return res.status(500).json({ ok:false, error: e.message || 'Internal error' });
+  }
+});
+
+module.exports = router;
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -37,7 +156,7 @@
   <table id="tbl">
     <thead>
       <tr>
-        <th>Waktu (ts)</th>
+        <th>Waktu</th>
         <th>CID</th>
         <th>Mur id / Nama</th>
         <th>Course / Lesson</th>
@@ -61,79 +180,61 @@ let offset = 0;
 let lastTotal = 0;
 
 function val(id){ return document.getElementById(id).value.trim(); }
+function toQuery(params){ const p = new URLSearchParams(); Object.entries(params).forEach(([k,v])=>{ if(v) p.set(k,v); }); return p.toString(); }
+function fmtTs(v){ if(!v) return ''; const d = new Date(v); return isNaN(d) ? v : d.toLocaleString(); }
+function linkOrDash(url, label){ if(!url) return '—'; const safe = String(url).replace(/"/g,'&quot;'); return `<a href="${safe}" target="_blank" rel="noopener">${label}</a>`; }
 
-function toQuery(params){
-  const p = new URLSearchParams();
-  Object.entries(params).forEach(([k,v]) => { if (v) p.set(k, v); });
-  return p.toString();
-}
-
-function fmtTs(v) {
-  if (!v) return '';
-  const d = new Date(v);
-  if (isNaN(d)) return v;
-  return d.toLocaleString();
-}
-
-function linkOrDash(url, label){
-  if (!url) return '—';
-  const safe = String(url).replace(/"/g,'&quot;');
-  return `<a href="${safe}" target="_blank" rel="noopener">${label}</a>`;
-}
+// Get first non-empty field by list of candidate keys (supports normalized & capitalized headers)
+function gf(o, keys){ for(const k of keys){ if(o && o[k]!==undefined && String(o[k]).trim()!=='') return o[k]; } return ''; }
 
 function render(items){
   const tbody = document.querySelector('#tbl tbody');
   tbody.innerHTML = items.map(r=>{
-    const links = [linkOrDash(r.drive_url,'Drive'), linkOrDash(r.storage_url,'Storage')].join(' · ');
-    const mur = [r.murid_uid || '', r.nama_anak || ''].filter(Boolean).join(' / ');
-    const cs = [r.course_id || '', r.lesson_id || ''].filter(Boolean).join(' / ');
-    const ans = (r.answers_text || '').slice(0, 300);
+    const ts   = gf(r, ['ts','Timestamp','timestamp','time','waktu','created_at','date']);
+    const cid  = gf(r, ['cid','CID']);
+    const uid  = gf(r, ['murid_uid','UID_Murid','uid','Submitted By UID']);
+    const nama = gf(r, ['nama_anak','Nama Anak','nama','name']);
+    const course = gf(r, ['course_id','Course','course']);
+    const lesson = gf(r, ['lesson_id','Lesson','lesson']);
+    const drive = gf(r, ['drive_url','URL_Drive','Drive URL','drive']);
+    const storage = gf(r, ['storage_url','URL_Storage','Storage URL','storage']);
+    const answers = gf(r, ['answers_text','Answers Text','answers','jawaban','response']);
+
+    const links = [linkOrDash(drive,'Drive'), linkOrDash(storage,'Storage')].join(' · ');
+    const mur = [uid || '', nama || ''].filter(Boolean).join(' / ');
+    const cs = [course || '', lesson || ''].filter(Boolean).join(' / ');
+
     return `<tr>
-      <td>${fmtTs(r.ts)}</td>
-      <td>${r.cid || ''}</td>
+      <td>${fmtTs(ts)}</td>
+      <td>${cid || ''}</td>
       <td>${mur}</td>
       <td>${cs}</td>
       <td>${links}</td>
-      <td><div style="max-width:520px; white-space:pre-wrap">${ans}</div></td>
+      <td><div style="max-width:520px; white-space:pre-wrap">${String(answers||'').slice(0,300)}</div></td>
     </tr>`;
   }).join('');
 }
 
 async function load(){
   const params = {
-    q: val('q'),
-    cid: val('cid'),
-    murid: val('murid'),
-    course_id: val('course_id'),
-    lesson_id: val('lesson_id'),
-    date_from: val('date_from'),
-    date_to: val('date_to'),
-    limit, offset
+    q: val('q'), cid: val('cid'), murid: val('murid'), course_id: val('course_id'), lesson_id: val('lesson_id'),
+    date_from: val('date_from'), date_to: val('date_to'), limit, offset
   };
   const qs = toQuery(params);
   const res = await fetch(`${API_BASE}/api/worksheet/log?` + qs, { credentials:'include' });
   const data = await res.json();
   if (!res.ok || !data.ok) throw new Error(data.error || 'Failed');
-
   lastTotal = data.total || 0;
   render(data.items || []);
+  const page = Math.floor(offset/limit)+1; const pages = Math.max(1, Math.ceil(lastTotal/limit));
   document.getElementById('meta').textContent = `total: ${lastTotal}`;
-  const page = Math.floor(offset/limit)+1;
-  const pages = Math.max(1, Math.ceil(lastTotal/limit));
   document.getElementById('pageInfo').textContent = `page ${page} / ${pages}`;
 }
 
 document.getElementById('btnApply').addEventListener('click', ()=>{ offset = 0; load(); });
-document.getElementById('btnReset').addEventListener('click', ()=>{
-  ['q','cid','murid','course_id','lesson_id','date_from','date_to'].forEach(id=>document.getElementById(id).value='');
-  offset = 0; load();
-});
-document.getElementById('prev').addEventListener('click', ()=>{
-  offset = Math.max(0, offset - limit); load();
-});
-document.getElementById('next').addEventListener('click', ()=>{
-  if (offset + limit < lastTotal) { offset += limit; load(); }
-});
+document.getElementById('btnReset').addEventListener('click', ()=>{ ['q','cid','murid','course_id','lesson_id','date_from','date_to'].forEach(id=>document.getElementById(id).value=''); offset = 0; load(); });
+document.getElementById('prev').addEventListener('click', ()=>{ offset = Math.max(0, offset - limit); load(); });
+document.getElementById('next').addEventListener('click', ()=>{ if (offset + limit < lastTotal) { offset += limit; load(); } });
 
 load().catch(e=> alert('Gagal load log: ' + e.message));
 </script>
