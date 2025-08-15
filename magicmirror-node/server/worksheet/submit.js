@@ -3,6 +3,7 @@ const router = express.Router();
 const admin = require('firebase-admin');
 const { google } = require('googleapis');
 const stream = require('stream');
+const { uploadBuffer, ensureFolderWritable, createDrive } = require('../../gdrive');
 
 // Debug logger (set DEBUG_WORKSHEET=1 to enable)
 const DEBUG_WORKSHEET = process.env.DEBUG_WORKSHEET === '1';
@@ -32,11 +33,49 @@ async function getGoogleClient() {
   const auth = new google.auth.GoogleAuth({
     credentials,
     scopes: [
-      'https://www.googleapis.com/auth/drive.file',
+      'https://www.googleapis.com/auth/drive',
       'https://www.googleapis.com/auth/spreadsheets'
     ]
   });
   return await auth.getClient();
+}
+function getDrive(client) {
+  return google.drive({ version: 'v3', auth: client });
+}
+async function assertParentWriteable(drive, parentId) {
+  const meta = await drive.files.get({
+    fileId: parentId,
+    fields: 'id,name,mimeType,driveId,capabilities(canAddChildren)',
+    supportsAllDrives: true,
+  });
+  if (meta.data.mimeType !== 'application/vnd.google-apps.folder') {
+    throw new Error(`PARENT_NOT_FOLDER:${parentId}`);
+  }
+  if (!meta.data.capabilities?.canAddChildren) {
+    throw new Error(`NO_WRITE_ACCESS_PARENT:${parentId}`);
+  }
+  return meta.data;
+}
+async function ensureAnyoneWithLink(drive, fileId) {
+  try {
+    await drive.permissions.create({
+      fileId,
+      supportsAllDrives: true,
+      requestBody: { role: 'reader', type: 'anyone' },
+    });
+  } catch (e) {
+    console.warn('[worksheet] drive set public link failed:', e?.message || e);
+  }
+}
+function getOAuthDriveIfAvailable() {
+  const { google } = require('googleapis');
+  const cid = process.env.GDRIVE_OAUTH_CLIENT_ID;
+  const secret = process.env.GDRIVE_OAUTH_CLIENT_SECRET;
+  const refresh = process.env.GDRIVE_OAUTH_REFRESH_TOKEN;
+  if (!cid || !secret || !refresh) return null;
+  const oAuth2 = new google.auth.OAuth2(cid, secret);
+  oAuth2.setCredentials({ refresh_token: refresh });
+  return google.drive({ version: 'v3', auth: oAuth2 });
 }
 
 // Health/auth check
@@ -146,27 +185,22 @@ router.post('/submit', rateLimiter, async (req, res) => {
     let driveUrl = '';
     let driveFileId = '';
     try {
-      const client = await getGoogleClient();
-      const drive = google.drive({ version: 'v3', auth: client });
-      const bufferStream = new stream.PassThrough();
-      bufferStream.end(buffer);
-      const parents = [process.env.GDRIVE_WORKSHEET_FOLDER_ID].filter(Boolean);
-      const driveResp = await drive.files.create({
-        requestBody: {
-          name: `${ts}_${course_id}_${lesson_id}_${murid_uid}.png`,
-          parents,
-          mimeType: 'image/png'
-        },
-        media: { mimeType: 'image/png', body: bufferStream },
-        fields: 'id, webViewLink, webContentLink'
-      });
-      driveFileId = driveResp.data.id;
+      const parentId = process.env.GDRIVE_WORKSHEET_FOLDER_ID;
+      if (!parentId) throw new Error('GDRIVE_WORKSHEET_FOLDER_ID env not set');
+
+      // Optional explicit precheck (throws if not writable / not a folder)
       try {
-        await drive.permissions.create({ fileId: driveFileId, requestBody: { role: 'reader', type: 'anyone' } });
-      } catch (permErr) {
-        console.error('drive permission error', permErr);
+        await ensureFolderWritable(createDrive(), parentId);
+      } catch (e) {
+        // If no Drive creds available, let uploadBuffer produce a clearer error
+        if (!/No Drive credentials/i.test(String(e && e.message))) throw e;
       }
-      driveUrl = driveResp.data.webViewLink || driveResp.data.webContentLink || '';
+
+      const fileName = `${ts}_${course_id}_${lesson_id}_${murid_uid}.png`;
+      const links = await uploadBuffer({ buffer, fileName, mimeType: 'image/png', parentId });
+      driveFileId = links.id;
+      driveUrl = links.webViewLink || links.webContentLink || '';
+      if (!driveUrl) throw new Error('NO_DRIVE_LINK_RETURNED');
     } catch (e) {
       console.error('drive error', e);
       return res.status(500).json({ ok:false, code:'drive_error', message:e.message || 'Drive error' });

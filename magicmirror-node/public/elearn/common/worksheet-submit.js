@@ -3,6 +3,13 @@
   function dlog(){ if (WS_DEBUG) console.log.apply(console, ['[worksheet-submit]'].concat([].slice.call(arguments))); }
   const API_BASE = window.API_BASE || '';
 
+  function getRootSelector(){
+    if (window.WORKSHEET_META && window.WORKSHEET_META.captureSelector) return window.WORKSHEET_META.captureSelector;
+    if (document.getElementById('worksheet-root')) return '#worksheet-root';
+    if (document.getElementById('worksheetRoot')) return '#worksheetRoot';
+    return 'body';
+  }
+
   async function fetchUser(){
     try{
       const res = await fetch(`${API_BASE}/api/auth/me`, { credentials:'include' });
@@ -31,7 +38,8 @@
   }
 
   async function capture(selector){
-    const el = document.querySelector(selector);
+    const sel = selector || getRootSelector();
+    const el = document.querySelector(sel);
     if(!el) throw new Error('container not found');
     window.scrollTo(0,0);
     const canvas = await html2canvas(el,{scale:1.5,useCORS:true,backgroundColor:'#fff'});
@@ -63,9 +71,15 @@
   }
 
   function resolveIds(){
-    const root = document.getElementById('worksheetRoot');
-    let courseId = root?.dataset?.courseId || '';
-    let lessonId = root?.dataset?.lessonId || '';
+    const rootEl = document.getElementById('worksheetRoot') || document.getElementById('worksheet-root') || document.body;
+    let courseId = rootEl?.dataset?.courseId || document.body?.dataset?.courseId || '';
+    let lessonId = rootEl?.dataset?.lessonId || document.body?.dataset?.lessonId || '';
+
+    // Allow explicit override via WORKSHEET_META
+    if (window.WORKSHEET_META) {
+      courseId = window.WORKSHEET_META.course_id || courseId;
+      lessonId = window.WORKSHEET_META.lesson_id || lessonId;
+    }
 
     if(!courseId && window.SIDEBAR?.selectedCourseId) courseId = window.SIDEBAR.selectedCourseId;
     if(!lessonId && window.SIDEBAR?.selectedLessonId) lessonId = window.SIDEBAR.selectedLessonId;
@@ -91,10 +105,12 @@
       background:'#fff',border:'1px solid #ccc',padding:'16px',zIndex:9999,
       boxShadow:'0 2px 8px rgba(0,0,0,0.3)'
     });
+    const storageLink = storageUrl ? `<p><a href="${storageUrl}" target="_blank" rel="noopener">View Storage</a></p>` : '';
+    const driveLink   = driveUrl   ? `<p><a href="${driveUrl}" target="_blank" rel="noopener">View Drive</a></p>` : '';
     modal.innerHTML = `
       <p>Worksheet tersimpan ✅</p>
-      <p><a href="${storageUrl}" target="_blank" rel="noopener">View Storage</a></p>
-      <p><a href="${driveUrl}" target="_blank" rel="noopener">View Drive</a></p>
+      ${storageLink}
+      ${driveLink}
       <button id="wsCloseModal">Tutup</button>
     `;
     document.body.appendChild(modal);
@@ -155,10 +171,11 @@
         return;
       }
 
-      const root = document.querySelector('#worksheetRoot');
+      const rootSel = getRootSelector();
+      const root = document.querySelector(rootSel);
       if(!root){
-        alert('Gagal: #worksheetRoot tidak ditemukan di halaman.');
-        dlog('no #worksheetRoot found');
+        alert(`Gagal: elemen root untuk screenshot tidak ditemukan (${rootSel}).`);
+        dlog('no root found for capture', { rootSel });
         return;
       }
 
@@ -168,7 +185,7 @@
 
       try{
         const answers = collectAnswers();
-        const screenshot = await capture('#worksheetRoot');
+        const screenshot = await capture(getRootSelector());
         const payload = {
           murid_uid: opts.muridUid || info.uid || '',
           cid: opts.cid || info.cid || '',

@@ -166,13 +166,23 @@ if (!admin.apps.length) {
       process.env.SERVICE_ACCOUNT_KEY_BASE64;
     if (saBase64) {
       const serviceAccount = JSON.parse(Buffer.from(saBase64, 'base64').toString('utf8'));
-      const storageBucket = process.env.FIREBASE_STORAGE_BUCKET || undefined; // e.g. queens-academy-icoding.appspot.com
+      const storageBucket = process.env.FIREBASE_STORAGE_BUCKET || `${serviceAccount.project_id}.appspot.com`;
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
         projectId: serviceAccount.project_id,
         storageBucket
       });
       console.log('[admin-init] OK project_id=', serviceAccount.project_id, ' bucket=', storageBucket || '(none)');
+      // Quick verify that the bucket exists to avoid "The specified bucket does not exist"
+      setImmediate(async () => {
+        try {
+          const b = admin.storage().bucket();
+          const [meta] = await b.getMetadata();
+          console.log('[storage] bucket verified:', meta.id || meta.name || storageBucket);
+        } catch (e) {
+          console.error('[storage] verify failed. Check FIREBASE_STORAGE_BUCKET. Expected:', storageBucket, 'Error:', e.message);
+        }
+      });
     } else {
       console.warn('[admin-init] No SA key provided; initializing with default credentials');
       admin.initializeApp();
@@ -183,6 +193,26 @@ if (!admin.apps.length) {
   }
 }
 const db = admin.firestore();
+
+app.get('/api/storage-info', async (req, res) => {
+  try {
+    const bucket = admin.storage().bucket();
+    let meta = null;
+    try {
+      const [m] = await bucket.getMetadata();
+      meta = { id: m.id || m.name, location: m.location, storageClass: m.storageClass };
+    } catch (e) {
+      meta = { error: e.message };
+    }
+    res.json({
+      project_id: admin.app().options.projectId,
+      bucket: bucket.name,
+      meta
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 
 const PORT = process.env.PORT || 3000;
 
