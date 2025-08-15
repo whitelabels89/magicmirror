@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Worksheet Log</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 16px; }
+    header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+    .filters { display:flex; gap:8px; flex-wrap:wrap; margin: 10px 0 16px; }
+    input, select, button { padding:8px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border:1px solid #ddd; padding:8px; font-size:14px; vertical-align: top; }
+    th { background:#fafafa; position: sticky; top: 0; }
+    .muted { color:#777; font-size:12px; }
+    .pager { margin-top:10px; display:flex; gap:8px; align-items:center; }
+  </style>
+</head>
+<body>
+  <header>
+    <h2>Worksheet Log</h2>
+    <div class="muted" id="meta"></div>
+  </header>
+
+  <section class="filters">
+    <input id="q" placeholder="Cari (nama, UID, jawaban, drive link)" style="min-width:280px" />
+    <input id="cid" placeholder="CID" />
+    <input id="murid" placeholder="Nama/UID murid" />
+    <input id="course_id" placeholder="course_id (mis. numbers-basic)" />
+    <input id="lesson_id" placeholder="lesson_id (mis. L2)" />
+    <input id="date_from" type="date" />
+    <input id="date_to" type="date" />
+    <button id="btnApply">Terapkan</button>
+    <button id="btnReset">Reset</button>
+  </section>
+
+  <table id="tbl">
+    <thead>
+      <tr>
+        <th>Waktu (ts)</th>
+        <th>CID</th>
+        <th>Mur id / Nama</th>
+        <th>Course / Lesson</th>
+        <th>Links</th>
+        <th>Jawaban</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div class="pager">
+    <button id="prev">Prev</button>
+    <span id="pageInfo" class="muted"></span>
+    <button id="next">Next</button>
+  </div>
+
+<script>
+const API_BASE = window.API_BASE || '';
+let limit = 50;
+let offset = 0;
+let lastTotal = 0;
+
+function val(id){ return document.getElementById(id).value.trim(); }
+
+function toQuery(params){
+  const p = new URLSearchParams();
+  Object.entries(params).forEach(([k,v]) => { if (v) p.set(k, v); });
+  return p.toString();
+}
+
+function fmtTs(v) {
+  if (!v) return '';
+  const d = new Date(v);
+  if (isNaN(d)) return v;
+  return d.toLocaleString();
+}
+
+function linkOrDash(url, label){
+  if (!url) return '—';
+  const safe = String(url).replace(/"/g,'&quot;');
+  return `<a href="${safe}" target="_blank" rel="noopener">${label}</a>`;
+}
+
+function render(items){
+  const tbody = document.querySelector('#tbl tbody');
+  tbody.innerHTML = items.map(r=>{
+    const links = [linkOrDash(r.drive_url,'Drive'), linkOrDash(r.storage_url,'Storage')].join(' · ');
+    const mur = [r.murid_uid || '', r.nama_anak || ''].filter(Boolean).join(' / ');
+    const cs = [r.course_id || '', r.lesson_id || ''].filter(Boolean).join(' / ');
+    const ans = (r.answers_text || '').slice(0, 300);
+    return `<tr>
+      <td>${fmtTs(r.ts)}</td>
+      <td>${r.cid || ''}</td>
+      <td>${mur}</td>
+      <td>${cs}</td>
+      <td>${links}</td>
+      <td><div style="max-width:520px; white-space:pre-wrap">${ans}</div></td>
+    </tr>`;
+  }).join('');
+}
+
+async function load(){
+  const params = {
+    q: val('q'),
+    cid: val('cid'),
+    murid: val('murid'),
+    course_id: val('course_id'),
+    lesson_id: val('lesson_id'),
+    date_from: val('date_from'),
+    date_to: val('date_to'),
+    limit, offset
+  };
+  const qs = toQuery(params);
+  const res = await fetch(`${API_BASE}/api/worksheet/log?` + qs, { credentials:'include' });
+  const data = await res.json();
+  if (!res.ok || !data.ok) throw new Error(data.error || 'Failed');
+
+  lastTotal = data.total || 0;
+  render(data.items || []);
+  document.getElementById('meta').textContent = `total: ${lastTotal}`;
+  const page = Math.floor(offset/limit)+1;
+  const pages = Math.max(1, Math.ceil(lastTotal/limit));
+  document.getElementById('pageInfo').textContent = `page ${page} / ${pages}`;
+}
+
+document.getElementById('btnApply').addEventListener('click', ()=>{ offset = 0; load(); });
+document.getElementById('btnReset').addEventListener('click', ()=>{
+  ['q','cid','murid','course_id','lesson_id','date_from','date_to'].forEach(id=>document.getElementById(id).value='');
+  offset = 0; load();
+});
+document.getElementById('prev').addEventListener('click', ()=>{
+  offset = Math.max(0, offset - limit); load();
+});
+document.getElementById('next').addEventListener('click', ()=>{
+  if (offset + limit < lastTotal) { offset += limit; load(); }
+});
+
+load().catch(e=> alert('Gagal load log: ' + e.message));
+</script>
+</body>
+</html>

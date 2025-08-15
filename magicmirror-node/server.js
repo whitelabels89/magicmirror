@@ -318,6 +318,7 @@ async function getRewardHistory() {
 app.use('/generated_lessons', express.static(path.join(__dirname, '..', 'generated_lessons')));
 app.use(uploadModulRouter);
 app.use('/api/worksheet', require('./server/worksheet/submit'));
+app.use('/api/worksheet', require('./server/worksheet/log'));
 
 app.get('/api/mirror-all', async (req, res) => {
   try {
