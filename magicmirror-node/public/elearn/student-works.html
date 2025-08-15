@@ -146,11 +146,14 @@
       font-family: 'Inter', sans-serif;
       font-weight: 700;
       font-size: 2rem;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+    .header-welcome .title-text {
       background: linear-gradient(90deg, #ff3c3c, #ff7272);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      margin-bottom: 8px;
-      letter-spacing: 0.5px;
+      display: inline-block;
     }
     .stat-cards {
       display: grid;
@@ -357,7 +360,7 @@
       <!-- Section: Header -->
       <section class="section-welcome section-spacing" style="margin-bottom: 30px;">
         <div class="header-welcome" style="display:flex;align-items:center;justify-content:space-between;">
-          <span>🎨 Student Works Gallery</span>
+          <span class="title-text">🎨 Student Works Gallery</span>
           <div style="display:flex;align-items:center;gap:14px;">
             <button id="theme-toggle-btn" aria-label="Toggle theme">🌙</button>
             <button id="mirror-works-btn" style="padding:6px 12px;border:none;background:#0069d9;color:#fff;border-radius:6px;cursor:pointer;">Mirror Now</button>
