@@ -89,7 +89,7 @@
           <div class="title">📄 Worksheet Log</div>
           <div class="muted" id="meta">memuat…</div>
         </div>
-        <button id="theme-toggle" title="Toggle theme">Toggle Theme</button>
+        <button id="theme-toggle-btn" aria-label="Toggle theme" style="background:none;border:none;cursor:pointer;font-size:1.2rem;line-height:1;">🌙</button>
       </section>
 
       <section class="card data-table-card">
@@ -129,10 +129,25 @@
   </div>
 
   <script>
-    // theme toggle
-    const themeBtn = document.getElementById('theme-toggle');
-    function setTheme(next){ document.documentElement.setAttribute('data-theme', next); localStorage.setItem('theme', next); }
-    themeBtn && themeBtn.addEventListener('click', ()=>{ const cur = document.documentElement.getAttribute('data-theme')||'light'; setTheme(cur==='light'?'dark':'light'); });
+    // theme toggle (consistent with other admin pages)
+    function updateThemeIcon(){
+      const cur = document.documentElement.getAttribute('data-theme') || 'light';
+      const btn = document.getElementById('theme-toggle-btn');
+      if (btn) btn.textContent = (cur === 'dark' ? '☀️' : '🌙');
+    }
+    function toggleTheme(){
+      const cur = document.documentElement.getAttribute('data-theme') || 'light';
+      const next = (cur === 'light') ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      updateThemeIcon();
+      // keep sidebar in sync if container exists
+      const sidebar = document.getElementById('sidebar-container');
+      if (sidebar) {
+        if (next === 'dark') sidebar.classList.add('dark-theme');
+        else sidebar.classList.remove('dark-theme');
+      }
+    }
 
     // existing log code
     const API_BASE = window.API_BASE || '';
@@ -189,6 +204,11 @@
     document.getElementById('btnReset').addEventListener('click', ()=>{ ['q','cid','murid','course_id','lesson_id','date_from','date_to'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; }); offset = 0; load(); });
     document.getElementById('prev').addEventListener('click', ()=>{ offset = Math.max(0, offset - limit); load(); });
     document.getElementById('next').addEventListener('click', ()=>{ if (offset + limit < lastTotal) { offset += limit; load(); } });
+
+    // theme button wiring + initial icon
+    const __themeBtn = document.getElementById('theme-toggle-btn');
+    if (__themeBtn) __themeBtn.addEventListener('click', toggleTheme);
+    updateThemeIcon();
 
     // first load
     load().catch(e=> alert('Gagal load log: ' + e.message));
