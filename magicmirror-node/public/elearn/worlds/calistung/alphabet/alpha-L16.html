@@ -110,153 +110,19 @@
     <p class="credit">© Queen's Academy – J3</p>
   </div>
 
-  <script>
-    // Helper: alphabet map
-    const A2Z = Array.from({length:26}, (_,i)=>String.fromCharCode(97+i)); // a..z
-    const map = Object.fromEntries(A2Z.map((ch,i)=>[ch,(i+1)]));
-
-    // Build key table visually like worksheet
-    function buildKey(){
-      const rLa = document.getElementById('row-letters-a');
-      const rNa = document.getElementById('row-numbers-a');
-      const rLn = document.getElementById('row-letters-n');
-      const rNn = document.getElementById('row-numbers-n');
-      rLa.innerHTML = A2Z.slice(0,13).map(ch=>`<td style="background:var(--green);color:white;font-weight:800;text-transform:lowercase">${ch}</td>`).join("");
-      rNa.innerHTML = A2Z.slice(0,13).map((_,i)=>`<td>${i+1}</td>`).join("");
-      rLn.innerHTML = A2Z.slice(13).map(ch=>`<td style="background:var(--green);color:white;font-weight:800;text-transform:lowercase">${ch}</td>`).join("");
-      rNn.innerHTML = A2Z.slice(13).map((_,i)=>`<td>${i+14}</td>`).join("");
-    }
-
-    // Puzzles (sesuai worksheet)
-    const phrases = [
-      { lead:[9,1,13], word:[23,15,18,20,8,25] }, // I AM WORTHY
-      { lead:[9,1,13], word:[22,1,12,21,5,4] },   // I AM VALUED
-      { lead:[9,1,13], word:[12,15,22,5,4] },     // I AM LOVED
-      { lead:[9,1,13], word:[2,18,1,22,5] },      // I AM BRAVE
-      { lead:[9,1,13], word:[5,14,15,21,7,8] },   // I AM ENOUGH
-    ];
-
-    function toLetters(nums){
-      return nums.map(n=>String.fromCharCode(96+n));
-    }
-
-    function box(html, cls="numBox"){ return `<div class="${cls}">${html}</div>` }
-
-    function render(){
-      const wrap = document.getElementById('game');
-      wrap.innerHTML = "";
-      puzzles.forEach((p,idx)=>{
-        const total = p.lead.length + p.word.length; // jumlah kolom
-        const row = document.createElement('div');
-        row.className = 'row';
-        row.style.gridTemplateColumns = `repeat(${total}, 56px)`; // 1 baris penuh
-
-        // baris angka (row 1)
-        const allNums = [...p.lead, ...p.word];
-        allNums.forEach(n=>{
-          const boxEl = document.createElement('div');
-          boxEl.className = 'numBox';
-          boxEl.textContent = n;
-          boxEl.style.gridRow = '1';
-          row.appendChild(boxEl);
-        });
-
-        // baris jawaban (row 2) – buat input di bawah SETIAP angka
-        allNums.forEach((n,i)=>{
-          const inWrap = document.createElement('div');
-          inWrap.className = 'inBox';
-          inWrap.style.gridRow = '2';
-          // Input untuk 9 1 13 juga ada (biarkan kosong, tidak dinilai)
-          const ghost = (i < p.lead.length);
-          inWrap.innerHTML = `<input maxlength="1" ${ghost? 'data-ghost="true"':''} data-n="${n}">`;
-          row.appendChild(inWrap);
-        });
-
-        wrap.appendChild(row);
-      });
-      bindInputs();
-    }
-
-    function bindInputs(){
-      document.querySelectorAll('.inBox input').forEach(inp=>{
-        inp.addEventListener('input', e=>{
-          // allow only A-Z
-          e.target.value = e.target.value.replace(/[^a-zA-Z]/g,'').toUpperCase().slice(0,1);
-        });
-      });
-    }
-
-    function check(){
-      let allCorrect = true;
-      // Only check inputs that are not ghost (the ones under 9 1 13 are decorative)
-      document.querySelectorAll('.inBox input[data-ghost!="true"]').forEach(inp=>{
-        const expected = String.fromCharCode(64 + Number(inp.dataset.n)); // A=1->Z=26
-        const ok = (inp.value.toUpperCase() === expected);
-        inp.parentElement.style.borderColor = ok ? '#19a86a' : '#ef4444';
-        inp.parentElement.style.background = ok ? '#eafff4' : '#fff5f5';
-        allCorrect = allCorrect && ok;
-      });
-      showResult(allCorrect);
-    }
-
-    function resetInputs(){
-      document.querySelectorAll('.inBox input').forEach(inp=>{
-        inp.value = '';
-        inp.parentElement.style.borderColor = '#d9e3ea';
-        inp.parentElement.style.background = '#fff';
-      });
-      showResult(null);
-    }
-
-    function showResult(ok){
-      if(!resultEl){
-        const p = document.createElement('p');
-        p.className = 'result';
-        document.querySelector('.container').appendChild(p);
-        resultEl = p;
-      }
-      if(ok === null){ resultEl.textContent = ''; return; }
-      if(ok){
-        resultEl.innerHTML = 'Mantap! Semua jawaban benar. <span class="tag ok">✔︎ tepat</span>';
-      } else {
-        resultEl.innerHTML = 'Masih ada yang keliru. Coba cek lagi ya. <span class="tag no">✖︎ periksa</span>';
-      }
-    }
-
-    function shuffle(arr){
-      return arr.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
-    }
-
-    // state
-    let puzzles = [];
-    let resultEl = null;
-
-    // controls
-    document.addEventListener('click', (e)=>{
-      if(e.target.id==='btnShuffle'){
-        puzzles = shuffle(phrases.slice());
-        render();
-        showResult(null);
-      }
-      if(e.target.id==='btnReset'){
-        resetInputs();
-      }
-      if(e.target.id==='btnCheck'){
-        check();
-      }
-    });
-
-    // init
-    buildKey();
-    puzzles = phrases.slice();
-    render();
-  </script>
-<script type="module">
-  import { markCompletedLocal } from '/elearn/worlds/utils/progress.js';
-  document.querySelector('#btnSelesai')?.addEventListener('click', ()=>{
-    markCompletedLocal('calistung','Level 21');
-    alert('Progres tersimpan! Kembali ke map.');
-    window.location = '/elearn/worlds/calistung/index.html';
+  
+<button id="btn-finish" type="button">Selesai</button>
+<script src="/elearn/manifest-lessons.js"></script>
+<script src="/elearn/userInfo.js"></script>
+<script src="/elearn/common/worksheet-submit.js"></script>
+<script>
+  window.WORKSHEET_DEBUG = true;
+  const info = (typeof getUserInfo === "function") ? getUserInfo() : {};
+  initWorksheetSubmit({
+    muridUid: info.uid || "",
+    cid: info.cid || "",
+    namaAnak: info.nama || "",
+    role: (info.role || "").toLowerCase()
   });
 </script>
 </body>

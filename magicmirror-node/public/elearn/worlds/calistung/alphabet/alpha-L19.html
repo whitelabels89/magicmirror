@@ -279,5 +279,19 @@
   newRound();
 })();
 </script>
+<button id="btn-finish" type="button">Selesai</button>
+<script src="/elearn/manifest-lessons.js"></script>
+<script src="/elearn/userInfo.js"></script>
+<script src="/elearn/common/worksheet-submit.js"></script>
+<script>
+  window.WORKSHEET_DEBUG = true;
+  const info = (typeof getUserInfo === "function") ? getUserInfo() : {};
+  initWorksheetSubmit({
+    muridUid: info.uid || "",
+    cid: info.cid || "",
+    namaAnak: info.nama || "",
+    role: (info.role || "").toLowerCase()
+  });
+</script>
 </body>
 </html>
