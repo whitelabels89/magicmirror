@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Student Accounts – Admin</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="prefetch" href="/elearn/sidebar-mod.html" as="fetch" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'light');
@@ -321,14 +322,38 @@
   <div class="dashboard-layout">
     <!-- Sidebar digantikan dengan file terpisah -->
     <div id="sidebar-placeholder"></div>
+    <script>
+      // Inject cached sidebar instantly to avoid flash
+      (function() {
+        try {
+          const cached = localStorage.getItem('sidebar_mod_html_v1');
+          const ph = document.getElementById('sidebar-placeholder');
+          if (cached && ph) {
+            ph.outerHTML = cached; // preserves original IDs/classes from cached HTML
+          }
+        } catch (e) { /* noop */ }
+      })();
+    </script>
     <script type="module">
       import { loadSidebar } from '/elearn/js/sidebar-init.js';
-      loadSidebar().then(() => {
-        if (typeof initSidebar === 'function') initSidebar();
-        highlightActiveSidebarMenu(window.location.pathname);
-      });
+      loadSidebar();
     </script>
     <script src="/elearn/sidebar-meteor.js" defer></script>
+    <script>
+      // Fallback + cache refresher: keep sidebar persistent & avoid flicker
+      window.addEventListener('DOMContentLoaded', () => {
+        fetch('/elearn/sidebar-mod.html')
+          .then(res => res.text())
+          .then(html => {
+            try { localStorage.setItem('sidebar_mod_html_v1', html); } catch (e) {}
+            if (!document.getElementById('sidebar-container')) {
+              const ph = document.getElementById('sidebar-placeholder');
+              if (ph) ph.outerHTML = html;
+            }
+          })
+          .catch(err => console.error('Sidebar fallback error (manage-badges):', err));
+      });
+    </script>
     <main class="main-content" style="padding: 2rem;">
       <h1 class="header-welcome" style="margin-bottom: 18px;">
         <i class="fas fa-award" style="color: #ff3c3c; margin-right: 10px;"></i> Manage Badges
@@ -687,7 +712,16 @@
       const currentTheme = localStorage.getItem('theme') || 'light';
       document.documentElement.setAttribute('data-theme', currentTheme);
       updateThemeIcon();
-      document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
+      const btn = document.getElementById('theme-toggle-btn');
+      if (btn) btn.addEventListener('click', toggleTheme);
+      // Retry once after sidebar injected (in case tombol ada di sidebar)
+      setTimeout(() => {
+        const lateBtn = document.getElementById('theme-toggle-btn');
+        if (lateBtn && !lateBtn._boundTheme) {
+          lateBtn.addEventListener('click', toggleTheme);
+          lateBtn._boundTheme = true;
+        }
+      }, 700);
       // Add dark-theme class to sidebar if dark mode is active
       if (currentTheme === 'dark') {
         document.getElementById('sidebar-container')?.classList.add('dark-theme');
@@ -695,13 +729,4 @@
     });
   </script>
 </body>
-<script>
-  if (!window.loadSidebar) {
-    fetch('/elearn/sidebar-mod.html')
-      .then(res => res.text())
-      .then(html => {
-        document.getElementById('sidebar-placeholder').innerHTML = html;
-      });
-  }
-</script>
 </html>

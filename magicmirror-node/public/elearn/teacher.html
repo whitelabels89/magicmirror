@@ -89,6 +89,20 @@
       text-shadow: 0 0 5px rgba(255,255,255,0.2);
       color: var(--text-main);
     }
+
+    /* Dark mode overrides for Bootstrap summary cards */
+    [data-theme='dark'] .bg-white {
+      background: var(--card-bg) !important;
+      color: var(--text-main) !important;
+      box-shadow: 0 0 15px rgba(0,255,255,0.3), 0 0 30px rgba(255,0,255,0.15);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    [data-theme='dark'] .bg-white h3 {
+      color: #000000 !important;
+    }
+    [data-theme='dark'] .bg-white p.text-muted {
+      color: #000000 !important;
+    }
     :root {
       --sidebar-width: 230px;
       --primary: #2c3e50;
@@ -146,13 +160,13 @@
     }
     .stat-card-title {
       font-size: 1.05rem;
-      color: #555;
+      color: #000000 !important;
       margin-bottom: 8px;
     }
     .stat-card-value {
       font-size: 2.1rem;
       font-weight: 600;
-      color: var(--primary);
+      color: #000000 !important;
     }
     .charts-row {
       display: grid;

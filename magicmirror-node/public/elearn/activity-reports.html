@@ -87,6 +87,33 @@
       text-shadow: 0 0 5px rgba(255,255,255,0.2);
       color: var(--text-main);
     }
+    /* ==== Dark mode readability fixes for this page ==== */
+    [data-theme='dark'] main,
+    [data-theme='dark'] .main-content,
+    [data-theme='dark'] h1,
+    [data-theme='dark'] h2,
+    [data-theme='dark'] h3,
+    [data-theme='dark'] p,
+    [data-theme='dark'] span,
+    [data-theme='dark'] div { color: var(--text-main) !important; }
+
+    /* Summary cards at the top */
+    [data-theme='dark'] .summary-box {
+      background: var(--card-bg) !important;
+      color: #ffffff !important;
+      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow: 0 0 15px rgba(0,255,255,0.25), 0 0 30px rgba(255,0,255,0.12);
+    }
+    [data-theme='dark'] .summary-box strong { color: #cfd8ff !important; }
+
+    /* Tables and chart container */
+    [data-theme='dark'] table { background: #1f1f1f !important; }
+    [data-theme='dark'] th { background: #2a2f3a !important; color: #e0e7ff !important; }
+    [data-theme='dark'] td { color: #cdd8f7 !important; }
+    [data-theme='dark'] canvas#activityChart { background: #1f1f1f !important; }
+
+    /* Links inside table */
+    [data-theme='dark'] a { color: #8ab4ff !important; }
     :root {
       --sidebar-width: 230px;
       --primary: #2c3e50;
@@ -125,6 +152,7 @@
       font-weight: 700;
       font-size: 2rem;
       background: linear-gradient(90deg, #ff3c3c, #ff7272);
+      background-clip: text;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       margin-bottom: 8px;
@@ -159,7 +187,7 @@
     .stat-card-value {
       font-size: 2.1rem;
       font-weight: 600;
-      color: var(--primary);
+      color: #000000;
     }
     .charts-row {
       display: grid;
@@ -412,6 +440,22 @@ canvas#activityChart {
   border-radius: 10px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
+/* --- Dark mode fix: ensure summary totals readable --- */
+[data-theme='dark'] .summary-box {
+  background: var(--card-bg) !important;
+  color: #000000 !important;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 0 15px rgba(0,255,255,0.25), 0 0 30px rgba(255,0,255,0.12);
+}
+[data-theme='dark'] .summary-box strong {
+  color: #000000 !important;
+}
+[data-theme='dark'] .summary-box span {
+  color: #000000 !important;
+  opacity: 1 !important;
+  text-shadow: none;
+  -webkit-text-fill-color: #000000 !important;
+}
   </style>
 </body>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -433,7 +477,9 @@ function renderSummary(data) {
   const topMap = {};
   data.forEach(d => {
     topMap[d.cid] = (topMap[d.cid] || 0) + 1;
-  const topCID = Object.entries(topMap).sort((a,b)=>b[1]-a[1])[0]?.[0] || '-';
+  });
+  const topCID = Object.entries(topMap).sort((a, b) => b[1] - a[1])[0]?.[0] || '-';
+
   document.getElementById('total-students').textContent = uniqueStudents.size;
   document.getElementById('total-lessons').textContent = lessonDone.size;
   document.getElementById('total-activities').textContent = data.length;
@@ -455,23 +501,29 @@ function renderTable(data) {
       <td>${d.link ? `<a href="${d.link}" target="_blank">View</a>` : '-'}</td>
     `;
     tbody.appendChild(tr);
+  });
 }
 
 function applyActivityFilter() {
   const filter = document.getElementById('filterCID').value.toLowerCase();
-  const filtered = activityData.filter(d => d.cid.toLowerCase().includes(filter));
+  const filtered = activityData.filter(d => (d.cid || '').toLowerCase().includes(filter));
   renderTable(filtered);
 }
 
 function renderChart(data) {
   const dailyCount = {};
   data.forEach(d => {
-    const date = new Date(d.timestamp).toISOString().split('T')[0];
+    const ts = d.timestamp ? new Date(d.timestamp) : null;
+    if (!ts) return;
+    const date = new Date(ts).toISOString().split('T')[0];
     dailyCount[date] = (dailyCount[date] || 0) + 1;
+  });
+
   const labels = Object.keys(dailyCount).sort();
   const values = labels.map(k => dailyCount[k]);
 
-  new Chart(document.getElementById('activityChart'), {
+  const ctx = document.getElementById('activityChart');
+  new Chart(ctx, {
     type: 'bar',
     data: {
       labels: labels,
@@ -487,6 +539,7 @@ function renderChart(data) {
         y: { beginAtZero: true }
       }
     }
+  });
 }
 
 window.addEventListener('DOMContentLoaded', loadActivityLogs);
@@ -539,6 +592,7 @@ window.addEventListener('DOMContentLoaded', loadActivityLogs);
         tbody.appendChild(tr);
         totalMurid += (kelas.jumlah_murid || 0);
         if (kelas.guru_id) guruSet.add(kelas.guru_id);
+      });
       // Update stat cards
       document.getElementById('stat-kelas').textContent = list.length;
       document.getElementById('stat-murid').textContent = totalMurid;
@@ -561,6 +615,7 @@ window.addEventListener('DOMContentLoaded', loadActivityLogs);
           <td data-label="Nama"><a href="/elearn/student-profile.html?cid=${murid.cid}">${murid.nama}</a></td>
           <td data-label="Email">${murid.email}</td>`;
         tbody.appendChild(tr);
+      });
     } catch (err) {
       console.error(err);
     }
@@ -589,6 +644,7 @@ window.addEventListener('DOMContentLoaded', loadActivityLogs);
           opt2.textContent = `${m.nama} (${m.cid})`;
           selectLesson.appendChild(opt2);
         }
+      });
       // Update stat card murid
       if (document.getElementById('stat-murid')) {
         document.getElementById('stat-murid').textContent = list.length;
@@ -610,6 +666,7 @@ window.addEventListener('DOMContentLoaded', loadActivityLogs);
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ kelas_id, nama_kelas, guru_id })
+      });
       if (res.ok) {
         if (status) status.textContent = '✅ Kelas berhasil ditambah.';
         loadClasses();
@@ -643,6 +700,7 @@ window.addEventListener('DOMContentLoaded', loadActivityLogs);
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cid, nama, email, password, wa, kelas_id, role })
+      });
       if (res.ok) {
         if (status) status.textContent = '✅ Akun berhasil ditambah.';
         e.target.reset();
@@ -673,6 +731,7 @@ window.addEventListener('DOMContentLoaded', loadActivityLogs);
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ cid, lesson })
+        });
         if (res.ok) {
           if (status) status.textContent = '✅ Akses lesson berhasil ditambahkan.';
           e.target.reset();
@@ -690,6 +749,7 @@ window.addEventListener('DOMContentLoaded', loadActivityLogs);
         console.error(err);
         if (status) status.textContent = '❌ Gagal assign lesson';
       }
+    });
   }
 
   async function assignStudent(e) {
@@ -702,6 +762,7 @@ window.addEventListener('DOMContentLoaded', loadActivityLogs);
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uid, kelas_id })
+      });
       if (res.ok) {
         if (status) status.textContent = '✅ Murid berhasil di-assign ke kelas.';
         e.target.reset();
@@ -715,6 +776,7 @@ window.addEventListener('DOMContentLoaded', loadActivityLogs);
       if (status) status.textContent = '❌ Gagal assign murid';
     }
   }
+ });
  </script>
 
   <script>
@@ -748,6 +810,7 @@ window.addEventListener('DOMContentLoaded', loadActivityLogs);
       if (currentTheme === 'dark') {
         document.getElementById('sidebar-container')?.classList.add('dark-theme');
       }
+    });
   </script>
 </body>
 </html>

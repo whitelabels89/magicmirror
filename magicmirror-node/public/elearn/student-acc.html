@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Student Accounts – Admin</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="prefetch" href="/elearn/sidebar-mod.html" as="fetch" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'light');
@@ -120,7 +121,7 @@
       font-weight: 700;
       font-size: 2rem;
       background: linear-gradient(90deg, #ff3c3c, #ff7272);
-      -webkit-background-clip: text;
+      background-clip: text;
       -webkit-text-fill-color: transparent;
       margin-bottom: 8px;
       letter-spacing: 0.5px;
@@ -154,7 +155,7 @@
     .stat-card-value {
       font-size: 2.1rem;
       font-weight: 600;
-      color: var(--primary);
+      color: #555 !important;
     }
     .charts-row {
       display: grid;
@@ -321,11 +322,99 @@
   <div class="dashboard-layout">
     <!-- Sidebar digantikan dengan file terpisah -->
     <div id="sidebar-placeholder"></div>
+    <script>
+      // Inject cached sidebar instantly (avoid flash, ensure presence)
+      (function() {
+        try {
+          const cached = localStorage.getItem('sidebar_mod_html_v1');
+          const ph = document.getElementById('sidebar-placeholder');
+          if (cached && ph && !document.getElementById('sidebar-container')) {
+            ph.outerHTML = cached; // replace placeholder with full sidebar from cache
+          }
+        } catch (e) { /* no-op */ }
+      })();
+    </script>
     <script type="module">
-      import { loadSidebar } from '/elearn/sidebar-init.js';
+      import { loadSidebar } from '/elearn/js/sidebar-init.js';
       loadSidebar();
     </script>
     <script src="/elearn/sidebar-meteor.js" defer></script>
+    <script>
+      // Ensure a sidebar toggle target exists and is bound WITHOUT adding new UI
+      (function() {
+        function tryBind() {
+          const sc  = document.getElementById('sidebar-container');
+          if (!sc) return false;
+          const selectors = [
+            '#sidebar-toggle',
+            '.sidebar [data-role="sidebar-toggle"]',
+            '.sidebar .btn-toggle',
+            '.sidebar .toggle',
+            '.sidebar .sidebar-toggle',
+            '.sidebar .brand',
+            '.sidebar .logo',
+            '.sidebar-header',
+            '.sidebar .title',
+            '.sidebar .menu-toggle'
+          ];
+          let toggleEl = null;
+          for (const sel of selectors) {
+            const el = sc.querySelector(sel);
+            if (el) { toggleEl = el; break; }
+          }
+          if (!toggleEl) return false;
+          if (!toggleEl.id) toggleEl.id = 'sidebar-toggle';
+          if (!toggleEl._boundFallback) {
+            toggleEl.addEventListener('click', () => {
+              const sc2 = document.getElementById('sidebar-container');
+              if (!sc2) return;
+              sc2.classList.toggle('collapsed');
+              if (typeof updateMeteorPath === 'function') {
+                try { updateMeteorPath(); } catch (_) {}
+              }
+            });
+            toggleEl._boundFallback = true;
+          }
+          return true;
+        }
+
+        // Try immediately, then after delays, and also on DOM mutations
+        if (!tryBind()) {
+          window.addEventListener('DOMContentLoaded', () => {
+            let attempts = 0;
+            const schedule = [100, 300, 800, 1500];
+            const tick = () => {
+              if (tryBind()) return;
+              const delay = schedule[attempts++];
+              if (delay != null) setTimeout(tick, delay);
+            };
+            tick();
+
+            // Observe sidebar container for late injections/changes
+            const obsTarget = document.querySelector('#sidebar-placeholder') || document.body;
+            const mo = new MutationObserver(() => { tryBind(); });
+            mo.observe(obsTarget, { childList: true, subtree: true });
+            // Stop observing after 3s to avoid overhead
+            setTimeout(() => mo.disconnect(), 3000);
+          });
+        }
+      })();
+    </script>
+    <script>
+      // Fallback + cache refresher to guarantee sidebar exists and stays consistent
+      window.addEventListener('DOMContentLoaded', () => {
+        fetch('/elearn/sidebar-mod.html')
+          .then(res => res.text())
+          .then(html => {
+            try { localStorage.setItem('sidebar_mod_html_v1', html); } catch (e) {}
+            if (!document.getElementById('sidebar-container')) {
+              const ph = document.getElementById('sidebar-placeholder');
+              if (ph) ph.outerHTML = html;
+            }
+          })
+          .catch(err => console.error('Sidebar fallback error (student-acc):', err));
+      });
+    </script>
     <main class="main-content">
       <!-- Section: Theme Toggle -->
       <section class="section-theme-toggle section-spacing" style="margin-bottom: 30px;">

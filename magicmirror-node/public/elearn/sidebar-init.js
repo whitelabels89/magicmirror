@@ -2,61 +2,74 @@
 
 
 export async function loadSidebar() {
-  const res = await fetch('/elearn/sidebar-mod.html');
-  const html = await res.text();
-  const container = document.getElementById('sidebar-placeholder');
-  container.innerHTML = html;
-  container.style.visibility = 'visible';
+  const ph = document.getElementById('sidebar-placeholder');
 
-  // Re-execute any script tags inside the loaded HTML
-  const scripts = container.querySelectorAll("script");
-  scripts.forEach(oldScript => {
-    const newScript = document.createElement("script");
-    if (oldScript.src) {
-      newScript.src = oldScript.src;
-    } else {
-      newScript.textContent = oldScript.textContent;
+  // 1) Inject cached HTML instantly (anti flicker)
+  try {
+    const cached = localStorage.getItem('sidebar_mod_html_v1');
+    if (cached && ph && !document.getElementById('sidebar-container')) {
+      ph.outerHTML = cached; // langsung ganti placeholder dengan sidebar utuh
+      safeInitSidebar();     // init cepat dari cache
     }
-    document.body.appendChild(newScript);
-    oldScript.remove();
-  });
+  } catch (_) {}
 
-  initSidebar();
+  // 2) Refresh dari network (update cache, inject jika belum ada)
+  try {
+    const res = await fetch('/elearn/sidebar-mod.html', { cache: 'no-store' });
+    const html = await res.text();
+    try { localStorage.setItem('sidebar_mod_html_v1', html); } catch (_) {}
 
-  // Ensure dropdown submenu can be opened without delay after sidebar is dynamically loaded
-  container.querySelectorAll('.menu-group > a').forEach(group => {
-    group.addEventListener('click', (e) => {
-      e.preventDefault();
-      group.parentElement.classList.toggle('open');
-    });
-  });
+    const hasSidebar = !!document.getElementById('sidebar-container');
+    const hasToggle  = !!document.getElementById('sidebar-toggle');
+    if (!hasSidebar && ph) {
+      // Belum ada sidebar sama sekali → inject fresh
+      ph.outerHTML = html;
+      safeInitSidebar();
+    } else if (hasSidebar && !hasToggle) {
+      // Sidebar sudah ada tapi versi cache lama (tidak ada tombol toggle) → replace dengan versi baru
+      const target = document.getElementById('sidebar-container');
+      if (target) {
+        target.outerHTML = html;
+      } else if (ph) {
+        ph.outerHTML = html;
+      }
+      safeInitSidebar();
+    } else {
+      // Sidebar sudah ada & lengkap → cukup re-init ringan
+      safeInitSidebar();
+    }
+  } catch (err) {
+    console.error('loadSidebar error:', err);
+  }
+}
+
+function safeInitSidebar() {
+  try { initSidebar(); } catch (e) { console.warn('initSidebar failed:', e); }
 }
 
 function initSidebar() {
   highlightActiveSidebarMenu();
   updateMeteorPath();
 
-  const toggleBtn = document.getElementById('sidebar-toggle');
   const sidebarContainer = document.getElementById('sidebar-container');
 
-  if (toggleBtn && sidebarContainer) {
-    toggleBtn.addEventListener('click', () => {
-      sidebarContainer.classList.toggle('collapsed');
-      updateMeteorPath();
-    });
-  }
+  // Bind toggle dengan guard + retry (kalau tombol telat muncul)
+  bindToggleOnce();
+  setTimeout(bindToggleOnce, 500);
 
-  document.querySelectorAll('.menu-group > a').forEach(group => {
-    group.addEventListener('click', (e) => {
-      e.preventDefault();
-      if (sidebarContainer.classList.contains('collapsed')) {
-        sidebarContainer.classList.remove('collapsed');
-      }
-      group.parentElement.classList.toggle('open');
-      updateMeteorPath();
-    });
+  // Event delegation: cegah double binding pada .menu-group > a
+  document.querySelector('#sidebar-container')?.addEventListener('click', (e) => {
+    const a = e.target.closest('.menu-group > a');
+    if (!a) return;
+    e.preventDefault();
+    if (sidebarContainer?.classList.contains('collapsed')) {
+      sidebarContainer.classList.remove('collapsed');
+    }
+    a.parentElement.classList.toggle('open');
+    updateMeteorPath();
   });
 
+  // Logout (aman, opsional)
   document.getElementById('logout-btn')?.addEventListener('click', (e) => {
     e.preventDefault();
     localStorage.clear();
@@ -65,16 +78,27 @@ function initSidebar() {
   });
 }
 
+function bindToggleOnce() {
+  const btn = document.getElementById('sidebar-toggle');
+  const sc  = document.getElementById('sidebar-container');
+  if (!btn || !sc) return;
+  if (btn._bound) return; // jangan dobel
+  btn.addEventListener('click', () => {
+    sc.classList.toggle('collapsed');
+    updateMeteorPath();
+  });
+  btn._bound = true;
+}
+
 function highlightActiveSidebarMenu() {
-  const path = window.location.pathname.split('/').pop();
-  document.querySelectorAll('.sidebar-nav a').forEach(link => {
-    const href = link.getAttribute('href');
-    if (href && href === path) {
+  // Normalisasi: bandingkan last segment saja
+  const current = window.location.pathname.split('/').pop() || 'index.html';
+  document.querySelectorAll('.sidebar-nav a[href]').forEach(link => {
+    const href = link.getAttribute('href') || '';
+    const last = href.split('/').pop(); // tahan absolute/relative paths
+    if (last === current) {
       link.classList.add('active');
-      const group = link.closest('.menu-group');
-      if (group) {
-        group.classList.add('open');
-      }
+      link.closest('.menu-group')?.classList.add('open');
     } else {
       link.classList.remove('active');
     }
@@ -83,7 +107,7 @@ function highlightActiveSidebarMenu() {
 
 function updateMeteorPath() {
   const sidebar = document.querySelector('.sidebar');
-  const meteor = document.querySelector('.meteor');
+  const meteor  = document.querySelector('.meteor');
   if (!sidebar || !meteor) return;
 
   const rect = sidebar.getBoundingClientRect();
@@ -104,6 +128,7 @@ function updateMeteorPath() {
     z
   `;
 
+  // Kebanyakan browser modern support offsetPath; kalau tidak, langsung skip (no error)
   meteor.style.offsetPath = `path('${path}')`;
   meteor.style.offsetDistance = '0%';
 
@@ -112,9 +137,6 @@ function updateMeteorPath() {
     meteor.animate([
       { offsetDistance: '0%' },
       { offsetDistance: '100%' }
-    ], {
-      duration: 3000,
-      iterations: Infinity
-    });
+    ], { duration: 3000, iterations: Infinity });
   }
 }

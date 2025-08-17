@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard Moderator</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="prefetch" href="/elearn/sidebar-mod.html" as="fetch" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'light');
@@ -86,6 +87,15 @@
       text-shadow: 0 0 5px rgba(255,255,255,0.2);
       color: var(--text-main);
     }
+
+    /* Ensure stat values and titles are readable in dark mode */
+    [data-theme='dark'] .stat-card-title {
+      color: #000000 !important;
+    }
+    [data-theme='dark'] .stat-card-value {
+      color: #000000 !important;
+      opacity: 1 !important;
+    }
     :root {
       --sidebar-width: 230px;
       --primary: #2c3e50;
@@ -120,7 +130,7 @@
       font-weight: 700;
       font-size: 2rem;
       background: linear-gradient(90deg, #ff3c3c, #ff7272);
-      -webkit-background-clip: text;
+      background-clip: text;
       -webkit-text-fill-color: transparent;
       margin-bottom: 8px;
       letter-spacing: 0.5px;
@@ -341,18 +351,44 @@
       white-space: normal;
     }
   </style>
-</style>
   <link rel="stylesheet" href="/elearn/css/sidebar-mod.css">
 </head>
 <body>
   <div class="dashboard-layout">
     <!-- Sidebar digantikan dengan file terpisah -->
     <div id="sidebar-placeholder"></div>
+    <script>
+      // Inject cached sidebar instantly (anti flicker & ensure presence)
+      (function() {
+        try {
+          const cached = localStorage.getItem('sidebar_mod_html_v1');
+          const ph = document.getElementById('sidebar-placeholder');
+          if (cached && ph && !document.getElementById('sidebar-container')) {
+            ph.outerHTML = cached; // replace placeholder with full sidebar
+          }
+        } catch (e) { /* no-op */ }
+      })();
+    </script>
     <script type="module">
-      import { loadSidebar } from '/elearn/sidebar-init.js';
+      import { loadSidebar } from '/elearn/js/sidebar-init.js';
       loadSidebar();
     </script>
     <script src="/elearn/sidebar-meteor.js" defer></script>
+    <script>
+      // Fallback + cache refresher to guarantee sidebar exists
+      window.addEventListener('DOMContentLoaded', () => {
+        fetch('/elearn/sidebar-mod.html')
+          .then(res => res.text())
+          .then(html => {
+            try { localStorage.setItem('sidebar_mod_html_v1', html); } catch (e) {}
+            if (!document.getElementById('sidebar-container')) {
+              const ph = document.getElementById('sidebar-placeholder');
+              if (ph) ph.outerHTML = html;
+            }
+          })
+          .catch(err => console.error('Sidebar fallback error (moderator):', err));
+      });
+    </script>
     <main class="main-content">
       <!-- Section: Theme Toggle -->
       <section class="section-theme-toggle section-spacing" style="margin-bottom: 30px;">
@@ -365,7 +401,7 @@
 
       <!-- Section: Welcome -->
       <section class="section-welcome section-spacing" style="margin-bottom: 30px;">
-        <div class="header-welcome" style="font-family: 'Inter', sans-serif; font-weight: 700; font-size: 2rem; background: linear-gradient(90deg, #ff3c3c, #ff7272); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        <div class="header-welcome" style="font-family: 'Inter', sans-serif; font-weight: 700; font-size: 2rem; background: linear-gradient(90deg, #ff3c3c, #ff7272); background-clip: text; -webkit-text-fill-color: transparent;">
           Hello, <span id="user-name">Moderator</span>!
         </div>
       </section>
@@ -781,31 +817,6 @@
       const el = document.getElementById(id);
       if (el) el.scrollIntoView({ behavior: 'smooth' });
     }
-    </script>
-</script>
-  <script>
-    function highlightActiveSidebarMenu(currentPath) {
-      const links = document.querySelectorAll('.sidebar-nav a[href]');
-      links.forEach(link => {
-        const linkPath = new URL(link.href).pathname;
-        if (linkPath === currentPath) {
-          link.classList.add('active');
-          const parentGroup = link.closest('.menu-group');
-          if (parentGroup) parentGroup.classList.add('open');
-        } else {
-          link.classList.remove('active');
-        }
-      });
-    }
-  </script>
-  <script>
-    document.addEventListener('click', function (e) {
-      if (e.target.matches('.menu-group > a')) {
-        e.preventDefault();
-        const group = e.target.closest('.menu-group');
-        if (group) group.classList.toggle('open');
-      }
-    });
   </script>
 </body>
 </html>
