@@ -6,7 +6,7 @@ export async function loadSidebar() {
 
   // 1) Inject cached HTML instantly (anti flicker)
   try {
-    const cached = localStorage.getItem('sidebar_mod_html_v1');
+    const cached = localStorage.getItem('sidebar_mod_html_v2');
     if (cached && ph && !document.getElementById('sidebar-container')) {
       ph.outerHTML = cached; // langsung ganti placeholder dengan sidebar utuh
       safeInitSidebar();     // init cepat dari cache
@@ -17,7 +17,7 @@ export async function loadSidebar() {
   try {
     const res = await fetch('/elearn/sidebar-mod.html', { cache: 'no-store' });
     const html = await res.text();
-    try { localStorage.setItem('sidebar_mod_html_v1', html); } catch (_) {}
+    try { localStorage.setItem('sidebar_mod_html_v2', html); } catch (_) {}
 
     const hasSidebar = !!document.getElementById('sidebar-container');
     const hasToggle  = !!document.getElementById('sidebar-toggle');

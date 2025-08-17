@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Student Accounts – Admin</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   <link rel="prefetch" href="/elearn/sidebar-mod.html" as="fetch" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
@@ -326,7 +327,7 @@
       // Inject cached sidebar instantly to avoid flash
       (function() {
         try {
-          const cached = localStorage.getItem('sidebar_mod_html_v1');
+          const cached = localStorage.getItem('sidebar_mod_html_v2');
           const ph = document.getElementById('sidebar-placeholder');
           if (cached && ph) {
             ph.outerHTML = cached; // preserves original IDs/classes from cached HTML
@@ -335,7 +336,7 @@
       })();
     </script>
     <script type="module">
-      import { loadSidebar } from '/elearn/js/sidebar-init.js';
+      import { loadSidebar } from '/elearn/sidebar-init.js';
       loadSidebar();
     </script>
     <script src="/elearn/sidebar-meteor.js" defer></script>
@@ -345,7 +346,7 @@
         fetch('/elearn/sidebar-mod.html')
           .then(res => res.text())
           .then(html => {
-            try { localStorage.setItem('sidebar_mod_html_v1', html); } catch (e) {}
+            try { localStorage.setItem('sidebar_mod_html_v2', html); } catch (e) {}
             if (!document.getElementById('sidebar-container')) {
               const ph = document.getElementById('sidebar-placeholder');
               if (ph) ph.outerHTML = html;
@@ -355,6 +356,13 @@
       });
     </script>
     <main class="main-content" style="padding: 2rem;">
+      <section class="section-theme-toggle section-spacing" style="margin-bottom: 30px;">
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+          <button id="theme-toggle-btn" style="background: none; border: none; cursor: pointer; font-size: 1.3rem;">
+            <i id="theme-icon" class="fas fa-sun"></i>
+          </button>
+        </div>
+      </section>
       <h1 class="header-welcome" style="margin-bottom: 18px;">
         <i class="fas fa-award" style="color: #ff3c3c; margin-right: 10px;"></i> Manage Badges
       </h1>
@@ -704,8 +712,10 @@
     }
 
     function updateThemeIcon() {
+      const icon = document.getElementById('theme-icon');
+      if (!icon) return;
       const current = document.documentElement.getAttribute('data-theme') || 'light';
-      document.getElementById('theme-icon').textContent = current === 'dark' ? '🌙' : '☀️';
+      icon.className = current === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
     }
 
     document.addEventListener('DOMContentLoaded', () => {
