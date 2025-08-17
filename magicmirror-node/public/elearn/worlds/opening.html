@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mulai Petualangan • Pilih Avatar</title>
+  <style>
+    :root {
+      --bg: #0e1117;
+      --panel: #151a22;
+      --accent: #6ee7ff;
+      --accent-2: #ffc857;
+      --text: #e8eefc;
+      --muted: #9fb0c6;
+      --ring: rgba(110,231,255,.35);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, Noto Sans;
+      background: radial-gradient(1200px 700px at 20% 0%, #101828 0%, var(--bg) 60%),
+                  radial-gradient(1000px 700px at 120% 120%, #0b1220 0%, var(--bg) 60%);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    .shell {
+      width: min(1100px, 100%);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 10px 50px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.03);
+      backdrop-filter: blur(6px);
+    }
+    header { display: flex; gap: 16px; align-items: center; justify-content: space-between;
+      padding: 12px 12px 6px 12px; border-bottom: 1px dashed rgba(255,255,255,.08); }
+    .title { display:flex; align-items:center; gap:12px; }
+    .title h1 { font-size: clamp(20px, 2.6vw, 28px); margin: 0; letter-spacing: .3px; }
+    .subtitle { color: var(--muted); font-size: 14px; margin-top: 4px; }
+    .pill { padding: 6px 10px; border-radius: 999px; font-size: 12px; color:#0b1220; background: var(--accent);
+      font-weight: 700; letter-spacing:.3px; }
+    .content { display: grid; grid-template-columns: 360px 1fr; gap: 18px; padding: 14px; }
+    @media (max-width: 900px){ .content{ grid-template-columns: 1fr; } }
+    .preview { background: var(--panel); border: 1px solid rgba(255,255,255,.06);
+      border-radius: 14px; padding: 16px; position: relative; }
+    .preview .stage { aspect-ratio: 1/1; width: 100%; background: radial-gradient(60% 60% at 50% 70%, rgba(110,231,255,.08), transparent 60%), linear-gradient(180deg, #0f1521, #0b1220);
+      border-radius: 12px; display:grid; place-items:center; overflow:hidden; }
+    .preview .stage img { max-width: 86%; max-height: 86%; object-fit: contain; filter: drop-shadow(0 18px 22px rgba(110,231,255,.18)); }
+    .name-input { margin-top: 10px; display:flex; gap:8px; }
+    .name-input input { flex:1; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,.08);
+      background: #0f1420; color: var(--text); }
+    .grid { background: var(--panel); border: 1px solid rgba(255,255,255,.06);
+      border-radius: 14px; padding: 14px; display: grid; gap: 12px;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); align-items: start; }
+    .card { position: relative; background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+      border: 1px solid rgba(255,255,255,.07); border-radius: 12px; padding: 10px; cursor: pointer; user-select: none;
+      transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease; }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,.25); }
+    .card.selected { outline: 3px solid var(--ring); border-color: var(--accent); }
+    .card img { width: 100%; aspect-ratio: 1/1; object-fit: contain; border-radius: 10px; background: #0e1320; }
+    .card h3 { font-size: 14px; margin: 8px 6px 4px; }
+    .card p { font-size: 12px; color: var(--muted); margin: 0 6px 6px; }
+    .actions { display:flex; gap: 10px; flex-wrap: wrap; padding: 12px; justify-content: flex-end; }
+    button { appearance: none; border: 0; border-radius: 12px; padding: 12px 16px; font-weight: 700; cursor: pointer; }
+    .btn-primary { background: linear-gradient(180deg, var(--accent), #4ec9e9); color: #0b1220; }
+    .btn-ghost { background: transparent; color: var(--text); border: 1px solid rgba(255,255,255,.14); }
+    .note { font-size: 12px; color: var(--muted); margin-left:auto; margin-right:auto; text-align:center; padding: 2px 8px 10px; }
+
+    /* Steps indicator */
+    .steps { display:flex; align-items:center; gap:14px; margin-top:10px; flex-wrap:wrap; }
+    .step { display:flex; align-items:center; gap:10px; color: var(--muted); font-weight:600; font-size: 13px; }
+    .step .dot { width:24px; height:24px; border-radius:999px; display:grid; place-items:center; border:1px solid rgba(255,255,255,.18); }
+    .step .dot span { font-size:12px; }
+    .step.active { color: var(--text); }
+    .step.active .dot { background: var(--accent); color:#0b1220; border-color: transparent; box-shadow: 0 0 0 4px var(--ring); }
+    .step.upcoming { opacity:.85; }
+    .chev { opacity:.6; }
+    @media (max-width: 520px){ .steps{ gap:10px; } .step{ font-size:12px; } }
+  </style>
+</head>
+<body>
+  <main class="shell" role="main" aria-labelledby="title">
+    <header>
+      <div class="title">
+        <span class="pill">STEP 1</span>
+        <div>
+          <h1 id="title">Pilih Avatar untuk Mulai Petualangan</h1>
+          <div class="subtitle">Avatar ini muncul di seluruh dunia belajar. Bisa diganti kapan saja di pengaturan.</div>
+          <div class="steps" aria-label="Langkah pendaftaran avatar">
+            <div class="step active" aria-current="step">
+              <div class="dot" aria-hidden="true"><span>1</span></div>
+              <div>Pilih Avatar</div>
+            </div>
+            <div class="chev">➜</div>
+            <div class="step upcoming">
+              <div class="dot" aria-hidden="true"><span>2</span></div>
+              <div>Pilih Dunia Belajar</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="content">
+      <aside class="preview" aria-label="Pratinjau avatar terpilih">
+        <div class="stage">
+          <img id="previewImg" alt="Avatar pilihan" src="/elearn/worlds/assets/robot.png" onerror="this.src='/elearn/worlds/assets/avatar1.png'">
+        </div>
+        <div class="name-input">
+          <input id="nickInput" maxlength="18" placeholder="Nama panggilan (opsional)" aria-label="Nama panggilan" />
+        </div>
+        <p class="note">Tips: isi nama panggilan biar guru mudah mengenali progresmu. Data tersimpan di perangkat ini (localStorage).</p>
+      </aside>
+
+      <section class="grid" id="avatarGrid" aria-label="Daftar pilihan avatar"></section>
+    </section>
+
+    <div class="actions">
+      <button class="btn-ghost" id="skipBtn">Lewati dulu</button>
+      <button class="btn-primary" id="saveBtn">Simpan & Mulai</button>
+    </div>
+  </main>
+
+  <script>
+    const AVATARS = [
+      { id: 'explorer',  name: 'Explorer Kid', src: '/elearn/worlds/assets/explorer.png' },
+      { id: 'robot',     name: 'Kody Bot',     src: '/elearn/worlds/assets/robot.png' },
+      { id: 'lion',      name: 'Leo the Lion', src: '/elearn/worlds/assets/lion.png' },
+      { id: 'pencil',    name: 'Wizard Pencil',src: '/elearn/worlds/assets/pencil.png' },
+      { id: 'crystal',   name: 'Crystal Wing', src: '/elearn/worlds/assets/crystal.png' },
+    ];
+    const FALLBACKS = {
+      '/elearn/worlds/assets/explorer.png': ['/elearn/worlds/assets/default-avatar.png','/elearn/worlds/assets/explorer.jpg'],
+      '/elearn/worlds/assets/robot.png':    ['/elearn/worlds/assets/default-avatar2.jpg','/elearn/worlds/assets/robot.jpg'],
+      '/elearn/worlds/assets/lion.png':     ['/elearn/worlds/assets/default-avatar3.jpg','/elearn/worlds/assets/lion.jpg'],
+      '/elearn/worlds/assets/pencil.png':   ['/elearn/worlds/assets/default-avatar4.jpg','/elearn/worlds/assets/pencil.jpg'],
+      '/elearn/worlds/assets/crystal.png':  ['/elearn/worlds/assets/default-avatar5.jpg','/elearn/worlds/assets/crystal.jpg']
+    };
+    function withFallback(img, primary){
+      const list = FALLBACKS[primary] || [];
+      let i = 0;
+      img.addEventListener('error', ()=>{ if (i < list.length){ img.src = list[i++]; } });
+    }
+
+    const grid = document.getElementById('avatarGrid');
+    const preview = document.getElementById('previewImg');
+    const nickInput = document.getElementById('nickInput');
+
+    // Ambil parameter redirect ?next=/elearn/worlds/index.html
+    const url = new URL(location.href);
+    const NEXT = url.searchParams.get('next') || '/elearn/worlds/';
+
+    // Jika sudah ada avatar tersimpan, auto redirect
+    try {
+      const existing = JSON.parse(localStorage.getItem('qa_avatar_v1') || 'null');
+      if (existing && existing.id) {
+        location.href = NEXT;
+      }
+    } catch(e) { console.warn('cek avatar error', e); }
+
+    AVATARS.forEach(av => {
+      const card = document.createElement('button');
+      card.className = 'card'; card.setAttribute('type','button');
+      card.dataset.id = av.id;
+      const img = document.createElement('img'); img.alt = av.name; img.src = av.src;
+      withFallback(img, av.src);
+      const h3 = document.createElement('h3'); h3.textContent = av.name;
+      const p  = document.createElement('p'); p.textContent = 'Klik untuk memilih';
+      card.append(img,h3,p);
+      grid.appendChild(card);
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.card').forEach(c=>c.classList.remove('selected'));
+        card.classList.add('selected');
+        preview.src = img.currentSrc || img.src; withFallback(preview, av.src);
+        preview.dataset.avatarId = av.id;
+      });
+    });
+    const first = grid.querySelector('.card'); if (first) first.click();
+
+    function saveChoice(){
+      const id = preview.dataset.avatarId || AVATARS[0].id;
+      const src = preview.currentSrc || preview.src;
+      const nick = nickInput.value.trim();
+      const payload = { id, src, name: AVATARS.find(a=>a.id===id)?.name || 'Avatar', nickname: nick, ts: Date.now() };
+      try{ localStorage.setItem('qa_avatar_v1', JSON.stringify(payload)); }catch(e){}
+      location.href = NEXT;
+    }
+    document.getElementById('saveBtn').addEventListener('click', saveChoice);
+    document.getElementById('skipBtn').addEventListener('click', ()=>{
+      if (!localStorage.getItem('qa_avatar_v1')){
+        const def = { id: 'guest', src: preview.src, name: 'Guest', nickname: '', ts: Date.now() };
+        try{ localStorage.setItem('qa_avatar_v1', JSON.stringify(def)); }catch(e){}
+      }
+      location.href = NEXT;
+    });
+  </script>
+</body>
+</html>
