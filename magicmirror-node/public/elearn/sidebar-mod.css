@@ -291,28 +291,6 @@ body, html {
     display: none;
   }
 
-  .meteor {
-    width: 20px;
-    height: 6px;
-    background: linear-gradient(90deg, white, transparent);
-    position: absolute;
-    z-index: 999;
-    pointer-events: none;
-    offset-path: path("M20,20 H220 A20,20 0 0 1 240,40 V620 A20,20 0 0 1 220,640 H20 A20,20 0 0 1 0,620 V40 A20,20 0 0 1 20,20 Z");
-    offset-rotate: auto;
-    offset-distance: 0%;
-    animation: moveMeteor 4s linear infinite;
-  }
-
-  @keyframes moveMeteor {
-    from {
-      offset-distance: 0%;
-    }
-    to {
-      offset-distance: 100%;
-    }
-  }
-
 .sidebar-nav a.active {
   position: relative;
   background: transparent;
