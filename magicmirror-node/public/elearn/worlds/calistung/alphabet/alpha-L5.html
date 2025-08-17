@@ -140,23 +140,20 @@
             }
         }
         .worksheet-slide { width: 100%; }
-        /* Finish button (Level 1) */
-        .finish-bar { position: fixed; right: 16px; bottom: 16px; z-index: 1000; }
-        #btnSelesai {
-            background: #22c55e; color: #fff; border: none; cursor: pointer;
-            padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 16px;
-            box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4);
-        }
-        #btnSelesai:hover { filter: brightness(1.05); }
-        #btnSelesai:active { transform: translateY(1px); }
-        @media (max-width: 480px) {
-            #btnSelesai { padding: 10px 14px; font-size: 15px; }
-        }
         /* Tool bar for brush/eraser */
         .tool-bar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
         .tool-btn { padding:8px 10px; border:1px solid #ccc; background:#fff; border-radius:8px; cursor:pointer; font-weight:600; }
         .tool-btn[aria-pressed="true"] { border-color:#111827; box-shadow:0 0 0 2px rgba(59,130,246,.25) inset; }
     </style>
+<style>
+    .finish-bar { position: fixed; right: 16px; bottom: 16px; z-index: 1000; }
+    #btnSelesai { background: #22c55e; color: #fff; border: none; cursor: pointer; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4); }
+    #btnSelesai:hover { filter: brightness(1.05); }
+    #btnSelesai:active { transform: translateY(1px); }
+    @media (max-width: 480px) {
+      #btnSelesai { padding: 10px 14px; font-size: 15px; }
+    }
+  </style>
 </head>
 <body>
     <div style="max-width:794px;margin:0 auto 10px auto;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap">
@@ -709,300 +706,20 @@
         </div>
     </div>
 
-    <script>
-    (function(){
-        const select = document.getElementById('worksheet-select');
-        const slideA = document.getElementById('slide-a');
-        const slideB = document.getElementById('slide-b');
-        const slideC = document.getElementById('slide-c');
-        const slideD = document.getElementById('slide-d');
-        const slideE = document.getElementById('slide-e');
-        const slideF = document.getElementById('slide-f');
-        const slideG = document.getElementById('slide-g');
-        const slideH = document.getElementById('slide-h');
-        const slideI = document.getElementById('slide-i');
-        const slideJ = document.getElementById('slide-j');
-        const slideK = document.getElementById('slide-k');
-        const slideL = document.getElementById('slide-l');
-        const slideM = document.getElementById('slide-m');
-        const slideN = document.getElementById('slide-n');
-        const slideO = document.getElementById('slide-o');
-        const slideP = document.getElementById('slide-p');
-        const slideQ = document.getElementById('slide-q');
-        const slideR = document.getElementById('slide-r');
-        const slideS = document.getElementById('slide-s');
-        const slideT = document.getElementById('slide-t');
-        const slideU = document.getElementById('slide-u');
-        const slideV = document.getElementById('slide-v');
-        const slideW = document.getElementById('slide-w');
-        const slideX = document.getElementById('slide-x');
-        const slideY = document.getElementById('slide-y');
-        const slideZ = document.getElementById('slide-z');
-        const comingNote = document.getElementById('coming-soon-note');
-
-        // === Tool state ===
-        const btnBrush = document.getElementById('btnBrush');
-        const btnEraser = document.getElementById('btnEraser');
-        let currentTool = 'brush';
-        const brushSize = 10;   // default brush size
-        const eraserSize = 20;  // eraser a bit bigger for convenience
-
-        function setTool(tool){
-          currentTool = tool;
-          if(btnBrush && btnEraser){
-            const isBrush = tool === 'brush';
-            btnBrush.setAttribute('aria-pressed', isBrush ? 'true' : 'false');
-            btnEraser.setAttribute('aria-pressed', isBrush ? 'false' : 'true');
-          }
-        }
-        btnBrush?.addEventListener('click', ()=> setTool('brush'));
-        btnEraser?.addEventListener('click', ()=> setTool('eraser'));
-        // === End tool state ===
-
-        function buildTracing(gridEl, messageEl, letter) {
-            gridEl.innerHTML = '';
-            const totalCells = 15; // 3x5
-            const upper = letter.toUpperCase();
-            const lower = letter.toLowerCase();
-            const letters = [upper,upper,upper,lower,lower,lower,upper,upper,upper,lower,lower,lower,upper,upper,upper];
-            const stepsAll = [1,2,3,1,2,3,1,2,3,1,2,3,1,2,3];
-
-            const canvases = [];
-            const isDrawing = new Array(totalCells).fill(false);
-            const paths = new Array(totalCells).fill(null).map(() => []);
-            // Per-cell rainbow pen hue (start random so each cell feels unique)
-            const penHue = new Array(totalCells).fill(0).map(() => Math.floor(Math.random()*360));
-
-            for(let i=0;i<totalCells;i++){
-                const div = document.createElement('div');
-                div.classList.add('trace-letter','outlined');
-                div.setAttribute('tabindex','0');
-                div.setAttribute('role','button');
-                div.setAttribute('aria-pressed','false');
-                div.setAttribute('aria-label', `Huruf ${letters[i]}, langkah ${stepsAll[i]}`);
-                div.dataset.index = i;
-                div.dataset.step = stepsAll[i];
-                div.dataset.letter = letters[i];
-
-                // --- Create background canvas before drawing canvas ---
-                const bgCanvas = document.createElement('canvas');
-                bgCanvas.className = 'trace-canvas';
-                bgCanvas.width = 150; bgCanvas.height = 150;
-                bgCanvas.style.width = '100%';
-                bgCanvas.style.height = '100%';
-                bgCanvas.style.touchAction = 'none';
-                bgCanvas.style.position = 'absolute';
-                bgCanvas.style.zIndex = '1';
-
-                const canvas = document.createElement('canvas');
-                canvas.className = 'trace-canvas';
-                canvas.width = 150; canvas.height = 150;
-                canvas.style.width = '100%';
-                canvas.style.height = '100%';
-                canvas.style.touchAction = 'none';
-                canvas.style.position = 'absolute';
-                canvas.style.zIndex = '2';
-                const ctx = canvas.getContext('2d');
-                const bgCtx = bgCanvas.getContext('2d');
-
-                // background guideline image per letter
-                const img = new Image();
-                img.src = `/elearn/calistung/assets/alfabet/${letter}.png`;
-                img.onload = () => {
-                    bgCtx.clearRect(0,0,bgCanvas.width,bgCanvas.height);
-                    bgCtx.globalAlpha = 0.5;
-                    bgCtx.drawImage(img,0,0,bgCanvas.width,bgCanvas.height);
-                    bgCtx.globalAlpha = 1.0;
-                };
-
-                const stepSpan = document.createElement('span');
-                stepSpan.className = 'step-number';
-                stepSpan.textContent = stepsAll[i];
-                div.appendChild(stepSpan);
-                div.appendChild(bgCanvas);
-                div.appendChild(canvas);
-
-                canvases.push({canvas, ctx});
-                let lastX=0,lastY=0;
-
-                function getPointerPos(evt){
-                    const rect = canvas.getBoundingClientRect();
-                    const scaleX = canvas.width / rect.width;
-                    const scaleY = canvas.height / rect.height;
-                    let clientX, clientY;
-                    if(evt.touches && evt.touches.length>0){
-                        clientX = evt.touches[0].clientX;
-                        clientY = evt.touches[0].clientY;
-                    } else {
-                        clientX = evt.clientX;
-                        clientY = evt.clientY;
-                    }
-                    return { x: (clientX-rect.left)*scaleX, y: (clientY-rect.top)*scaleY };
-                }
-                function startDrawing(evt){
-                    evt.preventDefault();
-                    isDrawing[i]=true;
-                    // Tiny hue nudge so first stroke is colorful
-                    penHue[i] = (penHue[i] + 5) % 360;
-                    const pos = getPointerPos(evt);
-                    lastX = pos.x; lastY = pos.y;
-                    paths[i].push([{x:lastX,y:lastY}]);
-                }
-                function draw(evt){
-                    if(!isDrawing[i]) return; evt.preventDefault();
-                    const pos = getPointerPos(evt);
-                    const path = paths[i][paths[i].length-1];
-                    path.push({x:pos.x,y:pos.y});
-                    const ctx = canvases[i].ctx;
-                    // Tool-aware drawing
-                    ctx.lineCap = 'round';
-                    ctx.lineJoin = 'round';
-
-                    if (currentTool === 'eraser') {
-                      // ERASER: punch holes in the drawing layer only
-                      ctx.globalCompositeOperation = 'destination-out';
-                      ctx.shadowBlur = 0;
-                      ctx.strokeStyle = 'rgba(0,0,0,1)';
-                      ctx.lineWidth = eraserSize;
-                    } else {
-                      // BRUSH: rainbow pen with glitter
-                      ctx.globalCompositeOperation = 'source-over';
-                      penHue[i] = (penHue[i] + 2) % 360;
-                      const color = `hsl(${penHue[i]}, 95%, 55%)`;
-                      ctx.strokeStyle = color;
-                      ctx.lineWidth = brushSize;
-
-                      // --- Glitter effect (only for brush) ---
-                      for (let g = 0; g < 3; g++) {
-                        const angle = Math.random() * 2 * Math.PI;
-                        const radius = Math.random() * 10;
-                        const gx = pos.x + Math.cos(angle) * radius;
-                        const gy = pos.y + Math.sin(angle) * radius;
-                        const glitterColor = '#fff';
-                        ctx.save();
-                        ctx.beginPath();
-                        ctx.arc(gx, gy, 1 + Math.random(), 0, 2 * Math.PI);
-                        ctx.fillStyle = glitterColor;
-                        ctx.shadowColor = glitterColor;
-                        ctx.shadowBlur = 8;
-                        ctx.globalAlpha = 0.8 + Math.random() * 0.2;
-                        ctx.fill();
-                        ctx.globalAlpha = 1.0;
-                        ctx.restore();
-                      }
-                      // Soft glow on the stroke
-                      ctx.shadowColor = color;
-                      ctx.shadowBlur = 6;
-                    }
-
-                    ctx.beginPath();
-                    ctx.moveTo(lastX, lastY);
-                    ctx.lineTo(pos.x, pos.y);
-                    ctx.stroke();
-                    lastX = pos.x; lastY = pos.y;
-                }
-                function stopDrawing(evt){
-                    if(!isDrawing[i]) return; evt.preventDefault();
-                    isDrawing[i]=false;
-                    // Remove the glow when not drawing
-                    const ctx = canvases[i].ctx;
-                    ctx.shadowBlur = 0;
-                    ctx.globalCompositeOperation = 'source-over';
-                }
-
-                canvas.addEventListener('mousedown', startDrawing);
-                canvas.addEventListener('mousemove', draw);
-                canvas.addEventListener('mouseup', stopDrawing);
-                canvas.addEventListener('mouseleave', stopDrawing);
-                canvas.addEventListener('touchstart', startDrawing, {passive:false});
-                canvas.addEventListener('touchmove', draw, {passive:false});
-                canvas.addEventListener('touchend', stopDrawing);
-                canvas.addEventListener('touchcancel', stopDrawing);
-
-                gridEl.appendChild(div);
-            }
-            if(messageEl){ messageEl.textContent=''; }
-        }
-
-        // Initialize A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P
-        buildTracing(document.getElementById('trace-grid-a'), document.getElementById('message-a'), 'a');
-        buildTracing(document.getElementById('trace-grid-b'), document.getElementById('message-b'), 'b');
-        buildTracing(document.getElementById('trace-grid-c'), document.getElementById('message-c'), 'c');
-        buildTracing(document.getElementById('trace-grid-d'), document.getElementById('message-d'), 'd');
-        buildTracing(document.getElementById('trace-grid-e'), document.getElementById('message-e'), 'e');
-        buildTracing(document.getElementById('trace-grid-f'), document.getElementById('message-f'), 'f');
-        buildTracing(document.getElementById('trace-grid-g'), document.getElementById('message-g'), 'g');
-        buildTracing(document.getElementById('trace-grid-h'), document.getElementById('message-h'), 'h');
-        buildTracing(document.getElementById('trace-grid-i'), document.getElementById('message-i'), 'i');
-        buildTracing(document.getElementById('trace-grid-j'), document.getElementById('message-j'), 'j');
-        buildTracing(document.getElementById('trace-grid-k'), document.getElementById('message-k'), 'k');
-        buildTracing(document.getElementById('trace-grid-l'), document.getElementById('message-l'), 'l');
-        buildTracing(document.getElementById('trace-grid-m'), document.getElementById('message-m'), 'm');
-        buildTracing(document.getElementById('trace-grid-n'), document.getElementById('message-n'), 'n');
-        buildTracing(document.getElementById('trace-grid-o'), document.getElementById('message-o'), 'o');
-        buildTracing(document.getElementById('trace-grid-p'), document.getElementById('message-p'), 'p');
-        buildTracing(document.getElementById('trace-grid-q'), document.getElementById('message-q'), 'q');
-        buildTracing(document.getElementById('trace-grid-r'), document.getElementById('message-r'), 'r');
-        buildTracing(document.getElementById('trace-grid-s'), document.getElementById('message-s'), 's');
-        buildTracing(document.getElementById('trace-grid-t'), document.getElementById('message-t'), 't');
-        buildTracing(document.getElementById('trace-grid-u'), document.getElementById('message-u'), 'u');
-        buildTracing(document.getElementById('trace-grid-v'), document.getElementById('message-v'), 'v');
-        buildTracing(document.getElementById('trace-grid-w'), document.getElementById('message-w'), 'w');
-        buildTracing(document.getElementById('trace-grid-x'), document.getElementById('message-x'), 'x');
-        buildTracing(document.getElementById('trace-grid-y'), document.getElementById('message-y'), 'y');
-        buildTracing(document.getElementById('trace-grid-z'), document.getElementById('message-z'), 'z');
-
-        function setSlide(letter){
-            const isAvailable = (
-                letter==='a'||letter==='b'||letter==='c'||letter==='d'||letter==='e'||letter==='f'||letter==='g'||letter==='h'||letter==='i'||letter==='j'||letter==='k'||letter==='l'||letter==='m'||letter==='n'||letter==='o'||letter==='p'||letter==='q'||letter==='r'||letter==='s'||letter==='t'||letter==='u'||letter==='v'||letter==='w'||letter==='x'||letter==='y'||letter==='z'
-            );
-            comingNote.style.display = isAvailable ? 'none' : 'inline';
-            slideA.style.display = (letter==='a') ? 'block' : 'none';
-            slideB.style.display = (letter==='b') ? 'block' : 'none';
-            slideC.style.display = (letter==='c') ? 'block' : 'none';
-            slideD.style.display = (letter==='d') ? 'block' : 'none';
-            slideE.style.display = (letter==='e') ? 'block' : 'none';
-            slideF.style.display = (letter==='f') ? 'block' : 'none';
-            slideG.style.display = (letter==='g') ? 'block' : 'none';
-            slideH.style.display = (letter==='h') ? 'block' : 'none';
-            slideI.style.display = (letter==='i') ? 'block' : 'none';
-            slideJ.style.display = (letter==='j') ? 'block' : 'none';
-            slideK.style.display = (letter==='k') ? 'block' : 'none';
-            slideL.style.display = (letter==='l') ? 'block' : 'none';
-            slideM.style.display = (letter==='m') ? 'block' : 'none';
-            slideN.style.display = (letter==='n') ? 'block' : 'none';
-            slideO.style.display = (letter==='o') ? 'block' : 'none';
-            slideP.style.display = (letter==='p') ? 'block' : 'none';
-            slideQ.style.display = (letter==='q') ? 'block' : 'none';
-            slideR.style.display = (letter==='r') ? 'block' : 'none';
-            slideS.style.display = (letter==='s') ? 'block' : 'none';
-            slideT.style.display = (letter==='t') ? 'block' : 'none';
-            slideU.style.display = (letter==='u') ? 'block' : 'none';
-            slideV.style.display = (letter==='v') ? 'block' : 'none';
-            slideW.style.display = (letter==='w') ? 'block' : 'none';
-            slideX.style.display = (letter==='x') ? 'block' : 'none';
-            slideY.style.display = (letter==='y') ? 'block' : 'none';
-            slideZ.style.display = (letter==='z') ? 'block' : 'none';
-        }
-
-        // Initial state
-        setSlide('a');
-
-        select.addEventListener('change', (e)=>{
-            const val = (e.target.value||'a').toLowerCase();
-            setSlide(val);
-        });
-    })();
-    </script>
-<div class="finish-bar">
-  <button id="btnSelesai" type="button" aria-label="Tandai selesai Level 1">Selesai Level 1</button>
-</div>
-<script type="module">
-  import { markCompletedLocal } from '/elearn/worlds/utils/progress.js';
-  document.querySelector('#btnSelesai')?.addEventListener('click', ()=>{
-    markCompletedLocal('calistung','Level 1');
-    alert('Progres tersimpan! Kembali ke map.');
-    window.location = '/elearn/worlds/calistung/index.html';
+    
+<div class="finish-bar"><button id="btnSelesai" type="button">Selesai</button></div>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="/elearn/manifest-lessons.js"></script>
+<script src="/elearn/userInfo.js"></script>
+<script src="/elearn/common/worksheet-submit.js"></script>
+<script>
+  window.WORKSHEET_DEBUG = true;
+  const info = (typeof getUserInfo === "function") ? getUserInfo() : {};
+  initWorksheetSubmit({
+    muridUid: info.uid || "",
+    cid: info.cid || "",
+    namaAnak: info.nama || "",
+    role: (info.role || "").toLowerCase()
   });
 </script>
 </body>
