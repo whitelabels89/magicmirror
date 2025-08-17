@@ -58,8 +58,9 @@
     <section class="frame" id="frame">
       <!-- TurboWarp editor is Scratch-compatible and supports embedding. -->
       <iframe id="editor" title="Scratch-Compatible Editor"
-        src="https://turbowarp.org/editor?embed=1&fps=60&hqpen=1&turbo=0&stage=1#"
-        allow="autoplay; clipboard-read; clipboard-write">
+        src="https://sheeptester.github.io/scratch-gui/?embedded=1"
+        allow="autoplay; clipboard-read; clipboard-write; fullscreen"
+        allowfullscreen>
       </iframe>
       <div class="notice" id="fallback">
         <div>
@@ -67,7 +68,7 @@
           <p>Kemungkinan karena batasan peramban atau kebijakan sumber eksternal.
           Kamu tetap bisa membuka editor pada tab baru.</p>
           <p>
-            <a class="btn primary" href="https://turbowarp.org/editor" target="_blank" rel="noopener">Buka TurboWarp</a>
+            <a class="btn primary" href="https://sheeptester.github.io/scratch-gui/" target="_blank" rel="noopener">Buka Editor Mirror (Sheeptester)</a>
             <a class="btn" href="https://scratch.mit.edu/projects/editor/?tutorial=getStarted" target="_blank" rel="noopener">Buka Scratch (Resmi)</a>
           </p>
           <p style="margin-top:1rem;color:var(--muted);font-size:.9rem">Catatan: Tampilan dan fitur mengikuti layanan masing‑masing.</p>
@@ -120,6 +121,8 @@
       halaman ini menggunakan TurboWarp (open-source, kompatibel Scratch) sebagai alternatif yang stabil.
     - Tombol "Buka Editor Resmi Scratch" tetap disediakan.
     - Jika di kemudian hari ingin integrasi editor lokal (tanpa iframe), gunakan "scratch-gui" + "scratch-vm" (React build).
+    - Embed utama memakai build mirror Scratch GUI (Sheeptester) yang dapat di-iframe dan stabil untuk kelas.
+    - Tombol alternatif tetap mengarah ke editor resmi Scratch di tab baru.
   -->
 </body>
 </html>

@@ -1,0 +1,60 @@
+
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Kinder Coder — Pilih Mode</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/elearn/worlds/styles.css">
+</head>
+<body class="portal-body">
+  <header class="portal-header">
+    <h1>Kinder Coder</h1>
+    <p>Pilih aktivitas belajar</p>
+  </header>
+  <main class="portal-grid" id="worldGrid"></main>
+  <script>
+    // 4 subworld map untuk Kinder Coder (settingan sama seperti index kelas Number)
+    const worlds = [
+      { id: 'kinder-sequencing', name: 'Sequencing', entry: '/elearn/worlds/kindercoder/sequencing/index.html', cover: '/elearn/worlds/kindercoder/thumbs/sequencing.jpg' },
+      { id: 'kinder-logic', name: 'Logic & Loops', entry: '/elearn/worlds/kindercoder/logic/index.html', cover: '/elearn/worlds/kindercoder/thumbs/logic.jpg' },
+      { id: 'kinder-patterns', name: 'Patterns', entry: '/elearn/worlds/kindercoder/patterns/index.html', cover: '/elearn/worlds/kindercoder/thumbs/patterns.jpg' },
+      { id: 'kinder-scratchjr', name: 'ScratchJr Lab', entry: '/elearn/worlds/kindercoder/scratch.html', cover: '/elearn/worlds/kindercoder/thumbs/scratchjr.jpg' }
+    ];
+
+    const grid = document.getElementById('worldGrid');
+    grid.innerHTML = worlds.map(w => `
+      <article class="portal-card" data-entry="${w.entry}">
+        <div class="portal-cover" style="background-image:url('${w.cover}')"></div>
+        <div class="portal-meta">
+          <h3>${w.name}</h3>
+          <div class="portal-progress" data-world="${w.id}">
+            <span class="ring" title="progress"></span>
+            <small>loading...</small>
+          </div>
+        </div>
+      </article>
+    `).join('');
+
+    // Klik card untuk masuk ke subworld
+    grid.querySelectorAll('.portal-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const entry = card.dataset.entry;
+        if (entry) window.location = entry;
+      });
+    });
+
+    // Ambil progress dari localStorage (format sama: progress:<worldId>)
+    grid.querySelectorAll('.portal-progress').forEach(el => {
+      const key = `progress:${el.dataset.world}`;
+      const raw = localStorage.getItem(key);
+      const pct = raw ? (JSON.parse(raw).percent || 0) : 0;
+      el.querySelector('small').textContent = `${pct}%`;
+      el.querySelector('.ring').style.setProperty('--pct', pct);
+    });
+  </script>
+</body>
+</html>

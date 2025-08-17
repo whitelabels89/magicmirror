@@ -1,161 +1,350 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Student Profile</title>
+  <title>Profil Murid • Queen's Academy iCoding</title>
   <link rel="stylesheet" href="/elearn/css/sidebar-mod.css" />
   <style>
-    body {
-      font-family: 'Fredoka', sans-serif;
-      margin: 0;
-      background-color: #f5f5f5;
+    :root{
+      --bg:#0e1117;        /* dark bg */
+      --panel:#141a23;     /* card */
+      --panel-2:#0f1520;   /* deep */
+      --text:#e8eefc;      /* text */
+      --muted:#9fb0c6;     /* muted */
+      --brand:#6ee7ff;     /* cyan */
+      --brand-2:#ffd166;   /* gold */
+      --success:#22c55e;   /* green */
+      --danger:#ef4444;    /* red */
+      --ring:rgba(110,231,255,.35);
     }
-    .main-wrapper {
-      display: flex;
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, Noto Sans;
+      background: radial-gradient(1000px 700px at 10% -10%, #101828 0%, var(--bg) 60%),
+                  radial-gradient(900px 700px at 120% 120%, #0b1220 0%, var(--bg) 60%);
+      color:var(--text);
     }
-    .main-content {
-      flex-grow: 1;
-      padding: 30px;
+    .main-wrapper{display:flex; min-height:100vh}
+    .main-content{flex:1; padding:24px;}
+
+    /* Topbar */
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between; gap:16px;
+      padding:14px 16px; margin:12px 0 18px; border:1px solid rgba(255,255,255,.06);
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0));
+      border-radius:14px;
     }
-    .profile-card {
-      display: flex;
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      overflow: hidden;
-      margin-bottom: 30px;
+    .crumb{color:var(--muted); font-size:13px}
+    .title{display:flex; align-items:center; gap:10px}
+    .title h1{margin:0; font-size:clamp(18px,2.4vw,26px)}
+    .chip{padding:6px 10px; border-radius:999px; font-weight:700; font-size:12px; color:#0b1220; background:var(--brand)}
+
+    /* Profile header card */
+    .profile-card{
+      display:grid; grid-template-columns: 280px 1fr; gap:18px;
+      background:var(--panel); border:1px solid rgba(255,255,255,.06); border-radius:16px; padding:18px; margin-bottom:18px;
     }
-    .profile-left {
-      flex: 0 0 200px;
-      background: #eee;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
+    @media (max-width: 860px){ .profile-card{ grid-template-columns: 1fr; } }
+
+    .profile-left{
+      background:var(--panel-2); border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:16px; text-align:center;
     }
-    .profile-left img {
-      width: 100px;
-      height: 100px;
-      border-radius: 100px;
-      object-fit: cover;
-      margin-bottom: 10px;
+    .avatar-wrap{position:relative; display:inline-block}
+    .avatar-ring{position:absolute; inset:-6px; border-radius:50%;
+      background: conic-gradient(from 180deg, var(--brand), var(--brand-2), var(--brand)); filter: blur(6px); opacity:.5}
+    .avatar{position:relative; width:128px; height:128px; border-radius:50%; object-fit:cover; border:3px solid rgba(255,255,255,.15);}
+    .cid{margin-top:8px; color:var(--muted); font-size:13px}
+
+    .stats{display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; margin-top:14px}
+    .stat{
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+      border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:10px;
     }
-    .profile-right {
-      flex-grow: 1;
-      padding: 20px;
-    }
-    h2 {
-      margin-top: 0;
-    }
-    .section {
-      background: white;
-      padding: 20px;
-      margin-bottom: 30px;
-      border-radius: 16px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    }
-    .section h3 {
-      margin-top: 0;
-    }
-    .hidden {
-      display: none;
-    }
+    .stat .label{font-size:11px; color:var(--muted)}
+    .stat .val{font-weight:800; font-size:18px}
+
+    .profile-right{display:grid; gap:12px}
+    .ident h2{margin:0 0 6px; font-size:clamp(18px,2.2vw,24px)}
+    .ident p{margin:2px 0; color:var(--muted)}
+
+    .xp-wrap{background:var(--panel-2); border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:12px}
+    .xp-bar{height:10px; border-radius:999px; background:#0d1320; overflow:hidden; border:1px solid rgba(255,255,255,.08)}
+    .xp-bar>span{display:block; height:100%; width:0%; background:linear-gradient(90deg, var(--brand), #4ec9e9);}
+    .xp-desc{display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-top:6px}
+
+    .quick-actions{display:flex; flex-wrap:wrap; gap:10px}
+    .btn{appearance:none; border:1px solid rgba(255,255,255,.14); background:transparent; color:var(--text); border-radius:12px; padding:10px 14px; font-weight:700; cursor:pointer}
+    .btn.primary{background:linear-gradient(180deg, var(--brand), #4ec9e9); color:#0b1220; border:0}
+
+    /* Sections */
+    .section{background:var(--panel); border:1px solid rgba(255,255,255,.06); border-radius:16px; padding:16px; margin-bottom:16px}
+    .section h3{margin:0 0 10px}
+
+    /* Tabs */
+    .tabs{display:flex; gap:8px; border-bottom:1px dashed rgba(255,255,255,.08); padding-bottom:8px; margin-bottom:12px}
+    .tab{padding:8px 12px; border-radius:10px; cursor:pointer; color:var(--muted); border:1px solid transparent}
+    .tab.active{color:#0b1220; background:var(--brand); border-color:transparent}
+
+    /* Progress list */
+    .progress-list{display:grid; gap:10px}
+    .prog-item{display:grid; grid-template-columns: 1fr 120px; gap:10px; align-items:center; background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01)); border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:10px}
+    .badge{display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px; font-weight:700; color:#0b1220}
+    .badge.ok{background: #86efac}
+    .badge.run{background: #fde68a}
+    .badge.todo{background: #fca5a5}
+
+    /* Gallery badges */
+    .grid{display:grid; grid-template-columns: repeat(auto-fill,minmax(160px,1fr)); gap:12px}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01)); border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:10px}
+    .thumb{width:100%; aspect-ratio: 4/3; border-radius:10px; background:#0d1320; display:grid; place-items:center; font-size:40px}
+    .meta{font-size:12px; color:var(--muted); margin-top:6px}
+
+    /* Utility */
+    .hidden{display:none}
+    .muted{color:var(--muted)}
   </style>
 </head>
 <body>
   <div class="main-wrapper">
-    <div id="sidebar-container">
-      <!-- sidebar will be included here -->
-    </div>
+    <div id="sidebar-container"><!-- sidebar --></div>
     <main class="main-content">
-      <div class="profile-card">
-        <div class="profile-left">
-          <img id="avatar" src="/img/default-avatar.png" alt="Avatar"/>
-          <div id="cid">CID: -</div>
+
+      <div class="topbar">
+        <div class="title">
+          <span class="chip">PROFILE</span>
+          <h1>Profil Murid</h1>
         </div>
-        <div class="profile-right">
-          <h2 id="nama">Nama Murid</h2>
-          <p><strong>Email:</strong> <span id="email">-</span></p>
-          <p><strong>Usia:</strong> <span id="usia">-</span></p>
-          <p><strong>Kelas:</strong> <span id="kelas">-</span></p>
+        <div class="crumb">Home ▸ Elearn ▸ Profil</div>
+      </div>
+
+      <section class="profile-card">
+        <aside class="profile-left">
+          <div class="avatar-wrap" aria-label="Foto profil">
+            <div class="avatar-ring" aria-hidden="true"></div>
+            <img id="avatar" class="avatar" src="/img/default-avatar.png" alt="Avatar" />
+          </div>
+          <div id="cid" class="cid">CID: -</div>
+
+          <div class="stats">
+            <div class="stat"><div class="label">Level</div><div id="stat-level" class="val">1</div></div>
+            <div class="stat"><div class="label">XP</div><div id="stat-xp" class="val">0</div></div>
+            <div class="stat"><div class="label">Coins</div><div id="stat-coins" class="val">0</div></div>
+          </div>
+          <div class="quick-actions" style="margin-top:12px">
+            <button id="btn-change-avatar" class="btn">Ganti Avatar</button>
+            <button id="btn-share" class="btn">Bagikan</button>
+            <button id="btn-reset-avatar" class="btn">Reset Avatar</button>
+          </div>
+        </aside>
+
+        <section class="profile-right">
+          <div class="ident">
+            <h2 id="nama">Nama Murid</h2>
+            <p><strong>Email:</strong> <span id="email">-</span></p>
+            <p><strong>Usia:</strong> <span id="usia">-</span></p>
+            <p><strong>Kelas:</strong> <span id="kelas">-</span></p>
+          </div>
+          <div class="xp-wrap" aria-label="Progres XP">
+            <div class="xp-bar" aria-hidden="true"><span id="xpBar"></span></div>
+            <div class="xp-desc"><span class="muted">Menuju level berikutnya</span><span id="xpText">0 / 100 XP</span></div>
+          </div>
+          <div class="quick-actions">
+            <button id="btn-continue" class="btn primary">World</button>
+            <button id="btn-view-schedule" class="btn">Lihat Jadwal</button>
+            <button id="btn-download" class="btn">Unduh Rapor</button>
+          </div>
+        </section>
+      </section>
+
+      <section class="section">
+        <div class="tabs">
+          <div class="tab active" data-tab="progress">Progress</div>
+          <div class="tab" data-tab="karya">Karya & Badge</div>
+          <div id="tab-ai" class="tab hidden" data-tab="ai">AI Insight</div>
+          <div id="tab-admin" class="tab hidden" data-tab="admin">Admin</div>
         </div>
-      </div>
 
-      <div class="section" id="progress-section">
-        <h3>Progress Akademik</h3>
-        <div id="progress-content">Loading...</div>
-      </div>
+        <div id="panel-progress">
+          <div id="progress-content" class="progress-list">Loading...</div>
+        </div>
 
-      <div class="section" id="karya-section">
-        <h3>Karya & Badge</h3>
-        <div id="karya-content">Loading...</div>
-      </div>
+        <div id="panel-karya" class="hidden">
+          <div id="karya-meta" class="muted" style="margin-bottom:8px">Loading...</div>
+          <div id="karya-content" class="grid"></div>
+        </div>
 
-      <div class="section hidden" id="ai-section">
-        <h3>AI Insight</h3>
-        <p><strong>Gaya Belajar:</strong> <span id="ai-gaya">-</span></p>
-        <p><strong>Rekomendasi:</strong> <span id="ai-rekomendasi">-</span></p>
-      </div>
+        <div id="panel-ai" class="hidden">
+          <p><strong>Gaya Belajar:</strong> <span id="ai-gaya">-</span></p>
+          <p><strong>Rekomendasi:</strong> <span id="ai-rekomendasi">-</span></p>
+        </div>
 
-      <div class="section hidden" id="admin-section">
-        <h3>Aksi Admin</h3>
-        <button>Reset Password</button>
-        <button>Tambah Badge</button>
-        <button>Hapus Akun</button>
-      </div>
+        <div id="panel-admin" class="hidden">
+          <div class="quick-actions">
+            <button class="btn" id="btn-reset-pass">Reset Password</button>
+            <button class="btn" id="btn-add-badge">Tambah Badge</button>
+            <button class="btn" id="btn-delete">Hapus Akun</button>
+          </div>
+        </div>
+      </section>
+
     </main>
   </div>
 
   <script>
+    // --- Basic state ---
     const params = new URLSearchParams(window.location.search);
     const cid = params.get('cid');
     const role = localStorage.getItem('role') || 'murid';
+    document.getElementById('cid').innerText = 'CID: ' + (cid || '-')
 
-    document.getElementById('cid').innerText = 'CID: ' + cid;
+    // Sidebar loader (if any)
+    // (keeping placeholder as original file)
 
-    if (role === 'moderator') {
-      document.getElementById('ai-section').classList.remove('hidden');
-      document.getElementById('admin-section').classList.remove('hidden');
+    // --- Tabs behavior ---
+    const tabs = document.querySelectorAll('.tab');
+    const panels = {
+      progress: document.getElementById('panel-progress'),
+      karya: document.getElementById('panel-karya'),
+      ai: document.getElementById('panel-ai'),
+      admin: document.getElementById('panel-admin')
+    };
+    tabs.forEach(t=>{
+      t.addEventListener('click', ()=>{
+        tabs.forEach(x=>x.classList.remove('active'));
+        t.classList.add('active');
+        Object.values(panels).forEach(p=>p.classList.add('hidden'));
+        panels[t.dataset.tab].classList.remove('hidden');
+      });
+    });
+
+    // --- Local avatar from opening.html (if exists) ---
+    try {
+      const a = JSON.parse(localStorage.getItem('qa_avatar_v1')||'null');
+      if (a && a.src){
+        document.getElementById('avatar').src = a.src;
+        if (a.nickname){
+          const nm = document.getElementById('nama');
+          if (nm && (!nm.textContent || nm.textContent === 'Nama Murid')) nm.textContent = a.nickname;
+        }
+      }
+    } catch(e){}
+
+    // --- Role gating for AI & Admin ---
+    if (role === 'moderator'){
+      document.getElementById('tab-ai').classList.remove('hidden');
+      document.getElementById('tab-admin').classList.remove('hidden');
     }
 
-    fetch(`/api/murid/${cid}`)
-      .then(res => {
-        if (!res.ok) throw new Error("Gagal mengambil data murid");
-        return res.json();
-      })
-      .then(result => {
-        const data = result.data;
+    // --- XP helpers ---
+    function setXP(xp, goal){
+      const pct = Math.max(0, Math.min(100, Math.round((xp/goal)*100)));
+      document.getElementById('xpBar').style.width = pct + '%';
+      document.getElementById('xpText').textContent = `${xp} / ${goal} XP`;
+      document.getElementById('stat-xp').textContent = xp;
+    }
 
-        document.getElementById('nama').textContent = data.nama || '-';
+    function setLevel(level){ document.getElementById('stat-level').textContent = level; }
+    function setCoins(c){ document.getElementById('stat-coins').textContent = c; }
+
+    // --- Renderers ---
+    function renderProgress(list){
+      const host = document.getElementById('progress-content');
+      if (!list || !list.length){ host.textContent = 'Belum ada data progress'; return; }
+      host.innerHTML = '';
+      list.forEach(p=>{
+        const row = document.createElement('div'); row.className = 'prog-item';
+        const left = document.createElement('div');
+        left.innerHTML = `<strong>${p.lesson}</strong><div class='muted'>${p.desc||''}</div>`;
+        const right = document.createElement('div');
+        const st = (p.status||'').toLowerCase();
+        let cls='todo', txt='Belum';
+        if (st.includes('done')||st.includes('selesai')){ cls='ok'; txt='Selesai'; }
+        else if (st.includes('run')||st.includes('mulai')){ cls='run'; txt='Berjalan'; }
+        right.innerHTML = `<span class='badge ${cls}'>${txt}</span>`;
+        row.append(left,right);
+        host.appendChild(row);
+      });
+    }
+
+    function renderKarya(data){
+      const meta = document.getElementById('karya-meta');
+      const grid = document.getElementById('karya-content');
+      const karya = data?.karya || [];
+      const badges = data?.badge || [];
+      meta.textContent = `Karya: ${karya.length} • Badge: ${badges.length}`;
+      grid.innerHTML = '';
+
+      // Karya cards
+      karya.forEach(k=>{
+        const card = document.createElement('div'); card.className = 'card';
+        card.innerHTML = `<div class='thumb'>📷</div><div class='meta'><strong>${k.judul||'Karya'}</strong><br>${new Date(k.ts||Date.now()).toLocaleDateString()}</div>`;
+        grid.appendChild(card);
+      });
+      // Badge cards (simple emoji style)
+      badges.forEach(b=>{
+        const card = document.createElement('div'); card.className = 'card';
+        card.innerHTML = `<div class='thumb'>🏅</div><div class='meta'><strong>${b.nama||'Badge'}</strong><br>${b.desc||''}</div>`;
+        grid.appendChild(card);
+      });
+    }
+
+    // --- Buttons ---
+    document.getElementById('btn-change-avatar').addEventListener('click',()=>{
+      location.href = '/elearn/worlds/opening.html?force=1&next=' + encodeURIComponent(location.pathname + location.search);
+    });
+    document.getElementById('btn-reset-avatar').addEventListener('click',()=>{
+      try{
+        localStorage.removeItem('qa_avatar_v1');
+        document.getElementById('avatar').src = '/img/default-avatar.png';
+        alert('Avatar Reset.');
+      }catch(e){ console.warn(e); }
+    });
+    document.getElementById('btn-continue').addEventListener('click',()=>{
+      const hasAvatar = !!localStorage.getItem('qa_avatar_v1');
+      if (!hasAvatar){
+        location.href = '/elearn/worlds/opening.html?next=' + encodeURIComponent('/elearn/worlds/portal.html');
+      } else {
+        location.href = '/elearn/worlds/portal.html';
+      }
+    });
+
+    // --- Fetch profile data ---
+    if (!cid){ console.warn('CID kosong'); }
+    fetch(`/api/murid/${cid}`)
+      .then(res => { if (!res.ok) throw new Error('Gagal mengambil data murid'); return res.json(); })
+      .then(result => {
+        const data = result.data || {};
+        document.getElementById('nama').textContent = data.nama || document.getElementById('nama').textContent;
         document.getElementById('email').textContent = data.email || '-';
         document.getElementById('usia').textContent = data.usia || '-';
         document.getElementById('kelas').textContent = data.kelas || '-';
-        if (data.avatar) {
-          document.getElementById('avatar').src = data.avatar;
-        }
+        if (data.avatar) { document.getElementById('avatar').src = data.avatar; }
 
-        document.getElementById('progress-content').innerHTML = data.progress ? `
-          <ul>
-            ${data.progress.map(p => `<li>${p.lesson}: ${p.status}</li>`).join('')}
-          </ul>
-        ` : 'Belum ada data progress';
+        // Gamified stats (fallback 0)
+        setLevel(data.level || 1);
+        setXP(data.xp || 0, data.xp_goal || 100);
+        setCoins(data.coins || 0);
 
-        document.getElementById('karya-content').innerHTML = `
-          <p><strong>Karya:</strong> ${data.karya?.length || 0} item</p>
-          <p><strong>Badge:</strong> ${data.badge?.length || 0} item</p>
-        `;
+        // Progress
+        renderProgress(Array.isArray(data.progress) ? data.progress : []);
 
-        if (role === 'moderator' && data.ai) {
+        // Karya + badge
+        renderKarya(data);
+
+        // AI Insight (if moderator)
+        if (role === 'moderator' && data.ai){
           document.getElementById('ai-gaya').textContent = data.ai.gaya || '-';
           document.getElementById('ai-rekomendasi').textContent = data.ai.rekomendasi || '-';
         }
       })
       .catch(err => {
         console.error(err);
-        alert('Gagal memuat profil murid');
+        document.getElementById('progress-content').textContent = 'Belum ada data.';
+        document.getElementById('karya-meta').textContent = 'Tidak dapat memuat data.';
       });
-
   </script>
 </body>
 </html>

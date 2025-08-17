@@ -149,17 +149,20 @@
     const preview = document.getElementById('previewImg');
     const nickInput = document.getElementById('nickInput');
 
-    // Ambil parameter redirect ?next=/elearn/worlds/index.html
+    // Ambil parameter redirect ?next=/elearn/worlds/index.html & optional ?force=1 untuk paksa buka halaman ini
     const url = new URL(location.href);
     const NEXT = url.searchParams.get('next') || '/elearn/worlds/';
+    const FORCE = url.searchParams.get('force') === '1';
 
-    // Jika sudah ada avatar tersimpan, auto redirect
-    try {
-      const existing = JSON.parse(localStorage.getItem('qa_avatar_v1') || 'null');
-      if (existing && existing.id) {
-        location.href = NEXT;
-      }
-    } catch(e) { console.warn('cek avatar error', e); }
+    // Jika sudah ada avatar tersimpan, auto redirect (kecuali dipaksa buka ulang dengan force=1)
+    if (!FORCE) {
+      try {
+        const existing = JSON.parse(localStorage.getItem('qa_avatar_v1') || 'null');
+        if (existing && existing.id) {
+          location.href = NEXT;
+        }
+      } catch(e) { console.warn('cek avatar error', e); }
+    }
 
     AVATARS.forEach(av => {
       const card = document.createElement('button');

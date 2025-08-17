@@ -1,7 +1,7 @@
 {
   "worlds": [
     { "id": "calistung",      "name": "Calistung",            "theme": "pastel-garden", "cover": "/elearn/img/map/portal-calistung.jpg",      "entry": "/elearn/worlds/calistung/index.html" },
-    { "id": "kinder-coder",   "name": "Kinder Coder",         "theme": "lego-lab",      "cover": "/elearn/img/map/portal-kc.jpg",             "entry": "/elearn/worlds/kinder-coder/index.html" },
+    { "id": "kinder-coder",   "name": "Kinder Coder",         "theme": "lego-lab",      "cover": "/elearn/img/map/portal-kc.jpg",             "entry": "/elearn/worlds/kindercoder/index.html" },
     { "id": "visual-programming","name": "Visual Programming","theme": "blocky",        "cover": "/elearn/img/map/portal-vp.jpg",             "entry": "/elearn/worlds/visual-programming/index.html" },
     { "id": "python",         "name": "Pythonia",             "theme": "neon-blue",     "cover": "/elearn/img/map/portal-python.jpg",         "entry": "/elearn/worlds/python/index.html" },
     { "id": "web",            "name": "Webtopia",             "theme": "sunset",        "cover": "/elearn/img/map/portal-web.jpg",            "entry": "/elearn/worlds/web/index.html" },
