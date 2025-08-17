@@ -1,0 +1,125 @@
+
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>KinderCoder – Editor Scratch-Compatible</title>
+  <meta name="description" content="Editor Scratch-compatible untuk kelas KinderCoder di Queen's Academy iCoding." />
+  <style>
+    :root{
+      --bg:#0f1222; --fg:#eef2ff; --muted:#9aa3b2; --accent:#5ee0a0; --card:#171a2b; --border:#2a2e43;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Inter,Arial,sans-serif;background:var(--bg);color:var(--fg)}
+    .topbar{
+      position:sticky;top:0;z-index:5;
+      display:flex;align-items:center;gap:.75rem;
+      padding:.75rem 1rem;border-bottom:1px solid var(--border);
+      background:linear-gradient(180deg,rgba(23,26,43,.96),rgba(23,26,43,.96));
+      backdrop-filter:saturate(1.2) blur(6px);
+    }
+    .brand{display:flex;align-items:center;gap:.65rem;font-weight:700}
+    .brand .dot{width:.75rem;height:.75rem;border-radius:50%;background:var(--accent);display:inline-block}
+    .brand small{display:block;color:var(--muted);font-weight:500}
+    .spacer{flex:1}
+    .btn{appearance:none;border:1px solid var(--border);background:#1d2135;color:var(--fg);padding:.55rem .85rem;border-radius:.5rem;cursor:pointer;font-weight:600}
+    .btn:hover{border-color:#3a3f5c}
+    .btn.primary{background:var(--accent);color:#0b1020;border-color:transparent}
+    .wrap{height:calc(100% - 56px);display:grid;grid-template-columns:1fr 0;}
+    .frame{position:relative;height:100%;}
+    .frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
+    .notice{display:none;place-items:center;text-align:center;padding:2rem;color:var(--muted)}
+    .badge{display:inline-block;padding:.25rem .5rem;border:1px solid var(--border);border-radius:.5rem;color:var(--muted);font-size:.8rem}
+    .footer{position:fixed;right:1rem;bottom:1rem;opacity:.7;font-size:.8rem}
+    @media (max-width: 768px){
+      .wrap{height:calc(100% - 60px)}
+      .btn span{display:none}
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand" title="Queen's Academy iCoding – KinderCoder">
+      <span class="dot" aria-hidden="true"></span>
+      <div>
+        KinderCoder <small>Scratch-Compatible Editor</small>
+      </div>
+    </div>
+    <span class="badge">Beta</span>
+    <div class="spacer"></div>
+    <button class="btn" id="open-official">Buka Editor Resmi Scratch</button>
+    <button class="btn primary" id="restart-editor">Muat Ulang Editor</button>
+  </header>
+
+  <main class="wrap" id="app">
+    <section class="frame" id="frame">
+      <!-- TurboWarp editor is Scratch-compatible and supports embedding. -->
+      <iframe id="editor" title="Scratch-Compatible Editor"
+        src="https://turbowarp.org/editor?embed=1&fps=60&hqpen=1&turbo=0&stage=1#"
+        allow="autoplay; clipboard-read; clipboard-write">
+      </iframe>
+      <div class="notice" id="fallback">
+        <div>
+          <h2>Editor tidak dapat dimuat di dalam halaman</h2>
+          <p>Kemungkinan karena batasan peramban atau kebijakan sumber eksternal.
+          Kamu tetap bisa membuka editor pada tab baru.</p>
+          <p>
+            <a class="btn primary" href="https://turbowarp.org/editor" target="_blank" rel="noopener">Buka TurboWarp</a>
+            <a class="btn" href="https://scratch.mit.edu/projects/editor/?tutorial=getStarted" target="_blank" rel="noopener">Buka Scratch (Resmi)</a>
+          </p>
+          <p style="margin-top:1rem;color:var(--muted);font-size:.9rem">Catatan: Tampilan dan fitur mengikuti layanan masing‑masing.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="footer">Tip: klik 
+    <strong>File → Save to your computer</strong> di dalam editor untuk menyimpan <code>.sb3</code>.
+  </div>
+
+  <script>
+    (function(){
+      const editor = document.getElementById('editor');
+      const fallback = document.getElementById('fallback');
+      const restartBtn = document.getElementById('restart-editor');
+      const openOfficialBtn = document.getElementById('open-official');
+
+      // If iframe fails to load (blocked, offline, etc), show fallback block
+      let loaded = false;
+      const safetyTimer = setTimeout(()=>{
+        if(!loaded){ fallback.style.display = 'grid'; }
+      }, 6000);
+      editor.addEventListener('load', ()=>{ loaded = true; clearTimeout(safetyTimer); });
+
+      restartBtn.addEventListener('click', ()=>{
+        const u = new URL(editor.src);
+        // Force reload by bumping a cache-buster
+        u.hash = Date.now().toString();
+        editor.src = u.toString();
+        fallback.style.display = 'none';
+      });
+
+      openOfficialBtn.addEventListener('click', ()=>{
+        window.open('https://scratch.mit.edu/projects/editor/?tutorial=getStarted','_blank','noopener');
+      });
+
+      // Unsaved reminder
+      window.addEventListener('beforeunload', (e)=>{
+        e.preventDefault();
+        e.returnValue = '';
+      });
+    })();
+  </script>
+
+  <!--
+    Catatan Penting:
+    - Karena editor resmi Scratch tidak mengizinkan di-embed pada iframe untuk alasan keamanan,
+      halaman ini menggunakan TurboWarp (open-source, kompatibel Scratch) sebagai alternatif yang stabil.
+    - Tombol "Buka Editor Resmi Scratch" tetap disediakan.
+    - Jika di kemudian hari ingin integrasi editor lokal (tanpa iframe), gunakan "scratch-gui" + "scratch-vm" (React build).
+  -->
+</body>
+</html>
