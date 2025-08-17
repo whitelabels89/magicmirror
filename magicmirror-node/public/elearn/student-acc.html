@@ -316,7 +316,7 @@
       .charts-row, .data-section, .cards-section { grid-template-columns: 1fr; }
     }
   </style>
-  <link rel="stylesheet" href="/elearn/css/sidebar-mod.css">
+  <link rel="stylesheet" href="/elearn/sidebar-mod.css">
 </head>
 <body>
   <div class="dashboard-layout">
@@ -340,76 +340,22 @@
     </script>
     <script src="/elearn/sidebar-meteor.js" defer></script>
     <script>
-      // Ensure a sidebar toggle target exists and is bound WITHOUT adding new UI
-      (function() {
-        function tryBind() {
-          const sc  = document.getElementById('sidebar-container');
-          if (!sc) return false;
-          const selectors = [
-            '#sidebar-toggle',
-            '.sidebar [data-role="sidebar-toggle"]',
-            '.sidebar .btn-toggle',
-            '.sidebar .toggle',
-            '.sidebar .sidebar-toggle',
-            '.sidebar .brand',
-            '.sidebar .logo',
-            '.sidebar-header',
-            '.sidebar .title',
-            '.sidebar .menu-toggle'
-          ];
-          let toggleEl = null;
-          for (const sel of selectors) {
-            const el = sc.querySelector(sel);
-            if (el) { toggleEl = el; break; }
-          }
-          if (!toggleEl) return false;
-          if (!toggleEl.id) toggleEl.id = 'sidebar-toggle';
-          if (!toggleEl._boundFallback) {
-            toggleEl.addEventListener('click', () => {
-              const sc2 = document.getElementById('sidebar-container');
-              if (!sc2) return;
-              sc2.classList.toggle('collapsed');
-              if (typeof updateMeteorPath === 'function') {
-                try { updateMeteorPath(); } catch (_) {}
-              }
-            });
-            toggleEl._boundFallback = true;
-          }
-          return true;
-        }
-
-        // Try immediately, then after delays, and also on DOM mutations
-        if (!tryBind()) {
-          window.addEventListener('DOMContentLoaded', () => {
-            let attempts = 0;
-            const schedule = [100, 300, 800, 1500];
-            const tick = () => {
-              if (tryBind()) return;
-              const delay = schedule[attempts++];
-              if (delay != null) setTimeout(tick, delay);
-            };
-            tick();
-
-            // Observe sidebar container for late injections/changes
-            const obsTarget = document.querySelector('#sidebar-placeholder') || document.body;
-            const mo = new MutationObserver(() => { tryBind(); });
-            mo.observe(obsTarget, { childList: true, subtree: true });
-            // Stop observing after 3s to avoid overhead
-            setTimeout(() => mo.disconnect(), 3000);
-          });
-        }
-      })();
-    </script>
-    <script>
-      // Fallback + cache refresher to guarantee sidebar exists and stays consistent
+      // Fallback + cache refresher (and force-replace if cached sidebar lacks toggle)
       window.addEventListener('DOMContentLoaded', () => {
-        fetch('/elearn/sidebar-mod.html')
+        fetch('/elearn/sidebar-mod.html', { cache: 'no-store' })
           .then(res => res.text())
           .then(html => {
             try { localStorage.setItem('sidebar_mod_html_v1', html); } catch (e) {}
-            if (!document.getElementById('sidebar-container')) {
+
+            const hasSidebar = !!document.getElementById('sidebar-container');
+            const hasToggle  = !!document.getElementById('sidebar-toggle');
+            if (!hasSidebar) {
               const ph = document.getElementById('sidebar-placeholder');
               if (ph) ph.outerHTML = html;
+            } else if (hasSidebar && !hasToggle) {
+              // Cached sidebar is old (no toggle). Replace with fresh HTML
+              const sc = document.getElementById('sidebar-container');
+              if (sc) sc.outerHTML = html;
             }
           })
           .catch(err => console.error('Sidebar fallback error (student-acc):', err));
