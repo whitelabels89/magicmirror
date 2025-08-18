@@ -520,6 +520,7 @@
       </section>
 
       <!-- Section: Forms -->
+      <!--
       <section class="section-forms section-spacing" style="margin-bottom: 30px;">
         <div class="cards-section" id="akun-section">
           <div class="form-card">
@@ -569,6 +570,7 @@
           </div>
         </div>
       </section>
+      -->
       <section class="section-mirror-login section-spacing" style="margin-bottom: 30px;">
         <button id="mirrorLoginBtn">Mirror Login Data</button>
         <div id="mirrorLoginStatus"></div>
@@ -591,9 +593,14 @@
 
     loadClasses();
     loadAllStudents();
-    document.getElementById('form-add-class').addEventListener('submit', addClass);
-    document.getElementById('form-add-student').addEventListener('submit', addStudent);
-    document.getElementById('mirrorLoginBtn').addEventListener('click', mirrorLoginData);
+    const addClassForm = document.getElementById('form-add-class');
+    if (addClassForm) addClassForm.addEventListener('submit', addClass);
+
+    const addStudentForm = document.getElementById('form-add-student');
+    if (addStudentForm) addStudentForm.addEventListener('submit', addStudent);
+
+    const mirrorBtn = document.getElementById('mirrorLoginBtn');
+    if (mirrorBtn) mirrorBtn.addEventListener('click', mirrorLoginData);
 
     async function loadClasses() {
       try {
@@ -745,9 +752,13 @@
       }
     }
 
-    document.getElementById('form-assign-student').addEventListener('submit', assignStudent);
+    (function(){
+      const assignStudentForm = document.getElementById('form-assign-student');
+      if (assignStudentForm) assignStudentForm.addEventListener('submit', assignStudent);
+    })();
 
-    document.getElementById('form-assign-lesson').addEventListener('submit', async function(e) {
+    const assignLessonForm = document.getElementById('form-assign-lesson');
+    if (assignLessonForm) assignLessonForm.addEventListener('submit', async function(e) {
       e.preventDefault();
       const cid = document.getElementById('assign_lesson_uid').value.trim();
       const lesson = document.getElementById('lesson_code').value.trim();
