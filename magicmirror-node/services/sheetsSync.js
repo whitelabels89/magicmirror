@@ -59,7 +59,7 @@ function getSheetsClient() {
 }
 
 const { logId: LOG_SHEET_ID, statsId: STATS_SHEET_ID } = resolveIds();
-const LOG_TAB = process.env.SHEETS_POINTS_LOG_SHEET || 'logs';
+const LOG_TAB = process.env.SHEETS_POINTS_LOG_SHEET || 'points_log';
 const STATS_TAB = process.env.SHEETS_USER_STATS_SHEET || 'user_stats';
 
 /**
