@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Student Accounts – Admin</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'light');
@@ -342,6 +343,17 @@
     button:hover {
       background: #2445a7;
     }
+    /* Header row + theme icon button (no background) */
+    .header-row { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; }
+    .header-theme-btn {
+      background:none; border:none; cursor:pointer; font-size:1.4rem; line-height:1;
+      display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px;
+    }
+    button.header-theme-btn { background:transparent !important; box-shadow:none !important; }
+    [data-theme='dark'] button.header-theme-btn { background:transparent !important; box-shadow:none !important; }
+    .header-theme-btn:hover, .header-theme-btn:active { background:transparent !important; }
+    .header-theme-btn i { background:transparent !important; color: var(--text-main) !important; opacity: .95; }
+    .header-theme-btn:hover i { opacity: 1; }
     /* Responsive */
     @media (max-width: 1100px) {
       .main-content { padding: 28px 10px 28px 10px; }
@@ -359,10 +371,18 @@
       loadSidebar();
     </script>
     <main style="max-width: 1100px; margin: 0 auto; padding: 2rem 1rem;">
-      <h2 style="color: #e53935; font-weight: 700; font-size: 1.75rem; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 10px;">
-        <i class="fas fa-chart-line" style="color: #e53935;"></i>
-        Activity Reports
-      </h2>
+      <!-- Section: Header (title + theme toggle inline) -->
+      <section class="section-header section-spacing" style="margin-bottom: 20px;">
+        <div class="header-row">
+          <h2 style="color: #e53935; font-weight: 700; font-size: 1.75rem; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 10px; margin: 0;">
+            <i class="fas fa-chart-line" style="color: #e53935;"></i>
+            Activity Reports
+          </h2>
+          <button id="theme-toggle-btn" aria-label="Toggle theme" class="header-theme-btn">
+            <i id="theme-icon" class="bi bi-sun-fill"></i>
+          </button>
+        </div>
+      </section>
       <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
         <div class="summary-box"><strong>Total Students</strong><br><span id="total-students">0</span></div>
         <div class="summary-box"><strong>Total Lessons</strong><br><span id="total-lessons">0</span></div>
@@ -797,14 +817,19 @@ window.addEventListener('DOMContentLoaded', loadActivityLogs);
 
     function updateThemeIcon() {
       const current = document.documentElement.getAttribute('data-theme') || 'light';
-      document.getElementById('theme-icon').textContent = current === 'dark' ? '🌙' : '☀️';
+      const icon = document.getElementById('theme-icon');
+      if (!icon) return;
+      icon.classList.remove('bi-sun','bi-sun-fill','bi-moon','bi-moon-stars','bi-moon-fill');
+      if (current === 'dark') { icon.classList.add('bi-moon-stars'); }
+      else { icon.classList.add('bi-sun-fill'); }
     }
 
     document.addEventListener('DOMContentLoaded', () => {
       const currentTheme = localStorage.getItem('theme') || 'light';
       document.documentElement.setAttribute('data-theme', currentTheme);
       updateThemeIcon();
-      document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
+      const themeBtn = document.getElementById('theme-toggle-btn');
+      if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
       // Add dark-theme class to sidebar if dark mode is active
       if (currentTheme === 'dark') {
         document.getElementById('sidebar-container')?.classList.add('dark-theme');

@@ -57,17 +57,48 @@ function initSidebar() {
   bindToggleOnce();
   setTimeout(bindToggleOnce, 500);
 
-  // Event delegation: cegah double binding pada .menu-group > a
-  document.querySelector('#sidebar-container')?.addEventListener('click', (e) => {
-    const a = e.target.closest('.menu-group > a');
-    if (!a) return;
-    e.preventDefault();
-    if (sidebarContainer?.classList.contains('collapsed')) {
-      sidebarContainer.classList.remove('collapsed');
-    }
-    a.parentElement.classList.toggle('open');
-    updateMeteorPath();
-  });
+  // Event delegation: robust trigger detection + guard (bind once)
+  const container = document.getElementById('sidebar-container');
+  if (container && !container.dataset.submenuBound) {
+    container.addEventListener('click', (e) => {
+      const target = e.target;
+      if (!target) return;
+
+      // Cari calon trigger: elemen dengan data-submenu-toggle ATAU anchor pertama dalam .menu-group
+      const trigger = target.closest('[data-submenu-toggle], .menu-group > a, .menu-group .submenu-toggle');
+      if (!trigger) return;
+
+      const group = trigger.closest('.menu-group');
+      if (!group) return;
+
+      const submenu = group.querySelector('.submenu');
+      if (!submenu) return; // kalau tidak ada submenu, biarkan default nav berjalan
+
+      // Jika trigger memang dimaksudkan untuk toggle submenu (bukan link submenu)
+      // Kriteria: (1) punya attr data-submenu-toggle, atau (2) href="#" / kosong, atau (3) adalah anchor pertama di group
+      const isExplicitToggle = trigger.hasAttribute('data-submenu-toggle');
+      const href = trigger.getAttribute('href') || '';
+      const isDummyLink = href === '' || href === '#' || href === 'javascript:void(0)';
+      const isFirstAnchor = group.querySelector('a') === trigger;
+
+      if (isExplicitToggle || isDummyLink || isFirstAnchor) {
+        e.preventDefault();
+        if (sidebarContainer?.classList.contains('collapsed')) {
+          sidebarContainer.classList.remove('collapsed');
+        }
+
+        // Optional: hanya satu submenu terbuka dalam satu waktu
+        container.querySelectorAll('.menu-group .submenu.open').forEach(el => {
+          if (el !== submenu) el.classList.remove('open');
+        });
+
+        submenu.classList.toggle('open');
+        group.classList.toggle('open');
+        updateMeteorPath();
+      }
+    }, true);
+    container.dataset.submenuBound = '1';
+  }
 
   // Logout (aman, opsional)
   document.getElementById('logout-btn')?.addEventListener('click', (e) => {

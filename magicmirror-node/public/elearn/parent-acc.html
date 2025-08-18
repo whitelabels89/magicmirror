@@ -325,6 +325,12 @@
     button:hover {
       background: #2445a7;
     }
+    .header-row { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; }
+    .header-theme-btn {
+      background:none; border:none; cursor:pointer; font-size:1.4rem; line-height:1;
+      display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px;
+    }
+    .header-theme-btn i { background:transparent !important; color:#fff !important; }
     /* Responsive */
     @media (max-width: 1100px) {
       .main-content { padding: 28px 10px 28px 10px; }
@@ -342,17 +348,20 @@
       loadSidebar();
     </script>
 <main class="main-content">
-  <section class="section-theme-toggle section-spacing" style="margin-bottom: 30px;">
-    <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
-      <button id="theme-toggle-btn" style="background: none; border: none; cursor: pointer; font-size: 1.3rem;">
-        <span id="theme-icon">☀️</span>
+  <!-- Section: Header (title + theme toggle inline) -->
+  <section class="section-header section-spacing" style="margin-bottom: 30px;">
+    <div class="header-row">
+      <h2 class="mb-0 fw-bold text-danger" style="display:flex; align-items:center; gap:8px;">
+        <i class="bi bi-people-fill"></i> Manage Parent Accounts
+      </h2>
+      <button id="theme-toggle-btn" aria-label="Toggle theme" class="header-theme-btn">
+        <i id="theme-icon" class="bi bi-sun-fill"></i>
       </button>
     </div>
+    <p class="text-muted mb-4">Oversee parent registrations, linked students, and account status.</p>
   </section>
 
   <div class="container py-4">
-    <h2 class="mb-3 fw-bold text-danger"><i class="bi bi-people-fill"></i> Manage Parent Accounts</h2>
-    <p class="text-muted mb-4">Oversee parent registrations, linked students, and account status.</p>
 
     <div class="row mb-4">
       <div class="col-md-4">
@@ -435,7 +444,14 @@
 
     function updateThemeIcon() {
       const current = document.documentElement.getAttribute('data-theme') || 'light';
-      document.getElementById('theme-icon').textContent = current === 'dark' ? '🌙' : '☀️';
+      const icon = document.getElementById('theme-icon');
+      if (!icon) return;
+      icon.classList.remove('bi-sun', 'bi-sun-fill', 'bi-moon', 'bi-moon-stars', 'bi-moon-fill');
+      if (current === 'dark') {
+        icon.classList.add('bi-moon-stars');
+      } else {
+        icon.classList.add('bi-sun-fill');
+      }
     }
 
     document.addEventListener('DOMContentLoaded', () => {

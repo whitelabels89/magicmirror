@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Student Accounts – Admin</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'light');
@@ -151,10 +152,30 @@
     }
     .header-welcome .title-text {
       background: linear-gradient(90deg, #ff3c3c, #ff7272);
+      background-clip: text;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       display: inline-block;
     }
+    .header-theme-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.4rem;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+    }
+    button.header-theme-btn { background: transparent !important; box-shadow: none !important; }
+    [data-theme='dark'] button.header-theme-btn { background: transparent !important; box-shadow: none !important; }
+    .header-theme-btn:hover, .header-theme-btn:active { background: transparent !important; }
+    .header-theme-btn i { background: transparent !important; color: #fff !important; opacity: 0.95; }
+    .header-theme-btn:hover i { opacity: 1; }
+    .mirror-now-text { color: #fff !important; }
     .stat-cards {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -361,8 +382,12 @@
         <div class="header-welcome" style="display:flex;align-items:center;justify-content:space-between;">
           <span class="title-text">🎨 Student Works Gallery</span>
           <div style="display:flex;align-items:center;gap:14px;">
-            <button id="theme-toggle-btn" aria-label="Toggle theme">🌙</button>
-            <button id="mirror-works-btn" style="padding:6px 12px;border:none;background:#0069d9;color:#fff;border-radius:6px;cursor:pointer;">Mirror Now</button>
+            <button id="theme-toggle-btn" aria-label="Toggle theme" class="header-theme-btn">
+              <i id="theme-icon" class="bi bi-sun-fill"></i>
+            </button>
+            <button id="mirror-works-btn" style="padding:6px 12px;border:none;background:#0069d9;border-radius:6px;cursor:pointer;">
+              <span class="mirror-now-text">Mirror Now</span>
+            </button>
           </div>
         </div>
       </section>
@@ -568,8 +593,14 @@ function toggleTheme() {
 }
 function updateThemeIcon() {
   const current = document.documentElement.getAttribute('data-theme') || 'light';
-  const btn = document.getElementById('theme-toggle-btn');
-  if (btn) btn.textContent = current === 'dark' ? '☀️' : '🌙';
+  const icon = document.getElementById('theme-icon');
+  if (!icon) return;
+  icon.classList.remove('bi-sun','bi-sun-fill','bi-moon','bi-moon-stars','bi-moon-fill');
+  if (current === 'dark') {
+    icon.classList.add('bi-moon-stars');
+  } else {
+    icon.classList.add('bi-sun-fill');
+  }
 }
 document.addEventListener('DOMContentLoaded', () => {
   // Guard: only moderator can access

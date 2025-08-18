@@ -5,11 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Student Accounts – Admin</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'light');
   </script>
   <style>
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      width: 100%;
+    }
+    .header-theme-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.4rem;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+    }
+    /* Force no background */
+    button.header-theme-btn { background: transparent !important; box-shadow: none !important; }
+    [data-theme='dark'] button.header-theme-btn { background: transparent !important; box-shadow: none !important; }
+    .header-theme-btn:hover, .header-theme-btn:active { background: transparent !important; }
+    .header-theme-btn i { background: transparent !important; }
+    .mirror-now-text { color: #fff !important; }
     [data-theme='dark'] {
       --primary: #131313;
       --primary-light: #1c1c1c;
@@ -120,6 +147,7 @@
       font-weight: 700;
       font-size: 2rem;
       background: linear-gradient(90deg, #ff3c3c, #ff7272);
+      background-clip: text;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       margin-bottom: 8px;
@@ -326,12 +354,20 @@
       loadSidebar();
     </script>
     <main class="main-content">
-      <!-- Section: Header -->
-      <section class="section-welcome section-spacing" style="margin-bottom: 30px;">
-        <div class="header-welcome" style="display:flex;align-items:center;justify-content:space-between;">
-          <span>📊 Student Progress Tracker</span>
-          <button id="mirror-progress-btn" style="padding:6px 12px;border:none;background:#0069d9;color:#fff;border-radius:6px;cursor:pointer;">Mirror Now</button>
+      <!-- Section: Header (title + theme toggle inline) -->
+      <section class="section-header section-spacing" style="margin-bottom: 20px;">
+        <div class="header-row">
+          <div class="header-welcome">📊 Student Progress Tracker</div>
+          <button id="theme-toggle-btn" aria-label="Toggle theme" class="header-theme-btn">
+            <i id="theme-icon" class="bi bi-sun-fill"></i>
+          </button>
         </div>
+      </section>
+      <!-- Section: Actions -->
+      <section class="section-actions section-spacing" style="margin-bottom: 30px;">
+        <button id="mirror-progress-btn" style="padding:6px 12px;border:none;background:#0069d9;border-radius:6px;cursor:pointer;">
+          <span class="mirror-now-text">Mirror Now</span>
+        </button>
       </section>
 
       <!-- Section: Student Table -->
@@ -439,10 +475,14 @@
         tbody.appendChild(tr);
         totalMurid += (kelas.jumlah_murid || 0);
         if (kelas.guru_id) guruSet.add(kelas.guru_id);
-      // Update stat cards
-      document.getElementById('stat-kelas').textContent = list.length;
-      document.getElementById('stat-murid').textContent = totalMurid;
-      document.getElementById('stat-guru').textContent = guruSet.size;
+      });
+      // Update stat cards (after loop)
+      const statKelas = document.getElementById('stat-kelas');
+      const statMurid = document.getElementById('stat-murid');
+      const statGuru = document.getElementById('stat-guru');
+      if (statKelas) statKelas.textContent = list.length;
+      if (statMurid) statMurid.textContent = totalMurid;
+      if (statGuru) statGuru.textContent = guruSet.size;
     } catch (err) {
       console.error(err);
     }
@@ -461,6 +501,7 @@
           <td data-label="Nama"><a href="/elearn/student-profile.html?cid=${murid.cid}">${murid.nama}</a></td>
           <td data-label="Email">${murid.email}</td>`;
         tbody.appendChild(tr);
+      });
     } catch (err) {
       console.error(err);
     }
@@ -489,10 +530,10 @@
           opt2.textContent = `${m.nama} (${m.cid})`;
           selectLesson.appendChild(opt2);
         }
+      });
       // Update stat card murid
-      if (document.getElementById('stat-murid')) {
-        document.getElementById('stat-murid').textContent = list.length;
-      }
+      const statMurid = document.getElementById('stat-murid');
+      if (statMurid) statMurid.textContent = list.length;
     } catch (err) {
       console.error(err);
       if (status) status.textContent = '❌ Gagal memuat daftar murid';
@@ -510,6 +551,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ kelas_id, nama_kelas, guru_id })
+      });
       if (res.ok) {
         if (status) status.textContent = '✅ Kelas berhasil ditambah.';
         loadClasses();
@@ -543,6 +585,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cid, nama, email, password, wa, kelas_id, role })
+      });
       if (res.ok) {
         if (status) status.textContent = '✅ Akun berhasil ditambah.';
         e.target.reset();
@@ -567,12 +610,12 @@
       const lesson = document.getElementById('lesson_code').value.trim();
       const status = document.getElementById('lesson-assign-status');
       if (!cid || !lesson) return;
-
       try {
         const res = await fetch(`${FIREBASE_API}/api/assign-lesson`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ cid, lesson })
+        });
         if (res.ok) {
           if (status) status.textContent = '✅ Akses lesson berhasil ditambahkan.';
           e.target.reset();
@@ -590,6 +633,7 @@
         console.error(err);
         if (status) status.textContent = '❌ Gagal assign lesson';
       }
+    });
   }
 
   async function assignStudent(e) {
@@ -602,6 +646,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uid, kelas_id })
+      });
       if (res.ok) {
         if (status) status.textContent = '✅ Murid berhasil di-assign ke kelas.';
         e.target.reset();
@@ -615,6 +660,7 @@
       if (status) status.textContent = '❌ Gagal assign murid';
     }
   }
+  });
  </script>
 
   <script>
@@ -636,18 +682,24 @@
 
     function updateThemeIcon() {
       const current = document.documentElement.getAttribute('data-theme') || 'light';
-      document.getElementById('theme-icon').textContent = current === 'dark' ? '🌙' : '☀️';
+      const icon = document.getElementById('theme-icon');
+      if (!icon) return;
+      icon.classList.remove('bi-sun','bi-sun-fill','bi-moon','bi-moon-stars','bi-moon-fill');
+      if (current === 'dark') icon.classList.add('bi-moon-stars');
+      else icon.classList.add('bi-sun-fill');
     }
 
     document.addEventListener('DOMContentLoaded', () => {
       const currentTheme = localStorage.getItem('theme') || 'light';
       document.documentElement.setAttribute('data-theme', currentTheme);
       updateThemeIcon();
-      document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
+      const themeBtn = document.getElementById('theme-toggle-btn');
+      if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
       // Add dark-theme class to sidebar if dark mode is active
       if (currentTheme === 'dark') {
         document.getElementById('sidebar-container')?.classList.add('dark-theme');
       }
+    });
   </script>
 <script>
   async function loadStudentProgress() {
@@ -668,6 +720,7 @@
           <td><button onclick="loadProgressDetail('${s.cid}')">View</button></td>
         `;
         tbody.appendChild(tr);
+      });
     } catch (err) {
       console.error('❌ Gagal load student progress:', err);
     }
@@ -690,6 +743,7 @@
           <td>${p.score || '-'}</td>
         `;
         tbody.appendChild(tr);
+      });
     } catch (err) {
       console.error('❌ Gagal load detail progress:', err);
     }
@@ -697,6 +751,7 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     loadStudentProgress();
+  });
 </script>
 </body>
 </html>
