@@ -194,6 +194,30 @@ if (!admin.apps.length) {
 }
 
 const db = admin.firestore();
+// --- BEGIN: Firebase Auth middleware (populate req.user from ID token) ---
+async function attachUserFromAuth(req, res, next) {
+  try {
+    const authHeader = req.headers.authorization || req.headers.Authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      // no bearer token; continue (routes with requireAuth will 401)
+      return next();
+    }
+    const idToken = authHeader.substring('Bearer '.length).trim();
+    const decoded = await admin.auth().verifyIdToken(idToken);
+    // Attach minimal info consumed by routes
+    req.user = Object.assign({}, req.user, {
+      uid: decoded.uid,
+      email: decoded.email || (decoded.user_id ? undefined : undefined),
+      role: (decoded.role) || (decoded.claims && decoded.claims.role) || decoded['role'] || (req.user && req.user.role) || null
+    });
+    return next();
+  } catch (err) {
+    // Token invalid/expired => proceed; protected routes will reject
+    return next();
+  }
+}
+app.use(attachUserFromAuth);
+// --- END: Firebase Auth middleware ---
 // ===== Helpers for dashboard overview =====
 function startOfDay(ts){ const d = new Date(ts); d.setHours(0,0,0,0); return d.getTime(); }
 function daysAgo(n){ const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-n); return d.getTime(); }
