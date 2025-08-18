@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard Moderator</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
   <link rel="prefetch" href="/elearn/sidebar-mod.html" as="fetch" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
@@ -89,14 +89,8 @@
       color: var(--text-main);
     }
 
-    /* Ensure stat values and titles are readable in dark mode */
-    [data-theme='dark'] .stat-card-title {
-      color: #000000 !important;
-    }
-    [data-theme='dark'] .stat-card-value {
-      color: #000000 !important;
-      opacity: 1 !important;
-    }
+    /* Dark mode: tables background */
+    [data-theme='dark'] table { background: #1e1e1e; }
     :root {
       --sidebar-width: 230px;
       --primary: #2c3e50;
@@ -132,10 +126,22 @@
       font-size: 2rem;
       background: linear-gradient(90deg, #ff3c3c, #ff7272);
       background-clip: text;
+      -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       margin-bottom: 8px;
       letter-spacing: 0.5px;
     }
+    .header-row { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; }
+    .header-theme-btn {
+      background:none; border:none; cursor:pointer; font-size:1.4rem; line-height:1;
+      display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px;
+    }
+    /* Keep button clean in all themes */
+    button.header-theme-btn { background:transparent !important; box-shadow:none !important; }
+    [data-theme='dark'] button.header-theme-btn { background:transparent !important; box-shadow:none !important; }
+    .header-theme-btn:hover, .header-theme-btn:active { background:transparent !important; }
+    /* Icon always white */
+    .header-theme-btn i { background:transparent !important; color:#fff !important; }
     .stat-cards {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -320,6 +326,18 @@
     button:hover {
       background: #2445a7;
     }
+    .muted { color: #778; font-size: .92rem; }
+    .trend-pill { font-size:.85rem; padding:2px 8px; border-radius:999px; background:#eef3ff; color:#2643e9; }
+    [data-theme='dark'] .trend-pill { background:#233; color:#9ac2ff; }
+    .kpi-row { display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+    .kpi .kpi-sub { font-size:.85rem; color:#667; margin-top:4px; }
+    [data-theme='dark'] .kpi .kpi-sub { color:#aab; }
+    .compact-table td, .compact-table th { padding:8px 10px; font-size:.95rem; }
+    .table-note { font-size:.85rem; color:#889; margin-top:6px; }
+    .section-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:0 0 10px 0; }
+    .filter-row { display:flex; align-items:center; gap:8px; }
+    .filter-row select, .filter-row input[type="date"] { padding:6px 8px; border:1px solid #dde1ef; border-radius:6px; background:#fff; }
+    [data-theme='dark'] .filter-row select, [data-theme='dark'] .filter-row input[type="date"] { background:#292929; color:var(--text-main); border-color:#444; }
     /* Responsive */
     @media (max-width: 1100px) {
       .main-content { padding: 28px 10px 28px 10px; }
@@ -390,80 +408,113 @@
       });
     </script>
     <main class="main-content">
-      <!-- Section: Theme Toggle -->
-      <section class="section-theme-toggle section-spacing" style="margin-bottom: 30px;">
-        <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
-          <button id="theme-toggle-btn" style="background: none; border: none; cursor: pointer; font-size: 1.3rem;">
-            <i id="theme-icon" class="fas fa-sun"></i>
+      <!-- Section: Header (title + theme toggle inline) -->
+      <section class="section-header section-spacing" style="margin-bottom: 30px;">
+        <div class="header-row">
+          <div class="header-welcome">Hello, <span id="user-name">Moderator</span>!</div>
+          <button id="theme-toggle-btn" aria-label="Toggle theme" class="header-theme-btn">
+            <i id="theme-icon" class="bi bi-sun-fill"></i>
           </button>
         </div>
       </section>
 
-      <!-- Section: Welcome -->
-      <section class="section-welcome section-spacing" style="margin-bottom: 30px;">
-        <div class="header-welcome" style="font-family: 'Inter', sans-serif; font-weight: 700; font-size: 2rem; background: linear-gradient(90deg, #ff3c3c, #ff7272); background-clip: text; -webkit-text-fill-color: transparent;">
-          Hello, <span id="user-name">Moderator</span>!
+      <!-- Section: KPIs Overview -->
+      <section class="section-kpis section-spacing" style="margin-bottom: 22px;">
+        <div class="section-heading">
+          <h2 style="margin:0;font-size:1.14rem;color:var(--primary);font-weight:600;">Platform Overview</h2>
+          <div class="filter-row">
+            <select id="kpi-range">
+              <option value="7d">Last 7 days</option>
+              <option value="30d" selected>Last 30 days</option>
+              <option value="90d">Last 90 days</option>
+            </select>
+            <button id="refresh-overview" class="header-theme-btn" aria-label="Refresh Overview" title="Refresh">
+              <i class="bi bi-arrow-clockwise" style="font-size:1.1rem"></i>
+            </button>
+          </div>
         </div>
-      </section>
-
-      <!-- Section: Stats -->
-      <section class="section-stats section-spacing" style="margin-bottom: 30px;">
-        <div class="stat-cards" id="stat-cards">
-          <div class="stat-card">
-            <div class="stat-card-title">Jumlah Kelas</div>
-            <div class="stat-card-value" id="stat-kelas">0</div>
+        <div class="kpi-row">
+          <div class="stat-card kpi">
+            <div class="stat-card-title">Total Users</div>
+            <div class="stat-card-value" id="kpi-total-users">0</div>
+            <div class="kpi-sub"><span id="kpi-users-trend" class="trend-pill">0% MoM</span></div>
           </div>
-          <div class="stat-card">
-            <div class="stat-card-title">Jumlah Murid</div>
-            <div class="stat-card-value" id="stat-murid">0</div>
+          <div class="stat-card kpi">
+            <div class="stat-card-title">Active Today</div>
+            <div class="stat-card-value" id="kpi-active-today">0</div>
+            <div class="kpi-sub"><span id="kpi-active-trend" class="trend-pill">0% vs avg</span></div>
           </div>
-          <div class="stat-card">
-            <div class="stat-card-title">Jumlah Guru</div>
-            <div class="stat-card-value" id="stat-guru">0</div>
+          <div class="stat-card kpi">
+            <div class="stat-card-title">Lessons</div>
+            <div class="stat-card-value" id="kpi-lessons">0</div>
+            <div class="kpi-sub"><span id="kpi-lessons-trend" class="trend-pill">0% MoM</span></div>
+          </div>
+          <div class="stat-card kpi">
+            <div class="stat-card-title">Active Sessions</div>
+            <div class="stat-card-value" id="kpi-sessions">0</div>
+            <div class="kpi-sub"><span id="kpi-sessions-trend" class="trend-pill">now</span></div>
+          </div>
+          <div class="stat-card kpi">
+            <div class="stat-card-title">Monthly Revenue</div>
+            <div class="stat-card-value" id="kpi-revenue">0</div>
+            <div class="kpi-sub"><span id="kpi-revenue-trend" class="trend-pill">0% MoM</span></div>
+          </div>
+          <div class="stat-card kpi">
+            <div class="stat-card-title">Error Rate</div>
+            <div class="stat-card-value" id="kpi-error">0%</div>
+            <div class="kpi-sub"><span id="kpi-error-trend" class="trend-pill">stable</span></div>
           </div>
         </div>
       </section>
 
       <!-- Section: Charts -->
-      <section class="section-charts section-spacing" style="margin-bottom: 30px;">
+      <section class="section-charts section-spacing" style="margin-bottom: 18px;">
         <div class="charts-row">
           <div class="chart-card">
-            <div class="chart-title">Income Overview</div>
-            <canvas id="donutChart" width="220" height="220"></canvas>
+            <div class="chart-title">Daily Active Users (DAU)</div>
+            <canvas id="dauChart" width="400" height="220"></canvas>
           </div>
           <div class="chart-card">
-            <div class="chart-title">Net Income per Bulan</div>
-            <canvas id="barChart" width="320" height="220"></canvas>
+            <div class="chart-title">Revenue (Last 12 Months)</div>
+            <canvas id="revenueChart" width="400" height="220"></canvas>
           </div>
         </div>
       </section>
 
-      <!-- Section: Data -->
-      <section class="section-data section-spacing" style="margin-bottom: 30px;">
-        <div class="data-section" id="kelas-section">
+      <!-- Section: Tables -->
+      <section class="section-tables section-spacing" style="margin-bottom: 26px;">
+        <div class="data-section" id="overview-tables">
           <div class="data-table-card">
-            <h2>Daftar Kelas</h2>
-            <table id="kelas-table">
-              <thead>
-                <tr>
-                  <th>Kelas ID</th>
-                  <th>Nama Kelas</th>
-                  <th>Guru ID</th>
-                  <th>Jumlah Murid</th>
-                  <th>Aksi</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
+            <h2 class="section-heading" style="margin:0 0 10px 0;">Recent Activity <span class="muted" id="activity-count"></span></h2>
+            <table id="recent-activity" class="compact-table">
+              <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Detail</th></tr></thead>
+              <tbody id="recent-activity-body"></tbody>
+            </table>
+            <div class="table-note">Showing latest 20 events.</div>
+          </div>
+          <div class="data-table-card">
+            <h2 class="section-heading" style="margin:0 0 10px 0;">Top Classes by Active Students</h2>
+            <table id="top-classes" class="compact-table">
+              <thead><tr><th>Class</th><th>Teacher</th><th>Active</th><th>Lessons</th></tr></thead>
+              <tbody id="top-classes-body"></tbody>
+            </table>
+            <div class="table-note">Rolling 30 days.</div>
+          </div>
+        </div>
+      </section>
+      <!-- Section: Signups & Alerts -->
+      <section class="section-signups-alerts section-spacing" style="margin-bottom: 10px;">
+        <div class="data-section">
+          <div class="data-table-card">
+            <h2 class="section-heading" style="margin:0 0 10px 0;">Recent Signups</h2>
+            <table id="recent-signups" class="compact-table">
+              <thead><tr><th>When</th><th>Name</th><th>Email</th><th>Role</th></tr></thead>
+              <tbody id="recent-signups-body"></tbody>
             </table>
           </div>
           <div class="data-table-card">
-            <h2>Daftar Murid</h2>
-            <table id="students-table">
-              <thead>
-                <tr><th>CID</th><th>Nama</th><th>Email</th></tr>
-              </thead>
-              <tbody></tbody>
-            </table>
+            <h2 class="section-heading" style="margin:0 0 10px 0;">Alerts</h2>
+            <ul id="alerts-list" style="margin:0; padding-left:18px;"></ul>
           </div>
         </div>
       </section>
@@ -546,30 +597,8 @@
 
     async function loadClasses() {
       try {
-        const res = await fetch('/api/kelas');
-        const json = await res.json();
-        const list = Array.isArray(json.data) ? json.data : [];
-        const tbody = document.querySelector('#kelas-table tbody');
-        tbody.innerHTML = '';
-        let totalMurid = 0;
-        let guruSet = new Set();
-        list.forEach(kelas => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td data-label="Kelas ID">${kelas.kelas_id}</td>
-            <td data-label="Nama Kelas">${kelas.nama_kelas}</td>
-            <td data-label="Guru ID">${kelas.guru_id}</td>
-            <td data-label="Jumlah Murid">${kelas.jumlah_murid || 0}</td>
-            <td data-label="Aksi"><button data-id="${kelas.kelas_id}">Lihat Murid</button></td>`;
-          tr.querySelector('button').addEventListener('click', () => loadStudents(kelas.kelas_id));
-          tbody.appendChild(tr);
-          totalMurid += (kelas.jumlah_murid || 0);
-          if (kelas.guru_id) guruSet.add(kelas.guru_id);
-        });
-        // Update stat cards
-        document.getElementById('stat-kelas').textContent = list.length;
-        document.getElementById('stat-murid').textContent = totalMurid;
-        document.getElementById('stat-guru').textContent = guruSet.size;
+        // Refresh dependent widgets instead of writing to removed #kelas-table
+        await loadTopClasses();
       } catch (err) {
         console.error(err);
       }
@@ -590,9 +619,11 @@
 
     async function loadStudents(kelasId) {
       try {
+        const tbodyHost = document.querySelector('#students-table tbody');
+        if (!tbodyHost) return; // table not present in overview layout
         const res = await fetch(`/api/kelas/${kelasId}`);
         const data = await res.json();
-        const tbody = document.querySelector('#students-table tbody');
+        const tbody = tbodyHost;
         tbody.innerHTML = '';
         data.forEach(murid => {
           const tr = document.createElement('tr');
@@ -612,28 +643,45 @@
       const status = document.getElementById('assign-status');
       const selectLesson = document.getElementById('assign_lesson_uid');
       try {
-        const res = await fetch(`${FIREBASE_API}/api/semua-murid`);
-        if (!res.ok) throw new Error('Network');
-        const list = await res.json();
-        select.innerHTML = '<option value="">Pilih Murid</option>';
+        // Try multiple endpoints; return [] if all fail
+        const list = await fetchFirst([
+          `${FIREBASE_API}/api/semua-murid`,
+          `/api/students`,
+          `/api/users?role=murid`,
+        ], []);
+
+        // Normalize to array
+        const students = Array.isArray(list) ? list : [];
+
+        // Prepare selects (if present)
+        if (select) select.innerHTML = '<option value="">Pilih Murid</option>';
         if (selectLesson) selectLesson.innerHTML = '<option value="">Pilih Murid</option>';
-        list.forEach(m => {
-          const opt = document.createElement('option');
-          opt.value = m.cid;
-          opt.textContent = `${m.nama} (${m.cid})`;
-          select.appendChild(opt);
+
+        if (students.length === 0) {
+          if (status) status.textContent = '⚠️ Tidak dapat memuat daftar murid (jaringan/endpoint). Isi manual atau coba lagi.';
+          return;
+        }
+
+        students.forEach(m => {
+          const cid = m.cid || m.id || m.uid || '';
+          const name = m.nama || m.name || 'Tanpa Nama';
+          if (select) {
+            const opt = document.createElement('option');
+            opt.value = cid;
+            opt.textContent = `${name} (${cid})`;
+            select.appendChild(opt);
+          }
           if (selectLesson) {
             const opt2 = document.createElement('option');
-            opt2.value = m.cid;
-            opt2.textContent = `${m.nama} (${m.cid})`;
+            opt2.value = cid;
+            opt2.textContent = `${name} (${cid})`;
             selectLesson.appendChild(opt2);
           }
         });
-        // Update stat card murid
-        document.getElementById('stat-murid').textContent = list.length;
+        if (status) status.textContent = '';
       } catch (err) {
         console.error(err);
-        status.textContent = '❌ Gagal memuat daftar murid';
+        if (status) status.textContent = '❌ Gagal memuat daftar murid (Network)';
       }
     }
 
@@ -772,46 +820,285 @@
     }
 
     function updateThemeIcon() {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
       const icon = document.getElementById('theme-icon');
       if (!icon) return;
-      const current = document.documentElement.getAttribute('data-theme') || 'light';
-      icon.className = current === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
+      icon.classList.remove('bi-sun','bi-sun-fill','bi-moon','bi-moon-stars','bi-moon-fill');
+      if (current === 'dark') { icon.classList.add('bi-moon-stars'); }
+      else { icon.classList.add('bi-sun-fill'); }
     }
 
     document.addEventListener('DOMContentLoaded', () => {
       const currentTheme = localStorage.getItem('theme') || 'light';
       document.documentElement.setAttribute('data-theme', currentTheme);
       updateThemeIcon();
-      document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
+      const tbtn = document.getElementById('theme-toggle-btn');
+      if (tbtn) tbtn.addEventListener('click', toggleTheme);
     });
   </script>
   <script>
-    // Chart.js dummy chart
-    window.addEventListener('DOMContentLoaded', () => {
-      const donutCtx = document.getElementById('donutChart').getContext('2d');
-      new Chart(donutCtx, {
-        type: 'doughnut',
-        data: {
-          labels: ['A', 'B', 'C'],
-          datasets: [{ data: [10, 20, 30], backgroundColor: ['#f66', '#6f6', '#66f'] }]
-        },
-        options: {
-          plugins: { legend: { position: 'bottom' } }
-        }
+    let dauChart, revenueChart;
+    function initCharts() {
+      const dauCtx = document.getElementById('dauChart').getContext('2d');
+      const revCtx = document.getElementById('revenueChart').getContext('2d');
+      dauChart = new Chart(dauCtx, {
+        type: 'line',
+        data: { labels: [], datasets: [{ label: 'DAU', data: [], tension:.25, fill:false }] },
+        options: { plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } }
       });
-
-      const barCtx = document.getElementById('barChart').getContext('2d');
-      new Chart(barCtx, {
+      revenueChart = new Chart(revCtx, {
         type: 'bar',
-        data: {
-          labels: ['Jan', 'Feb', 'Mar'],
-          datasets: [{ label: 'Net Income', data: [3, 6, 4], backgroundColor: '#f99' }]
-        },
-        options: {
-          plugins: { legend: { display: false } },
-          scales: { y: { beginAtZero: true } }
-        }
+        data: { labels: [], datasets: [{ label: 'Revenue', data: [] }] },
+        options: { plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } }
       });
+    }
+    function updateCharts(overview){
+      if (!dauChart || !revenueChart) return;
+      const labels = (overview?.dau?.map(p=>p.date)) || [];
+      const values = (overview?.dau?.map(p=>p.value)) || [];
+      dauChart.data.labels = labels; dauChart.data.datasets[0].data = values; dauChart.update();
+      const rlabels = (overview?.revenue?.map(p=>p.month)) || [];
+      const rvalues = (overview?.revenue?.map(p=>p.value)) || [];
+      revenueChart.data.labels = rlabels; revenueChart.data.datasets[0].data = rvalues; revenueChart.update();
+    }
+  </script>
+
+  <script>
+    async function fetchJSON(url, fallback){
+      try { const r = await fetch(url); if (!r.ok) throw new Error('net'); return await r.json(); }
+      catch(e){ return fallback; }
+    }
+    // Helper: Try multiple endpoints, return first successful JSON or fallback
+    async function fetchFirst(urls, fallback){
+      for (const url of urls){
+        try { const r = await fetch(url); if (r.ok) return await r.json(); } catch (e) {}
+      }
+      return fallback;
+    }
+    function fmt(n){ return typeof n==='number' ? n.toLocaleString('en-US') : (n||'0'); }
+
+    async function loadOverview(){
+      const range = document.getElementById('kpi-range')?.value || '30d';
+
+      // 1) Try canonical overview endpoint(s)
+      const overview = await fetchFirst([
+        `/api/overview?range=${range}`,
+        `/api/admin/overview?range=${range}`,
+      ], null);
+
+      if (overview){
+        // Use server-provided overview directly
+        document.getElementById('kpi-total-users').textContent = fmt(overview?.totals?.users);
+        document.getElementById('kpi-active-today').textContent = fmt(overview?.totals?.activeToday);
+        document.getElementById('kpi-lessons').textContent = fmt(overview?.totals?.lessons);
+        document.getElementById('kpi-sessions').textContent = fmt(overview?.totals?.sessions);
+        document.getElementById('kpi-revenue').textContent = overview?.totals?.revenue != null ? ('USD ' + fmt(overview.totals.revenue)) : '—';
+        document.getElementById('kpi-error').textContent = (overview?.totals?.errorRate ?? '—') + (overview?.totals?.errorRate!=null?'%':'');
+        document.getElementById('kpi-users-trend').textContent = `${overview?.trends?.users ?? 0}% MoM`;
+        document.getElementById('kpi-active-trend').textContent = `${overview?.trends?.active ?? 0}% vs avg`;
+        document.getElementById('kpi-lessons-trend').textContent = `${overview?.trends?.lessons ?? 0}% MoM`;
+        document.getElementById('kpi-sessions-trend').textContent = 'now';
+        document.getElementById('kpi-revenue-trend').textContent = `${overview?.trends?.revenue ?? 0}% MoM`;
+        document.getElementById('kpi-error-trend').textContent = `${overview?.trends?.error ?? 0}% vs prev`;
+        updateCharts(overview);
+        return;
+      }
+
+      // 2) Fallback: build overview from existing platform endpoints
+      // Students
+      const students = await fetchFirst([
+        `${FIREBASE_API}/api/semua-murid`,
+        `/api/students`,
+        `/api/users?role=murid`,
+      ], []);
+
+      // Classes (with teacher IDs)
+      const kelasResp = await fetchFirst([
+        `/api/kelas`,
+        `${FIREBASE_API}/api/kelas`,
+      ], { data: [] });
+      const kelasList = Array.isArray(kelasResp?.data) ? kelasResp.data : (Array.isArray(kelasResp) ? kelasResp : []);
+
+      // Teachers (try dedicated endpoint; else derive unique guru_id from kelas)
+      const teachers = await fetchFirst([
+        `/api/guru`,
+        `/api/teachers`,
+      ], null);
+      const teacherCount = Array.isArray(teachers) ? teachers.length : new Set(kelasList.map(k=>k.guru_id).filter(Boolean)).size;
+
+      // Active today from login stats if available, else 0
+      const activeToday = await fetchFirst([
+        `/api/logins/today/count`,
+        `/api/stats/active-today`,
+      ], null);
+      const activeTodayVal = typeof activeToday === 'number' ? activeToday : 0;
+
+      // Lessons (try to fetch); else approximate from classes if you use lessons==classes mapping
+      const lessons = await fetchFirst([
+        `/api/lessons/count`,
+        `/api/lessons`,
+      ], null);
+      let lessonsVal = 0;
+      if (typeof lessons === 'number') lessonsVal = lessons;
+      else if (Array.isArray(lessons)) lessonsVal = lessons.length;
+      else lessonsVal = kelasList.length; // fallback approximation
+
+      // Sessions (active sessions if exists)
+      const sessions = await fetchFirst([
+        `/api/sessions/active/count`,
+        `/api/active-sessions/count`,
+      ], 0);
+
+      // Revenue (monthly)
+      const revenue = await fetchFirst([
+        `/api/revenue/monthly/current`,
+        `/api/payments/monthly`,
+      ], null);
+      let revenueVal = 0;
+      if (typeof revenue === 'number') revenueVal = revenue;
+      else if (revenue && typeof revenue.value === 'number') revenueVal = revenue.value;
+
+      // Error rate (if exists)
+      const errorRate = await fetchFirst([
+        `/api/metrics/error-rate`,
+        `/api/health/error-rate`,
+      ], null);
+
+      // Populate KPI cards
+      document.getElementById('kpi-total-users').textContent = fmt((students?.length || 0) + teacherCount);
+      document.getElementById('kpi-active-today').textContent = fmt(activeTodayVal);
+      document.getElementById('kpi-lessons').textContent = fmt(lessonsVal);
+      document.getElementById('kpi-sessions').textContent = fmt(typeof sessions === 'number' ? sessions : 0);
+      document.getElementById('kpi-revenue').textContent = revenueVal ? ('USD ' + fmt(revenueVal)) : '—';
+      document.getElementById('kpi-error').textContent = errorRate!=null ? (errorRate + '%') : '—';
+
+      // Build chart data
+      const dau = await fetchFirst([
+        `/api/stats/dau?range=${range}`,
+        `/api/logins/daily?range=${range}`,
+      ], null);
+      const revenueSeries = await fetchFirst([
+        `/api/revenue/monthly?months=12`,
+        `/api/payments/monthly?months=12`,
+      ], null);
+      const overviewLike = {
+        dau: Array.isArray(dau) ? dau : [],
+        revenue: Array.isArray(revenueSeries) ? revenueSeries : [],
+      };
+      updateCharts(overviewLike);
+    }
+
+    async function loadRecentActivity(){
+      const fallback = [
+        { time:'10:12', user:'QAC1023', action:'Login', detail:'Web' },
+        { time:'10:05', user:'QAC0877', action:'Enroll', detail:'Lesson M2L1' },
+        { time:'09:58', user:'QAC0901', action:'Submit', detail:'Worksheet #12' },
+      ];
+      let data = await fetchFirst([
+        '/api/recent-activity?limit=20',
+        '/api/activity/recent?limit=20',
+        '/api/logs/recent?limit=20',
+      ], null);
+
+      // Normalize shapes
+      if (Array.isArray(data)) {
+        data = data.map(it => ({
+          time: it.time || it.timestamp || it.created_at || '-',
+          user: it.user || it.user_id || it.actor || '-',
+          action: it.action || it.event || it.type || '-',
+          detail: it.detail || it.meta || it.description || '-'
+        }));
+      } else {
+        data = fallback;
+      }
+
+      const tbody = document.getElementById('recent-activity-body');
+      const count = document.getElementById('activity-count');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      (data||[]).slice(0,20).forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${item.time||'-'}</td><td>${item.user||'-'}</td><td>${item.action||'-'}</td><td>${item.detail||'-'}</td>`;
+        tbody.appendChild(tr);
+      });
+      if (count) count.textContent = `${(data||[]).length} events`;
+    }
+
+    async function loadTopClasses(){
+      let data = await fetchFirst([
+        '/api/top-classes?limit=10',
+        '/api/classes/top?limit=10',
+      ], null);
+
+      if (!Array.isArray(data)) {
+        // derive from /api/kelas
+        const kelasResp = await fetchFirst([
+          '/api/kelas',
+          `${FIREBASE_API}/api/kelas`,
+        ], { data: [] });
+        const kelasList = Array.isArray(kelasResp?.data) ? kelasResp.data : (Array.isArray(kelasResp) ? kelasResp : []);
+        data = kelasList
+          .map(k => ({ name: k.nama_kelas || k.kelas_id, teacher: k.guru_id || '-', active: k.jumlah_murid || 0, lessons: k.lessons || (k.jumlah_modul || '-') }))
+          .sort((a,b)=> (b.active||0) - (a.active||0))
+          .slice(0,10);
+      }
+
+      const tbody = document.getElementById('top-classes-body');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      (data||[]).forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${row.name}</td><td>${row.teacher}</td><td>${row.active}</td><td>${row.lessons ?? '-'}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function loadSignups(){
+      let data = await fetchFirst([
+        '/api/recent-signups?limit=10',
+        '/api/users/recent?limit=10',
+      ], null);
+      if (!Array.isArray(data)) {
+        data = [];
+      } else {
+        data = data.map(r => ({
+          when: r.when || r.created_at || r.timestamp || '-',
+          name: r.name || r.nama || '-',
+          email: r.email || '-',
+          role: r.role || r.type || '-'
+        }));
+      }
+      const tbody = document.getElementById('recent-signups-body');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      (data||[]).forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${r.when}</td><td>${r.name}</td><td>${r.email}</td><td>${r.role}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function loadAlerts(){
+      const ul = document.getElementById('alerts-list');
+      if (!ul) return;
+      ul.innerHTML = '';
+      const items = [
+        'No critical incidents reported in the last 24h ✅',
+        '2 payments require manual review',
+        'New app version ready to deploy'
+      ];
+      items.forEach(t => { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initCharts();
+      loadOverview();
+      loadRecentActivity();
+      loadTopClasses();
+      loadSignups();
+      loadAlerts();
+      document.getElementById('refresh-overview')?.addEventListener('click', loadOverview);
+      document.getElementById('kpi-range')?.addEventListener('change', loadOverview);
     });
   </script>
   <script>

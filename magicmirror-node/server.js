@@ -192,7 +192,12 @@ if (!admin.apps.length) {
     try { admin.initializeApp(); } catch (_) {}
   }
 }
+
 const db = admin.firestore();
+// ===== Helpers for dashboard overview =====
+function startOfDay(ts){ const d = new Date(ts); d.setHours(0,0,0,0); return d.getTime(); }
+function daysAgo(n){ const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-n); return d.getTime(); }
+function toNumber(x, def=0){ const n = Number(x); return Number.isFinite(n)?n:def; }
 
 app.get('/api/storage-info', async (req, res) => {
   try {
@@ -1019,6 +1024,172 @@ app.post('/ai-chat', async (req, res) => {
   }
 });
 // Endpoint: proxy OpenAI untuk Lab Co-Pilot
+
+// GET /api/overview?range=7d|30d|90d
+app.get('/api/overview', async (req, res) => {
+  const range = String(req.query.range || '30d');
+  const days = range === '7d' ? 7 : range === '90d' ? 90 : 30;
+  try {
+    const [muridSnap, guruSnap, lessonsSnap] = await Promise.all([
+      db.collection('murid').get(),
+      db.collection('guru').get(),
+      db.collection('lessons').get()
+    ]);
+    const totalUsers = (muridSnap.size || 0) + (guruSnap.size || 0);
+
+    let activeSessions = 0;
+    try {
+      const aktifKelas = await db.collection('kelas').where('status','in',['aktif','berlangsung']).get();
+      activeSessions = aktifKelas.size || 0;
+    } catch(_) {}
+
+    let activeToday = 0;
+    try {
+      const since = startOfDay(Date.now());
+      const logSnap = await db.collection('activity_logs').where('timestamp','>=', since).get();
+      const u = new Set();
+      logSnap.forEach(d=>{ const v=d.data(); if (v.cid) u.add(v.cid); else if (v.user) u.add(v.user); });
+      activeToday = u.size;
+    } catch(_) {}
+
+    const dau = [];
+    try {
+      const since = daysAgo(days-1);
+      const logSnap = await db.collection('activity_logs').where('timestamp','>=', since).orderBy('timestamp','asc').get();
+      const bucket = new Map();
+      logSnap.forEach(doc => {
+        const v = doc.data();
+        const t = startOfDay(v.timestamp || Date.now());
+        const key = new Date(t).toISOString().slice(0,10);
+        const uid = v.cid || v.user || 'anon';
+        if (!bucket.has(key)) bucket.set(key, new Set());
+        bucket.get(key).add(uid);
+      });
+      for (let i=days-1;i>=0;i--){
+        const t = daysAgo(i);
+        const key = new Date(t).toISOString().slice(0,10);
+        dau.push({ date: key, value: (bucket.get(key)?.size || 0) });
+      }
+    } catch(_) {}
+
+    res.json({
+      totals: {
+        users: totalUsers,
+        activeToday,
+        lessons: lessonsSnap.size || 0,
+        sessions: activeSessions,
+        revenue: 0,
+        errorRate: 0
+      },
+      trends: { users: 0, active: 0, lessons: 0, revenue: 0, error: 0 },
+      dau,
+      revenue: []
+    });
+  } catch (err) {
+    console.error('❌ /api/overview error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// GET /api/recent-activity?limit=20
+app.get('/api/recent-activity', async (req, res) => {
+  const limit = toNumber(req.query.limit, 20);
+  try {
+    const snap = await db.collection('activity_logs').orderBy('timestamp','desc').limit(limit).get();
+    const data = snap.docs.map(d => {
+      const v = d.data();
+      return {
+        time: v.timestamp ? new Date(v.timestamp).toLocaleString() : '-',
+        user: v.cid || v.user || '-',
+        action: v.aktivitas || v.action || v.event || '-',
+        detail: v.detail || v.lesson || v.description || ''
+      };
+    });
+    res.json(data);
+  } catch (err) {
+    console.error('❌ /api/recent-activity error:', err);
+    res.status(500).json([]);
+  }
+});
+
+// GET /api/top-classes?limit=10
+app.get('/api/top-classes', async (req, res) => {
+  const limit = toNumber(req.query.limit, 10);
+  try {
+    const snap = await db.collection('kelas').get();
+    const rows = snap.docs.map(d => {
+      const v = d.data();
+      return {
+        name: v.nama_kelas || v.kelas_id || d.id,
+        teacher: v.nama_guru || v.guru_id || '-',
+        active: Array.isArray(v.murid) ? v.murid.length : (v.jumlah_murid || 0),
+        lessons: v.lessons || v.jumlah_modul || '-'
+      };
+    }).sort((a,b)=> (b.active||0) - (a.active||0)).slice(0, limit);
+    res.json(rows);
+  } catch (err) {
+    console.error('❌ /api/top-classes error:', err);
+    res.status(500).json([]);
+  }
+});
+
+// GET /api/recent-signups?limit=10
+app.get('/api/recent-signups', async (req, res) => {
+  const limit = toNumber(req.query.limit, 10);
+  try {
+    let query = db.collection('akun');
+    try { query = query.orderBy('created','desc'); } catch(_) {}
+    const snap = await query.limit(limit).get();
+    const data = snap.docs.map(d => {
+      const v = d.data();
+      return {
+        when: v.created ? new Date(v.created).toLocaleString() : '-',
+        name: v.nama || '-',
+        email: v.email || '-',
+        role: v.role || '-'
+      };
+    });
+    res.json(data);
+  } catch (err) {
+    console.error('❌ /api/recent-signups error:', err);
+    res.status(500).json([]);
+  }
+});
+
+// GET /api/stats/dau?range=30d
+app.get('/api/stats/dau', async (req, res) => {
+  const range = String(req.query.range || '30d');
+  const days = range === '7d' ? 7 : range === '90d' ? 90 : 30;
+  try {
+    const since = daysAgo(days-1);
+    const logSnap = await db.collection('activity_logs').where('timestamp','>=', since).orderBy('timestamp','asc').get();
+    const bucket = new Map();
+    logSnap.forEach(doc => {
+      const v = doc.data();
+      const t = startOfDay(v.timestamp || Date.now());
+      const key = new Date(t).toISOString().slice(0,10);
+      const uid = v.cid || v.user || 'anon';
+      if (!bucket.has(key)) bucket.set(key, new Set());
+      bucket.get(key).add(uid);
+    });
+    const out = [];
+    for (let i=days-1;i>=0;i--){
+      const t = daysAgo(i);
+      const key = new Date(t).toISOString().slice(0,10);
+      out.push({ date:key, value: (bucket.get(key)?.size || 0) });
+    }
+    res.json(out);
+  } catch (err) {
+    console.error('❌ /api/stats/dau error:', err);
+    res.status(500).json([]);
+  }
+});
+
+// GET /api/revenue/monthly?months=12 (placeholder)
+app.get('/api/revenue/monthly', async (req, res) => {
+  try { res.json([]); }
+  catch (err) { console.error('❌ /api/revenue/monthly error:', err); res.status(500).json([]); }
+});
 
 // Serve static files from /public
 app.use(express.static(path.join(__dirname, 'public')));
