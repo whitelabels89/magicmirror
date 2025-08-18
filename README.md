@@ -63,6 +63,9 @@ Selain modul Magic Mirror, dashboard murid dan guru memanggil Google Apps Script
    WHACENTER_DEVICE=your_whacenter_device
    WEB_APP_URL=https://script.google.com/macros/s/....../exec
    PORT=3000
+   GSHEET_ID_EL=your_spreadsheet_id # optional
+   SHEETS_POINTS_LOG_SHEET=logs # optional
+   SHEETS_USER_STATS_SHEET=user_stats # optional
 
    # magicmirror-python
    OPENAI_API_KEY=your_openai_api_key
@@ -73,6 +76,8 @@ Selain modul Magic Mirror, dashboard murid dan guru memanggil Google Apps Script
    ENV_MODE=dev
    PORT=10000
    ```
+  Variabel `GSHEET_ID_EL` digunakan oleh sinkronisasi Google Sheets (`services/sheetsSync.js`).
+  Set `GOOGLE_SERVICE_ACCOUNT_KEY_BASE64` dan spreadsheet ID yang sesuai agar sinkronisasi berjalan.
 2. Install dependensi
    ```bash
    cd magicmirror-node && npm install

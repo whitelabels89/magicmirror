@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const admin = require('firebase-admin');
+const { appendPointLogRow, upsertUserStatsRow } = require('./sheetsSync');
 
 const CONFIG_PATH = path.join(__dirname, '..', 'points.config.json');
 
@@ -31,16 +32,18 @@ async function awardPoints({ uid, courseId, lessonId, source = 'worksheet_submit
   const checksum = `${uid}|${courseId}|${lessonId}`;
   const db = admin.firestore();
 
-  return await db.runTransaction(async (t) => {
+  let finalCourses = null;
+  let now;
+  const result = await db.runTransaction(async (t) => {
     const logRef = db.collection('points_log');
     const existing = await t.get(logRef.where('checksum', '==', checksum).limit(1));
     const userRef = db.collection('user_stats').doc(uid);
     const userSnap = await t.get(userRef);
     const currentTotal = userSnap.exists ? Number(userSnap.data().total_points || 0) : 0;
     if (!existing.empty) {
-      return { added: 0, total_points: currentTotal };
+      return { added: 0, total_points: currentTotal, courses: userSnap.data()?.courses || {} };
     }
-    const now = admin.firestore.Timestamp.now();
+    now = admin.firestore.Timestamp.now();
     t.set(logRef.doc(), {
       uid,
       course_id: courseId,
@@ -59,17 +62,40 @@ async function awardPoints({ uid, courseId, lessonId, source = 'worksheet_submit
         courses,
         last_updated: now
       });
-      return { added: points, total_points: currentTotal + points };
+      finalCourses = courses;
+      return { added: points, total_points: currentTotal + points, courses };
     } else {
+      const courses = { [courseId]: points };
       t.set(userRef, {
         uid,
         total_points: points,
-        courses: { [courseId]: points },
+        courses,
         last_updated: now
       });
-      return { added: points, total_points: points };
+      finalCourses = courses;
+      return { added: points, total_points: points, courses };
     }
   });
+
+  if (result.added > 0) {
+    const iso = now ? now.toDate().toISOString() : new Date().toISOString();
+    appendPointLogRow({
+      claimed_at: iso,
+      uid,
+      course_id: courseId,
+      lesson_id: lessonId,
+      points: result.added,
+      source
+    }).catch(err => console.error('sheetsSync log', err));
+    upsertUserStatsRow({
+      uid,
+      total_points: result.total_points,
+      courses: finalCourses || {},
+      last_updated: iso
+    }).catch(err => console.error('sheetsSync stats', err));
+  }
+
+  return { added: result.added, total_points: result.total_points };
 }
 
 /** Get user statistics */

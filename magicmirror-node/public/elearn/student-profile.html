@@ -159,6 +159,8 @@
         </section>
       </section>
 
+      <section id="points-widget" class="section"></section>
+
       <section class="section">
         <div class="tabs">
           <div class="tab active" data-tab="progress">Progress</div>
@@ -345,6 +347,29 @@
         document.getElementById('progress-content').textContent = 'Belum ada data.';
         document.getElementById('karya-meta').textContent = 'Tidak dapat memuat data.';
       });
+  </script>
+  <script type="module">
+    import { getMyPoints, getMyPointLogs, renderPointsWidget } from '/js/points.js';
+    window.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const stats = await getMyPoints();
+        renderPointsWidget({ mountEl: '#points-widget', stats });
+        const logs = await getMyPointLogs({ limit: 5 });
+        const ul = document.querySelector('#points-widget .points-history');
+        if (ul && Array.isArray(logs.items)) {
+          logs.items.slice(0, 5).forEach(log => {
+            const ts = log.claimed_at?.seconds ? log.claimed_at.seconds * 1000 : log.claimed_at;
+            const d = ts ? new Date(ts) : null;
+            const dateStr = d ? d.toLocaleDateString('id-ID') : '';
+            const li = document.createElement('li');
+            li.textContent = `${log.course_id} / ${log.lesson_id} - ${log.points} (${dateStr})`;
+            ul.appendChild(li);
+          });
+        }
+      } catch (err) {
+        console.error('points widget', err);
+      }
+    });
   </script>
 </body>
 </html>
