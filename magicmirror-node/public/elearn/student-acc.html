@@ -353,13 +353,15 @@
           .then(res => res.text())
           .then(html => {
             try { localStorage.setItem('sidebar_mod_html_v2', html); } catch (e) {}
-            if (!document.getElementById('sidebar-container')) {
+            const sc = document.getElementById('sidebar-container');
+            const hasSidebar = !!sc;
+            const hasToggle = hasSidebar && !!document.querySelector('#sidebar-container .sidebar-toggle, #sidebar-container [data-role="sidebar-toggle"], #sidebar-container #sidebar-toggle');
+            if (!hasSidebar) {
               const ph = document.getElementById('sidebar-placeholder');
               if (ph) ph.outerHTML = html;
-            } else if (hasSidebar && !hasToggle) {
+            } else if (!hasToggle) {
               // Cached sidebar is old (no toggle). Replace with fresh HTML
-              const sc = document.getElementById('sidebar-container');
-              if (sc) sc.outerHTML = html;
+              sc.outerHTML = html;
             }
           })
           .catch(err => console.error('Sidebar fallback error (student-acc):', err));
@@ -550,42 +552,62 @@
     const selectLesson = document.getElementById('assign_lesson_uid');
     const allTableBody = document.querySelector('#all-students-table tbody');
     try {
-      const res = await fetch(`${FIREBASE_API}/api/semua-murid`);
-      if (!res.ok) throw new Error('Network');
-      const list = await res.json();
+      // Try multiple endpoints and pick the first that works
+      const payload = await (async () => {
+        try { const r = await fetch(`${FIREBASE_API}/api/semua-murid`); if (r.ok) return await r.json(); } catch {}
+        try { const r = await fetch(`/api/students`); if (r.ok) return await r.json(); } catch {}
+        try { const r = await fetch(`/api/users?role=murid`); if (r.ok) return await r.json(); } catch {}
+        return [];
+      })();
+
+      // Normalize to array: supports Array, {data:[]}, {items:[]}
+      const list = Array.isArray(payload)
+        ? payload
+        : (Array.isArray(payload?.data) ? payload.data
+        : (Array.isArray(payload?.items) ? payload.items : []));
+
       if (select) select.innerHTML = '<option value="">Pilih Murid</option>';
       if (selectLesson) selectLesson.innerHTML = '<option value="">Pilih Murid</option>';
       if (allTableBody) allTableBody.innerHTML = '';
+
+      if (!Array.isArray(list) || list.length === 0) {
+        if (status) status.textContent = '⚠️ Tidak dapat memuat daftar murid (endpoint tidak mengembalikan array).';
+        return;
+      }
+
       list.forEach(m => {
-        const cid = m.cid || m.uid;
+        const cid = m?.cid || m?.uid || m?.id || '';
+        const nama = m?.nama || m?.name || 'Tanpa Nama';
+        const email = m?.email || '';
         if (select) {
           const opt = document.createElement('option');
           opt.value = cid;
-          opt.textContent = `${m.nama} (${cid})`;
+          opt.textContent = `${nama} (${cid})`;
           select.appendChild(opt);
         }
         if (selectLesson) {
           const opt2 = document.createElement('option');
           opt2.value = cid;
-          opt2.textContent = `${m.nama} (${cid})`;
+          opt2.textContent = `${nama} (${cid})`;
           selectLesson.appendChild(opt2);
         }
         if (allTableBody) {
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td data-label="CID">${cid}</td>
-            <td data-label="Nama"><a href="/elearn/student-profile.html?cid=${encodeURIComponent(cid)}">${m.nama}</a></td>
-            <td data-label="Email">${m.email}</td>`;
+            <td data-label="Nama"><a href="/elearn/student-profile.html?cid=${encodeURIComponent(cid)}">${nama}</a></td>
+            <td data-label="Email">${email}</td>`;
           allTableBody.appendChild(tr);
         }
       });
+
       // Update stat card murid
-      if (document.getElementById('stat-murid')) {
-        document.getElementById('stat-murid').textContent = list.length;
-      }
+      const statMurid = document.getElementById('stat-murid');
+      if (statMurid) statMurid.textContent = list.length;
+      if (status) status.textContent = '';
     } catch (err) {
       console.error(err);
-      if (status) status.textContent = '❌ Gagal memuat daftar murid';
+      if (status) status.textContent = '❌ Gagal memuat daftar murid (Network)';
     }
   }
 

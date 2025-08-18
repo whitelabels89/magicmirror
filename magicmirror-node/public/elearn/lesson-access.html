@@ -530,21 +530,33 @@ async function hapusAksesLesson(cid, code) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Populate student select for assign lesson
+  // Populate student select for assign lesson (robust to various response shapes)
   fetch('/api/semua-murid')
-    .then(res => res.json())
-    .then(list => {
+    .then(async (res) => {
+      try { return await res.json(); } catch { return []; }
+    })
+    .then(payload => {
       const select = document.getElementById('assign_lesson_uid');
-      if (select) {
-        select.innerHTML = '<option value="">Pilih Murid</option>';
-        list.forEach(m => {
-          const id = m.cid || m.uid || '';
-          const opt = document.createElement('option');
-          opt.value = id;
-          opt.textContent = `${m.nama} (${id})`;
-          select.appendChild(opt);
-        });
-      }
+      if (!select) return;
+      select.innerHTML = '<option value="">Pilih Murid</option>';
+
+      // Normalize: accept Array, {data: Array}, or {items: Array}
+      const list = Array.isArray(payload)
+        ? payload
+        : (Array.isArray(payload?.data) ? payload.data
+        : (Array.isArray(payload?.items) ? payload.items : []));
+
+      if (!Array.isArray(list)) return; // nothing to render
+
+      list.forEach(m => {
+        const id = m?.cid || m?.uid || m?.id || '';
+        const name = m?.nama || m?.name || 'Tanpa Nama';
+        if (!id) return; // skip invalid rows
+        const opt = document.createElement('option');
+        opt.value = id;
+        opt.textContent = `${name} (${id})`;
+        select.appendChild(opt);
+      });
     })
     .catch(err => {
       console.error('❌ Failed to load students:', err);
