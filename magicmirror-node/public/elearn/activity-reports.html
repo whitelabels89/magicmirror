@@ -375,7 +375,7 @@
       <section class="section-header section-spacing" style="margin-bottom: 20px;">
         <div class="header-row">
           <h2 style="color: #e53935; font-weight: 700; font-size: 1.75rem; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 10px; margin: 0;">
-            <i class="fas fa-chart-line" style="color: #e53935;"></i>
+            <i class="bi bi-graph-up-arrow" style="color: #e53935;"></i>
             Activity Reports
           </h2>
           <button id="theme-toggle-btn" aria-label="Toggle theme" class="header-theme-btn">
@@ -394,7 +394,7 @@
       </section>
       <section class="report-table">
         <h3 style="font-size: 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 10px;">
-          <i class="fas fa-list-alt" style="color: #555;"></i>
+          <i class="bi bi-card-checklist" style="color: #555;"></i>
           Activity Log
         </h3>
         <input type="text" id="filterCID" placeholder="Filter by CID..." oninput="applyActivityFilter()" />
@@ -462,18 +462,17 @@ canvas#activityChart {
 /* --- Dark mode fix: ensure summary totals readable --- */
 [data-theme='dark'] .summary-box {
   background: var(--card-bg) !important;
-  color: #000000 !important;
+  color: var(--text-main) !important;
   border: 1px solid rgba(255,255,255,0.08);
   box-shadow: 0 0 15px rgba(0,255,255,0.25), 0 0 30px rgba(255,0,255,0.12);
 }
 [data-theme='dark'] .summary-box strong {
-  color: #000000 !important;
+  color: var(--text-main) !important;
 }
 [data-theme='dark'] .summary-box span {
-  color: #000000 !important;
+  color: var(--text-main) !important;
   opacity: 1 !important;
   text-shadow: none;
-  -webkit-text-fill-color: #000000 !important;
 }
   </style>
 </body>
@@ -484,21 +483,31 @@ let activityData = [];
 async function loadActivityLogs() {
   try {
     const res = await fetch('/api/activity-logs');
+    const clone = res.clone();
     let data = [];
-    try {
-      data = await res.json();
-    } catch (jsonErr) {
-      // Fallback: try parse from text in case server returns text/HTML
+    const ct = res.headers.get('content-type') || '';
+
+    if (ct.includes('application/json')) {
+      try {
+        data = await res.json();
+      } catch (_) {
+        // JSON parse failed; fall back to cloned text
+        const text = await clone.text();
+        try { data = JSON.parse(text); } catch { data = []; }
+      }
+    } else {
+      // Not JSON; try parse from original text directly
       const text = await res.text();
-      try { data = JSON.parse(text); }
-      catch { console.error('❌ activity-logs: invalid JSON response'); data = []; }
+      try { data = JSON.parse(text); } catch { data = []; }
     }
+
     // Normalize to array if server wraps payload
     if (!Array.isArray(data)) {
       if (Array.isArray(data?.data)) data = data.data;
       else if (Array.isArray(data?.items)) data = data.items;
       else data = [];
     }
+
     activityData = data;
     renderSummary(data);
     renderTable(data);
