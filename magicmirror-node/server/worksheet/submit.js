@@ -140,7 +140,7 @@ router.post('/submit', rateLimiter, async (req, res) => {
 
     const user = req.user || {};
     const role = (user.role || '').toLowerCase();
-    if (!['guru', 'moderator'].includes(role)) {
+    if (!['murid', 'guru', 'moderator'].includes(role)) {
       return res.status(403).json({ ok: false, code: 'forbidden', message: 'Forbidden' });
     }
 

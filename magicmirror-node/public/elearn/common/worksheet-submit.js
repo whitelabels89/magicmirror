@@ -165,8 +165,8 @@
         role = (apiUser && apiUser.role || '').toLowerCase();
         dlog('role from /api/auth/me:', role || '(none)');
       }
-      if(!['guru','moderator'].includes(role)){
-        btn.title = 'Khusus Guru/Moderator';
+      if(!['murid','guru','moderator'].includes(role)){
+        btn.title = 'Khusus Murid/Guru/Moderator';
         dlog('blocked by role check. role =', role || '(none)');
         return;
       }
