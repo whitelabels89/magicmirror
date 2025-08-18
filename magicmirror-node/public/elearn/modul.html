@@ -423,32 +423,51 @@
   </script>
   <script>
     // Helper: fetch yang otomatis menambahkan bearer ID token Firebase
+    // + Interceptor: otomatis dispatch 'points:updated' setelah /api/points/claim
     window.authFetch = async function(url, options = {}) {
       const u = firebase.auth().currentUser;
       if (!u) throw new Error('Belum login Firebase Auth');
       const token = await u.getIdToken(/* forceRefresh */ true);
       const headers = Object.assign({}, options.headers || {}, { Authorization: 'Bearer ' + token });
-      return fetch(url, Object.assign({}, options, { headers }));
+      const res = await fetch(url, Object.assign({}, options, { headers }));
+      // Intercept hanya untuk endpoint claim -> update coin via event
+      try {
+        if (/\/api\/points\/claim(\b|$)/.test(url)) {
+          res.clone().json().then((d) => {
+            // /api/points/claim mengembalikan { ok, added, total_points }
+            // fallback kalau server suatu saat bungkus di { points: {...} }
+            const total =
+              (d && typeof d.total_points === 'number' && d.total_points) ||
+              (d && d.points && typeof d.points.total_points === 'number' && d.points.total_points);
+            if (typeof total === 'number') {
+              window.dispatchEvent(new CustomEvent('points:updated', { detail: { total_points: total } }));
+            }
+          }).catch(() => {});
+        }
+      } catch (_) {}
+      return res;
     };
 
-    // Saat auth state siap, ambil total poin lalu tempel ke header
-    firebase.auth().onAuthStateChanged(async (fbUser) => {
-      if (!fbUser) {
-        console.warn('Belum login di Firebase Auth.');
-        return;
-      }
+    // Util: refresh total poin dari server lalu tempel ke header
+    async function refreshPoints() {
       try {
-        const res = await authFetch('/api/points/me');
-        const data = await res.json();
+        const r = await authFetch('/api/points/me');
+        const data = await r.json();
         if (data && data.ok) {
           const el = document.getElementById('coinCount');
           if (el) el.textContent = 'Coin: ' + (data.total_points || 0);
           window.__POINTS__ = data;
         }
       } catch (e) {
-        console.error('Gagal memuat poin:', e);
+        console.warn('refreshPoints failed', e);
       }
-    });
+    }
+    window.refreshPoints = refreshPoints; // expose untuk debug/manual
+
+    // Saat auth siap, refresh sekali; juga saat tab kembali aktif; dan tiap 30 detik
+    firebase.auth().onAuthStateChanged((fbUser) => { if (fbUser) refreshPoints(); });
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshPoints(); });
+    setInterval(() => { if (!document.hidden && firebase.auth().currentUser) refreshPoints(); }, 30000);
   </script>
 </head>
 <body>
