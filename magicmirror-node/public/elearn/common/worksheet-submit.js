@@ -211,6 +211,31 @@
         dlog('submit response status:', res.status);
         if(res.ok && data.ok){
           showSuccessModal(data.storage_url, data.drive_url);
+          if (data.points) {
+            if (data.points.added > 0) {
+              const toast = document.createElement('div');
+              toast.textContent = `+${data.points.added} poin!`;
+              Object.assign(toast.style, {
+                position: 'fixed',
+                top: '20px',
+                right: '20px',
+                background: '#ffd166',
+                color: '#000',
+                padding: '8px 12px',
+                borderRadius: '4px',
+                zIndex: 10000,
+                boxShadow: '0 2px 6px rgba(0,0,0,0.3)'
+              });
+              document.body.appendChild(toast);
+              setTimeout(()=>toast.remove(),2000);
+            }
+            window.dispatchEvent(new CustomEvent('points:updated', {
+              detail: {
+                added: data.points.added || 0,
+                total_points: data.points.total_points
+              }
+            }));
+          }
         }else{
           throw new Error(data.message || 'Gagal');
         }

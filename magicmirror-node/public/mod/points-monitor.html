@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<title>Pengawasan Poin</title>
+<style>
+body{font-family:sans-serif;padding:20px;}
+table{border-collapse:collapse;margin-top:10px;}
+th,td{border:1px solid #ccc;padding:4px 8px;}
+.section{margin-bottom:24px;}
+</style>
+<!-- Firebase compat (jika belum dimuat secara global) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script>
+  window.__pmFirebaseReady = false;
+  // Jika sudah diinisialisasi global, abaikan; jika belum, coba init lewat window.firebaseConfig jika tersedia
+  try{ if(!firebase.apps.length && window.firebaseConfig){ firebase.initializeApp(window.firebaseConfig); } }catch(e){}
+  window.__pmFirebaseReady = true;
+</script>
+</head>
+<body>
+<h1>Pengawasan Poin</h1>
+
+<section class="section">
+  <h2>Ringkasan</h2>
+  <label>Dari: <input type="date" id="from-date"></label>
+  <label>Sampai: <input type="date" id="to-date"></label>
+  <button id="load-summary">Muat Data</button>
+  <button id="export-csv">Export CSV</button>
+  <div id="summary">
+    <p id="global-total"></p>
+    <table id="summary-table">
+      <thead><tr><th>course_id</th><th>total_points</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section">
+  <h2>Cari Pengguna</h2>
+  <input type="text" id="uid-input" placeholder="uid" />
+  <button id="search-user">Cari</button>
+  <div id="user-result"></div>
+</section>
+
+<script>
+let lastSummary = null;
+let lastUser = null;
+
+async function authFetch(url, options = {}) {
+  // pakai global authFetch kalau ada
+  if (typeof window !== 'undefined' && typeof window.parent?.authFetch === 'function') {
+    return window.parent.authFetch(url, options);
+  }
+  if (typeof window !== 'undefined' && typeof window.authFetch === 'function') {
+    return window.authFetch(url, options);
+  }
+  // fallback: inject token dari Firebase compat
+  try {
+    if (window.firebase?.auth && firebase.auth().currentUser) {
+      const token = await firebase.auth().currentUser.getIdToken(true);
+      const headers = Object.assign({}, options.headers || {}, { Authorization: 'Bearer ' + token });
+      return fetch(url, Object.assign({}, options, { headers }));
+    }
+  } catch (e) {}
+  return fetch(url, options);
+}
+
+// set default tanggal = hari ini
+(function setDefaultDates(){ const t=new Date(); const iso=t.toISOString().slice(0,10); document.getElementById('from-date').value=iso; document.getElementById('to-date').value=iso; })();
+
+document.getElementById('load-summary').addEventListener('click', async () => {
+  const from = document.getElementById('from-date').value;
+  const to = document.getElementById('to-date').value;
+  const res = await authFetch(`/api/mod/points/summary?from=${from}&to=${to}`);
+  const data = await res.json();
+  lastSummary = data;
+  document.getElementById('global-total').textContent = 'Total Poin Global: ' + (data.total_points || 0);
+  const tbody = document.querySelector('#summary-table tbody');
+  tbody.innerHTML = '';
+  const courses = data.per_course || data.courses || {};
+  Object.keys(courses).forEach(cid => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${cid}</td><td>${courses[cid]}</td>`;
+    tbody.appendChild(tr);
+  });
+});
+
+document.getElementById('search-user').addEventListener('click', async () => {
+  const uid = document.getElementById('uid-input').value.trim();
+  if (!uid) return;
+  const res = await authFetch(`/api/mod/points/user/${encodeURIComponent(uid)}`);
+  const data = await res.json();
+  if (res.status === 403) {
+    alert('Akses ditolak. Anda bukan moderator/admin.');
+    return;
+  }
+  if (!res.ok) { alert('Gagal memuat data.'); return; }
+  lastUser = data;
+  const wrap = document.getElementById('user-result');
+  wrap.innerHTML = '';
+  if (data && data.stats) {
+    const u = data.stats;
+    const courses = u.courses || {};
+    let html = '<div class="user-card"><h3>' + (u.display_name || u.uid) + '</h3>';
+    html += '<p>Total: ' + (u.total_points || 0) + '</p>';
+    html += '<ul>';
+    Object.keys(courses).forEach(cid => {
+      html += `<li>${cid}: ${courses[cid]}</li>`;
+    });
+    html += '</ul>';
+    if (Array.isArray(data.logs)) {
+      html += '<h4>Log Terbaru</h4><ul>';
+      data.logs.slice(0,20).forEach(l => {
+        const ts = l.claimed_at?.seconds ? new Date(l.claimed_at.seconds*1000) : new Date(l.claimed_at);
+        html += `<li>${l.course_id}/${l.lesson_id} - ${l.points} (${ts.toLocaleDateString('id-ID')})</li>`;
+      });
+      html += '</ul>';
+    }
+    html += '</div>';
+    wrap.innerHTML = html;
+  }
+});
+
+document.getElementById('export-csv').addEventListener('click', () => {
+  let csv = 'type,course_id,lesson_id,points,uid,claimed_at\n';
+  if (lastSummary) {
+    const courses = lastSummary.per_course || lastSummary.courses || {};
+    Object.keys(courses).forEach(cid => {
+      csv += `summary,${cid},,${courses[cid]},,,\n`;
+    });
+    csv += `summary_total,, ,${lastSummary.total_points},,,\n`;
+  }
+  if (lastUser && Array.isArray(lastUser.logs) && lastUser.stats) {
+    lastUser.logs.forEach(l => {
+      const date = l.claimed_at?.seconds ? new Date(l.claimed_at.seconds*1000).toISOString() : l.claimed_at;
+      csv += `user_log,${l.course_id},${l.lesson_id},${l.points},${lastUser.stats.uid},${date}\n`;
+    });
+  }
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'points.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+</script>
+</body>
+</html>
