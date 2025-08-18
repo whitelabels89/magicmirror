@@ -4,6 +4,7 @@ const admin = require('firebase-admin');
 const { google } = require('googleapis');
 const stream = require('stream');
 const { uploadBuffer, ensureFolderWritable, createDrive } = require('../../gdrive');
+const { awardPoints } = require('../../services/pointsService');
 
 // Debug logger (set DEBUG_WORKSHEET=1 to enable)
 const DEBUG_WORKSHEET = process.env.DEBUG_WORKSHEET === '1';
@@ -261,7 +262,20 @@ router.post('/submit', rateLimiter, async (req, res) => {
       return res.status(500).json({ ok:false, code:'firestore_error', message:e.message || 'Firestore error' });
     }
 
-    return res.json({ ok: true, storage_url: storageUrl, drive_url: driveUrl, sheet: { tab: 'EL_WORKSHEET' } });
+    // --- Stage: Award Points ---
+    let points = { added: 0, total_points: 0 };
+    try {
+      points = await awardPoints({
+        uid: user.uid,
+        courseId: course_id,
+        lessonId: lesson_id,
+        source: 'worksheet_submit'
+      });
+    } catch (e) {
+      console.error('awardPoints failed:', e);
+    }
+
+    return res.json({ ok: true, storage_url: storageUrl, drive_url: driveUrl, sheet: { tab: 'EL_WORKSHEET' }, points });
   } catch (err) {
     console.error('worksheet submit error:', err && err.stack ? err.stack : err);
     res.status(500).json({ ok: false, code: 'internal', message: err.message || 'Server error' });

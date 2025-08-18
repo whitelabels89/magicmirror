@@ -325,6 +325,11 @@ app.use(uploadModulRouter);
 app.use('/api/worksheet', require('./server/worksheet/submit'));
 app.use('/api/worksheet', require('./server/worksheet/log'));
 
+// Points system routes
+const pointsRoutes = require('./routes/points');
+app.use('/api/points', pointsRoutes);
+app.use('/api/mod/points', pointsRoutes.modRouter);
+
 app.get('/api/mirror-all', async (req, res) => {
   try {
     const datasets = [];
