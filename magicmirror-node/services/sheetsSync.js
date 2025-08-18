@@ -16,10 +16,18 @@ async function ensureTabExists({ sheets, spreadsheetId, title }) {
     const meta = await sheets.spreadsheets.get({ spreadsheetId });
     const found = (meta.data.sheets || []).some(s => (s.properties && s.properties.title) === title);
     if (found) return true;
-    await sheets.spreadsheets.batchUpdate({
-      spreadsheetId,
-      requestBody: { requests: [{ addSheet: { properties: { title } } }] }
-    });
+    try {
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId,
+        requestBody: { requests: [{ addSheet: { properties: { title } } }] }
+      });
+    } catch (e) {
+      if (e && e.message && e.message.includes('already exists')) {
+        console.warn('sheetsSync ensureTabExists: tab already exists', { spreadsheetId, title });
+        return true;
+      }
+      throw e;
+    }
     return true;
   } catch (e) {
     console.error('sheetsSync ensureTabExists', { spreadsheetId, title, error: e && e.message });
