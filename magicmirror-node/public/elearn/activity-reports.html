@@ -482,12 +482,33 @@ canvas#activityChart {
 let activityData = [];
 
 async function loadActivityLogs() {
-  const res = await fetch('/api/activity-logs');
-  const data = await res.json();
-  activityData = data;
-  renderSummary(data);
-  renderTable(data);
-  renderChart(data);
+  try {
+    const res = await fetch('/api/activity-logs');
+    let data = [];
+    try {
+      data = await res.json();
+    } catch (jsonErr) {
+      // Fallback: try parse from text in case server returns text/HTML
+      const text = await res.text();
+      try { data = JSON.parse(text); }
+      catch { console.error('❌ activity-logs: invalid JSON response'); data = []; }
+    }
+    // Normalize to array if server wraps payload
+    if (!Array.isArray(data)) {
+      if (Array.isArray(data?.data)) data = data.data;
+      else if (Array.isArray(data?.items)) data = data.items;
+      else data = [];
+    }
+    activityData = data;
+    renderSummary(data);
+    renderTable(data);
+    renderChart(data);
+  } catch (err) {
+    console.error('❌ Failed to load /api/activity-logs:', err);
+    activityData = [];
+    renderSummary([]);
+    renderTable([]);
+  }
 }
 
 function renderSummary(data) {
@@ -593,29 +614,36 @@ window.addEventListener('DOMContentLoaded', loadActivityLogs);
   async function loadClasses() {
     try {
       const res = await fetch('/api/kelas');
-      const json = await res.json();
-      const list = Array.isArray(json.data) ? json.data : [];
+      const json = await res.json().catch(async () => {
+        const t = await res.text();
+        try { return JSON.parse(t); } catch { return { data: [] }; }
+      });
+      const list = Array.isArray(json?.data) ? json.data : (Array.isArray(json) ? json : []);
       const tbody = document.querySelector('#kelas-table tbody');
+      if (!tbody) return; // page has no kelas table
       tbody.innerHTML = '';
       let totalMurid = 0;
       let guruSet = new Set();
       list.forEach(kelas => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td data-label="Kelas ID">${kelas.kelas_id}</td>
-          <td data-label="Nama Kelas">${kelas.nama_kelas}</td>
-          <td data-label="Guru ID">${kelas.guru_id}</td>
+          <td data-label="Kelas ID">${kelas.kelas_id || '-'}</td>
+          <td data-label="Nama Kelas">${kelas.nama_kelas || '-'}</td>
+          <td data-label="Guru ID">${kelas.guru_id || '-'}</td>
           <td data-label="Jumlah Murid">${kelas.jumlah_murid || 0}</td>
-          <td data-label="Aksi"><button data-id="${kelas.kelas_id}">Lihat Murid</button></td>`;
+          <td data-label="Aksi"><button data-id="${kelas.kelas_id || ''}">Lihat Murid</button></td>`;
         tr.querySelector('button').addEventListener('click', () => loadStudents(kelas.kelas_id));
         tbody.appendChild(tr);
         totalMurid += (kelas.jumlah_murid || 0);
         if (kelas.guru_id) guruSet.add(kelas.guru_id);
       });
-      // Update stat cards
-      document.getElementById('stat-kelas').textContent = list.length;
-      document.getElementById('stat-murid').textContent = totalMurid;
-      document.getElementById('stat-guru').textContent = guruSet.size;
+      // Update stat cards only if present on this page
+      const statKelas = document.getElementById('stat-kelas');
+      const statMurid = document.getElementById('stat-murid');
+      const statGuru  = document.getElementById('stat-guru');
+      if (statKelas) statKelas.textContent = list.length;
+      if (statMurid) statMurid.textContent = totalMurid;
+      if (statGuru)  statGuru.textContent  = guruSet.size;
     } catch (err) {
       console.error(err);
     }
@@ -645,29 +673,51 @@ window.addEventListener('DOMContentLoaded', loadActivityLogs);
     const status = document.getElementById('assign-status');
     const selectLesson = document.getElementById('assign_lesson_uid');
     try {
-      const res = await fetch(`${FIREBASE_API}/api/semua-murid`);
-      if (!res.ok) throw new Error('Network');
-      const list = await res.json();
+      let payload = [];
+      // Try multiple endpoints; tolerate network issues
+      try {
+        const r1 = await fetch(`${FIREBASE_API}/api/semua-murid`);
+        if (r1.ok) payload = await r1.json();
+      } catch(_) {}
+      if (!Array.isArray(payload) && (!payload || (!Array.isArray(payload.data) && !Array.isArray(payload.items)))) {
+        try { const r2 = await fetch('/api/students'); if (r2.ok) payload = await r2.json(); } catch(_) {}
+      }
+      if (!Array.isArray(payload) && (!payload || (!Array.isArray(payload.data) && !Array.isArray(payload.items)))) {
+        try { const r3 = await fetch('/api/users?role=murid'); if (r3.ok) payload = await r3.json(); } catch(_) {}
+      }
+
+      const list = Array.isArray(payload)
+        ? payload
+        : (Array.isArray(payload?.data) ? payload.data
+        : (Array.isArray(payload?.items) ? payload.items : []));
+
       if (select) select.innerHTML = '<option value="">Pilih Murid</option>';
       if (selectLesson) selectLesson.innerHTML = '<option value="">Pilih Murid</option>';
+
+      if (!Array.isArray(list) || list.length === 0) {
+        if (status) status.textContent = '⚠️ Tidak dapat memuat daftar murid (jaringan/endpoint).';
+        return; // no-op
+      }
+
       list.forEach(m => {
+        const cid = m?.cid || m?.uid || m?.id || '';
+        const name = m?.nama || m?.name || 'Tanpa Nama';
         if (select) {
           const opt = document.createElement('option');
-          opt.value = m.cid;
-          opt.textContent = `${m.nama} (${m.cid})`;
+          opt.value = cid;
+          opt.textContent = `${name} (${cid})`;
           select.appendChild(opt);
         }
         if (selectLesson) {
           const opt2 = document.createElement('option');
-          opt2.value = m.cid;
-          opt2.textContent = `${m.nama} (${m.cid})`;
+          opt2.value = cid;
+          opt2.textContent = `${name} (${cid})`;
           selectLesson.appendChild(opt2);
         }
       });
-      // Update stat card murid
-      if (document.getElementById('stat-murid')) {
-        document.getElementById('stat-murid').textContent = list.length;
-      }
+      const statMurid = document.getElementById('stat-murid');
+      if (statMurid) statMurid.textContent = list.length;
+      if (status) status.textContent = '';
     } catch (err) {
       console.error(err);
       if (status) status.textContent = '❌ Gagal memuat daftar murid';
