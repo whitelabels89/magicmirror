@@ -421,6 +421,35 @@
     };
     firebase.initializeApp(firebaseConfig);
   </script>
+  <script>
+    // Helper: fetch yang otomatis menambahkan bearer ID token Firebase
+    window.authFetch = async function(url, options = {}) {
+      const u = firebase.auth().currentUser;
+      if (!u) throw new Error('Belum login Firebase Auth');
+      const token = await u.getIdToken(/* forceRefresh */ true);
+      const headers = Object.assign({}, options.headers || {}, { Authorization: 'Bearer ' + token });
+      return fetch(url, Object.assign({}, options, { headers }));
+    };
+
+    // Saat auth state siap, ambil total poin lalu tempel ke header
+    firebase.auth().onAuthStateChanged(async (fbUser) => {
+      if (!fbUser) {
+        console.warn('Belum login di Firebase Auth.');
+        return;
+      }
+      try {
+        const res = await authFetch('/api/points/me');
+        const data = await res.json();
+        if (data && data.ok) {
+          const el = document.getElementById('coinCount');
+          if (el) el.textContent = 'Coin: ' + (data.total_points || 0);
+          window.__POINTS__ = data;
+        }
+      } catch (e) {
+        console.error('Gagal memuat poin:', e);
+      }
+    });
+  </script>
 </head>
 <body>
   <div class="page-container">
@@ -435,7 +464,7 @@
       <div class="header">
         <h1>Hello, <span id="namaMurid">...</span>! 👋</h1>
         <div class="status-box">
-          <div data-icon="⭐">Coin: 150</div>
+          <div data-icon="⭐" id="coinCount">Coin: 0</div>
           <div data-icon="🏅">Badge: 3</div>
         </div>
       </div>
@@ -1078,6 +1107,23 @@
           }
         });
       });
+    });
+  </script>
+
+  <script>
+    // Listener agar Coin update setelah submit level
+    // Halaman submit dapat memanggil:
+    // window.dispatchEvent(new CustomEvent('points:updated', { detail: { total_points: <angka> }}));
+    window.addEventListener('points:updated', (ev) => {
+      try {
+        const total = ev && ev.detail && ev.detail.total_points;
+        if (typeof total === 'number') {
+          const el = document.getElementById('coinCount');
+          if (el) el.textContent = 'Coin: ' + total;
+        }
+      } catch (e) {
+        console.warn('points:updated handler error', e);
+      }
     });
   </script>
 </body>
