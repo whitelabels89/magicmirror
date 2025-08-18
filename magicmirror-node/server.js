@@ -6,6 +6,7 @@ require('dotenv').config();
 const http = require('http').createServer(app);
 const io = require('socket.io')(http, { cors: { origin: "*" } });
 const path = require('path');
+const fs = require('fs');
 const { google } = require('googleapis');
 const uploadModulRouter = require('./uploadModul');
 const admin = require('firebase-admin');
@@ -349,10 +350,32 @@ app.use(uploadModulRouter);
 app.use('/api/worksheet', require('./server/worksheet/submit'));
 app.use('/api/worksheet', require('./server/worksheet/log'));
 
+
 // Points system routes
 const pointsRoutes = require('./routes/points');
 app.use('/api/points', pointsRoutes);
 app.use('/api/mod/points', pointsRoutes.modRouter);
+
+// Auto cache-bust for worksheet-submit.js without editing all HTML pages
+app.get('/elearn/common/worksheet-submit.js', (req, res) => {
+  try {
+    const filePath = path.join(__dirname, 'public', 'elearn', 'common', 'worksheet-submit.js');
+    // If no version param, redirect to versioned URL using file mtime
+    if (!('v' in req.query)) {
+      const st = fs.statSync(filePath);
+      const ver = Math.floor(st.mtimeMs || Date.now());
+      return res.redirect(302, `/elearn/common/worksheet-submit.js?v=${ver}`);
+    }
+    // Serve the actual file with strong no-cache headers
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+    res.sendFile(filePath);
+  } catch (e) {
+    console.error('serve worksheet-submit.js failed', e);
+    res.status(500).send('// failed to serve worksheet-submit.js');
+  }
+});
 
 app.get('/api/mirror-all', async (req, res) => {
   try {
