@@ -1,0 +1,7 @@
+{
+  "default_per_lesson": 10,
+  "overrides": {
+    "numbers-basic:L5": 20,
+    "alphabet-world:L10": 30
+  }
+}
