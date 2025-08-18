@@ -70,6 +70,54 @@
     return '';
   }
 
+  // --- Next lesson utilities ---
+  function nextLessonId(lessonId){
+    const m = String(lessonId||'').match(/L(\d+)/i);
+    if(!m) return '';
+    const n = Number(m[1]);
+    if (isNaN(n)) return '';
+    return 'L' + (n + 1);
+  }
+
+  function buildNextLessonUrl(pathname, curLessonId, nextId){
+    try{
+      // Prefer manifest/router hints if available
+      if (window.LESSON_MANIFEST && window.LESSON_MANIFEST_NEXT && window.LESSON_MANIFEST_NEXT[pathname]) {
+        return window.LESSON_MANIFEST_NEXT[pathname];
+      }
+      if (window.LESSON_ROUTER && typeof window.LESSON_ROUTER.nextUrl === 'function') {
+        const u = window.LESSON_ROUTER.nextUrl({ pathname, curLessonId, nextId });
+        if (u) return u;
+      }
+      // Heuristics: replace common filename patterns
+      const tryPatterns = [
+        [/L(\d+)\.html$/i, `${nextId}.html`],
+        [/alpha(\d+)\.html$/i, `alpha${nextId.replace(/^L/i,'')}.html`],
+        [/level[-_]?(\d+)\.html$/i, `level-${nextId.replace(/^L/i,'')}.html`]
+      ];
+      for (const [rx, repl] of tryPatterns){
+        if (rx.test(pathname)){
+          return pathname.replace(rx, repl);
+        }
+      }
+      return '';
+    }catch(_){ return ''; }
+  }
+
+  function relabelFinishButtons(){
+    const nodes = document.querySelectorAll('#btnSelesai, .btn-selesai, button[data-action="finish"], button.hud-btn.finish, a#btnSelesai, a.btn-selesai');
+    nodes.forEach(btn => {
+      if (btn && btn.textContent && /selesai/i.test(btn.textContent)) {
+        btn.textContent = btn.textContent.replace(/selesai/i, 'Complete');
+      } else if (btn && !btn.textContent) {
+        btn.textContent = 'Complete';
+      }
+      // set accessible label/title too
+      btn.setAttribute('aria-label','Complete');
+      if (!btn.title || /selesai/i.test(btn.title)) btn.title = 'Complete';
+    });
+  }
+
   function resolveIds(){
     const rootEl = document.getElementById('worksheetRoot') || document.getElementById('worksheet-root') || document.body;
     let courseId = rootEl?.dataset?.courseId || document.body?.dataset?.courseId || '';
@@ -223,11 +271,19 @@
     const actions = document.createElement('div');
     Object.assign(actions.style, { marginTop:'14px', display:'flex', gap:'10px', justifyContent:'center' });
     const closeBtn = document.createElement('button');
-    closeBtn.textContent = 'Lanjut';
+    closeBtn.textContent = 'Next';
     Object.assign(closeBtn.style, { background:'#28a745', color:'#fff', border:'none', padding:'10px 16px', borderRadius:'8px', cursor:'pointer', fontWeight:'700' });
     closeBtn.addEventListener('click', () => {
-      overlay.remove();
-      document.body.style.overflow = '';
+      // Try navigate to next lesson; fallback to just close
+      const curPath = location.pathname;
+      const nextId = nextLessonId(lessonId);
+      const nextUrl = nextId ? buildNextLessonUrl(curPath, lessonId, nextId) : '';
+      if (nextUrl) {
+        location.assign(nextUrl);
+      } else {
+        overlay.remove();
+        document.body.style.overflow = '';
+      }
     });
     actions.appendChild(closeBtn);
 
@@ -308,6 +364,8 @@
       console.error(e);
       window.__WS_RESOLVE_ERROR__ = 'ID pelajaran tidak ditemukan. Hubungi admin untuk memperbaiki konfigurasi halaman.';
     }
+    // Update visible label from "Selesai" to "Complete"
+    try { relabelFinishButtons(); } catch(_){}
 
     if (document.__WS_DELEGATED_BOUND__) {
       dlog('delegated click already bound');
