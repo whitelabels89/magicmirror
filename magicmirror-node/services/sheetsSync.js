@@ -40,7 +40,7 @@ async function appendPointLogRow(log) {
   try {
     await sheets.spreadsheets.values.append({
       spreadsheetId: LOG_SHEET_ID,
-      range: `${LOG_TAB}!A:A`,
+      range: `${LOG_TAB}!A:F`,
       valueInputOption: 'USER_ENTERED',
       insertDataOption: 'INSERT_ROWS',
       requestBody: {
@@ -60,27 +60,60 @@ async function upsertUserStatsRow(stats) {
   const sheets = getSheetsClient();
   if (!sheets || !STATS_SHEET_ID) return;
   try {
-    const range = `${STATS_TAB}!A:E`;
-    const resp = await sheets.spreadsheets.values.get({ spreadsheetId: STATS_SHEET_ID, range });
+    const rangeAll = `${STATS_TAB}!A:E`;
+    const resp = await sheets.spreadsheets.values.get({ spreadsheetId: STATS_SHEET_ID, range: rangeAll });
     const rows = resp.data.values || [];
+
+    // Prepare header & row values
+    const header = ['uid', 'display_name', 'total_points', 'courses_json', 'last_updated'];
     const values = [[
-      stats.uid,
-      stats.display_name || '',
-      stats.total_points,
+      String(stats.uid || '').trim(),
+      String(stats.display_name || ''),
+      Number(stats.total_points || 0),
       JSON.stringify(stats.courses || {}),
-      stats.last_updated
+      String(stats.last_updated || '')
     ]];
-    let rowIndex = rows.findIndex(r => r[0] === stats.uid);
-    if (rowIndex === -1) {
+
+    // If no rows or header missing, write header first
+    if (rows.length === 0 || (rows[0] || []).length === 0) {
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: STATS_SHEET_ID,
+        range: `${STATS_TAB}!A1:E1`,
+        valueInputOption: 'USER_ENTERED',
+        requestBody: { values: [header] }
+      });
       await sheets.spreadsheets.values.append({
         spreadsheetId: STATS_SHEET_ID,
-        range,
+        range: rangeAll,
+        valueInputOption: 'USER_ENTERED',
+        insertDataOption: 'INSERT_ROWS',
+        requestBody: { values }
+      });
+      return;
+    }
+
+    // Find existing row by UID (column A)
+    let rowIndex = -1;
+    for (let i = 1; i < rows.length; i++) {
+      const uidCell = (rows[i][0] || '').toString().trim();
+      if (uidCell === String(stats.uid || '').trim()) {
+        rowIndex = i + 1; // 1-based index in Sheets
+        break;
+      }
+    }
+
+    if (rowIndex === -1) {
+      // Append new row
+      await sheets.spreadsheets.values.append({
+        spreadsheetId: STATS_SHEET_ID,
+        range: rangeAll,
         valueInputOption: 'USER_ENTERED',
         insertDataOption: 'INSERT_ROWS',
         requestBody: { values }
       });
     } else {
-      const targetRange = `${STATS_TAB}!A${rowIndex + 1}:E${rowIndex + 1}`;
+      // Update existing row
+      const targetRange = `${STATS_TAB}!A${rowIndex}:E${rowIndex}`;
       await sheets.spreadsheets.values.update({
         spreadsheetId: STATS_SHEET_ID,
         range: targetRange,
@@ -94,4 +127,3 @@ async function upsertUserStatsRow(stats) {
 }
 
 module.exports = { appendPointLogRow, upsertUserStatsRow };
-

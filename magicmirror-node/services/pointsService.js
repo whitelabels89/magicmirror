@@ -79,6 +79,7 @@ async function awardPoints({ uid, courseId, lessonId, source = 'worksheet_submit
 
   if (result.added > 0) {
     const iso = now ? now.toDate().toISOString() : new Date().toISOString();
+    // Append log row to Sheets
     appendPointLogRow({
       claimed_at: iso,
       uid,
@@ -87,8 +88,23 @@ async function awardPoints({ uid, courseId, lessonId, source = 'worksheet_submit
       points: result.added,
       source
     }).catch(err => console.error('sheetsSync log', err));
+
+    // Lookup display name from Firestore (collection 'akun')
+    let displayName = '';
+    try {
+      const profSnap = await admin.firestore().collection('akun').doc(uid).get();
+      if (profSnap.exists) {
+        const p = profSnap.data() || {};
+        displayName = p.nama || p.display_name || p.name || p.full_name || '';
+      }
+    } catch (e) {
+      console.warn('pointsService display_name lookup failed', e);
+    }
+
+    // Upsert stats row to Sheets with display_name
     upsertUserStatsRow({
       uid,
+      display_name: displayName,
       total_points: result.total_points,
       courses: finalCourses || {},
       last_updated: iso
