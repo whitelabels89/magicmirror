@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MG-L10 • Jumlahkan Sesuai Petunjuk</title>
+  <style>
+    :root{
+      --bg:#f4f7ff;--card:#ffffff;--ink:#1f2a44;--muted:#6b7a90;--brand:#3b82f6;--ok:#16a34a;--no:#ef4444;--ring:#bfd3ff;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Inter,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+    .wrap{max-width:980px;margin:24px auto;padding:16px}
+
+    .board{background:var(--card);border-radius:20px;box-shadow:0 10px 30px rgba(31,42,68,.08);padding:20px}
+    .title{display:flex;align-items:center;justify-content:center;gap:10px;margin:6px 0 16px}
+    .badge{background:#e7f0ff;color:#0b63f6;font-weight:700;padding:8px 14px;border-radius:10px;letter-spacing:.5px}
+
+    .legend{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:8px 0 16px}
+    .legend .cell{display:flex;flex-direction:column;align-items:center;gap:8px;background:#f8fbff;border:2px solid #e9f2ff;border-radius:14px;padding:10px}
+    .animal{font-size:42px;line-height:1}
+    .num-tag{width:48px;height:36px;border:2px dashed #cbdafc;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#0b63f6;background:#fff}
+
+    .grid{display:grid;grid-template-columns:1fr 140px 1fr 140px 1fr;gap:10px}
+    .pill{background:#f8fbff;border:2px solid #e9f2ff;border-radius:16px;padding:12px;display:flex;align-items:center;justify-content:center;min-height:64px}
+    .op{font-weight:800;color:var(--brand)}
+
+    input.answer{width:100%;max-width:120px;height:44px;border:2px solid #d8e7ff;border-radius:12px;font-size:20px;text-align:center;color:var(--ink);background:#fff}
+    input.answer:focus{outline:none;box-shadow:0 0 0 4px var(--ring)}
+    .answer.ok{border-color:var(--ok)}
+    .answer.no{border-color:var(--no)}
+
+    .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;margin:18px 0 6px}
+    .btn{border:0;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
+    .btn.primary{background:var(--brand);color:#fff}
+    .btn.ghost{background:#e7f0ff;color:#0b63f6}
+    .btn.warn{background:#fee2e2;color:#991b1b}
+
+    .score{margin:8px 0 4px;text-align:center;color:var(--muted);font-weight:700}
+
+    .tiny{font-size:12px;color:var(--muted);text-align:center}
+    @media (max-width:720px){
+      .grid{grid-template-columns:1fr 64px 1fr 64px 1fr}
+      .animal{font-size:36px}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="board">
+      <div class="title">
+        <div class="badge">JUMLAHKAN SESUAI PETUNJUK</div>
+      </div>
+
+      <!-- Legenda angka untuk tiap hewan (sesuai gambar referensi) -->
+      <div class="legend" id="legend"></div>
+
+      <div class="toolbar">
+        <button class="btn ghost" id="shuffleBtn">Acak Soal</button>
+        <button class="btn primary" id="checkBtn">Periksa Jawaban</button>
+        <button class="btn warn" id="resetBtn">Reset</button>
+      </div>
+      <div class="score" id="score">Isi semua kotak, lalu klik Periksa.</div>
+
+      <div class="grid" id="quizGrid"></div>
+      <div class="tiny">Tip: Di sini pakai perkalian (×). Hewan = angka 1–5 seperti di legenda atas.</div>
+    </div>
+  </div>
+
+  <script>
+    // Mapping hewan → angka (mengikuti urutan pada worksheet foto)
+    const ANIMALS = [
+      { key: 'tiger',   label: 'Harimau',  emoji: '🐯', value: 1 },
+      { key: 'koala',   label: 'Koala',    emoji: '🐨', value: 2 },
+      { key: 'panda',   label: 'Panda',    emoji: '🐼', value: 3 },
+      { key: 'rabbit',  label: 'Kelinci',  emoji: '🐰', value: 4 },
+      { key: 'squirrel',label: 'Tupai',    emoji: '🐿️', value: 5 },
+    ];
+
+    // Soal (mengikuti pola pada gambar)
+    const BASE_EQUATIONS = [
+      ['panda','tiger'],     // 🐼 × 🐯
+      ['squirrel','koala'],  // 🐿️ × 🐨
+      ['koala','panda'],     // 🐨 × 🐼
+      ['squirrel','tiger'],  // 🐿️ × 🐯
+      ['panda','rabbit'],    // 🐼 × 🐰
+      ['rabbit','squirrel'], // 🐰 × 🐿️
+      ['tiger','tiger'],     // 🐯 × 🐯
+      ['koala','koala'],     // 🐨 × 🐨
+    ];
+
+    const legend = document.getElementById('legend');
+    const grid   = document.getElementById('quizGrid');
+    const score  = document.getElementById('score');
+
+    function renderLegend(){
+      legend.innerHTML = '';
+      ANIMALS.forEach((a,i)=>{
+        const cell = document.createElement('div');
+        cell.className='cell';
+        cell.innerHTML = `
+          <div class="animal" aria-label="${a.label}">${a.emoji}</div>
+          <div class="num-tag" title="Nilai">${a.value}</div>
+        `;
+        legend.appendChild(cell);
+      });
+    }
+
+    function animalByKey(k){ return ANIMALS.find(a=>a.key===k); }
+
+    function createRow(a1,a2,index){
+      const left  = document.createElement('div'); left.className='pill'; left.innerHTML = `<span class="animal" title="${animalByKey(a1).label}">${animalByKey(a1).emoji}</span>`;
+      const op1   = document.createElement('div'); op1.className='pill op'; op1.textContent = '×';
+      const mid   = document.createElement('div'); mid.className='pill'; mid.innerHTML = `<span class="animal" title="${animalByKey(a2).label}">${animalByKey(a2).emoji}</span>`;
+      const op2   = document.createElement('div'); op2.className='pill op'; op2.textContent = '=';
+      const right = document.createElement('div'); right.className='pill';
+      const input = document.createElement('input');
+      input.type='number'; input.className='answer'; input.min='0'; input.placeholder='?';
+      input.dataset.idx = index;
+      right.appendChild(input);
+      grid.append(left,op1,mid,op2,right);
+    }
+
+    function expectedValue(a1,a2){
+      return animalByKey(a1).value * animalByKey(a2).value;
+    }
+
+    let equations = [...BASE_EQUATIONS];
+
+    function renderGrid(){
+      grid.innerHTML='';
+      equations.forEach((pair,i)=>createRow(pair[0], pair[1], i));
+    }
+
+    function shuffle(){
+      for(let i=equations.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [equations[i],equations[j]] = [equations[j],equations[i]];
+      }
+      renderGrid();
+      score.textContent = 'Diacak! Isi lagi dan klik Periksa.';
+    }
+
+    function resetAll(){
+      document.querySelectorAll('input.answer').forEach(i=>{
+        i.value=''; i.classList.remove('ok','no');
+      });
+      score.textContent='Isi semua kotak, lalu klik Periksa.';
+    }
+
+    function check(){
+      let correct=0, total=equations.length, empty=0;
+      document.querySelectorAll('input.answer').forEach((input,idx)=>{
+        const [a1,a2] = equations[idx];
+        const need = expectedValue(a1,a2);
+        const val = Number(input.value);
+        input.classList.remove('ok','no');
+        if(input.value===''){empty++; return;}
+        if(val===need){
+          input.classList.add('ok'); correct++;
+        }else{
+          input.classList.add('no');
+        }
+      });
+      if(empty>0){
+        score.textContent = `Masih ada ${empty} yang kosong. Coba isi semuanya dulu ya!`;
+      }else{
+        score.textContent = `Skor: ${correct}/${total} benar.`;
+      }
+    }
+
+    // Init
+    renderLegend();
+    renderGrid();
+
+    // Events
+    document.getElementById('shuffleBtn').addEventListener('click', shuffle);
+    document.getElementById('resetBtn').addEventListener('click', resetAll);
+    document.getElementById('checkBtn').addEventListener('click', check);
+  </script>
+</body>
+</html>

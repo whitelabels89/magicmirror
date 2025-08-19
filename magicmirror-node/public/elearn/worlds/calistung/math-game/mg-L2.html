@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MG-L2 · Mewarnai Penjumlahan (6–9)</title>
+  <style>
+    :root{
+      --c6:#e74c3c; /* merah */
+      --c7:#f1c40f; /* kuning */
+      --c8:#2ecc71; /* hijau */
+      --c9:#3498db; /* biru */
+      --bg:#f6f7fb;
+      --ink:#1f2d3d;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;background:var(--bg);color:var(--ink);}
+    header{padding:16px 20px;background:white;box-shadow:0 2px 8px rgba(0,0,0,.06);position:sticky;top:0;z-index:3}
+    header h1{margin:0;font-size:18px}
+    .wrap{max-width:980px;margin:24px auto;padding:0 16px}
+    .legend{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:12px 0 20px}
+    .swatch{display:flex;align-items:center;gap:8px;background:white;border:2px solid #eee;padding:8px 10px;border-radius:12px;cursor:pointer;user-select:none;box-shadow:0 2px 6px rgba(0,0,0,.04)}
+    .swatch.active{outline:3px solid rgba(0,0,0,.1)}
+    .dot{width:26px;height:26px;border-radius:50%}
+    .swatch b{font-size:16px}
+
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px}
+
+    /* Kembang gula */
+    .candy{position:relative;background:transparent;border:0;border-radius:16px;padding:8px;min-height:130px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:22px;cursor:pointer;transition:transform .05s ease}
+    .candy:active{transform:scale(.98)}
+    .candy.disabled{pointer-events:none;opacity:.98}
+    .candy svg{width:100%;height:120px;display:block}
+    .candy.correct .label{color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.25)}
+    .candy .label{
+      position:absolute;
+      left:50%;
+      top:50%;
+      transform:translate(-50%,-50%);
+      font-size:28px;
+      font-weight:800;
+      color:#222;
+      pointer-events:none;
+      z-index:2;
+    }
+
+    .status{margin:18px 0 4px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+    .pill{background:white;border:1px solid #e5e9f5;border-radius:999px;padding:6px 10px;font-size:14px}
+    .btns{margin:14px 0 26px;display:flex;gap:10px;flex-wrap:wrap}
+    button{border:0;border-radius:10px;padding:10px 14px;background:#111827;color:#fff;cursor:pointer}
+    button.secondary{background:#4b5563}
+    .confetti{position:fixed;inset:0;pointer-events:none}
+
+    /* animasi salah */
+    @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+    .oops{animation:shake .28s ease}
+    footer{color:#718096;font-size:12px;margin:24px 0 40px}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🎨 Mewarnai Gambar: Cocokkan Hasil Penjumlahan</h1>
+  </header>
+  <div class="wrap">
+    <p><strong>Petunjuk:</strong> Pilih warna sesuai angka hasil (6, 7, 8, atau 9), lalu klik permen yang berisi soal. Jika benar, warnanya akan terkunci. Selesaikan semua ya!</p>
+
+    <div class="legend" id="palette" aria-label="Palet warna">
+      <div class="swatch" data-value="6" data-color="var(--c6)" role="button" tabindex="0" aria-label="Warna untuk angka 6">
+        <span class="dot" style="background:var(--c6)"></span><b>6</b>
+      </div>
+      <div class="swatch" data-value="7" data-color="var(--c7)" role="button" tabindex="0" aria-label="Warna untuk angka 7">
+        <span class="dot" style="background:var(--c7)"></span><b>7</b>
+      </div>
+      <div class="swatch" data-value="8" data-color="var(--c8)" role="button" tabindex="0" aria-label="Warna untuk angka 8">
+        <span class="dot" style="background:var(--c8)"></span><b>8</b>
+      </div>
+      <div class="swatch" data-value="9" data-color="var(--c9)" role="button" tabindex="0" aria-label="Warna untuk angka 9">
+        <span class="dot" style="background:var(--c9)"></span><b>9</b>
+      </div>
+      <span class="pill" id="selectedInfo">Tidak ada warna terpilih</span>
+    </div>
+
+    <div class="status">
+      <span class="pill">Benar: <b id="score">0</b>/10</span>
+      <span class="pill" id="hint">Pilih warna dulu.</span>
+    </div>
+    <div class="btns">
+      <button id="reset">↺ Reset</button>
+      <button class="secondary" id="check">Periksa Jawaban</button>
+      <button class="secondary" id="shuffle">Acak Soal</button>
+    </div>
+
+    <section class="grid" id="board" aria-label="Papan soal"></section>
+
+    <canvas class="confetti" id="confetti" width="0" height="0"></canvas>
+
+    <footer>MG‑L2 • QueensAcademy • Worksheet → Game versi digital. Sumber inspirasi: lembar kerja mewarnai penjumlahan 6–9.</footer>
+  </div>
+
+<script>
+// --- Data soal (sesuai gambar) ---
+const PROBLEMS = [
+  {a:5,b:2}, // 7
+  {a:3,b:3}, // 6
+  {a:7,b:2}, // 9
+  {a:5,b:3}, // 8
+  {a:4,b:2}, // 6
+  {a:7,b:2}, // 9
+  {a:4,b:5}, // 9
+  {a:5,b:1}, // 6
+  {a:5,b:4}, // 9
+  {a:4,b:4}, // 8
+];
+
+let currentProblems = PROBLEMS.slice();
+
+const palette = document.getElementById('palette');
+const selectedInfo = document.getElementById('selectedInfo');
+const board = document.getElementById('board');
+const scoreEl = document.getElementById('score');
+const hintEl = document.getElementById('hint');
+const resetBtn = document.getElementById('reset');
+const checkBtn = document.getElementById('check');
+const shuffleBtn = document.getElementById('shuffle');
+
+let selected = null; // {value,color}
+let score = 0;
+
+function candySVG(){
+  // SVG permen horizontal: body rounded-rect + dua bungkus kiri/kanan
+  return `
+  <svg viewBox="0 0 180 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <!-- Bungkus kiri -->
+    <path class="fillable wrap" d="M24 18 C18 10, 8 10, 6 24 C5 35, 10 44, 18 50 C8 56, 4 70, 8 82 C12 92, 22 94, 28 86 L44 60 Z" fill="#ffffff" stroke="#111" stroke-width="3" />
+    <!-- Tubuh permen -->
+    <rect class="fillable body" x="44" y="24" width="92" height="72" rx="22" ry="22" fill="#ffffff" stroke="#111" stroke-width="3" />
+    <!-- Bungkus kanan -->
+    <path class="fillable wrap" d="M136 60 L152 86 C158 94, 168 92, 172 82 C176 70, 172 56, 162 50 C170 44, 175 35, 174 24 C172 10, 162 10, 156 18 Z" fill="#ffffff" stroke="#111" stroke-width="3" />
+  </svg>`;
+}
+
+// Build candies
+function createCandy(idx, a, b){
+  const el = document.createElement('div');
+  el.className = 'candy';
+  el.dataset.index = idx;
+  el.dataset.a = a;
+  el.dataset.b = b;
+  el.dataset.answer = a + b;
+  el.setAttribute('role','button');
+  el.setAttribute('tabindex','0');
+  el.setAttribute('aria-label',`Permen ${a}+${b}`);
+  el.innerHTML = candySVG() + `<span class="label">${a}+${b}</span>`;
+  el.addEventListener('click', () => paint(el));
+  el.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' ') { e.preventDefault(); paint(el); }});
+  return el;
+}
+
+function build(){
+  board.innerHTML = '';
+  currentProblems.forEach((p,i)=> board.appendChild(createCandy(i,p.a,p.b)));
+  score = 0; updateScore();
+}
+
+function updateScore(){
+  scoreEl.textContent = score;
+  if(score === currentProblems.length){
+    hintEl.textContent = 'Hebat! Semua benar 🎉';
+    celebrate();
+  }
+}
+
+function setSelected(value, color){
+  selected = {value:Number(value), color};
+  [...document.querySelectorAll('.swatch')].forEach(s=>s.classList.toggle('active', s.dataset.value==value));
+  selectedInfo.textContent = `Warna terpilih: ${value}`;
+  hintEl.textContent = 'Klik permen yang sesuai.';
+}
+
+palette.addEventListener('click', (e)=>{
+  const sw = e.target.closest('.swatch');
+  if(!sw) return;
+  setSelected(sw.dataset.value, getComputedStyle(document.documentElement).getPropertyValue(colorVar(sw.dataset.value)).trim());
+});
+
+palette.addEventListener('keydown',(e)=>{
+  const sw = e.target.closest('.swatch');
+  if(!sw) return;
+  if(e.key==='Enter' || e.key===' '){
+    e.preventDefault();
+    setSelected(sw.dataset.value, getComputedStyle(document.documentElement).getPropertyValue(colorVar(sw.dataset.value)).trim());
+  }
+});
+
+function colorVar(val){
+  return val==6? '--c6' : val==7? '--c7' : val==8? '--c8' : '--c9';
+}
+
+function paint(el){
+  if(!selected){ hintEl.textContent = 'Pilih warna dulu ya.'; return; }
+  if(el.classList.contains('disabled')) return;
+  const ans = Number(el.dataset.answer);
+  // Warnai sementara bagian permen (bungkus+body)
+  el.querySelectorAll('.fillable').forEach(n=>{ n.setAttribute('fill', selected.color); });
+  el.querySelector('.label').style.color = '#fff';
+  el.dataset.chosen = String(selected.value);
+  hintEl.textContent = 'Klik "Periksa Jawaban" untuk menilai.';
+}
+
+checkBtn.addEventListener('click', ()=>{
+  let newlyCorrect = 0;
+  [...board.children].forEach(el=>{
+    if(el.classList.contains('disabled')) return; // sudah benar
+    const chosen = Number(el.dataset.chosen || NaN);
+    const ans = Number(el.dataset.answer);
+    if(!Number.isNaN(chosen)){
+      if(chosen === ans){
+        el.classList.add('correct','disabled');
+        // pastikan isian tetap berwarna sesuai jawaban
+        const ansColor = getComputedStyle(document.documentElement).getPropertyValue(colorVar(ans)).trim();
+        el.querySelectorAll('.fillable').forEach(n=> n.setAttribute('fill', ansColor));
+        el.querySelector('.label').style.color = '#fff';
+        newlyCorrect++;
+      } else {
+        // salah: getar dan kosongkan kembali
+        el.classList.add('oops');
+        setTimeout(()=>{ el.classList.remove('oops'); }, 320);
+        el.querySelectorAll('.fillable').forEach(n=> n.setAttribute('fill', '#ffffff'));
+        el.querySelector('.label').style.color = '';
+        delete el.dataset.chosen;
+      }
+    }
+  });
+  if(newlyCorrect>0){ score += newlyCorrect; updateScore(); }
+  hintEl.textContent = 'Coba lanjutkan yang belum benar.';
+});
+
+resetBtn.addEventListener('click', ()=>{
+  currentProblems = PROBLEMS.slice();
+  build();
+  hintEl.textContent = 'Pilih warna lalu klik permen.';
+});
+
+function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+
+shuffleBtn.addEventListener('click', ()=>{
+  currentProblems = shuffle(PROBLEMS.slice());
+  build();
+  hintEl.textContent = 'Soal diacak. Pilih warna lalu klik permen.';
+});
+
+// Mini confetti tanpa lib
+function celebrate(){
+  const cvs = document.getElementById('confetti');
+  const ctx = cvs.getContext('2d');
+  const {innerWidth:w, innerHeight:h} = window; cvs.width=w; cvs.height=h;
+  const bits = Array.from({length:160},()=>({
+    x: Math.random()*w,
+    y: -20 - Math.random()*h*.5,
+    r: 4+Math.random()*4,
+    s: 1+Math.random()*2,
+    c: ['var(--c6)','var(--c7)','var(--c8)','var(--c9)'][Math.floor(Math.random()*4)]
+  }));
+  let t=0; const maxT=1500;
+  (function draw(){
+    t+=16; ctx.clearRect(0,0,w,h);
+    bits.forEach(b=>{ b.y += b.s*3; b.x += Math.sin((t+b.y)/40); ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue(b.c); ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,Math.PI*2); ctx.fill(); });
+    if(t<maxT) requestAnimationFrame(draw); else ctx.clearRect(0,0,w,h);
+  })();
+}
+
+build();
+</script>
+</body>
+</html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MG-L8 — Target Sum Challenge</title>
+  <style>
+    :root{
+      --bg:#0a0f1a; --card:#101829; --accent:#7bdcff; --accent2:#ffd36e; --ok:#5bf595; --bad:#ff6b6b; --ink:#eaf2ff;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family: ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 800px at 20% -10%, #132241 0%, #0a0f1a 55%),
+                  radial-gradient(900px 700px at 120% 0%, #1b2b52 0%, #0a0f1a 60%);
+      color:var(--ink);
+      display:flex; align-items:center; justify-content:center; padding:20px;
+    }
+    .game{
+      width:min(980px, 96vw); background:linear-gradient(180deg, #111a2f, #0c1223);
+      border:1px solid #1f2b4b; border-radius:18px; box-shadow:0 20px 60px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.03);
+      overflow:hidden;
+    }
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 18px; background:rgba(255,255,255,.03);
+      border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .brand{display:flex; align-items:center; gap:10px}
+    .brand .badge{width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg, var(--accent), var(--accent2)); filter:saturate(1.2); box-shadow:0 8px 20px rgba(0,0,0,.35)}
+    .brand h1{font-size:18px; margin:0}
+
+    .hud{display:flex; gap:12px; align-items:center}
+    .chip{padding:8px 12px; border-radius:12px; background:#0e1630; border:1px solid #1f2b4b; font-weight:600}
+    .chip strong{color:var(--accent)}
+
+    .wrap{display:grid; grid-template-columns: 300px 1fr; gap:0;}
+    @media (max-width:820px){ .wrap{grid-template-columns: 1fr} }
+
+    .panel{padding:18px; border-right:1px solid rgba(255,255,255,.06)}
+    @media (max-width:820px){ .panel{border-right:none; border-bottom:1px solid rgba(255,255,255,.06)} }
+
+    .targetCard{
+      background:linear-gradient(180deg, #0d1630, #0b1328); border:1px solid #1f2b4b; border-radius:16px; padding:16px; position:relative;
+    }
+    .targetLabel{font-size:14px; opacity:.8}
+    .targetNumber{font-size:56px; font-weight:900; letter-spacing:1px; margin:4px 0 6px}
+    .progress{height:10px; background:#101a33; border:1px solid #1e2a4b; border-radius:999px; overflow:hidden}
+    .progress > i{display:block; height:100%; width:0%; background:linear-gradient(90deg, var(--accent), var(--accent2)); transition:width .35s ease}
+
+    .actions{display:flex; gap:10px; margin-top:12px; flex-wrap:wrap}
+    .btn{appearance:none; border:none; cursor:pointer; font-weight:800; letter-spacing:.3px;
+         padding:10px 14px; border-radius:12px; background:linear-gradient(180deg, #172347, #0f1938);
+         border:1px solid #22325c; color:var(--ink); box-shadow:0 6px 18px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.04);
+         transition:transform .05s ease, filter .2s ease;
+    }
+    .btn:hover{filter:brightness(1.1)}
+    .btn:active{transform:translateY(1px)}
+    .btn.primary{background:linear-gradient(180deg, #0f9be6, #1578b8); border-color:#41baff; color:#04111d}
+    .btn.success{background:linear-gradient(180deg, #2dd59c, #15a06f); border-color:#6af5c7; color:#04110c}
+    .btn.warn{background:linear-gradient(180deg, #ffd36e, #d7a423); border-color:#ffeaa9; color:#2d1d06}
+
+    .board{padding:22px}
+    .grid{display:grid; grid-template-columns: repeat(4, minmax(110px,1fr)); gap:14px}
+    @media (max-width:620px){ .grid{grid-template-columns: repeat(2, minmax(120px,1fr));} }
+
+    .token{
+      position:relative; user-select:none; cursor:pointer; border:none; width:100%; aspect-ratio: 5/3; border-radius:18px;
+      background:
+        radial-gradient(120% 180% at -10% -20%, rgba(255,255,255,.15), rgba(255,255,255,0) 40%),
+        linear-gradient(135deg, #2a3a71, #1c2852 55%, #162046);
+      border:1px solid #263568; box-shadow:inset 0 6px 12px rgba(0,0,0,.35), 0 10px 20px rgba(0,0,0,.35);
+      display:flex; align-items:center; justify-content:center;
+      font-weight:900; font-size:38px; color:#f0f6ff; text-shadow:0 2px 0 rgba(0,0,0,.35);
+      transition:transform .08s ease, filter .15s ease, outline-color .2s ease;
+      outline:2px solid transparent;
+    }
+    .token:hover{filter:brightness(1.05)}
+    .token:active{transform:translateY(2px)}
+    .token.selected{outline:3px solid var(--accent2); background:linear-gradient(135deg, #32469a, #24356d 55%, #1a2754)}
+    .token.correct{outline:3px solid var(--ok); animation:bounce .45s ease}
+    .token.wrong{outline:3px solid var(--bad); animation:shake .35s ease}
+    @keyframes shake{10%{transform:translateX(-2px)} 30%{transform:translateX(3px)} 50%{transform:translateX(-3px)} 70%{transform:translateX(2px)} 100%{transform:translateX(0)} }
+    @keyframes bounce{0%{transform:scale(1)} 40%{transform:scale(1.06)} 100%{transform:scale(1)} }
+
+    .notice{margin-top:10px; font-size:14px; opacity:.9}
+    .notice b{color:var(--accent2)}
+
+  </style>
+</head>
+<body>
+  <main class="game" id="game">
+    <div class="topbar">
+      <div class="brand">
+        <div class="badge" aria-hidden="true"></div>
+        <h1>MG‑L8 • Target Sum Challenge</h1>
+      </div>
+      <div class="hud">
+        <div class="chip">Skor: <strong id="score">0</strong></div>
+        <div class="chip">Ronde: <strong id="round">1</strong>/10</div>
+        <div class="chip">Waktu: <strong id="time">00:00</strong></div>
+      </div>
+    </div>
+
+    <div class="wrap">
+      <section class="panel">
+        <div class="targetCard">
+          <div class="targetLabel">Jumlahkan angka menjadi</div>
+          <div class="targetNumber" id="target">—</div>
+          <div class="progress"><i id="progressBar"></i></div>
+          <div class="actions">
+            <button class="btn primary" id="btnCheck">Periksa Jawaban</button>
+            <button class="btn" id="btnShuffle" title="Acak soal tanpa menghapus skor/ronde">Acak Soal</button>
+            <button class="btn warn" id="btnReset" title="Mulai ulang skor & ronde">Reset</button>
+          </div>
+          <div class="notice">Pilih 2–3 kartu angka hingga totalnya sama dengan <b>target</b>. Gunakan <b>Acak Soal</b> untuk mengganti susunan angka <i>tanpa menghapus</i> skor dan ronde.</div>
+        </div>
+      </section>
+
+      <section class="board">
+        <div class="grid" id="grid"></div>
+      </section>
+    </div>
+  </main>
+
+  <audio id="sfx-ok" preload="auto"><source src="data:audio/mp3;base64,//uQZAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAACcQCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" type="audio/mp3"></audio>
+  <audio id="sfx-bad" preload="auto"><source src="data:audio/mp3;base64,//uQZAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAACcQCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" type="audio/mp3"></audio>
+
+  <script>
+  (function(){
+    const grid = document.getElementById('grid');
+    const targetEl = document.getElementById('target');
+    const scoreEl = document.getElementById('score');
+    const roundEl = document.getElementById('round');
+    const timeEl = document.getElementById('time');
+    const bar = document.getElementById('progressBar');
+    const btnCheck = document.getElementById('btnCheck');
+    const btnShuffle = document.getElementById('btnShuffle');
+    const btnReset = document.getElementById('btnReset');
+    const ok = document.getElementById('sfx-ok');
+    const bad = document.getElementById('sfx-bad');
+
+    /** Game State */
+    let state = {
+      round: 1,
+      score: 0,
+      target: 0,
+      tokens: [],
+      selectedIdx: new Set(),
+      startTime: Date.now(),
+      timer: null
+    };
+
+    function fmt(n){return n<10?`0${n}`:`${n}`}
+    function tick(){
+      const ms = Date.now() - state.startTime; const s = Math.floor(ms/1000); const m=Math.floor(s/60); const ss=s%60; timeEl.textContent=`${fmt(m)}:${fmt(ss)}`;
+    }
+
+    function randomInt(min,max){return Math.floor(Math.random()*(max-min+1))+min}
+
+    function generateRound(keepProgress=false){
+      // Keep score/round if keepProgress; else reset full
+      if(!keepProgress){ state.round = 1; state.score = 0; }
+      if(state.timer) clearInterval(state.timer);
+      state.startTime = Date.now(); state.timer = setInterval(tick, 500);
+
+      buildBoard(true); // also sets a target
+      updateUI();
+    }
+
+    function buildBoard(newTarget=false){
+      // Create 8 numbers with at least one 2- or 3-combo to hit target
+      const poolSize = 8; const nums=[]; while(nums.length<poolSize){ const n=randomInt(1,15); if(!nums.includes(n)) nums.push(n); }
+      // pick 2 or 3 numbers to define target
+      const shuffled=[...nums].sort(()=>Math.random()-0.5);
+      const comboLen = Math.random()<0.65?2:3; // mostly pairs
+      let target = 0; for(let i=0;i<comboLen;i++){ target += shuffled[i]; }
+      if(newTarget) state.target = target; else if(!state.target) state.target = target;
+      state.tokens = nums;
+      state.selectedIdx = new Set();
+      renderGrid();
+    }
+
+    function renderGrid(){
+      grid.innerHTML = '';
+      state.tokens.forEach((n,idx)=>{
+        const btn = document.createElement('button');
+        btn.className = 'token'; btn.type='button'; btn.textContent = n;
+        btn.setAttribute('aria-pressed', 'false');
+        btn.addEventListener('click',()=>toggleSelect(idx, btn));
+        grid.appendChild(btn);
+      });
+      targetEl.textContent = state.target;
+      bar.style.width = `${Math.min(100, (state.score%10)*10)}%`;
+    }
+
+    function toggleSelect(idx, el){
+      if(state.selectedIdx.has(idx)){
+        state.selectedIdx.delete(idx); el.classList.remove('selected'); el.setAttribute('aria-pressed','false');
+      } else {
+        state.selectedIdx.add(idx); el.classList.add('selected'); el.setAttribute('aria-pressed','true');
+      }
+    }
+
+    function currentSum(){
+      let sum = 0; [...state.selectedIdx].forEach(i=> sum += state.tokens[i]); return sum;
+    }
+
+    function flashResult(correct){
+      const nodes=[...grid.children];
+      state.selectedIdx.forEach(i=>{
+        const el=nodes[i]; el.classList.add(correct? 'correct':'wrong');
+        setTimeout(()=>{ el.classList.remove('correct','wrong','selected'); el.setAttribute('aria-pressed','false'); }, 450);
+      });
+      state.selectedIdx.clear();
+    }
+
+    function nextRound(){
+      state.round = Math.min(10, state.round + 1);
+      roundEl.textContent = state.round;
+      // new target and reshuffle numbers
+      buildBoard(true);
+    }
+
+    btnCheck.addEventListener('click', ()=>{
+      const sum = currentSum();
+      if(sum === state.target){
+        state.score += 10; scoreEl.textContent = state.score; ok.currentTime=0; ok.play().catch(()=>{});
+        flashResult(true); nextRound();
+      } else {
+        state.score = Math.max(0, state.score - 2); scoreEl.textContent = state.score; bad.currentTime=0; bad.play().catch(()=>{});
+        flashResult(false);
+      }
+      bar.style.width = `${Math.min(100, (state.score%100))}%`;
+    });
+
+    btnShuffle.addEventListener('click', ()=>{
+      // Acak soal TANPA menghapus skor/ronde — hanya ganti susunan angka dan target baru
+      buildBoard(true); // keep same state.target? Better: new target each shuffle to truly change puzzle
+      // choose a fresh target from the current numbers to avoid trivial repeats
+      const pick=[...state.tokens].sort(()=>Math.random()-0.5); const len=Math.random()<0.65?2:3; let t=0; for(let i=0;i<len;i++){t+=pick[i]} state.target=t; targetEl.textContent=t;
+    });
+
+    btnReset.addEventListener('click', ()=>{
+      generateRound(false);
+    });
+
+    function updateUI(){ scoreEl.textContent = state.score; roundEl.textContent = state.round; tick(); }
+
+    // init
+    generateRound(true);
+  })();
+  </script>
+</body>
+</html>

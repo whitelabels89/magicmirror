@@ -2,22 +2,23 @@
   "id": "calistung-mathgame",
   "title": "Calistung — Math Game",
   "map": {
-    "image": "/elearn/img/map/worldmap3.webp",
+    "image": "/elearn/worlds/calistung/math-game/map/number-world.jpg",
     "nodes": [
-      {
-        "id": "M1",
-        "x": 35,
-        "y": 45,
-        "label": "Add 1",
-        "entry": "/elearn/calistung/level/M1.html"
-      },
-      {
-        "id": "M2",
-        "x": 70,
-        "y": 65,
-        "label": "Add 2",
-        "entry": "/elearn/calistung/level/M2.html"
-      }
+      { "id": "L1",  "x": 81, "y": 18, "label": "Level 1",  "entry": "/elearn/worlds/calistung/math-game/mg-L1.html" },  
+      { "id": "L2",  "x": 80, "y": 40, "label": "Level 2",  "entry": "/elearn/worlds/calistung/math-game/mg-L2.html" },  
+      { "id": "L3",  "x": 86, "y": 59, "label": "Level 3",  "entry": "/elearn/worlds/calistung/math-game/mg-L3.html" },  
+      { "id": "L4",  "x": 84, "y": 70, "label": "Level 4",  "entry": "/elearn/worlds/calistung/math-game/mg-L4.html" },  
+      { "id": "L5",  "x": 77, "y": 76, "label": "Level 5",  "entry": "/elearn/worlds/calistung/math-game/mg-L5.html" },  
+      { "id": "L6",  "x": 69, "y": 78, "label": "Level 6",  "entry": "/elearn/worlds/calistung/math-game/mg-L6.html" },  
+      { "id": "L7",  "x": 55, "y": 79, "label": "Level 7",  "entry": "/elearn/worlds/calistung/math-game/mg-L7.html" },  
+      { "id": "L8",  "x": 44, "y": 77, "label": "Level 8",  "entry": "/elearn/worlds/calistung/math-game/mg-L8.html" },  
+
+      { "id": "L9",  "x": 34, "y": 73, "label": "Level 9",  "entry": "/elearn/worlds/calistung/math-game/mg-L9.html" },   
+      { "id": "L10", "x": 24, "y": 64, "label": "Level 10", "entry": "/elearn/worlds/calistung/math-game/mg-L10.html" }, 
+      { "id": "L11", "x": 18, "y": 50, "label": "Level 11", "entry": "/elearn/worlds/calistung/math-game/mg-L11.html" }, 
+      { "id": "L12", "x": 28, "y": 42, "label": "Level 12", "entry": "/elearn/worlds/calistung/math-game/mg-L12.html" }, 
+      { "id": "L13", "x": 37, "y": 38, "label": "Level 13", "entry": "/elearn/worlds/calistung/math-game/mg-L13.html" }, 
+      { "id": "L14", "x": 53, "y": 48, "label": "Level 14", "entry": "/elearn/worlds/calistung/math-game/mg-L14.html" }
     ]
   }
 }

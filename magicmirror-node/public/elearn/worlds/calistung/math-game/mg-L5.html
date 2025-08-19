@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MG-L5 • Sign Coding</title>
+  <style>
+    :root { --gap: 10px; --tile: 64px; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    body { margin: 0; background:#f7fafc; color:#1a202c; }
+    header { padding:16px 20px; background:#ffffff; box-shadow: 0 2px 6px rgba(0,0,0,.06); position: sticky; top:0; z-index: 2; }
+    h1 { margin:0 0 6px; font-size:20px; }
+    .sub { color:#4a5568; font-size:13px; }
+
+    .wrap { max-width: 980px; margin: 20px auto; padding: 0 16px 80px; }
+
+    /* KEY */
+    .key { display:grid; grid-template-columns: repeat(5, 1fr); gap: var(--gap); margin: 8px 0 18px; }
+    .key-card { background:#fff; border-radius:14px; padding:10px; display:flex; align-items:center; justify-content:center; gap:8px; border:1px solid #e2e8f0; }
+    .pair { display:flex; align-items:center; gap:6px; }
+    .op { width:36px; height:36px; border-radius: 10px; display:flex; align-items:center; justify-content:center; font-size:20px; background:#edf2f7; border:1px dashed #cbd5e0; }
+
+    /* BOARD */
+    .board { display:grid; gap: 18px; }
+    .row { display:flex; flex-wrap:wrap; gap: 8px; align-items:center; justify-content:center; }
+
+    .token { width: var(--tile); height: var(--tile); border-radius: 14px; background:#fff; display:grid; place-items:center; font-size:34px; border:1px solid #e2e8f0; }
+    .blank { width:48px; height:48px; border-radius: 10px; border:2px dashed #cbd5e0; background:#fcfdff; display:grid; place-items:center; cursor:pointer; font-size:22px; user-select:none; }
+    .blank.correct { background:#dcfce7; border-color:#16a34a; color:#14532d; }
+    .blank.wrong { background:#fee2e2; border-color:#dc2626; color:#7f1d1d; }
+
+    /* FOOTER bar */
+    .bar { position: fixed; left:0; right:0; bottom:0; background:#ffffff; border-top:1px solid #e2e8f0; padding:12px 16px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+    button { padding:10px 14px; border-radius:10px; border:1px solid #cbd5e0; background:#111827; color:#fff; cursor:pointer; font-weight:600; }
+    button.secondary { background:#fff; color:#111827; }
+    .score { font-weight:700; color:#065f46; margin-left:8px; }
+
+    @media (max-width:740px){ :root{ --tile:56px } .op{ width:32px; height:32px; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Sign Coding (MG‑L5)</h1>
+    <div class="sub">Lihat <b>Kunci</b>: setiap hewan mewakili <b>1 tanda</b>. Pada papan soal, pilih tanda sesuai <em>hewan di kiri kotak</em>.</div>
+  </header>
+
+  <div class="wrap">
+    <h3>Kunci</h3>
+    <div id="key" class="key"></div>
+
+    <h3>Papan Soal</h3>
+    <div id="board" class="board"></div>
+  </div>
+
+  <div class="bar">
+    <button id="check">Periksa Jawaban</button>
+    <button id="shuffle" class="secondary">Acak Soal</button>
+    <span id="score" class="score"></span>
+  </div>
+
+  <script>
+    // ——— Utilities ———
+    const EMO = ["🐷","🐮","🐑","🐼","🤖"]; // 5 karakter lucu (bisa diganti aset gambar)
+    const OPS = ["−","×","+","÷","⭕"];     // tanda yang dipakai
+
+    function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]] } return a }
+
+    // Mapping: 1 hewan = 1 tanda
+    function buildAnimalMapping(){
+      const ops = shuffle([...OPS]);
+      const order = [...EMO];
+      const map = new Map();
+      order.forEach((emo,idx)=> map.set(emo, ops[idx]));
+      return { map, order };
+    }
+
+    function renderKey(mapping){
+      const key = document.getElementById('key');
+      key.innerHTML = '';
+      mapping.order.forEach(emo=>{
+        const card = document.createElement('div');
+        card.className = 'key-card';
+        const pair = document.createElement('div');
+        pair.className = 'pair';
+        pair.innerHTML = `<div class="token">${emo}</div>`;
+        const op = document.createElement('div');
+        op.className = 'op';
+        op.textContent = mapping.map.get(emo);
+        card.appendChild(pair);
+        card.appendChild(op);
+        key.appendChild(card);
+      });
+    }
+
+    function buildRow(len){
+      const seq = [];
+      for(let i=0;i<len;i++){
+        seq.push( EMO[Math.floor(Math.random()*EMO.length)] );
+      }
+      return seq; // contoh: 7 token -> 6 kotak operator
+    }
+
+    function expectedOps(seq, mapping){
+      const ex = [];
+      for(let i=0;i<seq.length-1;i++){
+        ex.push( mapping.map.get(seq[i]) ); // ambil tanda dari HEWAN KIRI
+      }
+      return ex;
+    }
+
+    function renderBoard(mapping){
+      const board = document.getElementById('board');
+      board.innerHTML = '';
+      const rows = 4;
+      const tokensPerRow = 7;
+      for(let r=0;r<rows;r++){
+        const rowEl = document.createElement('div');
+        rowEl.className = 'row';
+        const seq = buildRow(tokensPerRow);
+        const exOps = expectedOps(seq, mapping);
+        rowEl.dataset.answers = JSON.stringify(exOps);
+
+        for(let i=0;i<seq.length;i++){
+          const t = document.createElement('div');
+          t.className = 'token';
+          t.textContent = seq[i];
+          rowEl.appendChild(t);
+          if(i < seq.length - 1){
+            const b = document.createElement('div');
+            b.className = 'blank';
+            b.dataset.choiceIndex = -1;
+            b.addEventListener('click', ()=>{
+              const cur = parseInt(b.dataset.choiceIndex,10);
+              const next = (cur + 1) % OPS.length;
+              b.dataset.choiceIndex = next;
+              b.textContent = OPS[next];
+              b.classList.remove('correct','wrong');
+            });
+            rowEl.appendChild(b);
+          }
+        }
+        board.appendChild(rowEl);
+      }
+    }
+
+    function checkAnswers(){
+      let total = 0, correct = 0;
+      document.querySelectorAll('.row').forEach(row=>{
+        const ans = JSON.parse(row.dataset.answers);
+        const blanks = Array.from(row.querySelectorAll('.blank'));
+        total += ans.length;
+        blanks.forEach((b,idx)=>{
+          const idxChoice = parseInt(b.dataset.choiceIndex,10);
+          const val = idxChoice >= 0 ? OPS[idxChoice] : '';
+          const ok = val === ans[idx];
+          b.classList.toggle('correct', ok);
+          b.classList.toggle('wrong', !ok);
+          if(ok) correct++;
+        });
+      });
+      document.getElementById('score').textContent = `Benar: ${correct}/${total}`;
+    }
+
+    function bootstrap(){
+      window._mapping = buildAnimalMapping();
+      renderKey(_mapping);
+      renderBoard(_mapping);
+      document.getElementById('score').textContent = '';
+    }
+
+    document.getElementById('check').addEventListener('click', checkAnswers);
+    document.getElementById('shuffle').addEventListener('click', bootstrap);
+    bootstrap();
+  </script>
+</body>
+</html>

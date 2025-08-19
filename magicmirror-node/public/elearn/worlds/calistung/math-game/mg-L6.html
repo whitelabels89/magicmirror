@@ -66,6 +66,7 @@
   <div class="container">
     <h2>Jumlahkan Angka Sesuai Gambar</h2>
 
+    <button onclick="shuffleQuestions()">Acak Soal</button>
     <button onclick="checkAnswer()">Cek Jawaban</button>
     <div class="result" id="resultBox"></div>
   </div>
@@ -124,6 +125,14 @@
 
         container.insertBefore(div, document.querySelector("button"));
       });
+    }
+
+    function shuffleQuestions() {
+      const container = document.querySelector(".container");
+      // Remove old rows (but keep the h2, buttons, and resultBox)
+      document.querySelectorAll(".row").forEach(row => row.remove());
+      document.getElementById("resultBox").innerText = "";
+      setupQuestions();
     }
 
     function checkAnswer() {

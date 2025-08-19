@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Math Shooter</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: #e0f7fa;
+    margin: 0;
+    padding: 0;
+  }
+  h1 {
+    margin-top: 20px;
+    color: #00796b;
+  }
+  #score {
+    font-size: 24px;
+    margin: 10px 0;
+    color: #004d40;
+  }
+  #question {
+    font-size: 22px;
+    margin: 6px 0 10px;
+    color: #00695c;
+  }
+  #gameCanvas {
+    background: #0b1320;
+    display: block;
+    margin: 0 auto;
+    border-radius: 10px;
+    border: 2px solid #004d40;
+  }
+  #restartBtn {
+    margin: 15px;
+    font-size: 18px;
+    padding: 8px 20px;
+    background-color: #00796b;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  #restartBtn:hover {
+    background-color: #004d40;
+  }
+  #gameOverMessage {
+    font-size: 28px;
+    color: #d32f2f;
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+  <h1>Math Shooter</h1>
+  <div id="score">Score: 0</div>
+  <div id="question">Question: —</div>
+  <canvas id="gameCanvas" width="480" height="600"></canvas>
+  <br />
+  <button id="restartBtn">Restart Game</button>
+  <div id="gameOverMessage"></div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const scoreEl = document.getElementById('score');
+  const questionEl = document.getElementById('question');
+  const restartBtn = document.getElementById('restartBtn');
+  const gameOverMessage = document.getElementById('gameOverMessage');
+
+  const width = canvas.width;
+  const height = canvas.height;
+
+  let startTime = performance.now();
+
+  function drawHoloGrid(ctx, w, h, t) {
+    // Base dark fill (safety even if CSS bg missing)
+    const bg = ctx.createLinearGradient(0, 0, 0, h);
+    bg.addColorStop(0, '#0b1320');
+    bg.addColorStop(1, '#0f1c2e');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, w, h);
+
+    // Grid parameters
+    const spacing = 40; // px
+    const speed = 20;   // px/sec scroll for parallax
+    const offset = (t * speed) % spacing;
+
+    // Grid glow style
+    ctx.save();
+    ctx.strokeStyle = 'rgba(0, 255, 255, 0.15)';
+    ctx.lineWidth = 1;
+    ctx.shadowColor = 'rgba(0, 255, 255, 0.35)';
+    ctx.shadowBlur = 6;
+
+    // Vertical lines
+    for (let x = -spacing + (spacing - offset); x < w + spacing; x += spacing) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, h);
+      ctx.stroke();
+    }
+
+    // Horizontal lines (slight perspective skew)
+    for (let y = -spacing + (spacing - offset); y < h + spacing; y += spacing) {
+      ctx.beginPath();
+      // skew factor to fake perspective
+      const skew = (y / h - 0.5) * 20; // -10..+10 px
+      ctx.moveTo(0 - skew, y);
+      ctx.lineTo(w + skew, y);
+      ctx.stroke();
+    }
+
+    // Central vignette glow
+    const rg = ctx.createRadialGradient(w * 0.5, h * 0.35, 10, w * 0.5, h * 0.35, Math.max(w, h) * 0.7);
+    rg.addColorStop(0, 'rgba(0, 255, 255, 0.10)');
+    rg.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = rg;
+    ctx.fillRect(0, 0, w, h);
+
+    ctx.restore();
+  }
+
+  let balloons = [];
+  let currentQuestion = null;
+  let score = 0;
+  let gameOver = false;
+  let animationId;
+
+  function randomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function generateQuestion() {
+    const a = randomInt(1, 20);
+    const b = randomInt(1, 20);
+    const add = Math.random() < 0.5;
+    let questionStr;
+    let answer;
+    if (add) {
+      questionStr = `${a} + ${b}`;
+      answer = a + b;
+    } else {
+      // ensure no negative answers
+      const max = Math.max(a, b);
+      const min = Math.min(a, b);
+      questionStr = `${max} - ${min}`;
+      answer = max - min;
+    }
+    // update UI text
+    questionEl.textContent = `Question: ${questionStr}`;
+    return { questionStr, answer };
+  }
+
+  function pickPalette() {
+    // neon/high-tech palettes (avoid using green to prevent hinting correctness)
+    const palettes = [
+      { base: '#7C4DFF', glow: '#B388FF', rim: '#311B92' }, // purple
+      { base: '#2979FF', glow: '#82B1FF', rim: '#0D47A1' }, // blue
+      { base: '#E040FB', glow: '#EA80FC', rim: '#6A1B9A' }, // magenta
+      { base: '#FF4081', glow: '#FF80AB', rim: '#AD1457' }  // pink
+    ];
+    return palettes[Math.floor(Math.random() * palettes.length)];
+  }
+
+  function drawOrb(ctx, x, y, r, palette) {
+    // radial glow
+    const g = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, r * 0.2, x, y, r);
+    g.addColorStop(0, palette.glow);
+    g.addColorStop(0.6, palette.base);
+    g.addColorStop(1, palette.rim);
+
+    // outer soft glow
+    ctx.save();
+    ctx.shadowColor = palette.glow;
+    ctx.shadowBlur = 12;
+
+    // main orb
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = g;
+    ctx.fill();
+
+    // ring
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+    ctx.stroke();
+
+    // glossy highlight
+    ctx.beginPath();
+    ctx.ellipse(x - r * 0.25, y - r * 0.35, r * 0.35, r * 0.2, -0.4, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.fill();
+
+    // small HUD tick marks (high-tech vibe)
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 4; i++) {
+      const ang = (Math.PI / 2) * i;
+      const ix = x + Math.cos(ang) * (r * 0.7);
+      const iy = y + Math.sin(ang) * (r * 0.7);
+      const ox = x + Math.cos(ang) * (r * 0.9);
+      const oy = y + Math.sin(ang) * (r * 0.9);
+      ctx.moveTo(ix, iy);
+      ctx.lineTo(ox, oy);
+    }
+    ctx.stroke();
+
+    // string
+    ctx.beginPath();
+    ctx.moveTo(x, y + r);
+    ctx.quadraticCurveTo(x + r * 0.2, y + r * 1.5, x, y + r * 2);
+    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  class Balloon {
+    constructor(x, y, answer, isCorrect) {
+      this.x = x;
+      this.y = y;
+      this.radius = 34; // slightly bigger for readability
+      this.answer = answer;
+      this.isCorrect = isCorrect;
+      this.speed = randomInt(1, 3);
+      this.palette = pickPalette(); // do NOT hint correctness by color
+      this.popped = false;
+      this.x = x;
+      this.y = y;
+    }
+
+    draw(ctx) {
+      if (this.popped) return;
+      // high-tech neon orb
+      drawOrb(ctx, this.x, this.y, this.radius, this.palette);
+      // answer text with outline for contrast
+      ctx.save();
+      ctx.font = 'bold 22px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = 'rgba(0,0,0,0.45)';
+      ctx.strokeText(this.answer, this.x, this.y);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(this.answer, this.x, this.y);
+      ctx.restore();
+    }
+
+    update() {
+      if (!this.popped) {
+        this.y += this.speed;
+      }
+    }
+
+    isClicked(mx, my) {
+      if (this.popped) return false;
+      const dx = mx - this.x;
+      const dy = my - this.y;
+      return dx * dx + dy * dy <= this.radius * this.radius;
+    }
+  }
+
+  function spawnBalloons() {
+    // Clear balloons array
+    balloons = [];
+
+    // One balloon with correct answer
+    const correctX = randomInt(50, width - 50);
+    balloons.push(new Balloon(correctX, -40, currentQuestion.answer, true));
+
+    // 3-4 balloons with wrong answers
+    const wrongAnswers = new Set();
+    while (wrongAnswers.size < 3) {
+      let wrongAnswer = randomInt(1, 40);
+      if (wrongAnswer !== currentQuestion.answer) wrongAnswers.add(wrongAnswer);
+    }
+    let positions = [];
+    while (positions.length < 3) {
+      let x = randomInt(50, width - 50);
+      if (Math.abs(x - correctX) > 60 && !positions.some(px => Math.abs(px - x) < 60)) {
+        positions.push(x);
+      }
+    }
+    let i = 0;
+    wrongAnswers.forEach(wrongAnswer => {
+      balloons.push(new Balloon(positions[i], -40, wrongAnswer, false));
+      i++;
+    });
+  }
+
+  function update(ts) {
+    if (gameOver) return;
+    const t = ((ts ?? performance.now()) - startTime) / 1000;
+
+    // Draw background hologram grid
+    drawHoloGrid(ctx, width, height, t);
+
+    for (let i = balloons.length - 1; i >= 0; i--) {
+      const balloon = balloons[i];
+      balloon.update();
+      balloon.draw(ctx);
+      // remove wrong balloons that move off-screen
+      if (!balloon.isCorrect && (balloon.y - balloon.radius > height)) {
+        balloons.splice(i, 1);
+      }
+    }
+
+    // Check if any correct balloon reached bottom (game over)
+    for (let balloon of balloons) {
+      if (!balloon.popped && balloon.isCorrect && balloon.y - balloon.radius > height) {
+        endGame();
+        return;
+      }
+    }
+
+    animationId = requestAnimationFrame(update);
+  }
+
+  function endGame() {
+    gameOver = true;
+    gameOverMessage.textContent = `Game Over! Final Score: ${score}`;
+    cancelAnimationFrame(animationId);
+  }
+
+  function restartGame() {
+    score = 0;
+    gameOver = false;
+    gameOverMessage.textContent = '';
+    scoreEl.textContent = `Score: ${score}`;
+    nextQuestion();
+    update();
+  }
+
+  function nextQuestion() {
+    currentQuestion = generateQuestion();
+    spawnBalloons();
+  }
+
+  canvas.addEventListener('click', e => {
+    if (gameOver) return;
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+
+    for (let balloon of balloons) {
+      if (balloon.isClicked(mx, my)) {
+        if (balloon.isCorrect) {
+          score++;
+          balloon.popped = true;
+          scoreEl.textContent = `Score: ${score}`;
+          // spawn next wave
+          nextQuestion();
+        } else {
+          score--;
+          if (score < 0) score = 0;
+          scoreEl.textContent = `Score: ${score}`;
+          balloon.popped = true;
+        }
+        break;
+      }
+    }
+  });
+
+  restartBtn.addEventListener('click', () => {
+    cancelAnimationFrame(animationId);
+    restartGame();
+  });
+
+  // Start game on load
+  restartGame();
+})();
+</script>
+</body>
+</html>
