@@ -150,5 +150,14 @@
 
     setupQuestions();
   </script>
+    <button id="finishBtn-L6" style="margin-top: 20px; padding: 10px; background-color: green; color: white;">Selesai</button>
+<script>
+document.getElementById("finishBtn-L6").addEventListener("click", function() {
+  alert("Level selesai!");
+  fetch("/elearn/worlds/calistung/math-game/config.json")
+    .then(() => console.log("progress saved"));
+  window.location.href = "/elearn/worlds/calistung/math-game/index.html";
+});
+</script>
 </body>
 </html>
