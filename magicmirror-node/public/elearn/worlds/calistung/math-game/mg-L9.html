@@ -143,14 +143,17 @@
     generateLegend();
     generateQuestions();
   </script>
-    <button id="finishBtn-L9" style="margin-top: 20px; padding: 10px; background-color: green; color: white;">Selesai</button>
+<div style="text-align: center; margin-top: 20px;">
+  <button id="finishBtn-L9" style="padding: 10px 20px; background-color: green; color: white; border: none; border-radius: 5px; cursor: pointer;">Selesai</button>
+</div>
 <script>
-document.getElementById("finishBtn-L9").addEventListener("click", function() {
-  alert("Level selesai!");
-  fetch("/elearn/worlds/calistung/math-game/config.json")
-    .then(() => console.log("progress saved"));
-  window.location.href = "/elearn/worlds/calistung/math-game/index.html";
-});
+  function submitLevelL9() {
+    alert("Level selesai!");
+    fetch("/elearn/worlds/calistung/math-game/config.json")
+      .then(() => console.log("progress saved"));
+    window.location.href = "/elearn/worlds/calistung/math-game/index.html";
+  }
+  document.getElementById("finishBtn-L9").addEventListener("click", submitLevelL9);
 </script>
 </body>
 </html>

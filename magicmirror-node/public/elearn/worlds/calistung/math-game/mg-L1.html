@@ -11,6 +11,7 @@
       margin: 0;
       padding: 0;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
@@ -168,14 +169,17 @@
     generateLegend();
     generateQuestions();
   </script>
-    <button id="finishBtn-L1" style="margin-top: 20px; padding: 10px; background-color: green; color: white;">Selesai</button>
-<script>
-document.getElementById("finishBtn-L1").addEventListener("click", function() {
-  alert("Level selesai!");
-  fetch("/elearn/worlds/calistung/math-game/config.json")
-    .then(() => console.log("progress saved"));
-  window.location.href = "/elearn/worlds/calistung/math-game/index.html";
-});
-</script>
+  <div style="text-align: center; margin-top: 20px;">
+    <button id="finishBtn-L1" style="padding: 10px 20px; background-color: green; color: white; border: none; border-radius: 5px; cursor: pointer;">Selesai</button>
+  </div>
+  <script>
+    function submitLevelL1() {
+      alert("Level selesai!");
+      fetch("/elearn/worlds/calistung/math-game/config.json")
+        .then(() => console.log("progress saved"));
+      window.location.href = "/elearn/worlds/calistung/math-game/index.html";
+    }
+    document.getElementById("finishBtn-L1").addEventListener("click", submitLevelL1);
+  </script>
 </body>
 </html>

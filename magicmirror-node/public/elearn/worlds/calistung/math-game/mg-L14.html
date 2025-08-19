@@ -15,7 +15,7 @@
       background: radial-gradient(1200px 800px at 20% -10%, #132241 0%, #0a0f1a 55%),
                   radial-gradient(900px 700px at 120% 0%, #1b2b52 0%, #0a0f1a 60%);
       color:var(--ink);
-      display:flex; align-items:center; justify-content:center; padding:20px;
+      display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px;
     }
     .game{
       width:min(980px, 96vw); background:linear-gradient(180deg, #111a2f, #0c1223);
@@ -251,14 +251,17 @@
     generateRound(true);
   })();
   </script>
-    <button id="finishBtn-L14" style="margin-top: 20px; padding: 10px; background-color: green; color: white;">Selesai</button>
+<div style="text-align: center; margin-top: 20px;">
+  <button id="finishBtn-L14" style="padding: 10px 20px; background-color: green; color: white; border: none; border-radius: 5px; cursor: pointer;">Selesai</button>
+</div>
 <script>
-document.getElementById("finishBtn-L14").addEventListener("click", function() {
-  alert("Level selesai!");
-  fetch("/elearn/worlds/calistung/math-game/config.json")
-    .then(() => console.log("progress saved"));
-  window.location.href = "/elearn/worlds/calistung/math-game/index.html";
-});
+  function submitLevelL14() {
+    alert("Level selesai!");
+    fetch("/elearn/worlds/calistung/math-game/config.json")
+      .then(() => console.log("progress saved"));
+    window.location.href = "/elearn/worlds/calistung/math-game/index.html";
+  }
+  document.getElementById("finishBtn-L14").addEventListener("click", submitLevelL14);
 </script>
 </body>
 </html>
