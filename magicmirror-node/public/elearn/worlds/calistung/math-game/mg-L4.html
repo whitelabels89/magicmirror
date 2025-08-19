@@ -186,17 +186,32 @@
       alert(`Jawaban benar: ${benar} dari ${soalBoxes.length}`);
     }
   </script>
-<div style="text-align: center; margin-top: 20px;">
-  <button id="finishBtn-L4" style="padding: 10px 20px; background-color: green; color: white; border: none; border-radius: 5px; cursor: pointer;">Selesai</button>
-</div>
-<script>
-  function submitLevelL4() {
-    alert("Level selesai!");
-    fetch("/elearn/worlds/calistung/math-game/config.json")
-      .then(() => console.log("progress saved"));
-    window.location.href = "/elearn/worlds/calistung/math-game/index.html";
+
+<style>
+  .finish-bar { position: fixed; right: 16px; bottom: 16px; z-index: 1000; }
+  #btnSelesai { background: #22c55e; color: #fff; border: none; cursor: pointer; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4); }
+  #btnSelesai:hover { filter: brightness(1.05); }
+  #btnSelesai:active { transform: translateY(1px); }
+  @media (max-width: 480px) {
+    #btnSelesai { padding: 10px 14px; font-size: 15px; }
   }
-  document.getElementById("finishBtn-L4").addEventListener("click", submitLevelL4);
+</style>
+
+<div class="finish-bar"><button id="btnSelesai" type="button">Selesai</button></div>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="/elearn/manifest-lessons.js"></script>
+<script src="/elearn/userInfo.js"></script>
+<script src="/elearn/common/worksheet-submit.js"></script>
+<script>
+  window.WORKSHEET_DEBUG = true;
+  window.WORKSHEET_META = { course_id: "mathgame-basic" };
+  const info = (typeof getUserInfo === "function") ? getUserInfo() : {};
+  initWorksheetSubmit({
+    muridUid: info.uid || "",
+    cid: info.cid || "",
+    namaAnak: info.nama || "",
+    role: (info.role || "").toLowerCase()
+  });
 </script>
 </body>
 </html>

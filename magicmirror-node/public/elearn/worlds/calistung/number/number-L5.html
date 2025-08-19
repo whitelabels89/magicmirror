@@ -72,7 +72,6 @@
     }
     
   </style>
-  <link rel="stylesheet" href="button.css">
 </head>
 <body>
   <h2 class="instruction" style="color: #FF69B4; font-size: 28px;">Lingkari Sesuai Petunjuk Warna</h2>
@@ -167,10 +166,17 @@
     });
   </script>
 
-<script type="module">
-  import { addFinishButton } from '/elearn/worlds/utils/finish-button.js';
-  addFinishButton('calistung','Level 5','/elearn/calistung/level/B1.html');
-</script>
+<style>
+  .finish-bar { position: fixed; right: 16px; bottom: 16px; z-index: 1000; }
+  #btnSelesai { background: #22c55e; color: #fff; border: none; cursor: pointer; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4); }
+  #btnSelesai:hover { filter: brightness(1.05); }
+  #btnSelesai:active { transform: translateY(1px); }
+  @media (max-width: 480px) {
+    #btnSelesai { padding: 10px 14px; font-size: 15px; }
+  }
+</style>
+
+<div class="finish-bar"><button id="btnSelesai" type="button">Selesai</button></div>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="/elearn/manifest-lessons.js"></script>
@@ -179,6 +185,7 @@
 <script>
   // Debug log
   window.WORKSHEET_DEBUG = true;
+  window.WORKSHEET_META = { course_id: "numbers-basic" };
 
   // Ambil info user dari localStorage via userInfo.js
   const info = (typeof getUserInfo === 'function') ? getUserInfo() : {};

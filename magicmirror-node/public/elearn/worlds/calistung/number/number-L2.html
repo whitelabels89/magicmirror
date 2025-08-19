@@ -107,9 +107,7 @@
       transform: translateY(2px);
     }
   </style>
-  <link rel="stylesheet" href="button.css">
-
-  <div class="mobil-container" id="mobilContainer">
+<div class="mobil-container" id="mobilContainer">
     <!-- Mobil akan dirender di sini -->
   </div>
 
@@ -298,17 +296,24 @@ document.querySelectorAll(".color-code div").forEach((el) => {
   <button id="checkButton" class="clay-button">Periksa Jawaban</button>
   <div id="result" style="margin-top: 15px; font-weight: bold;"></div>
 
-  <script type="module">
-    import { addFinishButton } from '/elearn/worlds/utils/finish-button.js';
-    // game=calistung, label=Level 2, next URL to A3
-    addFinishButton('calistung', 'Level 2', '/elearn/calistung/level/A3.html');
-  </script>
+  <style>
+  .finish-bar { position: fixed; right: 16px; bottom: 16px; z-index: 1000; }
+  #btnSelesai { background: #22c55e; color: #fff; border: none; cursor: pointer; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4); }
+  #btnSelesai:hover { filter: brightness(1.05); }
+  #btnSelesai:active { transform: translateY(1px); }
+  @media (max-width: 480px) {
+    #btnSelesai { padding: 10px 14px; font-size: 15px; }
+  }
+</style>
+
+<div class="finish-bar"><button id="btnSelesai" type="button">Selesai</button></div>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="/elearn/manifest-lessons.js"></script>
   <script src="/elearn/userInfo.js"></script>
   <script src="/elearn/common/worksheet-submit.js"></script>
   <script>
     window.WORKSHEET_DEBUG = true;
+  window.WORKSHEET_META = { course_id: "numbers-basic" };
     const info = (typeof getUserInfo === 'function') ? getUserInfo() : {};
     const role = (info.role || '').toLowerCase();
     initWorksheetSubmit({

@@ -140,18 +140,7 @@
             }
         }
         .worksheet-slide { width: 100%; }
-        /* Finish button (Level 1) */
-        .finish-bar { position: fixed; right: 16px; bottom: 16px; z-index: 1000; }
-        #btnSelesai {
-            background: #22c55e; color: #fff; border: none; cursor: pointer;
-            padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 16px;
-            box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4);
-        }
-        #btnSelesai:hover { filter: brightness(1.05); }
-        #btnSelesai:active { transform: translateY(1px); }
-        @media (max-width: 480px) {
-            #btnSelesai { padding: 10px 14px; font-size: 15px; }
-        }
+}
         /* Tool bar for brush/eraser */
         .tool-bar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
         .tool-btn { padding:8px 10px; border:1px solid #ccc; background:#fff; border-radius:8px; cursor:pointer; font-weight:600; }
@@ -997,10 +986,17 @@
     </script>
 </div>
 
-<script type="module">
-  import { addFinishButton } from '/elearn/worlds/utils/finish-button.js';
-  addFinishButton('calistung','Level 1','/elearn/calistung/level/A2.html');
-</script>
+<style>
+  .finish-bar { position: fixed; right: 16px; bottom: 16px; z-index: 1000; }
+  #btnSelesai { background: #22c55e; color: #fff; border: none; cursor: pointer; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4); }
+  #btnSelesai:hover { filter: brightness(1.05); }
+  #btnSelesai:active { transform: translateY(1px); }
+  @media (max-width: 480px) {
+    #btnSelesai { padding: 10px 14px; font-size: 15px; }
+  }
+</style>
+
+<div class="finish-bar"><button id="btnSelesai" type="button">Selesai</button></div>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="/elearn/manifest-lessons.js"></script>
 <script src="/elearn/userInfo.js"></script>
@@ -1008,6 +1004,7 @@
 <script>
   // Debug log
   window.WORKSHEET_DEBUG = true;
+  window.WORKSHEET_META = { course_id: "numbers-basic" };
 
   // Ambil info user dari localStorage via userInfo.js
   const info = (typeof getUserInfo === 'function') ? getUserInfo() : {};
