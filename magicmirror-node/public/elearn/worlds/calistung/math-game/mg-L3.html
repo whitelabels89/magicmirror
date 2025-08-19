@@ -179,7 +179,7 @@
     });
 
     // Shuffle problems (tetap di rentang 6–10)
-    btnShuffle.addEventListener('click', ()=>{
+  btnShuffle.addEventListener('click', ()=>{
       const rng = (a,b)=> Math.floor(Math.random()*(b-a+1))+a;
       const cells = [...document.querySelectorAll('.hex')];
       cells.forEach(h=>{
@@ -198,5 +198,17 @@
       status.textContent = 'Soal diacak! Pilih warna lagi dan lanjutkan.';
     });
   </script>
+<div style="text-align: center; margin-top: 20px;">
+  <button id="finishBtn-L3" style="padding: 10px 20px; background-color: green; color: white; border: none; border-radius: 5px; cursor: pointer;">Selesai</button>
+</div>
+<script>
+  function submitLevelL3() {
+    alert("Level selesai!");
+    fetch("/elearn/worlds/calistung/math-game/config.json")
+      .then(() => console.log("progress saved"));
+    window.location.href = "/elearn/worlds/calistung/math-game/index.html";
+  }
+  document.getElementById("finishBtn-L3").addEventListener("click", submitLevelL3);
+</script>
 </body>
 </html>

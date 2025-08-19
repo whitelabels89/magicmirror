@@ -186,5 +186,17 @@
       alert(`Jawaban benar: ${benar} dari ${soalBoxes.length}`);
     }
   </script>
+<div style="text-align: center; margin-top: 20px;">
+  <button id="finishBtn-L4" style="padding: 10px 20px; background-color: green; color: white; border: none; border-radius: 5px; cursor: pointer;">Selesai</button>
+</div>
+<script>
+  function submitLevelL4() {
+    alert("Level selesai!");
+    fetch("/elearn/worlds/calistung/math-game/config.json")
+      .then(() => console.log("progress saved"));
+    window.location.href = "/elearn/worlds/calistung/math-game/index.html";
+  }
+  document.getElementById("finishBtn-L4").addEventListener("click", submitLevelL4);
+</script>
 </body>
 </html>
