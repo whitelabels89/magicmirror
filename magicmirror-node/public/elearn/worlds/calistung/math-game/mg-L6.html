@@ -168,6 +168,7 @@
 <script src="/elearn/common/worksheet-submit.js"></script>
 <script>
   window.WORKSHEET_DEBUG = true;
+  window.WORKSHEET_META = { course_id: "mathgame-basic" };
   const info = (typeof getUserInfo === "function") ? getUserInfo() : {};
   initWorksheetSubmit({
     muridUid: info.uid || "",
