@@ -271,5 +271,14 @@ function celebrate(){
 
 build();
 </script>
+    <button id="finishBtn-L2" style="margin-top: 20px; padding: 10px; background-color: green; color: white;">Selesai</button>
+<script>
+document.getElementById("finishBtn-L2").addEventListener("click", function() {
+  alert("Level selesai!");
+  fetch("/elearn/worlds/calistung/math-game/config.json")
+    .then(() => console.log("progress saved"));
+  window.location.href = "/elearn/worlds/calistung/math-game/index.html";
+});
+</script>
 </body>
 </html>
