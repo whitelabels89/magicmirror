@@ -1,92 +1,417 @@
-
-
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Daftar Akun Baru - Queen's Academy</title>
+  <title>Create Account – Queen's Academy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+  <script>
+    // Persisted theme (align with login.html)
+    (function(){
+      const saved = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', saved);
+    })();
+  </script>
   <style>
+    *, *::before, *::after{ box-sizing: border-box; }
+    :root{
+      --bg: #0b1220;
+      --card: rgba(255,255,255,0.08);
+      --card-border: rgba(255,255,255,0.12);
+      --text: #eaf2ff;
+      --muted: #99a3b3;
+      --accent1: #7c4dff;  /* violet */
+      --accent2: #00e5ff;  /* cyan */
+      --accent3: #ff4d8d;  /* magenta */
+      --radius: 18px;
+      --shadow: 0 8px 32px rgba(0,0,0,0.35);
+      --ring: 0 0 0 2px rgba(0,229,255,0.35), 0 0 38px rgba(124,77,255,0.25);
+
+    /* Smooth cross-theme transitions */
+    * { transition: background-color .8s ease, color .8s ease, border-color .8s ease, box-shadow .8s ease; }
+
+    /* Animated background motion (subtle) */
+    body::after{
+      content:""; position: fixed; inset: -20%; z-index: -1; pointer-events:none;
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(124,77,255,0.25), transparent 60%),
+        radial-gradient(900px 500px at 100% 0%, rgba(0,229,255,0.18), transparent 60%),
+        radial-gradient(800px 420px at 50% 120%, rgba(255,77,141,0.18), transparent 60%);
+      filter: blur(2px);
+      animation: bgFloat 28s ease-in-out infinite alternate;
+    }
+    @keyframes bgFloat{
+      0%   { transform: translate3d(0,0,0) scale(1); opacity: .9; }
+      50%  { transform: translate3d(-2%, -1%, 0) scale(1.02); opacity: 1; }
+      100% { transform: translate3d(2%, 1.5%, 0) scale(1.03); opacity: .95; }
+    }
+    }
+    [data-theme='light']{
+      --bg: #f5f7fa;
+      --card: #ffffff;
+      --card-border: rgba(16,24,40,0.08);
+      --text: #0f172a;
+      --muted: #64748b;
+      --shadow: 0 8px 28px rgba(2,8,23,0.08);
+      --ring: 0 0 0 2px rgba(124,77,255,0.15), 0 0 24px rgba(0,229,255,0.12);
+    }
+
+    html, body { height: 100%; }
     body {
-      font-family: Arial, sans-serif;
-      padding: 2rem;
-      max-width: 500px;
-      margin: auto;
+      margin: 0; font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color: var(--text);
+      background: radial-gradient(1200px 600px at 10% -10%, rgba(124,77,255,0.25), transparent 60%),
+                  radial-gradient(900px 500px at 100% 0%, rgba(0,229,255,0.18), transparent 60%),
+                  linear-gradient(180deg, var(--bg), var(--bg));
+      display: grid; place-items: center; padding: 32px 18px;
+      transition: background 1s ease;
     }
-    input, button {
-      display: block;
-      width: 100%;
-      padding: 12px;
-      margin: 12px 0;
-      font-size: 1rem;
+
+    .shell{ width: 100%; max-width: 880px; display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 26px; align-items: stretch; }
+    @media (max-width: 900px){ .shell{ grid-template-columns: 1fr; max-width: 520px; } }
+
+    .card{
+      background: var(--card); border: 1px solid var(--card-border); border-radius: var(--radius); box-shadow: var(--shadow);
+      position: relative; overflow: hidden;
     }
-    button {
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      cursor: pointer;
+    .card::before{ /* glass highlight */
+      content:""; position:absolute; inset:-2px; background: linear-gradient(120deg, rgba(124,77,255,0.18), rgba(0,229,255,0.18), rgba(255,77,141,0.18));
+      mix-blend-mode: overlay; filter: blur(48px); opacity:.45; pointer-events:none;
     }
+
+    .left{ padding: 26px 26px 22px; display:flex; flex-direction:column; gap: 16px; }
+    .brand{ display:flex; align-items:center; gap:12px; }
+    .brand-logo{ width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, var(--accent2), var(--accent1)); box-shadow: var(--ring); }
+    .brand h1{ margin:0; font-size: 1.4rem; letter-spacing:.2px; font-weight: 800; }
+
+    .hero{ margin-top: 4px; }
+    .hero h2{ margin:0 0 6px; font-size: 1.9rem; font-weight: 800; letter-spacing:.3px; }
+    .hero p{ margin:0; color: var(--muted); }
+
+    form{ margin-top: 10px; display:flex; flex-direction:column; gap: 12px; }
+    .field{ display:flex; flex-direction:column; gap:8px; }
+    .label{ font-size: .93rem; color: var(--muted); display:flex; justify-content:space-between; align-items:center; }
+
+    .input, .btn, .select{
+      width: 100%; border-radius: 12px; border: 1px solid var(--card-border);
+      background: rgba(255,255,255,0.06); color: var(--text);
+      padding: 12px 14px; font-size: 1rem; outline: none; transition: box-shadow .15s, border-color .15s, transform .05s;
+    }
+    [data-theme='light'] .input{ background: #f7f9ff; }
+    .input:focus{ box-shadow: var(--ring); border-color: rgba(124,77,255,0.45); }
+
+    .row{ display:grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 12px; align-items: start; }
+    .row .field{ min-width: 0; }
+    @media (max-width: 520px){ .row{ grid-template-columns: 1fr; } }
+
+    .pass-wrap{ position: relative; }
+    /* beri ruang untuk ikon mata & pastikan tinggi konsisten */
+    .pass-wrap .input{ padding-right: 42px; height: 52px; }
+    .toggle-pass{
+      position:absolute; right:12px; top:50%; transform: translateY(-50%);
+      cursor:pointer; opacity:.8; width:28px; height:28px; display:grid; place-items:center;
+      z-index: 2;
+    }
+
+    .strength{ height: 8px; border-radius: 6px; background: rgba(255,255,255,0.1); overflow:hidden; margin-top: 10px; }
+    .strength > div{ height:100%; width: 0%; transition: width .25s; background: linear-gradient(90deg, #ff4d8d, #ffb74d, #00e5ff, #7c4dff); }
+
+    .muted{ color: var(--muted); font-size: .92rem; }
+
+    .btn{ background: linear-gradient(135deg, var(--accent1), var(--accent2)); color: white; font-weight: 700; cursor: pointer; border: none; }
+    .btn:hover{ filter: brightness(1.05); }
+    .btn:active{ transform: translateY(1px); }
+    .btn[disabled]{ opacity:.6; cursor:not-allowed; }
+
+    .status{ min-height: 22px; font-size: .95rem; }
+    .status.ok{ color: #27e1a0; }
+    .status.err{ color: #ff829f; }
+
+    .right{ padding: 0; display:grid; place-items:center; position:relative; }
+    .right .cover{ position:absolute; inset:0; opacity:.6; background:
+      radial-gradient(600px 320px at 20% 10%, rgba(124,77,255,0.25), transparent 60%),
+      radial-gradient(520px 260px at 80% 0%, rgba(0,229,255,0.25), transparent 60%),
+      linear-gradient(180deg, transparent, transparent);
+      pointer-events:none; }
+    .promo{ padding: 26px; text-align:center; }
+    .promo h3{ margin:0 0 8px; font-size: 1.6rem; font-weight: 800; }
+    .promo p{ margin:0; color: var(--muted); }
+
+    /* Quotes slider */
+    .quotes{ margin-top:18px; position: relative; max-width: 520px; margin-left:auto; margin-right:auto; }
+    .quote-item{ opacity:0; transform: translateY(6px); transition: opacity .5s ease, transform .5s ease; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding: 0 12px; text-align:center; }
+    .quote-item.active{ opacity:1; transform: translateY(0); position:relative; }
+    .quote-text{ font-size: 1.02rem; line-height: 1.5; color: var(--text); }
+    .quote-author{ margin-top: 8px; font-size: .95rem; color: var(--muted); }
+    .quote-dots{ display:flex; gap:6px; justify-content:center; margin-top:12px; }
+    .quote-dot{ width:8px; height:8px; border-radius:50%; background: rgba(255,255,255,.25); border:1px solid var(--card-border); cursor:pointer; transition: transform .2s, background .2s; }
+    .quote-dot.active{ background: linear-gradient(135deg, var(--accent1), var(--accent2)); transform: scale(1.1); }
+    .bullets{ margin: 14px auto 0; text-align:left; max-width: 360px; }
+    .bullets li{ margin: 6px 0; }
+
+    .topbar{ position: fixed; top: 14px; right: 16px; display:flex; gap:8px; align-items:center; }
+    .theme-btn{ width: 40px; height: 40px; border-radius: 12px; border:1px solid var(--card-border); background: var(--card); color: var(--text); display:grid; place-items:center; cursor:pointer; box-shadow: var(--shadow); }
+
+    a.link{ color: var(--accent2); text-decoration:none; font-weight:600; }
+    a.link:hover{ text-decoration: underline; }
   </style>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyBVO4ajDwkbcTGL33SVMxIoev4veB8itgI",
-      authDomain: "queens-academy-icoding.firebaseapp.com",
-      projectId: "queens-academy-icoding",
-      storageBucket: "queens-academy-icoding.firebasestorage.app",
-      messagingSenderId: "1048549258959",
-      appId: "1:1048549258959:web:f8dc1c104bb170d7ff69ba",
-      measurementId: "G-RJCXM1YL7E"
-    };
-    firebase.initializeApp(firebaseConfig);
+    // Use global config if available (keeps consistent with login.html); fallback to embedded config
+    (function initFirebase(){
+      try{
+        if (!firebase.apps.length){
+          const cfg = window.firebaseConfig || {
+            apiKey: "AIzaSyBVO4ajDwkbcTGL33SVMxIoev4veB8itgI",
+            authDomain: "queens-academy-icoding.firebaseapp.com",
+            projectId: "queens-academy-icoding",
+            storageBucket: "queens-academy-icoding.firebasestorage.app",
+            messagingSenderId: "1048549258959",
+            appId: "1:1048549258959:web:f8dc1c104bb170d7ff69ba",
+            measurementId: "G-RJCXM1YL7E"
+          };
+          firebase.initializeApp(cfg);
+        }
+      }catch(e){ console.warn('Firebase init failed', e); }
+    })();
   </script>
 </head>
 <body>
-  <h2>Daftar Akun Murid</h2>
-  <input type="text" id="nama" placeholder="Nama Anak" />
-  <input type="email" id="email" placeholder="Email Ortu" />
-  <input type="text" id="wa" placeholder="Nomor WhatsApp" />
-  <input type="password" id="pass" placeholder="Password" />
-  <button onclick="daftar()">Daftar</button>
-  <p id="status"></p>
+  <div class="topbar">
+    <button class="theme-btn" id="themeBtn" title="Toggle theme"><i class="fas fa-moon" id="themeIcon"></i></button>
+  </div>
+
+  <div class="shell">
+    <section class="card left">
+      <div class="brand">
+        <div class="brand-logo" aria-hidden="true"></div>
+        <h1>Queen's Academy</h1>
+      </div>
+      <div class="hero">
+        <h2>Create Student Account</h2>
+        <p class="muted">One account for fun learning — your progress, points, and rewards are saved securely.</p>
+      </div>
+
+      <form id="signupForm" novalidate>
+        <div class="field">
+          <label class="label" for="nama">Student Name</label>
+          <input id="nama" class="input" type="text" placeholder="e.g. Queena" autocomplete="name" required />
+        </div>
+        <div class="row">
+          <div class="field">
+            <label class="label" for="email">Parent Email</label>
+            <input id="email" class="input" type="email" placeholder="nama@contoh.com" autocomplete="email" required />
+          </div>
+          <div class="field">
+            <label class="label" for="wa">WhatsApp</label>
+            <input id="wa" class="input" type="tel" placeholder="+62…" autocomplete="tel" required />
+          </div>
+        </div>
+        <div class="field pass-wrap">
+          <label class="label" for="pass">Password <span id="passHint" class="muted"></span></label>
+          <input id="pass" class="input" type="password" placeholder="At least 8 characters" required />
+          <i class="fas fa-eye toggle-pass" id="togglePass" title="Show/Hide"></i>
+          <div class="strength" aria-hidden="true"><div id="strengthBar"></div></div>
+        </div>
+        <button id="submitBtn" class="btn" type="submit"><i class="fas fa-user-plus" style="margin-right:8px"></i>Sign up</button>
+        <div id="status" class="status" role="status" aria-live="polite"></div>
+        <p class="muted">Already have an account? <a class="link" href="/elearn/login.html">Sign in</a></p>
+      </form>
+    </section>
+
+    <aside class="card right" aria-hidden="true">
+      <div class="cover"></div>
+      <div class="promo">
+        <h3>Learning that’s playful, powerful, and safe</h3>
+        <p>Level up with points and badges, auto‑saved worksheets, and smart parent reports — so progress never gets lost.</p>
+        <div class="quotes" aria-label="Motivational quotes">
+          <div class="quote-item active">
+            <div>
+              <div class="quote-text">“Everybody should learn to program, because it teaches you how to think.”</div>
+              <div class="quote-author">— Steve Jobs</div>
+            </div>
+          </div>
+          <div class="quote-item" hidden>
+            <div>
+              <div class="quote-text">“Programs must be written for people to read, and only incidentally for machines to execute.”</div>
+              <div class="quote-author">— Harold Abelson</div>
+            </div>
+          </div>
+          <div class="quote-item" hidden>
+            <div>
+              <div class="quote-text">“The best way to predict the future is to invent it.”</div>
+              <div class="quote-author">— Alan Kay</div>
+            </div>
+          </div>
+          <div class="quote-item" hidden>
+            <div>
+              <div class="quote-text">“First, solve the problem. Then, write the code.”</div>
+              <div class="quote-author">— John Johnson</div>
+            </div>
+          </div>
+          <div class="quote-item" hidden>
+            <div>
+              <div class="quote-text">“Learning to write programs stretches your mind, and helps you think better.”</div>
+              <div class="quote-author">— Bill Gates</div>
+            </div>
+          </div>
+          <div class="quote-dots" role="tablist" aria-label="Quote selectors"></div>
+        </div>
+      </div>
+    </aside>
+  </div>
 
   <script>
-    async function daftar() {
-      const nama = document.getElementById("nama").value.trim();
-      const email = document.getElementById("email").value.trim();
-      const wa = document.getElementById("wa").value.trim();
-      const pass = document.getElementById("pass").value.trim();
-      const status = document.getElementById("status");
+    // Theme toggle + auto cycle
+    const themeBtn = document.getElementById('themeBtn');
+    const themeIcon = document.getElementById('themeIcon');
+    const prefersReduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const AUTO_MS = 20000; // 20s
+    let autoTimer = null;
+    let autoEnabled = true;
 
-      if (!nama || !email || !wa || !pass) {
-        status.innerText = "❗ Semua kolom harus diisi.";
-        return;
-      }
-
-      try {
-        const cidRes = await fetch("https://firebase-upload-backend.onrender.com/generate-cqa");
-        const cidData = await cidRes.json();
-        const cid = cidData.cid;
-
-        const userCred = await firebase.auth().createUserWithEmailAndPassword(email, pass);
-        const uid = userCred.user.uid;
-
-        await fetch("https://firebase-upload-backend.onrender.com/api/daftar-akun-baru", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ uid, cid, nama, email, wa, password: pass, role: "murid" })
-        });
-
-        status.innerText = "✅ Akun berhasil dibuat. Mengarahkan ke halaman login...";
-        setTimeout(() => {
-          window.location.href = "/elearn/login-elearning.html";
-        }, 2000);
-      } catch (err) {
-        console.error(err);
-        status.innerText = "❌ Gagal daftar: " + err.message;
-      }
+    function getTheme(){ return document.documentElement.getAttribute('data-theme') || 'light'; }
+    function setTheme(next, persist = true){
+      document.documentElement.setAttribute('data-theme', next);
+      if (persist) try{ localStorage.setItem('theme', next); }catch(_){}
+      syncThemeIcon();
     }
+    function toggleTheme(persist = true){ setTheme(getTheme()==='light' ? 'dark' : 'light', persist); }
+    function syncThemeIcon(){ themeIcon.className = (getTheme()==='dark') ? 'fas fa-sun' : 'fas fa-moon'; }
+
+    function startAutoCycle(){
+      if (prefersReduce) return; // respect user setting
+      clearInterval(autoTimer);
+      if (!autoEnabled) return;
+      autoTimer = setInterval(()=> toggleTheme(false), AUTO_MS);
+    }
+    function stopAutoCycle(){ autoEnabled = false; clearInterval(autoTimer); }
+
+    themeBtn.addEventListener('click', ()=>{ stopAutoCycle(); toggleTheme(true); });
+
+    // Initialize icon and auto-cycle
+    syncThemeIcon();
+    startAutoCycle();
+
+    // Also restart auto-cycle if user returns focus (unless they manually stopped)
+    window.addEventListener('visibilitychange', ()=>{ if (!document.hidden && autoEnabled) startAutoCycle(); });
+  </script>
+  <script>
+    // Helpers
+    function normalizeWA(v){ v = (v||'').trim(); if (!v) return v; v = v.replace(/\s+/g,''); if (v.startsWith('+62')) return v; if (v.startsWith('0')) return '+62' + v.slice(1); if (/^62/.test(v)) return '+'+v; return '+62' + v; }
+    function zxcvbnLite(p){ // simple strength
+      let s = 0; if (!p) return 0; if (p.length>=8) s++; if (/[A-Z]/.test(p)) s++; if (/[0-9]/.test(p)) s++; if (/[^A-Za-z0-9]/.test(p)) s++; return s; }
+
+    const pass = document.getElementById('pass');
+    const strengthBar = document.getElementById('strengthBar');
+    const passHint = document.getElementById('passHint');
+    pass.addEventListener('input', ()=>{
+      const sc = zxcvbnLite(pass.value); const pct = Math.min(100, sc*25);
+      strengthBar.style.width = pct + '%';
+      passHint.textContent = sc<2? 'Weak' : (sc<3? 'Fair' : (sc<4? 'Strong' : 'Very strong'));
+    });
+    document.getElementById('togglePass').addEventListener('click', ()=>{ const t = pass.getAttribute('type')==='password'?'text':'password'; pass.setAttribute('type', t); });
+
+    const statusEl = document.getElementById('status');
+    const form = document.getElementById('signupForm');
+    const btn = document.getElementById('submitBtn');
+
+    function setStatus(msg, ok){ statusEl.textContent = msg||''; statusEl.className = 'status ' + (ok?'ok':'err'); }
+    function setLoading(loading){ btn.disabled = !!loading; btn.innerHTML = loading ? '<i class="fas fa-spinner fa-spin" style="margin-right:8px"></i>Processing…' : '<i class="fas fa-user-plus" style="margin-right:8px"></i>Sign up'; }
+
+    async function createCid(){
+      // Try same-origin first, fallback to legacy endpoint
+      const origins = [window.location.origin, 'https://firebase-upload-backend.onrender.com'];
+      for (const base of origins){
+        try{
+          const url = base.replace(/\/$/,'') + '/generate-cqa';
+          const r = await fetch(url, { credentials: 'include' });
+          if (!r.ok) continue; const j = await r.json(); if (j && j.cid) return j.cid;
+        }catch(_){ /* try next */ }
+      }
+      throw new Error('Failed to generate CID');
+    }
+
+    async function registerBackend(payload){
+      const origins = [window.location.origin, 'https://firebase-upload-backend.onrender.com'];
+      for (const base of origins){
+        try{
+          const url = base.replace(/\/$/,'') + '/api/daftar-akun-baru';
+          const r = await fetch(url, { method: 'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload)});
+          if (r.ok) return true; // accept first 200
+          // attempt to read error to surface message
+          try{ const e = await r.json(); console.warn('register backend fail', e); }catch(_){ const t = await r.text(); console.warn('register backend fail', t); }
+        }catch(_){ /* try next */ }
+      }
+      throw new Error('Backend registration failed');
+    }
+
+    form.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      setStatus('', true);
+      const nama = document.getElementById('nama').value.trim();
+      const email = document.getElementById('email').value.trim();
+      let wa = normalizeWA(document.getElementById('wa').value);
+      const pwd = pass.value.trim();
+      if (!nama || !email || !wa || !pwd){ setStatus('❗ All fields are required.', false); return; }
+      if (pwd.length < 8){ setStatus('❗ Password must be at least 8 characters.', false); return; }
+      setLoading(true);
+      try{
+        const cid = await createCid();
+        const cred = await firebase.auth().createUserWithEmailAndPassword(email, pwd);
+        const uid = cred.user.uid;
+        // store some local info for later screens
+        try{ localStorage.setItem('USER_INFO', JSON.stringify({ uid, cid, nama, email, wa, role:'murid' })); }catch(_){ }
+        await registerBackend({ uid, cid, nama, email, wa, password: pwd, role: 'murid' });
+        setStatus('✅ Account created. Redirecting to sign in…', true);
+        setTimeout(()=>{ window.location.href = '/elearn/login.html'; }, 1200);
+      }catch(err){
+        console.error(err);
+        setStatus('❌ Sign up failed: ' + (err && err.message ? err.message : 'Unknown error'), false);
+      }finally{
+        setLoading(false);
+      }
+    });
   </script>
 </body>
+<script>
+  (function initQuoteSlider(){
+    const root = document.querySelector('.quotes');
+    if (!root) return;
+    const items = Array.from(root.querySelectorAll('.quote-item'));
+    const dotsWrap = root.querySelector('.quote-dots');
+    let idx = 0; let timer = null; const INTERVAL = 7000;
+
+    function setActive(i){
+      items.forEach((el, n) => {
+        const active = n === i;
+        el.classList.toggle('active', active);
+        el.toggleAttribute('hidden', !active);
+      });
+      Array.from(dotsWrap.children).forEach((d,n)=> d.classList.toggle('active', n===i));
+      idx = i;
+    }
+    function next(){ setActive((idx+1)%items.length); }
+    function start(){ stop(); timer = setInterval(next, INTERVAL); }
+    function stop(){ if (timer) clearInterval(timer); timer = null; }
+
+    // Build dots
+    items.forEach((_, n) => {
+      const dot = document.createElement('button');
+      dot.className = 'quote-dot' + (n===0 ? ' active':'' );
+      dot.setAttribute('aria-label', 'Show quote ' + (n+1));
+      dot.addEventListener('click', ()=>{ setActive(n); start(); });
+      dotsWrap.appendChild(dot);
+    });
+
+    // Pause on hover/focus for accessibility
+    root.addEventListener('mouseenter', stop);
+    root.addEventListener('mouseleave', start);
+    root.addEventListener('focusin', stop);
+    root.addEventListener('focusout', start);
+
+    start();
+  })();
+</script>
 </html>
