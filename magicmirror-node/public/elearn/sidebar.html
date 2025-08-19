@@ -23,6 +23,10 @@
       <span class="material-icons icon icon-emboss">person</span>
       <span>Profile</span>
     </a>
+    <a href="/elearn/moderator.html" id="moderator-link" style="display:none;">
+      <span class="material-icons icon icon-emboss">admin_panel_settings</span>
+      <span>Moderator</span>
+    </a>
 
     <!--
     <a href="/elearn/modul1_lesson1.html">
@@ -65,6 +69,98 @@
     </a>
   </nav>
 </div>
+<script>
+  (function ensureModeratorLink(){
+    function hasModRole(role){
+      if (!role) return false;
+      const r = String(role).toLowerCase();
+      return r === 'moderator' || r === 'admin';
+    }
+    function showMod(){
+      var el = document.getElementById('moderator-link');
+      if (el) el.style.display = 'flex';
+    }
+    function readLocal(source){
+      try {
+        const raw = source.localStorage.getItem('user');
+        if (raw) {
+          const u = JSON.parse(raw);
+          if (hasModRole(u.role)) return true;
+          if (hasModRole(u?.claims?.role)) return true;
+        }
+      } catch(_){}
+      try {
+        const raw2 = source.localStorage.getItem('USER_INFO');
+        if (raw2) {
+          const u2 = JSON.parse(raw2);
+          if (hasModRole(u2.role)) return true;
+        }
+      } catch(_){}
+      try {
+        const u3 = source.USER_INFO;
+        if (u3 && hasModRole(u3.role)) return true;
+      } catch(_){}
+      return false;
+    }
+    function b64urlToJson(str){
+      try {
+        const pad = str.length % 4 === 2 ? '==' : (str.length % 4 === 3 ? '=' : '');
+        const s = str.replace(/-/g,'+').replace(/_/g,'/') + pad;
+        return JSON.parse(atob(s));
+      } catch(_) { return {}; }
+    }
+    async function roleFromFirebase(source){
+      try{
+        const fb = source.firebase;
+        if (!fb || !fb.auth) return null;
+        const u = fb.auth().currentUser;
+        if (!u) return null;
+        // Preferred: getIdTokenResult
+        try {
+          const tok = await u.getIdTokenResult(true);
+          const role = tok?.claims?.role || tok?.claims?.roles || tok?.claims?.Role;
+          if (role) return role;
+        } catch(_){}
+        // Fallback: decode raw token
+        try {
+          const raw = await u.getIdToken(false);
+          const payload = raw.split('.')[1];
+          const claims = b64urlToJson(payload) || {};
+          const role2 = claims.role || claims.roles || claims.Role;
+          if (role2) return role2;
+        } catch(_){}
+      }catch(_){}
+      return null;
+    }
+
+    async function decide(){
+      // 1) Local sources (this window)
+      if (readLocal(window)) { showMod(); return; }
+      // 2) Local sources (parent window)
+      if (window.parent && window.parent !== window) {
+        try { if (readLocal(window.parent)) { showMod(); return; } } catch(_){}
+      }
+      // 3) Firebase claims (this window)
+      const r1 = await roleFromFirebase(window);
+      if (hasModRole(r1)) { showMod(); return; }
+      // 4) Firebase claims (parent window / iframe host)
+      if (window.parent && window.parent !== window) {
+        const r2 = await roleFromFirebase(window.parent);
+        if (hasModRole(r2)) { showMod(); return; }
+      }
+    }
+
+    // Initial run and auth listeners on both contexts
+    decide();
+    try { if (window.firebase && firebase.auth) {
+      firebase.auth().onAuthStateChanged(function(){ decide(); });
+    }} catch(_){}
+    try { if (window.parent && window.parent.firebase && window.parent.firebase.auth) {
+      window.parent.firebase.auth().onAuthStateChanged(function(){ decide(); });
+    }} catch(_){}
+  })();
+</script>
+</div>
 <style>
   .submenu {
     display: none;
@@ -74,5 +170,3 @@
   }
   .submenu a { margin-left: 32px; }
 </style>
-
-    

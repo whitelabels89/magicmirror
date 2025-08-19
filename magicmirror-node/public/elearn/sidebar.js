@@ -36,7 +36,14 @@ function handleLogout() {
 function adjustSidebarByRole() {
   if (typeof getUserInfo !== 'function') return;
   const user = getUserInfo();
-  // Currently no role-based adjustments needed
+  const moderatorLink = document.getElementById('moderator-link');
+  if (moderatorLink) {
+    if (user && (user.role === 'moderator' || user.role === 'admin')) {
+      moderatorLink.style.display = 'flex';
+    } else {
+      moderatorLink.style.display = 'none';
+    }
+  }
 }
 
 document.addEventListener('DOMContentLoaded', loadSidebar);

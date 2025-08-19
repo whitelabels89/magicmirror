@@ -1,6 +1,3 @@
-
-
-
 export async function loadSidebar() {
   const ph = document.getElementById('sidebar-placeholder');
 
@@ -52,6 +49,23 @@ function initSidebar() {
   updateMeteorPath();
 
   const sidebarContainer = document.getElementById('sidebar-container');
+
+  // Moderator link visibility
+  ensureModeratorLinkVisibility();
+  try { if (window.firebase && firebase.auth) {
+    firebase.auth().onAuthStateChanged(function(){ ensureModeratorLinkVisibility(); });
+  }} catch(_){}
+  try { if (window.parent && window.parent.firebase && window.parent.firebase.auth) {
+    window.parent.firebase.auth().onAuthStateChanged(function(){ ensureModeratorLinkVisibility(); });
+  }} catch(_){}
+
+  // Short-lived recheck loop (up to ~10s) to catch late backend/session updates
+  let __modRechecks = 0;
+  const __modTimer = setInterval(() => {
+    ensureModeratorLinkVisibility();
+    __modRechecks++;
+    if (__modRechecks > 20) clearInterval(__modTimer);
+  }, 500);
 
   // Bind toggle dengan guard + retry (kalau tombol telat muncul)
   bindToggleOnce();
@@ -170,4 +184,95 @@ function updateMeteorPath() {
       { offsetDistance: '100%' }
     ], { duration: 3000, iterations: Infinity });
   }
+}
+
+// === Moderator link visibility helpers ===
+function _hasModRole_(role){
+  if (!role) return false;
+  const r = String(role).toLowerCase();
+  return r === 'moderator' || r === 'admin';
+}
+function _readLocalRole_(source){
+  try {
+    const raw = source.localStorage && source.localStorage.getItem('user');
+    if (raw) {
+      const u = JSON.parse(raw);
+      if (_hasModRole_(u.role)) return true;
+      if (_hasModRole_(u?.claims?.role)) return true;
+    }
+  } catch(_){}
+  try {
+    const raw2 = source.localStorage && source.localStorage.getItem('USER_INFO');
+    if (raw2) {
+      const u2 = JSON.parse(raw2);
+      if (_hasModRole_(u2.role)) return true;
+    }
+  } catch(_){}
+  try {
+    const u3 = source.USER_INFO;
+    if (u3 && _hasModRole_(u3.role)) return true;
+  } catch(_){}
+  return false;
+}
+function _b64urlToJson_(str){
+  try {
+    const pad = str.length % 4 === 2 ? '==' : (str.length % 4 === 3 ? '=' : '');
+    const s = str.replace(/-/g,'+').replace(/_/g,'/') + pad;
+    return JSON.parse(atob(s));
+  } catch(_) { return {}; }
+}
+async function _roleFromFirebase_(source){
+  try{
+    const fb = source.firebase;
+    if (!fb || !fb.auth) return null;
+    const u = fb.auth().currentUser;
+    if (!u) return null;
+    try {
+      const tok = await u.getIdTokenResult(true);
+      const role = tok?.claims?.role || tok?.claims?.roles || tok?.claims?.Role;
+      if (role) return role;
+    } catch(_){}
+    try {
+      const raw = await u.getIdToken(false);
+      const payload = raw.split('.')[1];
+      const claims = _b64urlToJson_(payload) || {};
+      const role2 = claims.role || claims.roles || claims.Role;
+      if (role2) return role2;
+    } catch(_){}
+  }catch(_){}
+  return null;
+}
+async function _roleFromBackend_(source){
+  const endpoints = ['/api/auth/me','/api/user/me','/api/profile/me'];
+  for (const ep of endpoints){
+    try {
+      const res = await fetch(ep, { credentials: 'include' });
+      if (!res.ok) continue;
+      const d = await res.json();
+      // Possible shapes: { ok:true, role:'moderator' }, {data:{role:'moderator'}}, {user:{role:'...'}}, flat {role:'...'}
+      const role = d?.role || d?.data?.role || d?.user?.role || d?.claims?.role;
+      if (role) return role;
+    } catch(_){}
+  }
+  return null;
+}
+async function ensureModeratorLinkVisibility(){
+  const el = document.getElementById('moderator-link');
+  if (!el) return; // nothing to toggle
+  // 1) Local window sources
+  if (_readLocalRole_(window)) { el.style.display = 'flex'; return; }
+  // 2) Parent window sources (if sidebar is in iframe)
+  if (window.parent && window.parent !== window) {
+    try { if (_readLocalRole_(window.parent)) { el.style.display = 'flex'; return; } } catch(_){}
+  }
+  // 3) Firebase claims
+  const r1 = await _roleFromFirebase_(window);
+  if (_hasModRole_(r1)) { el.style.display = 'flex'; return; }
+  if (window.parent && window.parent !== window) {
+    const r2 = await _roleFromFirebase_(window.parent);
+    if (_hasModRole_(r2)) { el.style.display = 'flex'; return; }
+  }
+  // 4) Backend endpoints (final fallback)
+  const rb = await _roleFromBackend_(window);
+  if (_hasModRole_(rb)) { el.style.display = 'flex'; return; }
 }
