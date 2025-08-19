@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Accounts – Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'light');
+  </script>
+  <style>
+    [data-theme='dark'] {
+      --primary: #131313;
+      --primary-light: #1c1c1c;
+      --card-bg: #1e1e1e;
+      --gray: #2a2a2a;
+      --text-main: #f5f5f5;
+      --text-muted: #aaa;
+      --card-radius: 14px;
+      color: var(--text-main);
+      background-color: var(--primary);
+    }
+    
+
+    [data-theme='dark'] body {
+      background: #121212;
+      color: var(--text-main);
+    }
+
+    [data-theme='dark'] .stat-card,
+    [data-theme='dark'] .form-card,
+    [data-theme='dark'] .data-table-card,
+    [data-theme='dark'] .chart-card {
+      background: var(--card-bg);
+      color: var(--text-main);
+      box-shadow: 0 0 15px rgba(0,255,255,0.3), 0 0 30px rgba(255,0,255,0.15);
+      border-radius: var(--card-radius);
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    [data-theme='dark'] table th {
+      background: #2a2f3a;
+      color: #e0e7ff;
+    }
+
+    /* Ensure table text and notifications readable in dark theme */
+    [data-theme='dark'] th,
+    [data-theme='dark'] td {
+      color: #cdd8f7;
+    }
+
+    [data-theme='dark'] #class-status,
+    [data-theme='dark'] #student-status,
+    [data-theme='dark'] #assign-status {
+      color: var(--text-main);
+    }
+
+    [data-theme='dark'] input,
+    [data-theme='dark'] select {
+      background: #292929;
+      color: var(--text-main);
+      border-color: #444;
+    }
+
+    [data-theme='dark'] input::placeholder,
+    [data-theme='dark'] select option {
+      color: var(--text-muted);
+    }
+
+    [data-theme='dark'] button {
+      background: linear-gradient(135deg, #ff00cc, #3333ff);
+      color: #fff;
+      box-shadow: none;
+    }
+
+    [data-theme='dark'] button:hover {
+      background: linear-gradient(135deg, #ff66cc, #5555ff);
+      box-shadow: none;
+    }
+    [data-theme='dark'] .header-welcome {
+      text-shadow: 0 0 6px rgba(255,255,255,0.3);
+      color: #f0f8ff;
+    }
+
+    [data-theme='dark'] .stat-card-value {
+      text-shadow: 0 0 5px rgba(255,255,255,0.2);
+      color: var(--text-main);
+    }
+    /* ==== Dark mode readability fixes for this page ==== */
+    [data-theme='dark'] main,
+    [data-theme='dark'] .main-content,
+    [data-theme='dark'] h1,
+    [data-theme='dark'] h2,
+    [data-theme='dark'] h3,
+    [data-theme='dark'] p,
+    [data-theme='dark'] span,
+    [data-theme='dark'] div { color: var(--text-main) !important; }
+
+    /* Summary cards at the top */
+    [data-theme='dark'] .summary-box {
+      background: var(--card-bg) !important;
+      color: #ffffff !important;
+      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow: 0 0 15px rgba(0,255,255,0.25), 0 0 30px rgba(255,0,255,0.12);
+    }
+    [data-theme='dark'] .summary-box strong { color: #cfd8ff !important; }
+
+    /* Tables and chart container */
+    [data-theme='dark'] table { background: #1f1f1f !important; }
+    [data-theme='dark'] th { background: #2a2f3a !important; color: #e0e7ff !important; }
+    [data-theme='dark'] td { color: #cdd8f7 !important; }
+    [data-theme='dark'] canvas#activityChart { background: #1f1f1f !important; }
+
+    /* Links inside table */
+    [data-theme='dark'] a { color: #8ab4ff !important; }
+    :root {
+      --sidebar-width: 230px;
+      --primary: #2c3e50;
+      --primary-light: #ecf0f1;
+      --card-bg: #fff;
+      --card-radius: 14px;
+      --shadow: 0 2px 8px rgba(0,0,0,0.04);
+      --gray: #f0f4f8;
+      --font-main: 'Inter', sans-serif;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      color: #333;
+      margin: 0;
+      background: #f5f7fa;
+      min-height: 100vh;
+    }
+    .summary-box, th, td, h3 {
+      font-family: 'Inter', sans-serif;
+    }
+    .dashboard-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+    .main-content {
+      flex: 1;
+      padding: 36px 40px 36px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 0px;
+      overflow-x: hidden;
+    }
+    .header-welcome {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 2rem;
+      background: linear-gradient(90deg, #ff3c3c, #ff7272);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+    .stat-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 22px;
+      margin-bottom: 18px;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow);
+      padding: 28px 26px 20px 26px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      min-width: 0;
+      transition: all 0.3s ease-in-out;
+    }
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .stat-card-title {
+      font-size: 1.05rem;
+      color: #555;
+      margin-bottom: 8px;
+    }
+    .stat-card-value {
+      font-size: 2.1rem;
+      font-weight: 600;
+      color: #000000;
+    }
+    .charts-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 10px;
+      overflow-x: auto;
+    }
+    .chart-card {
+      background: var(--card-bg);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow);
+      padding: 22px 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 100%;
+      width: 100%;
+      box-sizing: border-box;
+      overflow-x: auto;
+    }
+    .chart-card canvas {
+      max-width: 100% !important;
+      height: auto !important;
+    }
+    .chart-title {
+      font-size: 1.07rem;
+      color: #444;
+      margin-bottom: 10px;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+    }
+    .cards-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 30px;
+      margin-bottom: 20px;
+    }
+    .form-card {
+      background: var(--card-bg);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow);
+      padding: 26px 28px 20px 28px;
+      margin-bottom: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      transition: all 0.3s ease-in-out;
+    }
+    .form-card h2 {
+      margin-top: 0;
+      margin-bottom: 18px;
+      font-size: 1.18rem;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .form-card form {
+      margin: 0;
+      max-width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .form-card input,
+    .form-card select {
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: 7px;
+      border: 1px solid #dde1ef;
+      margin-bottom: 6px;
+      font-size: 1rem;
+      background: #f7fafd;
+      transition: border 0.13s;
+    }
+    .form-card input:focus,
+    .form-card select:focus {
+      outline: none;
+      border: 1.5px solid var(--primary);
+    }
+    .form-card button {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 10px 0;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-top: 8px;
+    }
+    .form-card button:hover {
+      background: #2445a7;
+    }
+    .form-card p {
+      margin: 8px 0 0 0;
+      font-size: 0.96rem;
+    }
+    .data-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 0;
+    }
+    .data-table-card {
+      background: var(--card-bg);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow);
+      padding: 26px 18px 18px 18px;
+      overflow-x: auto;
+      transition: all 0.3s ease-in-out;
+    }
+    .data-table-card h2 {
+      margin-top: 0;
+      margin-bottom: 16px;
+      font-size: 1.14rem;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 1rem;
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 0;
+    }
+    th, td {
+      padding: 9px 12px;
+      border-bottom: 1px solid #f0f0f0;
+      text-align: left;
+    }
+    th {
+      background: var(--primary-light);
+      color: #233b6c;
+      font-weight: 500;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    button {
+      padding: 6px 14px;
+      border-radius: 6px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-size: 0.97rem;
+      transition: background 0.13s;
+    }
+    button:hover {
+      background: #2445a7;
+    }
+    /* Header row + theme icon button (no background) */
+    .header-row { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; }
+    .header-theme-btn {
+      background:none; border:none; cursor:pointer; font-size:1.4rem; line-height:1;
+      display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px;
+    }
+    button.header-theme-btn { background:transparent !important; box-shadow:none !important; }
+    [data-theme='dark'] button.header-theme-btn { background:transparent !important; box-shadow:none !important; }
+    .header-theme-btn:hover, .header-theme-btn:active { background:transparent !important; }
+    .header-theme-btn i { background:transparent !important; color: var(--text-main) !important; opacity: .95; }
+    .header-theme-btn:hover i { opacity: 1; }
+    /* Responsive */
+    @media (max-width: 1100px) {
+      .main-content { padding: 28px 10px 28px 10px; }
+      .charts-row, .data-section, .cards-section { grid-template-columns: 1fr; }
+    }
+  </style>
+  <link rel="stylesheet" href="/elearn/css/sidebar-mod.css">
+</head>
+<body>
+  <div class="dashboard-layout">
+    <!-- Sidebar digantikan dengan file terpisah -->
+    <div id="sidebar-placeholder"></div>
+    <script type="module">
+      import { loadSidebar } from '/elearn/sidebar-init.js';
+      loadSidebar();
+    </script>
+    <main style="max-width: 1100px; margin: 0 auto; padding: 2rem 1rem;">
+      <!-- Section: Header (title + theme toggle inline) -->
+      <section class="section-header section-spacing" style="margin-bottom: 20px;">
+        <div class="header-row">
+          <h2 style="color: #e53935; font-weight: 700; font-size: 1.75rem; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 10px; margin: 0;">
+            <i class="bi bi-graph-up-arrow" style="color: #e53935;"></i>
+            Activity Reports
+          </h2>
+          <button id="theme-toggle-btn" aria-label="Toggle theme" class="header-theme-btn">
+            <i id="theme-icon" class="bi bi-sun-fill"></i>
+          </button>
+        </div>
+      </section>
+      <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+        <div class="summary-box"><strong>Total Students</strong><br><span id="total-students">0</span></div>
+        <div class="summary-box"><strong>Total Lessons</strong><br><span id="total-lessons">0</span></div>
+        <div class="summary-box"><strong>Total Activities</strong><br><span id="total-activities">0</span></div>
+        <div class="summary-box"><strong>Top Performer</strong><br><span id="top-performer">-</span></div>
+      </div>
+      <section class="report-chart">
+        <canvas id="activityChart" style="width:100%; max-width:800px; margin:20px auto; display: block;"></canvas>
+      </section>
+      <section class="report-table">
+        <h3 style="font-size: 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 10px;">
+          <i class="bi bi-card-checklist" style="color: #555;"></i>
+          Activity Log
+        </h3>
+        <input type="text" id="filterCID" placeholder="Filter by CID..." oninput="applyActivityFilter()" />
+        <table id="activityTable">
+          <thead>
+            <tr>
+              <th>CID</th>
+              <th>Nama</th>
+              <th>Lesson</th>
+              <th>Date</th>
+              <th>Activity</th>
+              <th>Score</th>
+              <th>Link</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+    </main>
+  <style>
+  .summary-box {
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    padding: 1.15rem 1rem;
+    border-radius: 12px;
+    flex: 1 1 200px;
+    min-width: 200px;
+    text-align: center;
+    font-size: 1.1rem;
+    font-family: 'Inter', sans-serif;
+  }
+.report-table input {
+  margin: 1rem 0;
+  padding: 0.5rem;
+  width: 200px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+.report-table table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+  .report-table th, .report-table td {
+    border: 1px solid #eee;
+    padding: 13px 14px;
+    text-align: left;
+    font-size: 0.97rem;
+    border-radius: 0px;
+    font-family: 'Inter', sans-serif;
+  }
+  .report-table th {
+    background-color: #f7f9fc;
+    color: #233b6c;
+    font-weight: 600;
+    border-radius: 0px;
+    font-family: 'Inter', sans-serif;
+  }
+canvas#activityChart {
+  background: #fff;
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+/* --- Dark mode fix: ensure summary totals readable --- */
+[data-theme='dark'] .summary-box {
+  background: var(--card-bg) !important;
+  color: var(--text-main) !important;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 0 15px rgba(0,255,255,0.25), 0 0 30px rgba(255,0,255,0.12);
+}
+[data-theme='dark'] .summary-box strong {
+  color: var(--text-main) !important;
+}
+[data-theme='dark'] .summary-box span {
+  color: var(--text-main) !important;
+  opacity: 1 !important;
+  text-shadow: none;
+}
+  </style>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let activityData = [];
+
+async function loadActivityLogs() {
+  try {
+    const res = await fetch('/api/activity-logs');
+    const clone = res.clone();
+    let data = [];
+    const ct = res.headers.get('content-type') || '';
+
+    if (ct.includes('application/json')) {
+      try {
+        data = await res.json();
+      } catch (_) {
+        // JSON parse failed; fall back to cloned text
+        const text = await clone.text();
+        try { data = JSON.parse(text); } catch { data = []; }
+      }
+    } else {
+      // Not JSON; try parse from original text directly
+      const text = await res.text();
+      try { data = JSON.parse(text); } catch { data = []; }
+    }
+
+    // Normalize to array if server wraps payload
+    if (!Array.isArray(data)) {
+      if (Array.isArray(data?.data)) data = data.data;
+      else if (Array.isArray(data?.items)) data = data.items;
+      else data = [];
+    }
+
+    activityData = data;
+    renderSummary(data);
+    renderTable(data);
+    renderChart(data);
+  } catch (err) {
+    console.error('❌ Failed to load /api/activity-logs:', err);
+    activityData = [];
+    renderSummary([]);
+    renderTable([]);
+  }
+}
+
+function renderSummary(data) {
+  const uniqueStudents = new Set(data.map(d => d.cid));
+  const lessonDone = new Set(data.map(d => d.lesson));
+  const topMap = {};
+  data.forEach(d => {
+    topMap[d.cid] = (topMap[d.cid] || 0) + 1;
+  });
+  const topCID = Object.entries(topMap).sort((a, b) => b[1] - a[1])[0]?.[0] || '-';
+
+  document.getElementById('total-students').textContent = uniqueStudents.size;
+  document.getElementById('total-lessons').textContent = lessonDone.size;
+  document.getElementById('total-activities').textContent = data.length;
+  document.getElementById('top-performer').textContent = topCID;
+}
+
+function renderTable(data) {
+  const tbody = document.querySelector('#activityTable tbody');
+  tbody.innerHTML = '';
+  data.forEach(d => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${d.cid}</td>
+      <td>${d.nama || '-'}</td>
+      <td>${d.lesson || '-'}</td>
+      <td>${d.timestamp ? new Date(d.timestamp).toLocaleString() : '-'}</td>
+      <td>${d.aktivitas || '-'}</td>
+      <td>${d.quiz_score ?? '-'}</td>
+      <td>${d.link ? `<a href="${d.link}" target="_blank">View</a>` : '-'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function applyActivityFilter() {
+  const filter = document.getElementById('filterCID').value.toLowerCase();
+  const filtered = activityData.filter(d => (d.cid || '').toLowerCase().includes(filter));
+  renderTable(filtered);
+}
+
+function renderChart(data) {
+  const dailyCount = {};
+  data.forEach(d => {
+    const ts = d.timestamp ? new Date(d.timestamp) : null;
+    if (!ts) return;
+    const date = new Date(ts).toISOString().split('T')[0];
+    dailyCount[date] = (dailyCount[date] || 0) + 1;
+  });
+
+  const labels = Object.keys(dailyCount).sort();
+  const values = labels.map(k => dailyCount[k]);
+
+  const ctx = document.getElementById('activityChart');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Activity per Day',
+        data: values,
+        backgroundColor: 'rgba(54, 162, 235, 0.7)'
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+}
+
+window.addEventListener('DOMContentLoaded', loadActivityLogs);
+</script>
+  </div>
+  <script>
+  // Konstanta endpoint backend Firebase
+  const FIREBASE_API = "https://firebase-upload-backend.onrender.com";
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const role = localStorage.getItem('role');
+    if (role !== 'moderator') {
+      window.location.href = '/elearn/login.html';
+      return;
+    }
+    // Set dynamic username
+    const userName = localStorage.getItem('nama') || 'Moderator';
+    // Pastikan elemen user-name ada sebelum mengakses
+    if (document.getElementById('user-name')) {
+      document.getElementById('user-name').textContent = userName;
+    }
+
+    loadClasses();
+    loadAllStudents();
+    if (document.getElementById('form-add-class')) {
+      document.getElementById('form-add-class').addEventListener('submit', addClass);
+    }
+    if (document.getElementById('form-add-student')) {
+      document.getElementById('form-add-student').addEventListener('submit', addStudent);
+    }
+
+  async function loadClasses() {
+    try {
+      const res = await fetch('/api/kelas');
+      const json = await res.json().catch(async () => {
+        const t = await res.text();
+        try { return JSON.parse(t); } catch { return { data: [] }; }
+      });
+      const list = Array.isArray(json?.data) ? json.data : (Array.isArray(json) ? json : []);
+      const tbody = document.querySelector('#kelas-table tbody');
+      if (!tbody) return; // page has no kelas table
+      tbody.innerHTML = '';
+      let totalMurid = 0;
+      let guruSet = new Set();
+      list.forEach(kelas => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td data-label="Kelas ID">${kelas.kelas_id || '-'}</td>
+          <td data-label="Nama Kelas">${kelas.nama_kelas || '-'}</td>
+          <td data-label="Guru ID">${kelas.guru_id || '-'}</td>
+          <td data-label="Jumlah Murid">${kelas.jumlah_murid || 0}</td>
+          <td data-label="Aksi"><button data-id="${kelas.kelas_id || ''}">Lihat Murid</button></td>`;
+        tr.querySelector('button').addEventListener('click', () => loadStudents(kelas.kelas_id));
+        tbody.appendChild(tr);
+        totalMurid += (kelas.jumlah_murid || 0);
+        if (kelas.guru_id) guruSet.add(kelas.guru_id);
+      });
+      // Update stat cards only if present on this page
+      const statKelas = document.getElementById('stat-kelas');
+      const statMurid = document.getElementById('stat-murid');
+      const statGuru  = document.getElementById('stat-guru');
+      if (statKelas) statKelas.textContent = list.length;
+      if (statMurid) statMurid.textContent = totalMurid;
+      if (statGuru)  statGuru.textContent  = guruSet.size;
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async function loadStudents(kelasId) {
+    try {
+      const res = await fetch(`/api/kelas/${kelasId}`);
+      const data = await res.json();
+      const tbody = document.querySelector('#students-table tbody');
+      tbody.innerHTML = '';
+      data.forEach(murid => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td data-label="CID">${murid.cid}</td>
+          <td data-label="Nama"><a href="/elearn/student-profile.html?cid=${murid.cid}">${murid.nama}</a></td>
+          <td data-label="Email">${murid.email}</td>`;
+        tbody.appendChild(tr);
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async function loadAllStudents() {
+    const select = document.getElementById('assign_uid');
+    const status = document.getElementById('assign-status');
+    const selectLesson = document.getElementById('assign_lesson_uid');
+    try {
+      let payload = [];
+      // Try multiple endpoints; tolerate network issues
+      try {
+        const r1 = await fetch(`${FIREBASE_API}/api/semua-murid`);
+        if (r1.ok) payload = await r1.json();
+      } catch(_) {}
+      if (!Array.isArray(payload) && (!payload || (!Array.isArray(payload.data) && !Array.isArray(payload.items)))) {
+        try { const r2 = await fetch('/api/students'); if (r2.ok) payload = await r2.json(); } catch(_) {}
+      }
+      if (!Array.isArray(payload) && (!payload || (!Array.isArray(payload.data) && !Array.isArray(payload.items)))) {
+        try { const r3 = await fetch('/api/users?role=murid'); if (r3.ok) payload = await r3.json(); } catch(_) {}
+      }
+
+      const list = Array.isArray(payload)
+        ? payload
+        : (Array.isArray(payload?.data) ? payload.data
+        : (Array.isArray(payload?.items) ? payload.items : []));
+
+      if (select) select.innerHTML = '<option value="">Pilih Murid</option>';
+      if (selectLesson) selectLesson.innerHTML = '<option value="">Pilih Murid</option>';
+
+      if (!Array.isArray(list) || list.length === 0) {
+        if (status) status.textContent = '⚠️ Tidak dapat memuat daftar murid (jaringan/endpoint).';
+        return; // no-op
+      }
+
+      list.forEach(m => {
+        const cid = m?.cid || m?.uid || m?.id || '';
+        const name = m?.nama || m?.name || 'Tanpa Nama';
+        if (select) {
+          const opt = document.createElement('option');
+          opt.value = cid;
+          opt.textContent = `${name} (${cid})`;
+          select.appendChild(opt);
+        }
+        if (selectLesson) {
+          const opt2 = document.createElement('option');
+          opt2.value = cid;
+          opt2.textContent = `${name} (${cid})`;
+          selectLesson.appendChild(opt2);
+        }
+      });
+      const statMurid = document.getElementById('stat-murid');
+      if (statMurid) statMurid.textContent = list.length;
+      if (status) status.textContent = '';
+    } catch (err) {
+      console.error(err);
+      if (status) status.textContent = '❌ Gagal memuat daftar murid';
+    }
+  }
+
+  async function addClass(e) {
+    e.preventDefault();
+    const status = document.getElementById('class-status');
+    const kelas_id = document.getElementById('kelas_id').value.trim();
+    const nama_kelas = document.getElementById('nama_kelas').value.trim();
+    const guru_id = document.getElementById('guru_id').value.trim();
+    try {
+      const res = await fetch('/api/kelas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kelas_id, nama_kelas, guru_id })
+      });
+      if (res.ok) {
+        if (status) status.textContent = '✅ Kelas berhasil ditambah.';
+        loadClasses();
+        e.target.reset();
+      } else {
+        const data = await res.json();
+        if (status) status.textContent = '❌ ' + (data.error || 'Gagal menambah kelas');
+      }
+    } catch (err) {
+      console.error(err);
+      if (status) status.textContent = '❌ Gagal menambah kelas';
+    }
+  }
+
+  async function addStudent(e) {
+    e.preventDefault();
+    const status = document.getElementById('student-status');
+    const nama = document.getElementById('nama').value.trim();
+    const email = document.getElementById('email').value.trim();
+    let wa = document.getElementById('wa').value.trim();
+    if (wa && !wa.startsWith('+62')) {
+      wa = '+62' + wa.replace(/^0+/, '');
+    }
+    const password = document.getElementById('password').value.trim();
+    const kelas_id = document.getElementById('kelas_id_student').value.trim();
+    const role = document.getElementById('role').value;
+    // Generate CID before sending request
+    const cid = 'QAC' + String(Date.now()).slice(-7); // Simple unique 7-digit suffix
+    try {
+      const res = await fetch(`${FIREBASE_API}/api/daftar-akun-baru`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cid, nama, email, password, wa, kelas_id, role })
+      });
+      if (res.ok) {
+        if (status) status.textContent = '✅ Akun berhasil ditambah.';
+        e.target.reset();
+        loadClasses();
+      } else {
+        const data = await res.json();
+        if (status) status.textContent = '❌ ' + (data.error || 'Gagal menambah akun');
+      }
+    } catch (err) {
+      console.error(err);
+      if (status) status.textContent = '❌ Gagal menambah akun';
+    }
+  }
+  if (document.getElementById('form-assign-student')) {
+    document.getElementById('form-assign-student').addEventListener('submit', assignStudent);
+  }
+
+  if (document.getElementById('form-assign-lesson')) {
+    document.getElementById('form-assign-lesson').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const cid = document.getElementById('assign_lesson_uid').value.trim();
+      const lesson = document.getElementById('lesson_code').value.trim();
+      const status = document.getElementById('lesson-assign-status');
+      if (!cid || !lesson) return;
+
+      try {
+        const res = await fetch(`${FIREBASE_API}/api/assign-lesson`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cid, lesson })
+        });
+        if (res.ok) {
+          if (status) status.textContent = '✅ Akses lesson berhasil ditambahkan.';
+          e.target.reset();
+        } else {
+          try {
+            const data = await res.json();
+            if (status) status.textContent = '❌ ' + (data.error || 'Gagal assign lesson');
+          } catch (err) {
+            const text = await res.text();
+            console.error('❌ Invalid JSON:', text);
+            if (status) status.textContent = '❌ Gagal assign lesson (invalid response)';
+          }
+        }
+      } catch (err) {
+        console.error(err);
+        if (status) status.textContent = '❌ Gagal assign lesson';
+      }
+    });
+  }
+
+  async function assignStudent(e) {
+    e.preventDefault();
+    const status = document.getElementById('assign-status');
+    const uid = document.getElementById('assign_uid').value.trim();
+    const kelas_id = document.getElementById('assign_kelas_id').value.trim();
+    try {
+      const res = await fetch(`${FIREBASE_API}/api/assign-murid-ke-kelas`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid, kelas_id })
+      });
+      if (res.ok) {
+        if (status) status.textContent = '✅ Murid berhasil di-assign ke kelas.';
+        e.target.reset();
+        loadClasses();
+      } else {
+        const data = await res.json();
+        if (status) status.textContent = '❌ ' + (data.error || 'Gagal assign murid');
+      }
+    } catch (err) {
+      console.error(err);
+      if (status) status.textContent = '❌ Gagal assign murid';
+    }
+  }
+ });
+ </script>
+
+  <script>
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      const next = current === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      updateThemeIcon();
+      const sidebar = document.getElementById('sidebar-container');
+      if (sidebar) {
+        if (next === 'dark') {
+          sidebar.classList.add('dark-theme');
+        } else {
+          sidebar.classList.remove('dark-theme');
+        }
+      }
+    }
+
+    function updateThemeIcon() {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      const icon = document.getElementById('theme-icon');
+      if (!icon) return;
+      icon.classList.remove('bi-sun','bi-sun-fill','bi-moon','bi-moon-stars','bi-moon-fill');
+      if (current === 'dark') { icon.classList.add('bi-moon-stars'); }
+      else { icon.classList.add('bi-sun-fill'); }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const currentTheme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      updateThemeIcon();
+      const themeBtn = document.getElementById('theme-toggle-btn');
+      if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
+      // Add dark-theme class to sidebar if dark mode is active
+      if (currentTheme === 'dark') {
+        document.getElementById('sidebar-container')?.classList.add('dark-theme');
+      }
+    });
+  </script>
+</body>
+</html>

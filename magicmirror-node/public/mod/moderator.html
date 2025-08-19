@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Moderator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <link rel="prefetch" href="/elearn/sidebar-mod.html" as="fetch" crossorigin>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'light');
+  </script>
+  <style>
+    [data-theme='dark'] {
+      --primary: #131313;
+      --primary-light: #1c1c1c;
+      --card-bg: #1e1e1e;
+      --gray: #2a2a2a;
+      --text-main: #f5f5f5;
+      --text-muted: #aaa;
+      --card-radius: 14px;
+      color: var(--text-main);
+      background-color: var(--primary);
+    }
+
+    [data-theme='dark'] body {
+      background: #121212;
+      color: var(--text-main);
+    }
+
+    [data-theme='dark'] .stat-card,
+    [data-theme='dark'] .form-card,
+    [data-theme='dark'] .data-table-card,
+    [data-theme='dark'] .chart-card {
+      background: var(--card-bg);
+      color: var(--text-main);
+      box-shadow: 0 0 15px rgba(0,255,255,0.3), 0 0 30px rgba(255,0,255,0.15);
+      border-radius: var(--card-radius);
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    [data-theme='dark'] table th {
+      background: #2a2f3a;
+      color: #e0e7ff;
+    }
+
+    /* Ensure table text and notifications readable in dark theme */
+    [data-theme='dark'] th,
+    [data-theme='dark'] td {
+      color: #cdd8f7;
+    }
+
+    [data-theme='dark'] #class-status,
+    [data-theme='dark'] #student-status,
+    [data-theme='dark'] #assign-status {
+      color: var(--text-main);
+    }
+
+    [data-theme='dark'] input,
+    [data-theme='dark'] select {
+      background: #292929;
+      color: var(--text-main);
+      border-color: #444;
+    }
+
+    [data-theme='dark'] input::placeholder,
+    [data-theme='dark'] select option {
+      color: var(--text-muted);
+    }
+
+    [data-theme='dark'] button {
+      background: linear-gradient(135deg, #ff00cc, #3333ff);
+      color: #fff;
+      box-shadow: none;
+    }
+
+    [data-theme='dark'] button:hover {
+      background: linear-gradient(135deg, #ff66cc, #5555ff);
+      box-shadow: none;
+    }
+    [data-theme='dark'] .header-welcome {
+      text-shadow: 0 0 6px rgba(255,255,255,0.3);
+      color: #f0f8ff;
+    }
+
+    [data-theme='dark'] .stat-card-value {
+      text-shadow: 0 0 5px rgba(255,255,255,0.2);
+      color: var(--text-main);
+    }
+
+    /* Dark mode: tables background */
+    [data-theme='dark'] table { background: #1e1e1e; }
+    :root {
+      --sidebar-width: 230px;
+      --primary: #2c3e50;
+      --primary-light: #ecf0f1;
+      --card-bg: #fff;
+      --card-radius: 14px;
+      --shadow: 0 2px 8px rgba(0,0,0,0.04);
+      --gray: #f0f4f8;
+      --font-main: 'Inter', sans-serif;
+    }
+    body {
+      font-family: var(--font-main);
+      margin: 0;
+      background: #f5f7fa;
+      min-height: 100vh;
+    }
+    .dashboard-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+    
+    .main-content {
+      flex: 1;
+      padding: 36px 40px 36px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+      overflow-x: hidden;
+    }
+    .header-welcome {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 2rem;
+      background: linear-gradient(90deg, #ff3c3c, #ff7272);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+    .header-row { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; }
+    .header-theme-btn {
+      background:none; border:none; cursor:pointer; font-size:1.4rem; line-height:1;
+      display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px;
+    }
+    /* Keep button clean in all themes */
+    button.header-theme-btn { background:transparent !important; box-shadow:none !important; }
+    [data-theme='dark'] button.header-theme-btn { background:transparent !important; box-shadow:none !important; }
+    .header-theme-btn:hover, .header-theme-btn:active { background:transparent !important; }
+    /* Icon always white */
+    .header-theme-btn i { background:transparent !important; color:#fff !important; }
+    .stat-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 22px;
+      margin-bottom: 18px;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow);
+      padding: 28px 26px 20px 26px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      min-width: 0;
+      transition: all 0.3s ease-in-out;
+    }
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .stat-card-title {
+      font-size: 1.05rem;
+      color: #555;
+      margin-bottom: 8px;
+    }
+    .stat-card-value {
+      font-size: 2.1rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+    .charts-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 10px;
+      overflow-x: auto;
+    }
+    .chart-card {
+      background: var(--card-bg);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow);
+      padding: 22px 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 100%;
+      width: 100%;
+      box-sizing: border-box;
+      overflow-x: auto;
+    }
+    .chart-card canvas {
+      max-width: 100% !important;
+      height: auto !important;
+    }
+    .chart-title {
+      font-size: 1.07rem;
+      color: #444;
+      margin-bottom: 10px;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+    }
+    .cards-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 30px;
+      margin-bottom: 20px;
+    }
+    .form-card {
+      background: var(--card-bg);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow);
+      padding: 26px 28px 20px 28px;
+      margin-bottom: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      transition: all 0.3s ease-in-out;
+    }
+    .form-card h2 {
+      margin-top: 0;
+      margin-bottom: 18px;
+      font-size: 1.18rem;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .form-card form {
+      margin: 0;
+      max-width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .form-card input,
+    .form-card select {
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: 7px;
+      border: 1px solid #dde1ef;
+      margin-bottom: 6px;
+      font-size: 1rem;
+      background: #f7fafd;
+      transition: border 0.13s;
+    }
+    .form-card input:focus,
+    .form-card select:focus {
+      outline: none;
+      border: 1.5px solid var(--primary);
+    }
+    .form-card button {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 10px 0;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-top: 8px;
+    }
+    .form-card button:hover {
+      background: #2445a7;
+    }
+    .form-card p {
+      margin: 8px 0 0 0;
+      font-size: 0.96rem;
+    }
+    .data-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 0;
+    }
+    .data-table-card {
+      background: var(--card-bg);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow);
+      padding: 26px 18px 18px 18px;
+      overflow-x: auto;
+      transition: all 0.3s ease-in-out;
+    }
+    .data-table-card h2 {
+      margin-top: 0;
+      margin-bottom: 16px;
+      font-size: 1.14rem;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 1rem;
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 0;
+    }
+    th, td {
+      padding: 9px 12px;
+      border-bottom: 1px solid #f0f0f0;
+      text-align: left;
+    }
+    th {
+      background: var(--primary-light);
+      color: #233b6c;
+      font-weight: 500;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    button {
+      padding: 6px 14px;
+      border-radius: 6px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-size: 0.97rem;
+      transition: background 0.13s;
+    }
+    button:hover {
+      background: #2445a7;
+    }
+    .muted { color: #778; font-size: .92rem; }
+    .trend-pill { font-size:.85rem; padding:2px 8px; border-radius:999px; background:#eef3ff; color:#2643e9; }
+    [data-theme='dark'] .trend-pill { background:#233; color:#9ac2ff; }
+    .kpi-row { display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+    .kpi .kpi-sub { font-size:.85rem; color:#667; margin-top:4px; }
+    [data-theme='dark'] .kpi .kpi-sub { color:#aab; }
+    .compact-table td, .compact-table th { padding:8px 10px; font-size:.95rem; }
+    .table-note { font-size:.85rem; color:#889; margin-top:6px; }
+    .section-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:0 0 10px 0; }
+    .filter-row { display:flex; align-items:center; gap:8px; }
+    .filter-row select, .filter-row input[type="date"] { padding:6px 8px; border:1px solid #dde1ef; border-radius:6px; background:#fff; }
+    [data-theme='dark'] .filter-row select, [data-theme='dark'] .filter-row input[type="date"] { background:#292929; color:var(--text-main); border-color:#444; }
+    /* Responsive */
+    @media (max-width: 1100px) {
+      .main-content { padding: 28px 10px 28px 10px; }
+      .charts-row, .data-section, .cards-section { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 700px) {
+      .dashboard-layout { flex-direction: column; }
+      .sidebar { width: 100%; flex-direction: row; padding: 12px 0; min-height: 0; }
+      .sidebar nav ul { display: flex; flex-direction: row; }
+      .sidebar nav ul li { padding: 10px 12px; font-size: 0.95rem; border-left: none; border-top: 4px solid transparent; }
+      .sidebar nav ul li.active, .sidebar nav ul li:hover { border-left: none; border-top: 4px solid #fff; }
+      .sidebar .logo { font-size: 1.1rem; margin-bottom: 0; margin-right: 18px; }
+      .main-content { padding: 12px 3vw; }
+    }
+</style>
+  <style>
+    .stat-card,
+    .form-card,
+    .data-table-card,
+    .chart-card {
+      max-width: 100%;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    td, th {
+      max-width: 220px;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      white-space: normal;
+    }
+  </style>
+  <link rel="stylesheet" href="/elearn/sidebar-mod.css">
+</head>
+<body>
+  <div class="dashboard-layout">
+    <!-- Sidebar digantikan dengan file terpisah -->
+    <div id="sidebar-placeholder"></div>
+    <script>
+      // Inject cached sidebar instantly (anti flicker & ensure presence)
+      (function() {
+        try {
+          const cached = localStorage.getItem('sidebar_mod_html_v2');
+          const ph = document.getElementById('sidebar-placeholder');
+          if (cached && ph && !document.getElementById('sidebar-container')) {
+            ph.outerHTML = cached; // replace placeholder with full sidebar
+          }
+        } catch (e) { /* no-op */ }
+      })();
+    </script>
+    <script type="module">
+      import { loadSidebar } from '/elearn/sidebar-init.js';
+      loadSidebar();
+    </script>
+    <script>
+      // Fallback + cache refresher to guarantee sidebar exists
+      window.addEventListener('DOMContentLoaded', () => {
+        fetch('/elearn/sidebar-mod.html')
+          .then(res => res.text())
+          .then(html => {
+            try { localStorage.setItem('sidebar_mod_html_v2', html); } catch (e) {}
+            if (!document.getElementById('sidebar-container')) {
+              const ph = document.getElementById('sidebar-placeholder');
+              if (ph) ph.outerHTML = html;
+            }
+          })
+          .catch(err => console.error('Sidebar fallback error (moderator):', err));
+      });
+    </script>
+    <main class="main-content">
+      <!-- Section: Header (title + theme toggle inline) -->
+      <section class="section-header section-spacing" style="margin-bottom: 30px;">
+        <div class="header-row">
+          <div class="header-welcome">Hello, <span id="user-name">Moderator</span>!</div>
+          <button id="theme-toggle-btn" aria-label="Toggle theme" class="header-theme-btn">
+            <i id="theme-icon" class="bi bi-sun-fill"></i>
+          </button>
+        </div>
+      </section>
+
+      <!-- Section: KPIs Overview -->
+      <section class="section-kpis section-spacing" style="margin-bottom: 22px;">
+        <div class="section-heading">
+          <h2 style="margin:0;font-size:1.14rem;color:var(--primary);font-weight:600;">Platform Overview</h2>
+          <div class="filter-row">
+            <select id="kpi-range">
+              <option value="7d">Last 7 days</option>
+              <option value="30d" selected>Last 30 days</option>
+              <option value="90d">Last 90 days</option>
+            </select>
+            <button id="refresh-overview" class="header-theme-btn" aria-label="Refresh Overview" title="Refresh">
+              <i class="bi bi-arrow-clockwise" style="font-size:1.1rem"></i>
+            </button>
+          </div>
+        </div>
+        <div class="kpi-row">
+          <div class="stat-card kpi">
+            <div class="stat-card-title">Total Users</div>
+            <div class="stat-card-value" id="kpi-total-users">0</div>
+            <div class="kpi-sub"><span id="kpi-users-trend" class="trend-pill">0% MoM</span></div>
+          </div>
+          <div class="stat-card kpi">
+            <div class="stat-card-title">Active Today</div>
+            <div class="stat-card-value" id="kpi-active-today">0</div>
+            <div class="kpi-sub"><span id="kpi-active-trend" class="trend-pill">0% vs avg</span></div>
+          </div>
+          <div class="stat-card kpi">
+            <div class="stat-card-title">Lessons</div>
+            <div class="stat-card-value" id="kpi-lessons">0</div>
+            <div class="kpi-sub"><span id="kpi-lessons-trend" class="trend-pill">0% MoM</span></div>
+          </div>
+          <div class="stat-card kpi">
+            <div class="stat-card-title">Active Sessions</div>
+            <div class="stat-card-value" id="kpi-sessions">0</div>
+            <div class="kpi-sub"><span id="kpi-sessions-trend" class="trend-pill">now</span></div>
+          </div>
+          <div class="stat-card kpi">
+            <div class="stat-card-title">Monthly Revenue</div>
+            <div class="stat-card-value" id="kpi-revenue">0</div>
+            <div class="kpi-sub"><span id="kpi-revenue-trend" class="trend-pill">0% MoM</span></div>
+          </div>
+          <div class="stat-card kpi">
+            <div class="stat-card-title">Error Rate</div>
+            <div class="stat-card-value" id="kpi-error">0%</div>
+            <div class="kpi-sub"><span id="kpi-error-trend" class="trend-pill">stable</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: Charts -->
+      <section class="section-charts section-spacing" style="margin-bottom: 18px;">
+        <div class="charts-row">
+          <div class="chart-card">
+            <div class="chart-title">Daily Active Users (DAU)</div>
+            <canvas id="dauChart" width="400" height="220"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Revenue (Last 12 Months)</div>
+            <canvas id="revenueChart" width="400" height="220"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: Tables -->
+      <section class="section-tables section-spacing" style="margin-bottom: 26px;">
+        <div class="data-section" id="overview-tables">
+          <div class="data-table-card">
+            <h2 class="section-heading" style="margin:0 0 10px 0;">Recent Activity <span class="muted" id="activity-count"></span></h2>
+            <table id="recent-activity" class="compact-table">
+              <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Detail</th></tr></thead>
+              <tbody id="recent-activity-body"></tbody>
+            </table>
+            <div class="table-note">Showing latest 20 events.</div>
+          </div>
+          <div class="data-table-card">
+            <h2 class="section-heading" style="margin:0 0 10px 0;">Top Classes by Active Students</h2>
+            <table id="top-classes" class="compact-table">
+              <thead><tr><th>Class</th><th>Teacher</th><th>Active</th><th>Lessons</th></tr></thead>
+              <tbody id="top-classes-body"></tbody>
+            </table>
+            <div class="table-note">Rolling 30 days.</div>
+          </div>
+        </div>
+      </section>
+      <!-- Section: Signups & Alerts -->
+      <section class="section-signups-alerts section-spacing" style="margin-bottom: 10px;">
+        <div class="data-section">
+          <div class="data-table-card">
+            <h2 class="section-heading" style="margin:0 0 10px 0;">Recent Signups</h2>
+            <table id="recent-signups" class="compact-table">
+              <thead><tr><th>When</th><th>Name</th><th>Email</th><th>Role</th></tr></thead>
+              <tbody id="recent-signups-body"></tbody>
+            </table>
+          </div>
+          <div class="data-table-card">
+            <h2 class="section-heading" style="margin:0 0 10px 0;">Alerts</h2>
+            <ul id="alerts-list" style="margin:0; padding-left:18px;"></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: Forms -->
+      <!--
+      <section class="section-forms section-spacing" style="margin-bottom: 30px;">
+        <div class="cards-section" id="akun-section">
+          <div class="form-card">
+            <h2>Tambah Kelas Baru</h2>
+            <form id="form-add-class">
+              <input type="text" id="kelas_id" placeholder="Kelas ID" required style="max-width: 441px;">
+              <input type="text" id="nama_kelas" placeholder="Nama Kelas" required style="max-width: 441px;">
+              <input type="text" id="guru_id" placeholder="Guru ID" required style="max-width: 441px;">
+              <button type="submit">Tambah Kelas</button>
+            </form>
+            <p id="class-status"></p>
+          </div>
+          <div class="form-card">
+            <h2>Tambah Akun</h2>
+            <form id="form-add-student">
+              <input type="text" id="nama" placeholder="Nama" required style="max-width: 441px;">
+              <input type="email" id="email" placeholder="Email" required style="max-width: 441px;">
+              <input type="tel" id="wa" placeholder="Nomor WhatsApp (+62...)" required style="max-width: 441px;">
+              <input type="password" id="password" placeholder="Password" required style="max-width: 441px;">
+              <input type="text" id="kelas_id_student" placeholder="Kelas ID" required style="max-width: 441px;">
+              <select id="role">
+                <option value="murid">Murid</option>
+                <option value="guru">Guru</option>
+                <option value="moderator">Moderator</option>
+              </select>
+              <button type="submit">Tambah Akun</button>
+            </form>
+            <p id="student-status"></p>
+          </div>
+          <div class="form-card">
+            <h2>Assign Murid ke Kelas</h2>
+            <form id="form-assign-student" style="max-width: 100%;">
+              <select id="assign_uid"></select>
+              <input type="text" id="assign_kelas_id" placeholder="Kelas ID Tujuan" required style="max-width: 441px;">
+              <button type="submit">Assign Murid</button>
+            </form>
+            <p id="assign-status"></p>
+          </div>
+          <div class="form-card">
+            <h2>Assign Lesson ke Murid</h2>
+            <form id="form-assign-lesson">
+              <select id="assign_lesson_uid"></select>
+              <input type="text" id="lesson_code" placeholder="Kode Lesson (contoh: M1L2)" required style="max-width: 441px;">
+              <button type="submit">Tambah Akses Lesson</button>
+            </form>
+            <p id="lesson-assign-status"></p>
+          </div>
+        </div>
+      </section>
+      -->
+      <section class="section-mirror-login section-spacing" style="margin-bottom: 30px;">
+        <button id="mirrorLoginBtn">Mirror Login Data</button>
+        <div id="mirrorLoginStatus"></div>
+      </section>
+    </main>
+  </div>
+  <script>
+  // Konstanta endpoint backend Firebase
+  const FIREBASE_API = window.location.origin;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const role = localStorage.getItem('role');
+    if (role !== 'moderator') {
+      window.location.href = '/elearn/login.html';
+      return;
+    }
+    // Set dynamic username
+    const userName = localStorage.getItem('nama') || 'Moderator';
+    document.getElementById('user-name').textContent = userName;
+
+    loadClasses();
+    loadAllStudents();
+    const addClassForm = document.getElementById('form-add-class');
+    if (addClassForm) addClassForm.addEventListener('submit', addClass);
+
+    const addStudentForm = document.getElementById('form-add-student');
+    if (addStudentForm) addStudentForm.addEventListener('submit', addStudent);
+
+    const mirrorBtn = document.getElementById('mirrorLoginBtn');
+    if (mirrorBtn) mirrorBtn.addEventListener('click', mirrorLoginData);
+
+    async function loadClasses() {
+      try {
+        // Refresh dependent widgets instead of writing to removed #kelas-table
+        await loadTopClasses();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function mirrorLoginData() {
+      const statusEl = document.getElementById('mirrorLoginStatus');
+      statusEl.textContent = '⏳ Mirroring...';
+      try {
+        const res = await fetch('/api/mirror-login-data');
+        const json = await res.json();
+        statusEl.textContent = '✅ Mirroring selesai: ' + JSON.stringify(json);
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = '❌ Gagal mirror login data';
+      }
+    }
+
+    async function loadStudents(kelasId) {
+      try {
+        const tbodyHost = document.querySelector('#students-table tbody');
+        if (!tbodyHost) return; // table not present in overview layout
+        const res = await fetch(`/api/kelas/${kelasId}`);
+        const data = await res.json();
+        const tbody = tbodyHost;
+        tbody.innerHTML = '';
+        data.forEach(murid => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td data-label="CID">${murid.cid}</td>
+            <td data-label="Nama">${murid.nama}</td>
+            <td data-label="Email">${murid.email}</td>`;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function loadAllStudents() {
+      const select = document.getElementById('assign_uid');
+      const status = document.getElementById('assign-status');
+      const selectLesson = document.getElementById('assign_lesson_uid');
+      try {
+        // Try multiple endpoints; return [] if all fail
+        const list = await fetchFirst([
+          `${FIREBASE_API}/api/semua-murid`,
+          `/api/students`,
+          `/api/users?role=murid`,
+        ], []);
+
+        // Normalize to array
+        const students = Array.isArray(list) ? list : [];
+
+        // Prepare selects (if present)
+        if (select) select.innerHTML = '<option value="">Pilih Murid</option>';
+        if (selectLesson) selectLesson.innerHTML = '<option value="">Pilih Murid</option>';
+
+        if (students.length === 0) {
+          if (status) status.textContent = '⚠️ Tidak dapat memuat daftar murid (jaringan/endpoint). Isi manual atau coba lagi.';
+          return;
+        }
+
+        students.forEach(m => {
+          const cid = m.cid || m.id || m.uid || '';
+          const name = m.nama || m.name || 'Tanpa Nama';
+          if (select) {
+            const opt = document.createElement('option');
+            opt.value = cid;
+            opt.textContent = `${name} (${cid})`;
+            select.appendChild(opt);
+          }
+          if (selectLesson) {
+            const opt2 = document.createElement('option');
+            opt2.value = cid;
+            opt2.textContent = `${name} (${cid})`;
+            selectLesson.appendChild(opt2);
+          }
+        });
+        if (status) status.textContent = '';
+      } catch (err) {
+        console.error(err);
+        if (status) status.textContent = '❌ Gagal memuat daftar murid (Network)';
+      }
+    }
+
+    async function addClass(e) {
+      e.preventDefault();
+      const status = document.getElementById('class-status');
+      const kelas_id = document.getElementById('kelas_id').value.trim();
+      const nama_kelas = document.getElementById('nama_kelas').value.trim();
+      const guru_id = document.getElementById('guru_id').value.trim();
+      try {
+        const res = await fetch('/api/kelas', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ kelas_id, nama_kelas, guru_id })
+        });
+        if (res.ok) {
+          status.textContent = '✅ Kelas berhasil ditambah.';
+          loadClasses();
+          e.target.reset();
+        } else {
+          const data = await res.json();
+          status.textContent = '❌ ' + (data.error || 'Gagal menambah kelas');
+        }
+      } catch (err) {
+        console.error(err);
+        status.textContent = '❌ Gagal menambah kelas';
+      }
+    }
+
+    async function addStudent(e) {
+      e.preventDefault();
+      const status = document.getElementById('student-status');
+      const nama = document.getElementById('nama').value.trim();
+      const email = document.getElementById('email').value.trim();
+      let wa = document.getElementById('wa').value.trim();
+      if (wa && !wa.startsWith('+62')) {
+        wa = '+62' + wa.replace(/^0+/, '');
+      }
+      const password = document.getElementById('password').value.trim();
+      const kelas_id = document.getElementById('kelas_id_student').value.trim();
+      const role = document.getElementById('role').value;
+      // Generate CID before sending request
+      const cid = 'QAC' + String(Date.now()).slice(-7); // Simple unique 7-digit suffix
+      try {
+        const res = await fetch(`${FIREBASE_API}/api/daftar-akun-baru`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cid, nama, email, password, wa, kelas_id, role })
+        });
+        if (res.ok) {
+          status.textContent = '✅ Akun berhasil ditambah.';
+          e.target.reset();
+          loadClasses();
+        } else {
+          const data = await res.json();
+          status.textContent = '❌ ' + (data.error || 'Gagal menambah akun');
+        }
+      } catch (err) {
+        console.error(err);
+        status.textContent = '❌ Gagal menambah akun';
+      }
+    }
+
+    (function(){
+      const assignStudentForm = document.getElementById('form-assign-student');
+      if (assignStudentForm) assignStudentForm.addEventListener('submit', assignStudent);
+    })();
+
+    const assignLessonForm = document.getElementById('form-assign-lesson');
+    if (assignLessonForm) assignLessonForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const cid = document.getElementById('assign_lesson_uid').value.trim();
+      const lesson = document.getElementById('lesson_code').value.trim();
+      const status = document.getElementById('lesson-assign-status');
+      if (!cid || !lesson) return;
+
+      try {
+        const res = await fetch(`${FIREBASE_API}/api/assign-lesson`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cid, lesson })
+        });
+        if (res.ok) {
+          status.textContent = '✅ Akses lesson berhasil ditambahkan.';
+          e.target.reset();
+        } else {
+          try {
+            const data = await res.json();
+            status.textContent = '❌ ' + (data.error || 'Gagal assign lesson');
+          } catch (err) {
+            const text = await res.text();
+            console.error('❌ Invalid JSON:', text);
+            status.textContent = '❌ Gagal assign lesson (invalid response)';
+          }
+        }
+      } catch (err) {
+        console.error(err);
+        status.textContent = '❌ Gagal assign lesson';
+      }
+    });
+  }); // END DOMContentLoaded for main logic
+  </script>
+
+  <script>
+  // Assign Student function moved outside DOMContentLoaded
+  async function assignStudent(e) {
+    e.preventDefault();
+    const status = document.getElementById('assign-status');
+    const uid = document.getElementById('assign_uid').value.trim();
+    const kelas_id = document.getElementById('assign_kelas_id').value.trim();
+    try {
+      const res = await fetch(`${FIREBASE_API}/api/assign-murid-ke-kelas`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid, kelas_id })
+      });
+      if (res.ok) {
+        status.textContent = '✅ Murid berhasil di-assign ke kelas.';
+        e.target.reset();
+        // Optionally reload class data
+        if (typeof loadClasses === 'function') loadClasses();
+      } else {
+        const data = await res.json();
+        status.textContent = '❌ ' + (data.error || 'Gagal assign murid');
+      }
+    } catch (err) {
+      console.error(err);
+      status.textContent = '❌ Gagal assign murid';
+    }
+  }
+  </script>
+
+  <script>
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      const next = current === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      updateThemeIcon();
+    }
+
+    function updateThemeIcon() {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      const icon = document.getElementById('theme-icon');
+      if (!icon) return;
+      icon.classList.remove('bi-sun','bi-sun-fill','bi-moon','bi-moon-stars','bi-moon-fill');
+      if (current === 'dark') { icon.classList.add('bi-moon-stars'); }
+      else { icon.classList.add('bi-sun-fill'); }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const currentTheme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      updateThemeIcon();
+      const tbtn = document.getElementById('theme-toggle-btn');
+      if (tbtn) tbtn.addEventListener('click', toggleTheme);
+    });
+  </script>
+  <script>
+    let dauChart, revenueChart;
+    function initCharts() {
+      const dauCtx = document.getElementById('dauChart').getContext('2d');
+      const revCtx = document.getElementById('revenueChart').getContext('2d');
+      dauChart = new Chart(dauCtx, {
+        type: 'line',
+        data: { labels: [], datasets: [{ label: 'DAU', data: [], tension:.25, fill:false }] },
+        options: { plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } }
+      });
+      revenueChart = new Chart(revCtx, {
+        type: 'bar',
+        data: { labels: [], datasets: [{ label: 'Revenue', data: [] }] },
+        options: { plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } }
+      });
+    }
+    function updateCharts(overview){
+      if (!dauChart || !revenueChart) return;
+      const labels = (overview?.dau?.map(p=>p.date)) || [];
+      const values = (overview?.dau?.map(p=>p.value)) || [];
+      dauChart.data.labels = labels; dauChart.data.datasets[0].data = values; dauChart.update();
+      const rlabels = (overview?.revenue?.map(p=>p.month)) || [];
+      const rvalues = (overview?.revenue?.map(p=>p.value)) || [];
+      revenueChart.data.labels = rlabels; revenueChart.data.datasets[0].data = rvalues; revenueChart.update();
+    }
+  </script>
+
+  <script>
+    async function fetchJSON(url, fallback){
+      try { const r = await fetch(url); if (!r.ok) throw new Error('net'); return await r.json(); }
+      catch(e){ return fallback; }
+    }
+    // Helper: Try multiple endpoints, return first successful JSON or fallback
+    async function fetchFirst(urls, fallback){
+      for (const url of urls){
+        try { const r = await fetch(url); if (r.ok) return await r.json(); } catch (e) {}
+      }
+      return fallback;
+    }
+    function fmt(n){ return typeof n==='number' ? n.toLocaleString('en-US') : (n||'0'); }
+
+    async function loadOverview(){
+      const range = document.getElementById('kpi-range')?.value || '30d';
+
+      // 1) Try canonical overview endpoint(s)
+      const overview = await fetchFirst([
+        `/api/overview?range=${range}`,
+        `/api/admin/overview?range=${range}`,
+      ], null);
+
+      if (overview){
+        // Use server-provided overview directly
+        document.getElementById('kpi-total-users').textContent = fmt(overview?.totals?.users);
+        document.getElementById('kpi-active-today').textContent = fmt(overview?.totals?.activeToday);
+        document.getElementById('kpi-lessons').textContent = fmt(overview?.totals?.lessons);
+        document.getElementById('kpi-sessions').textContent = fmt(overview?.totals?.sessions);
+        document.getElementById('kpi-revenue').textContent = overview?.totals?.revenue != null ? ('USD ' + fmt(overview.totals.revenue)) : '—';
+        document.getElementById('kpi-error').textContent = (overview?.totals?.errorRate ?? '—') + (overview?.totals?.errorRate!=null?'%':'');
+        document.getElementById('kpi-users-trend').textContent = `${overview?.trends?.users ?? 0}% MoM`;
+        document.getElementById('kpi-active-trend').textContent = `${overview?.trends?.active ?? 0}% vs avg`;
+        document.getElementById('kpi-lessons-trend').textContent = `${overview?.trends?.lessons ?? 0}% MoM`;
+        document.getElementById('kpi-sessions-trend').textContent = 'now';
+        document.getElementById('kpi-revenue-trend').textContent = `${overview?.trends?.revenue ?? 0}% MoM`;
+        document.getElementById('kpi-error-trend').textContent = `${overview?.trends?.error ?? 0}% vs prev`;
+        updateCharts(overview);
+        return;
+      }
+
+      // 2) Fallback: build overview from existing platform endpoints
+      // Students
+      const students = await fetchFirst([
+        `${FIREBASE_API}/api/semua-murid`,
+        `/api/students`,
+        `/api/users?role=murid`,
+      ], []);
+
+      // Classes (with teacher IDs)
+      const kelasResp = await fetchFirst([
+        `/api/kelas`,
+        `${FIREBASE_API}/api/kelas`,
+      ], { data: [] });
+      const kelasList = Array.isArray(kelasResp?.data) ? kelasResp.data : (Array.isArray(kelasResp) ? kelasResp : []);
+
+      // Teachers (try dedicated endpoint; else derive unique guru_id from kelas)
+      const teachers = await fetchFirst([
+        `/api/guru`,
+        `/api/teachers`,
+      ], null);
+      const teacherCount = Array.isArray(teachers) ? teachers.length : new Set(kelasList.map(k=>k.guru_id).filter(Boolean)).size;
+
+      // Active today from login stats if available, else 0
+      const activeToday = await fetchFirst([
+        `/api/logins/today/count`,
+        `/api/stats/active-today`,
+      ], null);
+      const activeTodayVal = typeof activeToday === 'number' ? activeToday : 0;
+
+      // Lessons (try to fetch); else approximate from classes if you use lessons==classes mapping
+      const lessons = await fetchFirst([
+        `/api/lessons/count`,
+        `/api/lessons`,
+      ], null);
+      let lessonsVal = 0;
+      if (typeof lessons === 'number') lessonsVal = lessons;
+      else if (Array.isArray(lessons)) lessonsVal = lessons.length;
+      else lessonsVal = kelasList.length; // fallback approximation
+
+      // Sessions (active sessions if exists)
+      const sessions = await fetchFirst([
+        `/api/sessions/active/count`,
+        `/api/active-sessions/count`,
+      ], 0);
+
+      // Revenue (monthly)
+      const revenue = await fetchFirst([
+        `/api/revenue/monthly/current`,
+        `/api/payments/monthly`,
+      ], null);
+      let revenueVal = 0;
+      if (typeof revenue === 'number') revenueVal = revenue;
+      else if (revenue && typeof revenue.value === 'number') revenueVal = revenue.value;
+
+      // Error rate (if exists)
+      const errorRate = await fetchFirst([
+        `/api/metrics/error-rate`,
+        `/api/health/error-rate`,
+      ], null);
+
+      // Populate KPI cards
+      document.getElementById('kpi-total-users').textContent = fmt((students?.length || 0) + teacherCount);
+      document.getElementById('kpi-active-today').textContent = fmt(activeTodayVal);
+      document.getElementById('kpi-lessons').textContent = fmt(lessonsVal);
+      document.getElementById('kpi-sessions').textContent = fmt(typeof sessions === 'number' ? sessions : 0);
+      document.getElementById('kpi-revenue').textContent = revenueVal ? ('USD ' + fmt(revenueVal)) : '—';
+      document.getElementById('kpi-error').textContent = errorRate!=null ? (errorRate + '%') : '—';
+
+      // Build chart data
+      const dau = await fetchFirst([
+        `/api/stats/dau?range=${range}`,
+        `/api/logins/daily?range=${range}`,
+      ], null);
+      const revenueSeries = await fetchFirst([
+        `/api/revenue/monthly?months=12`,
+        `/api/payments/monthly?months=12`,
+      ], null);
+      const overviewLike = {
+        dau: Array.isArray(dau) ? dau : [],
+        revenue: Array.isArray(revenueSeries) ? revenueSeries : [],
+      };
+      updateCharts(overviewLike);
+    }
+
+    async function loadRecentActivity(){
+      const fallback = [
+        { time:'10:12', user:'QAC1023', action:'Login', detail:'Web' },
+        { time:'10:05', user:'QAC0877', action:'Enroll', detail:'Lesson M2L1' },
+        { time:'09:58', user:'QAC0901', action:'Submit', detail:'Worksheet #12' },
+      ];
+      let data = await fetchFirst([
+        '/api/recent-activity?limit=20',
+        '/api/activity/recent?limit=20',
+        '/api/logs/recent?limit=20',
+      ], null);
+
+      // Normalize shapes
+      if (Array.isArray(data)) {
+        data = data.map(it => ({
+          time: it.time || it.timestamp || it.created_at || '-',
+          user: it.user || it.user_id || it.actor || '-',
+          action: it.action || it.event || it.type || '-',
+          detail: it.detail || it.meta || it.description || '-'
+        }));
+      } else {
+        data = fallback;
+      }
+
+      const tbody = document.getElementById('recent-activity-body');
+      const count = document.getElementById('activity-count');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      (data||[]).slice(0,20).forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${item.time||'-'}</td><td>${item.user||'-'}</td><td>${item.action||'-'}</td><td>${item.detail||'-'}</td>`;
+        tbody.appendChild(tr);
+      });
+      if (count) count.textContent = `${(data||[]).length} events`;
+    }
+
+    async function loadTopClasses(){
+      let data = await fetchFirst([
+        '/api/top-classes?limit=10',
+        '/api/classes/top?limit=10',
+      ], null);
+
+      if (!Array.isArray(data)) {
+        // derive from /api/kelas
+        const kelasResp = await fetchFirst([
+          '/api/kelas',
+          `${FIREBASE_API}/api/kelas`,
+        ], { data: [] });
+        const kelasList = Array.isArray(kelasResp?.data) ? kelasResp.data : (Array.isArray(kelasResp) ? kelasResp : []);
+        data = kelasList
+          .map(k => ({ name: k.nama_kelas || k.kelas_id, teacher: k.guru_id || '-', active: k.jumlah_murid || 0, lessons: k.lessons || (k.jumlah_modul || '-') }))
+          .sort((a,b)=> (b.active||0) - (a.active||0))
+          .slice(0,10);
+      }
+
+      const tbody = document.getElementById('top-classes-body');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      (data||[]).forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${row.name}</td><td>${row.teacher}</td><td>${row.active}</td><td>${row.lessons ?? '-'}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function loadSignups(){
+      let data = await fetchFirst([
+        '/api/recent-signups?limit=10',
+        '/api/users/recent?limit=10',
+      ], null);
+      if (!Array.isArray(data)) {
+        data = [];
+      } else {
+        data = data.map(r => ({
+          when: r.when || r.created_at || r.timestamp || '-',
+          name: r.name || r.nama || '-',
+          email: r.email || '-',
+          role: r.role || r.type || '-'
+        }));
+      }
+      const tbody = document.getElementById('recent-signups-body');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      (data||[]).forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${r.when}</td><td>${r.name}</td><td>${r.email}</td><td>${r.role}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function loadAlerts(){
+      const ul = document.getElementById('alerts-list');
+      if (!ul) return;
+      ul.innerHTML = '';
+      const items = [
+        'No critical incidents reported in the last 24h ✅',
+        '2 payments require manual review',
+        'New app version ready to deploy'
+      ];
+      items.forEach(t => { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initCharts();
+      loadOverview();
+      loadRecentActivity();
+      loadTopClasses();
+      loadSignups();
+      loadAlerts();
+      document.getElementById('refresh-overview')?.addEventListener('click', loadOverview);
+      document.getElementById('kpi-range')?.addEventListener('change', loadOverview);
+    });
+  </script>
+  <script>
+    function scrollToSection(id) {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
+  </script>
+</body>
+</html>

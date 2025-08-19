@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Accounts – Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'light');
+  </script>
+  <style>
+    [data-theme='dark'] {
+      --primary: #131313;
+      --primary-light: #1c1c1c;
+      --card-bg: #1e1e1e;
+      --gray: #2a2a2a;
+      --text-main: #f5f5f5;
+      --text-muted: #aaa;
+      --card-radius: 14px;
+      color: var(--text-main);
+      background-color: var(--primary);
+    }
+    
+
+    [data-theme='dark'] body {
+      background: #121212;
+      color: var(--text-main);
+    }
+
+    [data-theme='dark'] .stat-card,
+    [data-theme='dark'] .form-card,
+    [data-theme='dark'] .data-table-card,
+    [data-theme='dark'] .chart-card {
+      background: var(--card-bg);
+      color: var(--text-main);
+      box-shadow: 0 0 15px rgba(0,255,255,0.3), 0 0 30px rgba(255,0,255,0.15);
+      border-radius: var(--card-radius);
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    [data-theme='dark'] table th {
+      background: #2a2f3a;
+      color: #e0e7ff;
+    }
+
+    /* Ensure table text and notifications readable in dark theme */
+    [data-theme='dark'] th,
+    [data-theme='dark'] td {
+      color: #cdd8f7;
+    }
+
+    [data-theme='dark'] #class-status,
+    [data-theme='dark'] #student-status,
+    [data-theme='dark'] #assign-status {
+      color: var(--text-main);
+    }
+
+    [data-theme='dark'] input,
+    [data-theme='dark'] select {
+      background: #292929;
+      color: #000000;
+      border-color: #444;
+    }
+
+    [data-theme='dark'] input::placeholder,
+    [data-theme='dark'] select option {
+      color: var(--text-muted);
+    }
+
+    [data-theme='dark'] button {
+      background: linear-gradient(135deg, #ff00cc, #3333ff);
+      color: #fff;
+      box-shadow: none;
+    }
+
+    [data-theme='dark'] button:hover {
+      background: linear-gradient(135deg, #ff66cc, #5555ff);
+      box-shadow: none;
+    }
+    [data-theme='dark'] .header-welcome {
+      text-shadow: 0 0 6px rgba(255,255,255,0.3);
+      color: #f0f8ff;
+    }
+
+    [data-theme='dark'] .stat-card-value {
+      text-shadow: 0 0 5px rgba(255,255,255,0.2);
+      color: var(--text-main);
+    }
+    :root {
+      --sidebar-width: 230px;
+      --primary: #2c3e50;
+      --primary-light: #ecf0f1;
+      --card-bg: #fff;
+      --card-radius: 14px;
+      --shadow: 0 2px 8px rgba(0,0,0,0.04);
+      --gray: #f0f4f8;
+      --font-main: 'Inter', sans-serif;
+    }
+    body {
+      font-family: var(--font-main);
+      margin: 0;
+      background: #f5f7fa;
+      min-height: 100vh;
+    }
+    .dashboard-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+    .main-content {
+      flex: 1;
+      padding: 36px 40px 36px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 0px;
+      overflow-x: hidden;
+    }
+    .header-welcome {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 2rem;
+      background: linear-gradient(90deg, #ff3c3c, #ff7272);
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+    .stat-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 22px;
+      margin-bottom: 18px;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow);
+      padding: 28px 26px 20px 26px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      min-width: 0;
+      transition: all 0.3s ease-in-out;
+    }
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .stat-card-title {
+      font-size: 1.05rem;
+      color: #555;
+      margin-bottom: 8px;
+    }
+    .stat-card-value {
+      font-size: 2.1rem;
+      font-weight: 600;
+      color: #000000 !important;
+    }
+    .charts-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 10px;
+      overflow-x: auto;
+    }
+    .chart-card {
+      background: var(--card-bg);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow);
+      padding: 22px 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 100%;
+      width: 100%;
+      box-sizing: border-box;
+      overflow-x: auto;
+    }
+    .chart-card canvas {
+      max-width: 100% !important;
+      height: auto !important;
+    }
+    .chart-title {
+      font-size: 1.07rem;
+      color: #444;
+      margin-bottom: 10px;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+    }
+    .cards-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 30px;
+      margin-bottom: 20px;
+    }
+    .form-card {
+      background: var(--card-bg);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow);
+      padding: 26px 28px 20px 28px;
+      margin-bottom: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      transition: all 0.3s ease-in-out;
+    }
+    .form-card h2 {
+      margin-top: 0;
+      margin-bottom: 18px;
+      font-size: 1.18rem;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .form-card form {
+      margin: 0;
+      max-width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .form-card input,
+    .form-card select {
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: 7px;
+      border: 1px solid #dde1ef;
+      margin-bottom: 6px;
+      font-size: 1rem;
+      background: #f7fafd;
+      transition: border 0.13s;
+    }
+    .form-card input:focus,
+    .form-card select:focus {
+      outline: none;
+      border: 1.5px solid var(--primary);
+    }
+    .form-card button {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 10px 0;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-top: 8px;
+    }
+    .form-card button:hover {
+      background: #2445a7;
+    }
+    .form-card p {
+      margin: 8px 0 0 0;
+      font-size: 0.96rem;
+    }
+    .data-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 0;
+    }
+    .data-table-card {
+      background: var(--card-bg);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow);
+      padding: 26px 18px 18px 18px;
+      overflow-x: auto;
+      transition: all 0.3s ease-in-out;
+    }
+    .data-table-card h2 {
+      margin-top: 0;
+      margin-bottom: 16px;
+      font-size: 1.14rem;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 1rem;
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 0;
+    }
+    th, td {
+      padding: 9px 12px;
+      border-bottom: 1px solid #f0f0f0;
+      text-align: left;
+    }
+    th {
+      background: var(--primary-light);
+      color: #233b6c;
+      font-weight: 500;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    button {
+      padding: 6px 14px;
+      border-radius: 6px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-size: 0.97rem;
+      transition: background 0.13s;
+    }
+    button:hover {
+      background: #2445a7;
+    }
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      width: 100%;
+    }
+    .header-theme-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.4rem;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+    }
+    /* Force no background in any theme */
+    button.header-theme-btn { background: transparent !important; box-shadow: none !important; }
+    [data-theme='dark'] button.header-theme-btn { background: transparent !important; box-shadow: none !important; }
+    .header-theme-btn:hover, .header-theme-btn:active { background: transparent !important; }
+    .header-theme-btn i { background: transparent !important; }
+    /* Responsive */
+    @media (max-width: 1100px) {
+      .main-content { padding: 28px 10px 28px 10px; }
+      .charts-row, .data-section, .cards-section { grid-template-columns: 1fr; }
+    }
+  </style>
+  <link rel="stylesheet" href="/elearn/css/sidebar-mod.css">
+</head>
+<body>
+  <div class="dashboard-layout">
+    <!-- Sidebar digantikan dengan file terpisah -->
+    <div id="sidebar-placeholder"></div>
+    <script type="module">
+      import { loadSidebar } from '/elearn/sidebar-init.js';
+      loadSidebar();
+    </script>
+    <main class="main-content">
+      <!-- Section: Header (title + theme toggle inline) -->
+      <section class="section-header section-spacing" style="margin-bottom: 30px;">
+        <div class="header-row">
+          <div class="header-welcome">👩‍🎓 Manage Student Accounts</div>
+          <button id="theme-toggle-btn" aria-label="Toggle theme" class="header-theme-btn">
+            <i id="theme-icon" class="bi bi-sun-fill"></i>
+          </button>
+        </div>
+      </section>
+
+      <!-- Section: Stats -->
+      <section class="section-stats section-spacing" style="margin-bottom: 30px;">
+        <div class="stat-cards">
+          <div class="stat-card">
+            <div class="stat-card-title">Total Students</div>
+            <div class="stat-card-value" id="stat-murid">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-title">Total Classes</div>
+            <div class="stat-card-value" id="stat-kelas">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-title">Total Teachers</div>
+            <div class="stat-card-value" id="stat-guru">0</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: Class Table -->
+      <section class="section-data section-spacing" style="margin-bottom: 30px;">
+        <div class="data-table-card">
+          <h2>Class List</h2>
+          <table id="kelas-table">
+            <thead>
+              <tr>
+                <th>Kelas ID</th>
+                <th>Nama Kelas</th>
+                <th>Guru ID</th>
+                <th>Jumlah Murid</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Section: Student Table -->
+      <section class="section-data section-spacing" style="margin-bottom: 30px;">
+        <div class="data-table-card">
+          <h2>Students in Selected Class</h2>
+          <table id="students-table">
+            <thead>
+              <tr>
+                <th>CID</th>
+                <th>Nama</th>
+                <th>Email</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Section: Assign / Move Student to Class -->
+      <section class="section-assign form-card section-spacing" style="margin-bottom: 30px;">
+        <h2>Assign / Move Student to Class</h2>
+        <form id="assign-form">
+          <label for="student-select">Pilih Murid:</label>
+          <select id="student-select" required>
+            <option value="" disabled selected>Pilih Murid</option>
+          </select>
+          <label for="class-select">Pilih Kelas:</label>
+          <select id="class-select" required>
+            <option value="" disabled selected>Pilih Kelas</option>
+          </select>
+          <button type="submit">Assign</button>
+        </form>
+        <p id="assign-status" style="margin-top: 10px;"></p>
+      </section>
+
+    </main>
+  </div>
+  <script>
+  // Konstanta endpoint backend Firebase
+  const FIREBASE_API = window.location.origin;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const role = localStorage.getItem('role');
+    if (role !== 'moderator') {
+      window.location.href = '/elearn/login.html';
+      return;
+    }
+    // Set dynamic username
+    const userName = localStorage.getItem('nama') || 'Moderator';
+    // Pastikan elemen user-name ada sebelum mengakses
+    if (document.getElementById('user-name')) {
+      document.getElementById('user-name').textContent = userName;
+    }
+
+    let currentSelectedClassId = null;
+
+    loadClasses();
+    loadAllStudentsList();
+    loadClassOptions();
+
+    async function loadClasses() {
+      try {
+        const res = await fetch('/api/kelas');
+        const json = await res.json();
+        const list = Array.isArray(json.data) ? json.data : [];
+        const tbody = document.querySelector('#kelas-table tbody');
+        tbody.innerHTML = '';
+        let totalMurid = 0;
+        let guruSet = new Set();
+        list.forEach(kelas => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td data-label="Kelas ID">${kelas.kelas_id}</td>
+            <td data-label="Nama Kelas">${kelas.nama_kelas}</td>
+            <td data-label="Guru ID">${kelas.guru_id}</td>
+            <td data-label="Jumlah Murid">${kelas.jumlah_murid || 0}</td>
+            <td data-label="Aksi">
+              <button data-action="lihat" data-id="${kelas.kelas_id}">Lihat Murid</button>
+              <button data-action="hapus" data-id="${kelas.kelas_id}" style="background:#c0392b; margin-left:7px;">Hapus</button>
+            </td>`;
+          // Lihat Murid
+          tr.querySelector('button[data-action="lihat"]').addEventListener('click', () => {
+            currentSelectedClassId = kelas.kelas_id;
+            loadStudents(kelas.kelas_id);
+            // Also update the class-select dropdown to reflect selected class
+            const classSelect = document.getElementById('class-select');
+            if (classSelect) {
+              classSelect.value = kelas.kelas_id;
+            }
+          });
+          // Hapus
+          tr.querySelector('button[data-action="hapus"]').addEventListener('click', async () => {
+            if (confirm('Yakin ingin menghapus kelas ini? Semua data murid di kelas ini tidak akan ikut terhapus.')) {
+              try {
+                const res = await fetch(`/api/kelas/${kelas.kelas_id}`, { method: 'DELETE' });
+                if (res.ok) {
+                  // Berhasil, refresh daftar kelas
+                  loadClasses();
+                  loadClassOptions();
+                } else {
+                  const text = await res.text();
+                  let msg = '';
+                  try {
+                    const errJson = JSON.parse(text);
+                    msg = errJson.message || errJson.error || '';
+                  } catch (e) {
+                    msg = text;
+                  }
+                  alert('Gagal menghapus kelas: ' + (msg || res.statusText));
+                }
+              } catch (err) {
+                alert('Terjadi kesalahan saat menghapus kelas.');
+                console.error(err);
+              }
+            }
+          });
+          tbody.appendChild(tr);
+          totalMurid += (kelas.jumlah_murid || 0);
+          if (kelas.guru_id) guruSet.add(kelas.guru_id);
+        });
+        // Update stat cards
+        document.getElementById('stat-kelas').textContent = list.length;
+        document.getElementById('stat-murid').textContent = totalMurid;
+        document.getElementById('stat-guru').textContent = guruSet.size;
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function loadStudents(kelasId) {
+      try {
+        const res = await fetch(`/api/kelas/${kelasId}`);
+        const json = await res.json();
+        const tbody = document.querySelector('#students-table tbody');
+        tbody.innerHTML = '';
+        // Support response array langsung maupun objek dengan data
+        let muridList = [];
+        if (json && Array.isArray(json.data)) {
+          muridList = json.data;
+        } else if (Array.isArray(json)) {
+          muridList = json;
+        } else {
+          console.error('Format response tidak sesuai:', json);
+        }
+        muridList.forEach(murid => {
+          const cid = murid.cid || murid.uid || '';
+          const nama = murid.nama || murid.name || '';
+          const email = murid.email || '';
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td data-label="CID">${cid}</td>
+            <td data-label="Nama"><a href="/elearn/student-profile.html?cid=${cid}">${nama}</a></td>
+            <td data-label="Email">${email}</td>`;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error('Gagal memuat murid:', err);
+      }
+    }
+
+    async function loadAllStudentsList() {
+      try {
+        const res = await fetch('/api/semua-murid');
+        const json = await res.json();
+        const list = Array.isArray(json.data) ? json.data : (Array.isArray(json) ? json : []);
+        const studentSelect = document.getElementById('student-select');
+        studentSelect.innerHTML = '<option value="" disabled selected>Pilih Murid</option>';
+        list.forEach(murid => {
+          const uid = murid.uid || murid.cid || '';
+          const cid = murid.cid || '';
+          const nama = murid.nama || murid.name || cid || uid;
+          const email = murid.email || '';
+          const option = document.createElement('option');
+          option.value = uid; // gunakan uid dokumen untuk assign
+          option.dataset.cid = cid;
+          option.textContent = `${nama} (${email})`;
+          studentSelect.appendChild(option);
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function loadClassOptions() {
+      try {
+        const res = await fetch('/api/kelas');
+        const json = await res.json();
+        // Cek apakah json.data array, jika tidak cek apakah json sendiri array
+        let list = [];
+        if (Array.isArray(json.data)) {
+          list = json.data;
+        } else if (Array.isArray(json)) {
+          list = json;
+        }
+        // Debug: tampilkan jumlah kelas dan isinya
+        console.log('[loadClassOptions] Jumlah kelas:', list.length);
+        console.log('[loadClassOptions] Data kelas:', list);
+        const classSelect = document.getElementById('class-select');
+        classSelect.innerHTML = '<option value="" disabled selected>Pilih Kelas</option>';
+        list.forEach(kelas => {
+          const option = document.createElement('option');
+          option.value = kelas.kelas_id;
+          option.textContent = kelas.nama_kelas;
+          classSelect.appendChild(option);
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    const assignForm = document.getElementById('assign-form');
+    assignForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const uid = document.getElementById('student-select').value;
+      const kelas_id = document.getElementById('class-select').value;
+      const statusEl = document.getElementById('assign-status');
+      statusEl.textContent = '';
+      if (!uid || !kelas_id) {
+        statusEl.textContent = 'Silakan pilih murid dan kelas.';
+        return;
+      }
+        try {
+          const res = await fetch('/api/assign-murid-ke-kelas', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ uid, kelas_id })
+          });
+          const raw = await res.text();
+          if (res.ok) {
+            statusEl.style.color = 'green';
+            statusEl.textContent = 'Berhasil assign/move murid ke kelas.';
+            if (kelas_id === currentSelectedClassId) {
+              loadStudents(kelas_id);
+            }
+          } else {
+            let message = res.statusText;
+            try {
+              const errorData = JSON.parse(raw);
+              message = errorData.message || errorData.error || message;
+            } catch (e) {
+              if (raw) message = raw;
+            }
+            statusEl.style.color = 'red';
+            statusEl.textContent = 'Gagal assign murid: ' + message;
+          }
+        } catch (err) {
+        statusEl.style.color = 'red';
+        statusEl.textContent = 'Error saat assign murid.';
+        console.error(err);
+      }
+    });
+
+}); // tutup event listener DOMContentLoaded
+</script>
+
+  <script>
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      const next = current === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      updateThemeIcon();
+      const sidebar = document.getElementById('sidebar-container');
+      if (sidebar) {
+        if (next === 'dark') {
+          sidebar.classList.add('dark-theme');
+        } else {
+          sidebar.classList.remove('dark-theme');
+        }
+      }
+    }
+
+    function updateThemeIcon() {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      const icon = document.getElementById('theme-icon');
+      if (!icon) return;
+      icon.classList.remove('bi-sun', 'bi-sun-fill', 'bi-moon', 'bi-moon-stars', 'bi-moon-fill');
+      if (current === 'dark') {
+        icon.classList.add('bi-moon-stars');
+      } else {
+        icon.classList.add('bi-sun-fill');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const currentTheme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      updateThemeIcon();
+      const themeBtn = document.getElementById('theme-toggle-btn');
+      if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
+      // Add dark-theme class to sidebar if dark mode is active
+      if (currentTheme === 'dark') {
+        document.getElementById('sidebar-container')?.classList.add('dark-theme');
+      }
+    });
+  </script>
+</body>
+</html>
