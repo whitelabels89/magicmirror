@@ -1,5 +1,4 @@
 const express = require('express');
-const fetch = require('node-fetch');
 const app = express();
 const cors = require('cors');
 const axios = require('axios');
@@ -11,7 +10,6 @@ const fs = require('fs');
 const { google } = require('googleapis');
 const uploadModulRouter = require('./uploadModul');
 const admin = require('firebase-admin');
-const fetch = require('node-fetch');
 
 // CORS (allow credentials; restrict origins via FRONTEND_ORIGINS env if provided)
 const allowedOrigins = (process.env.FRONTEND_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
