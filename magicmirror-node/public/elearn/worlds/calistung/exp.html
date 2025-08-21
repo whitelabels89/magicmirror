@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mindful Mountain Lite — Queen's Academy</title>
+  <style>
+    :root{
+      --bg1:#0b1220;--bg2:#14253d;--accent:#4ade80;--accent2:#60a5fa;--danger:#ef4444;--warn:#f59e0b;--panel:#0f1b2d;--text:#e5f0ff;--muted:#9fb3d1;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;background:linear-gradient(160deg,var(--bg1),var(--bg2));color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+    .wrap{max-width:960px;margin:0 auto;padding:16px}
+    header{display:flex;align-items:center;gap:12px;justify-content:space-between;margin-bottom:10px}
+    header .title{display:flex;align-items:center;gap:10px}
+    .pill{padding:6px 10px;border-radius:999px;background:#0c1729;border:1px solid #1f3352;color:var(--muted);font-size:12px}
+    a.back{color:var(--muted);text-decoration:none;border:1px solid #233b60;padding:6px 10px;border-radius:10px}
+    .hud{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:10px 0}
+    .bar{background:#0c1729;border:1px solid #1f3352;border-radius:10px;padding:8px}
+    .bar .label{font-size:12px;color:var(--muted);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+    .progress{position:relative;height:10px;background:#0a1424;border-radius:999px;overflow:hidden}
+    .progress>span{position:absolute;left:0;top:0;bottom:0;width:40%;background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 0 16px rgba(96,165,250,.5)}
+    #progressBar>span{background:linear-gradient(90deg,#34d399,#a7f3d0)}
+    #trustBar>span{background:linear-gradient(90deg,#60a5fa,#a5b4fc)}
+    #privacyBar>span{background:linear-gradient(90deg,#fbbf24,#f59e0b)}
+
+    .gameCard{background:radial-gradient(80% 100% at 50% 0%,rgba(96,165,250,.1),rgba(10,20,36,.6));border:1px solid #1f3352;border-radius:16px;padding:10px;}
+    .canvasWrap{position:relative;border-radius:14px;overflow:hidden}
+    canvas{display:block;width:100%;height:520px;background:linear-gradient(#091121,#0b243e);border:1px solid #1f3352;border-radius:12px}
+
+    .controls{display:flex;gap:10px;justify-content:center;margin-top:8px}
+    .btn{background:#0e1a2c;border:1px solid #24406a;color:#dbe8ff;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:700}
+    .btn:hover{filter:brightness(1.08)}
+    .btn:active{transform:translateY(1px)}
+
+    .floating-tip{position:absolute;left:12px;bottom:12px;background:rgba(11,18,32,.8);border:1px solid #1f3352;border-radius:10px;padding:8px 10px;font-size:12px;color:var(--muted)}
+
+    .modal{position:fixed;inset:0;background:rgba(0,10,20,.6);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+    .modal.active{display:flex}
+    .card{max-width:720px;width:100%;background:linear-gradient(160deg,#0b1a2e,#0d223c);border:1px solid #23406a;border-radius:16px;padding:16px}
+    .card h3{margin:0 0 8px 0}
+    .choices{display:grid;grid-template-columns:1fr;gap:8px;margin-top:12px}
+    .choice{background:#0f1f36;border:1px solid #2a4a78;border-radius:12px;padding:10px;cursor:pointer}
+    .choice.correct{border-color:#18c964;box-shadow:0 0 0 2px rgba(24,201,100,.3) inset}
+    .choice.wrong{border-color:#ef4444;box-shadow:0 0 0 2px rgba(239,68,68,.25) inset}
+
+    .toast{position:fixed;right:16px;top:16px;background:#0e1c30;border:1px solid #24406a;border-radius:12px;padding:10px 12px;display:none;z-index:60}
+    .toast.show{display:block}
+
+    .start{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;text-align:center;padding:18px 16px}
+    .start h1{margin:0;font-size:24px}
+    .start p{margin:0;color:var(--muted)}
+
+    .legend{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+    .legend .item{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted)}
+    .dot{width:14px;height:14px;border-radius:50%}
+
+    .finish-bar { position: fixed; right: 16px; bottom: 16px; z-index: 1000; }
+    #btnSelesai { background: #22c55e; color: #fff; border: none; cursor: pointer; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4); }
+    #btnSelesai:hover { filter: brightness(1.05); }
+    #btnSelesai:active { transform: translateY(1px); }
+
+    @media (max-width: 480px){
+      canvas{height:440px}
+      .hud{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="title">
+        <a class="back" href="/elearn/worlds/index.html">⟵ Kembali</a>
+        <div>
+          <div class="pill">Experimental</div>
+          <div class="pill" id="levelPill">Level 1</div>
+          <div style="font-weight:800;font-size:20px;letter-spacing:.2px">Mindful Mountain Lite</div>
+        </div>
+      </div>
+      <button id="btnHelp" class="btn" title="Bantuan">❓ Bantuan</button>
+    </header>
+
+    <div class="hud">
+      <div class="bar" id="progressBar">
+        <div class="label">🏔️ Progress ke Puncak</div>
+        <div class="progress"><span style="width:0%"></span></div>
+      </div>
+      <div class="bar" id="trustBar">
+        <div class="label">🤝 Kepercayaan</div>
+        <div class="progress"><span style="width:80%"></span></div>
+      </div>
+      <div class="bar" id="privacyBar">
+        <div class="label">🛡️ Privasi</div>
+        <div class="progress"><span style="width:80%"></span></div>
+      </div>
+    </div>
+
+    <div class="gameCard">
+      <div class="canvasWrap">
+        <canvas id="game"></canvas>
+        <div class="floating-tip">Gunakan ◀ ▶ atau tombol di bawah. Hindari <b>Overshare</b> merah, ambil <b>Think</b> hijau. Jawab kartu keputusan dengan bijak!</div>
+      </div>
+      <div class="controls">
+        <button class="btn" id="leftBtn">◀</button>
+        <button class="btn" id="pauseBtn">⏸️</button>
+        <button class="btn" id="rightBtn">▶</button>
+      </div>
+      <div class="legend">
+        <div class="item"><span class="dot" style="background:var(--danger)"></span> Overshare (hindari)</div>
+        <div class="item"><span class="dot" style="background:var(--accent)"></span> Think Token (ambil)</div>
+        <div class="item"><span class="dot" style="background:var(--accent2)"></span> Fact-Check (bonus)</div>
+      </div>
+    </div>
+
+    <div class="start" id="start">
+      <h1>Naiki Gunung dengan Pikiran Jernih 🧗‍♀️</h1>
+      <p>Tujuanmu: capai puncak dengan menjaga <b>Privasi</b> dan <b>Kepercayaan</b> tetap tinggi.
+        Hindari item merah, ambil item hijau/biru, dan jawab kartu keputusan.</p>
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:10px">
+        <button class="btn" id="btnPlay">▶ Mulai</button>
+        <button class="btn" id="btnHow">📘 Cara Main</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modalDecision" aria-hidden="true">
+    <div class="card">
+      <h3>Keputusan Bijak</h3>
+      <div id="questionTxt">…</div>
+      <div class="choices" id="choices"></div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px">
+        <button class="btn" id="btnSkip">Lewati (−5% Privasi)</button>
+        <button class="btn" id="btnContinue" style="display:none">Lanjut ▶</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modalHelp" aria-hidden="true">
+    <div class="card">
+      <h3>Cara Main</h3>
+      <ul>
+        <li>Pindah jalur dengan tombol ◀ ▶ atau panah di keyboard.</li>
+        <li>Hindari <b>Overshare</b> merah (postingan berisiko).</li>
+        <li>Ambil <b>Think</b> hijau (menambah kepercayaan) & <b>Fact-Check</b> biru (menambah privasi).</li>
+        <li>Sesekali muncul <b>Kartu Keputusan</b>. Pilih jawaban paling aman & bijak.</li>
+        <li>Capai 100% progress untuk menaklukkan puncak!</li>
+      </ul>
+      <div style="text-align:right"><button class="btn" id="btnCloseHelp">Tutup</button></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">✔️</div>
+
+  <div class="finish-bar"><button id="btnSelesai" type="button">Selesai</button></div>
+
+  <script>
+  (()=>{
+    // ===== Utility =====
+    const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
+    const rand=(a,b)=>Math.random()*(b-a)+a;
+    const pick=a=>a[Math.floor(Math.random()*a.length)];
+
+    // ===== Canvas setup =====
+    const canvas=document.getElementById('game');
+    const ctx=canvas.getContext('2d');
+    function resize(){
+      const dpi = Math.max(1, window.devicePixelRatio||1);
+      const w = Math.min(960, document.querySelector('.canvasWrap').clientWidth);
+      const h = parseInt(getComputedStyle(canvas).height);
+      canvas.width = w * dpi; canvas.height = h * dpi; ctx.setTransform(dpi,0,0,dpi,0,0);
+      view.w=w; view.h=h;
+    }
+    const view={w:800,h:520};
+    window.addEventListener('resize',resize);
+
+    // ===== Game state =====
+    const lanes = [0.2,0.5,0.8]; // relative x
+    const state={
+      running:false, paused:false, started:false, decision:false,
+      progress:0, trust:80, privacy:80,
+      speed:120, // px/sec base
+      items:[], tSpawn:0, level:1,
+      player:{lane:1,x:0,y:0,blink:0}
+    };
+
+    // ===== Levels config =====
+    const LEVELS = [
+      { id:1, name:'Level 1 — Pemula', threshold:0, speedBase:120, speedScale:1.1, spawnMin:0.80, spawnMax:1.20, probs:{bad:0.50, good:0.35, fact:0.15}, decisionMin:6.0, decisionMax:10.0 },
+      { id:2, name:'Level 2 — Menanjak', threshold:35, speedBase:150, speedScale:1.3, spawnMin:0.55, spawnMax:1.00, probs:{bad:0.60, good:0.30, fact:0.10}, decisionMin:5.0, decisionMax:9.0 },
+      { id:3, name:'Level 3 — Puncak', threshold:70, speedBase:180, speedScale:1.6, spawnMin:0.45, spawnMax:0.85, probs:{bad:0.68, good:0.25, fact:0.07}, decisionMin:4.5, decisionMax:8.0 }
+    ];
+    let currentLevelCfg = LEVELS[0];
+    const levelPill = document.getElementById('levelPill');
+
+    function setLevelByProgress(progress){
+      // pick the highest level whose threshold <= progress
+      let cfg = LEVELS[0];
+      for(const L of LEVELS){ if(progress >= L.threshold) cfg = L; }
+      if(currentLevelCfg.id !== cfg.id){
+        currentLevelCfg = cfg;
+        if(levelPill) levelPill.textContent = `Level ${cfg.id}`;
+        toast(`⬆️ ${cfg.name}`);
+      }
+    }
+
+    function laneX(i){return Math.round(view.w*lanes[i]);}
+
+    function reset(){
+      state.progress=0; state.trust=80; state.privacy=80; state.level=1; state.speed=120;
+      state.items=[]; state.tSpawn=0; state.player={lane:1,x:laneX(1),y:view.h-90,blink:0};
+      updateBars();
+      currentLevelCfg = LEVELS[0]; if(levelPill) levelPill.textContent = 'Level 1';
+    }
+
+    // ===== UI elements =====
+    const progressBar=document.querySelector('#progressBar .progress span');
+    const trustBar=document.querySelector('#trustBar .progress span');
+    const privacyBar=document.querySelector('#privacyBar .progress span');
+    function updateBars(){
+      progressBar.style.width=clamp(state.progress,0,100)+'%';
+      trustBar.style.width=clamp(state.trust,0,100)+'%';
+      privacyBar.style.width=clamp(state.privacy,0,100)+'%';
+    }
+
+    function toast(msg){
+      const t=document.getElementById('toast');
+      t.textContent=msg; t.classList.add('show');
+      clearTimeout(t._to); t._to=setTimeout(()=>t.classList.remove('show'),1400);
+    }
+
+    // ===== Decision Cards =====
+    const QUESTIONS=[
+      {q:'Ada yang DM minta nomor HP kamu untuk join grup kelas. Apa yang kamu lakukan?',
+       choices:[
+         {t:'Berikan nomor HP agar cepat gabung',ok:false,why:'Nomor HP termasuk data pribadi. Minta guru/admin resmi.'},
+         {t:'Tolak & minta mereka hubungi guru/admin resmi',ok:true,why:'Lindungi data pribadi dan minta jalur resmi.'}
+       ]},
+      {q:'Teman minta password akun game karena mau coba skin baru.',
+       choices:[
+         {t:'Bagikan password sementara',ok:false,why:'Password itu rahasia. Gunakan fitur “friend”/“share” dalam game, bukan berbagi password.'},
+         {t:'Tolak dan aktifkan 2FA',ok:true,why:'Jaga akunmu, pakai autentikasi ganda.'}
+       ]},
+      {q:'Kamu ingin upload foto rapor yang berisi data sekolah dan alamat.',
+       choices:[
+         {t:'Upload ke publik agar semua bangga',ok:false,why:'Ada data sensitif. Sensor info atau bagikan privat ke keluarga saja.'},
+         {t:'Sensor info penting / bagikan hanya ke keluarga',ok:true,why:'Bagikan secukupnya dan aman.'}
+       ]},
+      {q:'Ada kuis online berhadiah minta NIK dan tanggal lahir.',
+       choices:[
+         {t:'Isi semua data agar menang',ok:false,why:'Hati-hati phishing. Data identitas jangan dibagikan.'},
+         {t:'Abaikan, laporkan sebagai mencurigakan',ok:true,why:'Lindungi identitas, laporkan kalau perlu.'}
+       ]},
+      {q:'Teman membagikan gosip tentang teman lain.',
+       choices:[
+         {t:'Ikut sebar agar ramai',ok:false,why:'Itu bisa menyakiti orang lain & menurunkan kepercayaan.'},
+         {t:'Stop & ajak verifikasi fakta',ok:true,why:'Utamakan empati & fakta.'}
+       ]},
+      {q:'Aplikasi baru minta izin akses kamera & lokasi ketika tidak dibutuhkan.',
+       choices:[
+         {t:'Izinkan semua biar lancar',ok:false,why:'Berikan izin seperlunya saja.'},
+         {t:'Tolak izin yang tidak relevan',ok:true,why:'Prinsip minimasi data.'}
+       ]},
+      {q:'Kamu akan membuat kata sandi baru.',
+       choices:[
+         {t:'Pakai tanggal lahir supaya mudah',ok:false,why:'Mudah ditebak.'},
+         {t:'Gunakan password unik + manajer sandi',ok:true,why:'Lebih aman & tidak mudah ditebak.'}
+       ]},
+      {q:'Seseorang mengaku dari sekolah minta kode OTP di chat.',
+       choices:[
+         {t:'Kirim segera agar urusan cepat',ok:false,why:'OTP jangan dibagikan ke siapa pun.'},
+         {t:'Tolak & verifikasi lewat nomor resmi',ok:true,why:'Cek sumber resmi dulu.'}
+       ]}
+    ];
+
+    const modalDecision=document.getElementById('modalDecision');
+    const questionTxt=document.getElementById('questionTxt');
+    const choicesEl=document.getElementById('choices');
+    const btnSkip=document.getElementById('btnSkip');
+    const btnContinue=document.getElementById('btnContinue');
+
+    function openDecision(){
+      state.decision=true; state.paused=true;
+      const card = pick(QUESTIONS); modalDecision._current=card;
+      questionTxt.textContent=card.q; choicesEl.innerHTML=''; btnContinue.style.display='none';
+      card.choices.forEach((c,i)=>{
+        const div=document.createElement('button');
+        div.className='choice'; div.textContent=c.t; div.onclick=()=>{
+          if(c.ok){ state.trust=clamp(state.trust+8,0,100); state.privacy=clamp(state.privacy+6,0,100); div.classList.add('correct'); toast('👍 Keputusan bijak!'); }
+          else { state.trust=clamp(state.trust-10,0,100); state.privacy=clamp(state.privacy-8,0,100); div.classList.add('wrong'); toast('⚠️ Kurang tepat. Pelajari lagi.'); }
+          updateBars();
+          // lock choices
+          [...choicesEl.children].forEach(b=>b.disabled=true);
+          btnContinue.style.display='inline-block';
+        };
+        choicesEl.appendChild(div);
+      });
+      modalDecision.classList.add('active'); modalDecision.setAttribute('aria-hidden','false');
+    }
+    btnSkip.onclick=()=>{ state.privacy=clamp(state.privacy-5,0,100); updateBars(); closeDecision(); };
+    function closeDecision(){ modalDecision.classList.remove('active'); modalDecision.setAttribute('aria-hidden','true'); state.decision=false; state.paused=false; }
+    btnContinue.onclick=closeDecision;
+
+    // ===== Help modal =====
+    const modalHelp=document.getElementById('modalHelp');
+    document.getElementById('btnHelp').onclick=()=>{ modalHelp.classList.add('active'); };
+    document.getElementById('btnCloseHelp').onclick=()=>{ modalHelp.classList.remove('active'); };
+
+    // ===== Input =====
+    function moveLeft(){ if(state.decision||!state.running) return; state.player.lane=Math.max(0,state.player.lane-1); state.player.x=laneX(state.player.lane); }
+    function moveRight(){ if(state.decision||!state.running) return; state.player.lane=Math.min(2,state.player.lane+1); state.player.x=laneX(state.player.lane); }
+
+    document.getElementById('leftBtn').onclick=moveLeft;
+    document.getElementById('rightBtn').onclick=moveRight;
+    document.getElementById('pauseBtn').onclick=()=>{ if(!state.started) return; state.paused=!state.paused; toast(state.paused?'⏸️ Jeda':'▶ Lanjut'); };
+
+    window.addEventListener('keydown',e=>{
+      if(e.key==='ArrowLeft') moveLeft();
+      else if(e.key==='ArrowRight') moveRight();
+      else if(e.key===' '){ state.paused=!state.paused; }
+    });
+
+    // ===== Items =====
+    function spawn(){
+      // choose kind based on level probabilities
+      const r = Math.random();
+      let kind = 'bad';
+      if(r < currentLevelCfg.probs.bad){ kind = 'bad'; }
+      else if(r < currentLevelCfg.probs.bad + currentLevelCfg.probs.good){ kind = 'good'; }
+      else { kind = 'fact'; }
+      const speedY = rand(120, 160) * (currentLevelCfg.speedBase/120);
+      state.items.push({ kind, lane: Math.floor(rand(0,3)), y:-40, dy: speedY, size: 22 });
+    }
+
+    function drawItem(it){
+      const x = laneX(it.lane); const y = it.y;
+      if(it.kind==='bad'){
+        // Red warning sign
+        ctx.save(); ctx.translate(x,y);
+        ctx.fillStyle='rgba(239,68,68,0.9)';
+        ctx.beginPath(); ctx.arc(0,0,16,0,Math.PI*2); ctx.fill();
+        ctx.fillStyle='#0b1220'; ctx.font='bold 16px system-ui'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('!',0,1);
+        ctx.restore();
+      } else if(it.kind==='good'){
+        // Green shield
+        ctx.save(); ctx.translate(x,y);
+        ctx.fillStyle='rgba(34,197,94,0.95)';
+        ctx.beginPath(); ctx.moveTo(0,-18); ctx.lineTo(14,-6); ctx.lineTo(10,16); ctx.lineTo(-10,16); ctx.lineTo(-14,-6); ctx.closePath(); ctx.fill();
+        ctx.restore();
+      } else {
+        // Blue fact-check diamond
+        ctx.save(); ctx.translate(x,y);
+        ctx.fillStyle='rgba(96,165,250,0.95)';
+        ctx.rotate(Math.PI/4); ctx.fillRect(-13,-13,26,26);
+        ctx.restore();
+      }
+    }
+
+    function drawPlayer(){
+      const p=state.player; const x=p.x, y=p.y; // simple hiker
+      // body
+      ctx.save(); ctx.translate(x,y);
+      if(p.blink>0){ if(Math.floor(p.blink*10)%2===0) ctx.globalAlpha=0.4; }
+      // backpack
+      ctx.fillStyle='#0ea5e9'; ctx.fillRect(-14,-20,10,18);
+      // body
+      ctx.fillStyle='#22c55e'; ctx.fillRect(-6,-22,12,24);
+      // head
+      ctx.fillStyle='#fcd34d'; ctx.beginPath(); ctx.arc(0,-32,8,0,Math.PI*2); ctx.fill();
+      // legs
+      ctx.strokeStyle='#e5e7eb'; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(-3,2); ctx.lineTo(-6,14); ctx.moveTo(3,2); ctx.lineTo(8,14); ctx.stroke();
+      ctx.restore();
+      if(p.blink>0) p.blink -= 0.02;
+    }
+
+    function collide(it){
+      const dx=laneX(it.lane) - state.player.x; const dy = it.y - state.player.y; const dist=Math.hypot(dx,dy);
+      return dist < 24; // simple radius check
+    }
+
+    // ===== Mountain background =====
+    let bgOffset=0;
+    function drawBg(dt){
+      bgOffset += state.speed*0.25*dt; // parallax
+      const stripeH=60; const grad=ctx.createLinearGradient(0,0,0,view.h);
+      grad.addColorStop(0,'#091121'); grad.addColorStop(1,'#0b243e');
+      ctx.fillStyle=grad; ctx.fillRect(0,0,view.w,view.h);
+      // mountain sides
+      ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=2; ctx.beginPath();
+      const pathX=view.w*0.5, w=120; // central path
+      ctx.moveTo(pathX-w,0); ctx.lineTo(pathX-w,view.h); ctx.moveTo(pathX+w,0); ctx.lineTo(pathX+w,view.h); ctx.stroke();
+      // trail markings
+      ctx.strokeStyle='rgba(148,163,184,0.2)'; ctx.lineWidth=1.5; ctx.setLineDash([8,10]);
+      ctx.beginPath();
+      for(let y=((bgOffset%20)+20); y<view.h; y+=20){ ctx.moveTo(pathX-w+6,y); ctx.lineTo(pathX+w-6,y); }
+      ctx.stroke(); ctx.setLineDash([]);
+
+      // draw lane dots
+      ctx.fillStyle='rgba(148,163,184,0.2)';
+      lanes.forEach(r=>{ const x=Math.round(view.w*r); for(let y=((bgOffset%26)+10); y<view.h; y+=26){ ctx.fillRect(x-1,y,2,2); } });
+    }
+
+    // ===== Game Loop =====
+    let last=0, deciTimer=rand(5,10);
+    function step(ts){
+      if(!state.running){ last=ts; requestAnimationFrame(step); return; }
+      const dt=Math.min(0.05,(ts-last)/1000); last=ts;
+      if(state.paused){ requestAnimationFrame(step); return; }
+
+      ctx.clearRect(0,0,view.w,view.h);
+      drawBg(dt);
+
+      // spawn
+      state.tSpawn -= dt; if(state.tSpawn<=0){ spawn(); state.tSpawn = rand(currentLevelCfg.spawnMin, currentLevelCfg.spawnMax) - Math.min(0.35, state.progress/250); }
+      // items update
+      for(let i=state.items.length-1;i>=0;i--){
+        const it=state.items[i]; it.y += it.dy*dt;
+        drawItem(it);
+        if(collide(it)){
+          if(it.kind==='bad'){ state.trust=clamp(state.trust-6,0,100); state.player.blink=0.8; toast('🚫 Overshare!'); }
+          else if(it.kind==='good'){ state.trust=clamp(state.trust+4,0,100); toast('🧠 Berpikir dulu! +Trust'); }
+          else { state.privacy=clamp(state.privacy+5,0,100); toast('🔎 Fact-check! +Privasi'); }
+          updateBars(); state.items.splice(i,1); continue;
+        }
+        if(it.y>view.h+40){ state.items.splice(i,1); }
+      }
+
+      // progress over time
+      const multiplier = (state.trust+state.privacy)/200; // 0..1
+      state.progress = clamp(state.progress + (state.speed*dt*0.035*multiplier), 0, 100);
+      updateBars();
+      setLevelByProgress(state.progress);
+
+      // decision timer
+      deciTimer -= dt; if(deciTimer<=0 && !state.decision){ openDecision(); deciTimer = rand(currentLevelCfg.decisionMin, currentLevelCfg.decisionMax) - Math.min(4, state.progress/30); }
+
+      // draw player last
+      drawPlayer();
+
+      // difficulty scale
+      state.speed = currentLevelCfg.speedBase + state.progress*currentLevelCfg.speedScale;
+
+      // fail/win conditions
+      if(state.trust<=0 || state.privacy<=0){
+        state.running=false; showEnd(false);
+      } else if(state.progress>=100){
+        state.running=false; showEnd(true);
+      }
+
+      requestAnimationFrame(step);
+    }
+
+    function showEnd(win){
+      const score = Math.round( (state.trust*0.6 + state.privacy*0.4) + (win?20:0) );
+      questionTxt.innerHTML = (win? '🏔️ Mantap! Kamu mencapai puncak dengan pikiran yang mindful.' : '❄️ Kamu kehabisan energi sosial. Coba lagi ya!') + `<br/><br/>Skor: <b>${score}</b>`;
+      choicesEl.innerHTML='';
+      const again=document.createElement('button'); again.className='choice'; again.textContent='Main Lagi'; again.onclick=()=>{ closeDecision(); startGame(); };
+      const tips=document.createElement('div'); tips.className='choice'; tips.innerHTML='<b>Tips:</b> Jaga privasi, verifikasi info, dan pikirkan dampak sebelum berbagi.'; tips.style.cursor='default';
+      choicesEl.append(again,tips);
+      btnSkip.style.display='none'; btnContinue.style.display='none';
+      modalDecision.classList.add('active');
+    }
+
+    // ===== Start / Flow =====
+    function startGame(){
+      document.getElementById('start').style.display='none';
+      btnSkip.style.display='inline-block';
+      reset(); state.started=true; state.running=true; state.paused=false; deciTimer=rand(currentLevelCfg.decisionMin, currentLevelCfg.decisionMax);
+    }
+
+    document.getElementById('btnPlay').onclick=startGame;
+    document.getElementById('btnHow').onclick=()=>{ modalHelp.classList.add('active'); };
+
+    // finish button (return to worlds index)
+    document.getElementById('btnSelesai').onclick=()=>{
+      showEnd(state.progress>=100);
+    };
+
+    // initial
+    resize(); reset(); requestAnimationFrame(step);
+  })();
+  </script>
+</body>
+</html>

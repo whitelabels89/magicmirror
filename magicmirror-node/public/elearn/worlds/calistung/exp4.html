@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tower of Passwords – Prototype</title>
+  <style>
+    html, body { height: 100%; margin: 0; background: #0b1020; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+    canvas { display: block; width: 100vw; height: 100vh; outline: none; }
+    /* Optional: hint overlay */
+    .hint { position: fixed; left: 16px; bottom: 16px; padding: 10px 14px; background: rgba(8,12,24,0.7); color: #e8f0ff; border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; backdrop-filter: blur(6px); font-size: 13px; line-height: 1.35; user-select: none; }
+    .hint b{ color: #7ee787; }
+  </style>
+</head>
+<body>
+  <canvas id="game" tabindex="0" aria-label="Tower of Passwords"></canvas>
+  <div class="hint">Gerak: <b>A/D atau ←/→</b> • Lompat: <b>W/Space/↑</b> • Interaksi: <b>E</b> • Pause: <b>P</b> • Reset: <b>R</b></div>
+  <script>
+  (()=>{
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+
+    // ---------- Utils ----------
+    const rand = (a,b)=>Math.random()*(b-a)+a;
+    const randi = (a,b)=>Math.floor(rand(a,b));
+    const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+
+    // DPR-aware sizing (no blurry text)
+    let DPR = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
+    function resize(){
+      const w = Math.floor(window.innerWidth * DPR);
+      const h = Math.floor(window.innerHeight * DPR);
+      canvas.width = w; canvas.height = h;
+      canvas.style.width = '100vw';
+      canvas.style.height = '100vh';
+      ctx.setTransform(1,0,0,1,0,0);
+      ctx.scale(DPR, DPR);
+    }
+    window.addEventListener('resize', ()=>{ DPR = Math.max(1, Math.min(window.devicePixelRatio || 1, 2)); resize(); initLevel(currentLevel); });
+
+    // ---------- Game State ----------
+    const STATE = { MENU:0, PLAY:1, WIN:2, GAMEOVER:3, PAUSE:4 };
+    let gameState = STATE.MENU;
+    let currentLevel = 1;
+
+    // World + camera
+    let worldHeight = 2800; // will be adjusted per level
+    let cameraY = 0;
+
+    // Entities
+    const keys = {};
+    const GRAVITY = 0.8;
+    const MAX_FALL = 20;
+
+    const player = {
+      x: 0, y: 0, w: 36, h: 48,
+      vx: 0, vy: 0,
+      speed: 4.2, jumpPower: 18.6,
+      onGround: false,
+      inv: 0,
+      hearts: 3,
+      color: '#74c0fc',
+      coyote: 0,
+      jumpBuffer: 0
+    };
+
+    // Platforms: one-way from above
+    /** @type {{x:number,y:number,w:number,h:number,gapLeft:boolean,minX:number,maxX:number}[]} */
+    let platforms = [];
+
+    // Enemies on platforms
+    /** @type {{x:number,y:number,w:number,h:number,dir:number,speed:number,minX:number,maxX:number,alive:boolean}[]} */
+    let enemies = [];
+
+    // Tokens/Characters to build password
+    /** @type {{x:number,y:number,w:number,h:number,type:string,collected:boolean}[]} */
+    let tokens = [];
+
+    // Vault door
+    const door = { x: 0, y: 0, w: 80, h: 120 };
+
+    // Password progress
+    const charset = {
+      U: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+      L: 'abcdefghijklmnopqrstuvwxyz',
+      D: '0123456789',
+      S: '!@#$%^&*?'
+    };
+    let pwdChars = []; // array of characters
+    let hasUpper=false, hasLower=false, hasDigit=false, hasSymbol=false;
+
+    function addCharByType(t){
+      if(t==='K'){ // key token = add 3 mixed chars
+        for(let i=0;i<3;i++){
+          const pick = ['U','L','D','S'][randi(0,4)];
+          addCharByType(pick);
+        }
+        return;
+      }
+      const src = charset[t];
+      const ch = src[randi(0,src.length)];
+      pwdChars.push(ch);
+      if(/[A-Z]/.test(ch)) hasUpper=true;
+      if(/[a-z]/.test(ch)) hasLower=true;
+      if(/[0-9]/.test(ch)) hasDigit=true;
+      if(/[^A-Za-z0-9]/.test(ch)) hasSymbol=true;
+    }
+
+    function dropChars(n){
+      while(n > 0 && pwdChars.length > 0) {
+        pwdChars.pop();
+        n--;
+      }
+      // Recompute flags
+      const s = pwdChars.join('');
+      hasUpper = /[A-Z]/.test(s);
+      hasLower = /[a-z]/.test(s);
+      hasDigit = /\d/.test(s);
+      hasSymbol = /[^A-Za-z0-9]/.test(s);
+    }
+
+    function meetsGoal(){
+      return pwdChars.length >= 12 && hasUpper && hasLower && hasDigit && hasSymbol;
+    }
+
+    // ---------- Level Gen ----------
+    function initLevel(level=1){
+      // World size scales a bit per level
+      worldHeight = 2600 + (level-1)*400;
+      platforms = []; enemies = []; tokens = []; pwdChars = [];
+      hasUpper=hasLower=hasDigit=hasSymbol=false;
+      player.hearts = 3; player.inv = 0;
+
+      // Start near bottom
+      const w = canvas.width / DPR;
+      const h = canvas.height / DPR;
+
+      // Floors every ~180px, with alternating gaps
+      const spacing = 180;
+      const floors = Math.floor(worldHeight / spacing) - 1;
+      const gap = Math.max(220, Math.min(300, w*0.23));
+
+      // Ground platform (full width)
+      platforms.push({x:0, y:worldHeight-40, w:w, h:20, gapLeft:false, minX:0, maxX:w});
+
+      for(let i=1;i<floors;i++){
+        const y = worldHeight - 40 - i*spacing;
+        const gapLeft = (i%2===1);
+        const px = gapLeft ? gap : 0;
+        const pw = w - gap;
+        platforms.push({x:px, y, w:pw, h:16, gapLeft, minX:px, maxX:px+pw});
+      }
+
+      // Top ledge near door
+      const topY = 120;
+      platforms.push({x:0, y:topY+130, w:w, h:16, gapLeft:false, minX:0, maxX:w});
+
+      door.x = w*0.5 - door.w*0.5;
+      door.y = topY;
+
+      // Place player start
+      player.x = 40;
+      player.y = worldHeight - 120 - player.h;
+      player.vx = 0; player.vy = 0; player.onGround=false;
+      cameraY = clamp(player.y - h*0.6, 0, worldHeight - h);
+
+      // Spawn enemies (every 2-3 floors)
+      const enemyEvery = 2;
+      const baseSpeed = 0.9 + level*0.25;
+      for(let i=2;i<floors;i+=enemyEvery){
+        const p = platforms[i];
+        if(!p) continue;
+        const ew = 34, eh = 28;
+        const ex = clamp(randi(p.minX+12, p.maxX-12-ew), p.minX+8, p.maxX-8-ew);
+        enemies.push({x:ex, y:p.y-eh, w:ew, h:eh, dir: Math.random()<0.5?-1:1, speed: baseSpeed + rand(0,0.35), minX:p.minX+8, maxX:p.maxX-8, alive:true});
+      }
+
+      // Spawn tokens on most floors
+      const tokenTypes = [];
+      // Ensure enough to reach goal (+ extras)
+      const needLen = 12;
+      // Mix guaranteed distribution
+      tokenTypes.push(...Array(6).fill('U'));
+      tokenTypes.push(...Array(6).fill('L'));
+      tokenTypes.push(...Array(6).fill('D'));
+      tokenTypes.push(...Array(5).fill('S'));
+      tokenTypes.push(...Array(4).fill('K'));
+      // Randomize
+      for(let i=tokenTypes.length-1;i>0;i--){ const j=randi(0,i+1); [tokenTypes[i],tokenTypes[j]]=[tokenTypes[j],tokenTypes[i]]; }
+
+      let ti = 0;
+      for(let i=1;i<floors && ti<tokenTypes.length;i++){
+        const p = platforms[i]; if(!p) continue;
+        const tcount = (Math.random()<0.5)?1:2;
+        for(let k=0;k<tcount && ti<tokenTypes.length;k++){
+          const tw = 26, th = 26;
+          const minX = p.minX+14, maxX = p.maxX-14-tw;
+          const x = clamp(rand(minX,maxX), minX, maxX);
+          const y = p.y - th - 2 - k*4;
+          tokens.push({x, y, w:tw, h:th, type: tokenTypes[ti++], collected:false});
+        }
+      }
+
+      gameState = STATE.MENU;
+    }
+
+    // ---------- Input ----------
+    window.addEventListener('keydown', (e)=>{
+      keys[e.key.toLowerCase()] = true;
+      if(e.key === ' '){ keys[' '] = true; }
+      if(e.key === ' ' || e.key.toLowerCase()==='w' || e.key==='ArrowUp'){
+        keys['__jumpPressed'] = true;
+        keys['__jumpHeld'] = true;
+      }
+      if(gameState===STATE.MENU && (e.key===' '||e.key==='Enter')) gameState=STATE.PLAY;
+      if(gameState===STATE.WIN && e.key.toLowerCase()==='n'){ currentLevel++; initLevel(currentLevel); gameState=STATE.PLAY; }
+      if(e.key.toLowerCase()==='p' && (gameState===STATE.PLAY||gameState===STATE.PAUSE)){
+        gameState = (gameState===STATE.PLAY)?STATE.PAUSE:STATE.PLAY;
+      }
+      if(e.key.toLowerCase()==='r'){
+        initLevel(currentLevel); gameState=STATE.PLAY;
+      }
+    });
+    window.addEventListener('keyup', (e)=>{
+      keys[e.key.toLowerCase()] = false;
+      if(e.key === ' '){ keys[' '] = false; }
+      if(e.key === ' ' || e.key.toLowerCase()==='w' || e.key==='ArrowUp'){
+        keys['__jumpHeld'] = false;
+      }
+    });
+
+    canvas.addEventListener('pointerdown', ()=>{
+      if(gameState===STATE.MENU){ gameState=STATE.PLAY; canvas.focus(); }
+    });
+
+    // ---------- Physics & Collisions ----------
+    function aabb(a,b){ return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y; }
+
+    function update(dt){
+      const w = canvas.width / DPR;
+      const h = canvas.height / DPR;
+
+      if(gameState!==STATE.PLAY){ return; }
+
+      // Player input
+      const left = keys['a']||keys['arrowleft'];
+      const right = keys['d']||keys['arrowright'];
+      const jump = keys['w']||keys['arrowup']||keys[' '];
+
+      // Timers
+      player.coyote = Math.max(0, player.coyote - dt);
+      player.jumpBuffer = Math.max(0, player.jumpBuffer - dt);
+
+      const prevY = player.y;
+
+      player.vx = (right?1:0) - (left?1:0);
+      player.vx *= player.speed;
+
+      // Gravity
+      player.vy += GRAVITY;
+      if(player.vy > MAX_FALL) player.vy = MAX_FALL;
+
+      // Horizontal move
+      player.x += player.vx;
+      player.x = clamp(player.x, 0, w - player.w);
+
+      // Vertical move
+      player.y += player.vy;
+
+      // Platform one-way collisions (from above)
+      player.onGround = false;
+      for(const p of platforms){
+        if(player.vy >= 0 &&
+           player.x + player.w > p.x && player.x < p.x + p.w &&
+           prevY + player.h <= p.y + 2 && player.y + player.h >= p.y){
+          player.y = p.y - player.h;
+          player.vy = 0;
+          player.onGround = true;
+          player.coyote = 0.12; // 120ms coyote time
+        }
+      }
+
+      // Jump handling: buffer + coyote + variable jump
+      if(keys['__jumpPressed']){
+        player.jumpBuffer = 0.15; // 150ms
+        keys['__jumpPressed'] = false;
+      }
+      if(player.jumpBuffer > 0 && (player.onGround || player.coyote > 0)){
+        player.vy = -player.jumpPower;
+        player.onGround = false;
+        player.coyote = 0;
+        player.jumpBuffer = 0;
+      }
+      // Variable jump: jika pemain melepas tombol, kurangi ketinggian lompatan
+      if(!(keys['w']||keys['arrowup']||keys[' ']) && player.vy < -4){
+        player.vy += 0.6; // potong lompatan saat tombol dilepas
+      }
+
+      // Camera follow
+      cameraY = clamp(player.y - h*0.55, 0, worldHeight - h);
+
+      // Enemies move
+      for(const e of enemies){ if(!e.alive) continue; e.x += e.dir * e.speed; if(e.x < e.minX){ e.x = e.minX; e.dir = 1; } if(e.x + e.w > e.maxX){ e.x = e.maxX - e.w; e.dir = -1; } }
+
+      // Token collection
+      for(const t of tokens){
+        if(!t.collected && aabb(player,t)){
+          t.collected = true;
+          addCharByType(t.type);
+        }
+      }
+
+      // Enemy collisions (damage)
+      if(player.inv>0) player.inv -= dt;
+      for(const e of enemies){
+        if(!e.alive) continue;
+        if(aabb(player,e) && player.inv<=0){
+          player.hearts -= 1;
+          player.inv = 1.2; // seconds of invulnerability
+          dropChars(2);
+          // knockback
+          player.vy = -10; player.y -= 8; player.x += (player.x < e.x ? -20 : 20);
+          if(player.hearts <= 0){ gameState = STATE.GAMEOVER; }
+        }
+      }
+
+      // Fall off the world => damage + respawn bottom
+      if(player.y > worldHeight + 200){
+        player.hearts -= 1; player.inv = 1.2; dropChars(2);
+        player.x = 40; player.y = worldHeight - 160 - player.h; player.vx = 0; player.vy = 0;
+        if(player.hearts <= 0){ gameState = STATE.GAMEOVER; }
+      }
+
+      // Win interaction
+      const nearDoor = (Math.abs((player.x+player.w/2) - (door.x+door.w/2)) < 60) && (player.y + player.h > door.y+10 && player.y < door.y + door.h);
+      if(nearDoor && meetsGoal() && (keys['e'])){
+        gameState = STATE.WIN;
+      }
+    }
+
+    // ---------- Rendering ----------
+    function drawBackground(w,h){
+      // Gradient night sky
+      const g = ctx.createLinearGradient(0, h, 0, 0);
+      g.addColorStop(0, '#0b1020');
+      g.addColorStop(1, '#141b3a');
+      ctx.fillStyle = g; ctx.fillRect(0,0,w,h);
+
+      // Tower vertical walls
+      ctx.save();
+      ctx.globalAlpha = 0.16;
+      for(let i=0;i<w;i+=80){
+        ctx.fillStyle = (i%160===0)?'#1f2a4a':'#1a2342';
+        ctx.fillRect(i, 0, 80, h);
+      }
+      ctx.restore();
+    }
+
+    function drawHUD(w,h){
+      // Panel
+      ctx.save();
+      ctx.translate(16, 16);
+      // Panel bg
+      ctx.fillStyle = 'rgba(8,12,24,0.6)';
+      ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+      ctx.lineWidth = 2;
+      const pw=320, ph=140;
+      roundRect(0,0,pw,ph,12,true,true);
+
+      // Hearts
+      for(let i=0;i<player.hearts;i++){
+        drawHeart(18 + i*26, 24, 10, '#ff6b6b');
+      }
+
+      // Password preview
+      ctx.fillStyle = '#9ecbff';
+      ctx.font = '14px system-ui, -apple-system, Segoe UI, Roboto';
+      ctx.fillText('Password:', 16, 58);
+      ctx.fillStyle = '#e8f0ff';
+      ctx.font = 'bold 16px system-ui, -apple-system, Segoe UI, Roboto';
+      const shown = pwdChars.join('');
+      const clip = shown.length>26 ? shown.slice(-26) : shown;
+      ctx.fillText(clip||'—', 16, 78);
+
+      // Strength bar
+      const goalLen = 12;
+      const lenFrac = clamp(pwdChars.length/goalLen, 0, 1);
+      ctx.fillStyle = '#9aa4b2'; ctx.fillRect(16, 94, pw-32, 10);
+      ctx.fillStyle = meetsGoal()? '#22c55e' : '#3b82f6';
+      ctx.fillRect(16, 94, (pw-32)*lenFrac, 10);
+      ctx.strokeStyle = 'rgba(255,255,255,0.25)'; ctx.strokeRect(16,94,pw-32,10);
+      ctx.fillStyle = '#9ecbff'; ctx.font = '12px system-ui';
+      ctx.fillText(`${pwdChars.length}/${goalLen}`, 16, 118);
+
+      // Variety check
+      const checks = [
+        {ok:hasUpper, label:'A-Z'},
+        {ok:hasLower, label:'a-z'},
+        {ok:hasDigit, label:'0-9'},
+        {ok:hasSymbol,label:'!@#'}
+      ];
+      checks.forEach((c,i)=>{
+        const x = 74 + i*60; const y=116;
+        ctx.fillStyle = c.ok? '#22c55e':'#ef4444';
+        ctx.beginPath(); ctx.arc(x, y-6, 6, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#dbeafe'; ctx.font = '11px system-ui'; ctx.fillText(c.label, x-12, y+12);
+      });
+
+      // Objective text (larger, bright)
+      ctx.fillStyle = '#e2e8f0'; ctx.font = '600 14px system-ui';
+      ctx.fillText('Tujuan: Kumpulkan karakter → Password kuat → Kunci brankas (E)', 16, ph-12);
+
+      ctx.restore();
+    }
+
+    function drawWorld(w,h){
+      // Convert world->screen by translating -cameraY
+      ctx.save();
+      ctx.translate(0, -cameraY);
+
+      // Tower grid lines
+      ctx.save();
+      ctx.strokeStyle = 'rgba(108,139,255,0.08)';
+      ctx.lineWidth = 1;
+      for(let y=0; y<worldHeight; y+=40){
+        ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke();
+      }
+      ctx.restore();
+
+      // Door
+      drawDoor(door.x, door.y, door.w, door.h, meetsGoal());
+
+      // Platforms
+      for(const p of platforms){ drawPlatform(p); }
+
+      // Tokens
+      for(const t of tokens){ if(!t.collected) drawToken(t); }
+
+      // Enemies
+      for(const e of enemies){ if(e.alive) drawEnemy(e); }
+
+      // Player
+      drawPlayer();
+
+      ctx.restore();
+    }
+
+    function drawPlatform(p){
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(p.x, p.y, p.w, p.h);
+      ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+      ctx.strokeRect(p.x, p.y, p.w, p.h);
+    }
+
+    function drawDoor(x,y,w,h,active){
+      ctx.save();
+      // Vault body
+      ctx.fillStyle = active? '#16a34a' : '#334155';
+      roundRect(x, y, w, h, 10, true, false);
+      // Door outline
+      ctx.strokeStyle = active? '#86efac' : 'rgba(255,255,255,0.2)';
+      ctx.lineWidth = 3; roundRect(x+6, y+6, w-12, h-12, 8, false, true);
+      // Simple lock wheel
+      ctx.fillStyle = active? '#14532d' : '#1f2937';
+      ctx.beginPath(); ctx.arc(x+w/2, y+h/2, 16, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = active? '#22c55e' : '#64748b';
+      ctx.beginPath(); ctx.moveTo(x+w/2-14, y+h/2); ctx.lineTo(x+w/2+14, y+h/2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x+w/2, y+h/2-14); ctx.lineTo(x+w/2, y+h/2+14); ctx.stroke();
+
+      // Label
+      ctx.fillStyle = '#e5e7eb'; ctx.font = 'bold 14px system-ui';
+      ctx.fillText(active? 'BRANKAS SIAP (E)': 'KUNCI TERKUNCI', x+w/2-58, y+h+18);
+      ctx.restore();
+    }
+
+    function drawToken(t){
+      const colorMap = { U:'#60a5fa', L:'#34d399', D:'#f59e0b', S:'#f472b6', K:'#a78bfa' };
+      const labelMap = { U:'A', L:'a', D:'7', S:'@', K:'🔑' };
+      ctx.save();
+      roundRect(t.x, t.y, t.w, t.h, 6, false, false);
+      ctx.fillStyle = colorMap[t.type] || '#94a3b8'; ctx.fillRect(t.x, t.y, t.w, t.h);
+      ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.strokeRect(t.x, t.y, t.w, t.h);
+      ctx.fillStyle = '#0b1020'; ctx.font = 'bold 16px system-ui';
+      const label = labelMap[t.type] || '?';
+      ctx.fillText(label, t.x + (t.w-10)/2 - 4, t.y + t.h - 8);
+      ctx.restore();
+    }
+
+    function drawEnemy(e){
+      ctx.save();
+      // Body
+      ctx.fillStyle = '#ef4444';
+      roundRect(e.x, e.y, e.w, e.h, 6, true, false);
+      // Eyes
+      ctx.fillStyle = '#0b1020';
+      ctx.fillRect(e.x+6, e.y+8, 6, 6);
+      ctx.fillRect(e.x+e.w-12, e.y+8, 6, 6);
+      // Feet line
+      ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.beginPath();
+      ctx.moveTo(e.x+6, e.y+e.h-4); ctx.lineTo(e.x+e.w-6, e.y+e.h-4); ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawPlayer(){
+      ctx.save();
+      const p = player;
+      // Glow
+      ctx.shadowColor = '#7dd3fc'; ctx.shadowBlur = 12;
+      ctx.fillStyle = (p.inv>0)? '#a5f3fc' : p.color;
+      roundRect(p.x, p.y, p.w, p.h, 8, true, false);
+      ctx.shadowBlur = 0;
+      // Face
+      ctx.fillStyle = '#0b1020';
+      ctx.fillRect(p.x+8, p.y+14, 6, 6);
+      ctx.fillRect(p.x+p.w-14, p.y+14, 6, 6);
+      // Belt
+      ctx.fillStyle = '#94a3b8'; ctx.fillRect(p.x+4, p.y+p.h-12, p.w-8, 4);
+      ctx.restore();
+    }
+
+    function drawTitleOverlay(w,h){
+      ctx.save();
+      ctx.fillStyle = 'rgba(8,12,24,0.7)'; ctx.fillRect(0,0,w,h);
+      ctx.fillStyle = '#e5e7eb';
+      ctx.font = '700 36px system-ui, -apple-system, Segoe UI, Roboto';
+      ctx.fillText('TOWER OF PASSWORDS', w/2 - 210, h/2 - 40);
+      ctx.font = '16px system-ui';
+      ctx.fillStyle = '#cbd5e1';
+      ctx.fillText('Kumpulkan A/a/0-9/@ untuk membangun password kuat (≥12 & lengkap).', w/2 - 260, h/2);
+      ctx.fillText('Hindari hacker merah. Kunci brankas saat siap (tekan E di depan pintu).', w/2 - 250, h/2 + 24);
+      ctx.font = 'bold 18px system-ui'; ctx.fillStyle = '#7ee787';
+      ctx.fillText('Tekan [Spasi] untuk mulai', w/2 - 120, h/2 + 64);
+      ctx.restore();
+    }
+
+    function drawWinOverlay(w,h){
+      ctx.save();
+      ctx.fillStyle = 'rgba(8,12,24,0.7)'; ctx.fillRect(0,0,w,h);
+      ctx.fillStyle = '#22c55e';
+      ctx.font = '700 40px system-ui';
+      ctx.fillText('MISSION COMPLETE!', w/2 - 200, h/2 - 40);
+      ctx.fillStyle = '#e5e7eb'; ctx.font = '16px system-ui';
+      ctx.fillText('Password kamu kuat dan brankas terkunci aman. 🎉', w/2 - 190, h/2);
+      ctx.fillText('Tekan N untuk level berikutnya atau R untuk mengulang.', w/2 - 210, h/2 + 26);
+      ctx.restore();
+    }
+
+    function drawGameOverOverlay(w,h){
+      ctx.save();
+      ctx.fillStyle = 'rgba(8,12,24,0.7)'; ctx.fillRect(0,0,w,h);
+      ctx.fillStyle = '#ef4444';
+      ctx.font = '700 40px system-ui';
+      ctx.fillText('GAME OVER', w/2 - 120, h/2 - 40);
+      ctx.fillStyle = '#e5e7eb'; ctx.font = '16px system-ui';
+      ctx.fillText('Hackers berhasil menyerang. Coba lagi dengan R.', w/2 - 170, h/2);
+      ctx.restore();
+    }
+
+    function drawPauseOverlay(w,h){
+      ctx.save();
+      ctx.fillStyle = 'rgba(8,12,24,0.6)'; ctx.fillRect(0,0,w,h);
+      ctx.fillStyle = '#e5e7eb'; ctx.font = '700 32px system-ui';
+      ctx.fillText('PAUSE', w/2 - 60, h/2 - 10);
+      ctx.fillStyle = '#cbd5e1'; ctx.font = '16px system-ui';
+      ctx.fillText('Tekan P untuk lanjut', w/2 - 90, h/2 + 18);
+      ctx.restore();
+    }
+
+    // ---------- Drawing helpers ----------
+    function roundRect(x, y, w, h, r, fill, stroke){
+      ctx.beginPath();
+      ctx.moveTo(x+r, y);
+      ctx.arcTo(x+w, y, x+w, y+h, r);
+      ctx.arcTo(x+w, y+h, x, y+h, r);
+      ctx.arcTo(x, y+h, x, y, r);
+      ctx.arcTo(x, y, x+w, y, r);
+      if(fill) ctx.fill(); if(stroke) ctx.stroke();
+    }
+
+    function drawHeart(cx, cy, size, color){
+      ctx.save();
+      ctx.fillStyle = color; ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.bezierCurveTo(cx+size, cy-size, cx+2*size, cy+size/2, cx, cy+2*size);
+      ctx.bezierCurveTo(cx-2*size, cy+size/2, cx-size, cy-size, cx, cy);
+      ctx.fill(); ctx.restore();
+    }
+
+    // ---------- Main loop ----------
+    let last = 0;
+    function frame(t){
+      const now = t/1000; const dt = Math.min(0.033, now - last); last = now;
+      const w = canvas.width / DPR; const h = canvas.height / DPR;
+
+      update(dt);
+
+      // Render
+      drawBackground(w,h);
+      drawWorld(w,h);
+      drawHUD(w,h);
+
+      if(gameState===STATE.MENU) drawTitleOverlay(w,h);
+      else if(gameState===STATE.WIN) drawWinOverlay(w,h);
+      else if(gameState===STATE.GAMEOVER) drawGameOverOverlay(w,h);
+      else if(gameState===STATE.PAUSE) drawPauseOverlay(w,h);
+
+      requestAnimationFrame(frame);
+    }
+
+    // Boot
+    resize();
+    initLevel(currentLevel);
+    canvas.focus();
+    requestAnimationFrame(frame);
+  })();
+  </script>
+</body>
+</html>

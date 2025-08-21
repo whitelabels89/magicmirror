@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shape-L2 – Gambarkan Sesuai Petunjuk</title>
+  <style>
+    :root{
+      --bg:#f6fafc; --ink:#0f172a; --lane:#127b86; --card:#ffffff;
+      --leaf:#f4b400; --spider:#7c3aed; --pumpkin:#f97316; --acorn:#8b5e3c;
+      --candy:#7c4cff; --corn1:#fbbf24; --corn2:#fff; --corn3:#f59e0b; --apple:#ef4444; --stem:#15803d;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,Arial;background:var(--bg)}
+    header{padding:16px 12px;text-align:center}
+    .title{display:inline-block;background:#2ea6b4;color:#fff;border-radius:14px;padding:10px 16px;font-weight:800;box-shadow:0 6px 0 #0e6e76}
+    .sub{opacity:.8;margin-top:8px}
+
+    .sheet{width:min(1000px,96vw);margin:12px auto 24px;display:flex;flex-direction:column;gap:18px}
+
+    .row{background:#e8f6f8;border-radius:18px;padding:14px 14px;display:grid;grid-template-columns:1fr 96px;gap:12px;align-items:center}
+    .pattern{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+    .slot{width:92px;height:92px;border:3px dashed #8aa; border-radius:12px; display:grid;place-items:center;background:#fff}
+
+    .choices{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+    .choice{width:64px;height:64px;border-radius:12px;background:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.08);border:2px solid transparent}
+    .choice.selected{border-color:#22c55e}
+    .choice{transition:transform .15s ease, box-shadow .15s ease}
+    .choice:hover{transform:translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,.12)}
+    .slot.filled{border-style:solid}
+
+    svg{width:60px;height:60px}
+    .small svg{width:50px;height:50px}
+    .emoji{font-size:48px; line-height:1;}
+    .small .emoji{font-size:44px}
+
+    .hud{width:min(1000px,96vw);margin:0 auto;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+    .pill{padding:8px 12px;border-radius:999px;font-weight:800;background:#eaf9fb;color:#0a6470}
+    button{appearance:none;border:none;padding:10px 14px;border-radius:12px;font-weight:800;cursor:pointer;background:#0fb3c2;color:#fff;box-shadow:0 6px 16px rgba(15,179,194,.35)}
+    button.secondary{background:#e2e8f0;color:#0b2942}
+    .ok{background:#dcfce7;color:#166534}
+    .bad{background:#fee2e2;color:#b91c1c}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title">GAMBAR/ISI SESUAI PETUNJUK</div>
+    <div class="sub">Pilih gambar yang tepat untuk melanjutkan pola pada kotak ungu di kanan.</div>
+  </header>
+
+  <section class="sheet" id="sheet"></section>
+
+  <div class="hud">
+    <span id="status" class="pill">Siap menebak pola ✨</span>
+    <button id="shuffle">Acak Soal</button>
+    <button id="check">Periksa</button>
+    <button id="reset" class="secondary">Reset</button>
+  </div>
+
+<script>
+(function(){
+  const elSheet = document.getElementById('sheet');
+  const statusEl = document.getElementById('status');
+  const BTN = (id)=>document.getElementById(id);
+
+  let rowsOrder = [];
+
+  // Icon factory
+  const icons = {
+    leaf: () => emoji('🍂'),
+    spider: () => emoji('🕷️'),
+    pumpkin: () => emoji('🎃'),
+    acorn: () => emoji('🌰'),
+    candy: () => emoji('🍬'),
+    candycorn: () => emoji('🍭'),
+    apple: () => emoji('🍎')
+  };
+
+  function svgWrap(inner){
+    const s = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    s.setAttribute('viewBox','0 0 100 100');
+    s.innerHTML = inner; return s;
+  }
+
+  function emoji(char){
+    const s = document.createElement('span');
+    s.className = 'emoji';
+    s.textContent = char;
+    return s;
+  }
+
+  // Rows configuration (patterns taken from the photo)
+  const rows = [
+    { // leaf, spider, leaf, spider, leaf -> ? (spider)
+      pattern:['leaf','spider','leaf','spider','leaf'], answer:'spider', options:['leaf','spider','pumpkin']
+    },
+    { // 🎃🎃🎃, then three acorns -> ? (acorn)
+      pattern:['pumpkin','pumpkin','pumpkin','acorn','acorn','acorn'], answer:'acorn', options:['pumpkin','acorn','leaf']
+    },
+    { // corn, candy, corn, candy, corn, candy -> ? (candycorn)  
+      pattern:['candycorn','candy','candycorn','candy','candycorn','candy'], answer:'candycorn', options:['candy','candycorn','acorn']
+    },
+    { // leaf, apple, apple, leaf, apple, apple, leaf -> ? (apple)
+      pattern:['leaf','apple','apple','leaf','apple','apple','leaf'], answer:'apple', options:['apple','leaf','pumpkin']
+    }
+  ];
+
+  // Render (with shuffle support)
+  function buildSheet(doShuffle = true){
+    elSheet.innerHTML = '';
+    // build order of rows
+    rowsOrder = [...rows.keys()];
+    if(doShuffle){ shuffle(rowsOrder); }
+
+    rowsOrder.forEach((rowIdx)=>{
+      const row = rows[rowIdx];
+      const rowEl = div('row');
+      const pat = div('pattern');
+      row.pattern.forEach(k=> pat.appendChild(icon(k)));
+      const slot = div('slot');
+      slot.dataset.row = String(rowIdx);
+      slot.dataset.need = row.answer; // store correct answer per slot
+      rowEl.append(pat, slot);
+
+      const choices = div('choices');
+      const opts = [...row.options];
+      shuffle(opts).forEach(k=>{
+        const c = div('choice small');
+        c.dataset.key = k;
+        c.dataset.row = String(rowIdx);
+        c.appendChild(icon(k));
+        c.addEventListener('click',()=>selectChoice(c, slot));
+        choices.appendChild(c);
+      });
+
+      elSheet.appendChild(rowEl);
+      elSheet.appendChild(choices);
+    });
+  }
+
+  // initial build
+  buildSheet(true);
+
+  BTN('check').addEventListener('click', validate);
+  BTN('shuffle').addEventListener('click', ()=>{
+    buildSheet(true);
+    statusEl.textContent = 'Soal diacak 🎲';
+    statusEl.className = 'pill';
+  });
+  BTN('reset').addEventListener('click', resetAll);
+
+  function selectChoice(choiceEl, slot){
+    // mark selected for that row
+    document.querySelectorAll(`.choice[data-row="${choiceEl.dataset.row}"]`).forEach(n=>n.classList.remove('selected'));
+    choiceEl.classList.add('selected');
+    slot.innerHTML = '';
+    slot.appendChild(icon(choiceEl.dataset.key));
+    slot.classList.add('filled');
+    slot.dataset.pick = choiceEl.dataset.key;
+    statusEl.textContent = 'Pilihan dimasukkan.'; statusEl.className = 'pill';
+  }
+
+  function validate(){
+    let ok = true;
+    document.querySelectorAll('.slot').forEach((slot, i)=>{
+      const need = slot.dataset.need;
+      const got = slot.dataset.pick;
+      if(got === need){
+        slot.style.borderColor = '#22c55e';
+        slot.style.background = '#f0fff4';
+      }else{
+        ok = false;
+        slot.style.borderColor = '#ef4444';
+        slot.style.background = '#fff5f5';
+      }
+    });
+    if(ok){
+      statusEl.textContent = 'Hebat! Semua pola benar ✅';
+      statusEl.className = 'pill ok';
+      confettiLite();
+    }else{
+      statusEl.textContent = 'Masih ada yang salah. Coba lagi ya!';
+      statusEl.className = 'pill bad';
+    }
+  }
+
+  function resetAll(){
+    elSheet.querySelectorAll('.slot').forEach(s=>{ s.innerHTML=''; s.dataset.pick=''; s.classList.remove('filled'); s.style.borderColor='#8aa'; s.style.background='#fff'; });
+    elSheet.querySelectorAll('.choice').forEach(c=>c.classList.remove('selected'));
+    statusEl.textContent = 'Di‑reset. Lanjut!'; statusEl.className = 'pill';
+  }
+
+  // helpers
+  function div(cls){ const d=document.createElement('div'); if(cls) d.className=cls; return d; }
+  function icon(key){ return (icons[key]||icons.leaf)(); }
+  function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()* (i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; }
+
+  function confettiLite(){
+    const wh = document.body.getBoundingClientRect();
+    for(let i=0;i<22;i++){
+      const p = document.createElement('div');
+      p.style.position='fixed'; p.style.left=Math.random()*wh.width+'px'; p.style.top='-10px';
+      p.style.width='8px'; p.style.height='12px'; p.style.borderRadius='2px';
+      p.style.background=['#22c55e','#f97316','#06b6d4','#eab308','#a855f7'][i%5];
+      p.style.pointerEvents='none'; p.style.zIndex=9999; p.style.transform=`rotate(${Math.random()*360}deg)`;
+      document.body.appendChild(p);
+      p.animate([{top:'-10px'},{top:wh.height+40+'px'}],{duration:900+Math.random()*600, easing:'ease-in'}).onfinish=()=>p.remove();
+    }
+  }
+})();
+</script>
+</body>
+</html>

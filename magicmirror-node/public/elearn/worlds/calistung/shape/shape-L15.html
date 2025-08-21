@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SHAPE L15 — Potongan Persegi</title>
+<style>
+  :root{
+    --bg:#0b1020;       /* dark navy */
+    --card:#121a33;     /* board */
+    --ink:#eaf2ff;      /* text */
+    --muted:#9fb2d9;
+    --good:#22c55e;
+    --bad:#ef4444;
+  }
+  html,body{height:100%;}
+  body{margin:0;background:linear-gradient(180deg,#0b1020,#0d1326 40%,#0b1020);font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--ink)}
+
+  .wrap{max-width:1100px;margin:24px auto;padding:20px}
+
+  .title{
+    display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:16px
+  }
+  .title h1{font-size:28px;margin:0;letter-spacing:.5px}
+  .subtitle{color:var(--muted)}
+
+  .board{
+    background:var(--card);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.35);
+    padding:18px;position:relative;overflow:clip
+  }
+
+  /* two columns: left questions, right choices */
+  .grid{display:grid;grid-template-columns:1fr 320px;gap:18px;min-height:520px}
+  @media (max-width:900px){.grid{grid-template-columns:1fr}}
+
+  .qcol, .ccol{display:flex;flex-direction:column;gap:14px}
+
+  .row{display:grid;grid-template-columns:120px 1fr;gap:14px;align-items:center;background:#0e1631;border:1px solid #1d2852;border-radius:12px;padding:12px}
+  .slot{height:92px;border:2px dashed #2a3a76;border-radius:10px;display:flex;align-items:center;justify-content:center;position:relative}
+
+  .slot.filled{border-style:solid;border-color:#2a3a76;background:#0c142c}
+
+  .slot.ok{ border-color:#22c55e; box-shadow:0 0 0 3px rgba(34,197,94,.18) inset }
+  .slot.err{ border-color:#ef4444; box-shadow:0 0 0 3px rgba(239,68,68,.18) inset }
+  .slot.ok::after, .slot.err::after{
+    content:""; position:absolute; right:8px; top:8px; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; color:white
+  }
+  .slot.ok::after{ content:"✓"; background:#22c55e }
+  .slot.err::after{ content:"✕"; background:#ef4444 }
+
+  /* Hilangkan card background saat potongan berada di dalam slot */
+  .slot .choice{ 
+    background: transparent; 
+    border: none; 
+    border-radius: 0; 
+    padding: 0; 
+    height: auto; 
+    box-shadow: none; 
+    cursor: default;
+  }
+  .slot .choice .rot.small{ /* kecilkan gap agar pas */
+    display:inline-block; 
+  }
+
+  .choice{background:#0e1631;border:1px solid #1d2852;border-radius:12px;padding:8px;display:flex;align-items:center;justify-content:center;height:92px;cursor:grab;user-select:none;touch-action:none}
+  .choice.dragging{opacity:.6;transform:scale(.98)}
+
+  .choicesGrid{display:grid;grid-template-columns:repeat(2,minmax(140px,1fr));gap:12px}
+
+  svg{display:block}
+
+  .finish-bar{position:fixed;right:16px;bottom:16px;z-index:1000;display:flex;gap:10px}
+  .btn{background:#213064;color:#fff;border:none;cursor:pointer;padding:12px 16px;border-radius:12px;font-weight:700;font-size:15px;box-shadow:0 6px 18px rgba(17,24,39,.4)}
+  .btn:hover{filter:brightness(1.05)}
+  .btn:active{transform:translateY(1px)}
+
+  .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#111b3c;color:#fff;padding:10px 14px;border-radius:10px;border:1px solid #284082;box-shadow:0 10px 28px rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .25s ease}
+  .toast.show{opacity:1}
+
+  .legend{font-size:12px;color:var(--muted);margin-top:4px}
+
+  .stage { position: relative; width: 140px; height: 120px; }
+  .stage .big, .stage .small { position: absolute; left: 8px; top: 8px; }
+  .rot{ transform-origin:center center }
+  .choice .rot.small svg{ display:block }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="title">
+      <h1>POTONGAN PERSEGI</h1>
+      <div class="subtitle">Cocokkan potongan kecil agar menyambung persis pada L sudut luar (kotak yang dipotong di ujung kanan). Warna & arah harus sama.</div>
+    </div>
+
+    <div class="board">
+      <div class="grid">
+        <div class="qcol" id="qCol"></div>
+        <div class="ccol">
+          <div class="choicesGrid" id="choices"></div>
+          <div class="legend">Tarik satu potongan ke setiap kotak kosong. Semua ukuran sudah sama dan tidak ada yang saling menimpa.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="finish-bar">
+    <button class="btn" id="btnShuffle">Acak Soal</button>
+    <button class="btn" id="btnReset">Reset</button>
+    <button class="btn" id="btnCheck">Periksa Jawaban</button>
+  </div>
+  <div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  // ----- CONFIG -----
+  const COLOR_SETS = [
+    ["#49a942","#7f4db6","#f28a1d","#ff7ecf"], // hijau-ungu-oranye-pink
+    ["#2a8bff","#1f5fcf","#ff6d3d","#ffb347"], // biru gelap-oren
+    ["#0bbcc6","#167eaf","#ff6d3d","#ffb347"], // toska-biru-oren
+    ["#a55cff","#49a942","#ffb347","#ff7ecf"],
+    ["#8edc3e","#f28a1d","#ff7ecf","#7f4db6"]
+  ];
+  const N_ROWS = 5;               // jumlah soal (tetap 5 seperti lembar)
+  const L_SIZE_BIG = 110;         // ukuran gambar soal
+  const L_SIZE_SMALL = 90;        // ukuran gambar jawaban
+  const CUT_FACTOR = 2.6; // semakin besar, semakin besar bidang yang dipotong
+
+  const qCol = document.getElementById('qCol');
+  const choices = document.getElementById('choices');
+  const toast = document.getElementById('toast');
+
+  // Utility: shuffle array
+  const shuffle = arr => arr.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+
+  // Build SVG square with concentric borders and optional outer top-right corner cut
+  function makeLSvg(colors, size, withNotch=false){
+    const t = Math.floor((size)/ (colors.length+1));
+    const s = size; const pad = Math.floor(t*0.3);
+    const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('width', s);
+    svg.setAttribute('height', s);
+    svg.setAttribute('viewBox',`0 0 ${s} ${s}`);
+
+    // Optional outer-corner notch (top-right before rotation)
+    if(withNotch){
+      const notchId = 'cp'+Math.random().toString(36).slice(2);
+      const cp = document.createElementNS('http://www.w3.org/2000/svg','clipPath');
+      cp.setAttribute('id', notchId);
+      const baseRect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      baseRect.setAttribute('x', 0);
+      baseRect.setAttribute('y', 0);
+      baseRect.setAttribute('width', s);
+      baseRect.setAttribute('height', s);
+      cp.appendChild(baseRect);
+      // remove outer-corner square of ~1.25*t positioned at top-right
+      const cut = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      const cutSize = Math.floor(t*CUT_FACTOR);
+      cut.setAttribute('x', s - cutSize);
+      cut.setAttribute('y', 0);
+      cut.setAttribute('width', cutSize);
+      cut.setAttribute('height', cutSize);
+      cut.setAttribute('fill', 'white');
+      cut.setAttribute('clip-path', 'none');
+      // clipPath subtraction effect achieved via mask instead, so change to mask
+      const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
+      const mask = document.createElementNS('http://www.w3.org/2000/svg','mask');
+      const maskId = 'mk'+Math.random().toString(36).slice(2);
+      mask.setAttribute('id', maskId);
+      const mBG = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      mBG.setAttribute('x',0); mBG.setAttribute('y',0); mBG.setAttribute('width',s); mBG.setAttribute('height',s); mBG.setAttribute('fill','#fff');
+      const mCut = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      mCut.setAttribute('x', s - cutSize);
+      mCut.setAttribute('y', 0);
+      mCut.setAttribute('width', cutSize);
+      mCut.setAttribute('height', cutSize);
+      mCut.setAttribute('fill', '#000');
+      mask.appendChild(mBG); mask.appendChild(mCut); defs.appendChild(mask); svg.appendChild(defs);
+      svg.dataset.maskId = maskId;
+    }
+
+    for(let i=0;i<colors.length;i++){
+      // Untuk bentuk SOAL (withNotch=true): hanya gambar 2 ring terluar → hilangkan ring tengah (termasuk yang warna oranye) dan ring paling dalam.
+      if(withNotch && i >= 2) break;
+      // Untuk pilihan (withNotch=false): tetap gambar semua ring
+      const offset = i*t + pad;
+      const len = s - offset*2;
+      const r = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      r.setAttribute('x', offset);
+      r.setAttribute('y', offset);
+      r.setAttribute('width', len);
+      r.setAttribute('height', len);
+      r.setAttribute('fill', 'none');
+      r.setAttribute('stroke', colors[i]);
+      r.setAttribute('stroke-width', t);
+      if(withNotch && svg.dataset.maskId){ r.setAttribute('mask', `url(#${svg.dataset.maskId})`); }
+      svg.appendChild(r);
+    }
+    return svg;
+  }
+
+  function dockPosition(orient, t, nLayers){
+    const pad = Math.max(2, Math.floor(t*0.3));
+    const base = pad + (nLayers-1)*t; // offset ke core inner-color
+    const cut = Math.floor(t*CUT_FACTOR);
+    // orient 0: notch di kanan-atas → origin kecil ditempatkan sehingga sisi luarnya tepat menutup cut
+    const left0 = 8 + (L_SIZE_BIG - base - cut);
+    const top0  = 8 + (0 + base);
+    switch((orient%360+360)%360){
+      case 0:   return {left:left0, top:top0};
+      case 90:  return {left:8+base, top:8+(L_SIZE_BIG - base - cut)};
+      case 180: return {left:8+(cut - t), top:8+base};
+      case 270: return {left:8+base, top:8+(cut - t)};
+      default:  return {left:left0, top:top0};
+    }
+  }
+
+  // Render the exact piece that was cut from the big square: the top-right cut area.
+  function makeCutPiece(colors){
+    const s = L_SIZE_BIG;
+    const t = Math.floor((s)/ (colors.length+1));
+    const pad = Math.floor(t*0.3);
+    const cut = Math.floor(t*CUT_FACTOR);
+    const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('width', cut);
+    svg.setAttribute('height', cut);
+    // Crop to the top-right region (before rotation)
+    svg.setAttribute('viewBox', `${s - cut} 0 ${cut} ${cut}`);
+
+    for(let i=0;i<Math.min(2, colors.length);i++){
+      const offset = i*t + pad;
+      const len = s - offset*2;
+      // Outer dark outline (makan sisi luar)
+      const rbOuter = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      rbOuter.setAttribute('x', offset);
+      rbOuter.setAttribute('y', offset);
+      rbOuter.setAttribute('width', len);
+      rbOuter.setAttribute('height', len);
+      rbOuter.setAttribute('fill', 'none');
+      rbOuter.setAttribute('stroke', '#0a0f22');
+      rbOuter.setAttribute('stroke-width', t + 10);
+      rbOuter.setAttribute('stroke-linejoin', 'miter');
+      svg.appendChild(rbOuter);
+
+      // Colored stroke in the middle
+      const r = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      r.setAttribute('x', offset);
+      r.setAttribute('y', offset);
+      r.setAttribute('width', len);
+      r.setAttribute('height', len);
+      r.setAttribute('fill', 'none');
+      r.setAttribute('stroke', colors[i]);
+      r.setAttribute('stroke-width', t);
+      r.setAttribute('stroke-linejoin', 'miter');
+      svg.appendChild(r);
+
+      // Inner dark outline (makan sisi dalam)
+      const ix = offset + t;
+      const iy = offset + t;
+      const ilen = Math.max(0, len - 2*t);
+      if (ilen > 0) {
+        const rbInner = document.createElementNS('http://www.w3.org/2000/svg','rect');
+        rbInner.setAttribute('x', ix);
+        rbInner.setAttribute('y', iy);
+        rbInner.setAttribute('width', ilen);
+        rbInner.setAttribute('height', ilen);
+        rbInner.setAttribute('fill', 'none');
+        rbInner.setAttribute('stroke', '#0a0f22');
+        rbInner.setAttribute('stroke-width', t + 10);
+        rbInner.setAttribute('stroke-linejoin', 'miter');
+        svg.appendChild(rbInner);
+      }
+    }
+    return svg;
+  }
+
+  function patternKey(colors){
+    return colors.join('|');
+  }
+
+  function createRow(colors){
+    const row = document.createElement('div');
+    row.className = 'row';
+
+    const orient = [0,90,180,270][Math.floor(Math.random()*4)];
+
+    const qBox = document.createElement('div');
+    qBox.style.height = '92px';
+    qBox.style.display = 'flex';
+    qBox.style.alignItems = 'center';
+    qBox.style.justifyContent = 'center';
+    const stage = document.createElement('div');
+    stage.className = 'stage';
+    const bigWrap = document.createElement('div');
+    bigWrap.className = 'rot big';
+    bigWrap.style.transform = `rotate(${orient}deg)`;
+    bigWrap.appendChild(makeLSvg(colors, L_SIZE_BIG, true));
+    stage.appendChild(bigWrap);
+    qBox.appendChild(stage);
+
+    const slot = document.createElement('div');
+    slot.className = 'slot';
+    // use only first two ring colors to identify the piece
+    slot.dataset.answer = [colors[0], colors[1]].join('|');
+    slot.dataset.orient = orient.toString();
+    slot.dataset.stageId = Math.random().toString(36).slice(2);
+    stage.dataset.sid = slot.dataset.stageId;
+
+    row.appendChild(qBox);
+    row.appendChild(slot);
+    return row;
+  }
+
+  function createChoice(colors, orient){
+    const card = document.createElement('div');
+    card.className = 'choice';
+    card.draggable = true;
+    // use only first two ring colors to uniquely identify the piece
+    card.dataset.pattern = [colors[0], colors[1]].join('|');
+    card.dataset.orient = String(orient);
+    const patch = makeCutPiece(colors);
+    const wrap = document.createElement('div');
+    wrap.className = 'rot small';
+    wrap.style.transform = `rotate(${orient}deg)`;
+    wrap.appendChild(patch);
+    card.appendChild(wrap);
+    card.addEventListener('dragstart', e=>{
+      card.classList.add('dragging');
+      const payload = JSON.stringify({p: card.dataset.pattern, o: card.dataset.orient});
+      e.dataTransfer.setData('text/plain', payload);
+    });
+    card.addEventListener('dragend', ()=>card.classList.remove('dragging'));
+    return card;
+  }
+
+  function markSlot(slot, state){
+    slot.classList.remove('ok','err');
+    if(state===true) slot.classList.add('ok');
+    else if(state===false) slot.classList.add('err');
+  }
+
+  function buildGame(){
+    qCol.innerHTML = '';
+    choices.innerHTML = '';
+
+    const selected = shuffle(COLOR_SETS).slice(0,N_ROWS).map(cols=>({ cols, orient: [0,90,180,270][Math.floor(Math.random()*4)] }));
+
+    const slotRefs = [];
+    selected.forEach(({cols,orient})=>{
+      const row = createRow(cols);
+      // override orientation chosen inside createRow by rotating the big piece to match orient
+      const bigWrap = row.querySelector('.big');
+      bigWrap.style.transform = `rotate(${orient}deg)`;
+      const slot = row.querySelector('.slot');
+      slot.dataset.orient = String(orient);
+      slotRefs.push(slot);
+      qCol.appendChild(row);
+    });
+
+    const pool = shuffle(selected.map(({cols,orient})=> createChoice(cols, orient)));
+    pool.forEach(ch=> choices.appendChild(ch));
+
+    // dnd setup on slots
+    slotRefs.forEach(slot=>{
+      slot.addEventListener('dragover', e=>{ e.preventDefault(); });
+      slot.addEventListener('drop', e=>{
+        e.preventDefault();
+        const raw = e.dataTransfer.getData('text/plain');
+        let key, orientStr;
+        try{
+          const obj = JSON.parse(raw);
+          key = obj.p; orientStr = obj.o;
+        }catch(err){
+          // fallback: support legacy 'pattern::orient'
+          const parts = String(raw).split('::');
+          key = parts[0]; orientStr = parts[1];
+        }
+        const dragged = [...document.querySelectorAll('.choice')].find(c=>c.dataset.pattern===key && c.dataset.orient===orientStr && c.parentElement);
+        if(!dragged) return;
+        // If slot already has a card, move it back to choices
+        if(slot.firstChild){
+          const old = slot.querySelector('.choice');
+          if(old) choices.appendChild(old);
+        }
+        // place the piece inside the middle slot only (no snap to stage)
+        dragged.style.position = '';
+        dragged.style.left = '';
+        dragged.style.top = '';
+        slot.appendChild(dragged);
+        slot.classList.add('filled');
+        // evaluate immediately
+        const isCorrect = (dragged.dataset.pattern===slot.dataset.answer && dragged.dataset.orient===slot.dataset.orient);
+        markSlot(slot, isCorrect);
+      });
+    });
+  }
+
+  function resetSlots(){
+    document.querySelectorAll('.slot').forEach(s=>{ s.classList.remove('filled','ok','err'); s.innerHTML=''; });
+    const pool = document.getElementById('choices');
+    document.querySelectorAll('.choice').forEach(c=>{ c.style.position=''; c.style.left=''; c.style.top=''; pool.appendChild(c); });
+  }
+
+  function showToast(msg, ok=true){
+    toast.textContent = msg;
+    toast.style.borderColor = ok? '#1b7a45' : '#7a1b1b';
+    toast.classList.add('show');
+    setTimeout(()=>toast.classList.remove('show'),1600);
+  }
+
+  function check(){
+    let correct=0, total=0;
+    document.querySelectorAll('.row .slot').forEach(slot=>{
+      total++;
+      const placed = slot.querySelector('.choice');
+      const ok = !!(placed && placed.dataset.pattern===slot.dataset.answer && placed.dataset.orient===slot.dataset.orient);
+      if(ok) correct++;
+      markSlot(slot, ok);
+    });
+    if(correct===total){ showToast('Mantap! Semua benar. ✅', true); }
+    else{ showToast(`Benar ${correct}/${total}. Coba cek lagi.`, false); }
+  }
+
+  // buttons
+  document.getElementById('btnShuffle').addEventListener('click', ()=>{ buildGame(); showToast('Soal diacak!'); });
+  document.getElementById('btnReset').addEventListener('click', ()=>{ resetSlots(); showToast('Reset selesai'); });
+  document.getElementById('btnCheck').addEventListener('click', check);
+
+  // first time
+  buildGame();
+})();
+</script>
+</body>
+</html>

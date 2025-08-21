@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shape L14 — Mencocokkan Bentuk & Warna</title>
+  <style>
+    :root{
+      --card: #ffffff;
+      --ink: #111827;
+      --line: #e5e7eb;
+      --ok: #16a34a;
+      --bad:#ef4444;
+      --brand:#3b82f6;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%;font-family:Inter,system-ui,Arial,sans-serif;background:#f9fafb;color:var(--ink)}
+    header{max-width:980px;margin:24px auto 8px;padding:0 16px;text-align:center}
+    h1{margin:0 0 4px;font-size:28px;line-height:1.2}
+    p.sub{margin:0 auto 14px;max-width:860px;color:#4b5563}
+
+    .board{max-width:980px;margin:0 auto;padding:8px 16px 92px}
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+
+    .cell{background:var(--card);border:2px solid #11111110;border-radius:10px;display:flex;align-items:center;justify-content:center;aspect-ratio:1/1;position:relative}
+    .cell.sample::after{content:"Contoh";position:absolute;left:8px;top:8px;font-size:12px;color:#6b7280}
+    .cell button.pick{all:unset;position:absolute;inset:0;cursor:pointer;border-radius:8px}
+    .cell .frame{width:86%;height:78%;border:3px solid #111111; border-radius:8px;display:flex;align-items:center;justify-content:center;}
+
+    /* selection states */
+    .cell.option.selected{outline:3px solid var(--brand)}
+    .cell.option.correct{outline:3px solid var(--ok)}
+    .cell.option.wrong{outline:3px solid var(--bad)}
+
+    /* bottom dock */
+    .dock{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;background:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,.12);border:1px solid var(--line);padding:10px;gap:10px;border-radius:14px;display:flex;align-items:center;z-index:50}
+    .dock .btn{border:none;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}
+    .primary{background:var(--brand);color:#fff}
+    .ghost{background:#fff;border:1px solid var(--line)}
+    .warn{background:#f59e0b;color:#111}
+    .score{font-weight:700;margin-left:8px;}
+
+    @media (max-width:720px){
+      .grid{gap:12px}
+      .cell .frame{width:90%;height:80%}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Mencocokkan Bentuk dan Warna</h1>
+    <p class="sub">Berilah tanda pada kotak yang memiliki <b>unsur</b>, <b>bentuk</b>, dan <b>warna</b> yang sama dengan gambar di sebelah kiri. (Posisi tidak harus sama.)</p>
+  </header>
+
+  <main class="board">
+    <div id="grid" class="grid" aria-live="polite"></div>
+  </main>
+
+  <div class="dock">
+    <button id="btnCek" class="btn primary">Periksa Jawaban</button>
+    <button id="btnAcak" class="btn warn">Acak Pilihan</button>
+    <button id="btnReset" class="btn ghost">Reset</button>
+    <span class="score" id="score">Skor: 0/0</span>
+  </div>
+
+  <script>
+    /* UTIL — drawing helpers */
+    function makeSVG(w=160,h=120){
+      const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+      svg.setAttribute('viewBox','0 0 '+w+' '+h);
+      svg.setAttribute('width', w);
+      svg.setAttribute('height', h);
+      return svg;
+    }
+    function rect(x,y,w,h,fill){
+      const el = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      el.setAttribute('x',x); el.setAttribute('y',y); el.setAttribute('width',w); el.setAttribute('height',h); el.setAttribute('fill',fill); el.setAttribute('rx',6);
+      return el;
+    }
+    function circle(cx,cy,r,fill){
+      const el = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      el.setAttribute('cx',cx); el.setAttribute('cy',cy); el.setAttribute('r',r); el.setAttribute('fill',fill);
+      return el;
+    }
+    function triangle(x,y,w,h,fill){
+      const el = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+      const p = `${x},${y+h} ${x+w/2},${y} ${x+w},${y+h}`;
+      el.setAttribute('points',p); el.setAttribute('fill',fill);
+      return el;
+    }
+    function semicircle(x,y,w,h,fill){
+      const el = document.createElementNS('http://www.w3.org/2000/svg','path');
+      const r = Math.min(w,h)/2; const cx=x+w/2, cy=y+h/2;
+      const d = `M ${cx-r} ${cy} A ${r} ${r} 0 0 1 ${cx+r} ${cy} L ${cx+r} ${cy+r} L ${cx-r} ${cy+r} Z`;
+      el.setAttribute('d',d); el.setAttribute('fill',fill);
+      return el;
+    }
+    function trapezoid(x,y,w,h,fill){
+      const el = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+      const p = `${x+w*0.2},${y+h} ${x+w*0.8},${y+h} ${x+w},${y} ${x},${y}`;
+      el.setAttribute('points',p); el.setAttribute('fill',fill);
+      return el;
+    }
+
+    // palette similar to worksheet
+    const C = {
+      red:'#ef6b5b', orange:'#f59e62', yellow:'#f4cf5b', green:'#a8d5b5', blue:'#6bb6e9', purple:'#9da1e8', pink:'#f3c4cf'
+    };
+
+    // unified size map so SAMPLE & OPTIONS share IDENTICAL sizes
+    const D = {
+      rect:     {w:40,h:26},
+      sq:       {w:32,h:30},
+      rectWide: {w:120,h:28},
+      tri:      {w:36,h:30},
+      circle:   {w:32,h:32},
+      semi:     {w:34,h:22},
+      trap:     {w:56,h:30}
+    };
+
+    // Each pattern is a multiset of {shape,color}
+    // Also include a drawing function for nice composition
+    const patterns = [
+      {
+        id:'r1',
+        set:[['rect','red'],['tri','yellow'],['rectWide','green']],
+        draw:(svg,set)=>{
+          const cx = 80;
+          const col = (shape)=> C[(set.find(s=>s[0]===shape)||[])[1]];
+          svg.appendChild(rect(cx - D.rectWide.w/2, 70, D.rectWide.w, D.rectWide.h, col('rectWide')));
+          svg.appendChild(rect(cx - D.rectWide.w/2 + 8, 70 - D.rect.h, D.rect.w, D.rect.h, col('rect')));
+          svg.appendChild(triangle(cx +  D.rectWide.w/2 - D.tri.w - 8, 70 - D.tri.h, D.tri.w, D.tri.h, col('tri')));
+        }
+      },
+      {
+        id:'r2',
+        set:[['circle','blue'],['rectWide','purple']],
+        draw:(svg,set)=>{
+          const cx = 80;
+          const col = (shape)=> C[(set.find(s=>s[0]===shape)||[])[1]];
+          svg.appendChild(rect(cx - D.rectWide.w/2, 64, D.rectWide.w, D.rectWide.h, col('rectWide')));
+          svg.appendChild(circle(cx, 64 - D.circle.h/2, D.circle.w/2, col('circle')));
+        }
+      },
+      {
+        id:'r3',
+        set:[['semi','orange'],['semi','pink'],['rectWide','yellow']],
+        draw:(svg,set)=>{
+          const cx = 80;
+          const semiColors = set.filter(s=>s[0]==='semi').map(s=>C[s[1]]);
+          const baseCol = C[(set.find(s=>s[0]==='rectWide')||[])[1]];
+          svg.appendChild(rect(cx - D.rectWide.w/2, 70, D.rectWide.w, D.rectWide.h, baseCol));
+          svg.appendChild(semicircle(cx - D.semi.w - 6, 70 - D.semi.h, D.semi.w, D.semi.h, semiColors[0]));
+          svg.appendChild(semicircle(cx + 6, 70 - D.semi.h, D.semi.w, D.semi.h, semiColors[1]||semiColors[0]));
+        }
+      },
+      {
+        id:'r4',
+        set:[['trap','blue'],['rectWide','red']],
+        draw:(svg,set)=>{
+          const cx = 80;
+          const col = (shape)=> C[(set.find(s=>s[0]===shape)||[])[1]];
+          svg.appendChild(rect(cx - D.rectWide.w/2, 34, D.rectWide.w, D.rectWide.h, col('rectWide')));
+          // trap menempel tepat di bawah balok merah (tanpa celah)
+          svg.appendChild(trapezoid(cx - D.trap.w/2, 34 + D.rectWide.h, D.trap.w, D.trap.h, col('trap')));
+        }
+      },
+      {
+        id:'r5',
+        set:[['rect','orange'],['sq','purple'],['sq','blue']],
+        draw:(svg,set)=>{
+          const cx = 80;
+          const squareCols = set.filter(s=>s[0]==='sq').map(s=>C[s[1]]);
+          const rectCol = C[(set.find(s=>s[0]==='rect')||[])[1]];
+          const totalW = D.rect.w + D.sq.w;
+          const x0 = cx - totalW/2;
+          const yTop = 60;
+          const xSquare = x0 + D.rect.w;
+          svg.appendChild(rect(xSquare, yTop, D.sq.w, D.sq.h, squareCols[0]));
+          svg.appendChild(rect(xSquare, yTop + D.sq.h, D.sq.w, D.sq.h, squareCols[1]||squareCols[0]));
+          const columnMidY = yTop + D.sq.h;
+          const yOrange = columnMidY - D.rect.h/2;
+          svg.appendChild(rect(x0, yOrange, D.rect.w, D.rect.h, rectCol));
+        }
+      }
+    ];
+
+    function normalize(set){
+      // convert to sorted tokens; ignore position
+      const map = set.map(([s,c])=>`${s}:${c}`).sort().join('|');
+      return map;
+    }
+
+    function makeDistractors(base){
+      // generate 2 distractors by swapping colors or a shape kind
+      const dist = [];
+      // swap two colors if >1 item
+      if(base.set.length>1){
+        const a = JSON.parse(JSON.stringify(base.set));
+        const cols = a.map(x=>x[1]);
+        a.forEach((it,i)=>{ it[1]=cols[(i+1)%cols.length]; });
+        dist.push(a);
+      }
+      // change one shape type
+      const b = JSON.parse(JSON.stringify(base.set));
+      const swapMap={rect:'tri', tri:'rect', rectWide:'trap', trap:'rectWide', circle:'sq', sq:'circle', semi:'tri'};
+      const idx = Math.floor(Math.random()*b.length);
+      b[idx][0] = swapMap[b[idx][0]] || 'rect';
+      dist.push(b);
+      return dist;
+    }
+
+    function variantSet(base){
+      const set = base.map(([shape,color])=>[shape,color]);
+      // shuffle only the colors across elements to create a new variant
+      const colors = set.map(x=>x[1]);
+      for(let i=colors.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [colors[i],colors[j]]=[colors[j],colors[i]];
+      }
+      return set.map((x,i)=>[x[0], colors[i]]);
+    }
+
+    function drawPattern(target, patternSet, drawFn, opts={}){
+      const svg = makeSVG();
+      const f = document.createElement('div');
+      f.className = 'frame';
+      target.appendChild(f);
+      f.appendChild(svg);
+      if(drawFn){ drawFn(svg, patternSet); return; }
+
+      // --- Packed generic renderer (no overlap). If pack:'tight' => elemen saling menempel ---
+      const packMode = opts.pack === 'tight' ? 'tight' : 'safe';
+      const gap = packMode === 'tight' ? 0 : 8; // tight: menempel, safe: beri jarak
+      const frameW = 160, frameH = 120;
+
+      // unify sizes with global D
+      const dims = D;
+
+      // compute total width
+      let totalW = 0; const sizes = [];
+      patternSet.forEach(([shape])=>{ const d = dims[shape]||dims.rect; sizes.push(d); totalW += d.w; });
+      if(patternSet.length>0) totalW += gap*(patternSet.length-1);
+
+      // scale down if overflow
+      const maxInner = frameW - 24; // side margin inside viewBox
+      const scale = totalW > maxInner ? maxInner/totalW : 1;
+
+      // starting x so that centered
+      const innerW = totalW*scale;
+      let x = (frameW - innerW)/2;
+
+      // baseline y so shapes vertical centered
+      const maxH = Math.max(...sizes.map(s=>s.h))*scale;
+      const yBase = (frameH - maxH)/2;
+
+      patternSet.forEach(([shape,color],i)=>{
+        const d = dims[shape]||dims.rect;
+        const w = d.w*scale, h = d.h*scale;
+        const y = yBase + (maxH - h)/2; // center each element vertically within band
+        if(shape==='rect') svg.appendChild(rect(x, y, w, h, C[color]||color));
+        if(shape==='sq') svg.appendChild(rect(x, y, w, h, C[color]||color));
+        if(shape==='rectWide') svg.appendChild(rect(x, y, w, h, C[color]||color));
+        if(shape==='tri') svg.appendChild(triangle(x, y, w, h, C[color]||color));
+        if(shape==='circle') svg.appendChild(circle(x + w/2, y + h/2, Math.min(w,h)/2, C[color]||color));
+        if(shape==='semi') svg.appendChild(semicircle(x, y, w, h, C[color]||color));
+        if(shape==='trap') svg.appendChild(trapezoid(x, y, w, h, C[color]||color));
+        x += w + gap; // advance, ensures no overlap; gap=0 makes them touch
+      });
+    }
+
+    function shuffled(arr){
+      const a = arr.map(x=>[x[0], x[1]]); // shallow copy
+      for(let i=a.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [a[i],a[j]]=[a[j],a[i]];
+      }
+      return a;
+    }
+
+    function build(){
+      // build fresh randomized rows (acak contoh soal)
+      const base = patterns.slice();
+      for(let i=base.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [base[i],base[j]]=[base[j],base[i]]; }
+      const rows = base.map(p=>({ sample: { id:p.id, set: variantSet(p.set), draw:p.draw } }));
+      const state = { correct:0, total:rows.length };
+      const grid = document.getElementById('grid');
+      grid.innerHTML='';
+      // For each row, prepare 1 correct + 2 distractors and shuffle positions (cols 2-4)
+      rows.forEach((row,rowIdx)=>{
+        // sample cell
+        const sampleCell = document.createElement('div');
+        sampleCell.className = 'cell sample';
+        // Render sample with the SAME generic sizes as options (so ukuran identik)
+        drawPattern(sampleCell, row.sample.set, row.sample.draw, {pack:'tight'});
+        grid.appendChild(sampleCell);
+
+        // options
+        const correctKey = normalize(row.sample.set);
+        const distract = makeDistractors(row.sample);
+        const all = [row.sample.set, ...distract];
+        // shuffle
+        for(let i=all.length-1;i>0;i--){
+          const j = Math.floor(Math.random()*(i+1));
+          [all[i],all[j]]=[all[j],all[i]];
+        }
+
+        row.selection = null; // index 0..2
+        row.correctIndex = all.findIndex(s=>normalize(s)===correctKey);
+
+        all.forEach((set,idx)=>{
+          const cell = document.createElement('div');
+          cell.className='cell option';
+          // Always render options with a generic layout but with SHUFFLED element order
+          drawPattern(cell, shuffled(set), null, {pack:'safe'});
+          const btn = document.createElement('button');
+          btn.className='pick';
+          btn.addEventListener('click',()=>{
+            // deselect others in this row
+            for(let k=0;k<3;k++){
+              const el = grid.children[rowIdx*4 + 1 + k];
+              el.classList.remove('selected');
+            }
+            cell.classList.add('selected');
+            row.selection = idx;
+          });
+          cell.appendChild(btn);
+          grid.appendChild(cell);
+        });
+      });
+
+      function updateScore(){
+        document.getElementById('score').textContent = `Skor: ${state.correct}/${state.total}`;
+      }
+      updateScore();
+
+      document.getElementById('btnReset').onclick = ()=>{
+        // clear selections & outlines
+        Array.from(grid.querySelectorAll('.option')).forEach(c=>{
+          c.classList.remove('selected','correct','wrong');
+        });
+        rows.forEach(r=>r.selection=null);
+        state.correct=0; updateScore();
+      };
+
+      document.getElementById('btnAcak').onclick = ()=>{
+        build();
+      };
+
+      document.getElementById('btnCek').onclick = ()=>{
+        // evaluate by row
+        state.correct = 0;
+        rows.forEach((row,idx)=>{
+          for(let k=0;k<3;k++){
+            const el = grid.children[idx*4 + 1 + k];
+            el.classList.remove('correct','wrong');
+          }
+          if(row.selection==null) return; // not answered
+          const target = grid.children[idx*4 + 1 + row.selection];
+          if(row.selection === row.correctIndex){
+            target.classList.add('correct');
+            state.correct++;
+          }else{
+            target.classList.add('wrong');
+          }
+        });
+        updateScore();
+      };
+    }
+
+    build();
+  </script>
+</body>
+</html>

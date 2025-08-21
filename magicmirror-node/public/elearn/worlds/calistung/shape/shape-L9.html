@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SHAPE – L9 • Lengkapi Pola Bentuk</title>
+<style>
+  :root{
+    --bg:#0b1220; --panel:#111a2b; --ink:#eaf1ff; --muted:#9fb2d9;
+    --good:#22c55e; --bad:#ef4444; --brand:#7c3aed; --accent:#00d4ff;
+  }
+  *{box-sizing:border-box} html,body{height:100%}
+  body{margin:0;font-family: ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; background:#0b1220; color:var(--ink); position:relative}
+  /* soft vignette without banding */
+  body::after{content:""; position:fixed; inset:-10% -10% 0 -10%; pointer-events:none; background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(255,255,255,.03) 0%, rgba(255,255,255,0) 60%);
+    z-index:0}
+  /* subtle noise to break banding */
+  body::before{content:""; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.035; background-size:220px 220px; background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncA type='table' tableValues='0 0.035'/></feComponentTransfer></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");}
+  .wrap{max-width:980px;margin:24px auto;padding:16px; position:relative; z-index:1}
+  header{display:flex;gap:16px;align-items:center;justify-content:space-between;margin-bottom:12px}
+  h1{font-size:20px;margin:0;font-weight:800;letter-spacing:.2px}
+  .controls{display:flex;gap:10px;flex-wrap:wrap}
+  button{border:none;border-radius:12px;padding:10px 14px;font-weight:700;color:#0a1020;background:#1e2b47;box-shadow:0 6px 18px rgba(0,0,0,.25);cursor:pointer}
+  button.primary{background:linear-gradient(135deg,var(--brand),#3b82f6);color:#fff}
+  button.ghost{background:transparent;outline:1px solid #28406f;color:var(--muted)}
+  button.success{background:var(--good);color:#051016}
+  button:active{transform:translateY(1px)}
+
+  p.hint{margin:6px 0 18px;color:var(--muted)}
+
+  .row{background:rgba(255,255,255,.04);border:1px solid rgba(141, 165, 214, .18);padding:14px;border-radius:16px;margin:12px 0; scroll-margin-bottom:260px}
+  .lane{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .lane .slot,.lane .shown{width:64px;height:64px;display:grid;place-items:center;background:linear-gradient(180deg,#0f213f 0%, #0d1a31 100%);border:1px solid #1e335a;border-radius:14px;position:relative}
+  .lane .shown{opacity:.98}
+  .lane .slot{outline:2px dashed #335084; outline-offset:-6px}
+  .lane .slot.filled{outline-style:solid}
+  .lane .slot.correct{box-shadow:0 0 0 2px var(--good) inset}
+  .lane .slot.wrong{box-shadow:0 0 0 2px var(--bad) inset}
+  .lane .dots{flex:1 1 auto;min-width:60px;height:4px;border-radius:999px;background:repeating-linear-gradient(90deg,#2d4371 0 10px, transparent 10px 20px)}
+
+  .palette{margin-top:14px;display:grid;grid-template-columns:repeat(8, minmax(54px,1fr));gap:10px}
+  .palette .pick{height:56px;border-radius:12px;display:grid;place-items:center;background:#101a31;border:1px solid #1e335a;cursor:pointer}
+  .palette .pick.active{outline:2px solid var(--accent)}
+  .mini-legend{margin-top:6px;color:var(--muted);font-size:12px}
+
+  @media (max-width:640px){
+    .lane .slot,.lane .shown{width:56px;height:56px}
+    .palette{grid-template-columns:repeat(6, minmax(48px,1fr))}
+  }
+  svg{width:44px;height:44px}
+
+  body.has-dock{padding-bottom:calc(220px + env(safe-area-inset-bottom, 0px))}
+  .palette-dock{position:fixed;left:0;right:0;bottom:0;z-index:1000;background:rgba(16,26,49,.92);backdrop-filter:saturate(120%) blur(8px);border-top:1px solid #1e335a;box-shadow:0 -10px 24px rgba(0,0,0,.34)}
+  .palette-dock .bar{max-width:980px;margin:0 auto;padding:10px 16px}
+  .palette-dock .title-row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;color:var(--muted)}
+  .palette-dock .title-row .title{font-weight:800;color:var(--ink)}
+  .palette-dock .palette{margin-top:10px}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>SHAPE L9 — Lengkapi Pola Bentuk</h1>
+      <div class="controls">
+        <button id="btnShuffle" class="ghost" title="Acak Soal">🔀 Acak Soal</button>
+        <button id="btnClear" class="ghost" title="Kosongkan Jawaban">🧽 Bersihkan</button>
+        <button id="btnCheck" class="primary" title="Periksa Jawaban">✔️ Periksa</button>
+      </div>
+    </header>
+    <p class="hint">Klik salah satu bentuk di <b>Palet</b>, lalu klik kotak kosong untuk mengisi jawabannya. Lengkapi pola di tiap baris.</p>
+
+    <div id="rows"></div>
+    <div id="bottomSpacer" aria-hidden="true"></div>
+
+    <section class="palette-dock" id="paletteDock">
+      <div class="bar">
+        <div class="title-row">
+          <div class="title">Palet Bentuk</div>
+          <div class="mini-legend">Tips: pilih ➜ klik kotak kosong.</div>
+        </div>
+        <div class="palette" id="palette"></div>
+      </div>
+    </section>
+  </div>
+
+<script>
+// ===== Shape drawer (inline SVG) =====
+const COLORS = {
+  yellow:'#facc15', green:'#22c55e', blue:'#3b82f6', purple:'#a855f7',
+  pink:'#ec4899', magenta:'#d946ef', orange:'#fb923c', teal:'#14b8a6'
+};
+const SHAPES = [
+  {id:'circle', color:'magenta'},
+  {id:'square', color:'yellow'},
+  {id:'triangle', color:'purple'},
+  {id:'heart', color:'orange'},
+  {id:'star', color:'yellow'},
+  {id:'pentagon', color:'blue'},
+  {id:'diamond', color:'yellow'},
+  {id:'circleG', idAlias:'circle', color:'green'}
+];
+
+function svgShape(shape, color){
+  const c = COLORS[color]||color; const s = 44; const h = 44; const w = 44;
+  switch(shape){
+    case 'circle':
+      return `<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="16" fill="${c}"/></svg>`;
+    case 'square':
+      return `<svg viewBox="0 0 48 48"><rect x="10" y="10" width="28" height="28" rx="6" fill="${c}"/></svg>`;
+    case 'triangle':
+      return `<svg viewBox="0 0 48 48"><polygon points="24,8 40,38 8,38" fill="${c}"/></svg>`;
+    case 'heart':
+      return `<svg viewBox="0 0 48 48"><path d="M24 39s-12-7.7-16-14c-3.4-5.2-.3-10.8 4.6-11.6 3.5-.6 6.2 1 7.4 3.2 1.2-2.2 3.9-3.8 7.4-3.2 4.9.8 8 6.4 4.6 11.6-4 6.3-16 14-16 14z" fill="${c}"/></svg>`;
+    case 'star':
+      return `<svg viewBox="0 0 48 48"><polygon points="24,6 28.9,18 42,18.5 31,26.6 34.8,38.5 24,31.6 13.2,38.5 17,26.6 6,18.5 19.1,18" fill="${c}"/></svg>`;
+    case 'pentagon':
+      return `<svg viewBox="0 0 48 48"><polygon points="24,7 40,18 34,38 14,38 8,18" fill="${c}"/></svg>`;
+    case 'diamond':
+      return `<svg viewBox="0 0 48 48"><polygon points="24,6 40,24 24,42 8,24" fill="${c}"/></svg>`;
+    default:
+      return '';
+  }
+}
+
+// ===== Data for 6 lanes (repeat patterns) =====
+// Each lane uses a repeating base pattern; we reveal some, then user completes next slots.
+const LANES_TEMPLATE = [
+  { // Lane 1: ● ◻︎ | repeat
+    base:[{s:'circle',c:'magenta'},{s:'square',c:'yellow'}], show:5, blanks:1
+  },
+  { // Lane 2: ▲ ▲ ❤
+    base:[{s:'triangle',c:'green'},{s:'triangle',c:'green'},{s:'heart',c:'blue'}], show:5, blanks:1
+  },
+  { // Lane 3: ★ ★ ●
+    base:[{s:'star',c:'yellow'},{s:'star',c:'yellow'},{s:'circle',c:'orange'}], show:4, blanks:2
+  },
+  { // Lane 4: ⬟ ▼ ▼ ⬟ ▼ (mix)
+    base:[{s:'pentagon',c:'blue'},{s:'triangle',c:'purple'},{s:'triangle',c:'purple'}], show:5, blanks:2
+  },
+  { // Lane 5: ● ● ▲ ▲ (colors per reference)
+    base:[{s:'circle',c:'green'},{s:'circle',c:'green'},{s:'triangle',c:'pink'},{s:'triangle',c:'pink'}], show:5, blanks:2
+  },
+  { // Lane 6: ◆ ❤ ❤ ◆ ◆ ❤
+    base:[{s:'diamond',c:'yellow'},{s:'heart',c:'orange'},{s:'heart',c:'orange'},{s:'diamond',c:'yellow'},{s:'diamond',c:'yellow'},{s:'heart',c:'orange'}], show:5, blanks:1
+  }
+];
+
+// ===== Build UI =====
+const rowsEl = document.getElementById('rows');
+let lanes = [];
+
+function makeLane(laneIdx){
+  const data = lanes[laneIdx];
+  const row = document.createElement('div');
+  row.className = 'row';
+  const lane = document.createElement('div');
+  lane.className = 'lane';
+
+  for(let i=0;i<data.total;i++){
+    if(data.isBlankPos(i)){
+      const slot = document.createElement('button');
+      slot.type='button';
+      slot.className='slot';
+      slot.dataset.lane = laneIdx;
+      slot.dataset.pos = i; // position within the sequence
+      slot.addEventListener('click', onSlotClick);
+      lane.appendChild(slot);
+    } else {
+      const cell = document.createElement('div');
+      cell.className='shown';
+      const item = data.renderAt(i);
+      cell.innerHTML = svgShape(item.s, item.c);
+      lane.appendChild(cell);
+    }
+  }
+
+  row.appendChild(lane);
+  rowsEl.appendChild(row);
+}
+
+function computeAnswer(base, startIndex, taken){
+  // Compute the next element in repeating sequence after "taken" elements have been used.
+  const idx = (startIndex + taken) % base.length; return base[idx];
+}
+
+function prepareLanes(){
+  lanes = LANES_TEMPLATE.map(t=>{
+    const startOffset = Math.floor(Math.random()*t.base.length);
+    const total = t.show + t.blanks;
+    // choose unique random positions for blanks among the full visible sequence
+    const positions = [];
+    while(positions.length < t.blanks){
+      const p = Math.floor(Math.random()*total);
+      if(!positions.includes(p)) positions.push(p);
+    }
+    positions.sort((a,b)=>a-b);
+    return {
+      base: t.base,
+      show: t.show,
+      blanks: t.blanks,
+      start: startOffset,
+      total,
+      blanksPos: positions,
+      renderAt(i){ return computeAnswer(this.base, this.start, i); },
+      isBlankPos(i){ return this.blanksPos.includes(i); },
+      filledByPos: {}
+    };
+  });
+}
+
+// ===== Palette =====
+let selectedPick = null;
+const PALETTE = [
+  {s:'circle', c:'magenta'}, {s:'square', c:'yellow'}, {s:'triangle', c:'green'}, {s:'heart', c:'blue'},
+  {s:'star', c:'yellow'}, {s:'pentagon', c:'blue'}, {s:'triangle', c:'purple'}, {s:'diamond', c:'yellow'},
+  {s:'circle', c:'orange'}, {s:'heart', c:'orange'}, {s:'circle', c:'green'}, {s:'triangle', c:'pink'}
+];
+
+function renderPalette(){
+  const pal = document.getElementById('palette');
+  pal.innerHTML='';
+  PALETTE.forEach((p,i)=>{
+    const el = document.createElement('button');
+    el.className='pick'; el.type='button'; el.dataset.i=i;
+    el.innerHTML = svgShape(p.s, p.c);
+    el.addEventListener('click',()=>{
+      [...pal.children].forEach(x=>x.classList.remove('active'));
+      el.classList.add('active'); selectedPick = p;
+    });
+    pal.appendChild(el);
+  });
+}
+
+function onSlotClick(e){
+  if(!selectedPick) return;
+  const slot = e.currentTarget;
+  const laneIdx = +slot.dataset.lane;
+  const pos = +slot.dataset.pos;
+  slot.innerHTML = svgShape(selectedPick.s, selectedPick.c);
+  slot.classList.add('filled');
+  lanes[laneIdx].filledByPos[pos] = {s:selectedPick.s, c:selectedPick.c};
+  slot.classList.remove('correct','wrong');
+}
+
+// ===== Check & Reset =====
+function checkAll(){
+  let allOK = true;
+  document.querySelectorAll('.slot').forEach(slot=>{
+    const laneIdx = +slot.dataset.lane;
+    const pos = +slot.dataset.pos;
+    const ans = lanes[laneIdx].renderAt(pos);
+    const filled = lanes[laneIdx].filledByPos[pos];
+    const ok = filled && filled.s===ans.s && filled.c===ans.c;
+    slot.classList.toggle('correct', ok);
+    slot.classList.toggle('wrong', !ok);
+    if(!ok) allOK = false;
+  });
+  if(allOK) celebrate();
+}
+
+function clearAll(){
+  lanes.forEach(l=> l.filledByPos = {});
+  document.querySelectorAll('.slot').forEach(s=>{ s.innerHTML=''; s.classList.remove('filled','correct','wrong'); });
+}
+
+function shuffle(){
+  prepareLanes();
+  rowsEl.innerHTML='';
+  for(let i=0;i<lanes.length;i++) makeLane(i);
+  clearAll();
+}
+
+// Simple confetti-ish effect without libs
+function celebrate(){
+  const burst = document.createElement('div');
+  burst.style.position='fixed'; burst.style.inset='0'; burst.style.pointerEvents='none';
+  document.body.appendChild(burst);
+  for(let i=0;i<80;i++){
+    const p = document.createElement('div');
+    p.style.position='absolute'; p.style.width='8px'; p.style.height='8px';
+    p.style.left=Math.random()*100+'%'; p.style.top='-10px';
+    p.style.background=['#22c55e','#3b82f6','#a855f7','#f59e0b','#ef4444','#10b981'][i%6];
+    p.style.transform=`rotate(${Math.random()*360}deg)`; p.style.borderRadius='2px';
+    p.style.transition='transform 900ms linear, top 900ms ease-in';
+    burst.appendChild(p);
+    requestAnimationFrame(()=>{
+      p.style.top='110%'; p.style.transform=`translateY(0) rotate(${360+Math.random()*360}deg)`;
+    });
+  }
+  setTimeout(()=>burst.remove(), 1000);
+}
+
+// Init
+renderPalette();
+function updateDockPadding(){
+  const dock = document.getElementById('paletteDock');
+  const spacer = document.getElementById('bottomSpacer');
+  if(!dock) return;
+  const h = dock.offsetHeight || dock.getBoundingClientRect().height || 220;
+  const extra = 28; // breathing room
+  const total = Math.ceil(h) + extra;
+  document.body.style.paddingBottom = `calc(${total}px + env(safe-area-inset-bottom, 0px))`;
+  if(spacer){ spacer.style.height = `${total}px`; }
+}
+window.addEventListener('resize', updateDockPadding);
+window.addEventListener('orientationchange', updateDockPadding);
+
+document.body.classList.add('has-dock');
+updateDockPadding();
+// re-apply after initial layout
+requestAnimationFrame(updateDockPadding);
+setTimeout(updateDockPadding, 300);
+
+prepareLanes();
+lanes.forEach((_,i)=>makeLane(i));
+
+// Buttons
+btnCheck.addEventListener('click', checkAll);
+btnClear.addEventListener('click', clearAll);
+btnShuffle.addEventListener('click', shuffle);
+</script>
+</body>
+</html>

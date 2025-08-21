@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shape L7 – Selesaikan Polanya</title>
+  <style>
+    :root{
+      --bg:#0b1020; --panel:#121a36; --panel-2:#0e1630; --text:#e8eeff;
+      --accent:#6ee7ff; --ok:#22c55e; --bad:#ef4444; --muted:#9aa7c7;
+      --yellow:#f7b500; --red:#e54b4b; --green:#3cb371; --blue:#2d7df6;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;background:linear-gradient(160deg,#0a0f1f,#0c1430 55%,#0f1538);color:var(--text)}
+    .wrap{max-width:980px;margin:32px auto;padding:16px}
+    h1{margin:0 0 6px;font-size:28px;letter-spacing:.5px}
+    p.sub{margin:0 0 18px;color:var(--muted)}
+
+    .board{display:grid;gap:16px}
+
+    .row{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid rgba(255,255,255,.08);
+         border-radius:16px;padding:14px 16px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+    .row-title{font-weight:700;margin-bottom:8px;color:#b8c4ff;font-size:14px}
+
+    .slots{display:flex;gap:12px;align-items:center;justify-content:flex-start;flex-wrap:wrap}
+    .slot{width:70px;height:70px;border:2px solid rgba(255,255,255,.18);border-radius:12px;
+          display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.02);
+          position:relative;transition:.15s transform,.15s box-shadow}
+    .slot.prefilled{background:rgba(255,255,255,.05)}
+    .slot.blank{cursor:pointer}
+    .slot.blank:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(0,0,0,.35)}
+    .slot.correct{outline:2px solid var(--ok)}
+    .slot.wrong{outline:2px solid var(--bad)}
+
+    /* Shape rendering */
+    svg{width:54px;height:54px}
+    .shape-stroke{stroke:#cfd8ff;stroke-width:3;fill:none}
+
+    .color-yellow{fill:var(--yellow)}
+    .color-red{fill:var(--red)}
+    .color-green{fill:var(--green)}
+    .color-blue{fill:var(--blue)}
+    .color-none{fill:none}
+
+    /* Palette & toolbar */
+    .toolbar{position:sticky;bottom:0;left:0;right:0;background:rgba(6,10,24,.8);backdrop-filter:blur(10px);
+             border-top:1px solid rgba(255,255,255,.08);padding:12px 16px;margin-top:20px}
+    .tool-inner{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    .palette,.shapette{display:flex;gap:10px;align-items:center}
+    .tool-label{font-size:13px;color:#b7c2ea}
+
+    .chip{min-width:44px;height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.15);
+          display:flex;align-items:center;justify-content:center;padding:0 10px;background:rgba(255,255,255,.04);
+          cursor:pointer;transition:.15s transform,.15s box-shadow}
+    .chip:active{transform:translateY(1px)}
+    .chip.active{outline:2px solid var(--accent);box-shadow:0 6px 16px rgba(79, 206, 255, .25)}
+    .chip.color{width:44px}
+    .chip .dot{width:22px;height:22px;border-radius:6px;border:2px solid rgba(0,0,0,.25)}
+
+    .actions{display:flex;gap:10px}
+    .btn{border:none;border-radius:12px;padding:12px 16px;font-weight:800;letter-spacing:.2px;cursor:pointer}
+    .btn.primary{background:linear-gradient(180deg,#46e2ff,#14b0e6);color:#001222}
+    .btn.ghost{background:transparent;color:var(--text);border:1px solid rgba(255,255,255,.2)}
+
+    @media (max-width:560px){
+      .slot{width:58px;height:58px}
+      svg{width:46px;height:46px}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>SELESAIKAN POLANYA</h1>
+    <p class="sub">Warnai / pilih bentuk sesuai urutan pola sebelumnya. Klik kotak kosong lalu pilih warna & bentuk di toolbar bawah.</p>
+
+    <div id="board" class="board"></div>
+
+    <div class="toolbar">
+      <div class="tool-inner">
+        <div class="palette">
+          <span class="tool-label">Warna:</span>
+          <button class="chip color" data-color="yellow" title="Kuning"><span class="dot" style="background:var(--yellow)"></span></button>
+          <button class="chip color" data-color="red" title="Merah"><span class="dot" style="background:var(--red)"></span></button>
+          <button class="chip color" data-color="green" title="Hijau"><span class="dot" style="background:var(--green)"></span></button>
+          <button class="chip color" data-color="blue" title="Biru"><span class="dot" style="background:var(--blue)"></span></button>
+          <button class="chip color" data-color="none" title="Tanpa warna (garis saja)"><span class="dot" style="background:transparent;border:2px dashed #8ea0d8"></span></button>
+        </div>
+        <div class="shapette">
+          <span class="tool-label">Bentuk:</span>
+          <button class="chip shape" data-shape="circle" title="Lingkaran"> 
+            <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="28" class="shape-stroke"/></svg>
+          </button>
+          <button class="chip shape" data-shape="square" title="Persegi">
+            <svg viewBox="0 0 100 100"><rect x="22" y="22" width="56" height="56" class="shape-stroke" rx="6"/></svg>
+          </button>
+          <button class="chip shape" data-shape="triangle" title="Segitiga">
+            <svg viewBox="0 0 100 100"><polygon points="50,18 80,78 20,78" class="shape-stroke"/></svg>
+          </button>
+        </div>
+        <div class="actions">
+          <button id="checkBtn" class="btn primary">Periksa Jawaban</button>
+          <button id="shuffleBtn" class="btn ghost">Acak Soal</button>
+          <button id="resetBtn" class="btn ghost">Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+// Utility to create an SVG shape node
+function shapeSVG(shape, color='none'){
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const s = document.createElementNS(svgNS,'svg');
+  s.setAttribute('viewBox','0 0 100 100');
+  let el;
+  if(shape==='circle'){
+    el = document.createElementNS(svgNS,'circle');
+    el.setAttribute('cx','50'); el.setAttribute('cy','50'); el.setAttribute('r','28');
+  }else if(shape==='square'){
+    el = document.createElementNS(svgNS,'rect');
+    el.setAttribute('x','22'); el.setAttribute('y','22'); el.setAttribute('width','56'); el.setAttribute('height','56');
+    el.setAttribute('rx','6');
+  }else{ // triangle
+    el = document.createElementNS(svgNS,'polygon');
+    el.setAttribute('points','50,18 80,78 20,78');
+  }
+  const stroke = document.createElementNS(svgNS,'path'); // dummy to apply class? We'll just use class on main
+  el.setAttribute('class','shape-stroke');
+  if(color && color!=='none'){
+    el.classList.add('color-'+color);
+    // remove stroke so color fills nicely but still outline visible
+    el.style.stroke = 'rgba(0,0,0,.25)';
+    el.style.strokeWidth = '2';
+  }
+  s.appendChild(el);
+  return s;
+}
+
+// Level data mirroring the worksheet image
+// Each row has 7 slots. Provide prefilled items and expected answers for blanks.
+// For rows where only shape matters, set expected.color='none'.
+const rows = [
+  { title:'Pola 1 (warna + bentuk)', period:2, prefill:3, base:[
+      {shape:'circle', color:'yellow'},
+      {shape:'square', color:'red'}
+    ] },
+  { title:'Pola 2 (warna saja)', period:2, prefill:3, base:[
+      {shape:'square', color:'green'},
+      {shape:'square', color:'blue'}
+    ] },
+  { title:'Pola 3 (A B B A ...)', period:4, prefill:4, base:[
+      {shape:'square', color:'blue'},
+      {shape:'circle', color:'red'},
+      {shape:'circle', color:'red'},
+      {shape:'square', color:'blue'}
+    ] },
+  { title:'Pola 4 (kuning-hijau-hijau-ulang)', period:3, prefill:4, base:[
+      {shape:'square', color:'yellow'},
+      {shape:'square', color:'green'},
+      {shape:'square', color:'green'}
+    ] },
+  { title:'Pola 5 (bentuk saja)', period:3, prefill:3, base:[
+      {shape:'square', color:'none'},
+      {shape:'triangle', color:'none'},
+      {shape:'circle',  color:'none'}
+    ] },
+  { title:'Pola 6 (B-G-Y berulang)', period:3, prefill:4, base:[
+      {shape:'square', color:'blue'},
+      {shape:'square', color:'green'},
+      {shape:'square', color:'yellow'}
+    ] }
+];
+
+function repeatToSeven(base){
+  const out = [];
+  for(let i=0;i<7;i++) out.push(base[i % base.length]);
+  return out;
+}
+function rotate(arr,k){
+  const n = arr.length; k = ((k% n)+n)%n; // normalize
+  return arr.slice(k).concat(arr.slice(0,k));
+}
+// initialize sequences from base
+rows.forEach(r=>{ r.sequence = repeatToSeven(r.base); });
+
+const board = document.getElementById('board');
+let activeColor = 'yellow';
+let activeShape = 'circle';
+
+function render(){
+  board.innerHTML='';
+  rows.forEach((row,ri)=>{
+    const rowEl = document.createElement('div'); rowEl.className='row';
+    const title = document.createElement('div'); title.className='row-title'; title.textContent = row.title; rowEl.appendChild(title);
+    const slots = document.createElement('div'); slots.className='slots';
+
+    row.sequence.forEach((target, ci)=>{
+      const slot = document.createElement('div'); slot.className='slot';
+      const isPrefilled = ci < row.prefill;
+      slot.dataset.ri = ri; slot.dataset.ci = ci;
+      if(isPrefilled){
+        slot.classList.add('prefilled');
+        slot.appendChild(shapeSVG(target.shape, target.color));
+        slot.dataset.locked = '1';
+      }else{
+        slot.classList.add('blank');
+        slot.addEventListener('click', ()=>{
+          // place current tool selection
+          slot.innerHTML='';
+          slot.appendChild(shapeSVG(activeShape, activeColor));
+          slot.dataset.shape = activeShape;
+          slot.dataset.color = activeColor;
+          slot.classList.remove('wrong','correct');
+        });
+      }
+      slots.appendChild(slot);
+    });
+
+    rowEl.appendChild(slots);
+    board.appendChild(rowEl);
+  });
+}
+
+function setActive(group, value){
+  document.querySelectorAll('.'+group).forEach(c=>c.classList.remove('active'));
+  const btn = document.querySelector('.'+group+'[data-'+(group==='color'?'color':'shape')+'="'+value+'"]');
+  if(btn) btn.classList.add('active');
+}
+
+// Palette interactions
+const colorButtons = document.querySelectorAll('.chip.color');
+colorButtons.forEach(b=>b.addEventListener('click', e=>{activeColor = b.dataset.color; setActive('color', activeColor);}));
+const shapeButtons = document.querySelectorAll('.chip.shape');
+shapeButtons.forEach(b=>b.addEventListener('click', e=>{activeShape = b.dataset.shape; setActive('shape', activeShape);}));
+setActive('color','yellow'); setActive('shape','circle');
+
+// Check answers
+function check(){
+  let correctAll = true;
+  document.querySelectorAll('.row').forEach((rowEl, ri)=>{
+    const cfg = rows[ri];
+    rowEl.querySelectorAll('.slot').forEach((slot, ci)=>{
+      slot.classList.remove('correct','wrong');
+      if(ci < cfg.prefill) return; // locked
+      const target = cfg.sequence[ci];
+      const chosenShape = slot.dataset.shape || 'none';
+      const chosenColor = slot.dataset.color || 'none';
+      const shapeOk = (target.shape === chosenShape);
+      const colorOk = (target.color === 'none') ? true : (target.color === chosenColor);
+      const ok = shapeOk && colorOk;
+      slot.classList.add(ok ? 'correct' : 'wrong');
+      if(!ok) correctAll = false;
+    });
+  });
+  if(correctAll){
+    document.getElementById('checkBtn').textContent = 'Mantap! Semua Benar ✅';
+    setTimeout(()=>{document.getElementById('checkBtn').textContent='Periksa Jawaban';}, 2000);
+  }
+}
+
+function resetAll(){
+  document.querySelectorAll('.slot.blank').forEach(s=>{s.innerHTML=''; s.removeAttribute('data-shape'); s.removeAttribute('data-color'); s.classList.remove('correct','wrong');});
+  document.getElementById('checkBtn').textContent='Periksa Jawaban';
+}
+
+function shuffleAll(){
+  rows.forEach(r=>{
+    const k = Math.floor(Math.random()*r.period);
+    const rotatedBase = rotate(r.base, k);
+    r.sequence = repeatToSeven(rotatedBase);
+  });
+  render();
+}
+
+document.getElementById('checkBtn').addEventListener('click', check);
+
+document.getElementById('resetBtn').addEventListener('click', resetAll);
+
+document.getElementById('shuffleBtn').addEventListener('click', ()=>{
+  shuffleAll();
+});
+
+render();
+resetAll();
+</script>
+</body>
+</html>

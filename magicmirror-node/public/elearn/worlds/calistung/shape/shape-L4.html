@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shape L4 – Lengkapi Kotak Kosong</title>
+  <style>
+    :root { --ok:#22c55e; --warn:#f59e0b; --err:#ef4444; --ink:#0f172a; --muted:#64748b; --panel:#ffffff; --bg:#f6f8fc; }
+    * { box-sizing: border-box; }
+    html,body { margin:0; height:100%; font-family: ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, Cantarell, Noto Sans, Ubuntu, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji"; color:var(--ink); background: radial-gradient(1200px 600px at 60% -10%, #eaf2ff 0%, #f6f8fc 60%, #f6f8fc 100%); }
+
+    .app { max-width: 980px; margin: 24px auto 80px; padding: 16px; }
+    .header { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+    .title { font-weight:900; letter-spacing:.2px; }
+    .pill { padding:6px 10px; border-radius:999px; background:#eef2ff; color:#3730a3; font-weight:700; font-size:12px; }
+
+    .board { display:grid; gap:16px; }
+    .row { background:var(--panel); border-radius:16px; padding:14px; box-shadow: 0 6px 24px rgba(15,23,42,.06); border:1px solid #eef2f7; }
+    .row-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+    .row-title { font-weight:800; font-size:14px; color:var(--muted); }
+
+    .seq { display:grid; grid-template-columns: repeat(5, minmax(52px,1fr)); gap:10px; align-items:center; }
+    .cell { aspect-ratio: 1/1; background:#fff; border:2px dashed #dbe3f0; border-radius:12px; display:flex; align-items:center; justify-content:center; position:relative; }
+    .cell.blank { background: repeating-linear-gradient(45deg,#fafcff,#fafcff 8px,#f0f4ff 8px,#f0f4ff 16px); border:2px dashed #9aa8c7; }
+    .qmark { font-weight:900; color:#94a3b8; font-size:22px; }
+
+    .choices { margin-top:12px; display:flex; gap:10px; flex-wrap:wrap; }
+    .choice { flex:0 0 auto; width:70px; height:70px; border-radius:14px; border:2px solid #e5eaf3; background:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:.15s transform ease, .15s box-shadow ease; }
+    .choice:hover { transform: translateY(-2px); box-shadow:0 8px 22px rgba(15,23,42,.10); }
+    .choice[aria-selected="true"] { outline: 3px solid #a5b4fc; }
+    .choice.correct { outline:3px solid var(--ok); animation: pop .22s ease; }
+    .choice.wrong { outline:3px solid var(--err); animation: shake .25s ease; }
+
+    @keyframes pop { 0%{ transform:scale(.94);} 100%{ transform:scale(1);} }
+    @keyframes shake { 0%{ transform:translateX(0);} 25%{ transform:translateX(-3px);} 50%{ transform:translateX(3px);} 75%{ transform:translateX(-2px);} 100%{ transform:translateX(0);} }
+
+    .toolbar { position:sticky; top:0; background:transparent; display:flex; gap:10px; justify-content:flex-end; margin-bottom:12px; }
+    .btn { border:0; border-radius:12px; padding:10px 14px; font-weight:800; cursor:pointer; background:#111827; color:#fff; }
+    .btn.ghost { background:#e9eefc; color:#111827; }
+    .score { margin-left:auto; padding:10px 0; font-weight:800; color:#475569; }
+
+    .finish-bar { position: fixed; right: 16px; bottom: 16px; z-index: 1000; }
+    #btnSelesai { background: var(--ok); color:#fff; border: none; cursor: pointer; padding: 12px 16px; border-radius: 12px; font-weight: 800; font-size: 16px; box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35); }
+    #btnSelesai[disabled] { opacity:.5; cursor:not-allowed; }
+
+    /* SVGs scale nicely */
+    svg { width:70%; height:70%; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="header">
+      <span class="pill">Level • L4</span>
+      <h1 class="title">Silakan Lengkapi Kotak yang Kosong</h1>
+      <div class="score" id="score">0/6 benar</div>
+    </div>
+
+    <div class="toolbar">
+      <button class="btn ghost" id="btnShuffle" type="button">Acak Soal</button>
+    </div>
+
+    <div id="board" class="board" aria-live="polite"></div>
+  </div>
+
+  <div class="finish-bar"><button id="btnSelesai" type="button" disabled>Periksa Jawaban</button></div>
+
+  <script>
+  // ===== Simple cute SVG icons (no emoji) =====
+  const Icons = {
+    ball4: () => svg(`<circle cx="50" cy="50" r="46" fill="#ffd54f" stroke="#3b82f6" stroke-width="6"/><path d="M50 4 v92" stroke="#ef4444" stroke-width="6"/><path d="M4 50 h92" stroke="#22c55e" stroke-width="6"/>`),
+    ballPie: () => svg(`<circle cx="50" cy="50" r="46" fill="#22c55e"/><path d="M50 4 A46 46 0 0 1 96 50 L50 50 Z" fill="#f59e0b"/><path d="M50 4 A46 46 0 0 0 4 50 L50 50 Z" fill="#3b82f6"/><circle cx="50" cy="50" r="46" fill="none" stroke="#0f172a" stroke-width="4" opacity=".2"/>`),
+
+    carRed: () => svg(`
+      <rect x="16" y="42" width="68" height="18" rx="8" fill="#ef4444"/>
+      <path d="M26 40 L44 28 H74 L84 40 Z" fill="#ef4444"/>
+      <rect x="46" y="32" width="20" height="8" fill="#93c5fd"/>
+      ${wheels()}
+    `),
+    carPolice: () => svg(`
+      <rect x="16" y="42" width="68" height="18" rx="8" fill="#111827"/>
+      <path d="M26 40 L44 28 H74 L84 40 Z" fill="#111827"/>
+      <rect x="46" y="30" width="20" height="10" fill="#93c5fd"/>
+      <rect x="53" y="24" width="6" height="8" fill="#3b82f6"/>
+      <rect x="59" y="24" width="6" height="8" fill="#ef4444"/>
+      ${wheels()} 
+    `),
+
+    planeGreen: () => svg(`
+      <ellipse cx="52" cy="50" rx="28" ry="10" fill="#22c55e"/>
+      <rect x="18" y="47" width="40" height="6" fill="#16a34a"/>
+      <rect x="32" y="44" width="6" height="12" fill="#16a34a"/>
+      <polygon points="80,50 64,46 64,54" fill="#f59e0b"/>
+      <circle cx="38" cy="50" r="3" fill="#e2e8f0"/>
+    `),
+    planeYellow: () => svg(`
+      <ellipse cx="52" cy="50" rx="28" ry="10" fill="#f59e0b"/>
+      <rect x="18" y="47" width="40" height="6" fill="#fb923c"/>
+      <rect x="32" y="44" width="6" height="12" fill="#fb923c"/>
+      <polygon points="80,50 64,46 64,54" fill="#2563eb"/>
+      <circle cx="38" cy="50" r="3" fill="#e2e8f0"/>
+    `),
+
+    robotA: () => svg(`
+      <rect x="35" y="30" width="30" height="28" rx="6" fill="#a78bfa"/>
+      <circle cx="44" cy="42" r="3" fill="#111827"/>
+      <circle cx="56" cy="42" r="3" fill="#111827"/>
+      <rect x="47" y="46" width="6" height="4" fill="#111827"/>
+      <rect x="38" y="58" width="24" height="12" rx="3" fill="#f59e0b"/>
+      <rect x="46" y="22" width="8" height="8" fill="#f59e0b"/>
+      <line x1="50" y1="22" x2="50" y2="16" stroke="#ef4444" stroke-width="3"/>
+      <circle cx="24" cy="50" r="5" fill="#22c55e"/>
+      <circle cx="76" cy="50" r="5" fill="#3b82f6"/>
+    `),
+    robotB: () => svg(`
+      <rect x="34" y="28" width="32" height="30" rx="6" fill="#fb7185"/>
+      <rect x="42" y="40" width="16" height="8" rx="2" fill="#111827"/>
+      <rect x="40" y="58" width="24" height="12" rx="3" fill="#22c55e"/>
+      <circle cx="24" cy="50" r="5" fill="#f59e0b"/>
+      <circle cx="76" cy="50" r="5" fill="#a78bfa"/>
+      <rect x="46" y="22" width="8" height="8" fill="#0ea5e9"/>
+    `),
+
+    scooter: () => svg(`
+      <rect x="30" y="60" width="40" height="6" rx="3" fill="#ef4444"/>
+      <rect x="36" y="40" width="6" height="20" fill="#111827"/>
+      <rect x="38" y="28" width="20" height="6" fill="#111827"/>
+      ${wheel(32)} ${wheel(70)}
+    `),
+    bike: () => svg(`
+      <circle cx="32" cy="66" r="8" fill="#22c55e"/><circle cx="70" cy="66" r="8" fill="#3b82f6"/>
+      <polyline points="32,66 50,50 70,66" fill="none" stroke="#111827" stroke-width="4"/>
+      <line x1="50" y1="50" x2="60" y2="36" stroke="#111827" stroke-width="4"/>
+      <line x1="46" y1="52" x2="40" y2="36" stroke="#111827" stroke-width="4"/>
+    `)
+  };
+
+  function svg(inner){ return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${inner}</svg>`; }
+  function wheels(){ return `<circle cx="30" cy="62" r="8" fill="#111827"/><circle cx="70" cy="62" r="8" fill="#111827"/>`; }
+  function wheel(x){ return `<circle cx="${x}" cy="66" r="6" fill="#111827"/>`; }
+
+  // ===== Game Data =====
+  // Each row is a repeating pattern where one position is blank.
+  const ROWS_BASE = [
+    { name: 'Mobil',    pattern:['carRed','carPolice'],            choices:['carRed','carPolice','planeGreen'] },
+    { name: 'Pesawat',  pattern:['planeGreen','planeYellow','planeGreen'], choices:['planeYellow','planeGreen','carRed'] },
+    { name: 'Robot',    pattern:['robotB','robotA'],               choices:['robotA','robotB','ball4'] },
+    { name: 'Bola',     pattern:['ball4','ballPie'],               choices:['ball4','ballPie','robotA'] },
+    { name: 'Skuter',   pattern:['bike','scooter'],                choices:['scooter','bike','ballPie'] },
+    { name: 'Campur',   pattern:['planeYellow','planeGreen','planeYellow'], choices:['planeGreen','planeYellow','robotB'] },
+  ];
+
+  let rows = [];
+
+  function buildRows() {
+    rows = ROWS_BASE.map(base =>
+      ({ ...base, missingIndex: randInt(1,4), solved:false })
+    );
+  }
+
+  function renderBoard(){
+    const board = document.getElementById('board');
+    board.innerHTML = '';
+
+    rows.forEach((row, idx)=>{
+      const wrap = el('div','row');
+      wrap.dataset.index = idx;
+
+      // title
+      const head = el('div','row-head');
+      head.append(el('div','row-title',`Pola: ${row.name}`));
+      wrap.append(head);
+
+      // sequence 5 cells
+      const seq = el('div','seq');
+      for(let i=0;i<5;i++){
+        const cell = el('div','cell');
+        // Determine which icon should appear for non-blank cells
+        if(i===row.missingIndex){ cell.classList.add('blank'); cell.innerHTML = `<span class="qmark">?</span>`; }
+        else { const iconName = expectedIcon(row, i); cell.innerHTML = Icons[iconName](); }
+        seq.append(cell);
+      }
+      wrap.append(seq);
+
+      // choices
+      const choices = el('div','choices');
+      row.choices.forEach(name=>{
+        const ch = el('button','choice');
+        ch.type = 'button';
+        ch.setAttribute('aria-label', name);
+        ch.innerHTML = Icons[name]();
+        ch.addEventListener('click', ()=>onChoose(idx, name, ch));
+        choices.append(ch);
+      });
+      wrap.append(choices);
+
+      board.append(wrap);
+    });
+
+    updateScore();
+  }
+
+  function expectedIcon(row, position){
+    // pattern repeats across positions 0..4
+    const pat = row.pattern;
+    return pat[position % pat.length];
+  }
+
+  function onChoose(rowIndex, name, btn){
+    const row = rows[rowIndex];
+    if(row.solved) return;
+
+    // mark selection highlight
+    const parent = btn.parentElement;
+    [...parent.querySelectorAll('.choice')].forEach(x=>x.setAttribute('aria-selected','false'));
+    btn.setAttribute('aria-selected','true');
+
+    const correctName = expectedIcon(row, row.missingIndex);
+    if(name === correctName){
+      // correct
+      btn.classList.remove('wrong');
+      btn.classList.add('correct');
+      row.solved = true;
+      // fill blank cell
+      const cell = btn.closest('.row').querySelector('.cell.blank');
+      if(cell){ cell.classList.remove('blank'); cell.innerHTML = Icons[name](); cell.style.borderColor = 'var(--ok)'; }
+      updateScore();
+    } else {
+      // wrong
+      btn.classList.remove('correct');
+      btn.classList.add('wrong');
+    }
+  }
+
+  function updateScore(){
+    const solved = rows.filter(r=>r.solved).length;
+    document.getElementById('score').textContent = `${solved}/${rows.length} benar`;
+    const done = solved===rows.length;
+    document.getElementById('btnSelesai').disabled = !done;
+  }
+
+  function shuffle(){
+    buildRows();
+    renderBoard();
+  }
+
+  function el(tag, cls, text){ const n = document.createElement(tag); if(cls) n.className = cls; if(text) n.textContent = text; return n; }
+  function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+
+  // Init
+  buildRows();
+  renderBoard();
+  document.getElementById('btnShuffle').addEventListener('click', shuffle);
+  document.getElementById('btnSelesai').addEventListener('click', ()=>{
+    alert('Mantap! Semua pola sudah benar.');
+  });
+  </script>
+</body>
+</html>

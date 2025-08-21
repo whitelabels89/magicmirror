@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Shape L12 – Coding Warna & Bentuk</title>
+<style>
+  :root{
+    --blue:#2f6df6; --green:#7ccf7a; --greenDark:#2f9e44; --pink:#e764a5; --yellow:#f5c343; --cyan:#53c0d8; --line:#1f2937;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial;background:#fbfbfe;color:#111}
+  .wrap{max-width:1000px;margin:24px auto;padding:16px}
+  h1{margin:0 0 4px;font-size:28px}
+  .sub{margin:0 0 18px;color:#555}
+  .pairRow{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}
+  .card{background:#fff;border:1px solid #e6e6e6;border-radius:14px;padding:16px}
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:center}
+  .leftBox,.rightBox{border:2px solid #d9d9df;border-radius:12px;padding:10px;background:#fff}
+  /* make left (soal) and right (jawaban) rows equal height so they align */
+  .leftBox, .answerRow { min-height: 190px; display:flex; align-items:center; justify-content:center; }
+  .row{display:flex;flex-direction:column;gap:18px}
+  .slots{display:flex;gap:10px;justify-content:flex-start;align-items:center;min-height:84px}
+  .slot{width:84px;height:84px;border:2px dashed #9aa1b0;border-radius:12px;display:flex;align-items:center;justify-content:center;background:#fafafa;cursor:pointer;position:relative}
+  .slot.filled{border-style:solid;border-color:#4b5563;background:#fff}
+
+  /* palette */
+  .palette{display:flex;gap:10px;flex-wrap:wrap}
+
+  /* sticky dock combining controls + palette */
+  .dock{position:sticky;bottom:12px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;padding:12px;border:1px solid #ececec;border-radius:12px;background:#f8f8fb;z-index:10}
+  .dock .controls{margin:0}
+  .dock .msg{margin-left:0}
+
+  .token{width:74px;height:74px;border:2px solid var(--line);border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none}
+  .token:active{transform:scale(.98)}
+  .controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  button{border:none;background:#111;color:#fff;padding:10px 14px;border-radius:10px;font-weight:700;cursor:pointer}
+  button.secondary{background:#e5e7eb;color:#111}
+  .msg{margin-left:8px;font-weight:800}
+
+  @media (max-width:820px){
+    .grid{grid-template-columns:1fr}
+    .slots{justify-content:space-between}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Coding Warna dan Bentuk</h1>
+  <p class="sub">Susun bentuk dan warna sesuai contoh di kiri, lalu isi 3 slot di kanan.</p>
+
+  <div class="pairs" id="pairs"></div>
+  <div class="dock">
+    <div class="controls">
+      <button id="checkBtn">Periksa Jawaban</button>
+      <button class="secondary" id="resetBtn">Reset</button>
+      <button class="secondary" id="shuffleBtn">Acak Soal</button>
+      <span class="msg" id="status"></span>
+    </div>
+    <div class="palette" id="palette"></div>
+    <p style="margin:0;color:#666">Tip: klik token → klik slot. Klik kanan slot untuk hapus.</p>
+  </div>
+</div>
+
+<script>
+// --------- geometry drawing helpers (SVG) ---------
+function svgToken(shape, color, size=64){
+  const s = size, c = color;
+  if(shape==='circle') return `<svg width="${s}" height="${s}" viewBox="0 0 100 100" aria-hidden><circle cx="50" cy="50" r="46" fill="${c}"/></svg>`;
+  if(shape==='triangle') return `<svg width="${s}" height="${s}" viewBox="0 0 100 100" aria-hidden><polygon points="50,6 94,90 6,90" fill="${c}"/></svg>`;
+  if(shape==='hex') return `<svg width="${s}" height="${s}" viewBox="0 0 100 100" aria-hidden><polygon points="25,8 75,8 95,50 75,92 25,92 5,50" fill="${c}"/></svg>`;
+}
+
+function svgCompositeFromKey(row){
+  const k = KEY[row]; // array of 3 items: [{shape, color}, ...] bottom -> top
+  // layer scales so item[0] is biggest (bottom), item[2] smallest (top)
+  const scales = [1.0, 0.82, 0.68];
+  const pieces = k.map((it, idx)=> shapeFragment(it.shape, getCss(it.color), scales[idx])).join('');
+  return `<svg width="160" height="160" viewBox="0 0 100 100">${pieces}</svg>`;
+}
+
+function shapeFragment(shape, color, scale){
+  const gOpen = `<g transform="translate(50,50) scale(${scale}) translate(-50,-50)">`;
+  const gClose = `</g>`;
+  if(shape==='circle'){
+    return `${gOpen}<circle cx="50" cy="50" r="46" fill="${color}"/>${gClose}`;
+  }
+  if(shape==='hex'){
+    return `${gOpen}<polygon points="25,8 75,8 95,50 75,92 25,92 5,50" fill="${color}"/>${gClose}`;
+  }
+  // triangle default
+  return `${gOpen}<polygon points="50,6 94,90 6,90" fill="${color}"/>${gClose}`;
+}
+
+// --------- Data jawaban (bentuk berurutan kiri→kanan) ---------
+const KEY = [
+  [ {shape:'circle', color:'var(--green)'}, {shape:'hex', color:'var(--greenDark)'}, {shape:'triangle', color:'var(--blue)'} ],
+  [ {shape:'circle', color:'var(--blue)'},  {shape:'hex', color:'var(--greenDark)'}, {shape:'triangle', color:'var(--pink)'} ],
+  [ {shape:'circle', color:'var(--blue)'},  {shape:'hex', color:'var(--yellow)'},    {shape:'triangle', color:'var(--cyan)'} ],
+  [ {shape:'circle', color:'var(--green)'}, {shape:'hex', color:'var(--yellow)'},    {shape:'triangle', color:'var(--pink)'} ],
+];
+
+// Palet token yang tersedia (boleh ditempatkan berulang kali)
+const PALETTE = [
+  {shape:'circle', color:'var(--green)'},
+  {shape:'circle', color:'var(--blue)'},
+  {shape:'hex', color:'var(--greenDark)'},
+  {shape:'hex', color:'var(--yellow)'},
+  {shape:'triangle', color:'var(--blue)'},
+  {shape:'triangle', color:'var(--pink)'},
+  {shape:'triangle', color:'var(--cyan)'}
+];
+
+// ---------- Build UI ----------
+const pairs = document.getElementById('pairs');
+
+function buildRows(){
+  pairs.innerHTML='';
+  for(let i=0;i<4;i++){
+    const row = document.createElement('div'); row.className='pairRow';
+    const left = document.createElement('div'); left.className='leftBox'; left.innerHTML=svgCompositeFromKey(i);
+    const right = document.createElement('div'); right.className='answerRow';
+    const slots=document.createElement('div'); slots.className='slots'; slots.dataset.row=i;
+    for(let col=0; col<3; col++){
+      const slot=document.createElement('div'); slot.className='slot'; slot.dataset.row=i; slot.dataset.idx=col;
+      slot.addEventListener('click', ()=>placeActive(slot));
+      slot.addEventListener('contextmenu', e=>{e.preventDefault(); clearSlot(slot)});
+      slots.appendChild(slot);
+    }
+    right.appendChild(slots);
+    row.appendChild(left); row.appendChild(right);
+    pairs.appendChild(row);
+  }
+}
+
+// Palette
+const palette = document.getElementById('palette');
+let active = null;
+function renderPalette(arr){
+  palette.innerHTML='';
+  arr.forEach((tok,i)=>{
+    const el = document.createElement('div'); el.className='token'; el.dataset.shape=tok.shape; el.dataset.color=tok.color; el.title = tok.shape;
+    el.innerHTML = svgToken(tok.shape, getCss(tok.color));
+    el.addEventListener('click', ()=>{ active = tok; document.querySelectorAll('.token').forEach(t=>t.style.outline='none'); el.style.outline='3px solid #111'; });
+    palette.appendChild(el);
+  });
+}
+function getCss(v){ return getComputedStyle(document.documentElement).getPropertyValue(v.replace('var(','').replace(')','')).trim(); }
+
+function placeActive(slot){
+  if(!active) return; // nothing selected
+  slot.innerHTML = svgToken(active.shape, getCss(active.color));
+  slot.dataset.shape = active.shape; slot.dataset.color = active.color; slot.classList.add('filled');
+}
+function clearSlot(slot){ slot.innerHTML=''; slot.removeAttribute('data-shape'); slot.removeAttribute('data-color'); slot.classList.remove('filled'); }
+
+// Check
+const statusEl = document.getElementById('status');
+function check(){
+  // helper to stringify a token
+  const idOf = (obj)=> obj ? `${obj.shape}|${obj.color}` : '';
+  const multisetEq = (a,b)=>{
+    if(a.length!==b.length) return false;
+    const ca = {}; const cb = {};
+    a.forEach(x=>{ ca[x]=(ca[x]||0)+1; });
+    b.forEach(x=>{ cb[x]=(cb[x]||0)+1; });
+    const keys = new Set([...Object.keys(ca), ...Object.keys(cb)]);
+    for(const k of keys){ if((ca[k]||0)!==(cb[k]||0)) return false; }
+    return true;
+  };
+
+  let allOk = true;
+  for(let ri=0; ri<KEY.length; ri++){
+    const required = KEY[ri].map(idOf);
+    const slots = [...document.querySelectorAll(`.slot[data-row="${ri}"]`)];
+    const placed = slots.map(s=> s.dataset.shape && s.dataset.color ? idOf({shape:s.dataset.shape, color:s.dataset.color}) : null)
+                        .filter(Boolean);
+    const rowOk = placed.length===required.length && multisetEq(placed, required);
+
+    if(rowOk){
+      // mark all slots green
+      slots.forEach(slot=>{ slot.style.borderColor = '#16a34a'; setTimeout(()=>{ slot.style.borderColor='#4b5563'; }, 700); });
+    } else {
+      allOk = false;
+      // quick red flash to indicate row mismatch
+      slots.forEach(slot=>{ slot.style.borderColor = '#b91c1c'; setTimeout(()=>{ slot.style.borderColor='#9aa1b0'; }, 700); });
+    }
+  }
+
+  statusEl.textContent = allOk ? 'Perfect! Semua cocok ✅' : 'Boleh diacak urutannya — pastikan bentuk & warnanya sudah lengkap ya!';
+  statusEl.style.color = allOk ? '#16a34a' : '#b91c1c';
+}
+
+// Reset
+function resetAll(){
+  document.querySelectorAll('.slot').forEach(clearSlot);
+  statusEl.textContent='';
+}
+
+// Shuffle: acak urutan baris (shallow) & acak urutan palette
+function shuffle(){
+  // shuffle shapes within each row
+  for(let r=0;r<KEY.length;r++){
+    for(let i=KEY[r].length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [KEY[r][i], KEY[r][j]] = [KEY[r][j], KEY[r][i]];
+    }
+  }
+  // shuffle the order of rows
+  for(let i=KEY.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [KEY[i], KEY[j]] = [KEY[j], KEY[i]];
+  }
+  buildRows();
+  renderPalette(PALETTE.slice().sort(()=>Math.random()-0.5));
+  statusEl.textContent='';
+}
+
+// Mount
+(function init(){
+  // Build rows as pairs side by side
+  pairs.innerHTML='';
+  buildRows();
+  renderPalette(PALETTE);
+  // Attach buttons
+  document.getElementById('checkBtn').addEventListener('click', check);
+  document.getElementById('resetBtn').addEventListener('click', resetAll);
+  document.getElementById('shuffleBtn').addEventListener('click', shuffle);
+})();
+</script>
+</body>
+</html>

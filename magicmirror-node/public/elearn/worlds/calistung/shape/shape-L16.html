@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SHAPE L16 — Potongan Lingkaran</title>
+<style>
+  :root{
+    --bg:#0b1020;       /* dark navy */
+    --card:#121a33;     /* board */
+    --ink:#eaf2ff;      /* text */
+    --muted:#9fb2d9;
+  }
+  html,body{height:100%}
+  body{margin:0;background:linear-gradient(180deg,#0b1020,#0d1326 40%,#0b1020);font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--ink)}
+
+  .wrap{max-width:1100px;margin:24px auto;padding:20px}
+  .title{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+  .title h1{font-size:28px;margin:0;letter-spacing:.5px}
+  .subtitle{color:var(--muted)}
+
+  .board{background:var(--card);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.35);padding:18px}
+  .grid{display:grid;grid-template-columns:1fr 320px;gap:18px;min-height:520px}
+  @media (max-width:900px){.grid{grid-template-columns:1fr}}
+  .qcol,.ccol{display:flex;flex-direction:column;gap:14px}
+
+  .row{display:grid;grid-template-columns:160px 1fr;gap:14px;align-items:center;background:#0e1631;border:1px solid #1d2852;border-radius:12px;padding:12px}
+  .slot{height:140px;border:2px dashed #2a3a76;border-radius:10px;display:flex;align-items:center;justify-content:center;position:relative}
+  .slot.filled{border-style:solid;border-color:#2a3a76;background:#0c142c}
+  .slot.ok{ border-color:#22c55e; box-shadow:0 0 0 3px rgba(34,197,94,.18) inset }
+  .slot.err{ border-color:#ef4444; box-shadow:0 0 0 3px rgba(239,68,68,.18) inset }
+  .slot.ok::after, .slot.err::after{content:""; position:absolute; right:8px; top:8px; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; color:white}
+  .slot.ok::after{ content:"✓"; background:#22c55e }
+  .slot.err::after{ content:"✕"; background:#ef4444 }
+
+  .choice{background:#0e1631;border:1px solid #1d2852;border-radius:12px;padding:8px;display:flex;align-items:center;justify-content:center;height:140px;cursor:grab;user-select:none;touch-action:none}
+  .choice.dragging{opacity:.6;transform:scale(.98)}
+  .choicesGrid{display:grid;grid-template-columns:repeat(2,minmax(140px,1fr));gap:12px}
+  svg{display:block}
+
+  .finish-bar{position:fixed;right:16px;bottom:16px;z-index:1000;display:flex;gap:10px}
+  .btn{background:#213064;color:#fff;border:none;cursor:pointer;padding:12px 16px;border-radius:12px;font-weight:700;font-size:15px;box-shadow:0 6px 18px rgba(17,24,39,.4)}
+  .btn:hover{filter:brightness(1.05)}
+  .btn:active{transform:translateY(1px)}
+
+  .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#111b3c;color:#fff;padding:10px 14px;border-radius:10px;border:1px solid #284082;box-shadow:0 10px 28px rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .25s ease}
+  .toast.show{opacity:1}
+
+  /* Bersihkan background kartu saat sudah di-drop ke slot */
+  .slot .choice{ background:transparent;border:none;border-radius:0;padding:0;height:auto;box-shadow:none;cursor:default }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="title">
+      <h1>POTONGAN LINGKARAN</h1>
+      <div class="subtitle">Cocokkan potongan <em>wedge</em> agar menyambung persis dengan lingkaran berlapis. Warna &amp; arah harus sama. (Versi L16; logika seperti L15.)</div>
+    </div>
+
+    <div class="board">
+      <div class="grid">
+        <div class="qcol" id="qCol"></div>
+        <div class="ccol">
+          <div class="choicesGrid" id="choices"></div>
+          <div class="subtitle" style="margin-top:8px">Tarik satu potongan ke setiap kotak. Tidak ada background tambahan saat di-slot.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="finish-bar">
+    <label class="btn" style="padding:10px 12px;display:flex;align-items:center;gap:8px">
+      Ukuran:
+      <select id="scaleSel" style="background:#0f1b3a;color:#fff;border:1px solid #284082;border-radius:8px;padding:6px 8px">
+        <option value="0.60">60%</option>
+        <option value="0.75">75%</option>
+        <option value="0.90">90%</option>
+        <option value="1.00" selected>100%</option>
+      </select>
+    </label>
+    <button class="btn" id="btnShuffle">Acak Soal</button>
+    <button class="btn" id="btnReset">Reset</button>
+    <button class="btn" id="btnCheck">Periksa Jawaban</button>
+  </div>
+  <div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  // CONFIG
+  const COLOR_SETS = [
+    ["#49a942","#f28a1d","#ff7ecf","#7f4db6"],
+    ["#2a8bff","#1f5fcf","#ff6d3d","#ffb347"],
+    ["#0bbcc6","#167eaf","#ff6d3d","#ffb347"],
+    ["#a55cff","#49a942","#ffb347","#ff7ecf"],
+    ["#8edc3e","#f28a1d","#ff7ecf","#7f4db6"]
+  ];
+  const N_ROWS = 5;
+  const BASE_BIG = 140;   // baseline diam soal
+  const BASE_SMALL = 140; // baseline ukuran kunci
+  let SCALE = 1.00;       // current scale (driven by dropdown)
+  let SIZE_BIG = BASE_BIG;
+  let SIZE_SMALL = BASE_SMALL;
+  const CUT_ANGLE = 80;     // derajat wedge yang dipotong
+  const ORIENTS = [0,45,90,135,180,225,270,315];
+  const outlineDark = '#0a0f22';
+
+  const qCol = document.getElementById('qCol');
+  const choices = document.getElementById('choices');
+  const toast = document.getElementById('toast');
+
+  const shuffle = arr => arr.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+  const pick = a => a[(Math.random()*a.length)|0];
+
+  function deg2rad(d){return d*Math.PI/180}
+  function polar(cx,cy,r,deg){return {x: cx + r*Math.cos(deg2rad(deg)), y: cy + r*Math.sin(deg2rad(deg))}}
+
+  function applyScale(scale){
+    SCALE = scale;
+    SIZE_BIG = Math.round(BASE_BIG * SCALE);
+    SIZE_SMALL = Math.round(BASE_SMALL * SCALE);
+  }
+
+  // Mask wedge for cutting a sector from full rings
+  function makeCircleWithCut(colors, size, orientDeg){
+    const s = size; const cx=s/2, cy=s/2;
+    const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('width', s); svg.setAttribute('height', s);
+    svg.setAttribute('viewBox',`0 0 ${s} ${s}`);
+
+    const t = Math.floor(size/(colors.length+1));
+
+    // Build mask: visible all except wedge sector
+    const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
+    const mask = document.createElementNS('http://www.w3.org/2000/svg','mask');
+    const maskId = 'mk'+Math.random().toString(36).slice(2);
+    mask.setAttribute('id', maskId);
+    const mbg = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    mbg.setAttribute('x',0);mbg.setAttribute('y',0);mbg.setAttribute('width',s);mbg.setAttribute('height',s);mbg.setAttribute('fill','#fff');
+    const wedge = document.createElementNS('http://www.w3.org/2000/svg','path');
+    // wedge sebelum rotasi: dari -CUT_ANGLE s.d. 0 derajat
+    const a0=-CUT_ANGLE, a1=0;
+    const rw = s/2; const p0=polar(cx,cy,rw,a0), p1=polar(cx,cy,rw,a1);
+    const pathD = `M ${cx} ${cy} L ${p0.x} ${p0.y} A ${rw} ${rw} 0 ${CUT_ANGLE>180?1:0} 1 ${p1.x} ${p1.y} Z`;
+    wedge.setAttribute('d', pathD);
+    wedge.setAttribute('fill','#000');
+    // Put wedge inside a group rotated by orientDeg
+    const gMask = document.createElementNS('http://www.w3.org/2000/svg','g');
+    gMask.setAttribute('transform',`rotate(${orientDeg} ${cx} ${cy})`);
+    gMask.appendChild(wedge);
+    mask.appendChild(mbg); mask.appendChild(gMask); defs.appendChild(mask); svg.appendChild(defs);
+
+    // Draw only 2 outer rings like L15, but as filled bands (donat) with evenodd and thin outlines
+    for(let i=0;i<Math.min(2,colors.length);i++){
+      const rOuter = (s/2) - i*t;       // radius luar untuk ring ke-i
+      const rInner = rOuter - t;         // radius dalam
+
+      // Path donat: outer circle lalu inner circle (evenodd -> jadi band terisi rapi)
+      const band = document.createElementNS('http://www.w3.org/2000/svg','path');
+      const dOuter = `M ${cx} ${cy} m ${-rOuter} 0 a ${rOuter} ${rOuter} 0 1 0 ${2*rOuter} 0 a ${rOuter} ${rOuter} 0 1 0 ${-2*rOuter} 0`;
+      const dInner = `M ${cx} ${cy} m ${-rInner} 0 a ${rInner} ${rInner} 0 1 0 ${2*rInner} 0 a ${rInner} ${rInner} 0 1 0 ${-2*rInner} 0`;
+      band.setAttribute('d', dOuter + ' ' + dInner);
+      band.setAttribute('fill', colors[i]);
+      band.setAttribute('fill-rule', 'evenodd');
+      band.setAttribute('mask', `url(#${maskId})`);
+      svg.appendChild(band);
+
+      // Outline tipis di tepi luar & dalam supaya tegas (tanpa stroke tebal yang bikin kotak)
+      const outlineOuter = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      outlineOuter.setAttribute('cx', cx); outlineOuter.setAttribute('cy', cy); outlineOuter.setAttribute('r', rOuter);
+      outlineOuter.setAttribute('fill', 'none'); outlineOuter.setAttribute('stroke', outlineDark);
+      outlineOuter.setAttribute('stroke-width', 2); outlineOuter.setAttribute('mask', `url(#${maskId})`);
+      outlineOuter.setAttribute('stroke-linecap','round'); outlineOuter.setAttribute('stroke-linejoin','round');
+      svg.appendChild(outlineOuter);
+
+      const outlineInner = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      outlineInner.setAttribute('cx', cx); outlineInner.setAttribute('cy', cy); outlineInner.setAttribute('r', rInner);
+      outlineInner.setAttribute('fill', 'none'); outlineInner.setAttribute('stroke', outlineDark);
+      outlineInner.setAttribute('stroke-width', 2); outlineInner.setAttribute('mask', `url(#${maskId})`);
+      outlineInner.setAttribute('stroke-linecap','round'); outlineInner.setAttribute('stroke-linejoin','round');
+      svg.appendChild(outlineInner);
+    }
+    return svg;
+  }
+
+  // Make wedge piece (answer): only 2 outer rings, as filled band sectors with thin outlines
+  function makeWedgePiece(colors, size, orientDeg){
+    const s = size; const cx=s/2, cy=s/2; const t = Math.floor(s/(colors.length+1));
+    const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('width', s); svg.setAttribute('height', s);
+    svg.setAttribute('viewBox',`0 0 ${s} ${s}`);
+
+    const a0=-CUT_ANGLE, a1=0; const largeArc = CUT_ANGLE>180?1:0; const sweep=1;
+
+    function wedgeBandPath(rOuter){
+      const rInner = rOuter - t;
+      const P0 = polar(cx,cy,rOuter,a0), P1 = polar(cx,cy,rOuter,a1);
+      const Q1 = polar(cx,cy,rInner,a1), Q0 = polar(cx,cy,rInner,a0);
+      // Donut slice: outer arc -> radial in -> inner arc (reverse) -> radial out
+      const outerArc = `M ${P0.x} ${P0.y} A ${rOuter} ${rOuter} 0 ${largeArc} ${sweep} ${P1.x} ${P1.y}`;
+      const connectIn = `L ${Q1.x} ${Q1.y}`;
+      const innerArc = `A ${rInner} ${rInner} 0 ${largeArc} ${sweep?0:1} ${Q0.x} ${Q0.y}`;
+      const connectOut = `L ${P0.x} ${P0.y} Z`;
+      return `${outerArc} ${connectIn} ${innerArc} ${connectOut}`;
+    }
+
+    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.setAttribute('transform',`rotate(${orientDeg} ${cx} ${cy})`);
+
+    for(let i=0;i<Math.min(2,colors.length);i++){
+      const rOuter = (s/2) - i*t;
+      // filled band sector
+      const band = document.createElementNS('http://www.w3.org/2000/svg','path');
+      band.setAttribute('d', wedgeBandPath(rOuter));
+      band.setAttribute('fill', colors[i]);
+      band.setAttribute('fill-rule','evenodd');
+      g.appendChild(band);
+      // thin outlines on outer and inner arcs
+      const rInner = rOuter - t;
+      const P0 = polar(cx,cy,rOuter,a0), P1 = polar(cx,cy,rOuter,a1);
+      const outerArc = document.createElementNS('http://www.w3.org/2000/svg','path');
+      outerArc.setAttribute('d', `M ${P0.x} ${P0.y} A ${rOuter} ${rOuter} 0 ${largeArc} ${sweep} ${P1.x} ${P1.y}`);
+      outerArc.setAttribute('fill','none'); outerArc.setAttribute('stroke', outlineDark); outerArc.setAttribute('stroke-width', 2);
+      outerArc.setAttribute('stroke-linecap','round'); outerArc.setAttribute('stroke-linejoin','round');
+      g.appendChild(outerArc);
+      const Q0 = polar(cx,cy,rInner,a0), Q1 = polar(cx,cy,rInner,a1);
+      const innerArc = document.createElementNS('http://www.w3.org/2000/svg','path');
+      innerArc.setAttribute('d', `M ${Q0.x} ${Q0.y} A ${rInner} ${rInner} 0 ${largeArc} ${sweep} ${Q1.x} ${Q1.y}`);
+      innerArc.setAttribute('fill','none'); innerArc.setAttribute('stroke', outlineDark); innerArc.setAttribute('stroke-width', 2);
+      innerArc.setAttribute('stroke-linecap','round'); innerArc.setAttribute('stroke-linejoin','round');
+      g.appendChild(innerArc);
+    }
+    svg.appendChild(g);
+    return svg;
+  }
+
+  function patternKey(colors){ return [colors[0], colors[1]].join('|'); }
+
+  function createRow(colors, orient, sizeBig, sizeSmall){
+    const row = document.createElement('div'); row.className='row';
+    // scale-dependent left column width (~1.142 * big)
+    const colW = Math.round(sizeBig * 1.142);
+    row.style.gridTemplateColumns = colW+"px 1fr";
+
+    const qBox = document.createElement('div');
+    const qH = Math.round(sizeBig * 0.857); // keep visual ratio like 120:140
+    qBox.style.height = qH+'px'; qBox.style.display='flex'; qBox.style.alignItems='center'; qBox.style.justifyContent='center';
+    qBox.appendChild(makeCircleWithCut(colors, sizeBig, orient));
+
+    const slot = document.createElement('div'); slot.className='slot';
+    slot.style.height = Math.max(90, sizeSmall)+'px';
+    slot.dataset.answer = patternKey(colors);
+    slot.dataset.orient = String(orient);
+
+    row.appendChild(qBox); row.appendChild(slot);
+    return row;
+  }
+
+  function createChoice(colors, orient, sizeSmall){
+    const card = document.createElement('div'); card.className='choice'; card.draggable=true;
+    card.style.height = Math.max(90, sizeSmall)+'px';
+    card.dataset.pattern = patternKey(colors); card.dataset.orient = String(orient);
+    const svg = makeWedgePiece(colors, sizeSmall, orient);
+    card.appendChild(svg);
+    card.addEventListener('dragstart', e=>{
+      card.classList.add('dragging');
+      const payload = JSON.stringify({p: card.dataset.pattern, o: card.dataset.orient});
+      e.dataTransfer.setData('text/plain', payload);
+    });
+    card.addEventListener('dragend', ()=>card.classList.remove('dragging'));
+    return card;
+  }
+
+  function markSlot(slot, state){ slot.classList.remove('ok','err'); if(state===true) slot.classList.add('ok'); else if(state===false) slot.classList.add('err'); }
+  function showToast(msg){ toast.textContent = msg; toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'),1400); }
+
+  function buildGame(){
+    qCol.innerHTML=''; choices.innerHTML='';
+    // sizes based on current SCALE
+    const sizeBig = SIZE_BIG; const sizeSmall = SIZE_SMALL;
+
+    const selected = shuffle(COLOR_SETS).slice(0,N_ROWS).map(cols=>({cols, orient: pick(ORIENTS)}));
+
+    const slotRefs=[];
+    selected.forEach(({cols,orient})=>{ const row=createRow(cols,orient,sizeBig,sizeSmall); slotRefs.push(row.querySelector('.slot')); qCol.appendChild(row); });
+
+    const pool = shuffle(selected.map(({cols,orient})=> createChoice(cols,orient,sizeSmall)));
+    pool.forEach(ch=> choices.appendChild(ch));
+
+    // dnd
+    slotRefs.forEach(slot=>{
+      slot.addEventListener('dragover', e=>e.preventDefault());
+      slot.addEventListener('drop', e=>{
+        e.preventDefault();
+        const raw=e.dataTransfer.getData('text/plain');
+        let key, orientStr; try{ const obj=JSON.parse(raw); key=obj.p; orientStr=obj.o; }catch(err){ key=''; orientStr=''; }
+        const dragged=[...document.querySelectorAll('.choice')].find(c=>c.dataset.pattern===key && c.dataset.orient===orientStr && c.parentElement);
+        if(!dragged) return;
+        // place into slot
+        dragged.style.position=''; dragged.style.left=''; dragged.style.top='';
+        slot.appendChild(dragged); slot.classList.add('filled');
+        const correct = (dragged.dataset.pattern===slot.dataset.answer && dragged.dataset.orient===slot.dataset.orient);
+        markSlot(slot, correct);
+      });
+    });
+  }
+
+  function resetSlots(){
+    document.querySelectorAll('.slot').forEach(s=>{ s.classList.remove('filled','ok','err'); s.innerHTML=''; });
+    const pool = document.getElementById('choices');
+    document.querySelectorAll('.choice').forEach(c=>{ c.style.position=''; c.style.left=''; c.style.top=''; pool.appendChild(c); });
+  }
+
+  function check(){
+    let correct=0,total=0;
+    document.querySelectorAll('.row .slot').forEach(slot=>{
+      total++;
+      const placed = slot.querySelector('.choice');
+      const ok = !!(placed && placed.dataset.pattern===slot.dataset.answer && placed.dataset.orient===slot.dataset.orient);
+      if(ok) correct++;
+      markSlot(slot, ok);
+    });
+    showToast(correct===total? 'Mantap! Semua benar. ✅' : `Benar ${correct}/${total}. Coba cek lagi.`);
+  }
+
+  document.getElementById('btnShuffle').addEventListener('click', ()=>{ buildGame(); showToast('Soal diacak!'); });
+  document.getElementById('btnReset').addEventListener('click', ()=>{ resetSlots(); showToast('Reset selesai'); });
+  document.getElementById('btnCheck').addEventListener('click', check);
+
+  const sel = document.getElementById('scaleSel');
+  if(sel){ sel.addEventListener('change', ()=>{ applyScale(parseFloat(sel.value)); buildGame(); }); }
+  applyScale(1.00);
+  buildGame();
+})();
+</script>
+</body>
+</html>

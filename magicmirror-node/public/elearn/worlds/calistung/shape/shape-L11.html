@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Shape L11 – Copy the Pattern</title>
+<style>
+  :root{
+    --yellow:#f6c445; --red:#e4574e; --green:#73c072; --blue:#3a86ff; --purple:#8b5cf6; --line:#222; --bg:#fffef9;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; background:var(--bg); color:#111;}
+  .wrap{max-width:980px;margin:24px auto; padding:16px;}
+  h1{margin:0 0 4px;font-size:28px;letter-spacing:.4px}
+  .sub{margin:0 0 20px; color:#555}
+  .board{display:grid; grid-template-columns:1fr 1fr; gap:18px}
+  .col{background:#ffffff;border:1px solid #e6e6e6;border-radius:14px;padding:16px}
+  .col h3{margin:0 0 10px; font-size:16px; color:#444}
+
+  /* grid canvas */
+  .shape{display:grid; gap:6px; align-items:start; justify-content:start}
+  .row{display:grid; grid-auto-flow:column; gap:6px}
+  .cell{width:48px;height:48px;border:2px solid var(--line); border-radius:6px; background:#fff; position:relative; cursor:pointer}
+  .cell.sample{cursor:default}
+  .cell[data-color="yellow"], .legend-dot.yellow{background:var(--yellow)}
+  .cell[data-color="red"],    .legend-dot.red{background:var(--red)}
+  .cell[data-color="green"],  .legend-dot.green{background:var(--green)}
+  .cell[data-color="blue"],   .legend-dot.blue{background:var(--blue)}
+  .cell[data-color="purple"], .legend-dot.purple{background:var(--purple)}
+  .cell.empty:not([data-color]){background:transparent}
+
+  /* layout of 3 problems */
+  .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:22px}
+  .item{display:grid; grid-template-columns:1fr 1fr; gap:18px; align-items:start}
+  .label{font-weight:700; color:#666; margin-bottom:8px}
+
+  /* palette */
+  .palette{position:sticky; bottom:12px; display:flex; gap:10px; flex-wrap:wrap; padding:10px; border-radius:12px; background:#f8f8fb; border:1px solid #ececec}
+  .swatch{width:36px;height:36px;border-radius:10px;border:2px solid #222; cursor:pointer; outline:2px solid transparent}
+  .swatch.active{outline:3px solid #111}
+
+  .controls{display:flex; flex-wrap:wrap; gap:10px; margin-top:14px}
+  button{border:none;background:#111;color:#fff; padding:10px 14px;border-radius:10px;font-weight:700;cursor:pointer}
+  button.secondary{background:#e5e7eb;color:#111}
+  .msg{margin-top:10px;font-weight:700}
+
+  @media (max-width:760px){
+    .board{grid-template-columns:1fr}
+    .item{grid-template-columns:1fr 1fr}
+    .cell{width:42px;height:42px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Let's Code!</h1>
+  <p class="sub">Buatlah gambar yang sama seperti contoh di sampingnya.</p>
+
+  <div class="board">
+    <!-- LEFT: Samples persis seperti worksheet -->
+    <div class="col">
+      <h3>Contoh</h3>
+      <div class="grid-2">
+        <!-- Pattern 1 (huruf L kecil bergigi) -->
+        <div class="item">
+          <div class="shape" id="sample-1"></div>
+          <div class="shape" id="target-1"></div>
+        </div>
+        <!-- Pattern 2 (huruf U) -->
+        <div class="item">
+          <div class="shape" id="sample-2"></div>
+          <div class="shape" id="target-2"></div>
+        </div>
+        <!-- Pattern 3 (huruf C) -->
+        <div class="item">
+          <div class="shape" id="sample-3"></div>
+          <div class="shape" id="target-3"></div>
+        </div>
+        <!-- Pattern 4 (huruf E) -->
+        <div class="item">
+          <div class="shape" id="sample-4"></div>
+          <div class="shape" id="target-4"></div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="checkBtn">Periksa Jawaban</button>
+        <button class="secondary" id="resetBtn">Reset</button>
+        <button class="secondary" id="shuffleBtn">Acak Soal</button>
+        <span class="msg" id="status"></span>
+      </div>
+    </div>
+
+    <!-- RIGHT: Palette (sticky) & petunjuk warna -->
+    <div class="col">
+      <h3>Palet Warna</h3>
+      <div class="palette" id="palette"></div>
+      <p style="margin:10px 0 0;color:#666">Tip: Klik kotak untuk mewarnai, klik kanan untuk menghapus.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- Data pola (warna per sel) ----------
+// Kita definisikan grid sebagai array bertingkat. null = tanpa kotak (tidak ada 
+// outline), 'empty' = ada outline tapi kosong (untuk target), warna = isi.
+
+const COLORS = ["yellow","red","green","blue","purple"];
+
+// Pola 1 (sesuai foto: 3x4 bentuk L dengan bar horizontal di tengah kanan)
+const pattern1 = [
+  ["yellow", null,       null,      null],
+  ["yellow", "red",      "red",     "blue"],
+  ["green",  "green",    null,      "blue"],
+];
+// Target shape (outline) untuk pattern1: posisi sel yang ada kotaknya
+const mask1 = [
+  [true,  false, false, false],
+  [true,  true,  true,  true ],
+  [true,  true,  false, true ],
+];
+
+// Pola 2 (huruf U: 3 kolom x 4 baris)
+const pattern2 = [
+  ["blue",  null,   "blue" ],
+  ["green", null,   "green"],
+  ["red",   null,   "red"  ],
+  ["yellow","yellow","yellow"],
+];
+const mask2 = [
+  [true,false,true],
+  [true,false,true],
+  [true,false,true],
+  [true,true,true],
+];
+
+// Pola 3 (huruf C: 3 kolom x 4 baris)
+const pattern3 = [
+  ["blue",   "red",   "purple"],
+  ["purple", null,     null     ],
+  ["red",    null,     null     ],
+  ["blue",   "red",   "purple"],
+];
+const mask3 = [
+  [true,true,true],
+  [true,false,false],
+  [true,false,false],
+  [true,true,true],
+];
+
+// Pola 4 (huruf E: 3 kolom x 4 baris)
+const pattern4 = [
+  ["yellow","red","blue"],
+  ["green",  null,  null   ],
+  ["purple","green",null  ],
+  ["blue",  "red",  "yellow"],
+];
+const mask4 = [
+  [true,true,true],
+  [true,false,false],
+  [true,true,false],
+  [true,true,true],
+];
+
+// Keep current (mutable) patterns; start as deep copies of base patterns
+let cur1 = JSON.parse(JSON.stringify(pattern1));
+let cur2 = JSON.parse(JSON.stringify(pattern2));
+let cur3 = JSON.parse(JSON.stringify(pattern3));
+let cur4 = JSON.parse(JSON.stringify(pattern4));
+
+function deepCopy(a){ return JSON.parse(JSON.stringify(a)); }
+function mapColors(arr, mapping){
+  return arr.map(row=> row.map(v=> v? mapping[v] : v));
+}
+
+// ---------- Helper to render a shape grid ----------
+function renderShape(container, data, {maskOnly=false, editable=false, idPrefix=""}={}){
+  container.innerHTML = "";
+  for(let r=0; r<data.length; r++){
+    const rowEl = document.createElement('div');
+    rowEl.className = 'row';
+    container.appendChild(rowEl);
+    for(let c=0; c<data[r].length; c++){
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.dataset.r = r; cell.dataset.c = c; cell.id = `${idPrefix}-${r}-${c}`;
+      if(maskOnly){
+        if(!data[r][c]){ cell.style.visibility = 'hidden'; continue; }
+        cell.classList.add('empty');
+      } else {
+        if(data[r][c]===null){ cell.style.visibility = 'hidden'; continue; }
+        cell.dataset.color = data[r][c];
+        cell.classList.add('sample');
+      }
+      if(editable){
+        cell.addEventListener('click', paintActive);
+        cell.addEventListener('contextmenu', e=>{e.preventDefault(); cell.removeAttribute('data-color');});
+      }
+      rowEl.appendChild(cell);
+    }
+  }
+}
+
+// ---------- Palette ----------
+let activeColor = COLORS[0];
+const palette = document.getElementById('palette');
+COLORS.forEach((col,i)=>{
+  const sw = document.createElement('button');
+  sw.className = 'swatch';
+  sw.dataset.color = col; sw.style.background = getComputedStyle(document.documentElement).getPropertyValue(`--${col}`);
+  if(i===0) sw.classList.add('active');
+  sw.title = col;
+  sw.addEventListener('click', ()=>{
+    activeColor = col; document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('active')); sw.classList.add('active');
+  });
+  palette.appendChild(sw);
+});
+function paintActive(e){ e.currentTarget.dataset.color = activeColor; }
+
+// ---------- Mount samples & targets ----------
+function mountAll(){
+  renderShape(document.getElementById('sample-1'), cur1);
+  renderShape(document.getElementById('target-1'), mask1, {maskOnly:true, editable:true, idPrefix:'t1'});
+  renderShape(document.getElementById('sample-2'), cur2);
+  renderShape(document.getElementById('target-2'), mask2, {maskOnly:true, editable:true, idPrefix:'t2'});
+  renderShape(document.getElementById('sample-3'), cur3);
+  renderShape(document.getElementById('target-3'), mask3, {maskOnly:true, editable:true, idPrefix:'t3'});
+  renderShape(document.getElementById('sample-4'), cur4);
+  renderShape(document.getElementById('target-4'), mask4, {maskOnly:true, editable:true, idPrefix:'t4'});
+}
+mountAll();
+
+// ---------- Check answers ----------
+function getPaint(container){
+  // returns 2D array of colors (null if blank) respecting visible cells only
+  const rows = [...container.children];
+  return rows.map(row=>[...row.children].map(cell=>{
+    if(cell.style.visibility==='hidden') return null;
+    return cell.dataset.color||null;
+  }));
+}
+
+function isCorrect(paint, pattern, mask){
+  for(let r=0;r<mask.length;r++){
+    for(let c=0;c<mask[r].length;c++){
+      if(!mask[r][c]) continue; // non-existent cell
+      if((paint[r]?.[c]||null) !== (pattern[r]?.[c]||null)) return false;
+    }
+  }
+  return true;
+}
+
+const statusEl = document.getElementById('status');
+const checkBtn = document.getElementById('checkBtn');
+checkBtn.addEventListener('click', ()=>{
+  const ok1 = isCorrect(getPaint(document.getElementById('target-1')), cur1, mask1);
+  const ok2 = isCorrect(getPaint(document.getElementById('target-2')), cur2, mask2);
+  const ok3 = isCorrect(getPaint(document.getElementById('target-3')), cur3, mask3);
+  const ok4 = isCorrect(getPaint(document.getElementById('target-4')), cur4, mask4);
+  if(ok1 && ok2 && ok3 && ok4){
+    statusEl.textContent = 'Mantap! Semua benar ✅';
+    statusEl.style.color = '#16a34a';
+  } else {
+    statusEl.textContent = 'Masih ada yang belum sama. Coba lagi ya!';
+    statusEl.style.color = '#b91c1c';
+    flashWrong();
+  }
+});
+
+function flashWrong(){
+  // Outline merah sementara pada sel yang salah
+  const pairs = [
+    {cid:'target-1', pat:cur1, mask:mask1},
+    {cid:'target-2', pat:cur2, mask:mask2},
+    {cid:'target-3', pat:cur3, mask:mask3},
+    {cid:'target-4', pat:cur4, mask:mask4},
+  ];
+  pairs.forEach(({cid,pat,mask})=>{
+    const cont = document.getElementById(cid);
+    [...cont.querySelectorAll('.cell')].forEach(cell=>{
+      const r = +cell.dataset.r, c = +cell.dataset.c;
+      if(!mask[r][c]) return;
+      const good = (cell.dataset.color||null) === (pat[r][c]||null);
+      cell.style.borderColor = good ? '#16a34a' : '#b91c1c';
+      setTimeout(()=> cell.style.borderColor = getComputedStyle(document.documentElement).getPropertyValue('--line') || '#222', 700);
+    });
+  });
+}
+
+// Reset
+ document.getElementById('resetBtn').addEventListener('click', ()=>{
+   ["target-1","target-2","target-3","target-4"].forEach(id=>{
+     document.getElementById(id).querySelectorAll('.cell').forEach(c=>c.removeAttribute('data-color'));
+   });
+   statusEl.textContent = '';
+ });
+
+// Shuffle / Acak Soal: permutasi warna di semua pola
+function shufflePatterns(){
+  const shuffled = deepCopy(COLORS).sort(()=>Math.random()-0.5);
+  const map = {};
+  COLORS.forEach((c,i)=> map[c] = shuffled[i]);
+  cur1 = mapColors(pattern1, map);
+  cur2 = mapColors(pattern2, map);
+  cur3 = mapColors(pattern3, map);
+  cur4 = mapColors(pattern4, map);
+  // reset paints & remount
+  ["target-1","target-2","target-3","target-4"].forEach(id=>{
+    const cont = document.getElementById(id);
+    if(!cont) return;
+    cont.querySelectorAll('.cell').forEach(c=>c.removeAttribute('data-color'));
+  });
+  statusEl.textContent = '';
+  mountAll();
+}
+
+document.getElementById('shuffleBtn').addEventListener('click', shufflePatterns);
+</script>
+</body>
+</html>

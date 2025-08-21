@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shape L13 – Menghubungkan Gambar yang Sama</title>
+  <style>
+    :root{
+      --bg:#fffef9; --ink:#1f2937; --muted:#6b7280; --accent:#facc15;
+      --card:#ffffff; --border:#e5e7eb; --ok:#22c55e; --bad:#ef4444;
+      --shadow:0 10px 30px rgba(0,0,0,.07);
+      --tile-size:84px; /* ukuran satu KARTU (2x2 kotak kecil) */
+      --cell-gap:6px;  /* jarak antar kotak kecil di dalam kartu */
+    }
+    html,body{height:100%}
+    body{margin:0;background:var(--bg);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(--ink);}
+    header{padding:20px 16px 8px;text-align:center}
+    h1{margin:4px 0 2px;font-size:22px}
+    p.sub{margin:0;color:var(--muted);font-size:14px}
+
+    .stage {
+      position: relative;
+      max-width: 980px;
+      margin: 18px auto 120px; /* center horizontally */
+      padding: 18px;
+      padding-bottom: 220px; /* give space so dock doesn't cover last row */
+    }
+    .oval{
+      position: relative;
+      margin: 0 auto;
+      padding: 32px 56px;           /* extra side padding so cards tidak kepotong */
+      max-width: 980px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 9999px;        /* oval shape */
+      box-shadow: var(--shadow);
+      overflow: hidden;             /* clip wires, not cards (we added padding) */
+    }
+    .board{
+      display:flex;
+      flex-direction:column;
+      gap:24px;
+      margin:0 auto;
+    }
+    .row{
+      display:grid;
+      grid-template-columns:400px 40px auto;  /* jangan pakai 1fr agar tidak melebar ke tepi oval */
+      padding-left: 150px;
+      column-gap:12px;                       /* jarak internal tetap */
+      align-items:center;                    /* shrink to content */
+      margin:0 auto;                         /* center as one unit */
+    }
+    .row .center{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      width:60px;
+      flex:0 0 60px;
+    }
+
+    /* kartu 2x2 warna */
+    .card{width:var(--tile-size);height:var(--tile-size);background:var(--card);
+      border:1px solid var(--border);border-radius:12px;padding:8px;box-shadow:var(--shadow);
+      cursor:pointer;user-select:none;position:relative;}
+    .card:active{transform:translateY(1px)}
+    .card.selected{outline:3px solid #60a5fa}
+    .cellwrap{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:var(--cell-gap);width:100%;height:100%}
+    .mini{border-radius:6px}
+
+    /* kolom titik hitam dekoratif di tengah agar mirip referensi */
+    .dot{width:12px;height:12px;border-radius:50%;background:#111}
+
+    /* SVG layer untuk garis */
+    .wires{position:absolute;inset:0;pointer-events:none}
+    .wire{fill:none;stroke:#4b5563;stroke-width:6;stroke-linecap:round;opacity:.85}
+    .wire.ok{stroke:var(--ok)}
+    .wire.bad{stroke:var(--bad)}
+
+    /* Dock kontrol mengambang */
+    .dock{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);
+      background:rgba(255,255,255,.9);backdrop-filter:blur(8px);border:1px solid var(--border);
+      padding:10px;border-radius:14px;box-shadow:var(--shadow);display:flex;gap:8px;align-items:center;z-index:50}
+    .dock button{border:0;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}
+    .dock .check{background:var(--ok);color:#fff}
+    .dock .reset{background:#e5e7eb}
+    .dock .shuffle{background:#60a5fa;color:#fff}
+
+    /* toast */
+    .toast{position:fixed;right:16px;bottom:88px;background:#111;color:#fff;padding:10px 14px;border-radius:10px;opacity:0;transform:translateY(8px);transition:all .25s}
+    .toast.show{opacity:1;transform:none}
+
+    @media (max-width:820px){
+      :root{--tile-size:72px}
+      .row{grid-template-columns:auto 40px auto; width:max-content; margin:0 auto;}
+      .dock{ bottom: max(16px, env(safe-area-inset-bottom)); }
+      .stage{ padding-bottom: calc(280px + env(safe-area-inset-bottom)); }
+      .oval{ padding:20px 28px; border-radius: 48px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Menghubungkan Gambar yang Sama</h1>
+    <p class="sub">Hubungkan gambar kiri dan kanan yang memiliki pola warna 2×2 yang sama.</p>
+  </header>
+
+  <main class="stage">
+    <div class="oval">
+      <svg class="wires" viewBox="0 0 1000 1200" preserveAspectRatio="none"></svg>
+      <section class="board">
+        <div id="rows" class="rows"></div>
+      </section>
+    </div>
+  </main>
+
+  <div class="dock">
+    <button class="shuffle" id="btnShuffle">Soal Acak</button>
+    <button class="reset" id="btnReset">Reset</button>
+    <button class="check" id="btnCheck">Periksa Jawaban</button>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+  // ====== DATA WARNA & POLA ======
+  const COLORS = {
+    red:'#E2554E', gray:'#B7B8B9', yellow:'#F5C845', blue:'#6FB4CE', orange:'#E98C45'
+  };
+  // 5 pola unik (urutan: [TL, TR, BL, BR])
+  const BASE_PATTERNS = [
+    ['red','gray','yellow','blue'],
+    ['gray','blue','orange','yellow'],
+    ['red','orange','blue','gray'],
+    ['gray','blue','yellow','red'],
+    ['gray','blue','yellow','orange']
+  ];
+
+  const wires = document.querySelector('.wires');
+  const toast = document.getElementById('toast');
+  const rowsWrap = document.getElementById('rows');
+
+  let leftCards = [];   // DOM nodes
+  let rightCards = [];
+  let connections = new Map(); // key: leftId -> rightId
+
+  // ====== UTIL ======
+  const rand = (n)=>Math.floor(Math.random()*n);
+  function shuffle(arr){
+    const a = arr.slice();
+    for(let i=a.length-1;i>0;i--){ const j=rand(i+1); [a[i],a[j]]=[a[j],a[i]]; }
+    return a;
+  }
+  function showToast(msg){
+    toast.textContent = msg; toast.classList.add('show');
+    clearTimeout(showToast.tid); showToast.tid = setTimeout(()=>toast.classList.remove('show'), 1800);
+  }
+
+  function makeCard(pattern, side, index){
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.side = side; // left or right
+    card.dataset.pid = JSON.stringify(pattern); // pola identitas
+    card.dataset.idx = index;
+
+    const wrap = document.createElement('div'); wrap.className='cellwrap';
+    pattern.forEach(key=>{
+      const c = document.createElement('div');
+      c.className='mini';
+      c.style.background = COLORS[key];
+      wrap.appendChild(c);
+    });
+    card.appendChild(wrap);
+    return card;
+  }
+
+  function positionOf(el){
+    const r = el.getBoundingClientRect();
+    const s = document.querySelector('.oval').getBoundingClientRect();
+    return { x: r.left + r.width/2 - s.left, y: r.top + r.height/2 - s.top };
+  }
+
+  function positionRightEdge(el){
+    const r = el.getBoundingClientRect();
+    const s = document.querySelector('.oval').getBoundingClientRect();
+    return { x: r.right - s.left, y: r.top + r.height/2 - s.top };
+  }
+  function positionOfDot(rowIndex){
+    const d = document.querySelector(`.dot[data-row="${rowIndex}"]`);
+    if(!d) return null;
+    return positionOf(d);
+  }
+
+  function redrawWires(highlight=false){
+    wires.innerHTML='';
+    const ovalRect = document.querySelector('.oval').getBoundingClientRect();
+    wires.setAttribute('viewBox', `0 0 ${Math.max(ovalRect.width,1)} ${Math.max(ovalRect.height,1)}`);
+    connections.forEach((rid,lid)=>{
+      const L = document.querySelector(`.card[data-side="left"][data-idx="${lid}"]`);
+      // const R = document.querySelector(`.card[data-side="right"][data-idx="${rid}"]`);
+      if(!L) return;
+      const a = positionRightEdge(L);
+      const b = positionOfDot(rid);
+      if(!b) return;
+      const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+      const d = `M ${a.x},${a.y} C ${a.x+120},${a.y} ${b.x-120},${b.y} ${b.x},${b.y}`;
+      path.setAttribute('d', d);
+      path.setAttribute('class','wire');
+      if(highlight){
+        const R = document.querySelector(`.card[data-side="right"][data-idx="${rid}"]`);
+        const ok = L && R && L.dataset.pid === R.dataset.pid; path.classList.add(ok?'ok':'bad');
+      }
+      wires.appendChild(path);
+    });
+  }
+
+  let pick = null; // kartu yang dipilih sementara
+  function onCardClick(e){
+    const card = e.currentTarget;
+    const side = card.dataset.side;
+
+    if(!pick){
+      pick = card; card.classList.add('selected');
+      return;
+    }
+    // jika pilih kartu kedua dari sisi berbeda, buat koneksi
+    if(pick.dataset.side !== side){
+      let leftId  = pick.dataset.side==='left' ? pick.dataset.idx : card.dataset.idx;
+      let rightId = pick.dataset.side==='right'? pick.dataset.idx : card.dataset.idx;
+      // override koneksi lama untuk leftId
+      connections.set(leftId, rightId);
+      document.querySelectorAll('.card').forEach(c=>c.classList.remove('selected'));
+      pick = null; redrawWires();
+    } else {
+      // klik sisi yang sama → ganti pilihan
+      document.querySelectorAll('.card').forEach(c=>c.classList.remove('selected'));
+      pick = card; card.classList.add('selected');
+    }
+  }
+
+  function mount(patterns){
+    rowsWrap.innerHTML=''; connections.clear(); wires.innerHTML='';
+    const leftP = shuffle(patterns.slice());
+    const rightP = shuffle(patterns.slice());
+
+    leftP.forEach((p,i)=>{
+      const row = document.createElement('div');
+      row.className = 'row';
+
+      const left = makeCard(p,'left', String(i));
+      left.addEventListener('click', onCardClick);
+
+      const center = document.createElement('div');
+      center.className = 'center';
+      const dot = document.createElement('div');
+      dot.className='dot';
+      dot.dataset.row = String(i);
+      center.appendChild(dot);
+
+      const right = makeCard(rightP[i],'right', String(i));
+      right.addEventListener('click', onCardClick);
+
+      row.appendChild(left);
+      row.appendChild(center);
+      row.appendChild(right);
+      rowsWrap.appendChild(row);
+
+      leftCards.push(left);
+      rightCards.push(right);
+    });
+    setTimeout(()=>redrawWires(), 50);
+  }
+
+  function checkAnswer(){
+    // sorot garis benar/salah
+    if(connections.size===0){ showToast('Hubungkan pasangan dulu ya.'); return; }
+    redrawWires(true);
+
+    let allOk = true;
+    connections.forEach((rid,lid)=>{
+      const L = document.querySelector(`.card[data-side="left"][data-idx="${lid}"]`);
+      const R = document.querySelector(`.card[data-side="right"][data-idx="${rid}"]`);
+      if(!L||!R || L.dataset.pid !== R.dataset.pid) allOk = false;
+    });
+    if(allOk && connections.size === leftCards.length){
+      showToast('Mantap! Semua pasangan benar.');
+    } else {
+      showToast('Masih ada yang belum cocok. Coba lagi!');
+    }
+  }
+
+  function resetAll(){ connections.clear(); redrawWires(); showToast('Koneksi dibersihkan.'); }
+  function shuffleRight(){ mount(BASE_PATTERNS); showToast('Soal diacak.'); }
+
+  // init
+  mount(BASE_PATTERNS);
+  window.addEventListener('resize', ()=>redrawWires());
+  document.getElementById('btnCheck').addEventListener('click', checkAnswer);
+  document.getElementById('btnReset').addEventListener('click', resetAll);
+  document.getElementById('btnShuffle').addEventListener('click', shuffleRight);
+  </script>
+</body>
+</html>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shape L5 – Warnai Sesuai Jumlah Ikan</title>
+  <style>
+    :root{--bg:#0ea5e9;--panel:#ffffff;--ink:#0f172a;--good:#22c55e;--bad:#ef4444}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;background:#eaf7ff;color:var(--ink)}
+    .wrap{max-width:980px;margin:24px auto;padding:16px}
+    header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+    header .badge{background:#0284c7;color:#fff;padding:8px 14px;border-radius:12px;font-weight:800;letter-spacing:.3px}
+    header h1{font-size:20px;margin:0;line-height:1.2}
+
+    .aquarium{background:linear-gradient(180deg,#c7e8ff,#a5ddff);border:4px solid #94d2ff;border-radius:16px;padding:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:12px;box-shadow:0 8px 24px rgba(2,132,199,.15)}
+    .fish{width:64px;height:40px}
+
+    .board{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:18px}
+    @media (max-width:720px){.board{grid-template-columns:1fr}}
+
+    .card{display:grid;grid-template-columns:56px 1fr;align-items:center;border:2px dashed #cbd5e1;border-radius:14px;background:var(--panel);padding:12px 12px;gap:10px;transition:box-shadow .2s,border-color .2s}
+    .card.active{box-shadow:0 8px 24px rgba(2,132,199,.15);border-color:#60a5fa}
+    .num{font-weight:900;font-size:26px;display:flex;align-items:center;justify-content:center;background:#f1f5f9;border-radius:10px;height:56px}
+    .fish-slot{display:flex;align-items:center;justify-content:center;height:56px}
+    .fish-slot svg{height:52px}
+
+    .tools{display:flex;align-items:center;gap:10px;margin-top:18px;flex-wrap:wrap}
+    .swatch{width:36px;height:36px;border-radius:10px;border:2px solid rgba(0,0,0,.15);cursor:pointer;outline:none}
+    .swatch.selected{outline:3px solid #0ea5e9}
+    .btn{border:none;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
+    .primary{background:#0ea5e9;color:#fff}
+    .ghost{background:#eef6ff;color:#0b4a6f}
+    .danger{background:#fee2e2;color:#991b1b}
+
+    .toast{margin-top:12px;font-weight:700}
+    .ok{color:var(--good)}
+    .nope{color:var(--bad)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="badge">SHAPE – L5</div>
+      <h1>Warnai Sesuai <b>Jumlah Ikan</b> (1–5)</h1>
+    </header>
+
+    <p><b>Aturan main:</b> Di akuarium ada ikan berwarna-warni. Setiap warna muncul sebanyak 1, 2, 3, 4, atau 5 ekor. Tugasmu: <u>warnai ikan di kartu angka</u> sesuai warna yang jumlahnya sama dengan angka pada kartu. Contoh: kartu <b>3</b> harus diwarnai dengan <i>warnanya ikan yang berjumlah 3 ekor</i>.</p>
+
+    <section class="aquarium" id="aquarium" aria-label="Akuarium ikan"></section>
+
+    <section class="board" id="board" aria-label="Kartu angka 1-5"></section>
+
+    <div class="tools" id="palette"></div>
+    <div class="tools">
+      <button class="btn primary" id="checkBtn">Periksa Jawaban</button>
+      <button class="btn ghost" id="shuffleBtn">Acak Soal</button>
+      <button class="btn danger" id="resetBtn">Reset Warna</button>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+
+  <template id="tpl-fish">
+    <svg viewBox="0 0 100 60" class="fish" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <g>
+        <path d="M55 8c-18 0-33 10-33 22s15 22 33 22c7 0 14-2 20-6l15 10V4L75 14c-6-4-13-6-20-6z" fill="currentColor"/>
+        <circle cx="61" cy="26" r="3" fill="#0f172a"/>
+      </g>
+    </svg>
+  </template>
+
+  <template id="tpl-fish-outline">
+    <svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg" aria-label="Ikan untuk diwarnai">
+      <g fill="none" stroke="#0f172a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M55 8c-18 0-33 10-33 22s15 22 33 22c7 0 14-2 20-6l15 10V4L75 14c-6-4-13-6-20-6z"/>
+        <circle cx="61" cy="26" r="3"/>
+      </g>
+    </svg>
+  </template>
+
+  <script>
+    const COLORS = [
+      '#0ea5e9', // biru
+      '#f59e0b', // kuning-oranye
+      '#10b981', // hijau
+      '#ef4444', // merah
+      '#a855f7'  // ungu
+    ];
+
+    const aquariumEl = document.getElementById('aquarium');
+    const boardEl = document.getElementById('board');
+    const paletteEl = document.getElementById('palette');
+    const toastEl = document.getElementById('toast');
+
+    let colorMap = new Map(); // color => count (1..5)
+    let answers = {}; // key: n (1..5), value: color string
+    let selectedColor = null;
+
+    function shuffle(arr){
+      for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}
+      return arr;
+    }
+
+    function makeFish(color){
+      const tpl = document.getElementById('tpl-fish');
+      const node = tpl.content.firstElementChild.cloneNode(true);
+      node.style.color = color;
+      return node;
+    }
+
+    function makeOutline(color){
+      const tpl = document.getElementById('tpl-fish-outline');
+      const node = tpl.content.firstElementChild.cloneNode(true);
+      node.style.color = color || 'transparent';
+      return node;
+    }
+
+    function buildAquarium(){
+      aquariumEl.innerHTML = '';
+      colorMap.clear();
+      // assign counts 1..5 to colors (shuffled)
+      const counts = shuffle([1,2,3,4,5].slice());
+      const colorOrder = shuffle(COLORS.slice());
+      for(let i=0;i<5;i++){
+        colorMap.set(colorOrder[i], counts[i]);
+      }
+      // Render fishes
+      const items = [];
+      colorMap.forEach((count,color)=>{
+        for(let i=0;i<count;i++) items.push(color);
+      });
+      // add a little shuffle for layout variety
+      shuffle(items).forEach(c=>{
+        const f = makeFish(c);
+        aquariumEl.appendChild(f);
+      });
+      // Build palette from these five colors
+      buildPalette(Array.from(colorMap.keys()));
+    }
+
+    function buildBoard(){
+      boardEl.innerHTML = '';
+      for(let n=1;n<=5;n++){
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.dataset.n = String(n);
+        const left = document.createElement('div');
+        left.className = 'num';
+        left.textContent = n;
+        const right = document.createElement('div');
+        right.className = 'fish-slot';
+        right.appendChild(makeOutline());
+        card.appendChild(left);
+        card.appendChild(right);
+        card.addEventListener('click',()=>{
+          document.querySelectorAll('.card').forEach(c=>c.classList.remove('active'));
+          card.classList.add('active');
+          // apply selected color if any
+          if(selectedColor){
+            paintCard(card, selectedColor);
+          }
+        });
+        boardEl.appendChild(card);
+      }
+      answers = {};
+    }
+
+    function buildPalette(colors){
+      paletteEl.innerHTML = '';
+      const label = document.createElement('span');
+      label.textContent = 'Pilih warna lalu klik kartu angkanya:';
+      paletteEl.appendChild(label);
+      colors.forEach(c=>{
+        const b = document.createElement('button');
+        b.className = 'swatch';
+        b.style.background = c;
+        b.title = 'Pilih warna ini';
+        b.addEventListener('click',()=>{
+          document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('selected'));
+          b.classList.add('selected');
+          selectedColor = c;
+        });
+        paletteEl.appendChild(b);
+      });
+      // eraser
+      const er = document.createElement('button');
+      er.className = 'btn ghost';
+      er.textContent = 'Penghapus';
+      er.addEventListener('click',()=>{selectedColor=null;document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('selected'))});
+      paletteEl.appendChild(er);
+    }
+
+    function paintCard(card,color){
+      const n = Number(card.dataset.n);
+      answers[n] = color;
+      const slot = card.querySelector('.fish-slot');
+      slot.innerHTML = '';
+      const svg = makeOutline();
+      // Fill the big body path (first path in g)
+      const path = svg.querySelector('path');
+      path.setAttribute('fill', color);
+      path.setAttribute('stroke', '#0f172a');
+      slot.appendChild(svg);
+    }
+
+    function check(){
+      let correct = 0; let total = 5;
+      for(let n=1;n<=5;n++){
+        const needColor = Array.from(colorMap.entries()).find(([color,count])=>count===n)?.[0];
+        const got = answers[n];
+        if(got && needColor && got===needColor){
+          correct++;
+        }
+      }
+      if(correct===total){
+        toast('Mantap! Semua benar. 🐟✨', true);
+        confetti();
+      }else{
+        toast(`Masih ada yang keliru. Benar ${correct}/${total}. Coba cek lagi ya.`, false);
+      }
+    }
+
+    function toast(msg,ok){
+      toastEl.textContent = msg;
+      toastEl.className = 'toast '+(ok? 'ok':'nope');
+    }
+
+    function resetPaint(){
+      document.querySelectorAll('.card .fish-slot').forEach(s=>{s.innerHTML=''; s.appendChild(makeOutline());});
+      answers = {};
+      toastEl.textContent = '';
+    }
+
+    function shuffleAll(){
+      resetPaint();
+      buildAquarium();
+    }
+
+    // Simple confetti (CSS-free) – just a few falling squares for celebration
+    function confetti(){
+      const n=40; const body=document.body; const rect = body.getBoundingClientRect();
+      for(let i=0;i<n;i++){
+        const d=document.createElement('div');
+        d.style.position='fixed';
+        d.style.left = Math.random()*rect.width+'px';
+        d.style.top = '-12px';
+        d.style.width = '8px'; d.style.height='8px';
+        d.style.background = COLORS[i%COLORS.length];
+        d.style.transform = `rotate(${Math.random()*360}deg)`;
+        d.style.opacity = '0.9';
+        d.style.zIndex = 9999;
+        d.style.borderRadius = '2px';
+        body.appendChild(d);
+        const dur = 1000 + Math.random()*1200;
+        d.animate([{transform:d.style.transform, top:'-12px'},{transform:'rotate(720deg)', top:(rect.height+20)+'px'}],{duration:dur, easing:'linear'}).finished.then(()=>d.remove());
+      }
+    }
+
+    // Buttons
+    document.getElementById('checkBtn').addEventListener('click', check);
+    document.getElementById('shuffleBtn').addEventListener('click', shuffleAll);
+    document.getElementById('resetBtn').addEventListener('click', resetPaint);
+
+    // Init
+    buildAquarium();
+    buildBoard();
+  </script>
+</body>
+</html>

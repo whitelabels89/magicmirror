@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Kind Kingdom – QC Edition</title>
+  <style>
+    :root{
+      --bg1:#0b1220; --bg2:#0f1a33; --grid:#1b2b4d; --ui:#ffffff; --good:#55efc4; --warn:#ffeaa7; --bad:#ff7675; --accent:#74b9ff;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;}
+    body{font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; background: radial-gradient(1200px 800px at 50% 40%, var(--bg2), var(--bg1)); color:var(--ui); overflow:hidden;}
+    #wrap{position:fixed; inset:0; display:flex; align-items:center; justify-content:center}
+    canvas{width:100vw;height:100vh; display:block; background: repeating-linear-gradient(0deg, transparent 0 28px, rgba(255,255,255,.03) 28px 29px), repeating-linear-gradient(90deg, transparent 0 28px, rgba(255,255,255,.03) 28px 29px);}    
+    .hud{position:fixed; left:16px; right:16px; top:12px; display:flex; align-items:center; justify-content:space-between; gap:12px; pointer-events:none}
+    .pill{background:rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.15); border-radius:14px; padding:8px 12px; display:flex; align-items:center; gap:12px; backdrop-filter: blur(8px); box-shadow:0 8px 24px rgba(0,0,0,.25)}
+    .stat{font-weight:700; letter-spacing:.3px}
+    .hearts{font-variant-numeric: tabular-nums}
+    .badge{padding:6px 10px; border-radius:10px; background:rgba(116,185,255,.18); border:1px solid rgba(116,185,255,.35); font-weight:700}
+    .hud .stat{ font-size: clamp(14px, 1.4vw, 22px); }
+    .hud .badge{ font-size: clamp(13px, 1.2vw, 20px); }
+    .help{position:fixed; left:50%; transform:translateX(-50%); bottom:14px; font-size:14px; opacity:.85}
+    .fsbtn{cursor:pointer; pointer-events:auto; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.08); color:#fff; border-radius:10px; padding:8px 12px; font-weight:800}
+
+    /* Start + GameOver overlays */
+    .overlay{position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background: radial-gradient(800px 400px at 50% 35%, rgba(116,185,255,.07), transparent), linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.65)); text-align:center}
+    .panel{max-width:760px; margin:0 16px; background:rgba(12,18,36,.85); border:1px solid rgba(255,255,255,.12); border-radius:16px; padding:24px 20px; box-shadow:0 16px 48px rgba(0,0,0,.45)}
+    .title{font-size:28px; font-weight:900; letter-spacing:.4px; margin:6px 0 10px}
+    .subtitle{opacity:.9; margin-bottom:14px}
+    .klist{display:grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap:8px; text-align:left; margin:12px 0 2px}
+    .kitem{background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.09); border-radius:12px; padding:10px}
+    .btn{pointer-events:auto; cursor:pointer; display:inline-block; margin-top:14px; padding:12px 16px; background:linear-gradient(180deg, #6c9cff, #4a7dff); border:none; color:#fff; border-radius:12px; font-weight:800; box-shadow:0 10px 30px rgba(74,125,255,.35)}
+    .btn:hover{filter:brightness(1.03)}
+
+    /* Mobile controls */
+    #controls{position:fixed; inset:0; pointer-events:none}
+    .pad{position:absolute; bottom:16px; width:140px; height:140px; border-radius:50%; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); pointer-events:auto}
+    #padL{left:16px}
+    #padR{right:16px}
+    .pad button{position:absolute; width:40px; height:40px; border-radius:10px; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.08); color:#fff; font-weight:900; box-shadow:0 8px 18px rgba(0,0,0,.25);}
+    .pad button:active{transform:translateY(1px)}
+    .up{left:50%; top:6px; transform:translateX(-50%)}
+    .down{left:50%; bottom:6px; transform:translateX(-50%)}
+    .left{left:6px; top:50%; transform:translateY(-50%)}
+    .right{right:6px; top:50%; transform:translateY(-50%)}
+    .fire{inset:auto 20px 20px auto; width:72px; height:72px; border-radius:18px; font-size:20px}
+
+    @media (min-width:900px){ #padL, #padR{display:none} }
+
+    /* Education ticker */
+    .ticker{position:fixed; left:16px; right:16px; bottom:16px; display:flex; align-items:center; gap:10px; pointer-events:none}
+    .tickpill{flex:1; background:rgba(0,0,0,.45); border:1px solid rgba(255,255,255,.15); border-radius:12px; padding:10px 12px; font-weight:700}
+  </style>
+</head>
+<body>
+  <div id="wrap"><canvas id="game"></canvas></div>
+
+  <div class="hud">
+    <div class="pill" id="statLeft">
+      <span class="stat">Level: <span id="lv">1</span></span>
+      <span class="stat">Score: <span id="sc">0</span></span>
+      <span class="stat">Saved: <span id="sv">0</span></span>
+    </div>
+    <div class="pill">
+      <span class="stat hearts" id="hp">❤️❤️❤️</span>
+      <span class="badge" id="goal">Goal: 6 kindness</span>
+    </div>
+    <button class="fsbtn" id="btnFS" title="Fullscreen">⛶ Fullscreen</button>
+  </div>
+  <div class="help">WASD/Arrows = Gerak • Spasi = Tebar Kebaikan • H = Bantuan • P = Jeda</div>
+
+  <!-- Start overlay -->
+  <div class="overlay" id="start">
+    <div class="panel">
+      <div class="badge">MINI-GAME</div>
+      <div class="title">Kind Kingdom – QC Edition</div>
+      <div class="subtitle">Sebarkan kebaikan 💙, lindungi warga, dan jinakkan para troll. Mirip Interland: Kind Kingdom, versi ringan untuk web kamu.</div>
+      <div class="klist">
+        <div class="kitem">🎯 <b>Tujuan:</b> Selamatkan sejumlah warga setiap level. Kenaikan level = troll lebih cepat & lebih banyak.</div>
+        <div class="kitem">💬 <b>Kebaikan:</b> Tekan <b>Spasi</b> untuk mengirim orb kebaikan. Mengenai troll akan menjinakkan mereka, mengenai warga menaikkan mood.</div>
+        <div class="kitem">🛡️ <b>Jarak aman:</b> Dekati warga untuk menaikkan mood mereka, jauhi troll yang menyebar negatif.</div>
+        <div class="kitem">❤️ <b>Nyawa:</b> Tabrak troll = kehilangan hati. Habis hati = game over.</div>
+      </div>
+      <button class="btn" id="btnPlay">Mulai (Enter)</button>
+    </div>
+  </div>
+
+  <!-- Game Over overlay -->
+  <div class="overlay" id="over" style="display:none">
+    <div class="panel">
+      <div class="title">Game Over</div>
+      <div class="subtitle" id="finalStats">Skor: 0 • Level: 1</div>
+      <button class="btn" id="btnRetry">Main Lagi (R)</button>
+    </div>
+  </div>
+
+  <!-- Mobile controls -->
+  <div id="controls">
+    <div class="pad" id="padL" aria-hidden="true">
+      <button class="up"   data-dir="up">▲</button>
+      <button class="down" data-dir="down">▼</button>
+      <button class="left" data-dir="left">◀</button>
+      <button class="right" data-dir="right">▶</button>
+    </div>
+    <button class="pad fire" id="padR" aria-label="Spread Kindness">💙</button>
+  </div>
+
+  <!-- Education ticker (Stage-2) -->
+  <div class="ticker">
+    <div class="tickpill" id="edu">Pesan edukasi muncul di sini…</div>
+  </div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+  const UI = {
+    lv: document.getElementById('lv'),
+    sc: document.getElementById('sc'),
+    sv: document.getElementById('sv'),
+    hp: document.getElementById('hp'),
+    goal: document.getElementById('goal'),
+    start: document.getElementById('start'),
+    over: document.getElementById('over'),
+    final: document.getElementById('finalStats'),
+    btnPlay: document.getElementById('btnPlay'),
+    btnRetry: document.getElementById('btnRetry'),
+    padL: document.getElementById('padL'),
+    padR: document.getElementById('padR'),
+    fs: document.getElementById('btnFS'),
+    edu: document.getElementById('edu'),
+  };
+
+  let W=0, H=0, S=1; // S = scale factor
+  const rand = (a,b)=> a + Math.random()*(b-a);
+  const clamp = (v,a,b)=> Math.max(a, Math.min(b,v));
+  const dist2 = (a,b)=>{const dx=a.x-b.x, dy=a.y-b.y; return dx*dx+dy*dy};
+  const len = (dx,dy)=> Math.hypot(dx,dy);
+  const now = ()=> performance.now();
+
+  function resize(){
+    W = canvas.width = Math.floor(window.innerWidth * dpr);
+    H = canvas.height= Math.floor(window.innerHeight* dpr);
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.scale(dpr,dpr);
+    S = clamp(Math.min(W/dpr, H/dpr) / 800, 0.85, 2.2);
+  }
+  window.addEventListener('resize', resize); resize();
+
+  const KEY = {up:false,down:false,left:false,right:false, fire:false};
+  const onKey = (e,down)=>{
+    const k = e.key.toLowerCase();
+    if(['arrowup','w'].includes(k)) KEY.up=down;
+    if(['arrowdown','s'].includes(k)) KEY.down=down;
+    if(['arrowleft','a'].includes(k)) KEY.left=down;
+    if(['arrowright','d'].includes(k)) KEY.right=down;
+    if(k===' '){ KEY.fire=down; e.preventDefault(); }
+    if(k==='p' && down) paused = !paused;
+    if(k==='h' && down) helpFlash=2200;
+    if(k==='enter' && down && !running) startGame();
+    if(k==='r' && down && !running) startGame();
+  };
+  window.addEventListener('keydown', e=>onKey(e,true));
+  window.addEventListener('keyup',   e=>onKey(e,false));
+
+  // Mobile pads
+  const dirs = ['up','down','left','right'];
+  UI.padL.querySelectorAll('button').forEach(btn=>{
+    const d = btn.dataset.dir;
+    const set = v=>{ KEY[d]=v; };
+    ['pointerdown','touchstart','mousedown'].forEach(ev=>btn.addEventListener(ev, e=>{set(true); e.preventDefault();}));
+    ['pointerup','pointerleave','touchend','mouseup','mouseleave'].forEach(ev=>btn.addEventListener(ev, e=>{set(false); e.preventDefault();}));
+  });
+  UI.padR.addEventListener('pointerdown', e=>{ KEY.fire=true; e.preventDefault(); });
+  UI.padR.addEventListener('pointerup',   e=>{ KEY.fire=false; e.preventDefault(); });
+
+  // Fullscreen toggle
+  if(UI.fs){
+    UI.fs.addEventListener('click', async ()=>{
+      try{
+        if(!document.fullscreenElement){
+          await document.documentElement.requestFullscreen();
+          UI.fs.textContent = '⛶ Exit';
+        } else {
+          await document.exitFullscreen();
+          UI.fs.textContent = '⛶ Fullscreen';
+        }
+      }catch(e){}
+    });
+  }
+
+  // Entities
+  class Entity{ constructor(x,y,r){ this.x=x; this.y=y; this.r=r||12; this.vx=0; this.vy=0; this.dead=false; }
+    move(){ this.x = clamp(this.x + this.vx, 10, W/dpr-10); this.y = clamp(this.y + this.vy, 10, H/dpr-10); }
+  }
+  class Player extends Entity{ constructor(){ super(W/dpr*0.5, H/dpr*0.55, 14*S); this.speed=3.2*S; this.hearts=3; this.inv=0; this.lastShot=0; }
+    update(dt){
+      const ax = (KEY.right?1:0) - (KEY.left?1:0);
+      const ay = (KEY.down?1:0) - (KEY.up?1:0);
+      const mag = Math.hypot(ax,ay)||1;
+      this.vx = ax/ mag * this.speed;
+      this.vy = ay/ mag * this.speed;
+      this.move();
+      if(this.inv>0) this.inv -= dt;
+      if(KEY.fire) this.shoot();
+    }
+    shoot(){ const t=now(); if(t-this.lastShot<380) return; this.lastShot=t; // cooldown
+      // aim at nearest troll toxic atau citizen kuning (mood medium), else forward
+      let target=null, best=1e9;
+      // kandidat: troll toxic atau citizen kuning (mood medium)
+      for(const tr of trolls){ if(tr.state==='toxic'){ const d=dist2(this,tr); if(d<best){ best=d; target=tr; } } }
+      for(const cz of citizens){ if(!cz.safe && cz.mood>=35 && cz.mood<70){ const d=dist2(this,cz); if(d<best){ best=d; target=cz; } } }
+      let ang=0;
+      if(target){ ang = Math.atan2(target.y-this.y, target.x-this.x); }
+      else { const dx = (KEY.right?1:0)-(KEY.left?1:0); const dy=(KEY.down?1:0)-(KEY.up?1:0); ang = Math.atan2(dy,dx); }
+      if(!isFinite(ang)) ang = 0;
+      const sp = 5.2*S;
+      const orb = new Orb(this.x, this.y, Math.cos(ang)*sp, Math.sin(ang)*sp);
+      orbs.push(orb);
+      particles.push(...burst(this.x, this.y, '#74b9ff'));
+    }
+    hit(){ if(this.inv>0) return; this.hearts--; this.inv=1200; shake=8; if(this.hearts<=0) gameOver(); refreshHearts(); }
+    draw(){
+      ctx.save(); ctx.globalAlpha = this.inv>0 ? (0.6+0.4*Math.sin(now()*0.02)) : 1;
+      // body
+      ctx.beginPath(); ctx.arc(this.x,this.y,this.r,0,Math.PI*2); ctx.fillStyle='#6c9cff'; ctx.fill();
+      // face
+      ctx.fillStyle='#0b1220'; ctx.beginPath(); ctx.arc(this.x-4*S,this.y-2*S,2*S,0,Math.PI*2); ctx.arc(this.x+4*S,this.y-2*S,2*S,0,Math.PI*2); ctx.fill();
+      ctx.strokeStyle='#0b1220'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(this.x,this.y+3*S,5*S,0,Math.PI); ctx.stroke();
+      ctx.restore();
+    }
+  }
+  class Citizen extends Entity{ constructor(x,y){ super(x,y,12*S); this.mood=rand(35,70); this.safe=false; this.follow= false; this.color='#55efc4'; }
+    update(dt){
+      // mood changes by proximity
+      let threat=0, kindness=0;
+      for(const t of trolls){ if(t.state==='toxic'){ const d2=dist2(this,t); const R=200*S; if(d2<R*R) threat+=0.08*(1-(Math.sqrt(d2)/R)); }}
+      const d2p=dist2(this,player); const Rp=120*S; if(d2p<Rp*Rp) kindness+=0.15*(1-(Math.sqrt(d2p)/Rp));
+      this.mood = clamp(this.mood + (kindness - threat)*dt*0.06, 0, 100);
+      if(this.mood>=100 && !this.safe){
+        this.safe=true; score+=50; saved++;
+        toast(randomKindMsg());
+        particles.push(...burst(this.x,this.y,'#55efc4'));
+        this.dead=true;
+      }
+      // gentle drift
+      this.vx *= 0.92; this.vy *= 0.92; this.move();
+    }
+    cheer(h){ this.mood = clamp(this.mood + h, 0, 100); }
+    draw(){
+      // aura shows mood
+      const c = this.mood<35? '#ff7675' : (this.mood<70? '#ffeaa7' : '#55efc4');
+      ctx.globalAlpha=0.25; ctx.beginPath(); ctx.arc(this.x,this.y,this.r+8*S,0,Math.PI*2); ctx.fillStyle=c; ctx.fill(); ctx.globalAlpha=1;
+      // body
+      ctx.beginPath(); ctx.arc(this.x,this.y,this.r,0,Math.PI*2); ctx.fillStyle=c; ctx.fill();
+      // face
+      ctx.fillStyle='#0b1220'; ctx.beginPath(); ctx.arc(this.x-3*S,this.y-2*S,1.8*S,0,Math.PI*2); ctx.arc(this.x+3*S,this.y-2*S,1.8*S,0,Math.PI*2); ctx.fill();
+      ctx.strokeStyle='#0b1220'; ctx.lineWidth=1.8; ctx.beginPath(); const sm=this.mood>=70?0:Math.PI; ctx.arc(this.x,this.y+2.5*S,4*S,sm,sm+Math.PI); ctx.stroke();
+    }
+  }
+class Troll extends Entity{ constructor(x,y,spd){ super(x,y,13*S); this.speed=Math.max(0.6*S, (spd||rand(1.6*S,2.4*S))); this.state='toxic'; this.timer=0; this.lastMove=now(); this.avoidRef=null; this.avoidUntil=0; this.currentTarget=null; this.retargetAt=0; }
+    update(dt){
+      if(this.state==='toxic'){
+        // pick target: prefer yellow citizens (mood 35–69), then green (>=70), else player (NOT based on distance)
+        const tnow = now();
+        const stillAvoid = (c)=> (this.avoidRef===c && tnow < this.avoidUntil);
+        const yellow = citizens.filter(c=> !c.dead && !c.safe && c.mood>=35 && c.mood<70 && !stillAvoid(c));
+        const green  = citizens.filter(c=> !c.dead && !c.safe && c.mood>=70 && !stillAvoid(c));
+        if(!this.currentTarget || this.currentTarget.dead || stillAvoid(this.currentTarget) || tnow > this.retargetAt){
+          const pool = yellow.length ? yellow : (green.length ? green : null);
+          if(pool){
+            this.currentTarget = pool[Math.floor(Math.random()*pool.length)];
+          } else {
+            this.currentTarget = player;
+          }
+          this.retargetAt = tnow + rand(900,1600); // re-evaluate target periodically
+        }
+        const target = this.currentTarget || player;
+        // Jitter arah saat terlalu dekat dengan target
+        const dxT = (target.x - this.x), dyT = (target.y - this.y);
+        let a = Math.atan2(dyT, dxT);
+        if(!isFinite(a)) a = rand(-Math.PI, Math.PI);
+        // jika terlalu dekat, tambahkan jitter kecil agar tidak menempel diam
+        if(Math.hypot(dxT,dyT) < (this.r + (target.r||12))*0.9){ a += rand(-0.6, 0.6); }
+        // ensure a minimum speed and recalc
+        if(!isFinite(this.speed) || this.speed<0.4*S) this.speed = 1.2*S;
+        this.vx = Math.cos(a)*this.speed; this.vy = Math.sin(a)*this.speed; this.move();
+
+        // anti-stuck: if almost not moving for a while, nudge with random impulse
+        const moved = Math.abs(this.vx)+Math.abs(this.vy) > 0.05*S;
+        if(moved) this.lastMove = now();
+        if(now() - this.lastMove > 450){
+          const j = rand(0.8,1.6)*S; const jAng = rand(-Math.PI, Math.PI);
+          this.vx = Math.cos(jAng)*j; this.vy = Math.sin(jAng)*j; this.move();
+          this.lastMove = now();
+        }
+
+        // interactions
+        if(collide(this,player)) player.hit();
+        let hitC=null;
+        for(const c of citizens){ if(collide(this,c)){ c.mood = Math.max(0, c.mood-0.50*dt); hitC=c; } }
+        if(hitC){
+          // hitung pemisahan agar tidak saling menempel
+          let dx = this.x - hitC.x, dy = this.y - hitC.y;
+          let d = Math.hypot(dx,dy);
+          if(d < 0.001){ dx = rand(-1,1); dy = rand(-1,1); d = Math.hypot(dx,dy); }
+          const need = (this.r + hitC.r) - d + 1; // +1 px buffer
+          if(need > 0){
+            const ux = dx/d, uy = dy/d;
+            this.x += ux * need; this.y += uy * need;
+          }
+          // dorong maju sedikit ke arah baru
+          const push = Math.max(1.0*S, this.speed*0.6);
+          const angP = Math.atan2(this.y - hitC.y, this.x - hitC.x) + rand(-0.3,0.3);
+          this.vx = Math.cos(angP)*push; this.vy = Math.sin(angP)*push; this.move();
+          this.lastMove = now();
+          // after one hit, switch target: avoid this citizen for a while
+          this.avoidRef = hitC; this.avoidUntil = now() + 1200;
+          this.currentTarget = null; // drop current target
+          this.retargetAt = 0;       // force instant retarget on next tick
+        }
+
+        // jika menempel dinding, arahkan balik ke tengah
+        if(this.x<=12 || this.x>=W/dpr-12 || this.y<=12 || this.y>=H/dpr-12){
+          const cx=W/dpr/2, cy=H/dpr/2; const aBack = Math.atan2(cy-this.y, cx-this.x) + rand(-0.2,0.2);
+          const spd = Math.max(this.speed, 1.2*S);
+          this.vx = Math.cos(aBack)*spd; this.vy = Math.sin(aBack)*spd; this.move(); this.lastMove = now();
+        }
+      } else if(this.state==='reformed'){
+        this.timer -= dt; if(this.timer<=0){ // convert to citizen
+          this.dead=true; citizens.push(new Citizen(this.x,this.y)); saved++; score+=70; particles.push(...burst(this.x,this.y,'#74b9ff'));
+        }
+        this.vx*=0.9; this.vy*=0.9; this.move();
+      }
+    }
+    calm(){ if(this.state!=='toxic') return; this.state='reformed'; this.timer=1600; score+=100; toast('Troll jadi baik karena kata-kata baik.'); particles.push(...burst(this.x,this.y,'#74b9ff')); }
+    draw(){
+      if(this.state==='toxic'){
+        ctx.beginPath(); ctx.arc(this.x,this.y,this.r,0,Math.PI*2); ctx.fillStyle='#ff7675'; ctx.fill();
+        // angry brows
+        ctx.strokeStyle='#0b1220'; ctx.lineWidth=2.2; ctx.beginPath(); ctx.moveTo(this.x-6*S,this.y-6*S); ctx.lineTo(this.x-1*S,this.y-2*S); ctx.moveTo(this.x+6*S,this.y-6*S); ctx.lineTo(this.x+1*S,this.y-2*S); ctx.stroke();
+      } else {
+        ctx.beginPath(); ctx.arc(this.x,this.y,this.r,0,Math.PI*2); ctx.fillStyle='#74b9ff'; ctx.fill();
+        ctx.fillStyle='#0b1220'; ctx.beginPath(); ctx.arc(this.x-3*S,this.y-2*S,1.8*S,0,Math.PI*2); ctx.arc(this.x+3*S,this.y-2*S,1.8*S,0,Math.PI*2); ctx.fill();
+        ctx.strokeStyle='#0b1220'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(this.x,this.y+2.5*S,4*S,0,Math.PI); ctx.stroke();
+      }
+    }
+  }
+  class Orb extends Entity{ constructor(x,y,vx,vy){ super(x,y,7*S); this.vx=vx; this.vy=vy; this.life=1800; }
+    update(dt){ this.life -= dt; if(this.life<=0) this.dead=true; this.move();
+      for(const t of trolls){ if(t.state==='toxic' && collide(this,t)) { t.calm(); this.dead=true; return; } }
+      for(const c of citizens){ if(collide(this,c)){ c.cheer(35); this.dead=true; return; } }
+    }
+    draw(){ ctx.beginPath(); ctx.arc(this.x,this.y,this.r,0,Math.PI*2); ctx.fillStyle='#74b9ff'; ctx.shadowColor='#74b9ff'; ctx.shadowBlur=12; ctx.fill(); ctx.shadowBlur=0; }
+  }
+  class Particle extends Entity{ constructor(x,y,c){ super(x,y,2); this.life= rand(400,1000); this.c=c; this.vx=rand(-1.8,1.8); this.vy=rand(-1.8,1.8);} update(dt){ this.life-=dt; if(this.life<=0) this.dead=true; this.vy+=0.012*dt; this.move(); } draw(){ ctx.globalAlpha = Math.max(0,this.life/1000); ctx.fillStyle=this.c; ctx.fillRect(this.x,this.y,2,2); ctx.globalAlpha=1; } }
+
+  const burst=(x,y,c)=>{ const arr=[]; for(let i=0;i<22;i++) arr.push(new Particle(x,y,c)); return arr; };
+  const collide=(a,b)=>{ const r=a.r+b.r; return dist2(a,b) <= r*r; };
+
+  let player, citizens=[], trolls=[], orbs=[], particles=[];
+  let score=0, saved=0, level=1, goal=6, running=false, paused=false, shake=0, helpFlash=0;
+
+  // Education messages (ticker) + toast UI
+  const EDU=[
+    'Pilih kata yang menguatkan — satu kalimat baik bisa menyelamatkan hari seseorang.',
+    'Jangan balas kasar dengan kasar. Diam, laporkan, dan blokir itu lebih kuat.',
+    'Dukung teman yang jadi korban. Ajak mereka bicara, “Aku ada di sini.”',
+    'Saring sebelum sharing — cek fakta sebelum meneruskan pesan.',
+    'Empati dulu, opini kemudian. Dengarkan perasaan orang lain.',
+  ];
+  let eduIdx=0, eduTimer=0;
+  function eduCycleStart(){ if(UI.edu){ UI.edu.textContent=EDU[eduIdx]; eduTimer=0; } }
+  function tickEdu(dt){ if(!UI.edu) return; eduTimer+=dt; if(eduTimer>5200){ eduTimer=0; eduIdx=(eduIdx+1)%EDU.length; UI.edu.textContent=EDU[eduIdx]; } }
+
+  let toastT=0, toastMsg='';
+  function toast(t){ toastMsg=t; toastT=1800; }
+  const kindLines=['Terima kasih sudah peduli!','Kata baik = hati tenang.','Good job jadi penolong!','Kebaikan menular!'];
+  const randomKindMsg=()=> kindLines[Math.floor(Math.random()*kindLines.length)];
+
+  function refreshHearts(){ UI.hp.textContent = '❤️'.repeat(Math.max(0,player.hearts)); }
+  function setUI(){ UI.lv.textContent=level; UI.sc.textContent=score; UI.sv.textContent=saved; UI.goal.textContent = `Goal: ${goal} kindness`; }
+
+  function spawnCitizen(n){ for(let i=0;i<n;i++){ const x=rand(30,W/dpr-30), y=rand(30,H/dpr-30); citizens.push(new Citizen(x,y)); } }
+  function spawnTroll(n){ for(let i=0;i<n;i++){ const x=rand(30,W/dpr-30), y=rand(30,H/dpr-30); trolls.push(new Troll(x,y, rand(1.6*S+level*0.08*S, 2.2*S+level*0.1*S))); } }
+
+  function startGame(){
+    running=true; paused=false; score=0; saved=0; level=1; goal=6; shake=0; helpFlash=2200;
+    player = new Player(); citizens=[]; trolls=[]; orbs=[]; particles=[];
+    spawnCitizen(8); spawnTroll(4);
+    refreshHearts(); setUI();
+    UI.start.style.display='none'; UI.over.style.display='none';
+    last = performance.now();
+    eduCycleStart();
+  }
+  function nextLevel(){ level++; goal = Math.round(goal*1.25 + 2); spawnCitizen(4+level); spawnTroll(2+Math.floor(level*0.8)); setUI(); flashText(`Level ${level}!`); }
+  function gameOver(){ running=false; UI.final.textContent = `Skor: ${score} • Level: ${level}`; UI.over.style.display='flex'; }
+
+  // Fancy HUD flash
+  let flash=0, flashMsg='';
+  const flashText=(t)=>{ flash=1400; flashMsg=t; };
+
+  UI.btnPlay.addEventListener('click', startGame);
+  UI.btnRetry.addEventListener('click', startGame);
+
+  // Main loop
+  let last=performance.now();
+  function loop(){
+    requestAnimationFrame(loop);
+    const t=performance.now(); let dt=(t-last); if(dt>60) dt=60; last=t; if(!running||paused){ drawScene(0); return; }
+
+    player.update(dt);
+    for(const a of [citizens,trolls,orbs,particles]) a.forEach(e=>e.update(dt));
+
+    // collisions orb handled in update
+    // cleanup
+    citizens = citizens.filter(e=>!e.dead);
+    trolls    = trolls.filter(e=>!e.dead);
+    orbs      = orbs.filter(e=>!e.dead);
+    particles = particles.filter(e=>!e.dead);
+
+    if(saved>=goal){ saved=0; score+=200; nextLevel(); }
+    tickEdu(dt);
+
+    drawScene(dt);
+  }
+  requestAnimationFrame(loop);
+
+  function drawScene(dt){
+    // camera shake
+    const sx = shake? rand(-shake,shake) : 0;
+    const sy = shake? rand(-shake,shake) : 0; if(shake) shake *= 0.88;
+    ctx.setTransform(dpr,0,0,dpr,sx,sy);
+
+    // clear
+    ctx.clearRect(-10,-10, W/dpr+20, H/dpr+20);
+
+    // playfield bounds subtle
+    ctx.strokeStyle='rgba(255,255,255,.06)'; ctx.lineWidth=2; ctx.strokeRect(12,12, W/dpr-24, H/dpr-24);
+
+    // entities
+    for(const c of citizens) c.draw();
+    for(const o of orbs) o.draw();
+    for(const t of trolls) t.draw();
+    player && player.draw();
+    for(const p of particles) p.draw();
+
+    // top-left mini legend (pushed below HUD; with yellow citizen & shifted squares)
+    ctx.save(); ctx.globalAlpha=.95; ctx.fillStyle='#fff';
+    const fsz = Math.max(16, Math.round(12*S));
+    const box = Math.max(14, Math.round(12*S));
+    const legendTop = Math.max(92, Math.round(28 + fsz*2.2));
+    const gap = Math.max(20, Math.round(18*S));
+    const xLabel = 18;
+    const xBox   = 240; // geser cukup jauh ke kanan agar tidak menimpa teks
+    ctx.font = `${fsz}px system-ui`;
+    // row 1: citizen hijau (bahagia)
+    ctx.fillText('😊 Citizen (bahagia)', xLabel, legendTop);
+    ctx.fillStyle='#55efc4'; ctx.fillRect(xBox, legendTop - Math.round(box*0.8), box, box);
+    // row 2: citizen kuning (butuh dukungan)
+    ctx.fillStyle='#fff'; ctx.fillText('😐 Citizen (kuning)', xLabel, legendTop + gap);
+    ctx.fillStyle='#ffeaa7'; ctx.fillRect(xBox, legendTop + gap - Math.round(box*0.8), box, box);
+    // row 3: troll merah
+    ctx.fillStyle='#fff'; ctx.fillText('😠 Troll', xLabel, legendTop + gap*2);
+    ctx.fillStyle='#ff7675'; ctx.fillRect(xBox, legendTop + gap*2 - Math.round(box*0.8), box, box);
+    // row 4: kindness orb biru
+    ctx.fillStyle='#fff'; ctx.fillText('💙 Kindness Orb', xLabel, legendTop + gap*3);
+    ctx.fillStyle='#74b9ff'; ctx.fillRect(xBox, legendTop + gap*3 - Math.round(box*0.8), box, box);
+    ctx.restore();
+
+    // big HUD flash
+    if(flash>0){ flash-=dt||16; const a=clamp(flash/1400,0,1); ctx.save(); ctx.globalAlpha=a; ctx.fillStyle='rgba(116,185,255,.15)'; ctx.fillRect(0,0,W/dpr,H/dpr); ctx.fillStyle='#fff'; ctx.font='900 28px system-ui'; ctx.textAlign='center'; ctx.fillText(flashMsg, W/dpr/2, 80); ctx.restore(); }
+
+    // hint flash
+    if(helpFlash>0){ helpFlash -= dt||16; ctx.save(); ctx.globalAlpha = Math.max(0, helpFlash/2200); ctx.fillStyle='#fff'; ctx.font='700 14px system-ui'; ctx.textAlign='center'; ctx.fillText('Tips: Dekati warga untuk menaikkan mood. Tekan Spasi untuk menembakkan kebaikan 💙', W/dpr/2, H/dpr-60); ctx.restore(); }
+
+    // toast (top center)
+    if(toastT>0){
+      toastT-=dt||16; const a=clamp(toastT/1800,0,1);
+      ctx.save(); ctx.globalAlpha=a; ctx.fillStyle='rgba(0,0,0,.55)';
+      const tw=Math.min(560*S, W/dpr-40); const x=W/dpr/2 - tw/2, y=16;
+      ctx.fillRect(x,y,tw,30*S); ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.strokeRect(x,y,tw,30*S);
+      ctx.fillStyle='#fff'; ctx.font=`700 ${Math.round(14*S)}px system-ui`; ctx.textAlign='center'; ctx.fillText(toastMsg, W/dpr/2, y+20*S);
+      ctx.restore();
+    }
+
+    // UI numbers
+    if(running){ setUI(); }
+  }
+
+  // start idle loop visuals
+  setUI();
+})();
+</script>
+</body>
+</html>

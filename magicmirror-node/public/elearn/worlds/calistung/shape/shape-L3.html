@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trace the Shape – L3</title>
+  <style>
+    :root{
+      --bg1:#0f172a; /* slate-900 */
+      --bg2:#111827; /* gray-900 */
+      --card:#0b1220;
+      --text:#e5e7eb; /* gray-200 */
+      --accent:#22c55e; /* green-500 */
+      --accent-2:#38bdf8; /* sky-400 */
+      --hint:#94a3b8; /* slate-400 */
+      --danger:#ef4444; /* red-500 */
+      --gold:#f59e0b; /* amber-500 */
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;min-height:100vh;
+      background: radial-gradient(1200px 800px at 20% -10%, #1f2937 0%, transparent 60%),
+                  radial-gradient(1200px 800px at 110% 10%, #0ea5e9 0%, transparent 55%),
+                  linear-gradient(180deg, var(--bg1), var(--bg2));
+      color:var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      display:flex;flex-direction:column;gap:12px;
+    }
+    header{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:14px 16px;
+    }
+    .brand{font-weight:800;letter-spacing:.3px}
+    .toolbar{
+      display:flex;gap:8px;flex-wrap:wrap
+    }
+    button{
+      background:#141c2c;color:var(--text);
+      border:1px solid rgba(255,255,255,.08);
+      padding:10px 14px;border-radius:12px;font-weight:700;cursor:pointer;
+      box-shadow:0 6px 18px rgba(2,6,23,.25);
+      transition:transform .05s ease, filter .15s ease;
+    }
+    button:hover{filter:brightness(1.1)}
+    button:active{transform:translateY(1px)}
+    .primary{background:linear-gradient(90deg,var(--accent-2),#60a5fa);color:#071018;border:0}
+    .success{background:linear-gradient(90deg,#16a34a,#86efac);color:#04100b;border:0}
+    .danger{background:linear-gradient(90deg,#ef4444,#f59e0b);color:#100704;border:0}
+
+    .shell{display:grid;grid-template-columns: 320px 1fr;gap:16px;padding:0 16px 16px;}
+    @media (max-width: 980px){ .shell{grid-template-columns:1fr} }
+
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:16px; padding:14px; 
+      box-shadow:0 20px 60px rgba(2,6,23,.45), inset 0 0 0 1px rgba(255,255,255,.02);
+    }
+
+    .shape-list{display:flex;gap:8px;flex-wrap:wrap}
+    .chip{
+      padding:8px 12px;border-radius:999px;font-weight:700;border:1px solid rgba(255,255,255,.08);
+      background:#0f1a2a;cursor:pointer;user-select:none
+    }
+    .chip[data-active="true"]{background:linear-gradient(90deg,#22c55e,#60a5fa);color:#081018}
+
+    .progress{height:10px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;margin-top:10px}
+    .bar{height:100%;width:0;background:linear-gradient(90deg,#22c55e,#a7f3d0)}
+
+    .canvas-wrap{position:relative;aspect-ratio:4/3; width:100%; background:radial-gradient(400px 200px at 30% 20%, rgba(56,189,248,.12), transparent 60%),
+                  radial-gradient(400px 200px at 80% 30%, rgba(34,197,94,.12), transparent 60%),
+                  #0b1020;
+      border-radius:16px;border:1px solid rgba(255,255,255,.08);
+      overflow:hidden
+    }
+    canvas{display:block;width:100%;height:100%}
+
+    .hud{
+      position:absolute;left:12px;top:12px;display:flex;gap:8px;flex-wrap:wrap
+    }
+    .ghost{position:absolute;inset:0;pointer-events:none}
+    .toast{
+      position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+      padding:14px 18px;border-radius:12px;font-weight:900;font-size:28px;
+      background:rgba(15,23,42,.8);backdrop-filter: blur(6px);
+      border:1px solid rgba(148,163,184,.35);display:none
+    }
+    .toast.show{display:block;animation: pop .3s ease}
+    @keyframes pop{from{transform:translate(-50%,-50%) scale(.9);opacity:0}to{transform:translate(-50%,-50%) scale(1);opacity:1}}
+
+    .legend{font-size:14px;color:#cbd5e1}
+    .legend span{display:inline-flex;align-items:center;gap:6px;margin-right:12px}
+    .dot{width:10px;height:10px;border-radius:50%}
+    .dot.hint{background:var(--hint)}
+    .dot.hit{background:var(--accent)}
+    .dot.path{background:#334155}
+
+    .footnote{opacity:.75;font-size:12px;margin-top:8px}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">🔷 Shape Tracer L3</div>
+    <div class="toolbar">
+      <button id="btnReset" class="danger">Reset</button>
+      <button id="btnHint" title="Tampilkan/ sembunyikan garis bantu">Hint</button>
+      <button id="btnRandom">Acak</button>
+      <button id="btnNext" class="primary">Next ▶</button>
+    </div>
+  </header>
+
+  <div class="shell">
+    <aside class="card">
+      <h3 style="margin:6px 0 10px">Pilih Bentuk</h3>
+      <div id="shapeList" class="shape-list"></div>
+      <div class="progress"><div id="bar" class="bar"></div></div>
+      <div id="status" class="legend" style="margin-top:10px"></div>
+      <div class="footnote">Tip: Gambar mengikuti garis putus-putus. Selesaikan ≥ 88% untuk menang!</div>
+    </aside>
+
+    <main class="card">
+      <div class="canvas-wrap">
+        <canvas id="board"></canvas>
+        <div class="hud">
+          <button id="btnUndo">Undo</button>
+          <button id="btnEraser">Eraser</button>
+          <button id="btnPen" class="success">Pen</button>
+        </div>
+        <div id="toast" class="toast">🎉 Hebat! Bentuk selesai!</div>
+        <canvas id="ghost" class="ghost"></canvas>
+      </div>
+    </main>
+  </div>
+
+  <script>
+  (()=>{
+    const MIN_HIT_RATIO = 0.88;      // persen minimum untuk lulus
+    const SAMPLE_POINTS = 420;       // sample titik di jalur bentuk
+    const HIT_RADIUS = 18;           // piksel toleransi dekat jalur
+
+    const shapes = [
+      {key:'circle',   label:'Circle'},
+      {key:'square',   label:'Square'},
+      {key:'triangle', label:'Triangle'},
+      {key:'heart',    label:'Heart'},
+      {key:'star',     label:'Star'},
+      {key:'oval',     label:'Oval'},
+      {key:'rect',     label:'Rectangle'},
+      {key:'diamond',  label:'Diamond'},
+      {key:'hex',      label:'Hexagon'},
+      {key:'penta',    label:'Pentagon'}
+    ];
+
+    // --- DOM ---
+    const canvas = document.getElementById('board');
+    const ghost = document.getElementById('ghost');
+    const bar = document.getElementById('bar');
+    const list = document.getElementById('shapeList');
+    const toast = document.getElementById('toast');
+    const statusEl = document.getElementById('status');
+    const btnUndo = document.getElementById('btnUndo');
+    const btnEraser = document.getElementById('btnEraser');
+    const btnPen = document.getElementById('btnPen');
+
+    const ctx = canvas.getContext('2d');
+    const gtx = ghost.getContext('2d');
+
+    // --- Responsive canvas ---
+    function fitCanvas(){
+      const wrap = canvas.parentElement.getBoundingClientRect();
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      canvas.width = Math.floor(wrap.width * dpr);
+      canvas.height = Math.floor(wrap.height * dpr);
+      ghost.width = canvas.width; ghost.height = canvas.height;
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      gtx.setTransform(dpr,0,0,dpr,0,0);
+      redraw();
+    }
+    window.addEventListener('resize', fitCanvas);
+
+    // --- State ---
+    let activeIdx = 0;
+    let sampling = [];      // {x,y,hit:false}
+    let drawing = false;
+    let mode = 'pen';       // 'pen' | 'eraser'
+
+    function updateToolButtons(){
+      btnPen.classList.toggle('success', mode === 'pen');
+      btnEraser.classList.toggle('success', mode === 'eraser');
+      // ensure neutral styles on the non-active one
+      if(mode === 'pen') btnEraser.classList.remove('success');
+      if(mode === 'eraser') btnPen.classList.remove('success');
+      btnPen.setAttribute('aria-pressed', String(mode==='pen'));
+      btnEraser.setAttribute('aria-pressed', String(mode==='eraser'));
+    }
+
+    const strokes = [];     // list of stroke {pts:[{x,y}], color, w}
+    let currentStroke = null;
+
+    // --- UI Build ---
+    function buildList(){
+      list.innerHTML = '';
+      shapes.forEach((s, i)=>{
+        const chip = document.createElement('div');
+        chip.className = 'chip';
+        chip.textContent = s.label;
+        chip.dataset.index = i;
+        if(i===activeIdx) chip.setAttribute('data-active','true');
+        chip.addEventListener('click',()=>{activeIdx=i; prepareShape();});
+        list.appendChild(chip);
+      });
+    }
+
+    function markActive(){
+      [...list.children].forEach((el, i)=>{
+        if(i===activeIdx) el.setAttribute('data-active','true');
+        else el.removeAttribute('data-active');
+      })
+    }
+
+    // --- Shape Generators ---
+    function centerBox(){
+      const W = canvas.clientWidth, H = canvas.clientHeight;
+      const pad = Math.min(W,H)*0.12;
+      return {x:pad, y:pad, w:W-pad*2, h:H-pad*2};
+    }
+
+    function sampleParam(fn, count){
+      const pts=[];
+      for(let i=0;i<count;i++){
+        const t=i/(count-1);
+        pts.push(fn(t));
+      }
+      return pts;
+    }
+
+    function regularPolygon(n, rot=0){
+      const box=centerBox(); const cx=box.x+box.w/2, cy=box.y+box.h/2;
+      const r=Math.min(box.w,box.h)*0.38;
+      const verts=[];
+      for(let i=0;i<n;i++){
+        const a=rot + i*2*Math.PI/n;
+        verts.push({x:cx + r*Math.cos(a), y:cy + r*Math.sin(a)});
+      }
+      return outlineFromVertices(verts, true);
+    }
+
+    function outlineFromVertices(verts, closed){
+      // Resample uniformly along edges
+      const segs=[]; let L=0;
+      for(let i=0;i<verts.length;i++){
+        const a=verts[i]; const b=verts[(i+1)%verts.length];
+        if(!closed && i===verts.length-1) break;
+        const dx=b.x-a.x, dy=b.y-a.y; const len=Math.hypot(dx,dy);
+        segs.push({a,b,len}); L+=len;
+      }
+      const pts=[]; let acc=0; const step=L/(SAMPLE_POINTS-1);
+      let si=0, sleft=segs[0]?segs[0].len:0, px=segs[0]?.a.x, py=segs[0]?.a.y;
+      pts.push({x:px,y:py});
+      for(let i=1;i<SAMPLE_POINTS;i++){
+        acc+=step;
+        while(acc>sleft && si<segs.length-1){acc-=sleft; si++; sleft=segs[si].len; px=segs[si].a.x; py=segs[si].a.y;}
+        const t=sleft?acc/sleft:0; const s=segs[si];
+        const x=s.a.x + (s.b.x - s.a.x)*t; const y=s.a.y + (s.b.y - s.a.y)*t;
+        pts.push({x,y});
+      }
+      return pts;
+    }
+
+    function genShape(key){
+      switch(key){
+        case 'circle':{
+          const box=centerBox(); const cx=box.x+box.w/2, cy=box.y+box.h/2; const rx=Math.min(box.w,box.h)*0.40;
+          return sampleParam(u=>({x:cx+rx*Math.cos(u*2*Math.PI), y:cy+rx*Math.sin(u*2*Math.PI)}), SAMPLE_POINTS);
+        }
+        case 'oval':{
+          const box=centerBox(); const cx=box.x+box.w/2, cy=box.y+box.h/2;
+          const rx=Math.min(box.w,box.h)*0.46, ry=rx*0.65;
+          return sampleParam(u=>({x:cx+rx*Math.cos(u*2*Math.PI), y:cy+ry*Math.sin(u*2*Math.PI)}), SAMPLE_POINTS);
+        }
+        case 'square':{
+          const box=centerBox(); const s=Math.min(box.w,box.h)*0.72; const cx=box.x+box.w/2, cy=box.y+box.h/2;
+          const h=s/2;
+          return outlineFromVertices([
+            {x:cx-h,y:cy-h},{x:cx+h,y:cy-h},{x:cx+h,y:cy+h},{x:cx-h,y:cy+h}
+          ], true);
+        }
+        case 'rect':{
+          const box=centerBox(); const w=Math.min(box.w*0.85, box.h*0.65*1.4); const h=w*0.65; const cx=box.x+box.w/2, cy=box.y+box.h/2;
+          const hh=h/2, hw=w/2;
+          return outlineFromVertices([
+            {x:cx-hw,y:cy-hh},{x:cx+hw,y:cy-hh},{x:cx+hw,y:cy+hh},{x:cx-hw,y:cy+hh}
+          ], true);
+        }
+        case 'triangle':{
+          const box=centerBox(); const r=Math.min(box.w,box.h)*0.44; const cx=box.x+box.w/2, cy=box.y+box.h/2 + r*0.1;
+          return regularPolygon(3, -Math.PI/2).map(p=>({x:p.x, y:p.y + r*0.1}));
+        }
+        case 'diamond':{
+          const box=centerBox(); const s=Math.min(box.w,box.h)*0.72; const cx=box.x+box.w/2, cy=box.y+box.h/2;
+          const h=s/2;
+          return outlineFromVertices([
+            {x:cx,y:cy-h},{x:cx+h,y:cy},{x:cx,y:cy+h},{x:cx-h,y:cy}
+          ], true);
+        }
+        case 'hex': return regularPolygon(6, Math.PI/6);
+        case 'penta': return regularPolygon(5, -Math.PI/2);
+        case 'star':{
+          const box=centerBox(); const cx=box.x+box.w/2, cy=box.y+box.h/2; const R=Math.min(box.w,box.h)*0.42, r=R*0.5;
+          const verts=[];
+          for(let i=0;i<10;i++){
+            const a=-Math.PI/2 + i*Math.PI/5;
+            const rad=(i%2===0)?R:r;
+            verts.push({x:cx+rad*Math.cos(a), y:cy+rad*Math.sin(a)});
+          }
+          return outlineFromVertices(verts, true);
+        }
+        case 'heart':{
+          const box=centerBox(); const cx=box.x+box.w/2, cy=box.y+box.h/2 + Math.min(box.w,box.h)*0.06; 
+          const scale = Math.min(box.w,box.h)*0.028;
+          return sampleParam(u=>{
+            const t = u*2*Math.PI;
+            const x = 16*Math.sin(t)**3;
+            const y = 13*Math.cos(t) - 5*Math.cos(2*t) - 2*Math.cos(3*t) - Math.cos(4*t);
+            return {x: cx + x*scale, y: cy - y*scale};
+          }, SAMPLE_POINTS);
+        }
+        default: return [];
+      }
+    }
+
+    // --- Drawing & Hit-testing ---
+    function prepareShape(){
+      markActive();
+      sampling = genShape(shapes[activeIdx].key).map(p=>({x:p.x, y:p.y, hit:false}));
+      strokes.length = 0; currentStroke=null; hideToast();
+      redraw(); updateProgress();
+    }
+
+    function redraw(){
+      const W=canvas.clientWidth, H=canvas.clientHeight;
+      ctx.clearRect(0,0,W,H);
+
+      // guide path (dashed)
+      ctx.save();
+      ctx.lineWidth=3; ctx.setLineDash([10,12]); ctx.strokeStyle='rgba(148,163,184,.75)';
+      ctx.beginPath();
+      for(let i=0;i<sampling.length;i++){
+        const p=sampling[i]; if(i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y);
+      }
+      ctx.closePath(); ctx.stroke();
+      ctx.restore();
+
+      // progress dots
+      ctx.save();
+      for(const p of sampling){
+        ctx.fillStyle = p.hit? 'rgba(34,197,94,.95)' : 'rgba(100,116,139,.35)';
+        ctx.beginPath(); ctx.arc(p.x,p.y,2.2,0,Math.PI*2); ctx.fill();
+      }
+      ctx.restore();
+
+      // strokes
+      for(const s of strokes){
+        ctx.save();
+        ctx.lineWidth=s.w; ctx.lineJoin='round'; ctx.lineCap='round'; ctx.strokeStyle=s.color;
+        ctx.beginPath();
+        s.pts.forEach((pt,j)=>{ if(j===0) ctx.moveTo(pt.x,pt.y); else ctx.lineTo(pt.x,pt.y); });
+        ctx.stroke(); ctx.restore();
+      }
+
+      // HUD legend
+      const hitCount = sampling.filter(p=>p.hit).length;
+      statusEl.innerHTML = `<span><span class="dot path"></span>Path</span><span><span class="dot hit"></span>Hit: ${hitCount}</span><span><span class="dot hint"></span>Hint</span>`;
+    }
+
+    function updateProgress(){
+      const hit = sampling.filter(p=>p.hit).length;
+      const ratio = hit / Math.max(1, sampling.length);
+      bar.style.width = (ratio*100).toFixed(1)+"%";
+      if(ratio >= MIN_HIT_RATIO){
+        celebrate();
+      }
+    }
+
+    function celebrate(){
+      showToast('🎉 Hebat! Bentuk selesai!');
+      burst();
+    }
+
+    function showToast(msg){ toast.textContent=msg; toast.classList.add('show'); }
+    function hideToast(){ toast.classList.remove('show'); }
+
+    function dist2(a,b){ const dx=a.x-b.x, dy=a.y-b.y; return dx*dx+dy*dy; }
+
+    function applyHits(pt){
+      const r2 = HIT_RADIUS*HIT_RADIUS;
+      for(let i=0;i<sampling.length;i++){
+        const p=sampling[i]; if(!p.hit && dist2(p, pt) <= r2){ p.hit = true; }
+      }
+    }
+
+    function pointerPos(ev){
+      const rect=canvas.getBoundingClientRect();
+      const x=(ev.touches? ev.touches[0].clientX : ev.clientX) - rect.left;
+      const y=(ev.touches? ev.touches[0].clientY : ev.clientY) - rect.top;
+      return {x,y};
+    }
+
+    function startDraw(ev){ ev.preventDefault(); drawing=true; hideToast();
+      const p=pointerPos(ev); currentStroke = {pts:[p], color: mode==='pen'? '#a7f3d0':'#0b1020', w: mode==='pen'?6:26};
+      strokes.push(currentStroke); applyHits(p); redraw(); updateProgress();
+    }
+    function moveDraw(ev){ if(!drawing) return; ev.preventDefault();
+      const p=pointerPos(ev); currentStroke.pts.push(p); applyHits(p); redraw(); updateProgress();
+    }
+    function endDraw(){ drawing=false; currentStroke=null; }
+
+    // ghost layer for hint animation
+    let hintOn=false, hintId=0;
+    function toggleHint(){ hintOn=!hintOn; if(hintOn) animateHint(); else gtx.clearRect(0,0,ghost.clientWidth,ghost.clientHeight); }
+    function animateHint(){
+      const W=ghost.clientWidth, H=ghost.clientHeight; const id=++hintId;
+      let t=0; (function loop(){ if(id!==hintId) return; t+=0.008; gtx.clearRect(0,0,W,H);
+        gtx.save(); gtx.lineWidth=5; gtx.lineJoin='round'; gtx.lineCap='round';
+        for(let i=1;i<sampling.length;i++){
+          const a=sampling[i-1], b=sampling[i];
+          const alpha = 0.15 + 0.4*Math.max(0, Math.cos(t*6 + i*0.12));
+          gtx.strokeStyle = `rgba(56,189,248,${alpha})`;
+          gtx.beginPath(); gtx.moveTo(a.x,a.y); gtx.lineTo(b.x,b.y); gtx.stroke();
+        }
+        gtx.restore(); requestAnimationFrame(loop); })();
+    }
+
+    // Confetti burst
+    function burst(){
+      const W=ghost.clientWidth, H=ghost.clientHeight; const cx=W/2, cy=H/2; const parts=[];
+      for(let i=0;i<120;i++) parts.push({x:cx,y:cy, vx:(Math.random()*2-1)*6, vy:(Math.random()*2-1)*6, r:2+Math.random()*3, life:60+Math.random()*40});
+      const id=++hintId; (function loop(){ if(id!==hintId) return; gtx.clearRect(0,0,W,H);
+        parts.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.vy+=0.08; p.life--; });
+        parts.forEach(p=>{ gtx.fillStyle=`hsl(${(p.life*6)%360} 90% 60% / .9)`; gtx.beginPath(); gtx.arc(p.x,p.y,p.r,0,Math.PI*2); gtx.fill(); });
+        if(parts.some(p=>p.life>0)) requestAnimationFrame(loop); else gtx.clearRect(0,0,W,H);
+      })();
+    }
+
+    // --- Controls ---
+    document.getElementById('btnReset').addEventListener('click', ()=>prepareShape());
+    document.getElementById('btnHint').addEventListener('click', toggleHint);
+    document.getElementById('btnRandom').addEventListener('click', ()=>{ activeIdx=Math.floor(Math.random()*shapes.length); prepareShape(); });
+    document.getElementById('btnNext').addEventListener('click', ()=>{ activeIdx=(activeIdx+1)%shapes.length; prepareShape(); });
+
+    btnUndo.addEventListener('click', ()=>{ strokes.pop(); redraw(); updateProgress(); });
+    btnEraser.addEventListener('click', ()=>{ mode='eraser'; updateToolButtons(); });
+    btnPen.addEventListener('click', ()=>{ mode='pen'; updateToolButtons(); });
+
+    // Pointer listeners
+    canvas.addEventListener('pointerdown', startDraw, {passive:false});
+    canvas.addEventListener('pointermove', moveDraw, {passive:false});
+    window.addEventListener('pointerup', endDraw, {passive:false});
+
+    canvas.addEventListener('touchstart', startDraw, {passive:false});
+    canvas.addEventListener('touchmove', moveDraw, {passive:false});
+    window.addEventListener('touchend', endDraw, {passive:false});
+
+    // Init
+    buildList(); fitCanvas(); prepareShape();
+    updateToolButtons();
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Reality River (Lite) — Queen's Academy</title>
+  <style>
+    :root{
+      --bg:#0b132b;          /* latar belakang halaman */
+      --river:#1b2a49;       /* warna sungai */
+      --water:#1f3b73;       /* gelombang */
+      --bank:#0e1a33;        /* tepi sungai */
+      --text:#e6f1ff;        /* teks utama */
+      --muted:#8aa4d4;       /* teks sekunder */
+      --accent:#22c55e;      /* hijau benar */
+      --danger:#ef4444;      /* merah salah */
+      --stone:#e5eefc;       /* batu loncatan */
+      --stone-txt:#0b132b;   /* teks batu */
+      --ui:#101a33;          /* panel UI */
+      --gold:#f59e0b;        /* skor */
+
+      --river-speed: 16s;    /* akan dikurangi per level */
+      --stone-size: 180px;   /* diameter batu di desktop */
+      --stone-gap: 18px;     /* jarak antar batu */
+      --row-gap: 70px;       /* jarak antar baris */
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family: ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      color:var(--text); background: radial-gradient(1200px 600px at 70% -10%, #132347 0%, #0b132b 55%, #071024 100%);
+      display:flex; flex-direction:column;
+    }
+
+    /* ===== HUD ===== */
+    header.hud{
+      position:sticky; top:0; z-index:10; display:flex; align-items:center; justify-content:space-between;
+      gap:12px; padding:10px 14px; background: linear-gradient(180deg, rgba(10,16,35,.92), rgba(10,16,35,.7)); border-bottom:1px solid rgba(255,255,255,.06);
+      backdrop-filter: blur(6px);
+    }
+    header.hud .brand{font-weight:800; letter-spacing:.3px}
+    header.hud .muted{color:var(--muted)}
+    header.hud .stat{display:inline-flex; align-items:center; gap:8px; margin-right:10px}
+    header.hud .pill{padding:6px 10px; border-radius:10px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08)}
+    header.hud .hearts{font-size:18px; letter-spacing:2px}
+    header.hud .score{color:var(--gold); font-weight:800}
+
+    .btn{border:0; padding:10px 14px; border-radius:12px; font-weight:700; cursor:pointer; transition:transform .05s ease, filter .15s ease; color:#fff}
+    .btn:active{transform:translateY(1px)}
+    .btn-primary{background:#2563eb}
+    .btn-ok{background:var(--accent)}
+    .btn-warn{background:#94a3b8}
+    .btn-danger{background:var(--danger)}
+
+    .btn-finish{background:#22c55e; color:#fff; border:0; padding:10px 14px; border-radius:12px; font-weight:800; box-shadow:0 6px 18px rgba(34,197,94,.25);}
+
+    /* ===== ARENA ===== */
+    main.arena{ flex:1; display:grid; grid-template-columns: 140px 1fr 140px; gap:0; }
+    .bank{display:flex; align-items:center; justify-content:center; font-weight:800; color:var(--muted); background:var(--bank)}
+    .left-bank{ border-right:1px dashed rgba(255,255,255,.06) }
+    .right-bank{ border-left:1px dashed rgba(255,255,255,.06) }
+
+    .river{ position:relative; overflow:hidden; background:linear-gradient(180deg, #0d1c39, #0b172e 65%);
+      border-top:1px solid rgba(255,255,255,.06); border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    /* water flow */
+    .river::before{
+      content:""; position:absolute; inset:-30% -20%; opacity:.35;
+      background:
+        radial-gradient(60px 30px at 10% 10%, var(--water), transparent 60%),
+        radial-gradient(80px 40px at 60% 40%, var(--water), transparent 60%),
+        radial-gradient(90px 45px at 20% 80%, var(--water), transparent 60%),
+        radial-gradient(70px 35px at 90% 20%, var(--water), transparent 60%);
+      filter: blur(18px);
+      animation: flow var(--river-speed) linear infinite;
+      pointer-events:none;
+    }
+    @keyframes flow{ from{ transform: translateX(-10%) } to{ transform: translateX(10%) } }
+
+    /* grid helper lines */
+    .river .rows{ position:absolute; inset:0; pointer-events:none }
+    .river .rows .row{ position:absolute; left:6%; right:6%; height:2px; background:linear-gradient(90deg, transparent, rgba(255,255,255,.06), transparent) }
+
+    /* player */
+    .player{ position:absolute; width:36px; height:36px; border-radius:50%; background: conic-gradient(from 0deg, #60a5fa, #a78bfa, #60a5fa);
+      box-shadow:0 4px 14px rgba(99,102,241,.55), inset 0 0 10px rgba(255,255,255,.35);
+      transform: translate(-50%, -50%); transition: left .28s ease, top .28s ease;
+      z-index:3;
+    }
+    .player::after{ content:""; position:absolute; inset:-6px; border:2px solid rgba(255,255,255,.25); border-radius:50% }
+
+    /* question panel */
+    .question{ position:absolute; top:14px; left:50%; transform:translateX(-50%); max-width:900px; width:calc(100% - 40px); padding:14px 16px; border-radius:14px;
+      background:linear-gradient(180deg, rgba(13,24,52,.9), rgba(10,18,38,.85)); border:1px solid rgba(255,255,255,.08);
+      box-shadow:0 10px 30px rgba(2,6,23,.35);
+    }
+    .question .q{font-weight:700; line-height:1.35}
+    .question small{color:var(--muted)}
+
+    /* stones (choices) */
+    .stones{ position:absolute; top:120px; left:0; right:0; display:grid; grid-template-columns: repeat(3, minmax(180px, 1fr)); gap:var(--stone-gap); padding:0 26px; }
+
+    .stone{ position:relative; aspect-ratio: 1 / 1; max-width:420px; place-self:center; width:var(--stone-size);
+      border-radius:50%; background: radial-gradient(70% 60% at 50% 38%, #ffffff, #dbeafe 60%, #c7d2fe 100%);
+      color:var(--stone-txt); display:flex; align-items:center; justify-content:center; text-align:center; padding:14px; font-weight:800;
+      box-shadow: 0 12px 0 #90a1c9, 0 16px 24px rgba(3,7,18,.35);
+      cursor:pointer; user-select:none; transition: transform .12s ease, box-shadow .12s ease, filter .15s ease; border:2px solid rgba(3,7,18,.25);
+    }
+    .stone:hover{ transform:translateY(-2px) }
+    .stone:active{ transform:translateY(1px) }
+    .stone .num{ position:absolute; top:8px; left:10px; font-weight:900; color:#1e293b; opacity:.25; font-size:18px }
+
+    .stone.correct{ outline:4px solid rgba(34,197,94,.7) }
+    .stone.wrong{ outline:4px solid rgba(239,68,68,.8) }
+    .stone.sink{ animation: sink .6s ease forwards }
+    @keyframes sink{ to{ transform: translateY(28px) scale(.96); opacity:.35; filter: grayscale(.6) } }
+
+    /* toast */
+    .toast{ position:fixed; left:50%; bottom:20px; transform:translateX(-50%) translateY(30px); opacity:0; background:rgba(3,7,18,.75); border:1px solid rgba(255,255,255,.06);
+      color:#fff; padding:10px 14px; border-radius:12px; font-weight:700; pointer-events:none; transition:all .25s ease }
+    .toast.show{ transform:translateX(-50%) translateY(0); opacity:1 }
+
+    /* modal */
+    .modal{ position:fixed; inset:0; display:grid; place-items:center; background:rgba(2,6,23,.6); z-index:50 }
+    .modal.hidden{ display:none }
+    .modal .card{ width:min(680px, calc(100% - 32px)); background:linear-gradient(180deg, #0f1b36, #0b1429); border:1px solid rgba(255,255,255,.08);
+      border-radius:16px; padding:18px; box-shadow:0 24px 60px rgba(2,6,23,.6) }
+    .modal .card h2{ margin:0 0 8px 0 }
+    .modal .row{ display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; margin-top:12px }
+
+    /* responsive */
+    @media (max-width: 1024px){
+      :root{ --stone-size: 150px; --row-gap: 60px }
+      .stones{ padding:0 14px; grid-template-columns: repeat(3, 1fr) }
+    }
+    @media (max-width: 640px){
+      :root{ --stone-size: 120px; --row-gap: 50px }
+      header.hud{ gap:8px; padding:8px }
+      header.hud .brand{ font-size:14px }
+      .question{ top:10px; padding:12px 12px }
+      .stones{ top:110px; gap:12px }
+      .stone{ padding:10px; font-size:12px }
+    }
+  </style>
+</head>
+<body>
+  <header class="hud">
+    <div class="left">
+      <span class="stat pill">Level: <b id="ui-level">1</b></span>
+      <span class="stat pill">Nyawa: <span id="ui-lives" class="hearts">❤️❤️❤️</span></span>
+    </div>
+    <div class="brand">Reality River <span class="muted">(Lite)</span></div>
+    <div class="right">
+      <span class="stat pill">Skor: <b id="ui-score" class="score">0</b></span>
+      <span class="stat pill">Waktu: <b id="ui-time">90</b>s</span>
+      <button id="btnSelesai" class="btn-finish" title="Selesai">Selesai</button>
+    </div>
+  </header>
+
+  <main class="arena">
+    <div class="bank left-bank">Tepi Kiri</div>
+    <div class="river" id="river">
+      <div class="rows" id="rows"></div>
+      <div class="question" id="question">
+        <div class="q">Selamat datang! Jawab dengan <em>pintar</em> untuk menyeberang sungai realitas.</div>
+        <small>Tips: Gunakan tombol 1 / 2 / 3 untuk memilih lebih cepat.</small>
+      </div>
+      <div class="stones" id="stones"></div>
+      <div class="player" id="player" style="left: 6%; top: 92%" aria-label="Pemain"></div>
+    </div>
+    <div class="bank right-bank">Tepi Kanan</div>
+  </main>
+
+  <footer class="controls" style="text-align:center; padding:10px 12px; color:var(--muted)">
+    <small>Keyboard: 1 • 2 • 3 &nbsp;•&nbsp; Klik batu loncatan</small>
+  </footer>
+
+  <div id="toast" class="toast" role="status"></div>
+
+  <div id="modal" class="modal hidden" aria-modal="true" role="dialog">
+    <div class="card">
+      <h2 id="modal-title">Mantap!</h2>
+      <p id="modal-body" style="margin:0"></p>
+      <div class="row">
+        <button class="btn btn-warn" id="btnAgain">Main Lagi</button>
+        <button class="btn btn-ok" id="btnNext">Lanjut Level</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==========================
+    // Reality River (Lite) v1.0
+    // ==========================
+    // Mekanik sederhana: pilih 1 dari 3 batu tiap baris. Jawaban benar menggerakkan
+    // pemain maju; salah = batu tenggelam & -nyawa. Selesaikan semua baris untuk
+    // menyeberang. Level berikutnya: waktu lebih ketat & animasi air lebih cepat.
+
+    const LEVELS = [
+      { rows: 6, time: 90, riverSpeed: '16s' },
+      { rows: 7, time: 75, riverSpeed: '12s' },
+      { rows: 8, time: 60, riverSpeed: '9s' }
+    ];
+    const MAX_LIVES = 3;
+
+    // --- Kumpulan soal (contoh). Mudah ditambah! ---
+    const QUESTIONS = [
+      {
+        q: 'Seseorang DM: “Aku teman sekelasmu, ini akun baru. Pinjam dulu kode OTP ya.”',
+        options: ['Tolak & laporkan', 'Kirim OTP biar cepat', 'Tanya dulu lalu kasih'],
+        answer: 0,
+        tip: 'OTP itu kunci akunmu. Tidak boleh diberikan ke siapa pun.'
+      },
+      {
+        q: 'Profil menawarkan hadiah “Giveaway iPhone” asal klik link pemendek tak jelas.',
+        options: ['Abaikan link', 'Coba di HP orang tua', 'Masuk saja nanti keluar'],
+        answer: 0,
+        tip: 'Link tak jelas = risiko phishing. Cek sumber resmi & domain.'
+      },
+      {
+        q: 'Teman online baru minta alamat rumah untuk kirim “kado ulang tahun”.',
+        options: ['Tolak berbagi alamat', 'Boleh jika lewat chat privat', 'Boleh jika janji tidak sebar'],
+        answer: 0,
+        tip: 'Data pribadi (alamat, sekolah, nomor) jangan dibagikan ke orang asing.'
+      },
+      {
+        q: 'Kamu dapat email login tak dikenal. Apa langkah paling aman?',
+        options: ['Ganti password + 2FA', 'Abaikan saja', 'Balas emailnya tanya'],
+        answer: 0,
+        tip: 'Segera amankan akun: ubah sandi & aktifkan 2FA.'
+      },
+      {
+        q: 'Akun teman mengirim pesan pinjaman uang, bahasannya aneh & mendesak.',
+        options: ['Verifikasi via telpon langsung', 'Transfer sedikit dulu', 'Rahasiakan ke orang tua'],
+        answer: 0,
+        tip: 'Verifikasi identitas lewat jalur lain sebelum bertindak.'
+      },
+      {
+        q: 'Sebuah aplikasi minta akses kamera, mikrofon, & lokasi padahal tak relevan.',
+        options: ['Tolak izin & uninstall', 'Setujui semua biar fitur lengkap', 'Setujui separuh'],
+        answer: 0,
+        tip: 'Izin berlebihan = red flag. Pakai aplikasi tepercaya saja.'
+      },
+      {
+        q: 'Posting foto kelas lengkap dengan seragam & nama sekolah terlihat.',
+        options: ['Kaburkan info sensitif', 'Upload apa adanya', 'Tag lokasi biar rame'],
+        answer: 0,
+        tip: 'Minimalkan jejak data yang bisa identifikasi lokasi & kebiasaan.'
+      },
+      {
+        q: 'Kuis “Siapa kamu versi hewan?” meminta login dengan akun utama.',
+        options: ['Jangan login; risiko data', 'Login cepat via akun utama', 'Pinjam akun teman'],
+        answer: 0,
+        tip: 'Hindari aplikasi kuis yang minta akses berlebihan ke profil.'
+      },
+      {
+        q: 'Kamu melihat komentar kasar/bully ke temanmu.',
+        options: ['Simpan bukti & laporkan', 'Balas lebih kasar', 'Diamkan saja'],
+        answer: 0,
+        tip: 'Dukung korban: simpan bukti, laporkan, dan cari bantuan dewasa.'
+      },
+      {
+        q: 'Ada akun mengaku “admin game” minta kata sandi untuk “cek bug hadiah”.',
+        options: ['Itu penipu — tolak', 'Kasih karena admin resmi', 'Ubah sandi lalu kasih'],
+        answer: 0,
+        tip: 'Admin tidak perlu kata sandimu. Jangan bagikan sandi.'
+      },
+      {
+        q: 'Link shortening mengarah ke domain yang mirip tapi ejaannya salah.',
+        options: ['Periksa domain resmi', 'Lanjutkan saja', 'Bagikan ke teman dulu'],
+        answer: 0,
+        tip: 'Typosquatting adalah trik phishing. Ketik alamat asli manual.'
+      },
+      {
+        q: 'Grup chat membagikan file “mod APK premium” dari sumber tak jelas.',
+        options: ['Jangan unduh', 'Unduh lalu scan saja', 'Minta teman coba dulu'],
+        answer: 0,
+        tip: 'Mod APK bisa berisi malware/spyware. Hindari sumber ilegal.'
+      },
+      {
+        q: 'Foto profil seseorang tampak hasil AI/stock. Follower sangat sedikit.',
+        options: ['Waspada & verifikasi', 'Follow biar kenal', 'DM ajak kenalan'],
+        answer: 0,
+        tip: 'Akun palsu sering pakai foto generatif/stock. Cek rekam jejaknya.'
+      },
+      {
+        q: 'Kamu ingin mengadakan COD dengan orang asing dari marketplace.',
+        options: ['Pilih lokasi ramai', 'Ajak ke rumah', 'Transfer dulu biar cepat'],
+        answer: 0,
+        tip: 'Keselamatan dulu: lokasi publik, ajak pendamping, bayar aman.'
+      },
+      {
+        q: 'Ada undian “100% menang” yang minta biaya admin kecil.',
+        options: ['Penipuan — tolak', 'Bayar sedikit coba peruntungan', 'Tanya teman dulu baru bayar'],
+        answer: 0,
+        tip: 'Jika harus bayar untuk hadiah, hampir pasti penipuan.'
+      },
+      {
+        q: 'Kamu menemukan Wi‑Fi gratis tanpa sandi di tempat umum.',
+        options: ['Hindari untuk data sensitif', 'Aman untuk semua hal', 'Masukkan sandi bank'],
+        answer: 0,
+        tip: 'Jaringan publik rawan. Pakai hanya untuk hal tak sensitif/VPN.'
+      }
+    ];
+
+    // --- State ---
+    let level = 0;           // index LEVELS
+    let lives = MAX_LIVES;
+    let score = 0;
+    let timeLeft = 0;
+    let timerId = null;
+
+    let deck = [];           // pertanyaan untuk level ini
+    let step = 0;            // indeks baris saat ini
+
+    // --- DOM ---
+    const uiLevel = document.getElementById('ui-level');
+    const uiLives = document.getElementById('ui-lives');
+    const uiScore = document.getElementById('ui-score');
+    const uiTime  = document.getElementById('ui-time');
+    const river   = document.getElementById('river');
+    const rowsEl  = document.getElementById('rows');
+    const qEl     = document.getElementById('question');
+    const stonesEl= document.getElementById('stones');
+    const player  = document.getElementById('player');
+    const toastEl = document.getElementById('toast');
+    const modal   = document.getElementById('modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalBody  = document.getElementById('modal-body');
+    const btnAgain   = document.getElementById('btnAgain');
+    const btnNext    = document.getElementById('btnNext');
+
+    document.getElementById('btnSelesai').addEventListener('click', () => {
+      if(confirm('Keluar dari permainan sekarang? Skor kamu akan disimpan.')){
+        finishGame(true);
+      }
+    });
+
+    // --- Utils ---
+    function shuffle(arr){
+      const a = arr.slice();
+      for(let i=a.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [a[i],a[j]] = [a[j],a[i]];
+      }
+      return a;
+    }
+
+    function showToast(msg){
+      toastEl.textContent = msg; toastEl.classList.add('show');
+      setTimeout(()=> toastEl.classList.remove('show'), 1200);
+    }
+
+    function renderLives(){
+      uiLives.textContent = '❤️'.repeat(lives) + '🖤'.repeat(MAX_LIVES - lives);
+    }
+
+    function setRiverSpeed(cssSeconds){
+      river.style.setProperty('--river-speed', cssSeconds);
+    }
+
+    function layoutRows(total){
+      rowsEl.innerHTML = '';
+      const h = river.clientHeight;
+      for(let i=1;i<=total;i++){
+        const y = 100 - (i * (70 / (total+1))); // posisi garis indikatif
+        const r = document.createElement('div');
+        r.className = 'row'; r.style.top = `calc(${y}% - 1px)`;
+        rowsEl.appendChild(r);
+      }
+    }
+
+    // --- Game Flow ---
+    function startLevel(idx){
+      level = idx; lives = MAX_LIVES; step = 0; score = level===0?0:score; // reset lives; skor kumulatif
+      const conf = LEVELS[level];
+      uiLevel.textContent = (level+1);
+      timeLeft = conf.time; uiTime.textContent = timeLeft;
+      setRiverSpeed(conf.riverSpeed);
+
+      // siapkan pertanyaan: ambil acak sesuai jumlah row
+      deck = shuffle(QUESTIONS).slice(0, conf.rows);
+
+      // tata ulang UI
+      renderLives(); uiScore.textContent = score;
+      layoutRows(conf.rows);
+      qEl.querySelector('.q').textContent = 'Pilih batu paling aman untuk menyeberang.';
+      spawnRow();
+      movePlayerToBankLeft();
+
+      clearInterval(timerId);
+      timerId = setInterval(()=>{
+        timeLeft--; uiTime.textContent = timeLeft;
+        if(timeLeft<=0){ clearInterval(timerId); gameOver('Waktu habis!'); }
+      },1000);
+
+      // keyboard 1/2/3
+      window.onkeydown = (e)=>{
+        if(['1','2','3'].includes(e.key)){
+          const idx = parseInt(e.key,10)-1;
+          const node = stonesEl.querySelector(`[data-idx="${idx}"]`);
+          if(node) pick(node, idx);
+        }
+      };
+    }
+
+    function movePlayerToBankLeft(){
+      // posisi aman di kiri bawah
+      const { left, top } = river.getBoundingClientRect();
+      player.style.left = '6%';
+      player.style.top  = '92%';
+    }
+
+    function spawnRow(){
+      const item = deck[step];
+      if(!item){ // selesai level
+        clearInterval(timerId);
+        crossed();
+        return;
+      }
+
+      // set pertanyaan
+      qEl.querySelector('.q').textContent = item.q;
+
+      // render 3 batu
+      stonesEl.innerHTML = '';
+      const choiceOrder = shuffle([0,1,2]); // acak posisi jawaban
+      choiceOrder.forEach((choiceIdx, i)=>{
+        const div = document.createElement('div');
+        div.className = 'stone';
+        div.setAttribute('data-idx', i);
+        div.setAttribute('role', 'button');
+        div.setAttribute('aria-label', `Pilihan ${i+1}`);
+        div.innerHTML = `<span class="num">${i+1}</span>${item.options[choiceIdx]}`;
+        div.dataset.correct = (choiceIdx === item.answer) ? '1' : '0';
+        div.addEventListener('click', ()=> pick(div, i));
+        stonesEl.appendChild(div);
+      });
+    }
+
+    function pick(node, visualIdx){
+      const isCorrect = node.dataset.correct === '1';
+
+      // animasikan posisi player ke batu yang dipilih
+      placePlayerOver(node);
+
+      if(isCorrect){
+        node.classList.add('correct');
+        score += 100; uiScore.textContent = score;
+        showToast('✅ Aman! Lanjut…');
+        step++;
+        // jeda sebentar sebelum baris berikutnya
+        setTimeout(spawnRow, 450);
+      } else {
+        node.classList.add('wrong','sink');
+        lives--; renderLives();
+        score = Math.max(0, score - 40); uiScore.textContent = score;
+        showToast('⚠️ Bahaya! Batu palsu tenggelam.');
+        // tampilkan tips singkat
+        qEl.querySelector('.q').textContent += ` — Tips: ${deck[step].tip}`;
+        if(lives<=0){ clearInterval(timerId); gameOver('Nyawamu habis!'); return; }
+        // tetap di baris ini, tapi izinkan pilih ulang batu lain yang tersisa
+      }
+    }
+
+    function placePlayerOver(el){
+      const rBox = river.getBoundingClientRect();
+      const b = el.getBoundingClientRect();
+      const x = ((b.left + b.right)/2 - rBox.left) / rBox.width * 100;
+      const y = ((b.top + b.bottom)/2 - rBox.top) / rBox.height * 100;
+      player.style.left = x + '%';
+      player.style.top  = y + '%';
+    }
+
+    function crossed(){
+      // Selesai menyeberang level ini
+      modal.classList.remove('hidden');
+      modalTitle.textContent = 'Berhasil menyeberang!';
+      modalBody.innerHTML = `Level ${(level+1)} tuntas. Skor sementara: <b>${score}</b>.`;
+      btnAgain.textContent = 'Ulangi Level';
+      btnNext.textContent  = (level < LEVELS.length-1) ? 'Lanjut Level Berikutnya' : 'Selesai Permainan';
+
+      btnAgain.onclick = ()=>{ modal.classList.add('hidden'); startLevel(level); };
+      btnNext.onclick  = ()=>{
+        modal.classList.add('hidden');
+        if(level < LEVELS.length-1){ startLevel(level+1); }
+        else { finishGame(false); }
+      };
+    }
+
+    function gameOver(reason){
+      modal.classList.remove('hidden');
+      modalTitle.textContent = 'Game Over';
+      modalBody.innerHTML = `${reason}<br/>Skor akhir: <b>${score}</b>`;
+      btnAgain.textContent = 'Coba Lagi';
+      btnNext.textContent  = 'Keluar';
+      btnAgain.onclick = ()=>{ modal.classList.add('hidden'); startLevel(level); };
+      btnNext.onclick  = ()=> finishGame(false);
+    }
+
+    function finishGame(isManual){
+      // simpan highscore lokal
+      const best = Number(localStorage.getItem('RR_BEST') || '0');
+      if(score > best) localStorage.setItem('RR_BEST', String(score));
+
+      // dispatch event agar bisa di-hook oleh platform Anda
+      window.dispatchEvent(new CustomEvent('GAME_FINISHED', {
+        detail: {
+          game: 'RealityRiverLite',
+          manualExit: !!isManual,
+          level: level+1,
+          score,
+          timestamp: Date.now()
+        }
+      }));
+
+      // tampilan ringkas lalu redirect opsional (non-intrusif)
+      alert(`Terima kasih bermain! Skor kamu: ${score}`);
+      // Tetap di halaman; biarkan integrasi platform yang mengarahkan bila perlu.
+    }
+
+    // start!
+    window.addEventListener('load', ()=> startLevel(0));
+  </script>
+</body>
+</html>

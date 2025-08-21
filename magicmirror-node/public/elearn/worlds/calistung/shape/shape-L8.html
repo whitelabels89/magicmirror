@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shape L8 – Koding Warna Segitiga</title>
+  <style>
+    :root{
+      --bg:#0b1220; --panel:#0f172a; --ink:#e2e8f0; --muted:#94a3b8;
+      --primary:#22c55e; --danger:#ef4444; --brand:#60a5fa;
+      --btn:#1f2937; --btnHover:#111827;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:radial-gradient(1200px 600px at 50% -200px,#1e293b,#0b1220);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+    .wrap{max-width:980px;margin:auto;padding:24px}
+    header{display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:16px}
+    .title{font-weight:800;letter-spacing:.3px;font-size:clamp(18px,4vw,28px)}
+    .legend{color:var(--muted);font-size:14px}
+
+    .board{display:grid;grid-template-columns:1fr 320px;gap:18px}
+    @media (max-width:860px){.board{grid-template-columns:1fr}}
+
+    .card{background:linear-gradient(180deg,#0f172a,#0b1220);border:1px solid #1f2937;border-radius:16px;padding:16px}
+    .card h3{margin:0 0 8px 0;font-size:16px;color:#cbd5e1}
+
+    /* SVG area */
+    .svgWrap{display:grid;place-items:center;aspect-ratio:1/1;width:100%;}
+    svg{max-width:560px;width:100%;height:100%}
+    .cell{cursor:pointer;transition:filter .15s ease}
+    .cell:hover{filter:brightness(1.08)}
+    .outline{fill:none;stroke:#b6c2d3;stroke-width:3.2}
+
+    /* Palette */
+    .palette{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+    .dot{width:36px;height:36px;border-radius:50%;border:2px solid #0b1220;outline:2px solid #0b0f1a;box-shadow:0 0 0 2px #1f2937 inset;cursor:pointer;transition:transform .08s ease}
+    .dot:active{transform:scale(.94)}
+    .dot.target{width:28px;height:28px;opacity:.95;border-color:transparent;box-shadow:none;cursor:default}
+    .dot.sel{outline:3px solid #e2e8f0}
+
+    /* Buttons */
+    .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+    .btn{border:0;background:var(--btn);color:#e5e7eb;padding:10px 14px;border-radius:12px;font-weight:700;cursor:pointer;letter-spacing:.2px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+    .btn:hover{background:var(--btnHover)}
+    .btn.primary{background:linear-gradient(180deg,#22c55e,#16a34a);}
+    .btn.primary:hover{filter:brightness(1.05)}
+    .btn.ghost{background:transparent;border:1px solid #334155}
+
+    .panelRight{display:grid;gap:10px}
+    .score{font-weight:800;font-size:28px}
+    .chip{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;background:#0b1220;border:1px solid #1f2937;color:#cbd5e1;font-size:12px}
+    .good{color:#22c55e}
+    .bad{color:#f97316}
+
+    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;background:#0b1220;border:1px solid #334155;padding:10px 14px;border-radius:12px;color:#e2e8f0;box-shadow:0 10px 30px rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .2s ease}
+    .toast.show{opacity:1}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="title">KODING WARNA SEGITIGA — Level 8</div>
+      <div class="legend" style="display:flex;align-items:center;gap:12px">
+  <svg id="legendSvg" viewBox="0 0 100 100" width="72" height="72" aria-label="Contoh urutan warna">
+    <path id="legend-top" d="M50,10 L30,50 L70,50 Z" fill="#ef4444" stroke="#b6c2d3" stroke-width="2" />
+    <path id="legend-left" d="M10,90 L30,50 L50,90 Z" fill="#22c55e" stroke="#b6c2d3" stroke-width="2" />
+    <path id="legend-right" d="M90,90 L70,50 L50,90 Z" fill="#3b82f6" stroke="#b6c2d3" stroke-width="2" />
+    <path id="legend-bottom" d="M30,50 L70,50 L50,90 Z" fill="#eab308" stroke="#b6c2d3" stroke-width="2" />
+    <path d="M10,90 L50,10 L90,90 Z" fill="none" stroke="#b6c2d3" stroke-width="2" />
+    <path d="M30,50 L70,50" fill="none" stroke="#b6c2d3" stroke-width="2" />
+    <path d="M30,50 L50,90 L70,50" fill="none" stroke="#b6c2d3" stroke-width="2" />
+  </svg>
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <div style="font-size:13px;color:#cbd5e1">Urutan: <b>Atas</b> • <b>Kiri</b> • <b>Kanan</b> • <b>Bawah</b></div>
+    <div id="legendCodes" style="display:flex;gap:8px;margin-top:0"></div>
+  </div>
+</div>
+    </header>
+
+    <div class="board">
+      <div class="card">
+        <h3>Warnai sesuai urutan</h3>
+        <div class="svgWrap">
+          <!-- Segitiga besar (dibagi menjadi 4 bagian) -->
+          <svg viewBox="0 0 100 100" aria-label="Segitiga berisi empat bagian" role="img">
+            <!-- Bagian: Atas (id=top), Kiri (left), Kanan (right), Bawah (bottom) -->
+            <path id="top" class="cell" d="M50,10 L30,50 L70,50 Z" fill="#0b1220" />
+            <path id="left" class="cell" d="M10,90 L30,50 L50,90 Z" fill="#0b1220" />
+            <path id="right" class="cell" d="M90,90 L70,50 L50,90 Z" fill="#0b1220" />
+            <path id="bottom" class="cell" d="M30,50 L70,50 L50,90 Z" fill="#0b1220" />
+
+            <!-- Garis luar & pembagi (ditaruh terakhir agar terlihat di atas sel) -->
+            <path class="outline" d="M10,90 L50,10 L90,90 Z" vector-effect="non-scaling-stroke" />
+            <path class="outline" d="M30,50 L70,50" vector-effect="non-scaling-stroke" />
+            <path class="outline" d="M30,50 L50,90 L70,50" vector-effect="non-scaling-stroke" />
+          </svg>
+        </div>
+
+        <div style="margin-top:12px">
+          <div style="font-size:13px;color:var(--muted);margin-bottom:6px">Target warna (Atas • Kiri • Kanan • Bawah)</div>
+          <div id="targets" class="palette" aria-label="Target warna"></div>
+        </div>
+
+        <div style="margin-top:10px">
+          <div style="font-size:13px;color:var(--muted);margin-bottom:6px">Pilih warna lalu klik bagian segitiga</div>
+          <div id="palette" class="palette" aria-label="Palet warna"></div>
+        </div>
+
+        <div class="actions">
+          <button id="btnCheck" class="btn primary" type="button">Periksa Jawaban</button>
+          <button id="btnShuffle" class="btn" type="button">Acak Soal</button>
+          <button id="btnReset" class="btn ghost" type="button">Reset</button>
+        </div>
+      </div>
+
+      <aside class="panelRight card">
+        <h3>Status</h3>
+        <div class="chip"><span>Benar:</span> <span id="correct" class="good">0</span></div>
+        <div class="chip"><span>Salah:</span> <span id="wrong" class="bad">0</span></div>
+        <div style="height:8px"></div>
+        <div class="chip">Tip: klik dua kali pada bagian untuk menghapus warnanya.</div>
+      </aside>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    // --- Utilities
+    const COLORS = [
+      {name:'merah',hex:'#ef4444'},
+      {name:'jingga',hex:'#f97316'},
+      {name:'kuning',hex:'#eab308'},
+      {name:'hijau',hex:'#22c55e'},
+      {name:'biru',hex:'#3b82f6'},
+      {name:'ungu',hex:'#a855f7'}
+    ];
+    const order = ['top','left','right','bottom'];
+    let selected = null; // hex
+    let target = []; // 4 hex strings
+
+    const $ = (q)=>document.querySelector(q);
+    const $$=(q)=>Array.from(document.querySelectorAll(q));
+    const toast = (msg)=>{ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1400); };
+
+    function drawPalette(){
+      const pal = $('#palette'); pal.innerHTML='';
+      COLORS.forEach(c=>{
+        const d = document.createElement('button');
+        d.className='dot'; d.title=c.name; d.style.background=c.hex; d.type='button';
+        d.addEventListener('click',()=>{ selected=c.hex; $$('.dot').forEach(x=>x.classList.remove('sel')); d.classList.add('sel'); });
+        pal.appendChild(d);
+      });
+    }
+
+    function updateLegend(){
+      const ids=['legend-top','legend-left','legend-right','legend-bottom'];
+      ids.forEach((id,i)=>{
+        const el=document.getElementById(id);
+        if(el && target[i]) el.setAttribute('fill', target[i]);
+      });
+      const codes = document.getElementById('legendCodes');
+      if(codes){
+        codes.innerHTML = target.map(c=>
+          `<div style="width:20px;height:20px;border-radius:50%;background:${c};border:2px solid #0b1220;outline:1px solid #1f2937"></div>`
+        ).join('');
+      }
+    }
+
+    function randomTarget(){
+      // ambil 4 warna unik
+      const pool=[...COLORS];
+      const pick=[]; for(let i=0;i<4;i++){ const idx=Math.floor(Math.random()*pool.length); pick.push(pool.splice(idx,1)[0]); }
+      target = pick.map(p=>p.hex);
+      const tg = $('#targets'); tg.innerHTML='';
+      pick.forEach(p=>{ const d=document.createElement('div'); d.className='dot target'; d.style.background=p.hex; d.title=p.name; tg.appendChild(d); });
+      updateLegend();
+    }
+
+    function bindCells(){
+      $$('.cell').forEach(cell=>{
+        cell.addEventListener('click',()=>{
+          if(!selected){ toast('Pilih warna dulu.'); return; }
+          cell.setAttribute('fill', selected);
+        });
+        cell.addEventListener('dblclick',()=>{ cell.setAttribute('fill','#0b1220'); });
+      });
+    }
+
+    function getCurrent(){
+      return order.map(id=>$('#'+id).getAttribute('fill'));
+    }
+
+    function clearBoard(){ order.forEach(id=>$('#'+id).setAttribute('fill','#0b1220')); }
+
+    function check(){
+      const cur = getCurrent();
+      if(cur.includes('#0b1220')){ toast('Masih ada yang kosong.'); return; }
+      const ok = cur.every((c,i)=>c.toLowerCase()===target[i].toLowerCase());
+      if(ok){
+        toast('Mantap! Jawaban benar 🎉');
+        $('#correct').textContent = (+$('#correct').textContent)+1;
+        // auto next
+        setTimeout(()=>{ clearBoard(); randomTarget(); }, 600);
+      }else{
+        toast('Belum tepat, coba lagi ya.');
+        $('#wrong').textContent = (+$('#wrong').textContent)+1;
+      }
+    }
+
+    // buttons
+    $('#btnCheck').addEventListener('click',check);
+    $('#btnShuffle').addEventListener('click',()=>{ clearBoard(); randomTarget(); });
+    $('#btnReset').addEventListener('click',clearBoard);
+
+    // init
+    drawPalette();
+    randomTarget();
+    updateLegend();
+    bindCells();
+  </script>
+</body>
+</html>

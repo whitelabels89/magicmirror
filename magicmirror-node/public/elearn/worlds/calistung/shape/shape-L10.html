@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SHAPE L10 – Ketupat Warna</title>
+  <style>
+    :root{
+      --blue:#1e90ff; /* dodger */
+      --red:#e74c3c;  /* alizarin */
+      --yellow:#f2b01e; /* saffron */
+      --line:#2e7d32; /* ketupat outline */
+      --bg:#fafafa;
+      --panel:#ffffff;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,sans-serif;background:var(--bg);color:#111}
+
+    header{
+      position:sticky;top:0;z-index:5;
+      background:linear-gradient(180deg,#fff,rgba(255,255,255,.96));
+      border-bottom:1px solid #eaeaea;
+      padding:12px 16px;
+      display:flex;gap:12px;align-items:center;justify-content:space-between
+    }
+    header h1{font-size:16px;margin:0;font-weight:800;letter-spacing:.3px}
+
+    .wrap{max-width:920px;margin:0 auto;padding:16px;padding-bottom:108px}
+
+    .legend{
+      display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:8px
+    }
+    .card{
+      background:var(--panel);border:1px solid #e9ecef;border-radius:12px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px
+    }
+    .swatch{width:40px;height:28px;border-radius:8px;border:1px solid #ccc;margin-left:auto;flex:0 0 40px}
+    .pattern-preview{width:96px;height:32px;border-radius:10px;border:1px dashed #cfd8dc;background:#fff;box-sizing:border-box;padding:4px;background-clip:content-box;background-origin:content-box;overflow:hidden}
+    .legend small{display:block;font-size:11px;opacity:.7;margin-top:6px;text-align:center}
+
+    #board{display:flex;justify-content:center;align-items:center;margin:10px auto 0;}
+
+    /* Floating tools at the bottom */
+    .tool-bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #eaeaea;z-index:10}
+    .tool-inner{max-width:920px;margin:0 auto;display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 12px}
+    .palette{display:flex;gap:10px;align-items:center}
+    .dot{width:36px;height:36px;border-radius:50%;border:2px solid #1111;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;outline-offset:3px}
+    .dot[aria-selected="true"]{outline:3px solid #00000022}
+
+    button{appearance:none;border:none;background:#111;color:#fff;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}
+    button.secondary{background:#f1f3f5;color:#111}
+    button:active{transform:translateY(1px)}
+
+    .msg{margin:12px 0 0;font-weight:700}
+
+    /* SVG helpers */
+    svg{max-width:620px;width:100%;height:auto}
+    .tile{stroke:var(--line);stroke-width:8;cursor:pointer}
+    .tail{stroke:var(--line);stroke-width:8}
+    .paint{opacity:.78; mix-blend-mode:multiply; pointer-events:none}
+    .hint{font-size:12px;fill:#607d8b}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Warna Ketupat – Ikuti Petunjuk Pola → Warna</h1>
+    <div style="display:flex;gap:8px">
+      <button id="btnShuffle" class="secondary" title="Acak legenda & pola">Acak</button>
+      <button id="btnReset" class="secondary">Reset</button>
+      <button id="btnCheck">Periksa Jawaban</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <p style="margin:0 0 8px">Pilih warna sesuai <strong>legend</strong>, lalu klik kotak-kotak ketupat untuk mewarnai.</p>
+
+    <!-- Legend -->
+    <div class="legend" id="legend">
+      <div class="card" data-pattern="waves">
+        <div class="pattern-preview" style="background: url('#')"></div>
+        <div class="swatch" data-color="blue"></div>
+      </div>
+      <div class="card" data-pattern="dots">
+        <div class="pattern-preview"></div>
+        <div class="swatch" data-color="red"></div>
+      </div>
+      <div class="card" data-pattern="line">
+        <div class="pattern-preview"></div>
+        <div class="swatch" data-color="yellow"></div>
+      </div>
+    </div>
+
+    <!-- Board / SVG Ketupat -->
+    <div id="board">
+      <svg viewBox="0 0 520 660" aria-labelledby="title desc" role="img">
+        <title id="title">Ketupat</title>
+        <desc id="desc">Klik petak untuk mewarnai.</desc>
+        <defs>
+          <!-- light grey pattern hints -->
+          <pattern id="p-dots" width="14" height="14" patternUnits="userSpaceOnUse">
+            <rect width="14" height="14" fill="#fff"/>
+            <circle cx="7" cy="7" r="1.4" fill="#9e9e9e"/>
+          </pattern>
+          <pattern id="p-grid" width="16" height="16" patternUnits="userSpaceOnUse">
+            <rect width="16" height="16" fill="#fff"/>
+            <path d="M0 0H16 M0 0V16" stroke="#9e9e9e" stroke-width="1"/>
+          </pattern>
+          <pattern id="p-waves" width="24" height="12" patternUnits="userSpaceOnUse">
+            <rect width="24" height="12" fill="#fff"/>
+            <path d="M0 6 C4 0,8 12,12 6 S20 0,24 6" fill="none" stroke="#9e9e9e" stroke-width="1.2"/>
+          </pattern>
+          <pattern id="p-line" width="24" height="16" patternUnits="userSpaceOnUse">
+            <rect width="24" height="16" fill="#fff"/>
+            <path d="M0 8H24" stroke="#9e9e9e" stroke-width="1.4"/>
+          </pattern>
+        </defs>
+
+        <!-- Helper to create a diamond path -->
+        <g id="ketupat">
+          <!-- Top leaf ribbons (decoration only) -->
+          <polygon class="tile" data-id="t10" data-pattern="waves" points="260,30 300,90 260,150 220,90" fill="url(#p-waves)"/>
+
+          <!-- Diamond tiles (7 total) -->
+          <!-- row 1 (single) -->
+          <polygon class="tile" data-id="t1" data-pattern="waves" points="260,170 320,230 260,290 200,230" fill="url(#p-waves)"/>
+
+          <!-- row 2 (three) -->
+          <polygon class="tile" data-id="t2" data-pattern="dots" points="200,230 260,290 200,350 140,290" fill="url(#p-dots)"/>
+          <polygon class="tile" data-id="t3" data-pattern="line" points="380,290 440,350 380,410 320,350" fill="url(#p-line)"/>
+          <polygon class="tile" data-id="t4" data-pattern="dots" points="320,230 380,290 320,350 260,290" fill="url(#p-dots)"/>
+
+          <!-- row 3 (three) -->
+          <polygon class="tile" data-id="t5" data-pattern="line" points="140,290 200,350 140,410 80,350" fill="url(#p-line)"/>
+          <polygon class="tile" data-id="t6" data-pattern="dots" points="200,350 260,410 200,470 140,410" fill="url(#p-dots)"/>
+          <polygon class="tile" data-id="t7" data-pattern="line" points="320,350 380,410 320,470 260,410" fill="url(#p-line)"/>
+
+          <!-- center tile (ensure not empty) -->
+          <polygon class="tile" data-id="t9" data-pattern="line" points="260,290 320,350 260,410 200,350" fill="url(#p-line)"/>
+
+          <polygon class="tile" data-id="t8" data-pattern="waves" points="260,410 320,470 260,530 200,470" fill="url(#p-waves)"/>
+          <polygon class="tile" data-id="t11" data-pattern="dots" points="115,563 165,520 245,555 219,613" fill="url(#p-dots)" transform="rotate(-70 180 543)"/>
+          <polygon class="tile" data-id="t12" data-pattern="line" points="315,615 325,545 418,595 391,650" fill="url(#p-line)" transform="rotate(-160 335 575)"/>
+        </g>
+      </svg>
+    </div>
+
+    <p class="msg" id="msg"></p>
+  </div>
+
+  <div class="tool-bar" role="toolbar" aria-label="Palette dan aksi">
+    <div class="tool-inner">
+      <div class="palette" id="palette">
+        <span style="font-weight:700">Pilih warna:</span>
+        <button class="dot" data-color="blue" aria-selected="true" style="background:var(--blue)" title="Biru"></button>
+        <button class="dot" data-color="red" style="background:var(--red)" title="Merah"></button>
+        <button class="dot" data-color="yellow" style="background:var(--yellow)" title="Kuning"></button>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button id="btnErase" class="secondary" title="Hapus warna">Hapus</button>
+        <button id="btnCheck2">Periksa Jawaban</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Game state ---
+    const COLORS = { blue:getComputedStyle(document.documentElement).getPropertyValue('--blue').trim(),
+                     red:getComputedStyle(document.documentElement).getPropertyValue('--red').trim(),
+                     yellow:getComputedStyle(document.documentElement).getPropertyValue('--yellow').trim() };
+
+    let currentBrush = 'blue';
+    let legendMap = { waves:'blue', dots:'red', line:'yellow' }; // pattern -> color name
+
+    const q = (sel,root=document)=>root.querySelector(sel);
+    const qa= (sel,root=document)=>[...root.querySelectorAll(sel)];
+
+    // Init legend UI
+    function paintLegend(){
+      qa('.legend .card').forEach(card=>{
+        const pat = card.dataset.pattern;
+        const colName = legendMap[pat];
+        const sw = card.querySelector('.swatch');
+        sw.style.background = COLORS[colName];
+        sw.dataset.color = colName;
+        // draw pattern previews using inline SVG data backgrounds
+        const preview = card.querySelector('.pattern-preview');
+        if(pat==='waves') preview.style.background = 'repeating-linear-gradient(90deg, #9e9e9e 0 1px, #fff 1px 25px), repeating-linear-gradient(0deg, #fff 0 11px, #fff0 11px 12px), repeating-linear-gradient(0deg, #9e9e9e 0 1px, #fff 1px 12px)';
+        if(pat==='dots')  preview.style.background = 'radial-gradient(#9e9e9e 2px, #fff 3px) 0 0/14px 14px';
+        if(pat==='line')  preview.style.background = 'linear-gradient(#fff 0 48%, #9e9e9e 48% 52%, #fff 52% 100%)';
+      });
+    }
+
+    function shuffleLegend(){
+      const colors = ['blue','red','yellow'];
+      // simple shuffle
+      colors.sort(()=>Math.random()-0.5);
+      legendMap = { waves:colors[0], dots:colors[1], line:colors[2] };
+      paintLegend();
+    }
+
+    paintLegend();
+
+    // Palette interaction
+    qa('.dot').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        currentBrush = btn.dataset.color;
+        qa('.dot').forEach(b=>b.setAttribute('aria-selected','false'));
+        btn.setAttribute('aria-selected','true');
+      });
+    });
+
+    q('#btnErase').addEventListener('click',()=>{ currentBrush = 'erase'; qa('.dot').forEach(b=>b.setAttribute('aria-selected','false')); });
+
+    // Painting logic: overlay a same-shape path with class .paint
+    const svg = q('svg');
+    qa('.tile', svg).forEach(tile=>{
+      tile.addEventListener('click',()=>{
+        if(currentBrush==='erase'){
+          removePaint(tile);
+          return;
+        }
+        applyPaint(tile, COLORS[currentBrush], currentBrush);
+      });
+    });
+
+    function applyPaint(tile, color, colorName){
+      const id = tile.dataset.id;
+      let paint = q(`.paint[data-on='${id}']`, svg);
+      if(!paint){
+        // create a polygon overlay that mirrors the original tile
+        paint = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+        paint.setAttribute('class','paint');
+        paint.dataset.on = id;
+        paint.setAttribute('points', tile.getAttribute('points'));
+        const tf = tile.getAttribute('transform');
+        if(tf) paint.setAttribute('transform', tf);
+        paint.setAttribute('stroke','none');
+        svg.querySelector('#ketupat').appendChild(paint);
+      }
+      paint.setAttribute('fill', color);
+      tile.dataset.user = colorName;
+    }
+
+    function removePaint(tile){
+      const id = tile.dataset.id;
+      const paint = q(`.paint[data-on='${id}']`, svg);
+      if(paint) paint.remove();
+      delete tile.dataset.user;
+    }
+
+    function resetAll(){ qa('.tile').forEach(removePaint); setMsg(''); }
+
+    function setMsg(t, ok){ const el=q('#msg'); el.textContent=t||''; el.style.color= ok? '#2e7d32':'#c62828'; }
+
+    function check(){
+      const tiles = qa('.tile');
+      let right=0; let wrong=0;
+      tiles.forEach(tile=>{
+        const needColorName = legendMap[tile.dataset.pattern];
+        const userColorName = tile.dataset.user;
+        if(userColorName===needColorName){ right++; }
+        else wrong++;
+      });
+      if(wrong===0){ setMsg('Mantap! Semua warna sudah benar 🎉', true); }
+      else setMsg(`Belum pas nih. Benar: ${right}/${tiles.length}. Coba lagi!`);
+    }
+
+    // Buttons
+    q('#btnCheck').addEventListener('click',check);
+    q('#btnCheck2').addEventListener('click',check);
+    q('#btnReset').addEventListener('click',resetAll);
+    q('#btnShuffle').addEventListener('click',()=>{ resetAll(); shuffleLegend(); randomizePatterns(); });
+
+    // Randomize which pattern appears on each tile (keeps total count and variety)
+    function randomizePatterns(){
+      const pats = ['waves','dots','line'];
+      const tiles = qa('.tile');
+      tiles.forEach(t=>{
+        const p = pats[Math.floor(Math.random()*pats.length)];
+        t.dataset.pattern = p;
+        t.setAttribute('fill', p==='waves'? 'url(#p-waves)': p==='dots'? 'url(#p-dots)': 'url(#p-line)');
+      });
+    }
+
+    // Ensure every tile has a pattern & fill (prevents blank white squares)
+    function ensurePatterns(){
+      const pats = ['waves','dots','line'];
+      qa('.tile').forEach((t,i)=>{
+        if(!t.dataset.pattern){
+          t.dataset.pattern = pats[i % pats.length];
+        }
+        const p = t.dataset.pattern;
+        const want = p==='waves' ? 'url(#p-waves)' : p==='dots' ? 'url(#p-dots)' : 'url(#p-line)';
+        const cur = t.getAttribute('fill');
+        if(!cur || !/url\(#p-/.test(cur)){
+          t.setAttribute('fill', want);
+        }
+      });
+    }
+
+    // Start with a little shuffle so setiap main terasa baru
+    ensurePatterns();
+    shuffleLegend();
+    randomizePatterns();
+  </script>
+</body>
+</html>
