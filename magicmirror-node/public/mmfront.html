@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QC Face Consultant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Forum&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <style>
+    :root{
+      --bg:#0f2b29;
+      --glass:#0b2a27cc;
+      --glass-strong:#0b2a27f0;
+      --neon:#7CFF7C;
+      --neon2:#00F5D4;
+      --accent:#FFB703;
+      --danger:#ff6b6b;
+      --soft:#e0e0e0;
+    }
+    /* Animated aurora background */
+    body::before, body::after{
+      content:"";
+      position:fixed; inset:-25vh -25vw; /* extend beyond edges to avoid lines */
+      background: radial-gradient(60% 40% at 10% 15%, rgba(0,255,200,.12), transparent 60%),
+                  radial-gradient(40% 35% at 85% 80%, rgba(100,255,0,.10), transparent 60%),
+                  radial-gradient(50% 50% at 50% 50%, rgba(0,160,255,.08), transparent 70%);
+      filter: blur(40px);
+      animation: drift 18s ease-in-out infinite alternate;
+      pointer-events: none;
+      z-index: -2;
+    }
+    body::after{ animation-duration: 28s; transform: scaleX(-1); }
+    @keyframes drift{
+      0%{ transform: translateY(-2%) scale(1.05);}
+      100%{ transform: translateY(2%) scale(0.98);}
+    }
+    .glass{
+      background: var(--glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,.08);
+      box-shadow: 0 10px 30px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.05) inset;
+      border-radius: 18px;
+    }
+    .neon{
+      text-shadow: 0 0 12px var(--neon), 0 0 24px color-mix(in oklab, var(--neon), #000 60%);
+    }
+    .ring-glow{
+      box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset, 0 0 40px rgba(124,255,124,.28), 0 10px 30px rgba(0,0,0,.4);
+    }
+    .btn{
+      background: linear-gradient(135deg, var(--neon2), var(--neon));
+      color:#052a27; font-weight:700; letter-spacing:.3px;
+      border:none; border-radius:14px; padding:14px 22px; cursor:pointer;
+      box-shadow: 0 10px 24px rgba(0, 255, 200, .25);
+      transition: transform .18s ease, box-shadow .18s ease, opacity .2s ease;
+    }
+    .btn:hover{ transform: translateY(-2px); box-shadow:0 14px 28px rgba(0, 255, 200, .35);}
+    .btn.secondary{
+      background: linear-gradient(135deg, #243f3d, #0f2b29);
+      color:#d7fff1; border:1px solid rgba(124,255,124,.25);
+    }
+    .btn.danger{ background: linear-gradient(135deg, #ff6b6b, #ff9f7b); color:#fff;}
+    /* HUD */
+    .hud{
+      position:fixed; top:14px; left:14px; right:14px; display:flex; align-items:center; justify-content:space-between; z-index:999;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:14px;
+      color:#d9fff3; font-weight:700; letter-spacing:.6px; text-transform:uppercase;
+      background: linear-gradient(135deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.08);
+    }
+    .brand .dot{ width:10px; height:10px; border-radius:50%; background:var(--neon); box-shadow:0 0 12px var(--neon);}
+    .clock{
+      color:#eafffb; font-weight:700; font-size:1.2rem; padding:10px 14px; border-radius:14px;
+      background: linear-gradient(135deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.08); letter-spacing:.5px;
+    }
+    .hud-right{ display:flex; align-items:center; gap:8px; }
+    .hud-toggles{ display:flex; gap:6px; }
+    .tiny-btn{
+      background: linear-gradient(135deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+      color:#eafffb; font-weight:700; letter-spacing:.2px;
+      border:1px solid rgba(255,255,255,.15);
+      border-radius:10px; padding:8px 10px; cursor:pointer;
+      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+      transition: transform .15s ease, background .15s ease, box-shadow .15s ease;
+    }
+    .tiny-btn:hover{ transform: translateY(-1px); background: rgba(255,255,255,.12); box-shadow: 0 6px 14px rgba(0,0,0,.25); }
+    .hidden-block{ display:none !important; }
+    /* Camera / Mirror area */
+    #camera-wrapper{
+      position: relative;
+      width: 520px; max-width: 92%;
+      border-radius: 24px; overflow: hidden;
+      background: #021614;
+      border:1px solid rgba(255,255,255,.08);
+    }
+    #camera-wrapper.mirrored video,
+    #camera-wrapper.mirrored img#camera-placeholder{ transform: scaleX(-1); }
+    #camera-wrapper::after{
+      content:"";
+      position:absolute; inset:0;
+      background: linear-gradient(180deg, rgba(124,255,124,.06), transparent 40%, transparent 60%, rgba(0,245,212,.06)),
+                  repeating-linear-gradient( to bottom, rgba(255,255,255,.06), rgba(255,255,255,.06) 1px, transparent 2px, transparent 4px);
+      mix-blend-mode: screen; pointer-events:none;
+    }
+    /* Controls dock */
+    .controls{
+      display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:center;
+      margin-top:14px;
+    }
+    .caption{
+      color:#cffff0; margin-top:8px; font-size:.95rem; opacity:.9;
+    }
+    /* Main container refinement */
+    #container{
+      gap: 16px;
+    }
+    /* Greeting card restyle */
+    #greetings .shell{
+      display:flex; flex-direction:row; align-items:center; justify-content:space-between; gap:40px; flex-wrap:wrap;
+    }
+    #greetings .shell.glass{ background: var(--glass-strong); }
+    #greetings h1{ font-size: 2.6rem; color: #caffea; margin:0 0 12px; font-family:'Forum', cursive; }
+    #greetings p{ color:#d9fff3; }
+    /* Recommendation panel glass look */
+    #recommendation{
+      background: linear-gradient(180deg, rgba(10,40,37,.92), rgba(10,40,37,.86));
+      border:1px solid rgba(255,255,255,.08);
+      color:#eafffb;
+    }
+    #recommendation h2{ color: var(--accent); }
+    /* Footer lightbox small improvements */
+    #lightbox{ backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+    /* Make fonts larger for mirror readability */
+    body{ font-size: 17px; color:#eafaf6; }
+    #status{ color: var(--neon); }
+
+    .navbar-menu.open {
+        display: flex;
+    }
+    html, body {
+        height: 100%;
+        margin: 0;
+        background: radial-gradient(1200px 600px at 50% -10%, #133d39 0%, #0f2b29 60%, #0a1f1d 100%);
+        background-repeat: no-repeat;
+        background-attachment: fixed; /* prevent seam when fullscreen */
+        font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        overflow-y: auto;
+        color: #333;
+    }
+
+    /* Ensure injected navbar/footer don't paint solid backgrounds in fullscreen */
+    #navbar, #footer-placeholder, header {
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+    #navbar *[style*="background"], header *[style*="background"]{ background: transparent !important; }
+
+    #container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 30px;
+        gap: 16px;
+    }
+
+        h1 {
+            color: #00b4d8;
+            margin-bottom: 20px;
+        }
+
+        #status {
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #06d6a0;
+            text-shadow: 0 0 6px #06d6a080;
+        }
+
+        #photo {
+            width: 280px;
+            height: auto;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            background: #fff;
+            padding: 10px;
+        }
+
+        #recommendation {
+            max-width: 85%;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            color: #333;
+            display: none;
+        }
+
+        #recommendation h2 {
+            color: #ff6b6b;
+            margin-bottom: 10px;
+        }
+
+        #capture-button {
+            background: linear-gradient(to right, #00b4d8, #0077b6);
+            color: white;
+            border: none;
+            padding: 16px 36px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(0, 119, 182, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        #capture-button:hover {
+            background: #0096c7;
+            box-shadow: 0 10px 25px rgba(0, 119, 182, 0.5);
+            transform: translateY(-3px);
+        }
+
+        #gallery {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 30px;
+            margin-bottom: 40px;
+            gap: 15px;
+        }
+
+        #gallery img {
+            width: 120px;
+            height: auto;
+            border-radius: 12px;
+            background: #ffffffcc;
+            padding: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease;
+        }
+
+        #gallery img:hover {
+            transform: scale(1.05);
+        }
+        .loading {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #00ff99;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 2s linear infinite;
+            margin-top: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .fade-in {
+            animation: fadeIn 1s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .fade-in-stagger {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInStagger 0.6s ease-out forwards;
+        }
+
+        @keyframes fadeInStagger {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            #photo {
+                width: 90%;
+            }
+            #gallery img {
+                width: 90px;
+                margin: 8px;
+            }
+            #capture-button {
+                padding: 14px 28px;
+                font-size: 1.1rem;
+            }
+        }
+
+        .gallery-card {
+            background: #ffffffcc;
+            padding: 10px;
+            margin: 8px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .gallery-card:hover {
+            transform: scale(1.08);
+            box-shadow: 0 8px 25px rgba(0, 180, 216, 0.6);
+            background: #f0faff;
+        }
+
+        .gallery-card img {
+            width: 120px;
+            height: auto;
+            border-radius: 12px;
+            display: block;
+            transition: transform 0.3s ease;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                font-size: 14px;
+            }
+            #status {
+                font-size: 1rem;
+            }
+            #capture-button {
+                width: 80%;
+                font-size: 1rem;
+                padding: 14px;
+            }
+            #gallery {
+                gap: 8px;
+            }
+        }
+
+        header nav a:hover {
+            color: #ffdd57;
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+
+        header nav a {
+            scroll-behavior: smooth;
+        }
+    /* === AI Avatar Orb === */
+    /* Motion wrapper to allow eye-follow without fighting the inner animations */
+    #ai-avatar { --tx: 0px; --ty: 0px; }
+    #ai-avatar .orb-motion{
+      width:100%; height:100%;
+      transform: translate(var(--tx), var(--ty));
+      transition: transform 120ms ease-out;
+    }
+    #ai-avatar{
+      --intensity: .4; /* default glow/volume strength */
+      position: fixed; right: 22px; bottom: 28px; z-index: 998;
+      width: 160px; height: 160px; pointer-events: auto; cursor: pointer;
+      touch-action: none; /* enable smooth drag on touch */
+    }
+    @media (max-width: 768px){ #ai-avatar{ width:120px; height:120px; right:14px; bottom:18px; } }
+    #ai-avatar .orb-wrap{
+      position:relative; width:100%; height:100%;
+      filter: drop-shadow(0 12px 28px rgba(0,0,0,.5))
+              drop-shadow(0 0 calc(12px + 30px * var(--intensity)) rgba(124,255,124,.25));
+    }
+    #ai-avatar .halo{
+      position:absolute; inset:-12%; border-radius:50%;
+      background: conic-gradient(from 0deg, rgba(124,255,124,.0), rgba(124,255,124,.35), rgba(0,245,212,.35), rgba(124,255,124,.0));
+      animation: spin 10s linear infinite;
+      filter: blur(8px) saturate(1.2);
+    }
+    #ai-avatar .core{
+      position:absolute; inset:0; border-radius:50%; overflow:hidden;
+      background: radial-gradient(circle at 50% 52%, rgba(124,255,124,.6), rgba(0,245,212,.4) 35%, rgba(10,40,37,.8) 62%, rgba(5,22,20,1) 80%);
+      box-shadow: inset 0 0 calc(40px + 40px * var(--intensity)) rgba(124,255,124,.35),
+                  inset 0 0 calc(80px + 60px * var(--intensity)) rgba(0,245,212,.25);
+      animation: breathe 3.2s ease-in-out infinite;
+    }
+    #ai-avatar .noise{
+      position:absolute; inset:-10%; filter: contrast(140%) brightness(130%);
+      mix-blend-mode: screen; opacity:.55; pointer-events:none;
+      /* Mask the SVG noise into a perfect circle so no more square */
+      -webkit-mask: radial-gradient(circle at 50% 50%, #000 64%, transparent 66%);
+      mask: radial-gradient(circle at 50% 50%, #000 64%, transparent 66%);
+      animation: rotateNoise 22s linear infinite;
+    }
+    @keyframes rotateNoise { to{ transform: rotate(360deg);} }
+    /* Emissive pulse rings */
+    #ai-avatar .pulse{
+      position:absolute; inset:10%; border-radius:50%;
+      border: 2px dashed rgba(0,245,212,.55);
+      box-shadow: 0 0 18px rgba(0,245,212,.25) inset;
+      animation: ripple 3.6s ease-in-out infinite;
+      pointer-events:none;
+    }
+    #ai-avatar .pulse::after{
+      content:""; position:absolute; inset:-6%; border-radius:50%;
+      border: 1px solid rgba(124,255,124,.5);
+    }
+    #ai-avatar .pulse2{ inset:22%; border-style: solid; border-width: 1.5px; opacity:.7; animation-duration: 4.4s; }
+    #ai-avatar.thinking .pulse{ animation-duration: 1.8s; }
+    #ai-avatar.thinking .pulse2{ animation-duration: 2.2s; }
+    @keyframes ripple{
+      0%,100%{ transform: scale(0.95); opacity:.7; }
+      50%{ transform: scale(1.05); opacity:1; }
+    }
+    /* Spiral lines */
+    #ai-avatar svg.spiral{ position:absolute; inset:0; }
+    #ai-avatar .spiral-path{ stroke: rgba(124,255,124,.7); stroke-width: 1.5; fill: none; stroke-linecap: round; }
+    #ai-avatar .spiral-path.alt{ stroke: rgba(0,245,212,.65); stroke-dasharray: 3 6; }
+    /* Thinking state intensifies */
+    #ai-avatar.thinking .core{ animation-duration: 1.6s; box-shadow: inset 0 0 60px rgba(124,255,124,.55), inset 0 0 120px rgba(0,245,212,.45), 0 0 34px rgba(124,255,124,.25);} 
+    #ai-avatar.thinking .halo{ animation-duration: 4s; filter: blur(10px) saturate(1.5); }
+    #ai-avatar.thinking .spiral-path{ stroke-width: 2.2; }
+    /* Wandering movement */
+    #ai-avatar .orb-wrap{ animation: driftXY 14s ease-in-out infinite alternate; }
+    #ai-avatar.thinking .orb-wrap{ animation-duration: 7s; }
+    /* Keyframes */
+    @keyframes breathe{ 0%,100%{ transform: scale(0.98);} 50%{ transform: scale(1.03);} }
+    @keyframes spin{ to{ transform: rotate(360deg);} }
+    @keyframes driftXY{ 0%{ transform: translate3d(0,0,0) rotate(0deg);}  50%{ transform: translate3d(-6px,-4px,0) rotate(1deg);} 100%{ transform: translate3d(4px,6px,0) rotate(-1deg);} }
+
+      /* === AI Chat Panel === */
+  #ai-chat{ position:fixed; right:22px; bottom:200px; width:320px; max-height:60vh; z-index:999; display:none; }
+  #ai-chat .chat-wrap{ border-radius:16px; overflow:hidden; }
+  #ai-chat .chat-box{ background: var(--glass-strong); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border:1px solid rgba(255,255,255,.08); box-shadow: 0 10px 30px rgba(0,0,0,.35); display:flex; flex-direction:column; height:100%; }
+  #ai-chat .msgs{ padding:12px; display:flex; flex-direction:column; gap:10px; max-height:40vh; overflow:auto; }
+  #ai-chat .msg{ padding:10px 12px; border-radius:12px; line-height:1.4; font-size:.95rem; color:#eafffb; width:fit-content; max-width:85%; box-shadow:0 2px 10px rgba(0,0,0,.25); }
+  #ai-chat .msg.user{ margin-left:auto; background: linear-gradient(135deg, #1f514a, #0f2b29); border:1px solid rgba(124,255,124,.25); }
+  #ai-chat .msg.bot{ background: linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.04)); border:1px solid rgba(255,255,255,.08); }
+  #ai-chat .composer{ display:flex; gap:8px; padding:10px; border-top:1px solid rgba(255,255,255,.08); }
+  #ai-chat input[type="text"]{ flex:1; background: rgba(255,255,255,.1); color:#eafffb; border:1px solid rgba(255,255,255,.18); border-radius:10px; padding:10px 12px; outline:none; }
+  #ai-chat button.send{ padding:10px 14px; border-radius:10px; border:1px solid rgba(124,255,124,.3); background: linear-gradient(135deg, var(--neon2), var(--neon)); color:#062b28; font-weight:700; cursor:pointer; }
+  #ai-chat .header{ display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background: rgba(0,0,0,.25); border-bottom:1px solid rgba(255,255,255,.08); color:#d9fff3; font-weight:700; }
+  #ai-chat .close{ background:transparent; border:none; color:#d9fff3; font-weight:700; cursor:pointer; }
+  @media (max-width: 768px){ #ai-chat{ right:14px; width:80vw; bottom:160px; } }
+
+  /* === Voice input styles === */
+  #ai-chat button.mic{ padding:10px 12px; border-radius:10px; border:1px solid rgba(124,255,124,.3); background: linear-gradient(135deg, rgba(255,255,255,.12), rgba(255,255,255,.06)); color:#eafffb; font-weight:700; cursor:pointer; }
+  #ai-chat button.mic.listening{ background: linear-gradient(135deg, #ff7b7b, #ffb3a3); color:#1b1b1b; box-shadow:0 0 18px rgba(255,120,120,.5); }
+  /* Orb listening visuals */
+  #ai-avatar.listening .halo{ animation-duration: 3s; filter: blur(12px) saturate(1.6); }
+  #ai-avatar.listening .pulse{ border-color: rgba(255,120,120,.7); }
+  #ai-avatar.listening .pulse2{ border-color: rgba(255,180,160,.8); }
+
+    /* === Idle Blackout Mode === */
+  body, #container, #navbar, #footer-placeholder, .hud, #lightbox, #greetings, #recommendation, #gallery, #camera-wrapper, .controls, .caption {
+    transition: opacity .6s ease, filter .6s ease;
+  }
+  body.idle-blackout {
+    background: #000 !important;
+  }
+  body.idle-blackout::before,
+  body.idle-blackout::after {
+    opacity: 0 !important;
+    transition: opacity .6s ease;
+  }
+  body.idle-blackout .hud,
+  body.idle-blackout #navbar,
+  body.idle-blackout #footer-placeholder,
+  body.idle-blackout #container,
+  body.idle-blackout #lightbox,
+  body.idle-blackout #greetings {
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+  /* Keep only orb visible and centered with gentle patrol */
+  body.idle-blackout #ai-avatar {
+    --tx: 0px; --ty: 0px; /* neutralize eye-follow while idle */
+    left: 50% !important; top: 50% !important; right: auto !important; bottom: auto !important;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+  }
+  body.idle-blackout #ai-avatar .orb-motion {
+    animation: centerWander 8s ease-in-out infinite alternate;
+  }
+  @keyframes centerWander {
+    0%   { transform: translate(-12px, -8px); }
+    50%  { transform: translate(14px, 10px); }
+    100% { transform: translate(-6px, 12px); }
+  }
+
+
+
+</style>
+
+</head>
+    <body>
+        <div class="hud">
+          <div class="brand"><span class="dot"></span> QC Magic Mirror <span class="neon">AI</span></div>
+          <div class="hud-right">
+            <div class="clock" id="hud-clock">--:--</div>
+            <div class="hud-toggles">
+              <button id="toggle-navbar" class="tiny-btn" title="Show/Hide Navbar">Nav</button>
+              <button id="toggle-footer" class="tiny-btn" title="Show/Hide Footer">Footer</button>
+              <button id="toggle-heartbeat" class="tiny-btn" title="Mute/Unmute Heartbeat">Beat</button>
+            </div>
+          </div>
+        </div>
+        <div id="navbar" class="hidden-block"></div>
+    <script>
+        fetch('navbar.html')
+          .then(res => res.text())
+          .then(data => {
+            document.getElementById('navbar').innerHTML = data;
+          })
+          .then(() => {
+            const toggleBtn = document.querySelector('.navbar-toggle');
+            const menu = document.querySelector('.navbar-menu');
+            if (toggleBtn && menu) {
+              toggleBtn.addEventListener('click', () => {
+                menu.classList.toggle('show');
+              });
+            }
+          });
+    </script>
+    <script>
+    function bindDropdowns() {
+      const toggle = document.getElementById('dropdownToggle');
+      const menu = document.getElementById('dropdownMenu');
+      const toggle2 = document.getElementById('dropdownToggleEcourse');
+      const menu2 = document.getElementById('dropdownMenuEcourse');
+
+      if (toggle && menu && !toggle.dataset.bound) {
+        toggle.dataset.bound = true;
+        toggle.addEventListener('click', function (e) {
+          e.preventDefault();
+          menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+        });
+        document.addEventListener('click', function (e) {
+          if (!toggle.contains(e.target) && !menu.contains(e.target)) {
+            menu.style.display = 'none';
+          }
+        });
+      }
+
+      if (toggle2 && menu2 && !toggle2.dataset.bound) {
+        toggle2.dataset.bound = true;
+        toggle2.addEventListener('click', function (e) {
+          e.preventDefault();
+          menu2.style.display = (menu2.style.display === 'block') ? 'none' : 'block';
+        });
+        document.addEventListener('click', function (e) {
+          if (!toggle2.contains(e.target) && !menu2.contains(e.target)) {
+            menu2.style.display = 'none';
+          }
+        });
+      }
+    }
+
+    // Try to bind dropdowns every 200ms until successful
+    let tries = 0;
+    const dropdownInterval = setInterval(() => {
+      const found = document.getElementById('dropdownToggle') && document.getElementById('dropdownToggleEcourse');
+      if (found || tries > 20) {
+        clearInterval(dropdownInterval);
+        bindDropdowns();
+      }
+      tries++;
+    }, 200);
+    </script>
+    <section id="greetings" style="display:none; flex-direction:column; align-items:center; justify-content:center; padding:40px 20px; background: transparent; text-align:center;">
+        <div class="shell glass ring-glow" style="border-radius:26px; padding:42px 28px; max-width:1000px; width:92%;">
+            <div style="flex: 1; min-width: 280px; text-align: left;">
+                <h1 style="font-size: 3rem; color: #ffd700; margin-bottom: 20px; font-family: 'Forum', cursive;">Your Personal AI Beauty Stylist Awaits</h1>
+                <p style="max-width: 680px; font-size: 1.2rem; color: #e0e0e0; line-height: 1.6;">Temui Stylist Pribadimu hari ini! QC Magic Mirror menghadirkan konsultasi kecantikan berbasis AI yang personal, ramah, dan dirancang khusus untuk menemukan gaya terbaikmu. Dapatkan pengalaman premium seolah memiliki konsultan kecantikan pribadi di tiap kunjunganmu.</p>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center;">
+                <img src="/eve_stylist.png" alt="Eve AI Stylist" style="width: 140px; margin-bottom: 20px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+                <div id="chat-bubble" style="background: #ffffffcc; color: #333; padding: 10px 18px; border-radius: 20px; margin-bottom: 20px; font-size: 1rem; max-width: 320px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); opacity: 0; visibility: hidden; transition: opacity 1s ease;">
+                    Hello! Welcome to your personal beauty journey with QC Magic Mirror ✨
+                </div>
+            </div>
+        </div>
+    </section>
+    <div id="container">
+        <div id="camera-wrapper" class="mirrored ring-glow" style="margin-bottom:24px;">
+            <img id="camera-placeholder" src="/magic_mirror.png" style="width: 100%; display: block;">
+            <video id="camera-preview" autoplay playsinline muted style="width: 100%; display: none;"></video>
+        </div>
+        <div class="controls">
+          <button id="toggle-camera-button" class="btn secondary">Turn On Magic Mirror</button>
+          <button id="capture-button" class="btn">Analyze Style</button>
+          <button id="flip-mirror" class="btn secondary" title="Flip preview horizontally">Flip Mirror</button>
+          <button id="fullscreen" class="btn secondary" title="Fullscreen mode">Fullscreen</button>
+        </div>
+        <div class="caption">Tip: posisi wajah sejajar kamera. Preview otomatis <strong>mirror</strong> agar natural di cermin.</div>
+        <h1>QC MAGIC MIRROR</h1>
+        <div id="status">Waiting Analyze...</div>
+        <img id="photo" src="" style="display:none; max-width: 300px; margin-top: 20px;" />
+        <!-- Added waiting box and error msg here -->
+        <div id="generate-waiting-box" style="display: none; text-align: center; margin-top: 16px;">
+            <div id="loading" class="loading" style="margin: auto;"></div>
+            <div id="countdown-timer" style="font-size: 1rem; color: #ffdd57; margin-top: 12px;"></div>
+        </div>
+        <div id="replicate-error-msg" style="display: none; color: #ff6b6b; margin-top: 20px; font-weight: 600; text-align: center;">
+          ⚠️ Maaf, saat ini fitur visualisasi AI sedang terkena batas limit karena tingginya traffic visitor. Silakan coba kembali dalam beberapa menit. 🙏
+        </div>
+        <div id="recommendation" class="glass" style="display:none;">
+            <div id="countdown-timer" style="font-size: 1rem; color: #ffdd57; margin-top: 12px;"></div>
+            <div id="visual-loading" class="loading" style="display: none;"></div>
+            <h2>Rekomendasi Gaya Rambut</h2>
+            <p id="rec-content"></p>
+        </div>
+        <div id="waiting-replicate" style="display:none; font-size: 1rem; color: #ffdd57; margin-top: 10px;">
+          ✨ Sedang memproses visualisasi gaya rambut AI... Harap tunggu hasilnya tampil di bawah, Estimasi 2 menit.
+        </div>
+        <div id="loading" class="loading" style="display: none;"></div>
+        <div id="gallery" style="display: flex; flex-wrap: wrap; justify-content: center; margin-top: 20px;"></div>
+    </div>
+    <div id="footer-placeholder" class="hidden-block"></div>
+    <script>
+      fetch('/footer.html')
+        .then(res => res.text())
+        .then(data => document.getElementById('footer-placeholder').innerHTML = data);
+    </script>
+
+    <div id="lightbox" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter: blur(8px); justify-content:center; align-items:center; z-index:9999;">
+        <img id="lightbox-img" src="" style="max-width:90%; max-height:90%; border-radius:12px;">
+    </div>
+
+    <script>
+    window.addEventListener('DOMContentLoaded', () => {
+        const video = document.getElementById('camera-preview');
+        const placeholder = document.getElementById('camera-placeholder');
+        const toggleBtn = document.getElementById('toggle-camera-button');
+        let stream = null;
+
+        function startCamera() {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+                .then(function(s) {
+                    stream = s;
+                    const video = document.getElementById('camera-preview');
+                    const placeholder = document.getElementById('camera-placeholder');
+                    video.srcObject = stream;
+                    video.style.display = 'block';
+                    placeholder.style.display = 'none';
+                    toggleBtn.innerText = "Turn Off Magic Mirror";
+                    updateCaptureButton();
+                })
+                .catch(function(error) {
+                    console.error('🚫 Tidak bisa mengakses kamera:', error.name, error.message);
+                    alert('⚠️ Kamera tidak dapat diakses. Pastikan kamu memberi izin di browser.');
+                });
+            }
+        }
+
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            const video = document.getElementById('camera-preview');
+            const placeholder = document.getElementById('camera-placeholder');
+            video.style.display = 'none';
+            placeholder.style.display = 'block';
+            toggleBtn.innerText = "Turn On Magic Mirror";
+            updateCaptureButton();
+        }
+
+        // Set initial button text to "Turn On Camera" (redundant if set in HTML, but ensures correct state)
+        toggleBtn.innerText = "Turn On Magic Mirror";
+
+        toggleBtn.addEventListener('click', () => {
+            if (stream) {
+                stopCamera();
+            } else {
+                startCamera();
+            }
+        });
+
+        // Camera will NOT start automatically on page load.
+        // startCamera(); // Removed to prevent auto-start
+        updateCaptureButton();
+    });
+    </script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const sessionId = `${Date.now()}_${Math.floor(Math.random() * 100000)}`;
+        window.sessionId = sessionId;
+        const socket = io('https://queensacademy.id');
+        let connected = false;
+        // stream will be set by camera script, but for safety, we check window.stream too
+        function getStream() {
+            return typeof stream !== 'undefined' ? stream : window.stream;
+        }
+        const captureBtn = document.getElementById('capture-button');
+        function setStatus(msg, color) {
+            const status = document.getElementById('status');
+            status.innerText = msg;
+            if (color) status.style.color = color;
+            else status.style.color = '#00ff99';
+        }
+        function updateCaptureButton() {
+            if (connected) {
+                captureBtn.disabled = false;
+                captureBtn.style.opacity = '1';
+                captureBtn.style.cursor = 'pointer';
+            } else {
+                captureBtn.disabled = true;
+                captureBtn.style.opacity = '0.5';
+                captureBtn.style.cursor = 'not-allowed';
+            }
+        }
+        document.getElementById('capture-button').addEventListener('click', () => {
+            const video = document.getElementById('camera-preview');
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            const base64Photo = canvas.toDataURL('image/jpeg').replace(/^data:image\/jpeg;base64,/, '');
+
+            setStatus('🔍 Menganalisis wajah...', '#fff700');
+            document.getElementById('loading').style.display = 'block';
+            // ✅ Spinner awal rekomendasi tetap dipertahankan
+            document.getElementById('recommendation').style.display = 'none';
+            document.getElementById('gallery').innerHTML = '';
+            document.getElementById('waiting-replicate').style.display = 'none';
+
+            const startTimestamp = Math.floor(Date.now() / 1000);
+            console.log("📤 Mengirim foto ke backend... start_timestamp:", startTimestamp);
+            fetch('https://qc-magicmirror-api.onrender.com/run', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ photo: base64Photo, session_id: sessionId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('✅ Respon AI:', data);
+                if (data.status === 'pending') {
+                    console.log("🕒 Status pending diterima. start_timestamp:", data.start_timestamp || 'N/A');
+                }
+
+                if (data.status === 'done') {
+                    document.getElementById('rec-content').innerText = data.recommendation || 'Tidak ada rekomendasi.';
+                    document.getElementById('recommendation').style.display = 'block';
+                    setStatus('✅ Rekomendasi siap!', '#00ff99');
+
+                    if (data.faces && data.faces.length > 0) {
+                        const gallery = document.getElementById('gallery');
+                        data.faces.forEach((url, index) => {
+                            const card = document.createElement('div');
+                            card.className = 'gallery-card fade-in-stagger';
+                            card.style.animationDelay = `${index * 0.2}s`;
+                            const img = document.createElement('img');
+                            img.src = url.startsWith('http') ? url : `https://qc-magicmirror-api.onrender.com${url}`;
+                            card.appendChild(img);
+                            gallery.appendChild(card);
+                        });
+                        setTimeout(() => {
+                            gallery.scrollIntoView({ behavior: 'smooth' });
+                        }, 300);
+                    }
+                    // ⬇️ Pindahkan waiting-replicate di sini, setelah recommendation tampil
+                    document.getElementById('waiting-replicate').style.display = 'block';
+                } else {
+                    setStatus('⚠️ Gagal: ' + (data.error || 'Tidak terdeteksi wajah.'), 'orange');
+                }
+            })
+            .catch(err => {
+                console.error('❌ Error fetch:', err);
+                setStatus('❌ Gagal mengirim ke server.', 'red');
+                document.getElementById('replicate-error-msg').style.display = 'block';
+            })
+            .finally(() => {
+                document.getElementById('loading').style.display = 'none';
+            });
+        });
+
+        socket.on('connect', () => {
+            connected = true;
+            setStatus('Standby, Turn on Magic Mirror', '#00ff99');
+            document.getElementById('loading').style.display = 'none';
+            updateCaptureButton();
+            socket.emit('join', { session_id: sessionId });
+            console.log("🔐 Session ID dikirim ke server:", sessionId);
+        });
+        socket.on('ai_result', (data) => {
+            console.log('🧠 Rekomendasi AI diterima.');
+            const recommendation = document.getElementById('recommendation');
+            const recContent = document.getElementById('rec-content');
+            recContent.innerText = data.recommendationText || data.recommendation;
+            recommendation.style.display = 'block';
+            recommendation.classList.add('fade-in');
+            document.getElementById('loading').style.display = 'none';
+            setStatus('✅ Recommendation', '#00ff99');
+            document.getElementById('waiting-replicate').style.display = 'block';
+        });
+socket.on('generated_faces', (data) => {
+    if (data.session_id && data.session_id !== sessionId) return; // ⛔ Abaikan jika bukan untuk sesi ini
+    console.log('🖼️ Generated faces diterima.');
+    console.log("⏳ start_timestamp:", data.start_timestamp);
+    const gallery = document.getElementById('gallery');
+    const statusEl = document.getElementById('status');
+    const loadingEl = document.getElementById('loading');
+    const waitingEl = document.getElementById('waiting-replicate');
+
+    const validFaces = (data.faces || []).filter(url => url && url.trim() !== '');
+
+    // ✅ Tampilkan pesan status dari backend
+    if (data.message) {
+        statusEl.innerText = data.message;
+        statusEl.style.color = '#ffdd57';
+    }
+
+    // ⏳ Countdown dan spinner hanya saat status === 'pending'
+    if (data.status === 'pending' && data.start_timestamp && validFaces.length === 0) {
+        document.getElementById('generate-waiting-box').style.display = 'block';
+        const countdownTarget = data.start_timestamp + 120;
+        waitingEl.style.display = 'block';
+        document.getElementById('visual-loading').style.display = 'block';
+
+        let interval = null;
+        const updateCountdown = () => {
+            const now = Math.floor(Date.now() / 1000);
+            const remaining = countdownTarget - now;
+            if (remaining <= 0) {
+                waitingEl.innerText = "⏳ Hampir selesai... harap tunggu.";
+                loadingEl.style.display = 'none';
+                document.getElementById('visual-loading').style.display = 'none';
+                document.getElementById('countdown-timer').innerText = '';
+                // Do not hide waitingEl yet, let it display the message
+                clearInterval(interval);
+            } else {
+                document.getElementById('countdown-timer').innerText = `✨ Visualisasi akan tampil dalam ${remaining} detik...`;
+            }
+        };
+        updateCountdown();
+        interval = setInterval(updateCountdown, 1000);
+
+        // ✅ Spinner awal rekomendasi tetap dipertahankan
+        loadingEl.style.display = 'block';
+        // Do NOT hide loadingEl or waitingEl here; only after countdown ends or faces shown
+    }
+
+    // 🎨 Kalau ada hasil wajah, tampilkan ke galeri
+    if (validFaces.length > 0) {
+        gallery.innerHTML = '';
+        validFaces.forEach((url, index) => {
+            const card = document.createElement('div');
+            card.className = 'gallery-card fade-in-stagger';
+            card.style.animationDelay = `${index * 0.2}s`;
+            const img = document.createElement('img');
+            img.src = url;
+            card.appendChild(img);
+            gallery.appendChild(card);
+        });
+        setTimeout(() => {
+            gallery.scrollIntoView({ behavior: 'smooth' });
+        }, 300);
+        loadingEl.style.display = 'none';
+        waitingEl.style.display = 'none';
+        document.getElementById('visual-loading').style.display = 'none';
+        document.getElementById('countdown-timer').innerText = '';
+        document.getElementById('generate-waiting-box').style.display = 'none';
+        document.getElementById('replicate-error-msg').style.display = 'none';
+    }
+
+    // Error/limit handling
+    if (data.status === 'error' || (data.message && data.message.toLowerCase().includes('limit'))) {
+        document.getElementById('replicate-error-msg').style.display = 'block';
+        document.getElementById('generate-waiting-box').style.display = 'none';
+    }
+});
+
+
+        // Lightbox for gallery images
+        document.getElementById('gallery').addEventListener('click', (e) => {
+            if (e.target.tagName === 'IMG') {
+                document.getElementById('lightbox-img').src = e.target.src;
+                document.getElementById('lightbox').style.display = 'flex';
+            }
+        });
+
+        document.getElementById('lightbox').addEventListener('click', () => {
+            document.getElementById('lightbox').style.display = 'none';
+        });
+        socket.on('disconnect', () => {
+            connected = false;
+            setStatus('⚡ Koneksi terputus. Klik Turn On Magic Mirror lagi jika diperlukan.', 'red');
+            document.getElementById('loading').style.display = 'none';
+            updateCaptureButton();
+        });
+
+        // When camera toggled, update the button too
+        document.getElementById('toggle-camera-button').addEventListener('click', () => {
+            setTimeout(updateCaptureButton, 500); // slight delay to ensure stream state updated
+        });
+    </script>
+    <script>
+    // HUD Clock
+    (function clockTick(){
+      const el = document.getElementById('hud-clock');
+      if(!el) return;
+      const d = new Date();
+      const fmt = new Intl.DateTimeFormat(undefined,{hour:'2-digit', minute:'2-digit'});
+      el.textContent = fmt.format(d);
+      setTimeout(clockTick, 10000);
+    })();
+    // Flip mirror toggle
+    (function(){
+      const wrap = document.getElementById('camera-wrapper');
+      const btn = document.getElementById('flip-mirror');
+      if(btn && wrap){
+        btn.addEventListener('click', ()=> wrap.classList.toggle('mirrored'));
+      }
+    })();
+    // Fullscreen toggle
+    (function(){
+      const btn = document.getElementById('fullscreen');
+      if(!btn) return;
+      btn.addEventListener('click', ()=>{
+        const el = document.documentElement;
+        if (!document.fullscreenElement){
+          (el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen).call(el);
+        } else {
+          (document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen).call(document);
+        }
+      });
+    })();
+    // Navbar & Footer toggles + keyboard shortcuts (+ Heartbeat mute)
+    (function(){
+      const nav = document.getElementById('navbar');
+      const footer = document.getElementById('footer-placeholder');
+      const btnN = document.getElementById('toggle-navbar');
+      const btnF = document.getElementById('toggle-footer');
+      const btnHB = document.getElementById('toggle-heartbeat');
+
+      function toggleEl(el){ if(!el) return; el.classList.toggle('hidden-block'); }
+
+      if(btnN){ btnN.addEventListener('click', ()=> toggleEl(nav)); }
+      if(btnF){ btnF.addEventListener('click', ()=> toggleEl(footer)); }
+
+      // Heartbeat mute toggle
+      window.HeartbeatMuted = window.HeartbeatMuted || false;
+      function updateBeatBtn(){
+        if(!btnHB) return;
+        btnHB.textContent = window.HeartbeatMuted ? 'Beat Off' : 'Beat';
+        btnHB.style.opacity = window.HeartbeatMuted ? 0.6 : 1;
+        btnHB.setAttribute('aria-pressed', String(window.HeartbeatMuted));
+      }
+      if(btnHB){
+        btnHB.addEventListener('click', ()=>{
+          window.HeartbeatMuted = !window.HeartbeatMuted;
+          if(window.HeartbeatCtl){
+            if(window.HeartbeatMuted){ window.HeartbeatCtl.stop?.(); }
+            else { window.HeartbeatCtl.startCalm?.(); }
+          }
+          updateBeatBtn();
+        });
+        updateBeatBtn();
+      }
+
+      // Shortcuts: Ctrl+N (navbar), Ctrl+F (footer), Ctrl+M (mute heartbeat)
+      document.addEventListener('keydown', (e)=>{
+        const k = (e.key || '').toLowerCase();
+        if(e.ctrlKey && k==='n'){ e.preventDefault(); toggleEl(nav); }
+        if(e.ctrlKey && k==='f'){ e.preventDefault(); toggleEl(footer); }
+        if(e.ctrlKey && k==='m'){ e.preventDefault(); btnHB?.click(); }
+      });
+    })();
+    </script>
+    <!-- AI Avatar Orb -->
+    <div id="ai-avatar" aria-hidden="true">
+      <div class="orb-motion">
+        <div class="orb-wrap">
+          <div class="halo"></div>
+          <div class="core"></div>
+          <div class="pulse"></div>
+          <div class="pulse pulse2"></div>
+          <!-- SVG noise using feTurbulence for organic life -->
+          <svg class="noise" width="120%" height="120%" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <filter id="noiseFilter">
+              <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="8"/>
+              <feColorMatrix type="saturate" values="0"/>
+            </filter>
+            <rect width="100" height="100" filter="url(#noiseFilter)"></rect>
+          </svg>
+          <!-- Abstract spiral overlay -->
+          <svg class="spiral" viewBox="0 0 200 200">
+            <defs>
+              <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="rgba(255,255,255,.9)"/>
+                <stop offset="60%" stop-color="rgba(124,255,124,.25)"/>
+                <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
+              </radialGradient>
+            </defs>
+            <circle cx="100" cy="100" r="70" fill="url(#glow)" opacity="0.35"/>
+            <!-- Two parametric spirals -->
+            <path class="spiral-path" d="M100,100
+              m0,-70
+              c20,0 35,15 35,35
+              s-15,35 -35,35
+              s-35,-15 -35,-35
+              s15,-35 35,-35
+              M100,100 c10,0 18,8 18,18 s-8,18 -18,18 s-18,-8 -18,-18 s8,-18 18,-18"/>
+            <path class="spiral-path alt" d="M100,35 C140,35 165,60 165,100 S140,165 100,165 35,140 35,100 60,35 100,35
+              M100,55 C128,55 145,72 145,100 S128,145 100,145 55,128 55,100 72,55 100,55"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Chat Panel -->
+    <div id="ai-chat">
+      <div class="chat-wrap glass chat-box">
+        <div class="header">AI Assistant <button class="close" id="ai-chat-close">×</button></div>
+        <div class="msgs" id="ai-chat-msgs">
+          <div class="msg bot">Hi! Aku siap bantu konsultasi kecantikanmu. Tulis pertanyaanmu ✨</div>
+        </div>
+        <form class="composer" id="ai-chat-form">
+          <input type="text" id="ai-chat-input" placeholder="Tanya apa saja..." autocomplete="off" />
+          <button class="mic" type="button" id="ai-voice-btn" title="Tahan untuk bicara / klik untuk toggle">🎤</button>
+          <button class="send" type="submit">Kirim</button>
+        </form>
+      </div>
+    </div>
+  
+    <!-- Avatar state controller -->
+    <script>
+      (function(){
+        const avatar = document.getElementById('ai-avatar');
+        if(!avatar) return;
+        // Hook into existing analyze flow
+        const capBtn = document.getElementById('capture-button');
+        if(capBtn){
+          capBtn.addEventListener('click', ()=> avatar.classList.add('thinking'));
+        }
+        // When status returns to success or error, remove thinking
+        const setStatusOrig = window.setStatus;
+        if(typeof setStatusOrig === 'function'){
+          window.setStatus = function(){
+            setStatusOrig.apply(this, arguments);
+            const msg = arguments[0] ? String(arguments[0]).toLowerCase() : '';
+            if(msg.includes('✅') || msg.includes('gagal') || msg.includes('recommendation')){
+              avatar.classList.remove('thinking');
+              if(window.HeartbeatCtl){ window.HeartbeatCtl.startCalm?.(); }
+            }
+          }
+        }
+        // Also listen to socket events
+        if(window.socket){
+          socket.on('ai_result', ()=> avatar.classList.remove('thinking'));
+          socket.on('generated_faces', ()=> avatar.classList.remove('thinking'));
+        }
+      })();
+    </script>
+    <script>
+    // === Heartbeat Audio (no mp3 required) ===
+    (function(){
+      let audioCtx = null, hbTimer = null, firstUserGestureBound = false;
+      let currentMode = 'idle';
+      let currentIntensity = 0.4;
+      const avatar = document.getElementById('ai-avatar');
+
+      function ensureCtx(){
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        return audioCtx;
+      }
+      function pulseOnce(loud=0.12, freq=60){
+        const ctx = ensureCtx();
+        const t = ctx.currentTime;
+        // Kick-like thump
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, t);
+        osc.frequency.exponentialRampToValueAtTime(40, t + 0.15);
+        gain.gain.setValueAtTime(0.0001, t);
+        gain.gain.exponentialRampToValueAtTime(loud, t + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(t); osc.stop(t + 0.26);
+      }
+      function startHeartbeat(mode){
+        if (window.HeartbeatMuted) { return; }
+        stopHeartbeat();
+        currentMode = mode || 'calm';
+        try{ ensureCtx().resume(); }catch(e){}
+        const basePeriod = (currentMode === 'thinking') ? 800 : 1500; // ms
+        const baseLoud   = (currentMode === 'thinking') ? 0.14 : 0.06;
+        const beat = ()=>{
+          const loud = baseLoud * (0.8 + 0.6 * currentIntensity); // link intensity -> volume
+          pulseOnce(loud, currentMode === 'thinking' ? 65 : 58);
+          setTimeout(()=>pulseOnce(loud*0.85, currentMode === 'thinking' ? 55 : 48), 170);
+        };
+        hbTimer = setInterval(beat, basePeriod);
+        beat();
+        if(mode === 'thinking'){ document.getElementById('ai-avatar')?.classList.add('thinking'); }
+      }
+      function stopHeartbeat(){
+        if (hbTimer){ clearInterval(hbTimer); hbTimer = null; }
+      }
+      // hook into existing capture & socket events for start/stop
+      const cap = document.getElementById('capture-button');
+      if(cap && !firstUserGestureBound){
+        firstUserGestureBound = true;
+        cap.addEventListener('click', ()=> startHeartbeat('thinking'), { once:false });
+      }
+      if(window.socket){
+        socket.on('ai_result', ()=> startHeartbeat('calm'));
+        socket.on('generated_faces', ()=> startHeartbeat('calm'));
+      }
+      // Also stop when page hidden (safety)
+      document.addEventListener('visibilitychange', ()=> { if(document.hidden) stopHeartbeat(); });
+      // Expose controller for other scripts (e.g., eye-follow)
+      window.HeartbeatCtl = {
+        setIntensity(v){ currentIntensity = Math.max(0, Math.min(1, v)); },
+        startCalm(){ startHeartbeat('calm'); },
+        startThinking(){ startHeartbeat('thinking'); },
+        stop(){ stopHeartbeat(); }
+      };
+    })();
+
+    // === Eye Follow using FaceDetector API ===
+    (function(){
+      const video = document.getElementById('camera-preview');
+      const avatar = document.getElementById('ai-avatar');
+      const motion = avatar ? avatar.querySelector('.orb-motion') : null;
+      const hasFD = ('FaceDetector' in window);
+      let fd = null, running = false;
+
+      async function detectLoop(){
+        if(!running) return;
+        if(video && video.readyState >= 2){
+          try{
+            let faces = [];
+            if(fd){ faces = await fd.detect(video); }
+            if(faces && faces[0]){
+              const r = faces[0].boundingBox;
+              const cx = r.x + r.width/2;
+              const cy = r.y + r.height/2;
+              const nx = (cx / (video.videoWidth || 1)) - 0.5;
+              const ny = (cy / (video.videoHeight || 1)) - 0.5;
+              // Jangkauan gerak orb (lebih ekspresif)
+              const maxShift = 28; // px
+              const tx = (nx * maxShift).toFixed(1) + 'px';
+              const ty = (ny * maxShift).toFixed(1) + 'px';
+              if(motion){
+                motion.style.setProperty('--tx', tx);
+                motion.style.setProperty('--ty', ty);
+              }
+              // Intensitas: wajah makin besar (dekat) -> intensitas naik (0.2..1)
+              const vw = video.videoWidth || 1, vh = video.videoHeight || 1;
+              const areaRatio = Math.min(1, Math.max(0, (r.width * r.height) / (vw * vh)));
+              const intensity = Math.min(1, Math.max(0.2, areaRatio * 3));
+              // Apply ke CSS var & heartbeat controller bila ada
+              const avatarEl = document.getElementById('ai-avatar');
+              if(avatarEl){ avatarEl.style.setProperty('--intensity', intensity.toFixed(2)); }
+              if(window.HeartbeatCtl && typeof window.HeartbeatCtl.setIntensity === 'function'){
+                window.HeartbeatCtl.setIntensity(intensity);
+              }
+            }
+          }catch(e){ /* ignore detection errors */ }
+        }
+        requestAnimationFrame(detectLoop);
+      }
+
+      function tryStart(){
+        if(!avatar || !motion) return;
+        if(!hasFD){ return; } // silently skip if not supported
+        if(!fd){ fd = new FaceDetector({ fastMode:true, maxDetectedFaces:1 }); }
+        if(!running){ running = true; requestAnimationFrame(detectLoop); }
+      }
+
+      // Start when camera is toggled on (video becomes visible)
+      const obs = new MutationObserver(()=> { if(video && video.style.display !== 'none') tryStart(); });
+      obs.observe(video, { attributes:true, attributeFilter:['style'] });
+      // Also try on load and when metadata available
+      video.addEventListener('loadeddata', tryStart);
+      tryStart();
+    })();
+    </script>
+    <script>
+    // Toggle chat saat avatar diklik
+    (function(){
+      const avatar = document.getElementById('ai-avatar');
+      const panel = document.getElementById('ai-chat');
+      const closeBtn = document.getElementById('ai-chat-close');
+      const input = document.getElementById('ai-chat-input');
+      const form = document.getElementById('ai-chat-form');
+      const msgs = document.getElementById('ai-chat-msgs');
+
+      function openChat(){ panel.style.display = 'block'; setTimeout(()=> input.focus(), 50); }
+      function closeChat(){ panel.style.display = 'none'; }
+      function addMsg(text, who){
+        const div = document.createElement('div');
+        div.className = 'msg ' + (who||'bot');
+        div.textContent = text;
+        msgs.appendChild(div); msgs.scrollTop = msgs.scrollHeight;
+      }
+
+      if(avatar){ avatar.addEventListener('click', ()=>{ if(panel.style.display==='block') closeChat(); else openChat(); }); }
+      if(closeBtn){ closeBtn.addEventListener('click', closeChat); }
+
+      async function sendToAI(prompt){
+        // ⚠️ API KEY tidak disimpan di client. Panggil endpoint backend yang memakai ENV OPENAI_API_KEY.
+        // Ganti URL ini jika backend kamu berbeda.
+        const url = '/chat';
+        try{
+          window.HeartbeatCtl?.startThinking?.();
+          addMsg(prompt, 'user');
+          const res = await fetch(url, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ session_id: window.sessionId, message: prompt })});
+          if(!res.ok) throw new Error('HTTP '+res.status);
+          const data = await res.json();
+          const reply = data.reply || data.message || 'Maaf, aku belum bisa menjawab.';
+          addMsg(reply, 'bot');
+        }catch(e){
+          console.error('Chat error', e);
+          addMsg('Maaf, server chat sedang bermasalah. Coba lagi nanti.', 'bot');
+        }finally{
+          window.HeartbeatCtl?.startCalm?.();
+        }
+      }
+
+      if(form){
+        form.addEventListener('submit', (e)=>{
+          e.preventDefault();
+          const val = (input.value||'').trim();
+          if(!val) return;
+          input.value='';
+          sendToAI(val);
+        });
+      }
+    })();
+    </script>
+    <script>
+    // === Voice Prompt via Web Speech API + Long-Press on Orb ===
+    (function(){
+      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const supportsSR = !!SpeechRec;
+      const voiceBtn = document.getElementById('ai-voice-btn');
+      const input = document.getElementById('ai-chat-input');
+      const form = document.getElementById('ai-chat-form');
+      const avatar = document.getElementById('ai-avatar');
+      const panel = document.getElementById('ai-chat');
+
+      let rec = null, listening = false, longPressTimer = null, suppressClick = false;
+
+      function ensurePanel(){ if(panel.style.display !== 'block'){ panel.style.display = 'block'; } }
+      function setListening(on){
+        listening = on;
+        if(voiceBtn){ voiceBtn.classList.toggle('listening', on); }
+        if(avatar){ avatar.classList.toggle('listening', on); }
+        if(on){ window.HeartbeatCtl?.startThinking?.(); } else { window.HeartbeatCtl?.startCalm?.(); }
+      }
+
+      function startRec(){
+        if(!supportsSR) { alert('Browser belum mendukung speech recognition. Coba Chrome/Edge terbaru.'); return; }
+        if(listening) return;
+        try {
+          if(!rec){
+            rec = new SpeechRec();
+            rec.lang = 'id-ID';
+            rec.interimResults = true;
+            rec.continuous = false; // single utterance
+            rec.maxAlternatives = 1;
+            rec.onresult = (e)=>{
+              let finalTxt = '';
+              for(let i=0;i<e.results.length;i++){
+                const res = e.results[i];
+                if(res.isFinal){ finalTxt += res[0].transcript; }
+              }
+              if(finalTxt){ input.value = finalTxt.trim(); }
+            };
+            rec.onerror = (e)=>{ console.warn('SR error', e.error); stopRec(); };
+            rec.onend = ()=>{ setListening(false); };
+          }
+          ensurePanel();
+          setListening(true);
+          rec.start();
+        } catch(err){ console.error('SR start failed', err); setListening(false); }
+      }
+      function stopRec(){
+        try{ rec && rec.stop && rec.stop(); }catch(_){}
+        setListening(false);
+      }
+
+      if(voiceBtn){
+        voiceBtn.addEventListener('mousedown', startRec);
+        voiceBtn.addEventListener('mouseup', stopRec);
+        voiceBtn.addEventListener('mouseleave', stopRec);
+        voiceBtn.addEventListener('touchstart', (e)=>{ e.preventDefault(); startRec(); }, {passive:false});
+        voiceBtn.addEventListener('touchend', (e)=>{ e.preventDefault(); stopRec(); }, {passive:false});
+        // click to toggle (for accessibility)
+        voiceBtn.addEventListener('click', ()=>{ if(!supportsSR) return; if(listening) stopRec(); else startRec(); });
+      }
+
+      // Long-press on orb to talk (>=400ms)
+      if(avatar){
+        const down = ()=>{ longPressTimer = setTimeout(()=>{ suppressClick = true; ensurePanel(); startRec(); }, 400); };
+        const up = ()=>{ clearTimeout(longPressTimer); if(listening) stopRec(); setTimeout(()=> suppressClick=false, 50); };
+        avatar.addEventListener('mousedown', down);
+        avatar.addEventListener('touchstart', (e)=>{ e.preventDefault(); down(); }, {passive:false});
+        avatar.addEventListener('mouseup', up);
+        avatar.addEventListener('mouseleave', up);
+        avatar.addEventListener('touchend', (e)=>{ e.preventDefault(); up(); }, {passive:false});
+        // prevent normal toggle if we just long-pressed
+        avatar.addEventListener('click', (e)=>{ if(suppressClick){ e.stopImmediatePropagation(); e.preventDefault(); } });
+      }
+
+      // Auto-send when recognition ends and input has text
+      if(form){
+        document.addEventListener('speechend', ()=>{
+          const val = (input.value||'').trim();
+          if(val){ form.dispatchEvent(new Event('submit', {cancelable:true})); }
+        });
+      }
+    })();
+    </script>
+    <script>
+    // === Draggable Orb (bounded within screen, with persistence) ===
+    (function(){
+      const orb = document.getElementById('ai-avatar');
+      const panel = document.getElementById('ai-chat');
+      if(!orb) return;
+
+      const margin = 8; // px
+      let dragging = false, sx = 0, sy = 0, startLeft = 0, startTop = 0;
+
+      const px = (n)=> `${Math.round(n)}px`;
+      function positionPanelNearOrb(){
+        if(!panel || panel.style.display !== 'block') return;
+        const r = orb.getBoundingClientRect();
+        const panelW = panel.offsetWidth || 320;
+        let left = r.right + 12; // prefer right side of orb
+        if (left + panelW + margin > window.innerWidth) left = r.left - panelW - 12; // else put left of orb
+        left = Math.max(margin, Math.min(left, window.innerWidth - panelW - margin));
+        const bottom = Math.max(margin, window.innerHeight - r.top + 12);
+        panel.style.left = px(left);
+        panel.style.right = 'auto';
+        panel.style.bottom = px(bottom);
+      }
+
+      function setPos(l, t){
+        const r = orb.getBoundingClientRect();
+        const w = r.width, h = r.height;
+        const maxL = window.innerWidth - w - margin;
+        const maxT = window.innerHeight - h - margin;
+        l = Math.max(margin, Math.min(l, maxL));
+        t = Math.max(margin, Math.min(t, maxT));
+        orb.style.left = px(l);
+        orb.style.top = px(t);
+        // clear opposite anchors so left/top take effect
+        orb.style.right = 'auto';
+        orb.style.bottom = 'auto';
+        try{ localStorage.setItem('orbLeft', String(l)); localStorage.setItem('orbTop', String(t)); }catch(_){ }
+        positionPanelNearOrb();
+      }
+
+      function loadPos(){
+        const l = parseFloat(localStorage.getItem('orbLeft'));
+        const t = parseFloat(localStorage.getItem('orbTop'));
+        if(!Number.isNaN(l) && !Number.isNaN(t)) setPos(l, t); else positionPanelNearOrb();
+      }
+
+      // Mouse drag
+      orb.addEventListener('mousedown', (e)=>{
+        if(e.button !== 0) return;
+        dragging = true;
+        const r = orb.getBoundingClientRect();
+        sx = e.clientX; sy = e.clientY; startLeft = r.left; startTop = r.top;
+        e.preventDefault();
+      });
+      window.addEventListener('mousemove', (e)=>{
+        if(!dragging) return;
+        const dx = e.clientX - sx, dy = e.clientY - sy;
+        setPos(startLeft + dx, startTop + dy);
+      });
+      window.addEventListener('mouseup', ()=> dragging = false);
+
+      // Touch drag
+      orb.addEventListener('touchstart', (e)=>{
+        const t = e.touches[0];
+        dragging = true;
+        const r = orb.getBoundingClientRect();
+        sx = t.clientX; sy = t.clientY; startLeft = r.left; startTop = r.top;
+      }, {passive:true});
+      window.addEventListener('touchmove', (e)=>{
+        if(!dragging) return;
+        const t = e.touches[0]; if(!t) return;
+        const dx = t.clientX - sx, dy = t.clientY - sy;
+        setPos(startLeft + dx, startTop + dy);
+        e.preventDefault();
+      }, {passive:false});
+      window.addEventListener('touchend', ()=> dragging = false);
+
+      // Keep orb in bounds on resize/orientation change
+      window.addEventListener('resize', ()=>{
+        const r = orb.getBoundingClientRect();
+        setPos(r.left, r.top);
+      });
+
+      // Position chat near orb when opened (if other code toggles it)
+      const mo = new MutationObserver(()=> positionPanelNearOrb());
+      if(panel) mo.observe(panel, { attributes: true, attributeFilter: ['style', 'class'] });
+
+      // initial load
+      loadPos();
+    })();
+    </script>
+  </body>
+</html>
+
+    <script>
+    // === Idle Blackout Controller (10s) ===
+    (function(){
+      const IDLE_MS = 10000;
+      let t = null, isIdle = false;
+      const body = document.body;
+      const avatar = document.getElementById('ai-avatar');
+
+      function enterIdle(){
+        if(isIdle) return;
+        isIdle = true;
+        body.classList.add('idle-blackout');
+        avatar?.classList.add('thinking');         // give it more life while idle
+        try { window.HeartbeatCtl?.startCalm?.(); } catch(_){}
+      }
+      function exitIdle(){
+        if(!isIdle) return;
+        isIdle = false;
+        body.classList.remove('idle-blackout');
+        avatar?.classList.remove('thinking');
+      }
+      function resetTimer(){
+        clearTimeout(t);
+        if(isIdle) exitIdle();
+        t = setTimeout(enterIdle, IDLE_MS);
+      }
+
+      // Activity that cancels idle
+      ['mousemove','mousedown','keydown','touchstart','scroll','wheel'].forEach(evt =>
+        window.addEventListener(evt, resetTimer, {passive:true})
+      );
+      document.addEventListener('visibilitychange', ()=>{
+        if(document.hidden){ clearTimeout(t); } else { resetTimer(); }
+      });
+
+      // Kick it off
+      resetTimer();
+    })();
+    </script>
