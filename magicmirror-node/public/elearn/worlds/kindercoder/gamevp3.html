@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>KinderCoder – Game VP3 (Permata)</title>
+  <style>
+    :root{
+      --bg: #0a5aa1; /* laut */
+      --sand:#f3d9a4; /* pasir */
+      --wood:#5b3a22; /* UI kayu */
+      --ink:#111827;
+      --green:#22c55e;
+      --red:#ef4444;
+      --blue:#3b82f6;
+      --panel:#fff8ea;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial}
+    body{background:var(--bg);display:flex;flex-direction:column}
+
+    /* Top bar */
+    .topbar{display:flex;align-items:center;gap:12px;background:linear-gradient(#6b4a2b,#4a2f19);color:#fff;padding:10px 14px;border-bottom:4px solid #2b1a0e}
+    .topbar .title{background:#6b4a2b;color:#fff;font-weight:800;padding:8px 14px;border-radius:10px;border:2px solid #2b1a0e;letter-spacing:.5px}
+    .topbar .chip{background:#0ea5e9;color:#fff;font-weight:700;padding:6px 10px;border-radius:10px}
+
+    /* Layout */
+    .wrap{flex:1;display:grid;grid-template-columns:minmax(640px,1fr) 420px;gap:14px;padding:14px;min-height:0}
+
+    /* Canvas board */
+    .boardWrap{position:relative;border:6px solid #134e8a;border-radius:18px;overflow:hidden;background:var(--bg);min-height:420px}
+    canvas#board{display:block;width:100%;height:100%}
+
+    /* Right panel */
+    .panel{background:var(--panel);border-radius:16px;border:3px solid #d6b483;display:flex;flex-direction:column;min-height:0}
+    .panel h3{margin:0;padding:10px 14px;background:#ffe9bf;border-bottom:2px solid #d6b483;border-top-left-radius:14px;border-top-right-radius:14px}
+    .palette,.workspace{padding:12px;display:flex;flex-wrap:wrap;gap:10px}
+
+    .block{user-select:none;cursor:grab;background:#4f46e5;color:#fff;padding:10px 12px;border-radius:12px;font-weight:800;display:inline-flex;align-items:center;gap:10px;border:0;box-shadow:0 6px 0 #2f2fb3}
+    .block[data-dir="up"]{background:#7c3aed}
+    .block[data-dir="down"]{background:#2563eb}
+    .block[data-dir="left"]{background:#0ea5e9}
+    .block[data-dir="right"]{background:#22c55e}
+    .block.small{padding:8px 10px;border-radius:10px;box-shadow:0 4px 0 rgba(0,0,0,.15)}
+
+    .workspace{background:#fff;border-top:2px dashed #e5c892;min-height:120px}
+    .step{position:relative;display:inline-flex;align-items:center;gap:8px}
+    .step .del{position:absolute;right:-6px;top:-6px;background:#111827;color:#fff;border:none;border-radius:999px;width:18px;height:18px;line-height:18px;font-size:12px;cursor:pointer}
+
+    .controls{display:flex;gap:8px;align-items:center;padding:12px;border-top:2px solid #e8d5b2;margin-top:auto}
+    .btn{background:var(--green);color:#fff;font-weight:800;border:none;border-radius:12px;padding:10px 14px;cursor:pointer}
+    .btn.secondary{background:#111827}
+    .btn.warn{background:var(--red)}
+    .hint{margin-left:auto;font-size:12px;color:#6b7280}
+
+    .toast{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 14px;border-radius:12px;opacity:0;pointer-events:none;transition:opacity .25s}
+    .toast.show{opacity:1}
+
+    @media (max-width: 980px){
+      .wrap{grid-template-columns:1fr}
+    }
+  </style>
+  <script src="https://unpkg.com/three@0.157.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/three@0.157.0/examples/js/loaders/GLTFLoader.js"></script>
+</head>
+<body>
+  <div class="topbar">
+    <div class="chip">PERMATA</div>
+    <div class="title">Susun perintah untuk mengambil permata</div>
+  </div>
+
+  <div class="wrap">
+    <div class="boardWrap">
+      <canvas id="board" width="1024" height="640" aria-label="papan permainan"></canvas>
+    </div>
+
+    <aside class="panel" aria-label="panel perintah">
+      <h3>Mulai ▶︎</h3>
+      <div class="palette" id="palette" aria-label="palet blok">
+        <button class="block small" data-dir="up">go ↑</button>
+        <button class="block small" data-dir="down">go ↓</button>
+        <button class="block small" data-dir="left">go ←</button>
+        <button class="block small" data-dir="right">go →</button>
+      </div>
+      <div class="workspace" id="workspace" aria-label="ruang kerja (tarik-urutkan)"></div>
+      <div class="controls">
+        <button class="btn" id="run">Mulai</button>
+        <button class="btn secondary" id="step">Langkah</button>
+        <button class="btn warn" id="reset">Reset</button>
+        <button class="btn secondary" id="mode3d">3D: OFF</button>
+        <div class="hint">Tip: klik blok di palet ➜ seret untuk ubah urutan ➜ Mulai</div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="toast" id="toast">👍 Bagus! Permata didapat.</div>
+
+<script>
+(()=>{
+  // ===== Board config =====
+  const canvas = document.getElementById('board');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  let t = 0;                 // global time for subtle animations
+  const footprints = [];     // jejak kaki serigala
+
+  let MODE = '2d'; // '2d' | '3d'
+  const boardWrap = document.querySelector('.boardWrap');
+  let three = null; // {renderer, scene, camera, playerMesh, gemMesh, pathGroup}
+  let assets = { wolf: null };
+
+  const grid = { cols: 14, rows: 9, size: 64 };
+  const island = { x: 1, y: 1, cols: 12, rows: 7 } // area pasir
+
+  const start = { x: 6, y: 6 }; // posisi awal serigala (grid)
+  const goal  = { x: 10, y: 5 }; // permata
+  let player = { x: start.x, y: start.y };
+
+  // Jalur hint (titik merah) – opsional
+  const pathDots = [
+    {x:6,y:6},{x:7,y:6},{x:8,y:6},{x:9,y:6},{x:10,y:6},{x:10,y:5}
+  ];
+
+  // ===== Drawing helpers =====
+  function g2p(gx, gy){
+    const px = gx*grid.size;
+    const py = gy*grid.size;
+    return {x:px, y:py};
+  }
+
+  function drawBackground(){
+    // laut
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--bg');
+    ctx.fillRect(0,0,W,H);
+
+    // pulau pasir (rounded)
+    const pad = 12;
+    const {x,y} = g2p(island.x, island.y);
+    const iw = island.cols*grid.size;
+    const ih = island.rows*grid.size;
+
+    // garis ombak
+    ctx.save();
+    ctx.shadowColor='rgba(0,0,0,.15)';
+    ctx.shadowBlur=10;
+    roundRect(ctx, x+pad, y+pad, iw-pad*2, ih-pad*2, 24);
+    ctx.fillStyle = '#f8e3b6';
+    ctx.fill();
+
+    // tekstur pasir sederhana (bintik)
+    for(let i=0;i<120;i++){
+      ctx.fillStyle = i%2? '#e7c88f':'#ddb87a';
+      const rx = x+pad+Math.random()*(iw-pad*2);
+      const ry = y+pad+Math.random()*(ih-pad*2);
+      ctx.fillRect(rx, ry, 2, 2);
+    }
+    ctx.restore();
+
+    // tanaman kecil
+    blob(x+40,y+40,12,'#2e7d32');
+    blob(x+iw-80,y+54,14,'#2e7d32');
+    blob(x+80,y+ih-60,16,'#1b5e20');
+  }
+
+  function roundRect(ctx, x,y,w,h,r){
+    const rr = Math.min(r, w/2, h/2);
+    ctx.beginPath();
+    ctx.moveTo(x+rr,y);
+    ctx.arcTo(x+w,y,x+w,y+h,rr);
+    ctx.arcTo(x+w,y+h,x,y+h,rr);
+    ctx.arcTo(x,y+h,x,y,rr);
+    ctx.arcTo(x,y,x+w,y,rr);
+    ctx.closePath();
+  }
+  function blob(x,y,r,c){
+    ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(x,y,r*1.2,r,.2,0,Math.PI*2);ctx.fill();
+  }
+
+  function drawGrid(){
+    ctx.strokeStyle = 'rgba(255,255,255,.08)';
+    for(let c=0;c<=grid.cols;c++){
+      ctx.beginPath();
+      ctx.moveTo(c*grid.size,0);ctx.lineTo(c*grid.size,H);ctx.stroke();
+    }
+    for(let r=0;r<=grid.rows;r++){
+      ctx.beginPath();
+      ctx.moveTo(0,r*grid.size);ctx.lineTo(W,r*grid.size);ctx.stroke();
+    }
+  }
+
+  function drawPathDots(){
+    for(const d of pathDots){
+      const p = g2p(d.x+.5,d.y+.5);
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath();ctx.arc(p.x,p.y,6,0,Math.PI*2);ctx.fill();
+    }
+    // target ring
+    const g = g2p(goal.x+.5,goal.y+.5);
+    ctx.strokeStyle = '#0ea5e9';
+    ctx.lineWidth=4;ctx.beginPath();ctx.arc(g.x,g.y,16,0,Math.PI*2);ctx.stroke();
+  }
+
+  function drawGem(){
+    // Permata berkilau: sedikit berdenyut + garis shine yang berputar
+    const p = g2p(goal.x+.5,goal.y+.5);
+    t += 0.06; // tick
+    const s = 1 + 0.06*Math.sin(t);
+
+    ctx.save();
+    ctx.translate(p.x,p.y);
+    ctx.scale(s,s);
+
+    // badan permata
+    ctx.fillStyle = '#60a5fa';
+    ctx.beginPath();
+    ctx.moveTo(0,-18);ctx.lineTo(18,-4);ctx.lineTo(10,16);ctx.lineTo(-10,16);ctx.lineTo(-18,-4);ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle='#1e3a8a';ctx.lineWidth=2;ctx.stroke();
+
+    // shine tipis yang berputar
+    ctx.rotate(t*0.7);
+    const g = ctx.createLinearGradient(-22,0,22,0);
+    g.addColorStop(0,'rgba(255,255,255,0)');
+    g.addColorStop(0.5,'rgba(255,255,255,0.55)');
+    g.addColorStop(1,'rgba(255,255,255,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(-22,-20,44,40);
+
+    ctx.restore();
+  }
+
+  function drawFootprints(){
+    for (const f of footprints){
+      const p = g2p(f.x+.5, f.y+.8);
+      ctx.globalAlpha = Math.max(0, f.life);
+      ctx.fillStyle = '#b08968';
+      ctx.beginPath();
+      ctx.ellipse(p.x-6,p.y,6,3,0,0,Math.PI*2); // kiri
+      ctx.ellipse(p.x+6,p.y,6,3,0,0,Math.PI*2); // kanan
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      f.life -= 0.01; // pelan-pelan memudar
+    }
+    // buang jejak yang sudah hilang
+    for (let i=footprints.length-1;i>=0;i--) if (footprints[i].life<=0) footprints.splice(i,1);
+  }
+
+  function drawPlayer(){
+    const p = g2p(player.x+.5, player.y+.5);
+    // bayangan
+    ctx.fillStyle='rgba(0,0,0,.2)';ctx.beginPath();ctx.ellipse(p.x,p.y+16,18,8,0,0,Math.PI*2);ctx.fill();
+    // tubuh serigala simple (ikon)
+    ctx.fillStyle='#94a3b8';
+    ctx.beginPath();ctx.arc(p.x-8,p.y,14,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#64748b';ctx.beginPath();ctx.arc(p.x+10,p.y+4,12,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(p.x-12,p.y-2,4,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#111827';ctx.beginPath();ctx.arc(p.x-12,p.y-2,2,0,Math.PI*2);ctx.fill();
+  }
+
+  function render(){
+    if (MODE === '3d') { requestAnimationFrame(render); return; }
+    ctx.clearRect(0,0,W,H);
+    drawBackground();
+    drawGrid();
+    drawPathDots();
+    drawGem();
+    drawFootprints();
+    drawPlayer();
+    requestAnimationFrame(render); // loop ringan untuk animasi halus
+  }
+
+  function gridToWorld(gx, gy){
+    const cell = 1; // 1 world unit per grid
+    const x = (gx - grid.cols/2) * cell;
+    const z = (gy - grid.rows/2) * cell;
+    return {x, y: 0, z};
+  }
+
+  function init3D(){
+    if (three) return; // already
+    const rect = boardWrap.getBoundingClientRect();
+    const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+    renderer.setPixelRatio(window.devicePixelRatio||1);
+    renderer.setSize(rect.width, rect.height);
+    renderer.domElement.style.position = 'absolute';
+    renderer.domElement.style.inset = '0';
+    boardWrap.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(55, rect.width/rect.height, 0.1, 1000);
+    camera.position.set(6, 10, 10); // miring dari atas
+    camera.lookAt(0,0,0);
+
+    // simple low-poly palms
+    function makePalm(){
+      const trunk = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.07, 0.12, 1.2, 8),
+        new THREE.MeshStandardMaterial({ color: 0x8d6e63, roughness:0.9 })
+      );
+      const leaves = new THREE.Group();
+      for(let i=0;i<6;i++){
+        const leaf = new THREE.Mesh(
+          new THREE.ConeGeometry(0.25, 0.8, 8),
+          new THREE.MeshStandardMaterial({ color: 0x2e7d32, roughness:0.6 })
+        );
+        leaf.position.y = 0.6;
+        leaf.rotation.z = Math.PI/2.2;
+        leaf.rotation.y = i * (Math.PI*2/6);
+        leaves.add(leaf);
+      }
+      const g = new THREE.Group();
+      g.add(trunk); g.add(leaves);
+      g.position.y = 0.2;
+      return g;
+    }
+
+    const palms = new THREE.Group();
+    const palmPositions = [
+      gridToWorld(island.x+2, island.y+2),
+      gridToWorld(island.x+island.cols-2, island.y+2),
+      gridToWorld(island.x+3, island.y+island.rows-2)
+    ];
+    palmPositions.forEach((pp)=>{ const p = makePalm(); p.position.set(pp.x, 0.2, pp.z); palms.add(p); });
+    scene.add(palms);
+
+    // lights
+    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+    const dir = new THREE.DirectionalLight(0xffffff, 0.8);
+    dir.position.set(5,10,3);
+    scene.add(dir);
+
+    // water plane
+    const water = new THREE.Mesh(
+      new THREE.PlaneGeometry(40, 30),
+      new THREE.MeshPhongMaterial({ color: 0x0a5aa1, shininess: 20, transparent:true, opacity:0.95 })
+    );
+    water.rotation.x = -Math.PI/2;
+    water.position.y = -0.15;
+    scene.add(water);
+
+    // island box
+    const islandW = island.cols * 1;
+    const islandH = island.rows * 1;
+    const islandMesh = new THREE.Mesh(
+      new THREE.BoxGeometry(islandW, 0.3, islandH),
+      new THREE.MeshStandardMaterial({ color: 0xf3d9a4, roughness:0.95, metalness:0 })
+    );
+    islandMesh.position.set( (island.x + island.cols/2 - grid.cols/2), 0, (island.y + island.rows/2 - grid.rows/2) );
+    scene.add(islandMesh);
+
+    // path dots
+    const pathGroup = new THREE.Group();
+    const dotGeo = new THREE.SphereGeometry(0.06, 16, 16);
+    const dotMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+    for(const d of pathDots){
+      const m = new THREE.Mesh(dotGeo, dotMat);
+      const p = gridToWorld(d.x+.5, d.y+.5);
+      m.position.set(p.x, 0.02, p.z);
+      pathGroup.add(m);
+    }
+    scene.add(pathGroup);
+
+    // gem
+    const gem = new THREE.Mesh(
+      new THREE.OctahedronGeometry(0.32),
+      new THREE.MeshPhongMaterial({ color: 0x60a5fa, shininess: 80 })
+    );
+    scene.add(gem);
+
+    // player: try load GLB wolf, fallback to primitives
+    let playerMesh = new THREE.Group();
+    const fallback = ()=>{
+      const body = new THREE.Mesh(new THREE.SphereGeometry(0.35,24,24), new THREE.MeshStandardMaterial({ color: 0x94a3b8 }));
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.28,24,24), new THREE.MeshStandardMaterial({ color: 0x64748b }));
+      head.position.set(0.25,0.05,0.05);
+      playerMesh.add(body); playerMesh.add(head);
+      playerMesh.position.y = 0.2;
+      scene.add(playerMesh);
+      three = { renderer, scene, camera, playerMesh, gemMesh: gem, pathGroup };
+      resize3D();
+      sync3D();
+    };
+
+    try{
+      const loader = new THREE.GLTFLoader();
+      loader.load('/elearn/models/wolf.glb', (gltf)=>{
+        assets.wolf = gltf.scene;
+        playerMesh = gltf.scene;
+        playerMesh.traverse(o=>{ if(o.isMesh){ o.castShadow = true; o.receiveShadow = true; }});
+        playerMesh.scale.set(0.6,0.6,0.6);
+        scene.add(playerMesh);
+        three = { renderer, scene, camera, playerMesh, gemMesh: gem, pathGroup };
+        resize3D();
+        sync3D();
+      }, undefined, (err)=>{ console.warn('GLB wolf load fail:', err); fallback(); });
+    }catch(e){ console.warn('GLB loader missing?', e); fallback(); }
+  }
+
+  function sync3D(){
+    if(!three) return;
+    const pg = gridToWorld(player.x+.5, player.y+.5);
+    three.playerMesh.position.x = pg.x;
+    three.playerMesh.position.z = pg.z;
+    if (three.playerMesh){ three.playerMesh.position.y = 0.2 + Math.sin(Date.now()*0.003)*0.02; }
+
+    const gg = gridToWorld(goal.x+.5, goal.y+.5);
+    three.gemMesh.position.set(gg.x, 0.45, gg.z);
+  }
+
+  function animate3D(time){
+    if (MODE !== '3d' || !three) return; // stop anim when leaving 3D
+    const t = (time||0) * 0.001;
+    three.gemMesh.rotation.y = t*2.0;
+    three.gemMesh.position.y = 0.45 + Math.sin(t*2.5)*0.05;
+    if (three && three.scene){
+      three.scene.traverse((obj)=>{
+        if (obj.geometry && obj.geometry.type === 'ConeGeometry'){ obj.rotation.y += 0.002; }
+      });
+    }
+    three.renderer.domElement.style.display = 'block';
+    three.renderer.render(three.scene, three.camera);
+    requestAnimationFrame(animate3D);
+  }
+
+  function resize3D(){
+    if(!three) return;
+    const rect = boardWrap.getBoundingClientRect();
+    three.renderer.setSize(rect.width, rect.height);
+    three.camera.aspect = rect.width/rect.height;
+    three.camera.updateProjectionMatrix();
+  }
+
+  // ===== Commands / Runner =====
+  const workspace = document.getElementById('workspace');
+  const palette = document.getElementById('palette');
+  const runBtn = document.getElementById('run');
+  const stepBtn = document.getElementById('step');
+  const resetBtn = document.getElementById('reset');
+  const toast = document.getElementById('toast');
+  const mode3dBtn = document.getElementById('mode3d');
+
+  function addBlock(dir){
+    const w = document.createElement('div');
+    w.className='step';
+    const b = document.createElement('div');
+    b.className='block';
+    b.dataset.dir = dir;
+    b.textContent = label(dir);
+    b.draggable = true;
+    const del = document.createElement('button');
+    del.className='del'; del.textContent='×';
+    del.onclick = ()=> w.remove();
+    w.appendChild(b); w.appendChild(del);
+    workspace.appendChild(w);
+  }
+  function label(dir){
+    return ({up:'go ↑',down:'go ↓',left:'go ←',right:'go →'})[dir]||'go';
+  }
+
+  // palette click
+  palette.addEventListener('click',e=>{
+    const btn = e.target.closest('.block');
+    if(!btn) return;
+    addBlock(btn.dataset.dir);
+  });
+
+  // drag sort (very small util)
+  let dragEl=null;
+  workspace.addEventListener('dragstart',e=>{
+    const b = e.target.closest('.block');
+    if(!b) return; dragEl = b.parentElement; e.dataTransfer.effectAllowed='move';
+  });
+  workspace.addEventListener('dragover',e=>{
+    e.preventDefault();
+    const host = workspace;
+    const after = [...host.children].find(ch=>{
+      const box = ch.getBoundingClientRect();
+      return e.clientY < box.top + box.height/2;
+    });
+    host.insertBefore(dragEl, after||null);
+  });
+  workspace.addEventListener('dragend',()=> dragEl=null);
+
+  function readProgram(){
+    return [...workspace.querySelectorAll('.block')].map(b=>b.dataset.dir);
+  }
+
+  let queue=[], running=false;
+  function reset(){
+    player.x=start.x; player.y=start.y; queue=[]; running=false; footprints.length=0;
+    if(MODE==='3d') sync3D();
+  }
+
+  function step(){
+    if(queue.length===0){
+      queue = readProgram();
+      if(queue.length===0) return;
+    }
+    const dir = queue.shift();
+    const prevX = player.x, prevY = player.y;
+    const nx = player.x + (dir==='right'?1:dir==='left'?-1:0);
+    const ny = player.y + (dir==='down'?1:dir==='up'?-1:0);
+
+    // batas dalam pulau pasir
+    if(nx>=island.x && nx<island.x+island.cols && ny>=island.y && ny<island.y+island.rows){
+      player.x=nx; player.y=ny;
+      footprints.push({x: prevX, y: prevY, life: 1});
+      if (MODE==='3d') sync3D();
+    }
+    render();
+
+    if(player.x===goal.x && player.y===goal.y){
+      showToast('👍 Bagus! Permata didapat.');
+      queue=[]; running=false;
+    }
+  }
+
+  function run(){
+    if(running) return; running=true; queue = readProgram();
+    const tick=()=>{
+      if(!running) return;
+      if(queue.length===0){ running=false; return; }
+      step();
+      setTimeout(tick, 420);
+    };
+    tick();
+  }
+
+  function showToast(text){
+    toast.textContent = text; toast.classList.add('show');
+    setTimeout(()=> toast.classList.remove('show'), 1500);
+  }
+
+  mode3dBtn.addEventListener('click', ()=>{
+    if (MODE === '2d'){
+      MODE = '3d';
+      mode3dBtn.textContent = '3D: ON';
+      canvas.style.display = 'none';
+      init3D();
+      sync3D();
+      three.renderer.domElement.style.display = 'block';
+      animate3D();
+    } else {
+      MODE = '2d';
+      mode3dBtn.textContent = '3D: OFF';
+      canvas.style.display = 'block';
+      if (three && three.renderer) three.renderer.domElement.style.display = 'none';
+    }
+  });
+
+  runBtn.addEventListener('click', run);
+  stepBtn.addEventListener('click', step);
+  resetBtn.addEventListener('click', reset);
+
+  // initial
+  requestAnimationFrame(render);
+
+  window.addEventListener('resize', resize3D);
+})();
+</script>
+</body>
+</html>

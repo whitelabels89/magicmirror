@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kindercoder – Game VP</title>
+<style>
+  :root{
+    --bg:#f6f7fb;
+    --ink:#222;
+    --board-w:max(820px, 72vw);
+    --cell:64px; /* auto di-resize via JS */
+    --radius:16px;
+    --shadow:0 10px 22px rgba(0,0,0,.12);
+    --green:#22c55e;
+    --olive:#a3ad3a;
+    --yellow:#ffd84d;
+    --pink:#ff5a87;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:var(--bg);font-family:ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial}
+  .wrap{max-width:1100px;margin:16px auto;padding:8px}
+  .topbar{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .btn-icon{
+    display:inline-grid;place-items:center; width:40px;height:40px;border-radius:12px;
+    background:#fff;border:0;box-shadow:var(--shadow);cursor:pointer;font-size:20px
+  }
+  .btn-icon:active{transform:translateY(1px)}
+  /* BOARD */
+  .board-shell{
+    position:relative;background:#fff;border-radius:24px;box-shadow:var(--shadow);padding:10px
+  }
+  .board{
+    position:relative;margin:auto; width:var(--board-w); aspect-ratio: 16/9;
+    border-radius:20px; overflow:hidden; background:#fafafa;
+    background-image:
+      radial-gradient(#cfd3de 1px, transparent 1px),
+      url('data:image/svg+xml;utf8,\
+<svg xmlns="http://www.w3.org/2000/svg" width=\"1200\" height=\"675\" viewBox=\"0 0 1200 675\">\
+<g fill=\"none\" stroke=\"#e6e8ef\" stroke-width=\"1.2\" opacity=\"0.75\">\
+<path d=\"M10 40h90v30h120v30h90\"/>\
+<path d=\"M260 60h120v50h110\"/>\
+<path d=\"M540 120h140v40H860\"/>\
+<path d=\"M80 260h140v-40h110v60h140\"/>\
+<path d=\"M390 320h120v-30h140v50h110\"/>\
+<path d=\"M760 420h160v-40h120\"/>\
+</g></svg>');
+    background-size: 16px 16px, cover;
+    background-position: 0 0, center;
+  }
+  /* grid guide (optional, faint) */
+  .grid{
+    position:absolute;inset:0;pointer-events:none;
+    background-image:linear-gradient(to right, rgba(0,0,0,.04) 1px, transparent 1px),
+                     linear-gradient(to bottom, rgba(0,0,0,.04) 1px, transparent 1px);
+    background-size:var(--cell) var(--cell), var(--cell) var(--cell);
+  }
+  /* HUD buttons */
+  .hud{
+    position:absolute; inset:12px; pointer-events:none;
+  }
+  .flag, .energyBadge{
+    position:absolute; width:56px;height:56px;border-radius:14px; display:grid;place-items:center;
+    background:var(--yellow); box-shadow:var(--shadow); pointer-events:auto; user-select:none;
+    font-size:26px; font-weight:700;
+  }
+  .flag{left:8px; top:50%; transform:translateY(-50%)}
+  .energyBadge{right:88px; top:50%; transform:translateY(-50%)}
+  .knightBadge{
+    position:absolute; right:16px; top:50%; transform:translateY(-50%);
+    width:56px;height:56px;border-radius:14px; display:grid;place-items:center;
+    background:#ffe9a8; box-shadow:var(--shadow); pointer-events:none; font-size:24px
+  }
+  /* Entity base */
+  .entity{
+    position:absolute; width:var(--cell); height:var(--cell); transform:translate3d(0,0,0);
+    transition:transform .22s linear; display:grid; place-items:center; font-size:28px
+  }
+  .player{
+    width:calc(var(--cell)*.9); height:calc(var(--cell)*.9);
+    border-radius:18%; background:#2c7be5; color:#fff; box-shadow:0 6px 14px rgba(44,123,229,.35);
+    display:grid; place-items:center; font-weight:900; text-shadow:0 2px 0 rgba(0,0,0,.15);
+  }
+  .player::after{content:"🤺"; font-size:calc(var(--cell)*.55)}
+  .goal{filter:drop-shadow(0 6px 12px rgba(0,0,0,.2))}
+  .goal::after{content:"🏁"; font-size:calc(var(--cell)*.6)}
+  .pickup::after{content:"⚡"; font-size:calc(var(--cell)*.6)}
+  .obstacle{filter:drop-shadow(0 6px 10px rgba(0,0,0,.18))}
+  /* quick SVG component looks */
+  .chip, .res, .cap, .icS, .socket, .diode{
+    width:calc(var(--cell)*.9); height:calc(var(--cell)*.65); border-radius:8px; background:#556380;
+    position:relative;
+  }
+  .chip::before, .chip::after{
+    content:""; position:absolute; left:4px; right:4px; height:6px; background:repeating-linear-gradient(90deg,#cfd6e6 0 10px,#9aa4b8 10px 18px);
+    bottom:-6px; border-radius:0 0 6px 6px;
+  }
+  .chip::before{top:-6px; bottom:auto; border-radius:6px 6px 0 0}
+  .icS{background:#33394a; height:calc(var(--cell)*.5)}
+  .res{background:#7ac66e; border:4px solid #2b5; border-radius:999px; height:calc(var(--cell)*.42)}
+  .cap{background:#ff8c3a; border-radius:6px; height:calc(var(--cell)*.5)}
+  .socket{background:#c8ccd8; border:3px solid #aab2c7; height:calc(var(--cell)*.5)}
+  .diode{background:#5bbdf7; border-radius:6px; height:calc(var(--cell)*.38)}
+  /* Program bar */
+  .progbar{
+    display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:center;
+    padding:12px 10px; margin-top:10px;
+  }
+  .keypad, .queue{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+  .kbtn{
+    min-width:46px; height:46px; padding:0 10px; border:0; border-radius:14px; cursor:pointer;
+    background:#fff; box-shadow:var(--shadow); font-size:22px; display:grid; place-items:center; user-select:none
+  }
+  .kbtn.run{background:var(--pink); color:#fff; font-weight:800}
+  .kbtn.green{background:var(--green); color:#fff}
+  .kbtn.olive{background:var(--olive); color:#fff}
+  .kbtn.yellow{background:var(--yellow)}
+  .qitem{
+    width:42px;height:42px;border-radius:12px;background:#fff;box-shadow:var(--shadow);
+    display:grid;place-items:center;font-size:20px;cursor:pointer;user-select:none
+  }
+  .toast{
+    position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
+    background:#111;color:#fff;padding:10px 14px;border-radius:12px; box-shadow:var(--shadow);
+    opacity:0; pointer-events:none; transition:opacity .25s
+  }
+  .toast.show{opacity:1}
+  .shake{animation:shake .25s linear 1}
+  @keyframes shake{
+    20%{transform:translateX(-2px)} 40%{transform:translateX(2px)} 60%{transform:translateX(-2px)} 80%{transform:translateX(2px)}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <button class="btn-icon" title="Kembali" onclick="history.back()">⟵</button>
+      <strong style="font-size:18px">Kindercoder – Circuit Quest</strong>
+    </div>
+
+    <div class="board-shell">
+      <div id="board" class="board" tabindex="0" aria-label="arena">
+        <div class="grid"></div>
+        <div class="hud">
+          <button id="resetBtn" class="flag" title="Reset (R)">🏁</button>
+          <div class="energyBadge" title="Energi yang terkumpul"><span id="energyCount">⚡×0</span></div>
+          <div class="knightBadge">🤺</div>
+        </div>
+      </div>
+
+      <div class="progbar">
+        <div class="keypad">
+          <button class="kbtn green" data-cmd="L" title="Tambah gerak kiri (⌥←)">←</button>
+          <button class="kbtn green" data-cmd="U" title="Tambah gerak atas (⌥↑)">↑</button>
+          <button class="kbtn green" data-cmd="R" title="Tambah gerak kanan (⌥→)">→</button>
+          <button class="kbtn olive" data-cmd="D" title="Tambah gerak bawah (⌥↓)">↓</button>
+          <button class="kbtn yellow" id="undoBtn" title="Undo (⌫)">↩︎</button>
+          <button class="kbtn" id="clearBtn" title="Bersihkan program">🧹</button>
+        </div>
+        <div class="queue" id="queue"></div>
+        <div class="keypad">
+          <button class="kbtn run" id="runBtn" title="Jalankan (Enter)">⚡ Run</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  /* ===== Level Config (edit mudah) ===== */
+  const LEVELS = [
+    {
+      cols: 14, rows: 8,
+      start:[11,4], goal:[2,2],
+      pickups:[[10,4]], // energi
+      obstacles:[
+        {xy:[2,3], t:'chip'}, {xy:[2,6], t:'chip'},
+        {xy:[5,2], t:'icS'},  {xy:[6,3], t:'res'},
+        {xy:[6,4], t:'icS'},  {xy:[8,5], t:'socket'},
+        {xy:[9,6], t:'res'},  {xy:[9,6], t:'res'},
+        {xy:[10,6], t:'res'}, {xy:[7,1], t:'diode'},
+      ]
+    },
+    // Tambah level lain di sini
+  ];
+
+  /* ===== State ===== */
+  let levelIndex = 0;
+  let level = null;
+  let cell = 64; // updated by resize
+  let board, queueEl, energyEl, toastEl, playerEl, goalEl;
+  let player = {x:0, y:0};
+  let queue = []; // 'L','U','R','D'
+  let busy = false;
+  let energy = 0;
+  const occupied = new Map(); // "x,y" -> 'obstacle'|'pickup'|'goal'
+
+  /* ===== Helpers ===== */
+  const key = (x,y)=> `${x},${y}`;
+  const within = (x,y)=> x>=0 && y>=0 && x<level.cols && y<level.rows;
+  const posToPx = (x,y)=> `translate(${x*cell}px, ${y*cell}px)`;
+  const el = (cls, parent=board)=>{ const d=document.createElement('div'); d.className=cls; parent.appendChild(d); return d; };
+  const showToast = (msg)=>{ toastEl.textContent=msg; toastEl.classList.add('show'); clearTimeout(showToast._t); showToast._t=setTimeout(()=>toastEl.classList.remove('show'),1500); };
+  const setCellSize = ()=>{
+    const w = board.clientWidth, h = board.clientHeight;
+    const cw = Math.floor(w / level.cols), ch = Math.floor(h / level.rows);
+    cell = Math.min(cw, ch);
+    board.style.setProperty('--cell', cell+'px');
+  };
+
+  /* ===== Rendering ===== */
+  function drawLevel(idx=0){
+    board.innerHTML = '<div class="grid"></div><div class="hud"></div>';
+    const hud = board.querySelector('.hud');
+
+    levelIndex = idx;
+    level = LEVELS[levelIndex];
+    occupied.clear();
+    energy = 0;
+    updateEnergy();
+
+    // create entities
+    player = {x: level.start[0], y: level.start[1]};
+    playerEl = el('entity player'); playerEl.style.transform = posToPx(player.x, player.y);
+
+    goalEl = el('entity goal'); goalEl.style.transform = posToPx(level.goal[0], level.goal[1]);
+    occupied.set(key(...level.goal), 'goal');
+
+    // pickups
+    for(const p of level.pickups||[]){
+      const d = el('entity pickup'); d.dataset.xy = key(...p); d.style.transform = posToPx(p[0], p[1]);
+      occupied.set(key(...p), 'pickup');
+    }
+    // obstacles
+    for(const {xy:[x,y], t} of level.obstacles||[]){
+      const d = el('entity obstacle'); d.style.transform = posToPx(x,y);
+      const inner = el(t, d); inner.classList.add(t); // shape block inside
+      occupied.set(key(x,y), 'obstacle');
+    }
+
+    // HUD buttons
+    const flag = document.getElementById('resetBtn');
+    hud.appendChild(flag);
+    const badge = document.querySelector('.energyBadge'); hud.appendChild(badge);
+    const kb = document.querySelector('.knightBadge'); hud.appendChild(kb);
+
+    setCellSize();
+    queue = []; renderQueue();
+  }
+
+  function renderQueue(){
+    queueEl.innerHTML = '';
+    queue.forEach((c, i)=>{
+      const q = document.createElement('div'); q.className='qitem';
+      q.title = 'Hapus item';
+      q.textContent = ({L:'←',U:'↑',R:'→',D:'↓'})[c];
+      q.onclick = ()=>{ queue.splice(i,1); renderQueue(); };
+      queueEl.appendChild(q);
+    });
+  }
+
+  function updateEnergy(){ energyEl.textContent = `⚡×${energy}`; }
+
+  function moveTo(x,y){
+    player.x = x; player.y = y;
+    playerEl.style.transform = posToPx(x,y);
+  }
+
+  function pickupAt(x,y){
+    const k = key(x,y);
+    if (occupied.get(k) === 'pickup'){
+      // remove visual pickup on that cell
+      const node = [...board.querySelectorAll('.entity.pickup')].find(n=>n.dataset.xy===k);
+      if(node) node.remove();
+      occupied.delete(k);
+      energy++; updateEnergy();
+      showToast('Dapat ⚡ energi!');
+    }
+  }
+
+  /* ===== Game Logic ===== */
+  async function runProgram(){
+    if (busy || !queue.length) return;
+    busy = true;
+
+    const dirVec = {L:[-1,0], U:[0,-1], R:[1,0], D:[0,1]};
+
+    for (let i=0;i<queue.length;i++){
+      const cmd = queue[i];
+      const [dx,dy] = dirVec[cmd];
+      const nx = player.x + dx, ny = player.y + dy;
+
+      await sleep(240);
+
+      if (!within(nx,ny) || occupied.get(key(nx,ny)) === 'obstacle'){
+        playerEl.classList.add('shake'); setTimeout(()=>playerEl.classList.remove('shake'), 260);
+        showToast('Terhalang! Coba lagi.'); busy=false; return;
+      }
+      moveTo(nx,ny);
+      pickupAt(nx,ny);
+
+      if (key(nx,ny) === key(...level.goal)){
+        await sleep(200);
+        showToast('Level Clear! 🎉');
+        busy=false; queue.length=0; renderQueue();
+        // Optionally, auto-next after short delay if more levels
+        return;
+      }
+    }
+    busy=false;
+  }
+
+  const sleep = (ms)=> new Promise(r=>setTimeout(r,ms));
+
+  /* ===== Wiring UI ===== */
+  function addCmd(c){ if (busy) return; queue.push(c); renderQueue(); }
+  function undo(){ if (busy) return; queue.pop(); renderQueue(); }
+  function clearQueue(){ if (busy) return; queue = []; renderQueue(); }
+  function reset(){ if (busy) return; drawLevel(levelIndex); showToast('Reset.'); }
+
+  function bind(){
+    board = document.getElementById('board');
+    queueEl = document.getElementById('queue');
+    energyEl = document.getElementById('energyCount');
+    toastEl = document.getElementById('toast');
+
+    document.querySelectorAll('.kbtn[data-cmd]').forEach(b=>{
+      b.addEventListener('click', ()=> addCmd(b.dataset.cmd));
+    });
+    document.getElementById('undoBtn').onclick = undo;
+    document.getElementById('clearBtn').onclick = clearQueue;
+    document.getElementById('runBtn').onclick = runProgram;
+    document.getElementById('resetBtn').onclick = reset;
+
+    // keyboard: Alt+Arrows to add, Enter run, Backspace undo, R reset
+    window.addEventListener('keydown', (e)=>{
+      if (e.key==='Enter'){ e.preventDefault(); runProgram(); }
+      else if (e.key==='Backspace'){ e.preventDefault(); undo(); }
+      else if ((e.altKey||e.metaKey) && ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){
+        e.preventDefault();
+        addCmd({ArrowLeft:'L',ArrowRight:'R',ArrowUp:'U',ArrowDown:'D'}[e.key]);
+      }else if (e.key==='r' || e.key==='R'){ reset(); }
+    });
+
+    const ro = new ResizeObserver(()=> setCellSize());
+    ro.observe(board);
+  }
+
+  /* ===== Init ===== */
+  bind();
+  drawLevel(0);
+})();
+</script>
+</body>
+</html>
