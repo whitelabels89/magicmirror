@@ -302,5 +302,62 @@
     shuffleLegend();
     randomizePatterns();
   </script>
+<style>
+  .finish-bar { position: fixed; right: 16px; bottom: 16px; z-index: 1000; }
+  #btnSelesai { background: #22c55e; color: #fff; border: none; cursor: pointer; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4); }
+  #btnSelesai:hover { filter: brightness(1.05); }
+  #btnSelesai:active { transform: translateY(1px); }
+  @media (max-width: 480px) { #btnSelesai { padding: 10px 14px; font-size: 15px; } }
+</style>
+
+<div class="finish-bar"><button id="btnSelesai" type="button">Selesai</button></div>
+
+<!-- Tambah html2canvas hanya jika belum ada di halaman -->
+<script>if(!window.html2canvas){document.write('<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"><\/script>')}</script>
+
+<!-- Tambah manifest & user info hanya jika belum ada -->
+<script>window.__hasManifestLessons||(document.write('<script src="/elearn/manifest-lessons.js"><\/script>'),window.__hasManifestLessons=true);</script>
+<script>window.__hasUserInfo||(document.write('<script src="/elearn/userInfo.js"><\/script>'),window.__hasUserInfo=true);</script>
+
+<!-- Tambah worksheet-submit hanya jika belum ada -->
+<script>window.__hasWorksheetSubmit||(document.write('<script src="/elearn/common/worksheet-submit.js"><\/script>'),window.__hasWorksheetSubmit=true);</script>
+
+<script>
+  window.WORKSHEET_DEBUG = true;
+
+  // Cari elemen target screenshot (prioritas canvas bila ada)
+  ;(function ensureScreenshotRoot(){
+    if (!document.getElementById('gameRoot') &&
+        !document.getElementById('shapeBoard') &&
+        !document.getElementById('canvasRoot')) {
+      // Bungkus seluruh isi body KECUALI finish-bar ke dalam #gameRoot
+      const wrap = document.createElement('div'); wrap.id = 'gameRoot';
+      const bar = document.querySelector('.finish-bar');
+      const bodyKids = Array.from(document.body.children).filter(n => n !== bar);
+      bodyKids.forEach(n => wrap.appendChild(n));
+      document.body.insertBefore(wrap, bar || null);
+    }
+  })();
+
+  // Init submitter
+  ;(function initSubmit(){
+    const info = (typeof getUserInfo === "function") ? getUserInfo() : {};
+    if (typeof initWorksheetSubmit === "function") {
+      initWorksheetSubmit({
+        muridUid: info.uid || "",
+        cid: info.cid || "",
+        namaAnak: info.nama || "",
+        role: (info.role || "").toLowerCase(),
+
+        // Opsi opsional khusus Shape:
+        // prioritas canvas screenshot jika ada:
+        screenshotSelectorPriority: ['#shapeCanvas', '#gameCanvas', '#canvasRoot', '#shapeBoard', '#gameRoot']
+      });
+    } else {
+      console.warn("initWorksheetSubmit tidak ditemukan. Pastikan /elearn/common/worksheet-submit.js termuat.");
+    }
+  })();
+</script>
+
 </body>
 </html>
