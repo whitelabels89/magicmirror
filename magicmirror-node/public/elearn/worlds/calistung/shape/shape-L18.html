@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SHAPE L18 — Complete Pattern (Sea Animals)</title>
+  <style>
+    :root{
+      --bg:#0b4250;/* teal book border feeling */
+      --card:#ffffff;
+      --ink:#14343b;
+      --muted:#5a7b83;
+      --brand:#ff7a59;
+      --ok:#19b36a;
+      --bad:#ff4757;
+      --dock:#f4f7f8;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family: ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Color Emoji", "Apple Color Emoji", sans-serif;
+      background:linear-gradient(180deg,var(--bg),#136179 60%,#1782a0);
+      color:var(--ink);
+    }
+    .wrap{max-width:980px;margin:0 auto;padding:24px}
+    .sheet{background:var(--card); border-radius:18px; box-shadow:0 10px 30px rgba(0,0,0,.25); padding:22px 22px 96px; position:relative;}
+    h1{margin:0 0 8px; font-size:22px; letter-spacing:.2px}
+    .sub{color:var(--muted); font-size:13px; margin-bottom:12px}
+
+    .section{border:2px dashed #e5eef1; border-radius:14px; padding:14px; margin:14px 0 22px}
+    .section h2{margin:0 0 8px; font-size:16px}
+
+    .pattern-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:8px 10px; border:1px solid #e7eef1; border-radius:12px; background:#fbfeff}
+    .chip{display:inline-flex; align-items:center; justify-content:center; width:46px; height:46px; border-radius:12px; background:#fff; border:1px solid #dfe7ea; font-size:28px; position:relative}
+    .arrow{font-size:18px; opacity:.6}
+
+    .grid{position:relative; display:grid; grid-template-columns:repeat(6, 1fr); gap:12px; padding:12px; background:linear-gradient(180deg,#f8fdff, #eef6fa); border:1px solid #e2edf2; border-radius:12px; min-height:220px}
+
+    .item{cursor:pointer; display:flex; align-items:center; justify-content:center; height:74px; border-radius:14px; background:#fff; border:2px solid #e3edf1; transition:transform .08s ease, box-shadow .12s ease}
+    .item:hover{transform:translateY(-1px); box-shadow:0 6px 16px rgba(0,0,0,.08)}
+    .item .emo{font-size:34px; line-height:1}
+    .item.selected{outline:3px solid #6bc5ff; border-color:#bfe7ff}
+    .badge{position:absolute; top:-8px; right:-8px; width:26px; height:26px; background:#1e88ff; color:#fff; border-radius:13px; font-size:14px; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,.25)}
+
+    .svg-lines{position:absolute; inset:0; pointer-events:none}
+    .svg-lines path{stroke:#1e88ff; stroke-width:3.5; fill:none; stroke-linecap:round; stroke-linejoin:round; filter:drop-shadow(0 1px 0 #fff)}
+
+    .dock{position:sticky; bottom:8px; display:flex; gap:10px; justify-content:flex-end; background:transparent;}
+    .dock-inner{position:absolute; left:0; right:0; bottom:16px; display:flex; gap:10px; justify-content:center}
+    .controls{background:var(--dock); border:1px solid #e5ecef; box-shadow:0 10px 24px rgba(0,0,0,.08); padding:10px; display:flex; gap:8px; border-radius:999px}
+    button{border:0; padding:10px 14px; border-radius:999px; font-weight:600; cursor:pointer}
+    .b-primary{background:#1e88ff; color:#fff}
+    .b-ghost{background:#fff}
+    .b-warn{background:#ffe9ea; color:#9b1c26}
+
+    .toast{position:fixed; left:50%; transform:translateX(-50%); bottom:20px; background:#111a; color:#fff; padding:10px 14px; border-radius:12px; backdrop-filter:blur(6px); opacity:0; pointer-events:none; transition:opacity .18s ease}
+    .toast.show{opacity:1}
+
+    .legend{font-size:12px; color:var(--muted); margin-top:6px}
+    .split{height:1px; background:#eef2f4; margin:12px 0}
+    .mark{position:absolute; inset:0; border-radius:14px; border:2px dashed #ffd1d6; pointer-events:none}
+    .wrong{animation:shake .2s linear 3}
+    @keyframes shake{0%{transform:translateX(0)}25%{transform:translateX(-3px)}50%{transform:translateX(3px)}75%{transform:translateX(-2px)}100%{transform:translateX(0)}}
+
+    @media (max-width:720px){
+      .grid{grid-template-columns:repeat(4, 1fr)}
+      .chip{width:42px;height:42px;font-size:26px}
+      .item{height:68px}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="sheet">
+      <h1>Complete Pattern — L18</h1>
+      <div class="sub">Hubungkan hewan laut mengikuti <b>urutan pola</b>. Klik hewan satu per satu.</div>
+
+      <div id="gameA" class="section"></div>
+      <div class="split"></div>
+      <div id="gameB" class="section"></div>
+
+      <!-- sticky dock -->
+      <div class="dock">
+        <div class="dock-inner">
+          <div class="controls">
+            <button class="b-ghost" id="btnShuffle">Acak Soal</button>
+            <button class="b-warn" id="btnReset">Reset</button>
+            <button class="b-primary" id="btnCheck">Periksa Jawaban</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="toast" id="toast"></div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  // Simple emoji set mapped to IDs for consistency
+  const EMO = {
+    fishPink:{emo:'🐠', name:'Ikan Pink'},
+    shrimp:{emo:'🦐', name:'Udang'},
+    fishBlue:{emo:'🐟', name:'Ikan Biru'},
+    star:{emo:'⭐️', name:'Bintang Laut'},
+    shell:{emo:'🐚', name:'Kerang'},
+    jelly:{emo:'🪼', name:'Ubur-ubur'},
+    crab:{emo:'🦀', name:'Kepiting'},
+    snail:{emo:'🐌', name:'Siput'},
+    fishDark:{emo:'🐡', name:'Ikan Gelap'}
+  };
+
+  const PATTERN_A = ['fishPink','shrimp','fishBlue','star','shell','jelly'];
+  const PATTERN_B = ['crab','fishBlue','snail','star','fishDark','shell','fishPink'];
+
+  function shuffle(arr){
+    const a=arr.slice();
+    for(let i=a.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+
+  // pool for random grid items
+  const FILLER = Object.keys(EMO);
+
+  function el(tag, cls, txt){
+    const x=document.createElement(tag); if(cls) x.className=cls; if(txt!==undefined) x.textContent=txt; return x;
+  }
+
+  function makePatternRow(pattern){
+    const row=el('div','pattern-row');
+    pattern.forEach((id,i)=>{
+      const c=el('div','chip'); c.setAttribute('data-id',id); c.title=EMO[id].name; c.innerHTML=`<span style="font-size:26px">${EMO[id].emo}</span>`; row.appendChild(c);
+      if(i<pattern.length-1) row.appendChild(el('div','arrow','➜'));
+    });
+    const lg=el('div','legend',`Ikuti urutan dari kiri ke kanan (${pattern.length} langkah)`);
+    const wrap=el('div'); wrap.appendChild(row); wrap.appendChild(lg); return wrap;
+  }
+
+  function makeGrid(sectionEl, pattern, gid){
+    sectionEl.innerHTML='';
+    sectionEl._basePattern = sectionEl._basePattern || pattern.slice();
+    sectionEl._pattern = pattern.slice();
+    sectionEl.appendChild(el('h2',null, gid + '. Hubungkan hewan sesuai pola'));
+    sectionEl.appendChild(makePatternRow(sectionEl._pattern));
+
+    const grid=el('div','grid');
+    const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.classList.add('svg-lines');
+    grid.appendChild(svg);
+
+    // create items: include at least one correct instance for each needed step and some distractors
+    const total = Math.max(18, sectionEl._pattern.length * 2 + 6);
+    const arr=[];
+    // ensure required items appear >=1
+    sectionEl._pattern.forEach(id=>arr.push(id));
+    // add fill
+    while(arr.length<total){
+      arr.push(FILLER[Math.floor(Math.random()*FILLER.length)]);
+    }
+    // shuffle grid items
+    const arrShuffled = shuffle(arr);
+
+    // grid items
+    const selected=[]; // {el, id, center:{x,y}}
+
+    function getCenter(e){
+      const r=e.getBoundingClientRect();
+      const gr=grid.getBoundingClientRect();
+      return {x:r.left - gr.left + r.width/2, y:r.top - gr.top + r.height/2};
+    }
+
+    function redraw(){
+      svg.setAttribute('viewBox',`0 0 ${grid.clientWidth} ${grid.clientHeight}`);
+      svg.innerHTML='';
+      for(let i=1;i<selected.length;i++){
+        const a=selected[i-1].center, b=selected[i].center;
+        const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+        p.setAttribute('d',`M ${a.x} ${a.y} L ${b.x} ${b.y}`);
+        svg.appendChild(p);
+      }
+    }
+
+    arrShuffled.forEach(id=>{
+      const cell=el('div','item');
+      cell.dataset.id=id;
+      cell.innerHTML=`<span class="emo" aria-label="${EMO[id].name}">${EMO[id].emo}</span>`;
+      const m=el('div','mark'); cell.appendChild(m); m.style.display='none';
+      cell.addEventListener('click',()=>{
+        if(cell.classList.contains('selected')) return; // no double
+        const needed = sectionEl._pattern[selected.length];
+        if(id!==needed){
+          cell.classList.add('wrong');
+          setTimeout(()=>cell.classList.remove('wrong'),250);
+          toast(`Bukan langkah ke-${selected.length+1}. Cari ${EMO[needed].name}!`);
+          return;
+        }
+        cell.classList.add('selected');
+        const n=el('div','badge', String(selected.length+1)); cell.appendChild(n);
+        const reg={el:cell, id, center:getCenter(cell)}; selected.push(reg);
+        redraw();
+      });
+      grid.appendChild(cell);
+    });
+
+    // expose helpers on section element for global controls
+    sectionEl._getAnswer = () => selected.map(s=>s.id);
+    sectionEl._getPattern = () => sectionEl._pattern.slice();
+    sectionEl._reset = () => {
+      selected.length=0;
+      grid.querySelectorAll('.item').forEach(x=>{x.classList.remove('selected','wrong'); x.querySelectorAll('.badge').forEach(n=>n.remove());});
+      redraw();
+    };
+    sectionEl._shuffle = () => { // reshuffle grid only
+      makeGrid(sectionEl, sectionEl._pattern, gid);
+    };
+    sectionEl._shufflePattern = () => { // randomize the pattern order, then redraw grid
+      sectionEl._pattern = shuffle(sectionEl._basePattern);
+      makeGrid(sectionEl, sectionEl._pattern, gid);
+    };
+
+    // re-layout observer to keep lines aligned on resize/scroll
+    const ro=new ResizeObserver(()=>{
+      selected.forEach(s=>s.center=getCenter(s.el)); redraw();
+    });
+    ro.observe(grid);
+    sectionEl._cleanup=()=>ro.disconnect();
+
+    sectionEl.appendChild(grid);
+  }
+
+  // Mount two sections
+  const A=document.getElementById('gameA');
+  const B=document.getElementById('gameB');
+  makeGrid(A, PATTERN_A, 'A');
+  makeGrid(B, PATTERN_B, 'B');
+
+  // Controls (affect the section nearest to viewport center)
+  function nearestSection(){
+    const secs=[A,B];
+    const mid=window.scrollY + window.innerHeight/2;
+    let best=secs[0], bd=1e9;
+    secs.forEach(s=>{const r=s.getBoundingClientRect(); const c=window.scrollY + r.top + r.height/2; const d=Math.abs(c-mid); if(d<bd){bd=d; best=s;}});
+    return best;
+  }
+
+  document.getElementById('btnReset').onclick=()=>{
+    nearestSection()._reset();
+  };
+  document.getElementById('btnShuffle').onclick=()=>{
+    const s=nearestSection(); if(s._cleanup) s._cleanup(); s._shufflePattern();
+  };
+  document.getElementById('btnCheck').onclick=()=>{
+    const s=nearestSection();
+    const ans=s._getAnswer(); const pat=s._getPattern();
+    if(ans.length!==pat.length){ toast(`Masih kurang ${pat.length-ans.length} langkah lagi ✏️`); return; }
+    const ok=ans.every((v,i)=>v===pat[i]);
+    if(ok) toast('✅ Benar! Pola lengkap.'); else toast('❌ Urutan belum tepat. Coba lagi!');
+  };
+
+  const t=document.getElementById('toast'); let toId=null;
+  function toast(msg){
+    t.textContent=msg; t.classList.add('show');
+    clearTimeout(toId); toId=setTimeout(()=>t.classList.remove('show'), 1600);
+  }
+})();
+</script>
+</body>
+</html>

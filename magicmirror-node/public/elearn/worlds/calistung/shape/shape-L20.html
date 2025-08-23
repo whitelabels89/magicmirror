@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shape L20 – Copy The Pattern</title>
+  <style>
+    :root{
+      --bg:#0f1220; --panel:#14182b; --ink:#e9eef7; --muted:#94a3b8; --ok:#22c55e; --bad:#ef4444; --brand:#6366f1;
+      --cell:72px; --gap:10px; --radius:14px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+      background:linear-gradient(180deg,#0b0f1c, #0f1220 35%, #0b0f1c); color:var(--ink)}
+    header{padding:22px 18px 6px; text-align:center}
+    h1{margin:0; font-weight:800; letter-spacing:.2px}
+    .sub{margin-top:6px; color:var(--muted)}
+
+    .wrap{max-width:1100px; margin:0 auto; padding:16px; display:grid; gap:18px}
+    .row{display:grid; grid-template-columns: 1fr 1fr; gap:18px}
+
+    .board{background:var(--panel); border:1px solid rgba(255,255,255,.06); border-radius:var(--radius); padding:16px}
+    .board h3{margin:0 0 12px; font-size:16px; font-weight:700; color:#cbd5e1}
+
+    .grid{display:grid; grid-template-columns: repeat(4, var(--cell)); grid-template-rows: repeat(4, var(--cell)); gap:8px; place-content:center}
+    .cell{width:var(--cell); height:var(--cell); background:#0b0f1c; border-radius:10px; outline:1px solid rgba(255,255,255,.09); display:flex; align-items:center; justify-content:center; position:relative}
+    .cell.hint::after{content:''; position:absolute; inset:0; border:2px dashed rgba(255,255,255,.16); border-radius:10px}
+
+    /* palette */
+    .tools{display:flex; flex-wrap:wrap; gap:10px; margin-top:12px}
+    .tool{display:flex; align-items:center; gap:8px; padding:8px 10px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:10px; cursor:grab; user-select:none}
+    .tool:active{cursor:grabbing}
+
+    .dock{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:12px}
+    .btn{padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.12); background:#1b2040; color:#e8edff; cursor:pointer; font-weight:700}
+    .btn.primary{background:linear-gradient(135deg,var(--brand),#22d3ee); border-color:transparent; color:#0b0f1c}
+    .btn.ghost{background:transparent}
+
+    .result{margin-left:auto; font-weight:800}
+    .ok{color:var(--ok)}
+    .bad{color:var(--bad)}
+
+    .small{font-size:12px; color:var(--muted); margin-top:6px}
+
+    .sig{opacity:.6; text-align:center; padding:12px 0 24px}
+
+    /* SVG fit */
+    svg{width:80%; height:80%;}
+    .tools .tool svg{width:36px; height:36px;}
+    .tools .tool{padding:10px; justify-content: center;}
+    .tool svg{cursor:grab}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Let's Code – Salin Polanya!</h1>
+    <div class="sub">Tugasmu: susun bentuk di papan kanan agar sama persis dengan contoh di papan kiri. Seret dari palet di bawah, klik untuk rotasi, klik kanan untuk hapus.</div>
+  </header>
+
+  <main class="wrap" id="app"></main>
+  <div class="sig">Shape-L20 • Queen's Academy</div>
+
+  <template id="triangle-template">
+    <svg viewBox="0 0 100 100" data-kind="tri">
+      <polygon points="50 5, 95 95, 5 95" />
+    </svg>
+  </template>
+  <template id="diamond-template">
+    <svg viewBox="0 0 100 100" data-kind="dia">
+      <polygon points="50 5, 95 50, 50 95, 5 50" />
+    </svg>
+  </template>
+
+  <script>
+  // Utilities
+  const COLORS = { red:'#ef4444', yellow:'#f59e0b', blue:'#3b82f6', green:'#22c55e', white:'#ffffff' };
+  const ROT = { up:0, right:90, down:180, left:270 };
+
+  /** Shape factory -> returns DOM element with data */
+  function shapeEl(type, color, rot='up'){
+    const tpl = document.getElementById(type === 'tri' ? 'triangle-template' : 'diamond-template');
+    const el = tpl.content.firstElementChild.cloneNode(true);
+    el.style.fill = COLORS[color] || color;
+    el.dataset.color = color; el.dataset.type = type; el.dataset.rot = rot;
+    el.style.transform = `rotate(${ROT[rot]||0}deg)`;
+    el.draggable = true;
+    el.addEventListener('click', e=>{ // rotate on click
+      const order=['up','right','down','left'];
+      const i = (order.indexOf(el.dataset.rot)+1)%4; el.dataset.rot = order[i];
+      el.style.transform = `rotate(${ROT[el.dataset.rot]}deg)`;
+      e.stopPropagation();
+    });
+    el.addEventListener('contextmenu', e=>{ e.preventDefault(); el.remove(); });
+    el.addEventListener('dragstart', e=>{
+      e.dataTransfer.setData('text/plain', JSON.stringify({type, color, rot:el.dataset.rot}));
+    });
+    return el;
+  }
+
+  function makeCell(){
+    const c = document.createElement('div'); c.className='cell hint';
+    c.addEventListener('dragover', e=>{e.preventDefault();});
+    c.addEventListener('drop', e=>{
+      e.preventDefault(); const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+      c.innerHTML=''; c.appendChild(shapeEl(data.type, data.color, data.rot));
+    });
+    c.addEventListener('click', ()=>{ /* empty click does nothing */ });
+    c.addEventListener('contextmenu', e=>{e.preventDefault(); c.innerHTML='';});
+    return c;
+  }
+
+  function gridToMatrix(grid){
+    const cells = [...grid.querySelectorAll('.cell')];
+    return Array.from({length:4}, (_,r)=>Array.from({length:4}, (_,c)=>{
+      const box = cells[r*4+c];
+      const s = box.querySelector('svg');
+      if(!s) return null;
+      return {type:s.dataset.type, color:s.dataset.color, rot:s.dataset.rot};
+    }));
+  }
+
+  function sameMatrix(A,B){
+    for(let r=0;r<4;r++) for(let c=0;c<4;c++){
+      const a=A[r][c], b=B[r][c];
+      if(!a && !b) continue;
+      if(!a || !b) return false;
+      if(a.type!==b.type || a.color!==b.color || a.rot!==b.rot) return false;
+    }
+    return true;
+  }
+
+  // --- Matrix transforms for shuffling the LEFT example ---
+  const ROT_ORDER = ['up','right','down','left'];
+  const rotDir = (dir, times)=> ROT_ORDER[(ROT_ORDER.indexOf(dir)+(times%4)+4)%4];
+  const mirrorHDir = (dir)=> ({left:'right', right:'left', up:'up', down:'down'})[dir];
+  const mirrorVDir = (dir)=> ({up:'down', down:'up', left:'left', right:'right'})[dir];
+
+  const cloneMat = (M)=> M.map(row=>row.map(cell=> cell? {...cell}: null));
+
+  function rotate90(M){
+    const R = Array.from({length:4},()=>Array(4).fill(null));
+    for(let r=0;r<4;r++) for(let c=0;c<4;c++){
+      const cell = M[r][c]; if(!cell) continue;
+      R[c][3-r] = {...cell, rot: rotDir(cell.rot, 1)};
+    }
+    return R;
+  }
+  const rotate180 = (M)=> rotate90(rotate90(M));
+  const rotate270 = (M)=> rotate90(rotate180(M));
+
+  function mirrorH(M){ // horizontal flip (left-right)
+    const R = Array.from({length:4},()=>Array(4).fill(null));
+    for(let r=0;r<4;r++) for(let c=0;c<4;c++){
+      const cell = M[r][c]; if(!cell) continue;
+      R[r][3-c] = {...cell, rot: mirrorHDir(cell.rot)};
+    }
+    return R;
+  }
+  function mirrorV(M){ // vertical flip (top-bottom)
+    const R = Array.from({length:4},()=>Array(4).fill(null));
+    for(let r=0;r<4;r++) for(let c=0;c<4;c++){
+      const cell = M[r][c]; if(!cell) continue;
+      R[3-r][c] = {...cell, rot: mirrorVDir(cell.rot)};
+    }
+    return R;
+  }
+
+  function randomTransform(M){
+    let R = cloneMat(M);
+    const rotPick = Math.floor(Math.random()*4); // 0,1,2,3
+    if(rotPick===1) R = rotate90(R); else if(rotPick===2) R = rotate180(R); else if(rotPick===3) R = rotate270(R);
+    const mirrorPick = Math.random();
+    if(mirrorPick < 0.33) R = mirrorH(R); else if(mirrorPick < 0.66) R = mirrorV(R);
+    return R;
+  }
+
+  // --- Patterns (approximate to the worksheet picture) ---
+  // Each 4x4 entry is either null or {type:'tri'|'dia', color:'red'|'yellow'|'blue'|'green', rot:'up'|'right'|'down'|'left'}
+  const P = {
+    top:[
+      [ t('tri','yellow','down'), t('tri','red','down'), null, t('tri','blue','down') ],
+      [ t('dia','green','up'), null, null, t('tri','green','left') ], // green right column small triangle imitation
+      [ t('dia','green','up'), null, null, t('tri','green','left') ],
+      [ t('tri','red','up'), t('tri','yellow','up'), null, t('tri','blue','up') ],
+    ],
+    mid:[
+      [ null, null, null, null ],
+      [ t('tri','blue','right'), t('dia','yellow','up'), t('dia','red','up'), null ],
+      [ t('tri','blue','right'), t('dia','yellow','up'), t('dia','red','up'), null ],
+      [ null, null, null, null ],
+    ],
+    bot:[
+      [ t('tri','yellow','down'), t('tri','red','down'), t('tri','blue','down'), null ],
+      [ t('dia','green','up'), null, t('tri','white','left'), t('tri','blue','left') ],
+      [ t('tri','blue','right'), t('tri','white','right'), null, t('tri','blue','left') ],
+      [ t('tri','red','up'), t('tri','yellow','up'), t('tri','blue','up'), null ],
+    ]
+  };
+  // helper
+  function t(type,color,rot){return {type, color, rot};}
+
+  // --- Render three rows ---
+  const app = document.getElementById('app');
+  const ROWS = [
+    {title:'Level 1', pattern:P.top, palette:[['tri','red'],['tri','yellow'],['tri','blue'],['tri','green'],['dia','green']]},
+    {title:'Level 2', pattern:P.mid, palette:[['tri','blue'],['dia','yellow'],['dia','red']]},
+    {title:'Level 3', pattern:P.bot, palette:[['tri','red'],['tri','yellow'],['tri','blue'],['dia','green'],['tri','white']]},
+  ];
+
+  ROWS.forEach((row,idx)=>{
+    const r = document.createElement('div'); r.className='row';
+
+    // Left (reference)
+    const ref = document.createElement('section'); ref.className='board';
+    ref.innerHTML = `<h3>Contoh • ${row.title}</h3>`;
+    const refGrid = document.createElement('div'); refGrid.className='grid';
+
+    const renderRef = ()=>{
+      refGrid.innerHTML = '';
+      for(let rr=0; rr<4; rr++) for(let cc=0; cc<4; cc++){
+        const cell = makeCell(); cell.classList.remove('hint');
+        const spec = row.pattern[rr][cc];
+        if(spec){ cell.appendChild(shapeEl(spec.type, spec.color, spec.rot)); }
+        refGrid.appendChild(cell);
+      }
+    };
+    renderRef();
+
+    ref.appendChild(refGrid);
+
+    // Right (play)
+    const play = document.createElement('section'); play.className='board';
+    play.innerHTML = `<h3>Susun di sini • ${row.title}</h3>`;
+    const grid = document.createElement('div'); grid.className='grid'; grid.id = `grid-${idx}`;
+    for(let i=0;i<16;i++) grid.appendChild(makeCell());
+    play.appendChild(grid);
+
+    // Palette
+    const tools = document.createElement('div'); tools.className='tools';
+    row.palette.forEach(([type,color])=>{
+      const tBtn = document.createElement('div'); tBtn.className='tool';
+      tBtn.draggable = true;
+      const defaultRot = (type==='tri'? 'down' : 'up');
+      tBtn.appendChild(shapeEl(type, color, defaultRot));
+      const innerSvg = tBtn.querySelector('svg');
+      if(innerSvg){
+        innerSvg.draggable = true;
+        innerSvg.addEventListener('dragstart', e=>{
+          const curRot = innerSvg.dataset.rot || defaultRot;
+          const data = {type, color, rot: curRot};
+          e.dataTransfer.setData('text/plain', JSON.stringify(data));
+        });
+      }
+      tBtn.addEventListener('dragstart', e=>{
+        const pick = tBtn.querySelector('svg');
+        const curRot = (pick && pick.dataset.rot) ? pick.dataset.rot : defaultRot;
+        const data = {type, color, rot: curRot};
+        e.dataTransfer.setData('text/plain', JSON.stringify(data));
+      });
+      tools.appendChild(tBtn);
+    });
+    play.appendChild(tools);
+
+    // Dock actions
+    const dock = document.createElement('div'); dock.className='dock';
+    const checkBtn = document.createElement('button'); checkBtn.className='btn primary'; checkBtn.textContent='Periksa Jawaban';
+    const resetBtn = document.createElement('button'); resetBtn.className='btn ghost'; resetBtn.textContent='Reset';
+    const shuffleBtn = document.createElement('button'); shuffleBtn.className='btn ghost'; shuffleBtn.textContent='Acak Soal';
+    const result = document.createElement('div'); result.className='result';
+
+    checkBtn.onclick = ()=>{
+      const user = gridToMatrix(grid);
+      const ok = sameMatrix(user, row.pattern);
+      result.textContent = ok? 'Benar ✓' : 'Masih salah';
+      result.className = 'result ' + (ok? 'ok':'bad');
+    };
+    resetBtn.onclick = ()=>{ grid.querySelectorAll('.cell').forEach(c=>c.innerHTML=''); result.textContent=''; };
+    shuffleBtn.onclick = ()=>{
+      row.pattern = randomTransform(row.pattern);
+      renderRef();
+      // reset the right grid for a fresh try
+      grid.querySelectorAll('.cell').forEach(c=>c.innerHTML='');
+      result.textContent='';
+    };
+
+    dock.append(checkBtn, resetBtn, shuffleBtn, result);
+    play.appendChild(dock);
+
+    r.append(ref, play); app.appendChild(r);
+  });
+
+  </script>
+</body>
+</html>

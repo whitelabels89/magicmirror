@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shape L25 – Bangun Ruang (Drag & Drop)</title>
+  <style>
+    :root{
+      --bg:#fafafc;--ink:#1c1e21;--muted:#757575;--good:#22a06b;--bad:#d64545;--brand:#2a7de1;
+      --card:#ffffff;--line:#e6e8ee;--chip:#f1f5ff;--chip-ink:#174ea6;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;color:var(--ink);background:var(--bg)}
+    header{position:sticky;top:0;z-index:10;background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(255,255,255,.92));backdrop-filter:saturate(1.2) blur(6px);border-bottom:1px solid var(--line)}
+    .bar{max-width:1100px;margin:auto;display:flex;gap:.75rem;align-items:center;padding:.75rem 1rem;flex-wrap:wrap}
+    .title{font-weight:800;letter-spacing:.2px}
+    .spacer{flex:1}
+    .btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:.55rem .9rem;font-weight:600;cursor:pointer}
+    .btn:active{transform:translateY(1px)}
+
+    .wrap{max-width:1100px;margin:1rem auto;padding:1rem}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    @media (max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
+    @media (max-width:640px){.grid{grid-template-columns:1fr}}
+
+    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:240px}
+    .num{font-weight:700;color:#2a7de1}
+    .fig{display:grid;place-items:center;min-height:140px}
+    .drop{border:2px dashed #c8d2f2;border-radius:12px;min-height:42px;display:grid;place-items:center;font-weight:700;color:var(--muted);background:#f7f9ff}
+    .drop.filled{border-style:solid;border-color:#bcd1ff;background:#fff}
+    .drop.correct{outline:3px solid var(--good)}
+    .drop.wrong{outline:3px solid var(--bad)}
+
+    .bank{position:sticky;bottom:0;z-index:9;background:linear-gradient(0deg,rgba(255,255,255,.98),rgba(255,255,255,.96));border-top:1px solid var(--line);padding:10px}
+    .chips{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+    .chip{user-select:none;cursor:grab;background:var(--chip);color:var(--chip-ink);border:1px solid #cfe0ff;border-radius:999px;padding:10px 14px;font-weight:800}
+    .chip.dragging{opacity:.6}
+
+    .legend{margin:.25rem 0 0 .25rem;color:var(--muted);font-size:.9rem}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="bar">
+      <div class="title">L25 • Bangun Ruang – Cocokkan nama ke jaring-jaring</div>
+      <div class="spacer"></div>
+      <button class="btn" id="btnShuffle">Acak Label</button>
+      <button class="btn" id="btnCheck">Periksa Jawaban</button>
+      <button class="btn" id="btnReset">Reset</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="grid" id="board"></div>
+    <p class="legend">Tarik nama bangun ruang ke kotak jawaban di bawah gambarnya. Ketuk dua kali label di kotak untuk mengembalikan ke bank.</p>
+  </div>
+
+  <!-- Bank / Dock -->
+  <div class="bank">
+    <div class="chips" id="bank"></div>
+  </div>
+
+<script>
+// ==== Data Soal =====
+// Key jawaban: 1 Kerucut, 2 Tabung, 3 Kubus, 4 Limas, 5 Bola, 6 Prisma
+const QUESTIONS = [
+  { id:1, answer:"Kerucut", svg:coneNet() },
+  { id:2, answer:"Tabung", svg:cylinderNet() },
+  { id:3, answer:"Kubus",svg: ([cubeNet, cubeNetStairRight,cubeNetTwoRowsShift,cubeNetStairB,cubeNetStairC][Math.floor(Math.random()*5)])()},
+  { id:4, answer:"Limas",   svg: (Math.random()<0.5 ? pyramidNet() : pyramidNetStar()) },
+  { id:5, answer:"Bola",    svg:sphereNet() },
+  { id:6, answer:"Prisma",  svg:prismNet() },
+];
+
+const LABELS = ["Kerucut","Tabung","Kubus","Prisma","Bola","Limas"]; // bank labels
+
+// ==== Render Board ====
+const board = document.getElementById('board');
+board.innerHTML = QUESTIONS.map((q,i)=>{
+  return `<div class="card" data-qid="${q.id}">
+    <div class="num">${i+1}</div>
+    <div class="fig">${q.svg}</div>
+    <div class="drop" data-drop="${q.id}" aria-label="dropzone ${i+1}">Letakkan label di sini</div>
+  </div>`
+}).join('');
+
+// ==== Render Bank ====
+const bank = document.getElementById('bank');
+function renderBank(order = shuffle([...LABELS])){
+  bank.innerHTML = order.map(l=>`<div class="chip" draggable="true" data-label="${l}">${l}</div>`).join('');
+}
+renderBank();
+
+// ==== Drag & Drop logic (mouse & touch friendly) ====
+let dragged = null;
+
+function onDragStart(e){
+  dragged = e.target;
+  e.target.classList.add('dragging');
+  e.dataTransfer?.setData('text/plain', e.target.dataset.label || '');
+}
+function onDragEnd(e){
+  e.target.classList.remove('dragging');
+}
+
+function onDragOver(e){ e.preventDefault(); }
+function onDrop(e){
+  e.preventDefault();
+  const drop = e.currentTarget;
+  const lbl = dragged?.cloneNode(true);
+  if(!dragged || !lbl) return;
+  // If drop already has a chip, return it to bank first
+  const existing = drop.querySelector('.chip');
+  if(existing){ bank.appendChild(existing); }
+  // Place
+  lbl.addEventListener('dragstart', onDragStart);
+  lbl.addEventListener('dragend', onDragEnd);
+  lbl.addEventListener('dblclick', returnToBank);
+  drop.innerHTML = '';
+  drop.appendChild(lbl);
+  drop.classList.add('filled');
+  drop.classList.remove('correct','wrong');
+}
+
+function returnToBank(e){
+  const chip = e.currentTarget;
+  const parentDrop = chip.closest('.drop');
+  if(parentDrop){ parentDrop.classList.remove('filled','correct','wrong'); parentDrop.textContent='Letakkan label di sini'; parentDrop.appendChild(document.createTextNode('Letakkan label di sini')); }
+  bank.appendChild(chip);
+}
+
+// Bind events
+function bindEvents(){
+  document.querySelectorAll('.chip').forEach(ch=>{
+    ch.addEventListener('dragstart', onDragStart);
+    ch.addEventListener('dragend', onDragEnd);
+    ch.addEventListener('dblclick', returnToBank);
+  });
+  document.querySelectorAll('.drop').forEach(dp=>{
+    dp.addEventListener('dragover', onDragOver);
+    dp.addEventListener('drop', onDrop);
+  });
+}
+
+bindEvents();
+
+// Buttons
+document.getElementById('btnShuffle').addEventListener('click', ()=>{ renderBank(); bindEvents(); clearMarks(); });
+
+document.getElementById('btnReset').addEventListener('click', ()=>{
+  renderBank(LABELS); bindEvents();
+  document.querySelectorAll('.drop').forEach(dp=>{ dp.classList.remove('filled','correct','wrong'); dp.textContent='Letakkan label di sini'; });
+});
+
+document.getElementById('btnCheck').addEventListener('click', ()=>{
+  let correct=0; let total=QUESTIONS.length;
+  document.querySelectorAll('.drop').forEach(dp=>{
+    const qid = Number(dp.dataset.drop);
+    const expected = QUESTIONS.find(q=>q.id===qid)?.answer;
+    const got = dp.querySelector('.chip')?.dataset.label;
+    dp.classList.remove('correct','wrong');
+    if(got){
+      if(got===expected){ dp.classList.add('correct'); correct++; }
+      else { dp.classList.add('wrong'); }
+    }
+  });
+  toast(`Skor kamu: ${correct}/${total}`);
+});
+
+function clearMarks(){
+  document.querySelectorAll('.drop').forEach(dp=>dp.classList.remove('correct','wrong'));
+}
+
+// Utility
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+function toast(msg){
+  const t=document.createElement('div');
+  t.textContent=msg;
+  Object.assign(t.style,{position:'fixed',left:'50%',bottom:'80px',transform:'translateX(-50%)',background:'#111',color:'#fff',padding:'10px 14px',borderRadius:'10px',zIndex:99,opacity:'0.98'});
+  document.body.appendChild(t); setTimeout(()=>t.remove(),1600);
+}
+
+// ==== SVG makers to resemble the worksheet =====
+function svgWrap(inner){
+  return `<svg width="210" height="130" viewBox="0 0 210 130" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
+}
+function square(x,y,s,fill){return `<rect x="${x}" y="${y}" width="${s}" height="${s}" fill="${fill}" stroke="#355f2e" stroke-width="2" />`;}
+function circle(cx,cy,r,fill){return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" stroke="#2b5d56" stroke-width="2" />`;}
+function rect(x,y,w,h,fill){return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}" stroke="#8a6a13" stroke-width="2" rx="4"/>`;}
+function tri(points,fill){return `<polygon points="${points}" fill="${fill}" stroke="#6d6d00" stroke-width="2" />`;}
+
+function coneNet(){
+  // Kerucut sesuai referensi: dua sisi lurus bertemu di puncak + busur lengkung di bawah.
+  // Lingkaran alas berada di bawah busur (tidak menempel), seperti gambar nomor 1.
+  const sector = `<path d="M105 18 L70 78 Q105 92 140 78 Z" fill="#f7e36a" stroke="#6d6d00" stroke-width="2"/>`;
+  const base   = `<circle cx="105" cy="100" r="14" fill="#6fb6d6" stroke="#2b5d56" stroke-width="2"/>`;
+  return svgWrap(sector+base);
+}
+
+function cylinderNet(){
+  // Tabung: persegi panjang badan + 2 lingkaran menempel di atas & bawah (tepat bersentuhan)
+  const ry = 58, rh = 34; // y & tinggi badan
+  const mid = rect(55, ry, 100, rh, '#ebb23a');
+  // Posisikan pusat lingkaran sehingga tepi bawah/atas tepat menyentuh badan
+  const topC = circle(105, ry-14, 14, '#6fb86b');
+  const botC = circle(105, ry+rh+14, 14, '#6fb86b');
+  return svgWrap(topC+mid+botC);
+}
+function cubeNet(){
+  const s=28; const g='#f3d35a', l=[]; let x=30,y=50;
+  l.push(square(x,y,s,g)); x+=s; l.push(square(x,y,s,g)); x+=s; l.push(square(x,y,s,g));
+  x=30+s; y=50-s; l.push(square(x,y,s,g));
+  x=30+s; y=50+s; l.push(square(x,y,s,g));
+  x=30+3*s; y=50; l.push(square(x,y,s,g));
+  return svgWrap(l.join(''));
+}
+// === VARIAN JARING-JARING KUBUS (tambahan) ===
+function cubeNetStairRight() {
+  // grid: (col,row) dengan origin di (x,y)
+  const s = 28, g = '#f3d35a';
+  const x = 40, y = 40;
+
+  const parts = [
+    // baris tengah: 3 kotak
+    square(x + 0*s, y + 1*s, s, g),
+    square(x + 1*s, y + 1*s, s, g),
+    square(x + 2*s, y + 1*s, s, g),
+
+    // baris atas: 2 kotak di atas kolom ke-3 (2 & 3)
+    square(x + 2*s, y + 0*s, s, g),
+    square(x + 3*s, y + 0*s, s, g),
+
+    // baris bawah: 1 kotak di bawah kolom ke-1
+    square(x + 0*s, y + 2*s, s, g),
+  ];
+
+  return svgWrap(parts.join(''));
+}
+function cubeNetTwoRowsShift(){
+  // Atas: (1,0),(2,0),(3,0)
+  // Bawah: (0,1),(1,1),(2,1)
+  const s = 28, g = '#f3d35a';
+  const x = 40, y = 44; // geser posisi biar pas di viewBox
+
+  return svgWrap([
+    // baris atas (3 kotak, kolom 1–3)
+    square(x + 2*s, y + 0*s, s, g),
+    square(x + 3*s, y + 0*s, s, g),
+    square(x + 4*s, y + 0*s, s, g),
+    // baris bawah (3 kotak, kolom 0–2) — nempel ke kotak atas urutan pertama
+    square(x + 0*s, y + 1*s, s, g),
+    square(x + 1*s, y + 1*s, s, g),
+    square(x + 2*s, y + 1*s, s, g),
+  ].join(''));
+}
+function cubeNetStairC() {
+  // grid: (col,row) dengan origin di (x,y)
+  const s = 28, g = '#f3d35a';
+  const x = 40, y = 40;
+
+  const parts = [
+    // baris tengah: 3 kotak
+    square(x + 0*s, y + 1*s, s, g),
+    square(x + 1*s, y + 1*s, s, g),
+    square(x + 2*s, y + 1*s, s, g),
+
+    // baris atas: 2 kotak di atas kolom ke-3 (2 & 3)
+    square(x + 2*s, y + 0*s, s, g),
+    square(x + 3*s, y + 0*s, s, g),
+
+    // baris bawah: 1 kotak di bawah kolom ke-1
+    square(x + 1*s, y + 2*s, s, g),
+  ];
+
+  return svgWrap(parts.join(''));
+}
+function cubeNetStairB() {
+  // grid: (col,row) dengan origin di (x,y)
+  const s = 28, g = '#f3d35a';
+  const x = 40, y = 40;
+
+  const parts = [
+    // baris tengah: 3 kotak
+    square(x + 0*s, y + 1*s, s, g),
+    square(x + 1*s, y + 1*s, s, g),
+    square(x + 2*s, y + 1*s, s, g),
+
+    // baris atas: 2 kotak di atas kolom ke-3 (2 & 3)
+    square(x + 2*s, y + 0*s, s, g),
+    square(x + 3*s, y + 0*s, s, g),
+
+    // baris bawah: 1 kotak di bawah kolom ke-1
+    square(x + 2*s, y + 2*s, s, g),
+  ];
+
+  return svgWrap(parts.join(''));
+}
+
+function pyramidNet(){
+  // kotak kuning di tengah
+  const base = square(85,55,32,'#f1cd4e');
+
+  // segitiga kiri (tetap)
+  const leftT = tri(`${85},55 ${85},87 ${55},71`, '#2aa26d');
+
+  // segitiga kanan (mirror dari kiri), nempel ke sisi kanan kotak
+  const rightT = tri(`${117},55 ${117},87 ${147},71`, '#2aa26d');
+
+  // segitiga ke-3: nempel pada SISI MIRING ATAS segitiga kanan (kongruen via refleksi)
+  // sisi bersama: (117,55) — (147,71)
+  const rightDup = tri(`117,55 147,71 143.574,37.173`, '#2aa26d');
+
+  // segitiga ke-4: duplikat segitiga ke-3, tapi ditempel pada SISI MIRING BAWAH segitiga kedua
+  // sisi bersama: (117,87) — (147,71)
+  const rightDup2 = tri(`117,87 147,71 143.574,104.827`, '#2aa26d');
+
+  return svgWrap(leftT + base + rightT + rightDup + rightDup2);
+}
+function pyramidNetStar(){
+  // Varian bintang: kotak tengah + segitiga di 4 sisi
+  const s = 32, x = 85, y = 55;
+  const base  = square(x, y, s, '#f1cd4e');
+  const topT  = tri(`${x},${y} ${x+s},${y} ${x+s/2},${y-30}`, '#2aa26d');
+  const botT  = tri(`${x},${y+s} ${x+s},${y+s} ${x+s/2},${y+s+30}`, '#2aa26d');
+  const leftT = tri(`${x},${y} ${x},${y+s} ${x-30},${y+s/2}`, '#2aa26d');
+  const rightT= tri(`${x+s},${y} ${x+s},${y+s} ${x+s+30},${y+s/2}`, '#2aa26d');
+  return svgWrap(base + topT + botT + leftT + rightT);
+}
+function sphereNet(){
+  const parts = [];
+  const cx0 = 35;
+  const rx = 6, ry = 32;
+  const sw = 2;                          // stroke elips
+  const step = 2 * (rx + sw/2);          // jarak pusat agar tangent (6+1)*2 = 14
+  const n = 10;
+  const cy = 65;
+  const dotR = 4;
+
+  // elips saling menempel (tanpa overlap)
+  for(let i=0;i<n;i++){
+    parts.push(
+      `<ellipse cx="${cx0 + i*step}" cy="${cy}" rx="${rx}" ry="${ry}"
+        fill="${i%2 ? '#f7e36a' : '#6fb86b'}" stroke="#8a6a13" stroke-width="${sw}"/>`
+    );
+  }
+  return svgWrap(parts.join(''));
+}
+function prismNet(variant){
+  // 4 variasi jaring-jaring prisma segitiga (sesuai referensi gambar)
+  // Pemanggilan: prismNet() -> acak; prismNet(0..3) -> pilih varian spesifik
+  const pick = (typeof variant === 'number') ? variant : Math.floor(Math.random()*3);
+  const w = 30, h = 26;              // ukuran panel persegi panjang
+  const dx = w, y = 58;              // posisi dasar untuk varian horizontal
+  const R = (x,y,fill) => rect(x,y,w,h,fill);
+  const T = (pts,fill) => tri(pts, fill);
+
+  switch(pick){
+    // V0 (kiri-atas pada referensi):
+    // TIGA RECT HORIZONTAL; segitiga di ATAS & BAWAH pada RECT KANAN
+    case 0: {
+      const x0 = 36;
+      const r0 = R(x0,     y,'#8fbbe6');   // kiri
+      const r1 = R(x0+dx,  y,'#4b86c7');   // tengah
+      const r2 = R(x0+2*dx,y,'#8fbbe6');   // kanan
+
+      const topRight = T(`${x0+2*dx},${y} ${x0+3*dx},${y} ${x0+2.5*dx},${y-18}`, '#275d9b');
+      const botRight = T(`${x0+2*dx},${y+h} ${x0+3*dx},${y+h} ${x0+2.5*dx},${y+h+18}`, '#275d9b');
+
+      return svgWrap(r0+r1+r2+topRight+botRight);
+    }
+
+    // V1 (kanan-atas pada referensi):
+    // TIGA RECT HORIZONTAL; segitiga di ATAS & BAWAH pada RECT TENGAH
+    case 1: {
+      const x0 = 36;
+      const r0 = R(x0,     y,'#4b86c7');
+      const r1 = R(x0+dx,  y,'#8fbbe6');
+      const r2 = R(x0+2*dx,y,'#4b86c7');
+
+      const topMid = T(`${x0+dx},${y} ${x0+2*dx},${y} ${x0+1.5*dx},${y-18}`, '#275d9b');
+      const botMid = T(`${x0+dx},${y+h} ${x0+2*dx},${y+h} ${x0+1.5*dx},${y+h+18}`, '#275d9b');
+
+      return svgWrap(r0+r1+r2+topMid+botMid);
+    }
+
+    // V2 (kiri-bawah pada referensi):
+    // TIGA RECT HORIZONTAL; segitiga BAWAH di RECT KIRI & segitiga ATAS di RECT KANAN
+    case 2: {
+      const x0 = 36;
+      const r0 = R(x0,     y,'#8fbbe6');   // kiri
+      const r1 = R(x0+dx,  y,'#4b86c7');   // tengah (biru tua dua lapis tampak di contoh)
+      
+      const r2 = R(x0+2*dx,y,'#8fbbe6');   // kanan
+
+      const botLeft  = T(`${x0},${y+h} ${x0+dx},${y+h} ${x0+dx/2},${y+h+18}`, '#275d9b');
+      const topRight = T(`${x0+2*dx},${y} ${x0+3*dx},${y} ${x0+2.5*dx},${y-18}`, '#275d9b');
+
+      return svgWrap(r0+r1+r2+botLeft+topRight);
+    }
+
+    // V3 (kanan-bawah pada referensi):
+// Satu kotak tengah; segitiga kecil atas & bawah; dua kotak miring 45° dengan koordinat manual
+default: {
+  const s  = 28;              // sisi kotak
+  const sx = 96, sy = 52;     // posisi kotak tengah
+  const sw = 2;               // stroke width
+
+  // kotak tengah
+  const sqMid = rect(sx, sy, s, s, '#4b86c7');
+
+  // segitiga: atas 45° supaya sisi cocok dengan kotak miring
+  const upTri   = T(`${sx},${sy} ${sx+s},${sy} ${sx+s/2},${sy - s/2}`, '#275d9b');
+  const downTri = T(`${sx},${sy+s} ${sx+s},${sy+s} ${sx+s/2},${sy+s+18}`, '#275d9b');
+
+  // ====== KOORDINAT MANUAL UNTUK KOTAK MIRING ======
+  // Atur c1x,c1y untuk kotak kiri; c2x,c2y untuk kotak kanan (ini titik PUSAT kotaknya).
+  // Tips "tangent" (menempel tanpa overlap):
+  //   midpoint sisi kiri segitiga: m1 = (sx + s/4, sy - s/4)
+  //   midpoint sisi kanan segitiga: m2 = (sx + 3*s/4, sy - s/4)
+  //   offset referensi ≈ (s/2 + sw/2) * (1/√2) ke arah normal
+  const rt2 = Math.SQRT1_2;
+  const offset = (s/2) + (sw/2);
+
+  // Referensi awal (boleh kamu ganti angkanya):
+  let c1x = (sx + s/4) - offset*rt2;   // kiri: geser ke (-rt2, +rt2)
+  let c1y = (sy - s/4) + offset*rt2;
+  let c2x = (sx + 3*s/4) + offset*rt2; // kanan: geser ke (+rt2, +rt2)
+  let c2y = (sy - s/4) + offset*rt2;
+
+  // >>> Ubah manual di sini kalau mau:
+  // c1x = 86; c1y = 33;   // contoh ubah posisi kotak kiri
+  // c2x = 136; c2y = 33;  // contoh ubah posisi kotak kanan
+
+  // Gambar dua kotak miring 45° di pusat (c1x,c1y) dan (c2x,c2y)
+  const leftTilt  = `<rect x="${c1x - s/2}" y="${c1y - s/2}" width="${s}" height="${s}"
+    fill="#8fbbe6" stroke="#8a6a13" stroke-width="${sw}"
+    transform="rotate(-45 ${c1x} ${c1y})" />`;
+
+  const rightTilt = `<rect x="${c2x - s/2}" y="${c2y - s/2}" width="${s}" height="${s}"
+    fill="#8fbbe6" stroke="#8a6a13" stroke-width="${sw}"
+    transform="rotate(45 ${c2x} ${c2y})" />`;
+
+  return svgWrap(sqMid + upTri + downTri + leftTilt + rightTilt);
+}
+  }
+}
+</script>
+</body>
+</html>

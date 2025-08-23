@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SHAPE L23 – Unplugged Coding (Help the Cat!)</title>
+<style>
+  :root{
+    --cell: 120px;       /* ukuran kotak */
+    --gap: 8px;          /* jarak antar kotak */
+    --cols: 4;
+    --rows: 4;
+    --board-pad: 10px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,Segoe UI,Helvetica,Arial,sans-serif;background:#241a35;color:#fff}
+  header{padding:16px 16px 0}
+  h1{font-size:22px;margin:0 0 6px 0;letter-spacing:.3px}
+  .sub{opacity:.85;margin-bottom:14px}
+
+  .wrap{display:grid;grid-template-columns:1fr 360px;gap:16px;padding:12px 16px 24px}
+  @media (max-width: 980px){ .wrap{grid-template-columns:1fr} }
+
+  /* BOARD */
+  .board{position:relative;background:linear-gradient(180deg,#372a54,#3c3160 60%,#4a3a77);border-radius:14px;padding:var(--board-pad);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  .grid{position:relative;display:grid;grid-template-columns:repeat(var(--cols), var(--cell));grid-template-rows:repeat(var(--rows), var(--cell));gap:var(--gap);}
+  .cell{background:#fbf7ff;border-radius:10px;box-shadow:inset 0 0 0 2px rgba(0,0,0,.06)}
+  .overlay{position:absolute;inset:0;pointer-events:none}
+
+  .tile{position:absolute;width:var(--cell);height:var(--cell);left:0;top:0;display:flex;align-items:center;justify-content:center;border-radius:10px}
+
+  /* sprites (emoji fallback biar cepat) */
+  .sprite{font-size:56px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.15))}
+  .obstacle{opacity:.95}
+  .mom .sprite{font-size:68px}
+  .goal.baby .sprite{font-size:40px}
+
+  /* PROGRAM BAR */
+  .panel{background:#1b1530;border-radius:14px;padding:12px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  .panel h3{margin:0 0 10px 0;font-size:16px}
+
+  .dock{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+  .card{width:64px;height:64px;border-radius:12px;background:#3a2f63;display:flex;align-items:center;justify-content:center;cursor:grab;user-select:none;box-shadow:inset 0 0 0 2px rgba(255,255,255,.06), 0 4px 12px rgba(0,0,0,.25);position:relative}
+  .card:active{cursor:grabbing}
+  .card .arrow{font-size:34px;pointer-events:none}
+
+  .program{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+  .slot{width:64px;height:64px;border-radius:12px;background:#2a214a;display:flex;align-items:center;justify-content:center;outline:2px dashed #6f69a4;outline-offset:-6px}
+
+  .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  button{padding:8px 12px;border-radius:10px;border:0;background:#a586ff;color:white;font-weight:700;cursor:pointer}
+  button:disabled{opacity:.6;cursor:not-allowed}
+  button.secondary{background:#5745b3}
+  .status{margin-top:8px;font-weight:600}
+  .status.ok{color:#30d57d}
+  .status.bad{color:#ff7272}
+
+  /* drag util */
+  .dragging{opacity:.85;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+  .board, .grid, .tile, .card, .slot, button{pointer-events:auto}
+  button{position:relative;z-index:5}
+</style>
+</head>
+<body>
+  <header>
+    <h1>UNPLUGGED CODING</h1>
+    <div class="sub">Susun kartu arah untuk membantu <b>ibu kucing</b> menemukan <b>anak-anak kucing</b>.</div>
+  </header>
+
+  <div class="wrap">
+    <!-- BOARD -->
+    <section class="board">
+      <div id="grid" class="grid" aria-label="papan 4x4"></div>
+      <div class="overlay" id="overlay"></div>
+    </section>
+
+    <!-- SIDE PANEL -->
+    <aside class="panel">
+      <h3>Kartu Arah</h3>
+      <div id="dock" class="dock"></div>
+
+      <h3>Program</h3>
+      <div id="program" class="program"></div>
+
+      <div class="controls">
+        <button id="run">Jalankan ▶</button>
+        <button id="reset" class="secondary">Reset ↺</button>
+        <button id="shuffleLevel" class="secondary">Acak Soal 🔀</button>
+        <button id="shuffle" class="secondary">Acak Kartu</button>
+      </div>
+      <div id="status" class="status"></div>
+    </aside>
+  </div>
+
+<script>
+// ====== Konfigurasi dasar ======
+const CELL=120, GAP=8, ROWS=4, COLS=4; // selaras dengan CSS root
+const START={c:1,r:1};      // posisi ibu kucing
+let KITTENS = [];            // diisi ulang tiap reset/shuffle
+let NEST_POS = {c:4, r:4};  // posisi kumpul anak kucing (acak saat acak soal)
+function regenKittens(){
+  const n = Math.random() < 0.5 ? 2 : 3; // 2 atau 3 ekor
+  KITTENS = Array.from({length:n}, ()=> ({c: NEST_POS.c, r: NEST_POS.r}));
+}
+const OBSTACLE_EMOJIS = ['🧶','📦','🪴'];
+let OBSTACLES = [];
+
+const grid = document.getElementById('grid');
+const overlay = document.getElementById('overlay');
+const dock = document.getElementById('dock');
+const program = document.getElementById('program');
+const runBtn = document.getElementById('run');
+const resetBtn = document.getElementById('reset');
+const shuffleBtn = document.getElementById('shuffle');
+const statusEl = document.getElementById('status');
+const shuffleLevelBtn = document.getElementById('shuffleLevel');
+
+// ====== Random level helpers (ensure solvable) ======
+function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function randCell(){ return {c: randInt(1,COLS), r: randInt(1,ROWS)}; }
+function sameCell(a,b){ return a.c===b.c && a.r===b.r; }
+function regenObstacles(count=3){
+  const used=new Set([`${START.c},${START.r}`, `${NEST_POS.c},${NEST_POS.r}`]);
+  const list=[];
+  while(list.length<count){
+    const p=randCell(); const key=`${p.c},${p.r}`;
+    if(used.has(key)) continue;
+    used.add(key);
+    list.push(p);
+  }
+  OBSTACLES = list.map((p,i)=>({c:p.c, r:p.r, emoji: OBSTACLE_EMOJIS[i%OBSTACLE_EMOJIS.length]}));
+}
+function regenLevelSolvable(maxTries=200){
+  for(let t=0;t<maxTries;t++){
+    // random nest pos not at START
+    let p; do{ p=randCell(); }while(sameCell(p, START));
+    NEST_POS = p;
+    regenObstacles(3);
+    regenKittens();
+    const solved = solveToAny(START, KITTENS);
+    if(solved.path && solved.path.length){
+      currentSolution = solved.path; currentTargetIndex = solved.targetIndex;
+      return true;
+    }
+  }
+  return false;
+}
+
+// ====== Path solver (BFS shortest path avoiding obstacles) ======
+const DIRS = [
+  {t:'U', dc:0, dr:-1},
+  {t:'R', dc:1, dr:0},
+  {t:'D', dc:0, dr:1},
+  {t:'L', dc:-1, dr:0},
+];
+function key(c,r){ return c+','+r; }
+function isBlocked(c,r){ return occupied(c,r) !== null; }
+function solvePath(start=START, goal){
+  const q=[[start.c,start.r]]; const prev=new Map(); prev.set(key(start.c,start.r), null);
+  while(q.length){
+    const [c,r]=q.shift();
+    if(c===goal.c && r===goal.r) break;
+    for(const d of DIRS){
+      const nc=c+d.dc, nr=r+d.dr;
+      if(nc<1||nc>COLS||nr<1||nr>ROWS) continue;
+      if(isBlocked(nc,nr)) continue;
+      const k=key(nc,nr); if(prev.has(k)) continue;
+      prev.set(k, {c,r, t:d.t}); q.push([nc,nr]);
+    }
+  }
+  const path=[]; let cur=key(goal.c,goal.r);
+  if(!prev.has(cur)) return path; // no path
+  while(true){ const p=prev.get(cur); if(!p) break; path.push(p.t); cur=key(p.c,p.r); }
+  return path.reverse();
+}
+let currentSolution = [];
+function solveToAny(start=START, kittens=KITTENS){
+  let best=[], bestIdx=-1;
+  kittens.forEach((b,idx)=>{ const p=solvePath(start,b); if(p.length && (best.length===0 || p.length<best.length)){ best=p; bestIdx=idx; } });
+  return {path: best, targetIndex: bestIdx};
+}
+let currentTargetIndex = -1;
+
+// ====== Utility ======
+function cellRect(c,r){
+  const g = grid.getBoundingClientRect();
+  const left = g.left + (c-1)*(CELL+GAP) + GAP/2 + window.scrollX;
+  const top  = g.top  + (r-1)*(CELL+GAP) + GAP/2 + window.scrollY;
+  return {left, top};
+}
+function snapTo(el,c,r){
+  const p = cellRect(c,r);
+  el.style.left = (p.left - grid.getBoundingClientRect().left - window.scrollX) + 'px';
+  el.style.top  = (p.top  - grid.getBoundingClientRect().top  - window.scrollY) + 'px';
+  el.dataset.c=c; el.dataset.r=r;
+}
+function tilePos(c,r){
+  const p = cellRect(c,r);
+  return { left: (p.left - grid.getBoundingClientRect().left - window.scrollX), top:  (p.top  - grid.getBoundingClientRect().top  - window.scrollY) };
+}
+function moveTo(el, leftPx, topPx, dur=260){
+  return new Promise((resolve)=>{
+    let resolved=false;
+    const cleanup=()=>{ el.style.transition=''; };
+    const onEnd=(e)=>{ if(resolved) return; if(e.propertyName==='left' || e.propertyName==='top'){ resolved=true; el.removeEventListener('transitionend', onEnd); cleanup(); resolve(); } };
+    setTimeout(()=>{ if(!resolved){ resolved=true; el.removeEventListener('transitionend', onEnd); cleanup(); resolve(); } }, dur+120);
+    el.addEventListener('transitionend', onEnd);
+    el.style.transition = `left ${dur}ms linear, top ${dur}ms linear`;
+    requestAnimationFrame(()=>{ el.style.left = leftPx + 'px'; el.style.top = topPx + 'px'; });
+  });
+}
+function setButtonsEnabled(enabled){ [runBtn, resetBtn, shuffleLevelBtn, shuffleBtn].forEach(b=>{ if(b) b.disabled=!enabled; }); }
+function mkCell(){ const d=document.createElement('div'); d.className='cell'; return d; }
+function mkTile(cls,emoji){ const d=document.createElement('div'); d.className='tile '+cls; d.innerHTML=`<div class="sprite">${emoji}</div>`; d.style.left='0px'; d.style.top='0px'; return d; }
+
+// Offsets kecil agar anak kucing dalam satu sel tidak menumpuk di satu titik
+function kittenOffsets(n){ if(n<=1) return [{x:0,y:0}]; if(n===2) return [{x:-14,y:-14},{x:14,y:14}]; return [{x:-16,y:-10},{x:16,y:-10},{x:0,y:16}]; }
+
+// ====== Render board ======
+function renderBoard(){
+  grid.style.setProperty('--cols', COLS);
+  grid.style.setProperty('--rows', ROWS);
+  grid.innerHTML='';
+  for(let r=1;r<=ROWS;r++) for(let c=1;c<=COLS;c++) grid.appendChild(mkCell());
+
+  // Start (ibu kucing) – gunakan siluet kucing agar bisa dibalik arah
+  const cat = mkTile('start mom','🐈'); cat.id='cat'; grid.appendChild(cat); snapTo(cat, START.c, START.r);
+  const catSprite = cat.querySelector('.sprite'); if(catSprite){ catSprite.style.transform='scaleX(-1)'; catSprite.style.transition=''; }
+
+  // Anak kucing (2–3 ekor), bentuk sama lebih kecil dan tidak menumpuk di satu titik
+  const offs = kittenOffsets(KITTENS.length);
+  KITTENS.forEach((b,i)=>{ const g = mkTile('goal baby','🐈'); g.id='kitten'+i; grid.appendChild(g); snapTo(g, b.c, b.r); const o = offs[i] || {x:0,y:0}; g.style.transform = `translate(${o.x}px, ${o.y}px)`; });
+
+  // Obstacles (yarn, box, plant)
+  OBSTACLES.forEach((o,i)=>{ const ob=mkTile('obstacle',''+o.emoji); ob.id='obs'+i; grid.appendChild(ob); snapTo(ob,o.c,o.r); });
+}
+
+// ====== Program cards ======
+const ARROWS=[ {type:'U', label:'↑'}, {type:'R', label:'→'}, {type:'D', label:'↓'}, {type:'L', label:'←'}, ];
+function renderDock(){
+  dock.innerHTML='';
+  const needCounts = {U:0,R:0,D:0,L:0};
+  currentSolution.forEach(t=>needCounts[t]++);
+  const extras = 2; for(let i=0;i<extras;i++){ const pick = ['U','R','D','L'][Math.floor(Math.random()*4)]; needCounts[pick]++; }
+  const list=[]; Object.entries(needCounts).forEach(([t,n])=>{ for(let i=0;i<n;i++) list.push(t); });
+  list.sort(()=>Math.random()-.5);
+  list.forEach(t=>{ const label = ({U:'↑',R:'→',D:'↓',L:'←'})[t]; const card=document.createElement('div'); card.className='card shape'; card.dataset.type=t; card.dataset.from='dock'; card.innerHTML=`<div class="arrow">${label}</div>`; dock.appendChild(card); });
+}
+function renderProgram(){ program.innerHTML=''; for(let i=0;i<Math.max(currentSolution.length, 6); i++){ const s=document.createElement('div'); s.className='slot'; s.dataset.index=i; program.appendChild(s); } }
+
+// ====== Drag & drop for cards into program slots ======
+(function enableDrag(){
+  let active=null, pid=null, sx=0, sy=0, ox=0, oy=0;
+  function start(e){
+    const t=e.target.closest('.card'); if(!t) return;
+    active=t; pid=e.pointerId; active.setPointerCapture(pid);
+    active.classList.add('dragging');
+    const rect=active.getBoundingClientRect();
+    ox=rect.left + window.scrollX; oy=rect.top + window.scrollY;
+    sx=e.clientX; sy=e.clientY;
+    active.style.position='absolute'; active.style.left=ox+'px'; active.style.top=oy+'px';
+    document.body.appendChild(active);
+    document.body.style.userSelect='none';
+    e.preventDefault(); e.stopPropagation();
+  }
+  function move(e){ if(!active) return; active.style.left=(ox + e.clientX - sx)+'px'; active.style.top=(oy + e.clientY - sy)+'px'; e.preventDefault(); }
+  function finish(){
+    if(!active) return; try{active.releasePointerCapture(pid);}catch(_){ }
+    const a=active; active=null; document.body.style.userSelect='';
+    const slots=[...program.querySelectorAll('.slot')];
+    let best=null, bestDist=1e9; const ax=a.getBoundingClientRect();
+    slots.forEach(s=>{ const r=s.getBoundingClientRect(); const cx=r.left+r.width/2, cy=r.top+r.height/2; const dx=Math.abs((ax.left+ax.width/2)-cx)+Math.abs((ax.top+ax.height/2)-cy); if(dx<bestDist){bestDist=dx; best=s;} });
+    if(best && bestDist<300 && !best.firstChild){ a.style.position=''; a.style.left=''; a.style.top=''; best.appendChild(a);} else { a.style.position=''; a.style.left=''; a.style.top=''; dock.appendChild(a); }
+  }
+  document.addEventListener('pointerdown', start);
+  document.addEventListener('pointermove', move, {passive:false});
+  document.addEventListener('pointerup', finish, {passive:true});
+  document.addEventListener('pointercancel', finish, {passive:true});
+})();
+
+// ====== Run simulation ======
+function resetCat(){
+  const cat=document.getElementById('cat');
+  snapTo(cat, START.c, START.r);
+  const sp = cat && cat.querySelector ? cat.querySelector('.sprite') : null;
+  if(sp){ sp.style.transition=''; sp.style.transform='scaleX(-1)'; }
+  statusEl.textContent=''; statusEl.className='status';
+}
+function occupied(c,r){ if(c<1||c>COLS||r<1||r>ROWS) return 'wall'; for(const o of OBSTACLES){ if(o.c===c && o.r===r) return 'obstacle'; } return null; }
+async function runProgram(){
+  setButtonsEnabled(false);
+  resetCat();
+  const cat=document.getElementById('cat');
+  const sprite = cat.querySelector('.sprite');
+  let c=START.c, r=START.r;
+  const cmds=[...program.querySelectorAll('.card')].map(el=>el.dataset.type);
+  if(cmds.length===0){ statusEl.textContent='Susun kartu arah dulu ya 🙂'; statusEl.className='status bad'; setButtonsEnabled(true); return; }
+  let face = -1; // -1 = kanan (mirror), 1 = kiri (default emoji)
+  for(let i=0;i<cmds.length;i++){
+    const t=cmds[i];
+    if(t==='R') face = -1; else if(t==='L') face = 1;
+    if(sprite){ sprite.style.transition='transform 140ms linear'; sprite.style.transform=`scaleX(${face})`; }
+    let nc=c, nr=r; if(t==='U') nr--; else if(t==='D') nr++; else if(t==='L') nc--; else if(t==='R') nc++;
+    const hit=occupied(nc,nr);
+    if(hit){ statusEl.textContent = hit==='obstacle'? 'Ups, nabrak rintangan!' : 'Keluar papan!'; statusEl.className='status bad'; cat.animate([{transform:'translate(0,0)'},{transform:'translate(-4px,0)'},{transform:'translate(4px,0)'},{transform:'translate(0,0)'}],{duration:280}); setButtonsEnabled(true); return; }
+    const pos = tilePos(nc,nr); await moveTo(cat, pos.left, pos.top, 260); c=nc; r=nr;
+  }
+  const meet = KITTENS.some(b=>b.c===c && b.r===r);
+  if(meet){ statusEl.textContent='Hore! Ibu kucing bertemu anaknya 🐈💜'; statusEl.className='status ok'; }
+  else { statusEl.textContent='Belum sampai ke anaknya. Coba lagi!'; statusEl.className='status bad'; }
+  setButtonsEnabled(true);
+}
+
+// ====== Wiring ======
+if(!regenLevelSolvable()){
+  OBSTACLES=[]; regenKittens(); ({path: currentSolution, targetIndex: currentTargetIndex} = solveToAny(START, KITTENS));
+}
+renderBoard();
+renderDock();
+renderProgram();
+
+runBtn.addEventListener('click', runProgram);
+resetBtn.addEventListener('click', ()=>{
+  if(!regenLevelSolvable()){
+    OBSTACLES=[]; regenKittens(); ({path: currentSolution, targetIndex: currentTargetIndex} = solveToAny(START, KITTENS));
+  }
+  renderBoard(); renderDock(); renderProgram(); resetCat();
+});
+shuffleLevelBtn.addEventListener('click', ()=>{
+  if(!regenLevelSolvable()){
+    OBSTACLES=[]; regenKittens(); ({path: currentSolution, targetIndex: currentTargetIndex} = solveToAny(START, KITTENS));
+  }
+  renderBoard(); renderDock(); renderProgram(); statusEl.textContent='Soal diacak.'; statusEl.className='status';
+});
+shuffleBtn.addEventListener('click', ()=>{ currentSolution = solveToAny(START, KITTENS).path; renderDock(); renderProgram(); statusEl.textContent='Kartu diacak.'; statusEl.className='status'; });
+</script>
+</body>
+</html>

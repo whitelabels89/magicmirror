@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shape L19 — Koding Warna Bangun Datar</title>
+  <style>
+    :root {
+      --bg: #f7f7fb;
+      --card: #ffffff;
+      --ink: #1f2937;
+      --muted: #6b7280;
+      --brand: #6366f1;
+      --ok: #10b981;
+      --bad: #ef4444;
+      --shadow: 0 8px 30px rgba(0,0,0,.06);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: var(--bg); color: var(--ink);
+      display: flex; flex-direction: column; min-height: 100vh;
+    }
+    header {
+      padding: 18px 20px; background: linear-gradient(180deg,#fff, #f6f7ff);
+      border-bottom: 1px solid #e5e7eb; position: sticky; top: 0; z-index: 3;
+    }
+    header h1 { margin: 0 0 6px; font-size: 20px; letter-spacing:.2px; }
+    header p { margin: 0; color: var(--muted); font-size: 13px; }
+
+    .toolbar { display:flex; gap:10px; margin-top:10px; flex-wrap: wrap; }
+    .btn {
+      border: 0; padding:10px 14px; border-radius:10px; background:#fff; box-shadow: var(--shadow);
+      cursor: pointer; font-weight:600; color:#374151; transition: .2s transform ease;
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn.primary { background: var(--brand); color: #fff; }
+    .btn.ghost { background: transparent; border:1px solid #e5e7eb; }
+
+    .board {
+      position: relative; flex:1; display:grid; grid-template-columns: 1fr 40px 1fr; gap:14px; padding: 18px; max-width:1100px; width:100%; margin: 0 auto;
+    }
+    .col { display:grid; gap:14px; align-content:start; }
+
+    canvas#wires { position:absolute; inset:0; pointer-events:none; z-index:1; }
+
+    .card {
+      background: var(--card); border-radius:16px; box-shadow: var(--shadow);
+      padding: 12px; min-height: 110px; display:grid; grid-template-columns: 1fr 28px; align-items:center;
+    }
+    .card .thumb { background:#fafafa; border:1px solid #eef0f5; border-radius:12px; height:90px; display:flex; align-items:center; justify-content:center; }
+
+    .dot {
+      width:18px; height:18px; border-radius:50%; background:#e5e7eb; border:2px solid #d1d5db; cursor: pointer;
+      display:grid; place-items:center; margin: auto;
+      transition: background .2s, border-color .2s, transform .2s; position: relative; z-index:2;
+    }
+    .dot:hover { transform: scale(1.05); }
+    .dot.active { background: #c7d2fe; border-color:#6366f1; }
+
+    .center-rail { display:grid; align-content:start; gap:14px; }
+    .rail-slot { height: 114px; display:grid; place-items:center; color:#9ca3af; font-size:12px; }
+
+    .legend { max-width:1100px; width:100%; margin:12px auto 0; padding:0 18px; color:var(--muted); font-size:12px; }
+
+    .result { font-weight:700; margin-left:8px; }
+    .tag { font-size:11px; padding:2px 8px; border-radius:999px; background:#eef2ff; color:#3730a3; margin-left:8px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Koding Warna Bangun Datar (L19)</h1>
+    <p>Hubungkan tiap rumah (kiri) dengan susunan potongan bangun datar yang warnanya <b>persis sama</b> (kanan). Latihan logika warna & komposisi. <span class="tag">Drag to connect</span></p>
+    <div class="toolbar">
+      <button class="btn" id="shuffleBtn">Acak Soal</button>
+      <button class="btn primary" id="checkBtn">Periksa Jawaban</button>
+      <button class="btn ghost" id="resetBtn">Reset</button>
+      <span class="result" id="scoreInfo"></span>
+    </div>
+  </header>
+
+  <div class="board">
+    <canvas id="wires"></canvas>
+    <div class="col" id="leftCol"></div>
+    <div class="center-rail" id="rail"></div>
+    <div class="col" id="rightCol"></div>
+  </div>
+  <div class="legend">Tips: Klik titik abu-abu pada kartu kiri lalu klik pasangannya di kanan untuk membuat garis penghubung. Klik lagi pada titik yang sama untuk membatalkan.</div>
+
+  <template id="tpl-card">
+    <div class="card" data-key="">
+      <div class="thumb"></div>
+      <div class="dot" aria-label="connector" title="Hubungkan"></div>
+    </div>
+  </template>
+
+  <script>
+    // ---------- Data warna & util ----------
+    const PALETTES = [
+      ['#16a34a','#fbbf24','#e11d48','#2563eb'], // hijau • amber • rose • biru
+      ['#dc2626','#fef08a','#22c55e','#0ea5e9'], // merah • lemon • hijau • langit
+      ['#7c3aed','#93c5fd','#f97316','#e11d48'], // ungu • biru muda • oranye • rose
+      ['#0ea5e9','#34d399','#ef4444','#f59e0b'], // langit • mint • merah • amber
+      ['#f97316','#c7d2fe','#22c55e','#7c3aed'], // oranye • periwinkle • hijau • ungu
+      ['#047857','#fca5a5','#4338ca','#10b981'], // teal • merah muda • indigo • emerald
+    ];
+
+    // Key is the palette string to map pairs regardless of shuffle
+    const makeKey = (arr) => arr.join('|');
+
+    // ---------- SVG GENERATORS ----------
+    function houseSVG([roof, body, w1, w2]){
+      const svg = `<svg width="150" height="90" viewBox="0 0 150 90" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="30,12 120,12 140,26 10,26" fill="${roof}"/>
+        <rect x="26" y="26" width="98" height="42" rx="4" fill="${body}"/>
+        <rect x="42" y="36" width="18" height="22" rx="2" fill="${w1}"/>
+        <rect x="90" y="36" width="18" height="22" rx="2" fill="${w2}"/>
+        <rect x="68" y="44" width="12" height="24" rx="2" fill="#b45309"/>
+      </svg>`;
+      return svg;
+    }
+
+    // Decomposed blocks using same colors but scattered and rotated a bit
+    function piecesSVG([roof, body, w1, w2]){
+      // Tata letak dijamin TIDAK saling menimpa: setiap bentuk ditempatkan di zona berbeda.
+      // Zona: atap (kiri-atas), badan (kanan-atas), jendela (kiri-bawah & tengah-bawah), pintu (kanan-bawah)
+      const svg = `<svg width="150" height="90" viewBox="0 0 150 90" xmlns="http://www.w3.org/2000/svg">
+        <!-- ATAP: trapesium isosceles, kiri-atas -->
+        <polygon points="10,18 58,18 70,30 0,30" fill="${roof}"/>
+
+        <!-- BADAN: versi kecil 56x24, kanan-atas (jauh dari atap) -->
+        <rect x="88" y="10" width="56" height="24" rx="4" fill="${body}"/>
+
+        <!-- JENDELA: kiri-bawah & tengah-bawah -->
+        <rect x="14" y="58" width="18" height="22" rx="2" fill="${w1}"/>
+        <rect x="46" y="58" width="18" height="22" rx="2" fill="${w2}"/>
+
+        <!-- PINTU: kanan-bawah, tidak bersinggungan dengan jendela -->
+        <rect x="90" y="58" width="12" height="24" rx="2" fill="#b45309"/>
+      </svg>`;
+      return svg;
+    }
+
+    // ---------- Build UI ----------
+    const leftCol = document.getElementById('leftCol');
+    const rightCol = document.getElementById('rightCol');
+    const rail = document.getElementById('rail');
+    const tpl = document.getElementById('tpl-card');
+    const canvas = document.getElementById('wires');
+    const ctx = canvas.getContext('2d');
+    const state = { left: [], right: [], links: new Map(), pending: null };
+    let building = false;
+    const resizeObs = new ResizeObserver(()=>resizeCanvas());
+
+    function build(){
+      if(building) return; building = true;
+      leftCol.innerHTML = ''; rightCol.innerHTML = ''; rail.innerHTML = '';
+      // create slots to help align lines visually
+      for(let i=0;i<PALETTES.length;i++){ const s = document.createElement('div'); s.className='rail-slot'; s.textContent='↔'; rail.appendChild(s);}    
+      const shuffledL = shuffle([...PALETTES]);
+      const shuffledR = shuffle([...PALETTES]);
+
+      // Left cards
+      shuffledL.forEach(colors=>{
+        const node = tpl.content.firstElementChild.cloneNode(true);
+        node.dataset.key = makeKey(colors);
+        node.querySelector('.thumb').innerHTML = houseSVG(colors);
+        leftCol.appendChild(node);
+        state.left.push(node);
+      });
+      // Right cards
+      shuffledR.forEach(colors=>{
+        const node = tpl.content.firstElementChild.cloneNode(true);
+        node.dataset.key = makeKey(colors);
+        node.querySelector('.thumb').innerHTML = piecesSVG(colors);
+        // flip order (dot on left)
+        node.style.gridTemplateColumns = '28px 1fr';
+        node.firstElementChild.before(node.lastElementChild);
+        rightCol.appendChild(node);
+        state.right.push(node);
+      });
+
+      hookupDots();
+      resizeCanvas();
+      draw();
+      state.links = new Map();
+      building = false;
+      // observe size changes once
+      resizeObs.disconnect();
+      resizeObs.observe(document.querySelector('.board'));
+    }
+
+    function shuffle(a){
+      for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a;
+    }
+
+    function hookupDots(){
+      document.querySelectorAll('.dot').forEach(dot=>{
+        dot.addEventListener('click', ()=>onDotClick(dot));
+      });
+    }
+
+    function sideOf(dot){
+      const card = dot.closest('.card');
+      return card.parentElement===leftCol? 'L':'R';
+    }
+
+    function onDotClick(dot){
+      const card = dot.closest('.card');
+      const side = sideOf(dot);
+      if(state.pending && state.pending.side===side){
+        // same side => cancel selection
+        state.pending.dot.classList.remove('active');
+        state.pending = null; return;
+      }
+      if(!state.pending){
+        state.pending = { side, dot, card };
+        dot.classList.add('active');
+        return;
+      }
+      // connect L -> R
+      const a = state.pending.side==='L'? state.pending.card : card;
+      const b = state.pending.side==='L'? card : state.pending.card;
+      connect(a,b);
+      state.pending.dot.classList.remove('active');
+      state.pending = null;
+      draw();
+    }
+
+    function connect(leftCard, rightCard){
+      // remove any existing links that share endpoints
+      for(const [l,r] of [...state.links]){
+        if(l===leftCard || r===rightCard){ state.links.delete(l); }
+      }
+      state.links.set(leftCard, rightCard);
+    }
+
+    function centerOfDot(card){
+      const dot = card.querySelector('.dot');
+      const dotRect = dot.getBoundingClientRect();
+      const boardRect = document.querySelector('.board').getBoundingClientRect();
+      // posisi relatif terhadap canvas (yang inset:0 di .board)
+      const x = dotRect.left - boardRect.left + dotRect.width/2 + window.scrollX - window.scrollX; // noop scroll to be explicit
+      const y = dotRect.top - boardRect.top + dotRect.height/2 + window.scrollY - window.scrollY;
+      return { x, y };
+    }
+
+    function resizeCanvas(){
+      const board = document.querySelector('.board');
+      const b = board.getBoundingClientRect();
+      const cStyle = getComputedStyle(board);
+      const padX = parseFloat(cStyle.paddingLeft)+parseFloat(cStyle.paddingRight);
+      const padY = parseFloat(cStyle.paddingTop)+parseFloat(cStyle.paddingBottom);
+      canvas.style.left = 0; canvas.style.top = 0; canvas.style.width = `${b.width}px`; canvas.style.height = `${b.height}px`;
+      canvas.width = Math.max(1, Math.floor(b.width * devicePixelRatio));
+      canvas.height = Math.max(1, Math.floor(b.height * devicePixelRatio));
+      ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+      draw();
+    }
+    addEventListener('resize', ()=>{ resizeCanvas(); });
+    addEventListener('scroll', ()=>{ draw(); }, {passive:true});
+
+    function draw(feedback){
+      ctx.clearRect(0,0,canvas.width, canvas.height);
+      for(const [l,r] of state.links){
+        const a=centerOfDot(l); const b=centerOfDot(r);
+        const dx = (a.x<b.x? 1 : -1) * 6; // offset 6px dari dot
+        a.x += dx; b.x -= dx;
+        const midX = (a.x + b.x)/2;
+        ctx.lineWidth = 3; ctx.lineCap='round';
+        const status = feedback?.get(l) || 'neutral';
+        ctx.strokeStyle = status==='ok'? '#10b981' : status==='bad'? '#ef4444' : '#94a3b8';
+        ctx.beginPath();
+        ctx.moveTo(a.x,a.y);
+        ctx.bezierCurveTo(midX, a.y, midX, b.y, b.x, b.y);
+        ctx.stroke();
+      }
+    }
+
+    function check(){
+      let correct=0; const fb = new Map();
+      for(const [l,r] of state.links){
+        const ok = l.dataset.key===r.dataset.key; fb.set(l, ok? 'ok':'bad'); if(ok) correct++;
+      }
+      draw(fb);
+      const total = PALETTES.length;
+      document.getElementById('scoreInfo').textContent = `Skor: ${correct}/${total}`;
+    }
+
+    function resetAll(){
+      state.links.clear(); state.pending=null; document.getElementById('scoreInfo').textContent=''; draw();
+      resizeCanvas();
+    }
+
+    // Buttons
+    let shuffleLock = false;
+    document.getElementById('shuffleBtn').addEventListener('click', ()=>{
+      if(shuffleLock) return; shuffleLock = true;
+      resetAll(); state.left=[]; state.right=[]; build();
+      setTimeout(()=>shuffleLock=false, 350);
+    });
+    document.getElementById('checkBtn').addEventListener('click', check);
+    document.getElementById('resetBtn').addEventListener('click', resetAll);
+
+    // Init
+    build();
+    // ensure canvas sizing after layout
+    setTimeout(resizeCanvas, 30);
+  </script>
+</body>
+</html>

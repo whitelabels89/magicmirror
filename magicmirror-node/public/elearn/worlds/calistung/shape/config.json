@@ -2,22 +2,33 @@
   "id": "calistung-shape",
   "title": "Calistung — Shape",
   "map": {
-    "image": "/elearn/img/map/worldmap3.webp",
+    "image": "/elearn/worlds/calistung/shape/map/shape-world.jpg",
     "nodes": [
-      {
-        "id": "S1",
-        "x": 30,
-        "y": 40,
-        "label": "Circle",
-        "entry": "/elearn/calistung/level/S1.html"
-      },
-      {
-        "id": "S2",
-        "x": 65,
-        "y": 55,
-        "label": "Square",
-        "entry": "/elearn/calistung/level/S2.html"
-      }
+      { "id": "S1",  "x": 52, "y": 13, "label": "L1",  "entry": "/elearn/worlds/calistung/shape/shape-L1.html" },
+      { "id": "S2",  "x": 60, "y": 13, "label": "L2",  "entry": "/elearn/worlds/calistung/shape/shape-L2.html" },
+      { "id": "S3",  "x": 68, "y": 17, "label": "L3",  "entry": "/elearn/worlds/calistung/shape/shape-L3.html" },
+      { "id": "S4",  "x": 76, "y": 22, "label": "L4",  "entry": "/elearn/worlds/calistung/shape/shape-L4.html" },
+      { "id": "S5",  "x": 82, "y": 30, "label": "L5",  "entry": "/elearn/worlds/calistung/shape/shape-L5.html" },
+      { "id": "S6",  "x": 86, "y": 38, "label": "L6",  "entry": "/elearn/worlds/calistung/shape/shape-L6.html" },
+      { "id": "S7",  "x": 88, "y": 48, "label": "L7",  "entry": "/elearn/worlds/calistung/shape/shape-L7.html" },
+      { "id": "S8",  "x": 87, "y": 57, "label": "L8",  "entry": "/elearn/worlds/calistung/shape/shape-L8.html" },
+      { "id": "S9",  "x": 84, "y": 66, "label": "L9",  "entry": "/elearn/worlds/calistung/shape/shape-L9.html" },
+      { "id": "S10", "x": 79, "y": 74, "label": "L10", "entry": "/elearn/worlds/calistung/shape/shape-L10.html" },
+      { "id": "S11", "x": 72, "y": 81, "label": "L11", "entry": "/elearn/worlds/calistung/shape/shape-L11.html" },
+      { "id": "S12", "x": 64, "y": 85, "label": "L12", "entry": "/elearn/worlds/calistung/shape/shape-L12.html" },
+      { "id": "S13", "x": 55, "y": 88, "label": "L13", "entry": "/elearn/worlds/calistung/shape/shape-L13.html" },
+      { "id": "S14", "x": 45, "y": 88, "label": "L14", "entry": "/elearn/worlds/calistung/shape/shape-L14.html" },
+      { "id": "S15", "x": 36, "y": 85, "label": "L15", "entry": "/elearn/worlds/calistung/shape/shape-L15.html" },
+      { "id": "S16", "x": 28, "y": 81, "label": "L16", "entry": "/elearn/worlds/calistung/shape/shape-L16.html" },
+      { "id": "S17", "x": 21, "y": 74, "label": "L17", "entry": "/elearn/worlds/calistung/shape/shape-L17.html" },
+      { "id": "S18", "x": 16, "y": 66, "label": "L18", "entry": "/elearn/worlds/calistung/shape/shape-L18.html" },
+      { "id": "S19", "x": 13, "y": 57, "label": "L19", "entry": "/elearn/worlds/calistung/shape/shape-L19.html" },
+      { "id": "S20", "x": 12, "y": 48, "label": "L20", "entry": "/elearn/worlds/calistung/shape/shape-L20.html" },
+      { "id": "S21", "x": 15, "y": 38, "label": "L21", "entry": "/elearn/worlds/calistung/shape/shape-L21.html" },
+      { "id": "S22", "x": 20, "y": 30, "label": "L22", "entry": "/elearn/worlds/calistung/shape/shape-L22.html" },
+      { "id": "S23", "x": 27, "y": 22, "label": "L23", "entry": "/elearn/worlds/calistung/shape/shape-L23.html" },
+      { "id": "S24", "x": 36, "y": 17, "label": "L24", "entry": "/elearn/worlds/calistung/shape/shape-L24.html" },
+      { "id": "S25", "x": 43, "y": 17, "label": "L25", "entry": "/elearn/worlds/calistung/shape/shape-L25.html" }
     ]
   }
 }

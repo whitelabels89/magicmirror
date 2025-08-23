@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shape L21 – Memindahkan Objek</title>
+  <style>
+    :root{
+      --cell: 110px;
+      --gap: 6px;
+      --line:#222;
+      --arrow:#e45858;
+    }
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,sans-serif;margin:0;padding:24px;background:#f7fafc;color:#111}
+    h1{margin:0 0 6px;font-size:28px;letter-spacing:.5px}
+    p.lead{margin:0 0 18px;color:#444}
+    .wrap{max-width:900px;margin:0 auto}
+
+    .board{position:relative; width: calc(var(--cell)*5 + var(--gap)*6); padding: var(--gap); background:#fff; border-radius:12px; box-shadow:0 6px 20px rgba(0,0,0,.08);}
+    .grid{position:relative; width:calc(var(--cell)*5 + var(--gap)*4); height:calc(var(--cell)*2 + var(--gap)); margin:0 auto; display:grid; grid-template-columns:repeat(5,var(--cell)); grid-template-rows:repeat(2,var(--cell)); gap:var(--gap);}
+    .cell{border:2px solid var(--line); background:#fff; position:relative}
+
+    .palette{display:flex; gap:10px; flex-wrap:wrap; padding:10px 0 0}
+    .btns{display:flex; gap:10px; margin:14px 0 0}
+    button{padding:10px 14px; border-radius:8px; border:1px solid #ccc; background:#111; color:#fff; cursor:pointer; font-weight:600}
+    button.ghost{background:#fff;color:#111}
+
+    .shape{position:absolute; width:calc(var(--cell) - 18px); height:calc(var(--cell) - 18px); left:0; top:0; display:flex; align-items:center; justify-content:center; cursor:grab; user-select:none; transform:none; transition:box-shadow .2s; touch-action:none; -webkit-user-drag:none;}
+    .shape.dragging{cursor:grabbing; box-shadow:0 10px 24px rgba(0,0,0,.2)}
+    svg{width:100%; height:100%}
+
+    .arrow{position:absolute; width:28px; height:28px; display:flex; align-items:center; justify-content:center;}
+    .arrow svg{width:100%; height:100%}
+    .arrow{pointer-events:none}
+    .board, .grid, .shape, button { pointer-events: auto; }
+    button { position: relative; z-index: 5; }
+    .shape{z-index:2}
+    .arrow{z-index:3}
+
+    .status{margin:10px 0 0; font-weight:700}
+    .ok{color:#0c8b44}
+    .bad{color:#c62828}
+
+    .example{display:flex; gap:24px; align-items:flex-start; margin:0 0 22px}
+    .example .label{min-width:140px; font-weight:700}
+    .legend{display:flex; gap:12px; flex-wrap:wrap; font-size:14px; color:#333}
+    .chip{display:flex; align-items:center; gap:6px}
+    .dot{width:14px;height:14px;border-radius:50%; background:var(--arrow);}
+
+    /* mobile */
+    @media (max-width:720px){
+      :root{--cell:90px}
+      .example{flex-direction:column}
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>MEMINDAHKAN OBJEK</h1>
+  <p class="lead">Pindahkan setiap bentuk <b>1 kotak</b> sesuai arah panah merah. Lepaskan di kotak tujuan yang tepat. Lalu tekan <b>Periksa Jawaban</b>.</p>
+  <div class="legend" style="margin:10px 0 6px">
+    <div class="chip"><span class="dot"></span><span>Gerakkan <b>1 kotak</b> ke arah panah</span></div>
+    <div class="chip">Tarik & lepas (drag & drop) ke kotak tujuan</div>
+  </div>
+
+  <div class="btns" style="margin-top:0">
+    <button id="shuffleAll">Acak Soal</button>
+  </div>
+
+  <!-- Soal 1 (tetap seperti layout awal) -->
+  <h2 style="margin:12px 0 6px">Soal 1</h2>
+  <div class="board" id="board1">
+    <div class="grid" id="grid1">
+      <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      <!-- Fallback shapes Soal 1 (layout fix) -->
+      <div class="shape" style="left: calc((var(--cell) + var(--gap)) * 0 + var(--gap) + 9px); top: calc((var(--cell) + var(--gap)) * 1 + var(--gap) + 9px);" data-id="square" data-c="1" data-r="2"> <svg viewBox="0 0 100 100"><rect x="5" y="5" width="90" height="90" rx="8" fill="#f4c04f"/></svg></div>
+      <div class="shape" style="left: calc((var(--cell) + var(--gap)) * 2 + var(--gap) + 9px); top: calc((var(--cell) + var(--gap)) * 0 + var(--gap) + 9px);" data-id="circle" data-c="3" data-r="1"> <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#6d63c8"/></svg></div>
+      <div class="shape" style="left: calc((var(--cell) + var(--gap)) * 4 + var(--gap) + 9px); top: calc((var(--cell) + var(--gap)) * 0 + var(--gap) + 9px);" data-id="pentagon" data-c="5" data-r="1"> <svg viewBox="0 0 100 100"><polygon points="50,8 92,38 76,90 24,90 8,38" fill="#4caf6b"/></svg></div>
+      <div class="shape" style="left: calc((var(--cell) + var(--gap)) * 1 + var(--gap) + 9px); top: calc((var(--cell) + var(--gap)) * 1 + var(--gap) + 9px);" data-id="star" data-c="2" data-r="2"> <svg viewBox="0 0 100 100"><polygon points="50,8 61,38 93,38 66,57 76,88 50,70 24,88 34,57 7,38 39,38" fill="#eaa0c7"/></svg></div>
+      <div class="shape" style="left: calc((var(--cell) + var(--gap)) * 3 + var(--gap) + 9px); top: calc((var(--cell) + var(--gap)) * 1 + var(--gap) + 9px);" data-id="triDown" data-c="4" data-r="2"> <svg viewBox="0 0 100 100"><polygon points="10,20 90,20 50,85" fill="#3b86c8"/></svg></div>
+
+      <div class="arrow" style="left: calc((var(--cell) + var(--gap)) * 0 + var(--gap) + var(--cell)/2 - 14px); top: calc((var(--cell) + var(--gap)) * 1 + var(--gap) + var(--cell)/2 - 14px);"><svg viewBox='0 0 24 24' fill='none' stroke='var(--arrow)' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M12 19V7'/><path d='M6 11l6-6 6 6'/></svg></div>
+      <div class="arrow" style="left: calc((var(--cell) + var(--gap)) * 2 + var(--gap) + var(--cell)/2 - 14px); top: calc((var(--cell) + var(--gap)) * 0 + var(--gap) + var(--cell)/2 - 14px);"><svg viewBox='0 0 24 24' fill='none' stroke='var(--arrow)' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M5 12h12'/><path d='M13 6l6 6-6 6'/></svg></div>
+      <div class="arrow" style="left: calc((var(--cell) + var(--gap)) * 4 + var(--gap) + var(--cell)/2 - 14px); top: calc((var(--cell) + var(--gap)) * 0 + var(--gap) + var(--cell)/2 - 14px);"><svg viewBox='0 0 24 24' fill='none' stroke='var(--arrow)' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M12 5v12'/><path d='M18 13l-6 6-6-6'/></svg></div>
+      <div class="arrow" style="left: calc((var(--cell) + var(--gap)) * 1 + var(--gap) + var(--cell)/2 - 14px); top: calc((var(--cell) + var(--gap)) * 1 + var(--gap) + var(--cell)/2 - 14px);"><svg viewBox='0 0 24 24' fill='none' stroke='var(--arrow)' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M12 19V7'/><path d='M6 11l6-6 6 6'/></svg></div>
+      <div class="arrow" style="left: calc((var(--cell) + var(--gap)) * 3 + var(--gap) + var(--cell)/2 - 14px); top: calc((var(--cell) + var(--gap)) * 1 + var(--gap) + var(--cell)/2 - 14px);"><svg viewBox='0 0 24 24' fill='none' stroke='var(--arrow)' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M5 12h12'/><path d='M13 6l6 6-6 6'/></svg></div>
+    </div>
+    <div class="btns">
+      <button id="check1">Periksa Jawaban</button>
+      <button class="ghost" id="reset1">Reset</button>
+    </div>
+    <div id="status1" class="status"></div>
+  </div>
+
+  <!-- Soal 2 -->
+  <h2 style="margin:12px 0 6px">Soal 2</h2>
+  <div class="board" id="board2" style="margin-top:16px">
+    <div class="grid" id="grid2">
+      <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      <!-- Fallback shapes Soal 2 (duplicate of fixed; will be randomized by JS) -->
+      <div class="shape" style="left: calc((var(--cell) + var(--gap)) * 0 + var(--gap) + 9px); top: calc((var(--cell) + var(--gap)) * 1 + var(--gap) + 9px);"> <svg viewBox="0 0 100 100"><rect x="5" y="5" width="90" height="90" rx="8" fill="#f4c04f"/></svg></div>
+      <div class="shape" style="left: calc((var(--cell) + var(--gap)) * 2 + var(--gap) + 9px); top: calc((var(--cell) + var(--gap)) * 0 + var(--gap) + 9px);"> <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#6d63c8"/></svg></div>
+      <div class="shape" style="left: calc((var(--cell) + var(--gap)) * 4 + var(--gap) + 9px); top: calc((var(--cell) + var(--gap)) * 0 + var(--gap) + 9px);"> <svg viewBox="0 0 100 100"><polygon points="50,8 92,38 76,90 24,90 8,38" fill="#4caf6b"/></svg></div>
+      <div class="shape" style="left: calc((var(--cell) + var(--gap)) * 1 + var(--gap) + 9px); top: calc((var(--cell) + var(--gap)) * 1 + var(--gap) + 9px);"> <svg viewBox="0 0 100 100"><polygon points="50,8 61,38 93,38 66,57 76,88 50,70 24,88 34,57 7,38 39,38" fill="#eaa0c7"/></svg></div>
+      <div class="shape" style="left: calc((var(--cell) + var(--gap)) * 3 + var(--gap) + 9px); top: calc((var(--cell) + var(--gap)) * 1 + var(--gap) + 9px);"> <svg viewBox="0 0 100 100"><polygon points="10,20 90,20 50,85" fill="#3b86c8"/></svg></div>
+
+      <div class="arrow" style="left: calc((var(--cell) + var(--gap)) * 0 + var(--gap) + var(--cell)/2 - 14px); top: calc((var(--cell) + var(--gap)) * 1 + var(--gap) + var(--cell)/2 - 14px);"><svg viewBox='0 0 24 24' fill='none' stroke='var(--arrow)' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M12 19V7'/><path d='M6 11l6-6 6 6'/></svg></div>
+      <div class="arrow" style="left: calc((var(--cell) + var(--gap)) * 2 + var(--gap) + var(--cell)/2 - 14px); top: calc((var(--cell) + var(--gap)) * 0 + var(--gap) + var(--cell)/2 - 14px);"><svg viewBox='0 0 24 24' fill='none' stroke='var(--arrow)' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M5 12h12'/><path d='M13 6l6 6-6 6'/></svg></div>
+      <div class="arrow" style="left: calc((var(--cell) + var(--gap)) * 4 + var(--gap) + var(--cell)/2 - 14px); top: calc((var(--cell) + var(--gap)) * 0 + var(--gap) + var(--cell)/2 - 14px);"><svg viewBox='0 0 24 24' fill='none' stroke='var(--arrow)' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M12 5v12'/><path d='M18 13l-6 6-6-6'/></svg></div>
+      <div class="arrow" style="left: calc((var(--cell) + var(--gap)) * 1 + var(--gap) + var(--cell)/2 - 14px); top: calc((var(--cell) + var(--gap)) * 1 + var(--gap) + var(--cell)/2 - 14px);"><svg viewBox='0 0 24 24' fill='none' stroke='var(--arrow)' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M12 19V7'/><path d='M6 11l6-6 6 6'/></svg></div>
+      <div class="arrow" style="left: calc((var(--cell) + var(--gap)) * 3 + var(--gap) + var(--cell)/2 - 14px); top: calc((var(--cell) + var(--gap)) * 1 + var(--gap) + var(--cell)/2 - 14px);"><svg viewBox='0 0 24 24' fill='none' stroke='var(--arrow)' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M5 12h12'/><path d='M13 6l6 6-6 6'/></svg></div>
+    </div>
+    <div class="btns">
+      <button id="check2">Periksa Jawaban</button>
+      <button class="ghost" id="reset2">Reset</button>
+    </div>
+    <div id="status2" class="status"></div>
+  </div>
+
+  <!-- Soal 3 -->
+  <h2 style="margin:12px 0 6px">Soal 3</h2>
+  <div class="board" id="board3" style="margin-top:16px">
+    <div class="grid" id="grid3">
+      <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      <!-- Fallback shapes Soal 2 (duplicate of fixed; will be randomized by JS) -->
+      <div class="shape" style="left: calc((var(--cell) + var(--gap)) * 0 + var(--gap) + 9px); top: calc((var(--cell) + var(--gap)) * 1 + var(--gap) + 9px);"> <svg viewBox="0 0 100 100"><rect x="5" y="5" width="90" height="90" rx="8" fill="#f4c04f"/></svg></div>
+      <div class="shape" style="left: calc((var(--cell) + var(--gap)) * 2 + var(--gap) + 9px); top: calc((var(--cell) + var(--gap)) * 0 + var(--gap) + 9px);"> <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#6d63c8"/></svg></div>
+      <div class="shape" style="left: calc((var(--cell) + var(--gap)) * 4 + var(--gap) + 9px); top: calc((var(--cell) + var(--gap)) * 0 + var(--gap) + 9px);"> <svg viewBox="0 0 100 100"><polygon points="50,8 92,38 76,90 24,90 8,38" fill="#4caf6b"/></svg></div>
+      <div class="shape" style="left: calc((var(--cell) + var(--gap)) * 1 + var(--gap) + 9px); top: calc((var(--cell) + var(--gap)) * 1 + var(--gap) + 9px);"> <svg viewBox="0 0 100 100"><polygon points="50,8 61,38 93,38 66,57 76,88 50,70 24,88 34,57 7,38 39,38" fill="#eaa0c7"/></svg></div>
+      <div class="shape" style="left: calc((var(--cell) + var(--gap)) * 3 + var(--gap) + 9px); top: calc((var(--cell) + var(--gap)) * 1 + var(--gap) + 9px);"> <svg viewBox="0 0 100 100"><polygon points="10,20 90,20 50,85" fill="#3b86c8"/></svg></div>
+
+      <div class="arrow" style="left: calc((var(--cell) + var(--gap)) * 0 + var(--gap) + var(--cell)/2 - 14px); top: calc((var(--cell) + var(--gap)) * 1 + var(--gap) + var(--cell)/2 - 14px);"><svg viewBox='0 0 24 24' fill='none' stroke='var(--arrow)' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M12 19V7'/><path d='M6 11l6-6 6 6'/></svg></div>
+      <div class="arrow" style="left: calc((var(--cell) + var(--gap)) * 2 + var(--gap) + var(--cell)/2 - 14px); top: calc((var(--cell) + var(--gap)) * 0 + var(--gap) + var(--cell)/2 - 14px);"><svg viewBox='0 0 24 24' fill='none' stroke='var(--arrow)' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M5 12h12'/><path d='M13 6l6 6-6 6'/></svg></div>
+      <div class="arrow" style="left: calc((var(--cell) + var(--gap)) * 4 + var(--gap) + var(--cell)/2 - 14px); top: calc((var(--cell) + var(--gap)) * 0 + var(--gap) + var(--cell)/2 - 14px);"><svg viewBox='0 0 24 24' fill='none' stroke='var(--arrow)' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M12 5v12'/><path d='M18 13l-6 6-6-6'/></svg></div>
+      <div class="arrow" style="left: calc((var(--cell) + var(--gap)) * 1 + var(--gap) + var(--cell)/2 - 14px); top: calc((var(--cell) + var(--gap)) * 1 + var(--gap) + var(--cell)/2 - 14px);"><svg viewBox='0 0 24 24' fill='none' stroke='var(--arrow)' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M12 19V7'/><path d='M6 11l6-6 6 6'/></svg></div>
+      <div class="arrow" style="left: calc((var(--cell) + var(--gap)) * 3 + var(--gap) + var(--cell)/2 - 14px); top: calc((var(--cell) + var(--gap)) * 1 + var(--gap) + var(--cell)/2 - 14px);"><svg viewBox='0 0 24 24' fill='none' stroke='var(--arrow)' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M5 12h12'/><path d='M13 6l6 6-6 6'/></svg></div>
+    </div>
+    <div class="btns">
+      <button id="check3">Periksa Jawaban</button>
+      <button class="ghost" id="reset3">Reset</button>
+    </div>
+    <div id="status3" class="status"></div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  const COLS=5, ROWS=2;
+  const CELL=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--cell'));
+  const GAP=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--gap'));
+
+  const svgs={
+    square:f=>`<svg viewBox='0 0 100 100'><rect x='5' y='5' width='90' height='90' rx='8' fill='${f}'/></svg>`,
+    circle:f=>`<svg viewBox='0 0 100 100'><circle cx='50' cy='50' r='44' fill='${f}'/></svg>`,
+    pentagon:f=>`<svg viewBox='0 0 100 100'><polygon points='50,8 92,38 76,90 24,90 8,38' fill='${f}'/></svg>`,
+    star:f=>`<svg viewBox='0 0 100 100'><polygon points='50,8 61,38 93,38 66,57 76,88 50,70 24,88 34,57 7,38 39,38' fill='${f}'/></svg>`,
+    triDown:f=>`<svg viewBox='0 0 100 100'><polygon points='10,20 90,20 50,85' fill='${f}'/></svg>`
+  };
+  const arrows={
+    up:`<svg viewBox='0 0 24 24' fill='none' stroke='var(--arrow)' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M12 19V7'/><path d='M6 11l6-6 6 6'/></svg>`,
+    down:`<svg viewBox='0 0 24 24' fill='none' stroke='var(--arrow)' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M12 5v12'/><path d='M18 13l-6 6-6-6'/></svg>`,
+    left:`<svg viewBox='0 0 24 24' fill='none' stroke='var(--arrow)' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M19 12H7'/><path d='M11 6l-6 6 6 6'/></svg>`,
+    right:`<svg viewBox='0 0 24 24' fill='none' stroke='var(--arrow)' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M5 12h12'/><path d='M13 6l6 6-6 6'/></svg>`
+  };
+  const SHAPES=[
+    {id:'square',color:'#f4c04f'},
+    {id:'circle',color:'#6d63c8'},
+    {id:'pentagon',color:'#4caf6b'},
+    {id:'star',color:'#eaa0c7'},
+    {id:'triDown',color:'#3b86c8'}
+  ];
+  const DIRS=['up','down','left','right'];
+
+  function drawGrid(gridEl){
+    gridEl.innerHTML='';
+    for(let r=1;r<=ROWS;r++){
+      for(let c=1;c<=COLS;c++){
+        const cell=document.createElement('div');
+        cell.className='cell';
+        cell.dataset.c=c; cell.dataset.r=r;
+        gridEl.appendChild(cell);
+      }
+    }
+  }
+  function cellRect(gridEl,c,r){
+    const left=(c-1)*(CELL+GAP)+GAP; const top=(r-1)*(CELL+GAP)+GAP;
+    return {left,top};
+  }
+  function targetOf(cfg){const t={c:cfg.start.c,r:cfg.start.r}; if(cfg.dir==='up')t.r--; if(cfg.dir==='down')t.r++; if(cfg.dir==='left')t.c--; if(cfg.dir==='right')t.c++; return t;}
+
+  // membuat satu board (dipakai 3x)
+  function makeBoard(ids, level){
+    const grid=document.getElementById(ids.grid);
+    const statusEl=document.getElementById(ids.status);
+    const checkBtn=document.getElementById(ids.check);
+    const resetBtn=document.getElementById(ids.reset);
+
+    drawGrid(grid);
+    const pieces=new Map();
+
+    function render(){
+      grid.querySelectorAll('.shape,.arrow').forEach(el=>el.remove());
+      pieces.clear();
+      level.forEach(cfg=>{
+        const shape=document.createElement('div'); shape.className='shape';
+        shape.dataset.id=cfg.id; shape.dataset.c=cfg.start.c; shape.dataset.r=cfg.start.r;
+        shape.innerHTML=svgs[cfg.id](cfg.color);
+        const pos=cellRect(grid,cfg.start.c,cfg.start.r);
+        shape.style.left=(pos.left + 9) + 'px';
+        shape.style.top =(pos.top  + 9) + 'px';
+        const arr=document.createElement('div'); arr.className='arrow'; arr.innerHTML=arrows[cfg.dir];
+        arr.style.left=`calc(${(cfg.start.c-1)*(CELL+GAP)+CELL/2+GAP}px - 14px)`;
+        arr.style.top =`calc(${(cfg.start.r-1)*(CELL+GAP)+CELL/2+GAP}px - 14px)`;
+        grid.appendChild(shape); grid.appendChild(arr);
+        pieces.set(cfg.id,{cfg,el:shape});
+      });
+    }
+
+    (function enableDrag(){
+      let active = null;      // currently dragged element
+      let pid = null;         // pointer id for capture/release
+      let sx = 0, sy = 0;     // start pointer positions
+      let ox = 0, oy = 0;     // original left/top
+
+      // start drag only when pressing a shape
+      grid.addEventListener('pointerdown', (e)=>{
+        const t = e.target.closest('.shape');
+        if(!t) return;
+        active = t;
+        pid = e.pointerId;
+        active.setPointerCapture(pid);
+        active.classList.add('dragging');
+        sx = e.clientX; sy = e.clientY;
+        ox = parseFloat(active.style.left) || 0;
+        oy = parseFloat(active.style.top)  || 0;
+        document.body.style.userSelect = 'none';
+        e.stopPropagation();
+        e.preventDefault();
+      });
+
+      // move element with pointer
+      document.addEventListener('pointermove', (e)=>{
+        if(!active) return;
+        active.style.left = (ox + e.clientX - sx) + 'px';
+        active.style.top  = (oy + e.clientY - sy) + 'px';
+        e.stopPropagation();
+        e.preventDefault();
+      }, {passive:false});
+
+      // drop and snap to nearest cell
+      const finish = ()=>{
+        if(!active) return;
+        try{ active.releasePointerCapture(pid); }catch(_){/* ignore */}
+        active.classList.remove('dragging');
+        // compute nearest cell; subtract GAP and inner padding 9px
+        let c = Math.round((parseFloat(active.style.left) - GAP - 9) / (CELL+GAP)) + 1;
+        let r = Math.round((parseFloat(active.style.top)  - GAP - 9) / (CELL+GAP)) + 1;
+        c = Math.min(Math.max(1,c), COLS);
+        r = Math.min(Math.max(1,r), ROWS);
+        const pos = cellRect(grid, c, r);
+        active.style.left = (pos.left + 9) + 'px';
+        active.style.top  = (pos.top  + 9) + 'px';
+        active.dataset.c = c; active.dataset.r = r;
+        active = null; pid = null; document.body.style.userSelect = '';
+      };
+
+      document.addEventListener('pointerup', finish, {passive:true});
+      document.addEventListener('pointercancel', finish, {passive:true});
+      document.addEventListener('lostpointercapture', finish, {passive:true});
+    })();
+
+    function doCheck(){
+      let ok=0;
+      pieces.forEach(({cfg,el})=>{
+        const t=targetOf(cfg);
+        const c=+el.dataset.c, r=+el.dataset.r;
+        const pass=(c===t.c && r===t.r);
+        el.style.outline = pass ? '3px solid #2fb36d' : '3px solid #e53935';
+        if(pass) ok++;
+      });
+      statusEl.textContent = ok===pieces.size ? 'Mantap! Semua benar.' : `Belum pas. ${ok}/${pieces.size} benar.`;
+      statusEl.className = 'status ' + (ok===pieces.size ? 'ok' : 'bad');
+    }
+    function doReset(){
+      statusEl.textContent='';
+      statusEl.className='status';
+      render();
+    }
+
+    checkBtn.addEventListener('click', doCheck);
+    resetBtn.addEventListener('click', doReset);
+    render();
+
+    return { reset: doReset, setLevel(newLv){ level=JSON.parse(JSON.stringify(newLv)); doReset(); } };
+  }
+
+  // Level fix (Soal 1)
+  const FIXED=[
+    { id:'square',   color:'#f4c04f', start:{c:1,r:2}, dir:'up' },
+    { id:'circle',   color:'#6d63c8', start:{c:3,r:1}, dir:'right' },
+    { id:'pentagon', color:'#4caf6b', start:{c:5,r:1}, dir:'down' },
+    { id:'star',     color:'#eaa0c7', start:{c:2,r:2}, dir:'up' },
+    { id:'triDown',  color:'#3b86c8', start:{c:4,r:2}, dir:'right' }
+  ];
+
+  function randomLevel(){
+    const taken=new Set(); const key=(c,r)=>c+','+r; const level=[];
+    for(const s of SHAPES){
+      let ok=false; let tries=0;
+      while(!ok && tries<200){ tries++;
+        const c=1+Math.floor(Math.random()*COLS); const r=1+Math.floor(Math.random()*ROWS);
+        const dir=DIRS[Math.floor(Math.random()*DIRS.length)];
+        let tc=c,tr=r; if(dir==='up')tr=r-1; if(dir==='down')tr=r+1; if(dir==='left')tc=c-1; if(dir==='right')tc=c+1;
+        if(tc<1||tc>COLS||tr<1||tr>ROWS) continue;
+        if(taken.has(key(c,r))||taken.has(key(tc,tr))) continue;
+        taken.add(key(c,r)); taken.add(key(tc,tr));
+        level.push({id:s.id,color:s.color,start:{c,r},dir}); ok=true;
+      }
+    }
+    return level;
+  }
+
+  const b1 = makeBoard({grid:'grid1', status:'status1', check:'check1', reset:'reset1'}, randomLevel());
+  const b2 = makeBoard({grid:'grid2', status:'status2', check:'check2', reset:'reset2'}, randomLevel());
+  const b3 = makeBoard({grid:'grid3', status:'status3', check:'check3', reset:'reset3'}, randomLevel());
+
+  document.getElementById('shuffleAll').addEventListener('click', ()=>{
+    b1.setLevel(randomLevel());
+    b2.setLevel(randomLevel());
+    b3.setLevel(randomLevel());
+  });
+});
+</script>
+</body>
+</html>

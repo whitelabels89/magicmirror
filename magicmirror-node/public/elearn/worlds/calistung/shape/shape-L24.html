@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shape L24 – Line Coding (Geoboard)</title>
+  <style>
+    :root{
+      --bg:#0f172a; --panel:#111827; --ink:#e5e7eb; --muted:#94a3b8; --ok:#16a34a; --warn:#f59e0b; --bad:#ef4444;
+      --dot:#9ca3af; --line:#38bdf8;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:linear-gradient(180deg,#0b1220,#0f172a 40%,#0b1220);color:var(--ink);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,Arial}
+    header{position:sticky;top:0;z-index:5;background:#0b1220cc;backdrop-filter:blur(6px);border-bottom:1px solid #1f2937;padding:10px 14px;display:flex;gap:10px;align-items:center}
+    header h1{font-size:16px;margin:0;font-weight:700}
+    .dock{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+    button{appearance:none;border:1px solid #334155;background:#111827;color:#e5e7eb;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600}
+    button:hover{background:#0b1325}
+    button.primary{border-color:#2563eb;background:#1d4ed8}
+    button.good{border-color:#15803d;background:#166534}
+    button.warn{border-color:#b45309;background:#92400e}
+
+    .wrap{max-width:1100px;margin:18px auto;padding:0 14px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+    .pair{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:14px;border:1px solid #23304a;border-radius:14px;background:#0b1323}
+    .pair h3{grid-column:1/3;margin:0 0 4px 0;font-size:14px;color:var(--muted);font-weight:600}
+
+    .board{width:100%;aspect-ratio:1/1;border:1px solid #1f2a44;border-radius:12px;background:#0a1020;display:grid;place-items:center}
+    svg{width:95%;height:95%}
+    .dots circle{fill:var(--dot)}
+    .line{stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;fill:none}
+    .ghost{stroke-dasharray:4 4;opacity:.6}
+
+    .legend{display:flex;align-items:center;gap:8px;color:#cbd5e1;font-size:12px;margin-top:6px}
+    .swatch{width:12px;height:12px;border-radius:3px;border:1px solid #0002}
+
+    .result{font-size:13px;margin-left:8px}
+    .toggle{outline:2px solid transparent}
+    .toggle.active{outline-color:#f59e0b; background:#7c2d12}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Shape–L24 • Line Coding (Geoboard)</h1>
+    <div class="dock">
+      <button id="btnShuffle">Acak Soal</button>
+      <button id="btnReset" class="warn">Reset Semua</button>
+      <button id="btnCheck" class="primary">Periksa Jawaban</button>
+      <button id="btnUndo">Undo</button>
+      <button id="btnEraser" class="toggle">Mode Hapus</button>
+      <span class="result" id="globalResult"></span>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <p style="color:#94a3b8;margin:8px 0 16px">Tugasmu: tirukan garis/shape di papan kiri ke papan kosong di kanan <b>dengan warna yang sama</b>. Klik dua titik untuk membuat garis. Klik garis untuk menghapus.</p>
+    <div id="pairs" class="grid"></div>
+  </div>
+
+<script>
+// ====== Utility ======
+const COLORS = {
+  green:'#22c55e', magenta:'#d946ef', blue:'#3b82f6', orange:'#f97316',
+  purple:'#8b5cf6', cyan:'#06b6d4', yellow:'#f59e0b', teal:'#14b8a6'
+};
+const SIZE = 7; // 7x7 grid like worksheet
+const VB = 100; // viewBox size
+function dotPx(i){ const PAD = 8; return PAD + i * ((VB - 2*PAD) / (SIZE - 1)); } // internal for SVG viewBox 0..VB
+
+let ERASER_MODE = false;
+const UNDO_STACK = [];
+
+function clientToVB(svg, clientX, clientY){
+  const r = svg.getBoundingClientRect();
+  const x = (clientX - r.left) * (VB / r.width);
+  const y = (clientY - r.top)  * (VB / r.height);
+  return {x,y};
+}
+
+function keyEdge(a,b){
+   const k1 = a.x+","+a.y, k2 = b.x+","+b.y;
+   return k1 < k2 ? k1+"|"+k2 : k2+"|"+k1;
+}
+
+function makeBoard(container,opts){
+  const {interactive=false,color='#fff',preset=[]} = opts;
+  const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('viewBox',`0 0 ${VB} ${VB}`);
+  const gDots = document.createElementNS(svg.namespaceURI,'g');
+  gDots.classList.add('dots');
+  // draw dots
+  const pts=[];
+  for(let y=0;y<SIZE;y++){
+    for(let x=0;x<SIZE;x++){
+      const cx=dotPx(x), cy=dotPx(y);
+      const c = document.createElementNS(svg.namespaceURI,'circle');
+      c.setAttribute('cx',cx); c.setAttribute('cy',cy); c.setAttribute('r',1.8);
+      gDots.appendChild(c);
+      pts.push({x,y,cx,cy});
+    }
+  }
+  svg.appendChild(gDots);
+
+  const gLines = document.createElementNS(svg.namespaceURI,'g');
+  svg.appendChild(gLines);
+
+  const edges = new Map();
+  function addLine(a,b,cls=''){
+    const path = document.createElementNS(svg.namespaceURI,'path');
+    path.setAttribute('d',`M ${a.cx} ${a.cy} L ${b.cx} ${b.cy}`);
+    path.setAttribute('stroke',color); path.setAttribute('class','line '+cls);
+    gLines.appendChild(path);
+    edges.set(keyEdge(a,b), path);
+  }
+  function removeLine(k){ const p = edges.get(k); if(p){ p.remove(); edges.delete(k); } }
+
+  // preset
+  if(preset.length){
+    preset.forEach(([ax,ay,bx,by])=>{
+      const a = pts.find(p=>p.x===ax&&p.y===ay);
+      const b = pts.find(p=>p.x===bx&&p.y===by);
+      addLine(a,b);
+    });
+  }
+
+  if(interactive){
+    const ghost = document.createElementNS(svg.namespaceURI,'path');
+    ghost.setAttribute('class','line ghost'); ghost.setAttribute('stroke',color); ghost.style.display='none';
+    svg.appendChild(ghost);
+
+    // replaced event listeners for drag/tracing interaction
+    let picked = null; // last snapped node while drawing
+    let dragging = false;
+
+    svg.addEventListener('pointerdown', (e)=>{
+      // Erase on tap when eraser mode
+      if(ERASER_MODE && e.target.tagName==='path'){
+        for(const [k,el] of edges){ if(el===e.target){ el.remove(); edges.delete(k); UNDO_STACK.push({type:'del', k, color}); break; } }
+        return;
+      }
+      const pos = clientToVB(svg, e.clientX, e.clientY);
+      const near = nearestDotVB(pos.x, pos.y);
+      if(!near) return;
+      picked = near; dragging = true;
+      ghost.style.display='block';
+      ghost.setAttribute('d',`M ${near.cx} ${near.cy} L ${near.cx} ${near.cy}`);
+      svg.setPointerCapture && svg.setPointerCapture(e.pointerId);
+    });
+
+    svg.addEventListener('pointermove',(e)=>{
+      // Show ghost and, if dragging, create segments whenever we cross another node
+      const pos = clientToVB(svg, e.clientX, e.clientY);
+      const near = nearestDotVB(pos.x, pos.y);
+      if(!picked){
+        // just hover; update ghost to nearest if any
+        if(near){ ghost.style.display='block'; ghost.setAttribute('d',`M ${near.cx} ${near.cy} L ${pos.x} ${pos.y}`); }
+        else{ ghost.style.display='none'; }
+        return;
+      }
+      // We have a picked node; update ghost
+      const ghostTarget = near ? {cx:near.cx, cy:near.cy} : {cx:pos.x, cy:pos.y};
+      ghost.setAttribute('d',`M ${picked.cx} ${picked.cy} L ${ghostTarget.cx} ${ghostTarget.cy}`);
+
+      if(!dragging) return;
+      // Only add segment when we actually snap to a DIFFERENT node while dragging
+      if(near && (near.x!==picked.x || near.y!==picked.y)){
+        const k = keyEdge(picked, near);
+        if(!edges.has(k)){
+          const path = document.createElementNS(svg.namespaceURI,'path');
+          path.setAttribute('d',`M ${picked.cx} ${picked.cy} L ${near.cx} ${near.cy}`);
+          path.setAttribute('stroke',color); path.setAttribute('class','line');
+          svg.querySelector('g:nth-of-type(2)').appendChild(path);
+          edges.set(k, path);
+          UNDO_STACK.push({type:'add', k, color});
+        }
+        // advance chain without ending drag
+        picked = near;
+        ghost.setAttribute('d',`M ${picked.cx} ${picked.cy} L ${picked.cx} ${picked.cy}`);
+      }
+    });
+
+    function endDrag(e){
+      dragging = false;
+      picked = null;
+      ghost.style.display='none';
+      try{ svg.releasePointerCapture && svg.releasePointerCapture(e.pointerId); }catch{ /* noop */ }
+    }
+    svg.addEventListener('pointerup', endDrag);
+    svg.addEventListener('pointercancel', endDrag);
+    svg.addEventListener('pointerleave', (e)=>{ if(!dragging){ ghost.style.display='none'; } });
+
+    function nearestDotVB(vbx,vby){
+      // SNAP tolerance ~10px -> convert to VB units using current rect
+      const rect = svg.getBoundingClientRect();
+      const tol = 10 * (VB / rect.width);
+      let best=null, bd=1e9;
+      for(const p of pts){
+        const dx=p.cx - vbx, dy=p.cy - vby; const d=Math.hypot(dx,dy);
+        if(d<bd){ bd=d; best=p; }
+      }
+      return (bd<=tol) ? best : null;
+    }
+  }
+
+  container.appendChild(svg);
+  return {
+    getEdges(){ return Array.from(edges.keys()).sort(); },
+    clear(){ for(const [,el] of edges) el.remove(); edges.clear(); },
+    svg,
+  };
+}
+
+// ====== Patterns (7x7). Each item: {name,color,edges}
+// Helper to shorthand segments
+const S=(ax,ay,bx,by)=>[ax,ay,bx,by];
+const PATS=[
+  {name:'Amplop', color:COLORS.green, edges:[
+    S(1,2,5,2), S(1,2,1,4), S(5,2,5,4), S(1,4,5,4), // kotak atas
+    S(1,2,3,3), S(5,2,3,3), // segitiga tutup
+    S(1,4,3,3), S(5,4,3,3)  // garis dalam V
+  ]},
+  {name:'Belah Ketupat + Plus', color:COLORS.magenta, edges:[
+    S(3,1,5,3), S(5,3,3,5), S(3,5,1,3), S(1,3,3,1), // diamond
+    S(2,3,4,3), S(3,2,3,4) // plus
+  ]},
+  {name:'Pohon', color:COLORS.blue, edges:[
+    S(2,3,4,3), S(1,4,5,4), S(2,5,4,5), // tiga tingkat atap
+    S(1,4,3,3), S(5,4,3,3),
+    S(2,5,3,4), S(4,5,3,4),
+    S(2,6,4,6) // pot
+  ]},
+  {name:'Garis Diagonal', color:COLORS.purple, edges:[
+    S(1,5,2,4), S(2,4,3,3), S(3,3,4,2), S(4,2,5,1), S(2,5,3,4), S(3,4,4,3), S(4,3,5,2)
+  ]},
+  {name:'Perahu Layar', color:COLORS.orange, edges:[
+    S(1,5,5,5), S(1,5,2,6), S(2,6,4,6), S(4,6,5,5), // lambung
+    S(3,5,3,2), S(3,2,5,4), S(3,2,2,3) // tiang + layar
+  ]},
+  {name:'Payung', color:COLORS.blue, edges:[
+    S(1,3,5,3), S(1,3,2,2), S(2,2,4,2), S(4,2,5,3), // kanopi
+    S(3,3,3,6), S(3,6,4,6) // gagang
+  ]},
+  {name:'Rubah Geometrik', color:COLORS.orange, edges:[
+    S(2,2,3,3), S(3,3,4,2), S(2,2,4,2), // kepala atas
+    S(2,2,1,3), S(4,2,5,3), // telinga
+    S(2,4,4,4), S(3,3,3,5), S(2,4,3,5), S(3,5,4,4), // muka bawah
+    S(2,5,3,6), S(3,6,4,5) // leher
+  ]},
+  {name:'Robot', color:COLORS.cyan, edges:[
+    S(2,2,4,2), S(4,2,5,3), S(5,3,5,5), S(5,5,4,6), S(4,6,2,6), S(2,6,1,5), S(1,5,1,3), S(1,3,2,2), // badan heksagon-ish
+    S(1,3,0,2), S(5,3,6,2), S(1,5,0,6), S(5,5,6,6) // lengan & kaki sudut (pakai batas 0/6 di view—masih on-grid)
+  ]},
+  {name:'Dino', color:COLORS.green, edges:[
+    S(2,5,4,5), S(4,5,5,4), S(5,4,4,3), S(4,3,3,3), S(3,3,2,4), S(2,4,2,5), // badan
+    S(4,3,5,2), S(5,2,4,1), // kepala
+    S(3,5,3,6), S(2,6,3,6), // kaki 1
+    S(4,5,4,6), S(4,6,5,6)  // kaki 2
+  ]},
+  {name:'Kotak Kecil + Silang', color:COLORS.yellow, edges:[
+    // empat kotak kecil di sudut + satu silang di tengah
+    S(1,1,2,1),S(2,1,2,2),S(2,2,1,2),S(1,2,1,1),
+    S(4,1,5,1),S(5,1,5,2),S(5,2,4,2),S(4,2,4,1),
+    S(1,4,2,4),S(2,4,2,5),S(2,5,1,5),S(1,5,1,4),
+    S(4,4,5,4),S(5,4,5,5),S(5,5,4,5),S(4,5,4,4),
+    S(3,2,3,4), S(2,3,4,3)
+  ]}
+];
+
+// Build UI
+const pairsEl = document.getElementById('pairs');
+let order = [...PATS.keys()];
+function drawAll(){
+  pairsEl.innerHTML='';
+  order.forEach((idx,i)=>{
+    const p = PATS[idx];
+    const pair = document.createElement('div'); pair.className='pair';
+    pair.innerHTML = `<h3>${i+1}. ${p.name}</h3>`;
+
+    const left = document.createElement('div'); left.className='board';
+    const right = document.createElement('div'); right.className='board';
+    pair.appendChild(left); pair.appendChild(right);
+
+    const legend = document.createElement('div'); legend.className='legend';
+    legend.innerHTML = `<span class="swatch" style="background:${p.color}"></span><span>Warna Garis</span>`;
+    pair.appendChild(legend);
+
+    const leftBoard = makeBoard(left,{interactive:false,color:p.color,preset:p.edges});
+    const rightBoard = makeBoard(right,{interactive:true,color:p.color});
+    pair.dataset.index = idx;
+    pair.rightBoard = rightBoard; pair.leftEdges = leftBoard.getEdges();
+
+    pairsEl.appendChild(pair);
+  });
+}
+
+drawAll();
+
+// Undo last add/del across all boards
+function undo(){
+  const last = UNDO_STACK.pop();
+  if(!last) return;
+  // find matching pair and operate on its rightBoard svg
+  document.querySelectorAll('.pair').forEach(pair=>{
+    const rb = pair.rightBoard; // has getEdges/clear and svg reference
+    const svg = rb.svg;
+    const edgesMap = (function(){
+      // Rebuild a mapping from existing paths using current SVG
+      const map = new Map();
+      svg.querySelectorAll('path.line:not(.ghost)').forEach(p=>{
+        // parse d to get endpoints back is complex; rely on stored key when we added
+      });
+      return map;
+    })();
+  });
+}
+
+document.getElementById('btnUndo').addEventListener('click',()=>{
+  // Simple undo: clear last edited board's last edge by removing the last path element
+  // (practical shortcut) – remove last path from the most recent board interacted via UNDO_STACK
+  const last = UNDO_STACK.pop(); if(!last) return;
+  const boards = Array.from(document.querySelectorAll('.pair')).map(p=>p.rightBoard.svg);
+  for(const svg of boards){
+    const paths = svg.querySelectorAll('path.line:not(.ghost)');
+    if(paths.length){ paths[paths.length-1].remove(); break; }
+  }
+});
+
+document.getElementById('btnEraser').addEventListener('click', (e)=>{
+  ERASER_MODE = !ERASER_MODE;
+  e.currentTarget.classList.toggle('active', ERASER_MODE);
+});
+
+function checkAll(){
+  let correct=0;
+  document.querySelectorAll('.pair').forEach(pair=>{
+    const leftEdges = pair.leftEdges;
+    const r = pair.rightBoard.getEdges();
+    const ok = leftEdges.length===r.length && leftEdges.every((k,i)=>k===r[i]);
+    if(ok){ correct++; }
+    pair.style.borderColor = ok? '#14532d' : '#4c1d95';
+  });
+  const total = document.querySelectorAll('.pair').length;
+  document.getElementById('globalResult').textContent = `${correct}/${total} benar`;
+}
+
+function resetAll(){
+  document.getElementById('globalResult').textContent='';
+  document.querySelectorAll('.pair').forEach(pair=>{ pair.rightBoard.clear(); pair.style.borderColor='#23304a'; });
+}
+
+function shuffle(){
+  order = order.sort(()=>Math.random()-0.5);
+  drawAll();
+}
+
+document.getElementById('btnCheck').addEventListener('click',checkAll);
+
+document.getElementById('btnReset').addEventListener('click',resetAll);
+
+document.getElementById('btnShuffle').addEventListener('click',()=>{ shuffle(); resetAll(); });
+</script>
+</body>
+</html>

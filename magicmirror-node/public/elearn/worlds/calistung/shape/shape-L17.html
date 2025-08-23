@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shape L17 – Count & Paint</title>
+  <style>
+    :root{
+      --bg:#f7f7fb; --ink:#111; --muted:#6b7280; --card:#ffffff; --line:#d1d5db;
+      --red:#ef4444; --blue:#3b82f6; --yellow:#f59e0b; --green:#10b981; --pink:#ec4899; --orange:#f97316;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial; background:var(--bg); color:var(--ink)}
+    .wrap{max-width:1100px;margin:32px auto;padding:16px}
+    h1{margin:0 0 6px;font-size:28px}
+    .subtitle{color:var(--muted);margin-bottom:18px}
+    .board{display:grid;grid-template-columns:1.2fr 0.9fr;gap:18px}
+
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 1px 0 rgba(0,0,0,.04);padding:16px}
+
+    /* --- TIE CANVAS --- */
+    .stage{position:relative;aspect-ratio:3/5;width:100%;max-height:78vh}
+    .stage svg{width:100%;height:100%;display:block}
+    .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .swatch{width:36px;height:36px;border-radius:10px;border:2px solid var(--line);cursor:pointer}
+    .swatch.active{outline:3px solid #00000033}
+    .btn{appearance:none;border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 14px;font-weight:600;cursor:pointer}
+    .btn:active{transform:translateY(1px)}
+
+    /* --- SIDE PANEL --- */
+    .legend{display:grid;grid-template-columns:1fr;gap:12px}
+    .row{display:grid;grid-template-columns:auto 1fr 76px;align-items:center;gap:10px;padding:8px;border:1px dashed #e5e7eb;border-radius:12px;background:#fff}
+    .badge{width:36px;height:36px;border-radius:8px;display:grid;place-items:center;border:2px solid var(--line)}
+    .badge svg{width:28px;height:28px}
+    .row input{width:76px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:16px}
+    .ok{color:#059669;font-weight:700}
+    .err{color:#dc2626;font-weight:700}
+
+    .footer{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+    .note{color:var(--muted);font-size:14px}
+
+    @media (max-width:900px){
+      .board{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Count & Paint</h1>
+    <div class="subtitle">Hitung jumlah <b>bentuk</b> di dalam dasi, lalu warnai sesukamu 🎨</div>
+
+    <div class="board">
+      <!-- CANVAS -->
+      <div class="card">
+        <div id="stage" class="stage"></div>
+        <div class="toolbar">
+          <div class="swatch" data-color="var(--red)" style="background:var(--red)"></div>
+          <div class="swatch" data-color="var(--blue)" style="background:var(--blue)"></div>
+          <div class="swatch" data-color="var(--yellow)" style="background:var(--yellow)"></div>
+          <div class="swatch" data-color="var(--green)" style="background:var(--green)"></div>
+          <div class="swatch" data-color="var(--pink)" style="background:var(--pink)"></div>
+          <div class="swatch" data-color="var(--orange)" style="background:var(--orange)"></div>
+          <button id="btnCheck" class="btn">Periksa Jawaban</button>
+          <button id="btnReset" class="btn">Reset Warna</button>
+        </div>
+        <div class="footer">
+          <div id="result" class="note">Pilih warna → klik bentuk untuk mewarnai.</div>
+        </div>
+      </div>
+
+      <!-- SIDE PANEL: COUNT -->
+      <div class="card">
+        <h3 style="margin-top:0">Isikan Jumlah Bentuk</h3>
+        <div id="legend" class="legend"></div>
+        <div class="footer">
+          <div class="note">Tips: Lihat dasi dengan teliti, lalu isikan angka di setiap baris.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== Utility: SVG creators =====
+    const svgns = 'http://www.w3.org/2000/svg';
+    const rnd = (min,max)=> Math.floor(Math.random()*(max-min+1))+min;
+
+    // Star path (5-point)
+    function starPath(r){
+      const spikes=5; const step=Math.PI/spikes; const R=r; const r2=r*0.45; let rot=Math.PI/2*3; let x=0,y=0; let path='';
+      for(let i=0;i<spikes;i++){
+        x=Math.cos(rot)*R; y=Math.sin(rot)*R; path+= (i? 'L':'M')+x+','+y; rot+=step;
+        x=Math.cos(rot)*r2; y=Math.sin(rot)*r2; path+='L'+x+','+y; rot+=step;
+      }
+      return path+'Z';
+    }
+    // Heart path
+    function heartPath(r){
+      const d = `M 0 ${-0.2*r} C ${0.55*r} ${-0.95*r}, ${1.4*r} ${-0.05*r}, 0 ${0.9*r} C ${-1.4*r} ${-0.05*r}, ${-0.55*r} ${-0.95*r}, 0 ${-0.2*r} Z`;
+      return d;
+    }
+
+    const SHAPES = [
+      { key:'square',  label:'Kotak',    draw:(g,r)=>{ const s=r*1.6; const el=document.createElementNS(svgns,'rect'); el.setAttribute('x',-s/2); el.setAttribute('y',-s/2); el.setAttribute('width',s); el.setAttribute('height',s); g.appendChild(el); }},
+      { key:'circle',  label:'Lingkaran',draw:(g,r)=>{ const el=document.createElementNS(svgns,'circle'); el.setAttribute('r',r*0.9); g.appendChild(el); }},
+      { key:'triangle',label:'Segitiga', draw:(g,r)=>{ const h=r*1.8; const w=h*1.1; const el=document.createElementNS(svgns,'polygon'); el.setAttribute('points',`0,${-h/2} ${-w/2},${h/2} ${w/2},${h/2}`); g.appendChild(el); }},
+      { key:'star',    label:'Bintang',  draw:(g,r)=>{ const el=document.createElementNS(svgns,'path'); el.setAttribute('d',starPath(r)); g.appendChild(el); }},
+      { key:'heart',   label:'Hati',     draw:(g,r)=>{ const el=document.createElementNS(svgns,'path'); el.setAttribute('d',heartPath(r*1.2)); g.appendChild(el); }},
+    ];
+
+    // Fixed layout: row, col, and type to match a neat symmetrical tie contents
+    const FIXED_LAYOUT = [
+      // near the knot (row 0-1)
+      {r:0,c:1,type:'heart'},
+      {r:1,c:0,type:'triangle'}, {r:1,c:1,type:'circle'}, {r:1,c:2,type:'triangle'},
+      // mid section (row 2-6)
+      {r:2,c:0,type:'square'}, {r:2,c:1,type:'star'}, {r:2,c:2,type:'square'},
+      {r:3,c:0,type:'circle'}, {r:3,c:1,type:'triangle'}, {r:3,c:2,type:'circle'},
+      {r:4,c:0,type:'star'}, {r:4,c:1,type:'heart'}, {r:4,c:2,type:'star'},
+      {r:5,c:0,type:'triangle'}, {r:5,c:1,type:'square'}, {r:5,c:2,type:'triangle'},
+      {r:6,c:0,type:'circle'}, {r:6,c:1,type:'star'}, {r:6,c:2,type:'circle'},
+      // lower (row 7-8), avoid very bottom center per silhouette
+      {r:7,c:0,type:'star'}, {r:7,c:2,type:'star'},
+      {r:8,c:0,type:'square'}, {r:8,c:2,type:'square'}
+    ];
+
+    // ===== Build Stage =====
+    const stage = document.getElementById('stage');
+
+    function buildSVG(){
+      stage.innerHTML='';
+      const svg = document.createElementNS(svgns,'svg');
+      svg.setAttribute('viewBox','0 0 360 740');
+
+      // --- Heart-like knot (top) and long tie body (bottom) ---
+      const defs = document.createElementNS(svgns,'defs');
+      const clip = document.createElementNS(svgns,'clipPath');
+      clip.setAttribute('id','clipTie');
+
+      // Heart-shaped knot centered near top
+      const knot = document.createElementNS(svgns,'path');
+      // heart shape around (160,110) with width ~180
+      knot.setAttribute('d', [
+        'M 160 60',
+        'C 190 20, 260 35, 260 95', // right lobe
+        'C 260 150, 205 170, 160 205',
+        'C 115 170, 60 150, 60 95',   // left lobe
+        'C 60 35, 130 20, 160 60 Z'
+      ].join(' '));
+
+      // Narrow neck connectors (visual only handled by the body polygon below)
+
+      // Body of tie (long polygon with narrow shoulders and pointed tip)
+      const body = document.createElementNS(svgns,'path');
+      body.setAttribute('d', [
+        'M 80 205',    // left neck further left
+        'L 130 310',
+        'L 40 640',    // left side much wider
+        'L 160 710',   // tip even lower
+        'L 280 640',   // right side much wider
+        'L 190 310',
+        'L 240 205',   // right neck further right
+        'Z'
+      ].join(' '));
+
+      clip.appendChild(knot);
+      clip.appendChild(body);
+
+      defs.appendChild(clip);
+      svg.appendChild(defs);
+
+      // Visible outlines (stroke only)
+      [knot, body].forEach(src => {
+        const p = document.createElementNS(svgns,'path');
+        p.setAttribute('d', src.getAttribute('d'));
+        p.setAttribute('fill','#fff');
+        p.setAttribute('stroke','#000');
+        p.setAttribute('stroke-width','3');
+        svg.appendChild(p);
+      });
+
+      // Generate a neat fixed grid inside the tie (no randomness)
+      const cols=3, rows=10;
+      const x0=90, y0=240, gw=110, gh=42; // grid origin & cell size tuned to silhouette
+      const counts={}; SHAPES.forEach(s=>counts[s.key]=0);
+
+      const items = document.createElementNS(svgns,'g');
+      items.setAttribute('clip-path','url(#clipTie)');
+
+      function getShapeDef(key){ return SHAPES.find(s=>s.key===key); }
+
+      FIXED_LAYOUT.forEach(cell=>{
+        const {r,c,type} = cell;
+        // Skip forbidden cells (top corners and bottom center)
+        if ((r<1 && c!==1) || (r>7 && c===1)) return;
+        const cx = x0 + c*gw + gw/2;
+        const cy = y0 + r*gh + gh/2;
+        const g = document.createElementNS(svgns,'g');
+        g.setAttribute('transform',`translate(${cx},${cy})`);
+        g.setAttribute('data-type',type);
+        g.setAttribute('fill','transparent');
+        g.setAttribute('stroke','#000');
+        g.setAttribute('stroke-width','2');
+        g.style.cursor='pointer';
+        const def = getShapeDef(type);
+        def.draw(g,16); // consistent size
+        items.appendChild(g);
+        counts[type] = (counts[type]||0)+1;
+      });
+
+      svg.appendChild(items);
+      stage.appendChild(svg);
+      return {svg,counts};
+    }
+
+    // ===== Legend / Inputs =====
+    const legend = document.getElementById('legend');
+    function shapeIcon(key){
+      // small inline SVG for legend badges
+      const map = {
+        square:'<rect x="4" y="4" width="20" height="20" stroke="#000" fill="none" stroke-width="2"/>',
+        circle:'<circle cx="14" cy="14" r="10" stroke="#000" fill="none" stroke-width="2"/>',
+        triangle:'<polygon points="14,4 4,24 24,24" stroke="#000" fill="none" stroke-width="2"/>',
+        star:`<path d="${starPath(9)}" transform="translate(14,14)" stroke="#000" fill="none" stroke-width="2"/>`,
+        heart:`<path d="${heartPath(10)}" transform="translate(14,14)" stroke="#000" fill="none" stroke-width="2"/>`
+      };
+      return map[key];
+    }
+
+    let answerCounts = {};
+    function buildLegend(){
+      legend.innerHTML='';
+      SHAPES.forEach(s=>{
+        const row=document.createElement('div'); row.className='row'; row.dataset.key=s.key;
+        const badge=document.createElement('div'); badge.className='badge'; badge.innerHTML=`<svg viewBox="0 0 28 28">${shapeIcon(s.key)}</svg>`;
+        const label=document.createElement('div'); label.innerHTML=`<b>${s.label}</b>`;
+        const input=document.createElement('input'); input.type='number'; input.min='0'; input.placeholder='0';
+        row.appendChild(badge); row.appendChild(label); row.appendChild(input); legend.appendChild(row);
+      });
+    }
+
+    // ===== Painting =====
+    let selectedColor = getComputedStyle(document.documentElement).getPropertyValue('--red');
+    function setActiveSwatch(el){
+      document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('active'));
+      el.classList.add('active');
+      selectedColor=getComputedStyle(el).getPropertyValue('background-color') || el.dataset.color;
+    }
+    document.querySelectorAll('.swatch').forEach((sw,i)=>{
+      if(i===0) sw.classList.add('active');
+      sw.addEventListener('click',()=>setActiveSwatch(sw));
+    });
+
+    function enablePainting(svg){
+      svg.querySelectorAll('g[data-type]').forEach(g=>{
+        g.addEventListener('click',()=>{
+          const child = g.firstElementChild; // actual shape element
+          const current = child.getAttribute('fill');
+          child.setAttribute('fill', current && current !== 'transparent' ? 'transparent' : selectedColor);
+        });
+      });
+    }
+
+    // ===== Checking =====
+    function checkAnswers(){
+      let correct=0,total=SHAPES.length; const res=document.getElementById('result');
+      legend.querySelectorAll('.row').forEach(row=>{
+        const key=row.dataset.key; const val=parseInt(row.querySelector('input').value||'0',10);
+        if(val===answerCounts[key]){ row.style.borderColor='#bbf7d0'; correct++; }
+        else { row.style.borderColor='#fecaca'; }
+      });
+      if(correct===total){ res.innerHTML='<span class="ok">Mantap! Semua benar ✅</span>'; }
+      else { res.innerHTML=`<span class="err">${total-correct} belum tepat.</span> Coba hitung lagi ya.`; }
+    }
+
+    function resetColors(){
+      stage.querySelectorAll('g[data-type] > *').forEach(el=>el.setAttribute('fill','transparent'));
+      document.getElementById('result').textContent='Warna direset. Siap mewarnai lagi!';
+    }
+
+    // ===== Shuffle / Init =====
+    function init(){
+      buildLegend();
+      const {svg,counts}=buildSVG();
+      answerCounts = counts; // ground-truth
+      enablePainting(svg);
+      // Clear inputs
+      legend.querySelectorAll('input').forEach(i=>{i.value=''; i.parentElement.parentElement.style.borderColor='#e5e7eb';});
+      document.getElementById('result').textContent='Pilih warna → klik bentuk untuk mewarnai.';
+    }
+
+    // Buttons
+    document.getElementById('btnCheck').addEventListener('click',checkAnswers);
+    document.getElementById('btnReset').addEventListener('click',resetColors);
+
+    // Kick-off
+    init();
+  </script>
+</body>
+</html>
