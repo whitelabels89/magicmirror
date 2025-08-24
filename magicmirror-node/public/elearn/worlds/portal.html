@@ -17,9 +17,34 @@
     .globe3d .grid{stroke:rgba(255,255,255,.35);stroke-width:.8;fill:none}
     @keyframes globe-spin{to{transform:rotate(360deg)}}
     @media (prefers-reduced-motion: reduce){.globe3d .spin{animation:none}}
+
+    .back-bar {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+    }
+    .back-btn {
+      font-family: 'Baloo 2', cursive;
+      font-weight: 700;
+      padding: 12px 18px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #6e8efb, #a777e3);
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 8px 22px rgba(103, 114, 229, 0.35);
+      transition: transform 0.06s ease, box-shadow 0.2s ease, filter 0.2s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .back-btn:hover { filter: brightness(1.06); box-shadow: 0 10px 26px rgba(103, 114, 229, 0.42); }
+    .back-btn:active { transform: translateY(1px); }
   </style>
 </head>
 <body class="portal-body">
+  <div class="back-bar">
+    <a class="back-btn" href="/elearn/modul.html" aria-label="Kembali ke modul">⟵ Back</a>
+  </div>
   <header class="portal-header">
     <h1>
       <span class="globe3d" aria-hidden="true">
@@ -65,7 +90,7 @@
       </span>
       Choose Your World
     </h1>
-    <p>Pilih dunia belajar kamu. Progres & badge akan tersimpan otomatis.</p>
+    <p>Pilih dunia petualanganmu. Semua pencapaian dan badge akan tersimpan otomatis.</p>
   </header>
 
   <main class="portal-grid" id="worldGrid"></main>
@@ -74,6 +99,23 @@
     async function loadWorlds(){
       const res = await fetch('/elearn/worlds/worlds.json');
       const data = await res.json();
+      // Redirect specific worlds that are not ready yet to "coming soon"
+      const redirectNames = new Set([
+        'Visual Programming','Pythonia','Webtopia',
+        'Applandia','Robonix','Aitheris','Open World'
+      ]);
+      const redirectIds = new Set([
+        'visual','pythonia','webtopia',
+        'applandia','robonix','aitheris','openworld'
+      ]);
+      data.worlds = data.worlds.map(w => {
+        const name = (w.name || '').trim();
+        const id = (w.id || '').toString().toLowerCase();
+        if (redirectNames.has(name) || redirectIds.has(id)) {
+          return { ...w, entry: '/elearn/worlds/comingsoon.html' };
+        }
+        return w;
+      });
       const grid = document.getElementById('worldGrid');
       grid.innerHTML = data.worlds.map(w=>`
         <article class="portal-card" data-entry="${w.entry}">

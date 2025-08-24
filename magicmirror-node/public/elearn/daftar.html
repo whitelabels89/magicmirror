@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -9,8 +9,10 @@
   <script>
     // Persisted theme (align with login.html)
     (function(){
-      const saved = localStorage.getItem('theme') || 'dark';
-      document.documentElement.setAttribute('data-theme', saved);
+      let saved = null;
+      try { saved = localStorage.getItem('theme'); }catch(_){}
+      const initial = saved ? saved : 'dark';
+      document.documentElement.setAttribute('data-theme', initial);
     })();
   </script>
   <style>
@@ -30,6 +32,62 @@
 
     /* Smooth cross-theme transitions */
     * { transition: background-color .8s ease, color .8s ease, border-color .8s ease, box-shadow .8s ease; }
+
+    /* Sunrise transition for dark -> light */
+    .sunrise-layer{
+      position: fixed; inset: 0; pointer-events: none; z-index: 2;
+      background: linear-gradient(180deg, #0b0f1a 0%, #2a3d6b 30%, #87b5ff 60%, #ffe6b3 100%);
+      opacity: 0;
+      animation: skyFade 3.8s cubic-bezier(.22,.61,.36,1) forwards;
+    }
+    .sunrise-layer .sun{
+      position: absolute; left: 50%; bottom: -22vh;
+      width: 36vh; height: 36vh; margin-left: -18vh; border-radius: 50%;
+      background: radial-gradient(circle at 50% 50%, #fff4b0 0%, #ffd166 45%, rgba(255,209,102,0.0) 70%);
+      filter: blur(1px) drop-shadow(0 0 22px rgba(255,209,102,.55)) drop-shadow(0 0 42px rgba(255,209,102,.25));
+      opacity: .9;
+      animation: sunUp 3.8s cubic-bezier(.22,.61,.36,1) forwards;
+    }
+    @keyframes skyFade{
+      0%   { opacity: 0; }
+      10%  { opacity: .25; }
+      50%  { opacity: .45; }
+      100% { opacity: 0; }
+    }
+    @keyframes sunUp{
+      0%   { transform: translateY(0); }
+      60%  { transform: translateY(-38vh); }
+      100% { transform: translateY(-42vh); }
+    }
+
+    /* Sunset transition for light -> dark */
+    .sunset-layer{
+      position: fixed; inset: 0; pointer-events: none; z-index: 2;
+      background: linear-gradient(180deg, #ffe6b3 0%, #87b5ff 40%, #2a3d6b 70%, #0b0f1a 100%);
+      opacity: 0;
+      animation: skyDim 3.8s cubic-bezier(.22,.61,.36,1) forwards;
+    }
+    .sunset-layer .sun{
+      position: absolute; left: 50%; bottom: -22vh;
+      width: 36vh; height: 36vh; margin-left: -18vh; border-radius: 50%;
+      background: radial-gradient(circle at 50% 50%, #fff4b0 0%, #ffd166 45%, rgba(255,209,102,0.0) 70%);
+      filter: blur(1px) drop-shadow(0 0 22px rgba(255,209,102,.55)) drop-shadow(0 0 42px rgba(255,209,102,.25));
+      opacity: .9;
+      /* start higher, then go down below horizon */
+      animation: sunDown 3.8s cubic-bezier(.22,.61,.36,1) forwards;
+      transform: translateY(-42vh);
+    }
+    @keyframes skyDim{
+      0%   { opacity: 0; }
+      10%  { opacity: .25; }
+      50%  { opacity: .45; }
+      100% { opacity: 0; }
+    }
+    @keyframes sunDown{
+      0%   { transform: translateY(-42vh); }
+      60%  { transform: translateY(-18vh); }
+      100% { transform: translateY(0); }
+    }
 
     /* Animated background motion (subtle) */
     body::after{
@@ -205,7 +263,7 @@
           </div>
           <div class="field">
             <label class="label" for="wa">WhatsApp</label>
-            <input id="wa" class="input" type="tel" placeholder="+62…" autocomplete="tel" required />
+            <input id="wa" class="input" type="tel" placeholder="62…" autocomplete="tel" required />
           </div>
         </div>
         <div class="field pass-wrap">
@@ -223,7 +281,7 @@
     <aside class="card right" aria-hidden="true">
       <div class="cover"></div>
       <div class="promo">
-        <h3>Learning that’s playful, powerful, and safe</h3>
+        <h3>Learning that’s playful powerful and safe</h3>
         <p>Level up with points and badges, auto‑saved worksheets, and smart parent reports — so progress never gets lost.</p>
         <div class="quotes" aria-label="Motivational quotes">
           <div class="quote-item active">
@@ -277,8 +335,48 @@
       if (persist) try{ localStorage.setItem('theme', next); }catch(_){}
       syncThemeIcon();
     }
-    function toggleTheme(persist = true){ setTheme(getTheme()==='light' ? 'dark' : 'light', persist); }
+    function toggleTheme(persist = true){
+      const prev = getTheme();
+      const next = prev === 'light' ? 'dark' : 'light';
+      setTheme(next, persist);
+      // Animate transitions
+      if (prev === 'dark' && next === 'light') {
+        try { playSunrise(); } catch(_) {}
+      } else if (prev === 'light' && next === 'dark') {
+        try { playSunset(); } catch(_) {}
+      }
+    }
     function syncThemeIcon(){ themeIcon.className = (getTheme()==='dark') ? 'fas fa-sun' : 'fas fa-moon'; }
+
+    function playSunrise(){
+      // Avoid stacking if user toggles quickly
+      if (document.querySelector('.sunrise-layer')) return;
+      const layer = document.createElement('div');
+      layer.className = 'sunrise-layer';
+      const sun = document.createElement('div');
+      sun.className = 'sun';
+      layer.appendChild(sun);
+      document.body.appendChild(layer);
+      // Auto-remove after animation completes
+      setTimeout(()=> {
+        layer.remove();
+      }, 4000);
+    }
+
+    function playSunset(){
+      // Avoid stacking if user toggles quickly
+      if (document.querySelector('.sunset-layer')) return;
+      const layer = document.createElement('div');
+      layer.className = 'sunset-layer';
+      const sun = document.createElement('div');
+      sun.className = 'sun';
+      layer.appendChild(sun);
+      document.body.appendChild(layer);
+      // Auto-remove after animation completes
+      setTimeout(()=> {
+        layer.remove();
+      }, 4000);
+    }
 
     function startAutoCycle(){
       if (prefersReduce) return; // respect user setting
@@ -316,6 +414,36 @@
     const statusEl = document.getElementById('status');
     const form = document.getElementById('signupForm');
     const btn = document.getElementById('submitBtn');
+    // Enforce WA prefix "62" (non-deletable) and digits-only
+    (function initWaPrefix(){
+      const input = document.getElementById('wa');
+      if (!input) return;
+      const PREFIX = '62';
+      function onlyDigits(s){ return (s||'').replace(/\D+/g,''); }
+      function ensurePrefix(){
+        // Keep digits only, ensure prefix, drop leading zeros after prefix
+        let val = onlyDigits(input.value);
+        if (!val.startsWith(PREFIX)) val = PREFIX + val.replace(/^0+/, '');
+        input.value = val;
+        // Keep caret after prefix at minimum
+        const p = Math.max(PREFIX.length, input.selectionStart||0);
+        input.setSelectionRange(p, p);
+      }
+      // Block backspace/delete over the prefix
+      input.addEventListener('keydown', (e)=>{
+        const start = input.selectionStart || 0;
+        const end = input.selectionEnd || 0;
+        if ((e.key === 'Backspace' && start <= PREFIX.length && end <= PREFIX.length) ||
+            (e.key === 'Delete' && start < PREFIX.length)) {
+          e.preventDefault();
+          input.setSelectionRange(PREFIX.length, PREFIX.length);
+        }
+      });
+      input.addEventListener('input', ensurePrefix);
+      input.addEventListener('focus', ensurePrefix);
+      // Initialize once
+      ensurePrefix();
+    })();
 
     function setStatus(msg, ok){ statusEl.textContent = msg||''; statusEl.className = 'status ' + (ok?'ok':'err'); }
     function setLoading(loading){ btn.disabled = !!loading; btn.innerHTML = loading ? '<i class="fas fa-spinner fa-spin" style="margin-right:8px"></i>Processing…' : '<i class="fas fa-user-plus" style="margin-right:8px"></i>Sign up'; }

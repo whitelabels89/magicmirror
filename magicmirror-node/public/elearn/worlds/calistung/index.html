@@ -7,11 +7,36 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/elearn/worlds/styles.css">
+  <style>
+    /* Back button themed to match portal visuals */
+    .back-bar {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+    }
+    .back-btn {
+      font-family: 'Baloo 2', cursive;
+      font-weight: 700;
+      padding: 12px 18px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #6e8efb, #a777e3);
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 8px 22px rgba(103, 114, 229, 0.35);
+      transition: transform 0.06s ease, box-shadow 0.2s ease, filter 0.2s ease;
+      text-decoration: none;
+    }
+    .back-btn:hover { filter: brightness(1.06); box-shadow: 0 10px 26px rgba(103, 114, 229, 0.42); }
+    .back-btn:active { transform: translateY(1px); }
+  </style>
 </head>
 <body class="portal-body">
+  <div class="back-bar">
+    <a class="back-btn" href="/elearn/worlds/portal.html" aria-label="Kembali ke portal">⟵ Back</a>
+  </div>
   <header class="portal-header">
     <h1>Calistung</h1>
-    <p>Pilih aktivitas belajar</p>
   </header>
   <main class="portal-grid" id="worldGrid"></main>
   <script>

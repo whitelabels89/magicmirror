@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>KinderCoder – GameVP4</title>
+  <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+  <script src="https://unpkg.com/blockly/msg/id.js"></script>
+  <style>
+    :root{
+      --bg:#131822; --panel:#0f1520; --panel-2:#111827; --text:#e6edf3; --muted:#9aa4b2;
+      --accent:#22c55e; --accent-2:#f97316; --warn:#ef4444; --tile:#cf6f3b; --tile-2:#e19a60;
+    }
+    html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font:500 16px/1.4 system-ui,Segoe UI,Roboto,Helvetica,Arial}
+    .wrap{display:grid;grid-template-columns: 360px 1fr;gap:16px;height:100vh;padding:16px;box-sizing:border-box}
+    /* Left – blocks */
+    .left{background:linear-gradient(180deg,#0f172a 0%, #0b1220 100%);border-radius:16px;overflow:auto;display:flex;flex-direction:column;min-height:0}
+    .left h3{margin:0;padding:14px 16px;background:#0b1220;border-bottom:1px solid #1f2937;font-size:15px;letter-spacing:.2px}
+    .palette{padding:12px 12px 16px;display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start}
+    .workspace{flex:1; min-height:0; overflow:hidden; padding:0; background:#0e1525;}
+    .section-title{width:100%;margin:6px 4px 2px;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.12em}
+    /* Hide legacy drag-drop UI (replaced by Blockly) */
+    .palette, .program{ display:none; }
+
+    .block{user-select:none;cursor:grab;background:#4c1d95;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 8px 18px rgba(0,0,0,.25);position:relative}
+    .block[data-type="move"]{background:#6d28d9}
+    .block[data-type="left"]{background:#7c3aed}
+    .block[data-type="right"]{background:#8b5cf6}
+    .block.dragging{opacity:.7}
+
+    .workspace .placeholder{border:2px dashed #334155;border-radius:10px;padding:12px;min-width:140px;height:40px;display:flex;align-items:center;justify-content:center;color:#64748b}
+    .program{background:#0b1220;border:1px solid #243041;border-radius:12px;padding:10px}
+    .hat{display:inline-block;background:#f97316;color:#fff;font-weight:800;border-radius:8px;padding:6px 10px;margin-bottom:8px}
+    .stack{min-height:160px;background:#0e1525;border-radius:12px;padding:10px;position:relative}
+    .stack .placeholder{background:transparent;border:2px dashed #334155;color:#64748b}
+
+    /* Puzzle-like connectors */
+    .block{margin:8px 0;position:relative}
+    .block + .block{margin-top:12px}
+    .block::after{content:"";position:absolute;left:16px;top:-6px;width:28px;height:10px;background:#0e1525;border-bottom-left-radius:6px;border-bottom-right-radius:6px}
+    .block::before{content:"";position:absolute;left:16px;bottom:-6px;width:28px;height:10px;background:#0e1525;border-top-left-radius:6px;border-top-right-radius:6px}
+
+    .row-controls{position:sticky;bottom:0;z-index:10;display:flex;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid #1f2937;background:#0b1220}
+    .btn{appearance:none;border:0;border-radius:12px;padding:10px 14px;font-weight:700;color:#0b1220;background:#22c55e;cursor:pointer}
+    .btn.secondary{background:#334155;color:#e5e7eb}
+    .btn.warn{background:#ef4444;color:#fff}
+    .badge{margin-left:auto;background:#1f2937;color:#a3a3a3;border-radius:10px;padding:8px 10px;font-size:12px}
+    .trash{margin:8px 12px 16px;background:#0e1525;border:2px dashed #334155;border-radius:12px;display:flex;align-items:center;gap:10px;justify-content:center;padding:10px;min-height:64px;transition:.15s;border-style:dashed;color:#94a3b8}
+    .trash svg{width:28px;height:28px}
+    .trash.active{border-color:#ef4444;background:#180f11;color:#fecaca}
+
+    /* Right – board */
+    .right{position:relative;background:radial-gradient(1200px 600px at 70% 20%, #1e293b 0%, #0b0f17 60%);border-radius:16px;overflow:hidden;display:grid;grid-template-rows: 1fr auto}
+
+    .board-wrap{display:flex;align-items:center;justify-content:center;padding:24px}
+    .board{position:relative;width:520px;aspect-ratio: 1.2 / 1; background:transparent}
+    .grid{position:absolute;right:16px;top:16px;width:320px;height:240px;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(3,1fr);gap:4px;z-index:2;}
+    .cell{background:var(--tile);border-radius:6px;box-shadow:inset 0 -4px 0 rgba(0,0,0,.2)}
+    .cell.goal{background:var(--tile-2);position:relative}
+    .cell.goal::after{content:"✖";position:absolute;inset:0;display:grid;place-items:center;font-size:28px;color:#ffedd5}
+.deco{position:absolute;right:-8px;top:-8px;width:96px;height:72px;border-radius:10px;pointer-events:none;z-index:4;}
+    .deco svg{width:100%;height:100%;filter:drop-shadow(0 10px 18px rgba(0,0,0,.35))}
+
+    .robot{position:absolute;transition:transform .28s ease; width:52px;height:52px;display:grid;place-items:center;z-index:3;}
+    .robot svg{width:52px;height:52px;filter:drop-shadow(0 6px 12px rgba(0,0,0,.5))}
+
+    .hud{display:flex;align-items:center;gap:12px;padding:14px 16px;border-top:1px solid #1f2937;background:#0b1220}
+    .hud .play{margin-left:auto}
+
+    /* Tooltip / toast */
+    .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(20px);background:#111827;color:#e5e7eb;border:1px solid #1f2937;border-radius:12px;padding:10px 14px;opacity:0;transition:.28s ease;pointer-events:none}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    .success{color:#10b981}
+    .fail{color:#f87171}
+
+    /* ===== Blockly Clay Style (neumorphism) ===== */
+    /* Workspace bg */
+    .blocklySvg { background: #eef2f6 !important; }
+    .blocklyMainBackground{ stroke:#d4dbe5 !important; }
+    /* Block surfaces */
+    .blocklyBlockBackground{
+      rx:12; ry:12;
+      filter: drop-shadow(4px 6px 10px rgba(0,0,0,0.18))
+              drop-shadow(-2px -2px 6px rgba(255,255,255,0.85));
+    }
+    /* Toolbox clay card look */
+    .blocklyToolboxDiv{ background:#f3f6fb !important; border-right:1px solid #e2e8f0; }
+    .blocklyTreeRow{ margin:6px 8px; border-radius:12px; padding:10px 14px; background:#fff !important;
+      box-shadow: inset 2px 2px 4px rgba(0,0,0,.06), inset -2px -2px 4px rgba(255,255,255,.8); }
+    .blocklyTreeRow:hover{ transform:translateY(-1px); box-shadow: 0 6px 14px rgba(0,0,0,.12); }
+    .blocklyTreeLabel{ color:#111827 !important; font-weight:600; }
+    .blocklyTreeSelected .blocklyTreeLabel{ color:#0f172a !important; }
+    .blocklyFlyoutBackground{ fill:#f8fafc !important; }
+    .blocklyFlyoutLabelText{ fill:#475569 !important; }
+    /* Zoom controls & trash soft shadow */
+    .blocklyZoom{
+      filter: drop-shadow(2px 4px 6px rgba(0,0,0,.2));
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="left" aria-label="blok">
+      <h3>Blok Perintah</h3>
+      <div class="palette" id="palette">
+        <div class="section-title">Tarik ke kanan</div>
+        <div class="block" draggable="true" data-type="move">melangkah maju</div>
+        <div class="block" draggable="true" data-type="left">Belok kiri ↺</div>
+        <div class="block" draggable="true" data-type="right">Belok kanan ↻</div>
+      </div>
+      <div class="section-title" style="padding:0 12px">Program Anda</div>
+      <div class="workspace" id="workspace" aria-label="workspace">
+        <!-- Blockly workspace -->
+        <div id="blocklyDiv" style="width:100%; height:100%;"></div>
+        <div class="program" id="program">
+          <div class="hat">Ketika "Jalankan" diklik</div>
+          <div class="stack" id="stack"><div class="placeholder">Taruh blok di sini…</div></div>
+        </div>
+      </div>
+      <div class="row-controls">
+        <button class="btn" id="btnRun">Jalankan</button>
+        <button class="btn secondary" id="btnStep">Langkah</button>
+        <button class="btn secondary" id="btnReset">Reset</button>
+        <button class="btn warn" id="btnClear">Hapus semua</button>
+        <div class="badge"><span id="blockCount">0</span> blok digunakan</div>
+      </div>
+    </section>
+
+    <section class="right" aria-label="papan">
+      <div class="board-wrap">
+        <div class="board">
+          <div class="grid" id="grid"></div>
+          <div class="deco" aria-hidden="true">
+            <svg viewBox="0 0 180 130" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <!-- roof -->
+              <path d="M20 72 L90 18 L160 72 Z" fill="#2a2f36"/>
+              <path d="M28 72 L90 26 L152 72 Z" fill="#343a40"/>
+              <!-- house body -->
+              <rect x="36" y="72" width="108" height="50" rx="8" fill="#c7773f" />
+              <rect x="36" y="72" width="108" height="10" fill="#b46332"/>
+              <!-- door -->
+              <rect x="112" y="84" width="20" height="38" rx="3" fill="#2a2f36"/>
+              <circle cx="128" cy="103" r="2.6" fill="#e5e7eb"/>
+              <!-- window -->
+              <rect x="52" y="86" width="34" height="22" rx="4" fill="#f1cf92"/>
+              <path d="M69 86 v22 M52 97 h34" stroke="#e7b877" stroke-width="3"/>
+            </svg>
+          </div>
+          <div class="robot" id="robot" style="--r:0;">
+            <!-- simple robot svg -->
+            <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="18" y="18" width="44" height="44" rx="12" fill="#ffcc66"/>
+              <circle cx="36" cy="38" r="6" fill="#fff"/>
+              <circle cx="36" cy="38" r="3" fill="#111"/>
+              <circle cx="50" cy="38" r="6" fill="#fff"/>
+              <circle cx="50" cy="38" r="3" fill="#111"/>
+              <rect x="28" y="52" width="24" height="5" rx="2.5" fill="#111" opacity=".35"/>
+              <path d="M16 42 q-6 4 0 9" stroke="#111" stroke-width="5" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="hud">
+        <div>Tujuan: pindahkan robot ke kotak ✖</div>
+        <button class="btn play" id="btnPlay">▶️ Jalankan</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+  (function(){
+  // --- Grid setup (3 rows x 4 cols like screenshot; goal at row2 col4) ---
+  const gridEl = document.getElementById('grid');
+  const ROWS = 3, COLS = 4; // 3x4
+  let cells = [];
+  for(let r=0;r<ROWS;r++){
+    for(let c=0;c<COLS;c++){
+      const div = document.createElement('div');
+      div.className = 'cell';
+      if(r===1 && c===2){ div.classList.add('goal'); }
+      gridEl.appendChild(div);
+      cells.push(div);
+    }
+  }
+  // Put extra X tile look alike by using goal on (1,2). Start at (1,0)
+  const start = {r:1, c:0};
+  const goal  = {r:1, c:2};
+
+  // --- Robot state ---
+  const robot = document.getElementById('robot');
+  const cellRect = ()=> gridEl.getBoundingClientRect();
+  let dir = 0; // 0:right, 1:down, 2:left, 3:up
+  let pos = {r:start.r, c:start.c};
+
+  function placeRobot(){
+    const gridBB  = gridEl.getBoundingClientRect();
+    const boardBB = robot.parentElement.getBoundingClientRect();
+    const cellW = gridBB.width / COLS;
+    const cellH = gridBB.height / ROWS;
+    // position relative to the board container, not the viewport
+    const x = (gridBB.left - boardBB.left) + pos.c * cellW + cellW / 2 - 26; // 26 = half robot size
+    const y = (gridBB.top  - boardBB.top)  + pos.r * cellH + cellH / 2 - 26;
+    robot.style.transform = `translate(${x}px, ${y}px) rotate(${dir*90}deg)`;
+  }
+  window.addEventListener('resize', placeRobot);
+  setTimeout(placeRobot, 0);
+
+  // --- Blocks drag & program ---
+  const palette = document.getElementById('palette');
+  const workspace = document.getElementById('workspace');
+  const stack = document.getElementById('stack');
+  const blockCount = document.getElementById('blockCount');
+  const toast = document.getElementById('toast');
+  const trash = document.getElementById('trash');
+
+  // Step-by-step state
+  let blocksCache = [];
+  let pc = 0;            // program counter
+  let hasStarted = false; // whether stepping has begun
+  let draggingEl = null; // current block dragged from stack
+
+  // === Blockly integration ===
+  // Define Clay Theme (pastel colors and readable toolbox)
+  const ClayTheme = Blockly.Theme.defineTheme('clay', {
+    'base': Blockly.Themes.Classic,
+    'blockStyles': {
+      'robot_blocks': {
+        'colourPrimary': '#8b9bff',
+        'colourSecondary': '#6b7ae6',
+        'colourTertiary': '#4d5cc7'
+      },
+      'control_blocks': {
+        'colourPrimary': '#ffb86b',
+        'colourSecondary': '#e89b4a',
+        'colourTertiary': '#cc7f2f'
+      }
+    },
+    'categoryStyles': {
+      'robot_category': {'colour': '#8b9bff'},
+      'control_category': {'colour': '#ffb86b'}
+    },
+    'componentStyles': {
+      'workspaceBackgroundColour': '#eef2f6',
+      'toolboxBackgroundColour': '#f3f6fb',
+      'toolboxForegroundColour': '#111827',
+      'flyoutBackgroundColour': '#f8fafc',
+      'flyoutForegroundColour': '#334155',
+      'flyoutOpacity': 1,
+      'scrollbarColour': '#cbd5e1',
+      'insertionMarkerColour': '#94a3b8',
+      'insertionMarkerOpacity': 0.6
+    }
+  });
+  let ws; // Blockly workspace
+
+  // Minimal toolbox for robot
+  const toolbox = {
+    "kind":"categoryToolbox",
+    "contents":[
+      {"kind":"category","name":"Gerak","categorystyle":"robot_category","contents":[
+        {"kind":"block","type":"robot_move"},
+        {"kind":"block","type":"robot_left"},
+        {"kind":"block","type":"robot_right"}
+      ]},
+      {"kind":"category","name":"Kontrol","categorystyle":"control_category","contents":[
+        {"kind":"block","type":"robot_repeat"}
+      ]}
+    ]
+  };
+
+  // Define custom robot blocks
+  Blockly.defineBlocksWithJsonArray([
+    {"type":"robot_move","message0":"melangkah maju","previousStatement":null,"nextStatement":null,"style":"robot_blocks"},
+    {"type":"robot_left","message0":"belok kiri ↺","previousStatement":null,"nextStatement":null,"style":"robot_blocks"},
+    {"type":"robot_right","message0":"belok kanan ↻","previousStatement":null,"nextStatement":null,"style":"robot_blocks"},
+    {"type":"robot_repeat","message0":"ulangi %1 kali %2",
+      "args0":[{"type":"field_number","name":"TIMES","value":2,"min":1,"max":20},{"type":"input_statement","name":"DO"}],
+      "previousStatement":null,"nextStatement":null,"style":"control_blocks"}
+  ]);
+
+  function initBlockly(){
+    const host = document.getElementById('blocklyDiv');
+    if(!host || typeof Blockly==='undefined') return;
+    ws = Blockly.inject(host, {
+      toolbox,
+      theme: ClayTheme,
+      trashcan: true,
+      scrollbars: true,
+      zoom: {controls:true, wheel:true, startScale:1, maxScale:2, minScale:.5}
+    });
+    window.addEventListener('resize', ()=>Blockly.svgResize(ws));
+    setTimeout(()=>Blockly.svgResize(ws),0);
+  }
+
+  // Convert Blockly chains → array of robot commands (strings)
+  function programFromBlockly(){
+    const out = [];
+    if(!ws) return out;
+    const tops = ws.getTopBlocks(true);
+    for(const t of tops){ collect(t, out); }
+    return out;
+
+    function collect(block, arr){
+      if(!block) return;
+      switch(block.type){
+        case 'robot_move': arr.push('move'); break;
+        case 'robot_left': arr.push('left'); break;
+        case 'robot_right': arr.push('right'); break;
+        case 'robot_repeat': {
+          const n = parseInt(block.getFieldValue('TIMES')||1,10);
+          const inner = block.getInputTargetBlock('DO');
+          for(let i=0;i<n;i++) collect(inner, arr);
+          break;
+        }
+      }
+      const next = block.getNextBlock();
+      if(next) collect(next, arr);
+    }
+  }
+
+  function loadProgram(){
+    blocksCache = programFromBlockly();
+  }
+
+  function showToast(msg, type){
+    toast.textContent = msg;
+    toast.className = 'toast show' + (type? ' ' + type : '');
+    setTimeout(()=>toast.className='toast', 1600);
+  }
+
+  function updateCounter(){
+    const used = stack.querySelectorAll('.block').length;
+    blockCount.textContent = used;
+    stack.querySelector('.placeholder')?.remove();
+    if(used===0){
+      const ph = document.createElement('div');
+      ph.className='placeholder'; ph.textContent='Taruh blok di sini…';
+      stack.appendChild(ph);
+    }
+    // refresh program + reset step state on any change
+    loadProgram();
+    pc = 0;
+    hasStarted = false;
+  }
+
+  // Make palette blocks clonable on drag
+  palette.addEventListener('dragstart', e=>{
+    const b = e.target.closest('.block');
+    if(!b) return;
+    e.dataTransfer.setData('text/plain', b.dataset.type);
+    b.classList.add('dragging');
+  });
+  palette.addEventListener('dragend', e=>{
+    e.target.classList.remove('dragging');
+  });
+
+  stack.addEventListener('dragover', e=>{ e.preventDefault(); });
+  stack.addEventListener('drop', e=>{
+    e.preventDefault();
+    const type = e.dataTransfer.getData('text/plain');
+    if(!type) return;
+    const nb = document.createElement('div');
+    nb.className = 'block';
+    nb.draggable = true;
+    nb.dataset.type = type;
+    nb.textContent = type==='move' ? 'melangkah maju' : (type==='left' ? 'Belok kiri ↺' : 'Belok kanan ↻');
+    stack.appendChild(nb);
+    updateCounter();
+  });
+
+  // Allow re-order & deletion (double click)
+  stack.addEventListener('dragstart', e=>{
+    const b = e.target.closest('.block');
+    if(!b) return; e.dataTransfer.setData('text/plain', 'reorder');
+    e.dataTransfer.setDragImage(b, 20, 20);
+    b.classList.add('dragging');
+    draggingEl = b;
+  });
+  stack.addEventListener('dragend', e=>{ e.target.classList.remove('dragging'); draggingEl = null; updateCounter(); });
+  // Trash dropzone (optional): only if element exists
+  if(trash){
+    ['dragenter','dragover'].forEach(ev=> trash.addEventListener(ev, e=>{ e.preventDefault(); trash.classList.add('active'); }));
+    ['dragleave','drop'].forEach(ev=> trash.addEventListener(ev, e=>{ trash.classList.remove('active'); }));
+    trash.addEventListener('drop', e=>{
+      e.preventDefault();
+      const kind = e.dataTransfer.getData('text/plain');
+      if(kind === 'reorder' && draggingEl){ draggingEl.remove(); updateCounter(); showToast('Blok dihapus.'); }
+    });
+  }
+  stack.addEventListener('dragover', e=>{
+    const dragging = stack.querySelector('.block.dragging');
+    if(!dragging) return;
+    const after = Array.from(stack.querySelectorAll('.block:not(.dragging)'))
+      .find(el => e.clientX <= el.getBoundingClientRect().left + el.offsetWidth/2);
+    if(after) stack.insertBefore(dragging, after); else stack.appendChild(dragging);
+  });
+  stack.addEventListener('dblclick', e=>{
+    const b = e.target.closest('.block');
+    if(!b) return; b.remove(); updateCounter();
+  });
+
+  // Controls
+  document.getElementById('btnClear').onclick = ()=>{ stack.innerHTML = ''; updateCounter(); };
+
+  document.getElementById('btnStep').onclick = ()=>{ stepOnce(); };
+  document.getElementById('btnReset').onclick = ()=>{ pc = 0; hasStarted = false; pos = {r:start.r, c:start.c}; dir = 0; placeRobot(); showToast('Diulang dari awal.'); };
+  document.getElementById('btnRun').onclick = ()=>{ runProgram(); };
+  document.getElementById('btnPlay').onclick = ()=>{ runProgram(); };
+
+  // Program runner
+  let running = false;
+  async function runProgram(){
+    if(running) return; running = true;
+    // start from beginning for full run
+    loadProgram();
+    pos = {r:start.r, c:start.c}; dir = 0; placeRobot();
+    pc = 0; hasStarted = true;
+    if(blocksCache.length===0){ showToast('Tambahkan blok dulu, ya!', 'fail'); running=false; return; }
+
+    for(let i=0;i<blocksCache.length;i++){
+      const t = blocksCache[i];
+      const ok = await exec(t);
+      if(!ok){ showToast('Ups, menabrak dinding.', 'fail'); break; }
+      pc++;
+      if(pos.r===goal.r && pos.c===goal.c){ showToast('Mantap! Sampai tujuan ✔', 'success'); break; }
+    }
+    running = false;
+  }
+
+  async function stepOnce(){
+    if(running) return;
+    // ensure we have latest program cache
+    if(blocksCache.length===0){ loadProgram(); }
+    if(blocksCache.length===0){ showToast('Tambahkan blok dulu, ya!', 'fail'); return; }
+
+    if(!hasStarted){ // first step: reset to start
+      pos = {r:start.r, c:start.c}; dir = 0; placeRobot();
+      hasStarted = true; pc = 0;
+    }
+    if(pc >= blocksCache.length){ showToast('Program selesai. Klik Reset untuk ulang.', 'fail'); return; }
+
+    running = true;
+    const ok = await exec(blocksCache[pc]);
+    running = false;
+    if(!ok){ showToast('Ups, menabrak dinding.', 'fail'); return; }
+
+    pc++;
+    if(pos.r===goal.r && pos.c===goal.c){ showToast('Mantap! Sampai tujuan ✔', 'success'); }
+  }
+
+  function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+  async function exec(type){
+    if(type==='left'){ dir = (dir+3)%4; placeRobot(); await sleep(220); return true; }
+    if(type==='right'){ dir = (dir+1)%4; placeRobot(); await sleep(220); return true; }
+    if(type==='move'){
+      const next = {r: pos.r + (dir===1?1:dir===3?-1:0), c: pos.c + (dir===0?1:dir===2?-1:0)};
+      if(next.r<0||next.c<0||next.r>=ROWS||next.c>=COLS){ // bump
+        robot.animate([{transform:robot.style.transform},{transform:robot.style.transform+' translateY(-4px)'},{transform:robot.style.transform}],{duration:220});
+        await sleep(220); return false;
+      }
+      pos = next; placeRobot(); await sleep(260); return true;
+    }
+    return true;
+  }
+
+  initBlockly();
+  updateCounter();
+})();
+</script>
+</body>
+</html>
