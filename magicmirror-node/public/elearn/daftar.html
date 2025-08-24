@@ -458,7 +458,9 @@
           if (!r.ok) continue; const j = await r.json(); if (j && j.cid) return j.cid;
         }catch(_){ /* try next */ }
       }
-      throw new Error('Failed to generate CID');
+      // Fallback: generate a pseudo CID on the client if backend is unreachable
+      const randomNumber = Math.floor(10000000 + Math.random() * 90000000);
+      return 'CQA' + randomNumber;
     }
 
     async function registerBackend(payload){
