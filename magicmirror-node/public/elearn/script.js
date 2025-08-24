@@ -50,7 +50,7 @@ async function login() {
     } else if (data.role === "ortu") {
       window.location.href = "/elearn/ortu.html";
     } else if (data.role === "moderator") {
-      window.location.href = "/elearn/moderator.html";
+      window.location.href = "/mod/moderator.html";
     } else {
       errorEl.innerText = "❌ Role tidak dikenali.";
     }
