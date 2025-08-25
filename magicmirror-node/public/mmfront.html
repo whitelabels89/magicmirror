@@ -109,12 +109,32 @@
     }
     /* Controls dock */
     .controls{
+      position: fixed; left: 50%; bottom: 56px; transform: translateX(-50%);
       display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:center;
-      margin-top:14px;
+      margin:0; z-index: 4;
     }
+    @media (max-width: 768px){
+      .controls{ bottom: 64px; gap:8px; }
+      .controls .btn{ padding:12px 18px; font-size:.95rem; }
+    }
+    /* Hide controls during idle */
+    body.idle-blackout .controls{ opacity:0 !important; pointer-events:none !important; }
     .caption{
-      color:#cffff0; margin-top:8px; font-size:.95rem; opacity:.9;
+      color:#cffff0; font-size:.95rem; opacity:.9;
     }
+/* === Pin caption to bottom of viewport === */
+.caption{
+  position: fixed;
+  left: 50%; bottom: 12px; transform: translateX(-50%);
+  margin: 0 !important; padding: 6px 10px; border-radius: 10px;
+  background: linear-gradient(180deg, rgba(10,40,37,.65), rgba(10,40,37,.35));
+  border: 1px solid rgba(233,196,106,.25);
+  box-shadow: 0 8px 24px rgba(0,0,0,.35);
+  z-index: 3; pointer-events: none; /* don’t block clicks */
+}
+@media (max-width: 768px){ .caption{ bottom: 8px; font-size: .9rem; } }
+/* Hide caption during idle */
+body.idle-blackout .caption{ opacity: 0 !important; }
     /* Main container refinement */
     #container{
       gap: 16px;
@@ -698,12 +718,36 @@ h1{
   #lux-particles{ display:none; }
 }
 
-</style>
+    /* === Hologram Head Embed (model.html) === */
+    #holo-embed { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+    #holo-embed iframe { width: 100%; height: 100%; border: 0; display: block; background: transparent; pointer-events: none; }
+    /* Keep MagicMirror UI clickable above the embed */
+    .mm-ui { position: relative; z-index: 2; }
+
+    /* === Camera area visibility === */
+    #camera-wrapper{ position: relative; display:none; }
+    body.camera-on #camera-wrapper{ display:block; }
+
+    /* video above, placeholder behind; placeholder only when camera is OFF */
+    #camera-preview{ position: relative; z-index: 1; display: none; }
+    #camera-placeholder{
+      position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+      z-index: 0; pointer-events: none; opacity: 1; transition: opacity .25s ease;
+    }
+    /* Saat kamera ON: tampilkan video, sembunyikan gambar cermin */
+    body.camera-on #camera-placeholder{ opacity: 0; }
+    /* === Clean HUD: hide dev toggles === */
+    .hud-toggles, #toggle-navbar, #toggle-footer, #toggle-heartbeat{ display:none !important; }
+    </style>
+
 
 
 
 </head>
     <body>
+    <div id="holo-embed" aria-hidden="false">
+      <iframe src="/model.html" title="Hologram Head"></iframe>
+    </div>
         <div class="hud">
           <div class="brand"><span class="dot"></span> QC Magic Mirror <span class="neon">AI</span></div>
           <div class="hud-right">
@@ -715,7 +759,7 @@ h1{
             </div>
           </div>
         </div>
-        <div id="navbar" class="hidden-block"></div>
+        <div id="navbar" class="hidden-block mm-ui"></div>
         <div id="lux-particles" aria-hidden="true"></div>
     <script>
         fetch('navbar.html')
@@ -778,7 +822,7 @@ h1{
       tries++;
     }, 200);
     </script>
-    <section id="greetings" style="display:none; flex-direction:column; align-items:center; justify-content:center; padding:40px 20px; background: transparent; text-align:center;">
+    <section id="greetings" class="mm-ui" style="display:none; flex-direction:column; align-items:center; justify-content:center; padding:40px 20px; background: transparent; text-align:center;">
         <div class="shell glass ring-glow" style="border-radius:26px; padding:42px 28px; max-width:1000px; width:92%;">
             <div style="flex: 1; min-width: 280px; text-align: left;">
                 <h1 style="font-size: 3rem; color: #ffd700; margin-bottom: 20px; font-family: 'Forum', cursive;">Your Personal AI Beauty Stylist Awaits</h1>
@@ -792,7 +836,7 @@ h1{
             </div>
         </div>
     </section>
-    <div id="container">
+    <div id="container" class="mm-ui">
         <div id="camera-wrapper" class="mirrored ring-glow" style="margin-bottom:24px;">
             <img id="camera-placeholder" src="/magic_mirror.png" style="width: 100%; display: block;">
             <video id="camera-preview" autoplay playsinline muted style="width: 100%; display: none;"></video>
@@ -804,7 +848,7 @@ h1{
           <button id="fullscreen" class="btn secondary" title="Fullscreen mode">Fullscreen</button>
         </div>
         <div class="caption">Tip: posisi wajah sejajar kamera. Preview otomatis <strong>mirror</strong> agar natural di cermin.</div>
-        <h1>QC MAGIC MIRROR</h1>
+        <h1></h1>
         <div id="status">Waiting Analyze...</div>
         <img id="photo" src="" style="display:none; max-width: 300px; margin-top: 20px;" />
         <!-- Added waiting box and error msg here -->
@@ -827,7 +871,7 @@ h1{
         <div id="loading" class="loading" style="display: none;"></div>
         <div id="gallery" style="display: flex; flex-wrap: wrap; justify-content: center; margin-top: 20px;"></div>
     </div>
-    <div id="footer-placeholder" class="hidden-block"></div>
+    <div id="footer-placeholder" class="hidden-block mm-ui"></div>
     <script>
       fetch('/footer.html')
         .then(res => res.text())
@@ -854,7 +898,7 @@ h1{
                     const placeholder = document.getElementById('camera-placeholder');
                     video.srcObject = stream;
                     video.style.display = 'block';
-                    placeholder.style.display = 'none';
+                    document.body.classList.add('camera-on');
                     toggleBtn.innerText = "Turn Off Magic Mirror";
                     updateCaptureButton();
                 })
@@ -873,7 +917,7 @@ h1{
             const video = document.getElementById('camera-preview');
             const placeholder = document.getElementById('camera-placeholder');
             video.style.display = 'none';
-            placeholder.style.display = 'block';
+            document.body.classList.remove('camera-on');
             toggleBtn.innerText = "Turn On Magic Mirror";
             updateCaptureButton();
         }
