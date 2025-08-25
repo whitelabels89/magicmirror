@@ -746,8 +746,17 @@ h1{
 </head>
     <body>
     <div id="holo-embed" aria-hidden="false">
-      <iframe src="/model.html" title="Hologram Head"></iframe>
+      <iframe src="/model.html?m=6" title="Hologram Head"></iframe>
     </div>
+    <script>
+      (function(){
+        const frame = document.querySelector('#holo-embed iframe');
+        if(!frame) return;
+        function setModel6(){ try{ frame.contentWindow.postMessage({ type:'setModel', key:'6' }, '*'); }catch(_){} }
+        // Try once after load and again after 1s as a fallback
+        frame.addEventListener('load', ()=>{ setTimeout(setModel6, 150); setTimeout(setModel6, 1200); });
+      })();
+    </script>
         <div class="hud">
           <div class="brand"><span class="dot"></span> QC Magic Mirror <span class="neon">AI</span></div>
           <div class="hud-right">

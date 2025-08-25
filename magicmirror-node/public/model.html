@@ -36,6 +36,24 @@
     .hint-toggle:hover{ transform: translateY(-1px); }
     .hint-toggle[aria-pressed="true"]{ border-color: rgba(124,255,178,.6); box-shadow: 0 0 0 1px rgba(124,255,178,.25) inset, 0 8px 20px rgba(124,255,178,.25); }
     @media (max-width: 768px){ .hint-toggle{ left: 10px; bottom: 10px; width: 26px; height: 26px; font-size: 13px; } }
+
+    /* === Mic toggle (tiny) === */
+    .mic-toggle{
+      position: fixed; right: 12px; bottom: 12px; z-index: 9999;
+      width: 30px; height: 30px; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.28);
+      background: linear-gradient(135deg, rgba(255,255,255,.14), rgba(255,255,255,.06));
+      color: #eafbf6; font-size: 14px; line-height: 1; font-weight: 700;
+      display: grid; place-items: center; cursor: pointer;
+      box-shadow: 0 6px 16px rgba(0,0,0,.35);
+    }
+    .mic-toggle:hover{ transform: translateY(-1px); }
+    .mic-toggle[aria-pressed="true"]{
+      border-color: rgba(197,143,255,.7);
+      box-shadow: 0 0 0 1px rgba(197,143,255,.35) inset,
+                  0 0 16px rgba(197,143,255,.35),
+                  0 8px 22px rgba(0,0,0,.35);
+    }
   </style>
   <script type="importmap">
   {
@@ -48,8 +66,9 @@
 </head>
 <body>
   <div id="app"></div>
-  <div class="hint">Drag = look · <kbd>G</kbd> glow · <kbd>L</kbd> lines · <kbd>S</kbd> scan · <kbd>F</kbd> flow · [ ] density · , . size · - = speed · <kbd>B</kbd>/<kbd>C</kbd> boost/contrast · <kbd>4</kbd> switch · <kbd>Shift+R</kbd> reload</div>
+  <div class="hint">Drag = look · <kbd>G</kbd> glow · <kbd>L</kbd> lines · <kbd>S</kbd> scan · <kbd>F</kbd> flow · [ ] density · , . size · - = speed · <kbd>B</kbd>/<kbd>C</kbd> boost/contrast · <kbd>4</kbd> switch · <kbd>6</kbd> tesla · <kbd>Shift+R</kbd> reload</div>
   <button id="hint-toggle" class="hint-toggle" aria-pressed="false" title="Show controls">?</button>
+  <button id="mic-toggle" class="mic-toggle" aria-pressed="false" title="Enable mic">🎤</button>
 
   <script type="module">
   import * as THREE from 'three';
@@ -81,8 +100,36 @@
     renderer.setPixelRatio(DPR); renderer.setSize(W,H); renderer.setClearColor(0x000000, 0);
     host.appendChild(renderer.domElement);
 
+    // === Mic (beat) reactive setup ===
+    let MIC = { ctx:null, analyser:null, data:null, level:0, ready:false, enabled:false };
+    async function initMic(){
+      try{
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation:true, noiseSuppression:true } });
+        const ctx = new (window.AudioContext||window.webkitAudioContext)();
+        const src = ctx.createMediaStreamSource(stream);
+        const analyser = ctx.createAnalyser();
+        analyser.fftSize = 512; // 256 bins
+        analyser.smoothingTimeConstant = 0.82;
+        src.connect(analyser);
+        MIC.ctx = ctx; MIC.analyser = analyser; MIC.data = new Uint8Array(analyser.frequencyBinCount); MIC.ready = true;
+      }catch(err){ console.warn('Mic init failed:', err); }
+    }
+
+    // Tiny toast helper (bottom-right)
+    function micToast(msg){
+      const el = document.createElement('div');
+      el.textContent = msg;
+      el.style.cssText = 'position:fixed;right:12px;bottom:52px;background:#0b1f1d;border:1px solid #2b4946;color:#dff9f3;padding:8px 10px;border-radius:8px;z-index:10000;font:600 12px system-ui;opacity:0;transform:translateY(6px);transition:opacity .18s ease, transform .18s ease;';
+      document.body.appendChild(el);
+      requestAnimationFrame(()=>{ el.style.opacity = '0.96'; el.style.transform = 'translateY(0)'; });
+      setTimeout(()=>{ el.style.opacity = '0'; el.style.transform = 'translateY(6px)'; }, 1400);
+      setTimeout(()=>{ el.remove(); }, 2000);
+    }
+
     // Lighting is minimal; most look comes from shader emissive/fresnel
     const rig = new THREE.Group();
+    // Global model vertical offset (raise/lower all variants together)
+    const MODEL_Y_OFFSET = 0.28; // ↑ raise model ~0.28 units
     scene.add(rig);
 
     // === Shader material for horizontal stripes + fresnel glow
@@ -276,6 +323,7 @@
         head.position.sub(center);
         const targetH = 2.9; const s = (size.y>0.0001)? (targetH/size.y) : 1.0; head.scale.setScalar(s);
         const box = new THREE.Box3().setFromObject(head); const minY = box.min.y; head.position.y += (-1.2 - minY);
+        head.position.y += MODEL_Y_OFFSET; // apply global vertical offset
 
         // Sphere/placeholder detection (more lenient)
         const aspectXY = Math.abs(size.x - size.y) / Math.max(size.x, size.y);
@@ -338,16 +386,198 @@
       });
     }
 
+    // === Procedural Variant: Tesla Orb (abstract AI core) — defined inside module scope
+    function loadTesla(){
+      clearHead();
+      // Init mic only when user enables it
+      if(MIC.enabled && !MIC.ready){ initMic(); }
+      const grp = new THREE.Group(); grp.name = 'TeslaOrb';
+
+      const teslaUniforms = {
+        uTime: uniforms.uTime,
+        uColorA: uniforms.uColorA,
+        uColorB: uniforms.uColorB,
+        uRim: { value: 1.0 },
+        uArcThresh: { value: 0.78 },
+        uGlow: { value: 1.2 }
+      };
+      const teslaVert = `
+        varying vec3 vW; varying vec3 vN; 
+        void main(){ vN = normalize(normalMatrix * normal); vec4 wp = modelMatrix * vec4(position,1.0); vW = wp.xyz; gl_Position = projectionMatrix * viewMatrix * wp; }
+      `;
+      const teslaFrag = `
+        precision highp float; varying vec3 vW; varying vec3 vN; 
+        uniform float uTime; uniform vec3 uColorA; uniform vec3 uColorB; uniform float uRim; uniform float uArcThresh; uniform float uGlow;
+        float h33(vec3 p){ p = fract(p*0.3183099+vec3(0.1,0.2,0.3)); p += dot(p,p.yzx+19.19); return fract(p.x*p.y*p.z*(p.x+p.y+p.z)); }
+        float noise3(vec3 p){ vec3 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f); 
+          float n = mix(mix(mix(h33(i+vec3(0,0,0)),h33(i+vec3(1,0,0)),f.x),mix(h33(i+vec3(0,1,0)),h33(i+vec3(1,1,0)),f.x),f.y),
+                         mix(mix(h33(i+vec3(0,0,1)),h33(i+vec3(1,0,1)),f.x),mix(h33(i+vec3(0,1,1)),h33(i+vec3(1,1,1)),f.x),f.y),f.z);
+          return n; }
+        void main(){
+          vec3 N = normalize(vN);
+          float rim = pow(1.0 - abs(N.z), 2.0) * uRim;
+          float t = uTime*1.6; 
+          float n = 0.0; 
+          n += noise3(N*6.0 + vec3(0.0,t*0.5,0.0));
+          n += 0.5*noise3(N*12.0 + vec3(t*0.2,0.0,0.0));
+          n += 0.25*noise3(N*24.0 + vec3(0.0,0.0,t*0.35));
+          float arc = smoothstep(uArcThresh, 1.0, n);
+          vec3 col = mix(uColorB, uColorA, arc);
+          col += rim*vec3(0.9,1.0,1.2)*0.8;
+          col *= 0.8 + 0.5*arc;
+          float a = 0.65 + 0.35*arc + rim*0.2;
+          gl_FragColor = vec4(col, a);
+        }
+      `;
+      const g = new THREE.SphereGeometry(1.0, 160, 160);
+      const m = new THREE.ShaderMaterial({ uniforms: teslaUniforms, vertexShader: teslaVert, fragmentShader: teslaFrag, transparent:true, side:THREE.DoubleSide, depthWrite:false, depthTest:false });
+      const orb = new THREE.Mesh(g, m); grp.add(orb);
+      const e = new THREE.EdgesGeometry(new THREE.SphereGeometry(1.0, 32, 32));
+      const l = new THREE.LineSegments(e, new THREE.LineBasicMaterial({ color:0xB388FF, transparent:true, opacity:0.20 }));
+      grp.add(l);
+      const core = new THREE.Mesh(new THREE.SphereGeometry(0.38, 64, 64), new THREE.MeshBasicMaterial({ color:0x9ffff0, transparent:true, opacity:0.65 }));
+      grp.add(core);
+      core.userData._isCore = true;
+
+      // === Inner lightning (core → shell) ===
+      const inner = new THREE.Group();
+      grp.add(inner);
+      const rCore = 0.40, rShell = 1.06;
+      function makeInnerCurve(){
+        const a = randomPointOnSphere(rCore);
+        const b = randomPointOnSphere(rShell);
+        const dir = a.clone().normalize();
+        const c1 = a.clone().add(dir.clone().multiplyScalar(0.35 + Math.random()*0.35));
+        const mid = a.clone().add(b).multiplyScalar(0.5);
+        const c2 = mid.clone().normalize().multiplyScalar(0.6 + Math.random()*0.4);
+        return { a, b, c1, c2 };
+      }
+      function buildInnerGeom(curve, segments){
+        const pts = new Float32Array((segments+1)*3);
+        for(let i=0;i<=segments;i++){
+          const t = i/segments; // cubic Bezier
+          const it = 1.0 - t;
+          const p = new THREE.Vector3().set(0,0,0)
+            .addScaledVector(curve.a, it*it*it)
+            .addScaledVector(curve.c1, 3.0*it*it*t)
+            .addScaledVector(curve.c2, 3.0*it*t*t)
+            .addScaledVector(curve.b, t*t*t);
+          pts[i*3+0]=p.x; pts[i*3+1]=p.y; pts[i*3+2]=p.z;
+        }
+        const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pts,3)); return g;
+      }
+      function spawnInner(){
+        const curve = makeInnerCurve();
+        const segs = 44 + Math.floor(Math.random()*22);
+        const geom = buildInnerGeom(curve, segs);
+        const line = new THREE.Line(geom, new THREE.LineBasicMaterial({ color: 0x8A5BFF, transparent:true, opacity:0.0, depthWrite:false, blending: THREE.AdditiveBlending }));
+        const line2 = new THREE.Line(geom.clone(), new THREE.LineBasicMaterial({ color: 0x58C7FF, transparent:true, opacity:0.0, depthWrite:false, blending: THREE.AdditiveBlending }));
+        line2.scale.multiplyScalar(1.008);
+        const g = new THREE.Group(); g.add(line); g.add(line2);
+        g.userData.life = 0; g.userData.max = 260 + Math.floor(Math.random()*360);
+        g.userData.jitter = ()=>{
+          const pos = g.children[0].geometry.attributes.position; const cnt = pos.count;
+          for(let i=1;i<cnt-1;i++){ // keep endpoints anchored
+            const j = 0.0065; const jx = (Math.random()-0.5)*j, jy=(Math.random()-0.5)*j, jz=(Math.random()-0.5)*j;
+            pos.setXYZ(i, pos.getX(i)+jx, pos.getY(i)+jy, pos.getZ(i)+jz);
+          }
+          pos.needsUpdate = true;
+          const pos2 = g.children[1].geometry.attributes.position; pos2.array.set(pos.array); pos2.needsUpdate = true;
+        };
+        inner.add(g);
+      }
+      // Pre-fill inner arcs
+      for(let i=0;i<10;i++) spawnInner();
+      grp.userData.inner = inner;
+      grp.userData.spawnInner = spawnInner;
+
+      // === Tesla lightning bolts (animated) ===
+      const bolts = new THREE.Group();
+      grp.add(bolts);
+
+      function randUnit(){ return (Math.random()*2-1); }
+      function randomPointOnSphere(r){
+        let v = new THREE.Vector3(randUnit(), randUnit(), randUnit());
+        v.normalize().multiplyScalar(r); return v;
+      }
+      function makeBoltCurve(){
+        const a = randomPointOnSphere(1.06);
+        const b = randomPointOnSphere(1.06);
+        const mid = a.clone().add(b).multiplyScalar(0.5);
+        const lift = mid.clone().normalize().multiplyScalar(0.45 + Math.random()*0.55); // stronger lift → longer arc
+        const c = mid.clone().add(lift);
+        return { a, b, c };
+      }
+      function buildBoltGeom(curve, segments){
+        const pts = new Float32Array((segments+1)*3);
+        for(let i=0;i<=segments;i++){
+          const t = i/segments;
+          // Quadratic Bezier: (1-t)^2*A + 2(1-t)t*C + t^2*B
+          const p = new THREE.Vector3().set(0,0,0)
+            .addScaledVector(curve.a, (1-t)*(1-t))
+            .addScaledVector(curve.c, 2*(1-t)*t)
+            .addScaledVector(curve.b, t*t);
+          pts[i*3+0]=p.x; pts[i*3+1]=p.y; pts[i*3+2]=p.z;
+        }
+        const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pts,3));
+        return g;
+      }
+      function spawnBolt(){
+        const curve = makeBoltCurve();
+        const segs = 36 + Math.floor(Math.random()*22); // longer bolts
+        const geom = buildBoltGeom(curve, segs);
+        // Neon purple twin-lines (additive)
+        const line = new THREE.Line(geom, new THREE.LineBasicMaterial({ color: 0xE55BFF, transparent:true, opacity:0.0, depthWrite:false, blending: THREE.AdditiveBlending }));
+        const line2 = new THREE.Line(geom.clone(), new THREE.LineBasicMaterial({ color: 0xB388FF, transparent:true, opacity:0.0, depthWrite:false, blending: THREE.AdditiveBlending }));
+        line2.scale.multiplyScalar(1.012);
+        const g = new THREE.Group(); g.add(line); g.add(line2);
+        // lifetime 0.22..0.55s
+        g.userData.life = 0; g.userData.max = 220 + Math.floor(Math.random()*330);
+        g.userData.dir = Math.random()<0.5 ? -1 : 1; // sway dir
+        g.userData.jitter = ()=>{
+          const pos = g.children[0].geometry.attributes.position; const cnt = pos.count;
+          for(let i=0;i<cnt;i++){
+            const jx = (Math.random()-0.5)*0.0045, jy = (Math.random()-0.5)*0.0045, jz = (Math.random()-0.5)*0.0045;
+            pos.setXYZ(i, pos.getX(i)+jx, pos.getY(i)+jy, pos.getZ(i)+jz);
+          }
+          pos.needsUpdate = true;
+          const pos2 = g.children[1].geometry.attributes.position; pos2.array.set(pos.array); pos2.needsUpdate = true;
+        };
+        bolts.add(g);
+      }
+      // Pre-spawn a few bolts
+      for(let i=0;i<8;i++) spawnBolt();
+      // Store reference for the animation loop
+      grp.userData.bolts = bolts;
+      grp.userData.spawn = spawnBolt;
+
+      grp.position.y = -0.2 + MODEL_Y_OFFSET; // raised
+      currentHead = grp; rig.add(grp);
+      const sphere = new THREE.Sphere(new THREE.Vector3(), 1.2);
+      const desired = sphere.radius / Math.tan((camera.fov * Math.PI/180) / 2) + 0.4;
+      camera.position.z = Math.min(12, Math.max(2.2, desired));
+      const hud = document.createElement('div');
+      hud.style.cssText = 'position:fixed;left:16px;top:44px;background:#0b1f1d;border:1px solid #2b4946;color:#dff9f3;padding:8px 10px;border-radius:8px;z-index:10000;font:500 12px system-ui;opacity:.9';
+      hud.textContent = 'Tesla Orb ready · Press 6 again to reload'; document.body.appendChild(hud);
+      setTimeout(()=>hud.remove(), 2800);
+      // Mark as Tesla for animation loop
+      grp.userData.isTesla = true;
+    }
+
     // Hotkeys to switch models quickly
     const MODELS = {
       // '1': '/glb/head.glb',
       // '2': '/glb/head2.glb',
       // '3': '/glb/head3.glb',
       '4': '/glb/head4.glb',
-      // '5': '/glb/head5.glb'
+      // '5': '/glb/head5.glb',
+      '6': '__TESLA__' // procedural abstract AI core (Tesla Orb)
     };
     window.addEventListener('keydown', (e)=>{
-      if(MODELS[e.key]){ window.__LAST_MODEL_KEY = e.key; loadHead(MODELS[e.key]); }
+      const hit = MODELS[e.key];
+      if(!hit) return;
+      window.__LAST_MODEL_KEY = e.key;
+      if(hit === '__TESLA__') loadTesla(); else loadHead(hit);
     });
 
     // Shift+R: reload current model bypassing cache
@@ -356,7 +586,8 @@
         // Determine which model was last loaded; default to '4'
         const last = (window.__LAST_MODEL_KEY || '4');
         __glbCacheToken = Date.now();
-        loadHead(MODELS[last]);
+        const hit = MODELS[last];
+        if(hit === '__TESLA__') loadTesla(); else loadHead(hit);
       }
     });
 
@@ -365,7 +596,8 @@
 
     // === Grounded neck pedestal (very subtle)
     const base = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.48, 0.3, 48), new THREE.MeshBasicMaterial({ color: 0x0a2321, transparent:true, opacity:0.35}));
-    base.position.y = -1.5; rig.add(base);
+    base.position.y = -1.5 + MODEL_Y_OFFSET; // keep pedestal aligned after raising model
+    rig.add(base);
 
     // === Ambient floating glitter
     const dust = new THREE.Group(); scene.add(dust);
@@ -379,11 +611,17 @@
 
     // === Interaction / Controls (drag look)
     let isDown=false, lx=0, ly=0, yaw=0, pitch=0, targetYaw=0, targetPitch=0;
-    host.addEventListener('pointerdown', (e)=>{ isDown=true; lx=e.clientX; ly=e.clientY;});
-    window.addEventListener('pointerup', ()=> isDown=false);
+    // Auto-look (head gently turns left/right on its own)
+    let autoLook = true;            // toggle with 'A'
+    let autoAmp = 0.28;             // amplitude in radians (~16°)
+    let autoSpeed = 0.6;            // radians/sec factor for sine
+    let lastInteract = 0;           // ms since last user input
+    host.addEventListener('pointerdown', (e)=>{ isDown=true; lx=e.clientX; ly=e.clientY; lastInteract = performance.now(); });
+    window.addEventListener('pointerup', ()=> { isDown=false; lastInteract = performance.now(); });
     window.addEventListener('pointermove', (e)=>{
       if(!isDown) return; const dx=(e.clientX-lx), dy=(e.clientY-ly); lx=e.clientX; ly=e.clientY;
       targetYaw += dx*0.0022; targetPitch += dy*0.0015; targetPitch = Math.max(-0.6, Math.min(0.6,targetPitch));
+      lastInteract = performance.now();
     });
 
     // UI toggles and live visibility tuning
@@ -402,6 +640,9 @@
       if(k==='='){ uniforms.uFlowSpeed.value = Math.min(6.0, uniforms.uFlowSpeed.value + 0.2); }
       if(k.toLowerCase()==='b'){ uniforms.uFlowBoost.value = (uniforms.uFlowBoost.value>1.6? 1.2: 2.2); }
       if(k.toLowerCase()==='c'){ uniforms.uFlowContrast.value = (uniforms.uFlowContrast.value>2.0? 1.6: 2.6); }
+      if(k.toLowerCase()==='a'){ autoLook = !autoLook; }
+      if(k==='ArrowUp'){ rig.position.y += 0.04; }
+      if(k==='ArrowDown'){ rig.position.y -= 0.04; }
     });
 
     // Extra toggle: W = wireframe on/off (helps debugging visibility)
@@ -415,21 +656,125 @@
       }
     });
 
+    // Mic toggle button wiring + hotkey (with toast + suspend/resume)
+    const micBtn = document.getElementById('mic-toggle');
+    function syncMicBtn(){ if(!micBtn) return; const on = !!MIC.enabled; micBtn.setAttribute('aria-pressed', on?'true':'false'); micBtn.title = on ? 'Disable mic' : 'Enable mic'; }
+    async function enableMic(){
+      MIC.enabled = true;
+      if(MIC.ready){ try{ await MIC.ctx.resume(); }catch(_){} }
+      if(!MIC.ready){ initMic(); }
+      syncMicBtn(); micToast('Mic ON');
+    }
+    async function disableMic(){
+      MIC.enabled = false;
+      if(MIC.ready){ try{ await MIC.ctx.suspend(); }catch(_){} }
+      MIC.level = 0; // hard reset level
+      syncMicBtn(); micToast('Mic OFF');
+    }
+    if(micBtn && !micBtn.__wired){
+      micBtn.__wired = true;
+      micBtn.addEventListener('click', ()=>{ (MIC.enabled ? disableMic() : enableMic()); });
+      syncMicBtn();
+    }
+    if(!window.__MIC_HOTKEY_WIRED__){
+      window.__MIC_HOTKEY_WIRED__ = true;
+      window.addEventListener('keydown', (e)=>{
+        if(e.key.toLowerCase()==='m'){
+          (MIC.enabled ? disableMic() : enableMic());
+        }
+      });
+    }
+
     // Resize
     function onResize(){ const w=host.clientWidth, h=host.clientHeight; renderer.setSize(w,h); camera.aspect=w/h; camera.updateProjectionMatrix(); }
     window.addEventListener('resize', onResize);
 
     // Animate
     let t=0; function loop(){ requestAnimationFrame(loop); t+=0.016; uniforms.uTime.value = t; 
+      // Mic sampling → simple beat factor (respect toggle)
+      let beat = 0.0;
+      if(MIC.enabled && MIC.ready && MIC.analyser && MIC.data){
+        MIC.analyser.getByteFrequencyData(MIC.data);
+        let sum = 0, cnt = 0; const limit = Math.min(36, MIC.data.length);
+        for(let i=2;i<limit;i++){ sum += MIC.data[i]; cnt++; }
+        const avg = (cnt>0)? (sum/cnt) : 0;
+        MIC.level = Math.max(0, Math.min(1, (avg - 32) / 80));
+        beat = MIC.level;
+      } else { MIC.level = 0; }
       // ease rig rotation to target
-      yaw += (targetYaw - yaw)*0.08; pitch += (targetPitch - pitch)*0.08;
-      rig.rotation.y = yaw; rig.rotation.x = pitch; rig.position.y = Math.sin(t*0.6)*0.02;
+      yaw += (targetYaw - yaw)*0.08; 
+      pitch += (targetPitch - pitch)*0.08;
+      // Auto-look oscillation (only when not interacting recently)
+      let autoYaw = 0.0;
+      if(autoLook){
+        const now = performance.now();
+        const since = now - (lastInteract||0);
+        // Fade in auto after ~0.8s of no interaction
+        const fade = Math.max(0, Math.min(1, (since - 800) / 800));
+        autoYaw = Math.sin(t * autoSpeed) * autoAmp * fade;
+      }
+      rig.rotation.y = yaw + autoYaw;
+      rig.rotation.x = pitch;
+      rig.position.y = Math.sin(t*0.6)*0.02;
       // animate shimmer points (if any)
       rig.traverse((o)=>{
         if(o.isPoints && o.userData._isShimmer){
           const pm = o.material; if(pm && pm.size !== undefined){ pm.size = 0.015 + 0.007*(1.0 + Math.sin(t*2.0)); }
         }
       });
+      // Animate Tesla bolts if present
+      if(currentHead && currentHead.userData && currentHead.userData.isTesla){
+        const bolts = currentHead.userData.bolts;
+        if(bolts){
+          // target count & spawn rate scale with beat
+          const target = 6 + Math.floor(6 * beat); // up to 12 bolts on peak
+          const spawnProb = 0.04 + 0.22 * beat;    // more spawn when louder
+          if(bolts.children.length < target && Math.random() < spawnProb){ currentHead.userData.spawn(); }
+          for(let i=bolts.children.length-1;i>=0;i--){
+            const g = bolts.children[i];
+            g.userData.life++;
+            const u = g.userData.life / g.userData.max; // 0..1
+            // ease in/out opacity
+            const ease = u < 0.5 ? (u*2.0) : (1.0 - (u-0.5)*2.0);
+            const alpha = Math.max(0.0, Math.pow(ease, 0.6));
+            const boost = 0.7 + 1.8 * beat; // brighter on beats
+            g.children[0].material.opacity = 0.38 * alpha * boost;
+            g.children[1].material.opacity = 0.26 * alpha * boost;
+            // slight group sway
+            g.rotation.z += 0.0025 * g.userData.dir;
+            // crackle jitter
+            if(Math.random()<0.35){ g.userData.jitter(); }
+            // despawn
+            if(g.userData.life >= g.userData.max){ bolts.remove(g); g.children.forEach(ch=>{ ch.geometry.dispose(); ch.material.dispose(); }); }
+          }
+        }
+        // Animate inner arcs (core → shell)
+        const inner = currentHead.userData.inner;
+        if(inner){
+          const targetI = 10 + Math.floor(16 * beat); // many arcs on peaks
+          const spawnProbI = 0.06 + 0.30 * beat;
+          if(inner.children.length < targetI && Math.random() < spawnProbI){ currentHead.userData.spawnInner(); }
+          for(let i=inner.children.length-1;i>=0;i--){
+            const g = inner.children[i];
+            g.userData.life++;
+            const u = g.userData.life / g.userData.max;
+            const ease = u < 0.5 ? (u*2.0) : (1.0 - (u-0.5)*2.0);
+            const alpha = Math.max(0.0, Math.pow(ease, 0.6));
+            const boost = 0.7 + 1.8 * beat;
+            g.children[0].material.opacity = 0.40 * alpha * boost;
+            g.children[1].material.opacity = 0.32 * alpha * boost;
+            if(Math.random()<0.45){ g.userData.jitter(); }
+            if(g.userData.life >= g.userData.max){ inner.remove(g); g.children.forEach(ch=>{ ch.geometry.dispose(); ch.material.dispose(); }); }
+          }
+        }
+        // Core pulsing scale with beat
+        currentHead.traverse((o)=>{
+          if(o.userData && o.userData._isCore){
+            const s = 0.38 * (1.0 + 0.25*beat + 0.05*Math.sin(t*6.0));
+            o.scale.setScalar(Math.max(0.1, s));
+          }
+        });
+      }
       // points twinkle
       dPoints.rotation.y += 0.0008; dPoints.rotation.x += 0.0003;
       camera.lookAt(rig.position);
@@ -461,5 +806,8 @@
     // Ensure hidden by default when no saved preference
     sync();
   })();
+
   </script>
 </html>
+
+    
