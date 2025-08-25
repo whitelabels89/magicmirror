@@ -383,6 +383,38 @@
                   inset 0 0 calc(80px + 60px * var(--intensity)) rgba(0,245,212,.25);
       animation: breathe 3.2s ease-in-out infinite;
     }
+    /* === Orb: Hologram Head texture (ultra‑luxe) === */
+    #ai-avatar .holo-head{
+      position:absolute; inset:8%;
+      background: url('/holo-head.png') center/contain no-repeat;
+      mix-blend-mode: screen; opacity:.95;
+      filter: hue-rotate(160deg) saturate(1.25) brightness(1.15) contrast(1.05);
+      transform: translate(calc(var(--tx, 0px) * .35), calc(var(--ty, 0px) * .35));
+      will-change: transform, opacity;
+      animation: headBreathe 6s ease-in-out infinite;
+    }
+    #ai-avatar .holo-head::before{
+      content:""; position:absolute; inset:-2%; pointer-events:none;
+      background:
+        repeating-linear-gradient(to bottom, rgba(124,255,178,.10) 0 1px, transparent 1px 3px),
+        radial-gradient(120% 100% at 50% 10%, rgba(124,255,178,.18), transparent 60%);
+      mix-blend-mode: screen; opacity:.45;
+      animation: scanY 7s linear infinite;
+    }
+    #ai-avatar .holo-head::after{
+      content:""; position:absolute; inset:-8%; pointer-events:none;
+      background: linear-gradient(115deg, transparent 35%, rgba(124,255,178,.28) 50%, transparent 65%);
+      background-size: 220% 220%;
+      mix-blend-mode: screen; opacity:.35;
+      animation: sweep 4.8s ease-in-out infinite;
+    }
+    @keyframes headBreathe{ 0%,100%{ filter: hue-rotate(160deg) saturate(1.2) brightness(1.08); } 50%{ filter: hue-rotate(160deg) saturate(1.35) brightness(1.18);} }
+    @keyframes scanY{ 0%{ transform: translateY(0); } 100%{ transform: translateY(-10%);} }
+    @keyframes sweep{ 0%,100%{ background-position: 120% 0; } 50%{ background-position: -20% 100%; } }
+
+    @media (prefers-reduced-motion: reduce){
+      #ai-avatar .holo-head, #ai-avatar .holo-head::before, #ai-avatar .holo-head::after{ animation: none !important; }
+    }
     #ai-avatar .noise{
       position:absolute; inset:-10%; filter: contrast(140%) brightness(130%);
       mix-blend-mode: screen; opacity:.55; pointer-events:none;
@@ -580,7 +612,6 @@ h1{ color:#dff9f3; letter-spacing:.6px; text-shadow:0 0 24px rgba(54,225,198,.18
 /* Finer transitions for overall UI */
 *{ transition: background-color .28s ease, color .28s ease, box-shadow .28s ease, border-color .28s ease; }
 
-/* === Ultra‑Luxe Enhancements === */
 html, body{
   background:
     radial-gradient(1600px 720px at 50% -15%, #112c2a 0%, #0a1918 60%, #050c0b 100%),
@@ -639,6 +670,34 @@ h1{
   box-shadow: 0 16px 44px rgba(0,0,0,.55);
 }
 
+/* === Ultra‑Luxe: Particle Shimmer (gold dust) === */
+#lux-particles{ position:fixed; inset:0; pointer-events:none; z-index: 1; opacity:.65; transition: opacity .4s ease; }
+.idle-blackout #lux-particles{ opacity:0; }
+#lux-particles .p{ position:absolute; width:6px; height:6px; border-radius:50%;
+  background: radial-gradient(circle, rgba(233,196,106,.95) 0%, rgba(233,196,106,.5) 45%, rgba(233,196,106,0) 70%);
+  box-shadow: 0 0 6px rgba(233,196,106,.55), 0 0 16px rgba(124,255,178,.25);
+  filter: saturate(1.1) brightness(1.1);
+  animation: dustFloat var(--dur,18s) linear var(--delay,0s) infinite,
+             dustTwinkle 2.4s ease-in-out calc(var(--delay,0s) * .5) infinite;
+  transform: translate3d(0,0,0);
+}
+#lux-particles .p.tiny{ width:3px; height:3px; box-shadow:0 0 4px rgba(233,196,106,.45), 0 0 10px rgba(124,255,178,.2); }
+#lux-particles .p.mid{ width:8px; height:8px; }
+#lux-particles .p.big{ width:10px; height:10px; box-shadow:0 0 8px rgba(233,196,106,.6), 0 0 18px rgba(124,255,178,.28); }
+
+@keyframes dustFloat{
+  0%{ transform: translate3d(0, 104vh, 0); opacity:0; }
+  6%{ opacity:.9; }
+  92%{ opacity:.85; }
+  100%{ transform: translate3d( var(--sx,0px), -12vh, 0); opacity:0; }
+}
+@keyframes dustTwinkle{ 0%,100%{ opacity:.9; } 50%{ opacity:.6; } }
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce){
+  #lux-particles{ display:none; }
+}
+
 </style>
 
 
@@ -657,6 +716,7 @@ h1{
           </div>
         </div>
         <div id="navbar" class="hidden-block"></div>
+        <div id="lux-particles" aria-hidden="true"></div>
     <script>
         fetch('navbar.html')
           .then(res => res.text())
@@ -1129,7 +1189,7 @@ socket.on('generated_faces', (data) => {
       <div class="orb-motion">
         <div class="orb-wrap">
           <div class="halo"></div>
-          <div class="core"></div>
+          <div class="core"><div class="holo-head" aria-hidden="true"></div></div>
           <div class="pulse"></div>
           <div class="pulse pulse2"></div>
           <!-- SVG noise using feTurbulence for organic life -->
@@ -1179,6 +1239,41 @@ socket.on('generated_faces', (data) => {
         </form>
       </div>
     </div>
+
+    <script>
+// Ultra‑Luxe Gold Dust Particles (lightweight, CSS‑driven)
+(function(){
+  const wrap = document.getElementById('lux-particles');
+  if(!wrap) return;
+  const MAX = 48; // keep it subtle
+  const seed = (n)=> Math.floor(Math.random()*n);
+  // Create particles once
+  for(let i=0;i<MAX;i++){
+    const s = document.createElement('span');
+    s.className = 'p ' + (i%7===0? 'big' : i%5===0? 'mid' : 'tiny');
+    // random horizontal start
+    const left = seed(100);
+    s.style.left = left + 'vw';
+    // slight drift sideways
+    const drift = (seed(40) - 20); // -20..19 px across full path
+    s.style.setProperty('--sx', drift + 'px');
+    // duration + delay variety
+    const dur = 14 + seed(14); // 14s..27s
+    const delay = seed(160)/10 - 8; // -8..+8s (staggered)
+    s.style.setProperty('--dur', dur + 's');
+    s.style.setProperty('--delay', delay + 's');
+    // random vertical offset so not all start at bottom together
+    const offsetY = seed(100);
+    s.style.transform = `translate3d(0, ${offsetY}vh, 0)`;
+    wrap.appendChild(s);
+  }
+  // Pause when tab hidden (saves battery); resume when visible
+  document.addEventListener('visibilitychange', ()=>{
+    wrap.style.animationPlayState = document.hidden ? 'paused' : 'running';
+    [...wrap.children].forEach(el=> el.style.animationPlayState = document.hidden ? 'paused' : 'running');
+  });
+})();
+    </script>
   
     <!-- Avatar state controller -->
     <script>

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hologram Head – Ultra Real</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;background:#071312;color:#eafbf6;overflow:hidden}
+    /* Premium backdrop */
+    body{
+      background:
+        radial-gradient(1600px 720px at 50% -12%, #112c2a 0%, #0a1918 60%, #050c0b 100%),
+        radial-gradient(600px 260px at 8% 10%, rgba(54,225,198,.08), transparent 65%),
+        radial-gradient(800px 320px at 92% 88%, rgba(124,255,178,.06), transparent 70%);
+    }
+    #app{position:fixed; inset:0}
+    canvas{display:block}
+    /* UI hint */
+    .hint{position:fixed; left:20px; bottom:18px; opacity:.65; font:500 12px system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, 'Helvetica Neue', Arial}
+    .hint kbd{padding:2px 6px; border:1px solid #2b4946; border-radius:6px; background:#0b1f1d; color:#dff9f3}
+  </style>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="app"></div>
+  <div class="hint">Drag = look · <kbd>G</kbd> glow · <kbd>L</kbd> lines · <kbd>1</kbd>/<kbd>2</kbd>/<kbd>3</kbd> switch model</div>
+
+  <script type="module">
+  import * as THREE from 'three';
+  import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+  // ==========================
+  // Realistic Hologram Head (no external model):
+  // - Lathe head geometry (stylized human head)
+  // - Custom shader stripes + fresnel glow (horizontal lines like reference)
+  // - Dynamic point cloud shimmer
+  // - Subtle camera parallax and drag look
+  // ==========================
+  (function(){
+    const host = document.getElementById('app');
+    const W = host.clientWidth, H = host.clientHeight, DPR = Math.min(2, window.devicePixelRatio||1);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(22, W/H, 0.1, 100);
+    camera.position.set(0, 0.18, 6.5);
+
+    const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+    renderer.setPixelRatio(DPR); renderer.setSize(W,H); renderer.setClearColor(0x000000, 0);
+    host.appendChild(renderer.domElement);
+
+    // Lighting is minimal; most look comes from shader emissive/fresnel
+    const rig = new THREE.Group();
+    scene.add(rig);
+
+    // === Shader material for horizontal stripes + fresnel glow
+    const uniforms = {
+      uTime: { value: 0 },
+      uColorA: { value: new THREE.Color(0x7cffb2) },
+      uColorB: { value: new THREE.Color(0x36e1c6) },
+      uStripeDensity: { value: 110.0 },   // number of lines along height
+      uStripeSmooth: { value: 0.75 },     // softness of band edges
+      uGlow: { value: 1.0 },
+      uLineStrength: { value: 0.95 },
+      uViewPos: { value: camera.position.clone() },
+    };
+
+    const vert = `
+      varying vec3 vPos; varying vec3 vNormal; varying vec3 vWorld; 
+      void main(){
+        vPos = position; vNormal = normalize(normalMatrix * normal);
+        vec4 worldPos = modelMatrix * vec4(position,1.0); vWorld = worldPos.xyz;
+        gl_Position = projectionMatrix * viewMatrix * worldPos;
+      }
+    `;
+
+    // Simple hash noise
+    const noise = `
+      float hash12(vec2 p){ vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+        p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z);
+      }
+    `;
+
+    const frag = `
+  precision highp float; varying vec3 vPos; varying vec3 vNormal; varying vec3 vWorld;
+  uniform float uTime; uniform vec3 uColorA; uniform vec3 uColorB;
+  uniform float uStripeDensity; uniform float uStripeSmooth; uniform float uGlow; uniform float uLineStrength; uniform vec3 uViewPos;
+
+  float hash12(vec2 p){ vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+    p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
+
+  void main(){
+    // View/fresnel glow
+    vec3 V = normalize(uViewPos - vWorld);
+    float fres = pow(1.0 - max(dot(normalize(vNormal), V), 0.0), 2.0);
+
+    // Dynamic horizontal stripes (orb-like)
+    float y = vWorld.y * uStripeDensity + uTime*12.0;
+    float band = abs(fract(y) - 0.5);
+    float stripes = smoothstep(0.45, 0.45 - uStripeSmooth*0.45, band);
+
+    // Line strength + micro twinkle noise
+    float n = hash12(vWorld.xz * 3.5 + uTime*0.05);
+    float twinkle = 0.85 + 0.35 * sin(uTime*2.0 + vWorld.x*4.0 + vWorld.y*3.0);
+    stripes = clamp(stripes * uLineStrength * mix(0.78, 1.22, n) * twinkle, 0.0, 1.0);
+
+    // Sweeping glint (diagonal)
+    float sweep = smoothstep(0.0, 1.0, 0.5 + 0.5*sin(uTime*1.2 + vWorld.x*1.6 - vWorld.y*1.2));
+    stripes = max(stripes, 0.35 * sweep);
+
+    // Color blend and rim glow
+    vec3 base = mix(uColorB, uColorA, stripes);
+    base += fres * uGlow * 0.8;
+
+    // Vertical vignette for depth
+    float vignY = smoothstep(0.0, 0.6, abs(vWorld.y)*0.5);
+    base *= mix(0.7, 1.0, 1.0 - vignY);
+
+    gl_FragColor = vec4(base, 0.92);
+  }
+`;
+
+    // === Fallback: procedural head (lathe) if GLB invalid (e.g., sphere)
+    function createFallbackHead(){
+      const pts = [];
+      for(let i=0;i<=96;i++){
+        const t = i/96;                 // 0..1 chin->crown
+        const y = -1.22 + 2.44*t;       // total height ~2.44
+        let r = 0.56 + 0.46*Math.sin(Math.PI*t);
+        if(t<0.22) r *= 0.64 + 0.62*t;            // jaw+chin
+        if(t>0.74) r *= 1.06 - 0.62*(t-0.74)/0.26;// forehead taper
+        if(t<0.08) r *= 0.48;                      // neck
+        pts.push(new THREE.Vector2(r, y));
+      }
+      const g = new THREE.LatheGeometry(pts, 320);
+      g.rotateX(Math.PI*0.03);
+      g.computeVertexNormals();
+      const m = new THREE.ShaderMaterial({ uniforms, vertexShader: vert, fragmentShader: frag, transparent:true, depthWrite:false, depthTest:false, side: THREE.DoubleSide });
+      const mesh = new THREE.Mesh(g, m);
+      mesh.scale.set(0.92, 1.0, 1.06);
+      return mesh;
+    }
+
+    // === Reusable GLB loader with auto-center/scale and fallback
+    let currentHead = null;
+    const loader = new GLTFLoader();
+    // Shim: ignore legacy/unsupported material extensions (we override materials anyway)
+    loader.register((parser)=>({ name: 'KHR_materials_pbrSpecularGlossiness' }));
+    loader.register((parser)=>({ name: 'KHR_materials_common' }));
+
+    function clearHead(){
+      if(currentHead){ rig.remove(currentHead); currentHead.traverse?.(o=>{ if(o.geometry) o.geometry.dispose?.(); if(o.material){ if(o.material.map) o.material.map.dispose?.(); o.material.dispose?.(); }}); currentHead = null; }
+    }
+
+    function loadHead(url){
+      clearHead();
+      const badge = document.createElement('div');
+      badge.style.cssText = 'position:fixed;left:16px;top:16px;background:#0b1f1d;border:1px solid #2b4946;color:#dff9f3;padding:8px 10px;border-radius:8px;z-index:10000;font:500 12px system-ui;opacity:.9';
+      badge.textContent = `Loading ${url} ...`; document.body.appendChild(badge);
+
+      loader.load(url, (gltf)=>{
+        const head = gltf.scene;
+        let meshCount=0, skinnedCount=0;
+        head.traverse((child)=>{
+          if(child.isMesh || child.isSkinnedMesh){
+            meshCount++; if(child.isSkinnedMesh) skinnedCount++;
+            if(child.isSkinnedMesh){
+              child.material = new THREE.MeshBasicMaterial({ color: 0x7cffb2, wireframe:true, transparent:true, opacity:0.9, side: THREE.DoubleSide, depthTest:false, depthWrite:false });
+            } else {
+              child.material = new THREE.ShaderMaterial({
+                uniforms, vertexShader: vert, fragmentShader: frag,
+                transparent:true, depthWrite:false, depthTest:false, side: THREE.DoubleSide
+              });
+            }
+            child.castShadow = child.receiveShadow = false; child.frustumCulled=false; child.renderOrder=1;
+          }
+        });
+
+        // Add a points shimmer overlay on top of each non-skinned mesh
+        head.traverse((child)=>{
+          if(child.isMesh && !child.isSkinnedMesh){
+            const geo = child.geometry;
+            const pts = new THREE.Points(
+              geo,
+              new THREE.PointsMaterial({ color: 0x7cffb2, size: 0.016, sizeAttenuation: true, transparent:true, opacity:0.9 })
+            );
+            // Match transform
+            pts.position.copy(child.position); pts.rotation.copy(child.rotation); pts.scale.copy(child.scale);
+            // Render after mesh
+            pts.renderOrder = 2; pts.frustumCulled = false; pts.userData._isShimmer = true;
+            child.add(pts);
+          }
+        });
+
+        // Auto center/scale
+        const preBox = new THREE.Box3().setFromObject(head);
+        const size = new THREE.Vector3(); preBox.getSize(size);
+        const center = new THREE.Vector3(); preBox.getCenter(center);
+        head.position.sub(center);
+        const targetH = 2.4; const s = (size.y>0.0001)? (targetH/size.y) : 1.0; head.scale.setScalar(s);
+        const box = new THREE.Box3().setFromObject(head); const minY = box.min.y; head.position.y += (-1.2 - minY);
+
+        // Sphere/placeholder detection (more lenient)
+        const aspectXY = Math.abs(size.x - size.y) / Math.max(size.x, size.y);
+        const aspectYZ = Math.abs(size.y - size.z) / Math.max(size.y, size.z);
+        const isNearSphere = (aspectXY < 0.03) && (aspectYZ < 0.03);
+        const likelySphereByName = (gltf.scene.name||'').toLowerCase().includes('sphere');
+        if(isNearSphere || likelySphereByName || meshCount===0){
+          const toast = document.createElement('div');
+          toast.style.cssText = 'position:fixed;right:16px;top:16px;background:#3a1f1f;border:1px solid #a85d5d;color:#ffdede;padding:10px 12px;border-radius:8px;z-index:10000;font:500 12px system-ui';
+          toast.textContent = `${url} looks like a sphere/empty. Using procedural fallback.`; document.body.appendChild(toast); setTimeout(()=>toast.remove(), 4200);
+          const fallback = createFallbackHead(); fallback.position.y = -0.2; currentHead=fallback; rig.add(fallback);
+          badge.textContent = `Loaded: ${url} → fallback (meshes: ${meshCount}${skinnedCount?` skinned:${skinnedCount}`:''})`;
+          setTimeout(()=>badge.remove(), 3500);
+          return;
+        }
+
+        // Face toward camera if needed + proportion tweak
+        if(size.z > size.x * 1.2){ head.rotation.y = Math.PI; }
+        head.scale.x *= 0.92; head.scale.z *= 1.06;
+
+        currentHead = head; rig.add(head);
+        // === Force-visible helpers & diagnostics
+        // 1) Fit camera z based on bounding sphere (for safety)
+        const sphere = new THREE.Sphere();
+        new THREE.Box3().setFromObject(head).getBoundingSphere(sphere);
+        if(isFinite(sphere.radius) && sphere.radius>0){
+          const desired = sphere.radius / Math.tan((camera.fov * Math.PI/180) / 2) + 0.8; // padding
+          camera.position.z = Math.min(12, Math.max(3.5, desired));
+        }
+
+        // 2) Show a Box3 helper briefly so we know where the model sits
+        const helperBox = new THREE.Box3Helper(new THREE.Box3().setFromObject(head), 0x00ffcc);
+        helperBox.material.transparent = true; helperBox.material.opacity = 0.25; helperBox.renderOrder = 10;
+        rig.add(helperBox);
+        setTimeout(()=>{ helperBox.visible = false; }, 4000);
+
+        // 3) If somehow size is tiny, upscale again aggressively
+        const finalBox = new THREE.Box3().setFromObject(head);
+        const finalSize = new THREE.Vector3(); finalBox.getSize(finalSize);
+        if(finalSize.y < 0.2){
+          const boost = 0.2 / Math.max(1e-6, finalSize.y);
+          head.scale.multiplyScalar(boost);
+        }
+
+        // 4) Persistent HUD (until next load) with final numbers
+        const hud = document.createElement('div');
+        hud.style.cssText = 'position:fixed;left:16px;top:44px;background:#0b1f1d;border:1px solid #2b4946;color:#dff9f3;padding:8px 10px;border-radius:8px;z-index:10000;font:500 12px system-ui;opacity:.9';
+        hud.textContent = `Final bbox: ${finalSize.x.toFixed(2)} × ${finalSize.y.toFixed(2)} × ${finalSize.z.toFixed(2)} | camZ:${camera.position.z.toFixed(2)}`;
+        document.body.appendChild(hud);
+        setTimeout(()=>hud.remove(), 4500);
+        badge.textContent = `Loaded: ${url} ✓ meshes:${meshCount}${skinnedCount?` (skinned:${skinnedCount})`:''} sizeY:${size.y.toFixed(2)} → scale:${s.toFixed(3)}`;
+        setTimeout(()=>badge.remove(), 3500);
+      }, undefined, (err)=>{
+        console.error('GLB load error', err);
+        badge.textContent = `Failed to load ${url}`; setTimeout(()=>badge.remove(), 4000);
+        const msg = document.createElement('div');
+        msg.style.cssText = 'position:fixed;right:16px;top:16px;background:#0b1f1d;border:1px solid #2b4946;color:#dff9f3;padding:10px 12px;border-radius:8px;z-index:10000;font:500 12px system-ui';
+        msg.textContent = `Failed to load ${url} – check path & server static config`;
+        document.body.appendChild(msg); setTimeout(()=>msg.remove(), 5000);
+      });
+    }
+
+    // Hotkeys to switch models quickly
+    const MODELS = {
+      '1': '/glb/head.glb',
+      '2': '/glb/head2.glb',
+      '3': '/glb/head3.glb'
+    };
+    window.addEventListener('keydown', (e)=>{
+      if(MODELS[e.key]) loadHead(MODELS[e.key]);
+    });
+
+    // Auto-try head2 first (as default)
+    loadHead(MODELS['2']);
+
+    // === Grounded neck pedestal (very subtle)
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.48, 0.3, 48), new THREE.MeshBasicMaterial({ color: 0x0a2321, transparent:true, opacity:0.35}));
+    base.position.y = -1.35; rig.add(base);
+
+    // === Ambient floating glitter
+    const dust = new THREE.Group(); scene.add(dust);
+    const dGeom = new THREE.BufferGeometry();
+    const D = 400;
+    const arr = new Float32Array(D*3);
+    for(let i=0;i<D;i++){ arr[i*3+0]=(Math.random()-0.5)*5.0; arr[i*3+1]=Math.random()*3.0-0.5; arr[i*3+2]=(Math.random()-0.5)*3.0; }
+    dGeom.setAttribute('position', new THREE.BufferAttribute(arr,3));
+    const dMat = new THREE.PointsMaterial({ color:0xe9c46a, size:0.008, transparent:true, opacity:0.6 });
+    const dPoints = new THREE.Points(dGeom, dMat); dust.add(dPoints);
+
+    // === Interaction / Controls (drag look)
+    let isDown=false, lx=0, ly=0, yaw=0, pitch=0, targetYaw=0, targetPitch=0;
+    host.addEventListener('pointerdown', (e)=>{ isDown=true; lx=e.clientX; ly=e.clientY;});
+    window.addEventListener('pointerup', ()=> isDown=false);
+    window.addEventListener('pointermove', (e)=>{
+      if(!isDown) return; const dx=(e.clientX-lx), dy=(e.clientY-ly); lx=e.clientX; ly=e.clientY;
+      targetYaw += dx*0.0022; targetPitch += dy*0.0015; targetPitch = Math.max(-0.6, Math.min(0.6,targetPitch));
+    });
+
+    // UI toggles
+    window.addEventListener('keydown', (e)=>{
+      if(e.key.toLowerCase()==='g'){ uniforms.uGlow.value = uniforms.uGlow.value>0? 0.0:1.0; }
+      if(e.key.toLowerCase()==='l'){ uniforms.uLineStrength.value = uniforms.uLineStrength.value>0? 0.0:0.95; }
+      if(e.key.toLowerCase()==='p'){ /* pts visible toggle removed as pts no longer exists */ }
+    });
+
+    // Extra toggle: W = wireframe on/off (helps debugging visibility)
+    window.addEventListener('keydown', (e)=>{
+      if(e.key.toLowerCase()==='w'){
+        rig.traverse((o)=>{
+          if(o.isMesh && o.material){
+            if('wireframe' in o.material){ o.material.wireframe = !o.material.wireframe; }
+          }
+        });
+      }
+    });
+
+    // Resize
+    function onResize(){ const w=host.clientWidth, h=host.clientHeight; renderer.setSize(w,h); camera.aspect=w/h; camera.updateProjectionMatrix(); }
+    window.addEventListener('resize', onResize);
+
+    // Animate
+    let t=0; function loop(){ requestAnimationFrame(loop); t+=0.016; uniforms.uTime.value = t; 
+      // ease rig rotation to target
+      yaw += (targetYaw - yaw)*0.08; pitch += (targetPitch - pitch)*0.08;
+      rig.rotation.y = yaw; rig.rotation.x = pitch; rig.position.y = Math.sin(t*0.6)*0.02;
+      // animate shimmer points (if any)
+      rig.traverse((o)=>{
+        if(o.isPoints && o.userData._isShimmer){
+          const pm = o.material; if(pm && pm.size !== undefined){ pm.size = 0.015 + 0.007*(1.0 + Math.sin(t*2.0)); }
+        }
+      });
+      // points twinkle
+      dPoints.rotation.y += 0.0008; dPoints.rotation.x += 0.0003;
+      camera.lookAt(rig.position);
+      uniforms.uViewPos.value.copy(camera.position);
+      renderer.render(scene,camera);
+    } loop();
+  })();
+  </script>
+</body>
+</html>
