@@ -1747,6 +1747,152 @@ socket.on('generated_faces', (data) => {
     })();
     </script>
     <script>
+// === Assistant Fase 1: TTS + Proactive Greet + Quick Actions + Speak on results ===
+(function(){
+  // Namespace
+  window.Assistant = window.Assistant || {};
+  const A = window.Assistant;
+  A._spoken = A._spoken || {};
+  // Configurable TTS provider: 'web' (SpeechSynthesis) or 'remote' (your /tts endpoint)
+  A.config = Object.assign({ provider:'web', lang:'id-ID', voice:'', rate:1.0, pitch:1.0, volume:1.0 }, A.config||{});
+  A._audio = A._audio || new Audio();
+  A._audio.preload = 'none';
+  A._queue = A._queue || [];
+  A.setProvider = function(provider){ A.config.provider = provider; };
+  A.setVoice = function(voice){ A.config.voice = voice || ''; };
+  A.cancel = function(){ try{ speechSynthesis.cancel(); }catch(_){} try{ A._audio.pause(); A._audio.currentTime = 0; }catch(_){} A._queue.length = 0; };
+
+  A.speak = async function(text){
+    try{
+      if(!text) return;
+      const cfg = A.config || { provider:'web', lang:'id-ID' };
+      // Queue simple: if audio playing, enqueue; else play now
+      const playNext = async ()=>{
+        if(A._playing) return; // guard
+        const item = A._queue.shift();
+        if(!item) return;
+        A._playing = true;
+        if(cfg.provider === 'remote'){
+          // Call your backend TTS: POST /tts {text, lang, voice}
+          try{
+            const res = await fetch('/tts', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ text: item.text, lang: cfg.lang || 'id-ID', voice: cfg.voice || 'id-ID-female' }) });
+            const data = await res.json();
+            const src = data.audioUrl || (data.audioBase64 ? ('data:audio/mp3;base64,'+data.audioBase64) : '');
+            if(!src) throw new Error('TTS: no audio received');
+            A._audio.src = src;
+            A._audio.volume = (typeof cfg.volume==='number')? cfg.volume : 1.0;
+            await A._audio.play();
+            A._audio.onended = ()=>{ A._playing = false; playNext(); };
+          }catch(err){ console.warn('Remote TTS failed, fallback to web:', err); cfg.provider = 'web'; A._playing = false; A._queue.unshift(item); return playNext(); }
+        } else {
+          if(!('speechSynthesis' in window)) return; // no web TTS
+          const u = new SpeechSynthesisUtterance(String(item.text));
+          u.lang = cfg.lang || 'id-ID';
+          try{
+            const vs = speechSynthesis.getVoices();
+            let v = null;
+            if(cfg.voice){ v = vs.find(x=> (x.name&&x.name===cfg.voice) || (x.voiceURI&&x.voiceURI===cfg.voice)); }
+            if(!v){ v = vs.find(x=> x.lang && x.lang.toLowerCase().startsWith('id')); }
+            if(!v){ v = vs.find(x=> x.lang && x.lang.toLowerCase().startsWith('en')); }
+            if(v) u.voice = v;
+          }catch(_){ }
+          u.rate = (typeof cfg.rate==='number')? cfg.rate : 1.0;
+          u.pitch = (typeof cfg.pitch==='number')? cfg.pitch : 1.0;
+          u.volume = (typeof cfg.volume==='number')? cfg.volume : 1.0;
+          try{ speechSynthesis.cancel(); }catch(_){ }
+          speechSynthesis.speak(u);
+          u.onend = ()=>{ A._playing = false; playNext(); };
+          u.onerror = ()=>{ A._playing = false; playNext(); };
+        }
+      };
+      // enqueue and maybe start
+      A._queue.push({ text:String(text) });
+      playNext();
+    }catch(_){ /* ignore */ }
+  };
+  A.sayOnce = function(key, text){ if(A._spoken[key]) return; A._spoken[key]=1; A.speak(text); };
+
+  // Proactive greet: when camera turns ON for the first time
+  (function(){
+    let greeted = false;
+    const obs = new MutationObserver(()=>{
+      const on = document.body.classList.contains('camera-on');
+      if(on && !greeted){
+        greeted = true;
+        A.speak('Halo! Aku siap bantu analisa gaya yang cocok buatmu. Tekan Analyze atau bilang: mulai analisa.');
+      }
+    });
+    obs.observe(document.body, { attributes:true, attributeFilter:['class'] });
+  })();
+
+  // Quick actions (chips) in chat
+  (function(){
+    const panel = document.getElementById('ai-chat');
+    const form  = document.getElementById('ai-chat-form');
+    const msgs  = document.getElementById('ai-chat-msgs');
+    const input = document.getElementById('ai-chat-input');
+    if(!panel || !form || !msgs || document.getElementById('ai-quick-actions')) return;
+
+    function addMsg(text, who){
+      const div = document.createElement('div');
+      div.className = 'msg ' + (who||'bot');
+      div.textContent = text;
+      msgs.appendChild(div); msgs.scrollTop = msgs.scrollHeight;
+    }
+    async function sendQuick(prompt){
+      try{
+        addMsg(prompt, 'user');
+        const res = await fetch('/chat', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ session_id: window.sessionId, message: prompt })});
+        const data = await res.json().catch(()=>({}));
+        const reply = data.reply || data.message || 'Siap, aku bantu ya.';
+        addMsg(reply, 'bot');
+        A.speak(reply);
+      }catch(_){ addMsg('Maaf, server chat sedang sibuk. Coba lagi ya.', 'bot'); }
+    }
+
+    const qa = document.createElement('div');
+    qa.id = 'ai-quick-actions';
+    qa.style.display = 'flex'; qa.style.flexWrap = 'wrap'; qa.style.gap = '6px';
+    qa.style.padding = '8px 10px'; qa.style.borderTop = '1px solid rgba(255,255,255,.06)';
+
+    const presets = [
+      'Rekomendasi cepat',
+      'Tips perawatan rambut',
+      'Gaya untuk wajah bulat',
+      'Produk yang cocok',
+      'Apa tren terbaru?'
+    ];
+    presets.forEach(t=>{
+      const b = document.createElement('button');
+      b.type = 'button'; b.textContent = t;
+      b.style.padding='8px 10px'; b.style.borderRadius='10px';
+      b.style.border='1px solid rgba(124,255,124,.3)';
+      b.style.background='linear-gradient(135deg, rgba(255,255,255,.12), rgba(255,255,255,.06))';
+      b.style.color='#eafffb'; b.style.cursor='pointer';
+      b.addEventListener('click', ()=> sendQuick(t));
+      qa.appendChild(b);
+    });
+
+    // Insert above the composer form
+    form.parentNode.insertBefore(qa, form);
+  })();
+
+  // Speak during analysis lifecycle
+  (function(){
+    if(window.socket){
+      socket.on('ai_result', ()=>{
+        A.sayOnce('ai_result', 'Rekomendasi siap. Silakan lihat bagian rekomendasi di bawah.');
+      });
+      socket.on('generated_faces', (d)=>{
+        if(Array.isArray(d && d.faces) && d.faces.length>0){
+          A.speak('Visualisasi gaya rambut sudah tampil. Pilih yang paling kamu suka, ya.');
+        }
+      });
+    }
+  })();
+})();
+    </script>
+    <script>
     // === Draggable Orb (bounded within screen, with persistence) ===
     (function(){
       const orb = document.getElementById('ai-avatar');

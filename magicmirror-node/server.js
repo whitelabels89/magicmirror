@@ -1924,6 +1924,65 @@ app.post('/api/selesai-kelas', async (req, res) => {
   }
 });
 
+// --- Google Cloud Text-to-Speech endpoint (/tts) ---
+// Requires service account with Cloud Text-to-Speech permission.
+// Env supported: GOOGLE_SERVICE_ACCOUNT_KEY_BASE64 or SERVICE_ACCOUNT_KEY_BASE64 (JSON base64)
+// Usage: POST /tts { text, lang?: 'id-ID', voice?: 'id-ID-Wavenet-A', speakingRate?:1.0, pitch?:0.0, volumeGainDb?:0.0 }
+app.post('/tts', async (req, res) => {
+  try {
+    const { text, lang = 'id-ID', voice = 'id-ID-Wavenet-A', speakingRate = 1.0, pitch = 0.0, volumeGainDb = 0.0 } = req.body || {};
+    if (!text || String(text).trim().length === 0) {
+      return res.status(400).json({ error: 'Missing text' });
+    }
+
+    // Prepare GoogleAuth (use embedded credentials if provided)
+    let credentials = null;
+    try {
+      const b64 = process.env.GOOGLE_SERVICE_ACCOUNT_KEY_BASE64 || process.env.SERVICE_ACCOUNT_KEY_BASE64;
+      if (b64) credentials = JSON.parse(Buffer.from(b64, 'base64').toString('utf8'));
+    } catch(_) { /* ignore */ }
+
+    const auth = new google.auth.GoogleAuth({
+      scopes: ['https://www.googleapis.com/auth/cloud-platform'],
+      credentials: credentials || undefined
+    });
+    const client = await auth.getClient();
+    const tokenResp = await client.getAccessToken();
+    const accessToken = (typeof tokenResp === 'string') ? tokenResp : (tokenResp && tokenResp.token) || '';
+    if (!accessToken) return res.status(500).json({ error: 'Failed to obtain GCP access token' });
+
+    // Call Google TTS REST API
+    const gRes = await fetch('https://texttospeech.googleapis.com/v1/text:synthesize', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        input: { text: String(text) },
+        voice: { languageCode: lang, name: voice },
+        audioConfig: {
+          audioEncoding: 'MP3',
+          speakingRate,
+          pitch,
+          volumeGainDb
+        }
+      })
+    });
+
+    const data = await gRes.json().catch(() => ({}));
+    if (!gRes.ok || !data || !data.audioContent) {
+      return res.status(500).json({ error: 'GCP TTS failed', detail: data || null });
+    }
+
+    // Return base64 for front-end player
+    return res.json({ audioBase64: data.audioContent });
+  } catch (e) {
+    console.error('❌ Google TTS error:', e?.response?.data || e.message || e);
+    return res.status(500).json({ error: 'TTS exception' });
+  }
+});
+
 // Default route ke index.html
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/index.html'));
