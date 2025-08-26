@@ -750,6 +750,29 @@ h1{
     body.camera-on #camera-placeholder{ opacity: 0; }
     /* === Clean HUD: hide dev toggles === */
     .hud-toggles, #toggle-navbar, #toggle-footer, #toggle-heartbeat{ display:none !important; }
+    /* === Voice Command Toggle (tiny) === */
+    .vc-toggle{
+      position: fixed; right: 56px; bottom: 16px; z-index: 6;
+      width: 34px; height: 34px; border-radius: 999px; cursor: pointer;
+      border:1px solid rgba(233,196,106,.35);
+      background: linear-gradient(135deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
+      color:#eafbf6; display:grid; place-items:center;
+      box-shadow:0 8px 22px rgba(0,0,0,.35);
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .vc-toggle:hover{ transform: translateY(-1px); }
+    .vc-toggle[aria-pressed="true"]{
+      border-color: rgba(197,143,255,.7);
+      box-shadow:0 0 0 1px rgba(197,143,255,.35) inset, 0 0 16px rgba(197,143,255,.35), 0 8px 22px rgba(0,0,0,.35);
+    }
+    .vc-toast{
+      position:fixed; right: 56px; bottom: 56px; z-index: 7;
+      background:#0b1f1d; color:#dff9f3; border:1px solid #2b4946; border-radius:10px;
+      padding:8px 10px; font:600 12px system-ui; opacity:0; transform:translateY(6px);
+      transition:opacity .18s ease, transform .18s ease;
+    }
+    .vc-toast.show{ opacity:.96; transform:translateY(0); }
+    .vc-armed{ outline: 2px solid rgba(197,143,255,.6); outline-offset: 2px; }
     </style>
 
 
@@ -758,13 +781,18 @@ h1{
 </head>
     <body>
     <div id="holo-embed" aria-hidden="false">
-      <iframe src="/model.html?m=6" title="Hologram Head"></iframe>
+      <iframe src="/model.html?m=6&autoListen=1" title="Hologram Head"></iframe>
     </div>
     <script>
       (function(){
         const frame = document.querySelector('#holo-embed iframe');
         if(!frame) return;
-        function setModel6(){ try{ frame.contentWindow.postMessage({ type:'setModel', key:'6' }, '*'); }catch(_){} }
+        function setModel6(){
+          try {
+            frame.contentWindow.postMessage({ type:'setModel', key:'6' }, '*');
+            frame.contentWindow.postMessage({ type:'autoListen', enabled:true }, '*');
+          } catch(_){}
+        }
         // Try once after load and again after 1s as a fallback
         frame.addEventListener('load', ()=>{ setTimeout(setModel6, 150); setTimeout(setModel6, 1200); });
       })();
@@ -869,6 +897,8 @@ h1{
           <button id="fullscreen" class="btn secondary" title="Fullscreen mode">Fullscreen</button>
         </div>
         <button id="controls-toggle" class="controls-toggle" aria-pressed="true" title="Hide controls">▾</button>
+        <button id="vc-toggle" class="vc-toggle" aria-pressed="false" title="Enable voice command">🎙️</button>
+        <div id="vc-toast" class="vc-toast" style="display:none;">Say: “Hey Mirror…”</div>
         <div id="tip-caption" class="caption">Tip: posisi wajah sejajar kamera. Preview otomatis <strong>mirror</strong> agar natural di cermin.</div>
         <h1></h1>
         <div id="status">Waiting Analyze...</div>
@@ -1807,5 +1837,59 @@ socket.on('generated_faces', (data) => {
 
       // Kick it off
       resetTimer();
+    })();
+    </script>
+    <script>
+    // === Voice Command: "Hey Mirror" → Turn on camera / Analyze ===
+    (function(){
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const btn = document.getElementById('vc-toggle');
+      const toast = document.getElementById('vc-toast');
+      const camBtn = document.getElementById('toggle-camera-button');
+      const analyzeBtn = document.getElementById('capture-button');
+      if(!btn) return;
+
+      let rec = null, enabled = false, armed = false, armTimer = null;
+
+      function showToast(msg, ms){ if(!toast) return; toast.textContent = msg; toast.style.display='block'; toast.classList.add('show'); setTimeout(()=>{ toast.classList.remove('show'); setTimeout(()=> toast.style.display='none', 220); }, ms||1400); }
+      function setEnabled(on){ enabled = on; btn.setAttribute('aria-pressed', on?'true':'false'); btn.title = on? 'Disable voice command' : 'Enable voice command'; if(on){ showToast('Say: “Hey Mirror…”', 1600); } }
+      function arm(){ armed = true; document.body.classList.add('vc-armed'); showToast('Listening… say a command', 1800); clearTimeout(armTimer); armTimer = setTimeout(()=>{ armed=false; document.body.classList.remove('vc-armed'); }, 6000); }
+
+      function ensureRec(){
+        if(rec || !SR) return rec;
+        rec = new SR();
+        rec.lang = 'id-ID';
+        rec.interimResults = true;
+        rec.continuous = true;
+        rec.maxAlternatives = 1;
+        rec.onresult = (e)=>{
+          let txt = '';
+          for(let i=0;i<e.results.length;i++){ const r=e.results[i]; const s=r[0]?.transcript||''; if(r.isFinal) txt += ' ' + s; else txt += ' ' + s; }
+          txt = txt.toLowerCase();
+          if(!txt) return;
+          // Wake words
+          const woke = /(hey\s*mirror|hei\s*mirror|hey\s*magic\s*mirror|ok\s*mirror|oke\s*mirror|hai\s*mirror)/.test(txt);
+          if(woke){ arm(); return; }
+          if(!armed) return;
+          // Commands (ID & EN)
+          const turnOn = /(nyalakan|hidupkan|turn\s*on|start)\s*(kamera|camera|magic\s*mirror)?/.test(txt) || /(kamera|camera)\s*(nyala|on|hidup)/.test(txt);
+          const turnOff = /(matikan|turn\s*off|stop)\s*(kamera|camera|magic\s*mirror)?/.test(txt);
+          const analyze = /(analisis|analisa|mulai\s*analisa|mulai\s*analisis|analyze|analyse|start\s*analyze|go)/.test(txt);
+
+          if(turnOn){ try{ if(camBtn) camBtn.click(); }catch(_){} showToast('▶️ Camera: ON', 1000); armed=false; document.body.classList.remove('vc-armed'); return; }
+          if(turnOff){ try{ if(camBtn) camBtn.click(); }catch(_){} showToast('⏹ Camera: OFF', 1000); armed=false; document.body.classList.remove('vc-armed'); return; }
+          if(analyze){ try{ if(analyzeBtn) analyzeBtn.click(); }catch(_){} showToast('🔎 Analyze…', 1000); armed=false; document.body.classList.remove('vc-armed'); return; }
+        };
+        rec.onerror = (e)=>{ console.warn('VC error', e.error); if(e.error==='not-allowed'){ setEnabled(false); } };
+        rec.onend = ()=>{ if(enabled){ try{ rec.start(); }catch(_){} } };
+        return rec;
+      }
+
+      function start(){ if(!SR){ alert('Browser belum mendukung Voice Command. Coba Chrome/Edge terbaru.'); return; } ensureRec(); try{ rec.start(); }catch(_){} setEnabled(true); }
+      function stop(){ try{ rec && rec.stop && rec.stop(); }catch(_){} setEnabled(false); armed=false; document.body.classList.remove('vc-armed'); clearTimeout(armTimer); }
+
+      btn.addEventListener('click', ()=>{ (enabled? stop() : start()); });
+      // Optional keyboard shortcut
+      window.addEventListener('keydown', (e)=>{ if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='v'){ e.preventDefault(); (enabled? stop() : start()); } });
     })();
     </script>
