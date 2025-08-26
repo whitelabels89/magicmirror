@@ -1800,225 +1800,110 @@ socket.on('generated_faces', (data) => {
 </script>
 
     <script>
-    // === Voice Command: "Hey Mirror" → Turn on camera / Analyze ===
+    // === Voice Command: "Hey Mirror" wake, and Analyze Style trigger ===
     (function(){
-      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const btn = document.getElementById('vc-toggle');
+      // Find SpeechRecognition support
+      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if(!SpeechRec) return;
+      // UI elements
+      const vcBtn = document.getElementById('vc-toggle');
       const toast = document.getElementById('vc-toast');
-      const camBtn = document.getElementById('toggle-camera-button');
-      const analyzeBtn = document.getElementById('capture-button');
-      if(!btn) return;
+      const capBtn = document.getElementById('capture-button');
+      const toggleCamBtn = document.getElementById('toggle-camera-button');
+      let rec = null, listening = false, armed = false;
 
-      let rec = null, enabled = false, armed = false, armTimer = null;
-
-      // Helpers: toast, camera state, ensure camera then run
-      function vcToast(msg, ms){ if(!toast) return; toast.textContent = msg; toast.style.display='block'; toast.classList.add('show'); setTimeout(()=>{ toast.classList.remove('show'); setTimeout(()=> toast.style.display='none', 220); }, ms||1200); }
-      function isCameraOn(){ return document.body.classList.contains('camera-on'); }
-      function ensureCameraOnThen(run){
-        if(isCameraOn()){ run(); return; }
-        try{ camBtn && camBtn.click(); vcToast('▶️ Camera: ON', 900); }catch(_){}
-        const video = document.getElementById('camera-preview');
-        let done=false;
-        const tryRun = ()=>{ if(done) return; if(isCameraOn() && video && video.readyState>=2){ done=true; run(); } };
-        const obs = new MutationObserver(()=> tryRun());
-        obs.observe(document.body,{attributes:true,attributeFilter:['class']});
-        video && video.addEventListener('loadeddata', tryRun, { once:true });
-        setTimeout(()=>{ if(!done){ tryRun(); obs.disconnect(); } }, 2500);
+      // Helper: show toast feedback
+      function showToast(msg, ms){
+        if(!toast) return;
+        toast.textContent = msg;
+        toast.style.display = 'block';
+        toast.classList.add('show');
+        setTimeout(()=>{ toast.classList.remove('show'); }, ms||1200);
       }
+      // Helper: normalize phrase
+      function normPhrase(x){ return (x||'').trim().toLowerCase(); }
 
-      function showToast(msg, ms){ vcToast(msg, ms); }
-      function setEnabled(on){ enabled = on; btn.setAttribute('aria-pressed', on?'true':'false'); btn.title = on? 'Disable voice command' : 'Enable voice command'; if(on){ showToast('Say: “Hey Mirror…”', 1600); } }
-      function arm(){ armed = true; document.body.classList.add('vc-armed'); showToast('Listening… say a command', 1800); clearTimeout(armTimer); armTimer = setTimeout(()=>{ armed=false; document.body.classList.remove('vc-armed'); }, 6000); }
-
-      function ensureRec(){
-        if(rec || !SR) return rec;
-        rec = new SR();
-        rec.lang = 'id-ID';
-        rec.interimResults = true; // we combine transcripts ourselves
-        rec.continuous = true;
-        rec.maxAlternatives = 1;
-        rec.onresult = (e)=>{
-          let txt = '';
-          for(let i=0;i<e.results.length;i++){ const r=e.results[i]; const s=r[0]?.transcript||''; txt += ' ' + s; }
-          txt = txt.toLowerCase().trim();
-          if(!txt) return;
-
-          const woke = /(hey\s*mirror|hei\s*mirror|hey\s*magic\s*mirror|ok\s*mirror|oke\s*mirror|hai\s*mirror)/.test(txt);
-          const turnOn = /(nyalakan|hidupkan|turn\s*on|start)\s*(kamera|camera|magic\s*mirror)?/.test(txt) || /(kamera|camera)\s*(nyala|on|hidup)/.test(txt);
-          const turnOff = /(matikan|turn\s*off|stop)\s*(kamera|camera|magic\s*mirror)?/.test(txt);
-          const analyze = /(analisis|analisa|mulai\s*analisa|mulai\s*analisis|analyze|analyse|start\s*analyze|go)/.test(txt);
-
-          // Wake word → auto turn on camera and arm for next command
-          if(woke){
-            if(!isCameraOn()){ try{ camBtn && camBtn.click(); vcToast('▶️ Camera: ON', 900); }catch(_){} }
-            arm();
-            return;
-          }
-
-          // Command: Turn ON (works anytime)
-          if(turnOn){ try{ if(!isCameraOn()) camBtn && camBtn.click(); vcToast('▶️ Camera: ON', 900);}catch(_){} armed=false; document.body.classList.remove('vc-armed'); return; }
-
-          // Command: Turn OFF (works anytime)
-          if(turnOff){ try{ if(isCameraOn()) camBtn && camBtn.click(); vcToast('⏹ Camera: OFF', 900);}catch(_){} armed=false; document.body.classList.remove('vc-armed'); return; }
-
-          // Command: Analyze (works anytime; ensures camera first)
-          if(analyze){
-            ensureCameraOnThen(()=>{ try{ analyzeBtn && analyzeBtn.click(); vcToast('🔎 Analyze…', 900);}catch(_){} });
-            armed=false; document.body.classList.remove('vc-armed');
-            return;
-          }
-
-          // ignore stray text when not armed
-          if(!armed) return;
-        };
-        rec.onerror = (e)=>{ console.warn('VC error', e.error); if(e.error==='not-allowed'){ setEnabled(false); } };
-        rec.onend = ()=>{ if(enabled){ try{ rec.start(); }catch(_){} } };
-        return rec;
+      // Start/stop recognition
+      function setListening(on){
+        listening = on;
+        if(vcBtn) vcBtn.setAttribute('aria-pressed', on? 'true':'false');
+        if(on) vcBtn.classList.add('listening'); else vcBtn.classList.remove('listening');
       }
-
-      function start(){ if(!SR){ alert('Browser belum mendukung Voice Command. Coba Chrome/Edge terbaru.'); return; } ensureRec(); try{ rec.start(); }catch(_){} setEnabled(true); }
-      function stop(){ try{ rec && rec.stop && rec.stop(); }catch(_){} setEnabled(false); armed=false; document.body.classList.remove('vc-armed'); clearTimeout(armTimer); }
-
-      btn.addEventListener('click', ()=>{ (enabled? stop() : start()); });
-
-      // Expose minimal controller to outside scripts
-      window.VoiceCtl = {
-        start: ()=> start(),
-        stop: ()=> stop(),
-        isEnabled: ()=> enabled
-      };
-    })();
-    </script>
-
-    <script>
-    // Auto-arm Voice Command: start immediately if permission granted; else on first user gesture
-    (function(){
-      const hint = document.createElement('div');
-      hint.textContent = '🎙️ Ucapkan “Hey Mirror…”, lalu sentuh/tekan apa saja sekali untuk aktifkan voice';
-      hint.style.cssText = 'position:fixed;left:50%;bottom:64px;transform:translateX(-50%);background:#0b1f1d;border:1px solid #2b4946;color:#dff9f3;padding:8px 12px;border-radius:10px;z-index:9999;font:600 12px system-ui;opacity:0;transition:opacity .18s ease, transform .18s ease;box-shadow:0 8px 22px rgba(0,0,0,.35)';
-      let armed = false, hideTimer = null;
-      function showHint(){ document.body.appendChild(hint); requestAnimationFrame(()=>{ hint.style.opacity = '.96'; }); hideTimer = setTimeout(hideHint, 8000); }
-      function hideHint(){ try{ hint.style.opacity = '0'; }catch(_){} setTimeout(()=> hint.remove(), 220); if(hideTimer){ clearTimeout(hideTimer); hideTimer=null; } }
-
-      async function tryAuto(){
-        if(!window.VoiceCtl){ return; }
-        // 1) If already granted, start immediately (no extra click needed)
-        if(navigator.permissions && navigator.permissions.query){
-          try{
-            const st = await navigator.permissions.query({ name: 'microphone' });
-            if(st.state === 'granted'){ window.VoiceCtl.start(); return; }
-          }catch(_){ /* ignore */ }
+      function startRec(){
+        if(listening) return;
+        if(!rec){
+          rec = new SpeechRec();
+          rec.lang = 'id-ID';
+          rec.interimResults = true;
+          rec.continuous = false;
+          rec.maxAlternatives = 1;
         }
-        // 2) Else, arm a one-time global user gesture to start VC
-        if(armed) return; armed = true; showHint();
-        const fire = ()=>{ hideHint(); if(window.VoiceCtl && !window.VoiceCtl.isEnabled()){ window.VoiceCtl.start(); } cleanup(); };
-        const cleanup = ()=>{
-          window.removeEventListener('pointerdown', fire, true);
-          window.removeEventListener('keydown', fire, true);
-          window.removeEventListener('touchstart', fire, { capture:true });
+        rec.onresult = function(e){
+          let finalTxt = '';
+          let interimTxt = '';
+          for(let i=0;i<e.results.length;i++){
+            if(e.results[i].isFinal){ finalTxt += e.results[i][0].transcript; }
+            else { interimTxt += e.results[i][0].transcript; }
+          }
+          // Only handle on final
+          if(finalTxt){
+            // Normalize the recognized phrase
+            const __mm_said = normPhrase(finalTxt);
+            // Wake word: "hey mirror"
+            if(/\b(hey\s+mirror|hai\s+mirror|hei\s+mirror|hai\s+cermin|hey\s+cermin)\b/.test(__mm_said)){
+              // Arm for next command, turn on camera if not already
+              armed = true;
+              if(toggleCamBtn && toggleCamBtn.innerText.match(/turn on/i)){
+                toggleCamBtn.click();
+                showToast('🪞 Magic Mirror menyala!', 1200);
+              } else {
+                showToast('🎤 Siap menerima perintah…', 1200);
+              }
+              return;
+            }
+            // If not armed, ignore (must say wake word first)
+            if(!armed) return;
+
+            // 🚀 NEW: voice command to run Analyze Style
+            // If user says "mulai analisa / analisis / analyze / analyze style / start analysis", click the Analyze button
+            if (/\b(mulai\s+anal(isa|isis)|anal(isa|isis)(\s*sekarang)?|analy[sz]e(\s*style)?|start\s+analys(e|is))\b/.test(__mm_said)) {
+              const btn = document.getElementById('capture-button');
+              if (btn && !btn.disabled) {
+                // Optional tiny toast feedback, non-blocking
+                const t = document.getElementById('vc-toast');
+                if (t) {
+                  t.textContent = '🔍 Menjalankan Analyze Style…';
+                  t.style.display = 'block';
+                  t.classList.add('show');
+                  setTimeout(()=>{ t.classList.remove('show'); }, 1200);
+                }
+                btn.click();
+              }
+              // Stop further command handling on this utterance
+              armed = false;
+              return;
+            }
+            // Add more commands here if needed...
+
+            // Fallback: unknown command
+            showToast('🤔 Perintah tidak dikenali.', 1200);
+            armed = false;
+          }
         };
-        window.addEventListener('pointerdown', fire, true);
-        window.addEventListener('keydown', fire, true);
-        window.addEventListener('touchstart', fire, { capture:true });
+        rec.onerror = function(e){ setListening(false); showToast('❌ Error: ' + (e.error||'SR error'), 1200);}
+        rec.onend = function(){ setListening(false); };
+        setListening(true);
+        rec.start();
       }
-
-      if(document.readyState === 'complete' || document.readyState === 'interactive') tryAuto();
-      else window.addEventListener('DOMContentLoaded', tryAuto);
+      function stopRec(){
+        try{ rec && rec.stop && rec.stop(); }catch(_){}
+        setListening(false);
+      }
+      // Toggle button
+      if(vcBtn){
+        vcBtn.addEventListener('click', ()=>{
+          if(listening) stopRec();
+          else startRec();
+        });
+      }
     })();
-    </script>
-  </body>
-</html>
-
-    <script>
-    // === Idle Blackout Controller (10s) ===
-    (function(){
-      const IDLE_MS = 10000;
-      let t = null, isIdle = false;
-      const body = document.body;
-      const avatar = document.getElementById('ai-avatar');
-
-      function enterIdle(){
-        if(isIdle) return;
-        isIdle = true;
-        body.classList.add('idle-blackout');
-        avatar?.classList.add('thinking');         // give it more life while idle
-        try { window.HeartbeatCtl?.startCalm?.(); } catch(_){}
-      }
-      function exitIdle(){
-        if(!isIdle) return;
-        isIdle = false;
-        body.classList.remove('idle-blackout');
-        avatar?.classList.remove('thinking');
-      }
-      function resetTimer(){
-        clearTimeout(t);
-        if(isIdle) exitIdle();
-        t = setTimeout(enterIdle, IDLE_MS);
-      }
-
-      // Activity that cancels idle
-      ['mousemove','mousedown','keydown','touchstart','scroll','wheel'].forEach(evt =>
-        window.addEventListener(evt, resetTimer, {passive:true})
-      );
-      document.addEventListener('visibilitychange', ()=>{
-        if(document.hidden){ clearTimeout(t); } else { resetTimer(); }
-      });
-
-      // Kick it off
-      resetTimer();
-    })();
-    </script>
-    <script>
-    // === Voice Command: "Hey Mirror" → Turn on camera / Analyze ===
-    (function(){
-      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const btn = document.getElementById('vc-toggle');
-      const toast = document.getElementById('vc-toast');
-      const camBtn = document.getElementById('toggle-camera-button');
-      const analyzeBtn = document.getElementById('capture-button');
-      if(!btn) return;
-
-      let rec = null, enabled = false, armed = false, armTimer = null;
-
-      function showToast(msg, ms){ if(!toast) return; toast.textContent = msg; toast.style.display='block'; toast.classList.add('show'); setTimeout(()=>{ toast.classList.remove('show'); setTimeout(()=> toast.style.display='none', 220); }, ms||1400); }
-      function setEnabled(on){ enabled = on; btn.setAttribute('aria-pressed', on?'true':'false'); btn.title = on? 'Disable voice command' : 'Enable voice command'; if(on){ showToast('Say: “Hey Mirror…”', 1600); } }
-      function arm(){ armed = true; document.body.classList.add('vc-armed'); showToast('Listening… say a command', 1800); clearTimeout(armTimer); armTimer = setTimeout(()=>{ armed=false; document.body.classList.remove('vc-armed'); }, 6000); }
-
-      function ensureRec(){
-        if(rec || !SR) return rec;
-        rec = new SR();
-        rec.lang = 'id-ID';
-        rec.interimResults = true;
-        rec.continuous = true;
-        rec.maxAlternatives = 1;
-        rec.onresult = (e)=>{
-          let txt = '';
-          for(let i=0;i<e.results.length;i++){ const r=e.results[i]; const s=r[0]?.transcript||''; if(r.isFinal) txt += ' ' + s; else txt += ' ' + s; }
-          txt = txt.toLowerCase();
-          if(!txt) return;
-          // Wake words
-          const woke = /(hey\s*mirror|hei\s*mirror|hey\s*magic\s*mirror|ok\s*mirror|oke\s*mirror|hai\s*mirror)/.test(txt);
-          if(woke){ arm(); return; }
-          if(!armed) return;
-          // Commands (ID & EN)
-          const turnOn = /(nyalakan|hidupkan|turn\s*on|start)\s*(kamera|camera|magic\s*mirror)?/.test(txt) || /(kamera|camera)\s*(nyala|on|hidup)/.test(txt);
-          const turnOff = /(matikan|turn\s*off|stop)\s*(kamera|camera|magic\s*mirror)?/.test(txt);
-          const analyze = /(analisis|analisa|mulai\s*analisa|mulai\s*analisis|analyze|analyse|start\s*analyze|go)/.test(txt);
-
-          if(turnOn){ try{ if(camBtn) camBtn.click(); }catch(_){} showToast('▶️ Camera: ON', 1000); armed=false; document.body.classList.remove('vc-armed'); return; }
-          if(turnOff){ try{ if(camBtn) camBtn.click(); }catch(_){} showToast('⏹ Camera: OFF', 1000); armed=false; document.body.classList.remove('vc-armed'); return; }
-          if(analyze){ try{ if(analyzeBtn) analyzeBtn.click(); }catch(_){} showToast('🔎 Analyze…', 1000); armed=false; document.body.classList.remove('vc-armed'); return; }
-        };
-        rec.onerror = (e)=>{ console.warn('VC error', e.error); if(e.error==='not-allowed'){ setEnabled(false); } };
-        rec.onend = ()=>{ if(enabled){ try{ rec.start(); }catch(_){} } };
-        return rec;
-      }
-
-      function start(){ if(!SR){ alert('Browser belum mendukung Voice Command. Coba Chrome/Edge terbaru.'); return; } ensureRec(); try{ rec.start(); }catch(_){} setEnabled(true); }
-      function stop(){ try{ rec && rec.stop && rec.stop(); }catch(_){} setEnabled(false); armed=false; document.body.classList.remove('vc-armed'); clearTimeout(armTimer); }
-
-      btn.addEventListener('click', ()=>{ (enabled? stop() : start()); });
-      // Optional keyboard shortcut
-      window.addEventListener('keydown', (e)=>{ if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='v'){ e.preventDefault(); (enabled? stop() : start()); } });
-    })();
-    </script>
