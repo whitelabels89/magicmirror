@@ -1863,15 +1863,29 @@ socket.on('generated_faces', (data) => {
 
           // Command: Analyze (works anytime; ensures camera first)
           if(analyze){
-            try{
-              if(analyzeBtn){
-                const wasDisabled = !!analyzeBtn.disabled;
-                if(wasDisabled) analyzeBtn.disabled = false;
-                analyzeBtn.click();
-                if(wasDisabled) analyzeBtn.disabled = true;
-                if(typeof vcToast === 'function') vcToast('🔎 Analyze…', 900);
-              }
-            }catch(_){ /* ignore */ }
+            const doClick = ()=>{
+              try{
+                if(analyzeBtn){
+                  const wasDisabled = !!analyzeBtn.disabled;
+                  if(wasDisabled) analyzeBtn.disabled = false; // make sure click fires
+                  analyzeBtn.click();
+                  if(wasDisabled) analyzeBtn.disabled = true;  // restore
+                  if(typeof vcToast === 'function') vcToast('🔎 Analyze…', 900);
+                }
+              }catch(_){ /* ignore */ }
+            };
+
+            // Ensure camera is ON before analyzing
+            if(!document.body.classList.contains('camera-on')){
+              document.getElementById('toggle-camera-button')?.click();
+              const video = document.getElementById('camera-preview');
+              const onReady = ()=>{ setTimeout(doClick, 150); };
+              if(video && video.readyState >= 2){ onReady(); }
+              else { video && video.addEventListener('loadeddata', onReady, { once:true }); }
+            }else{
+              doClick();
+            }
+
             armed = false; document.body.classList.remove('vc-armed');
             return;
           }
@@ -2015,7 +2029,33 @@ socket.on('generated_faces', (data) => {
 
           if(turnOn){ try{ if(camBtn) camBtn.click(); }catch(_){} showToast('▶️ Camera: ON', 1000); armed=false; document.body.classList.remove('vc-armed'); return; }
           if(turnOff){ try{ if(camBtn) camBtn.click(); }catch(_){} showToast('⏹ Camera: OFF', 1000); armed=false; document.body.classList.remove('vc-armed'); return; }
-          if(analyze){ try{ if(analyzeBtn) analyzeBtn.click(); }catch(_){} showToast('🔎 Analyze…', 1000); armed=false; document.body.classList.remove('vc-armed'); return; }
+          if(analyze){
+            const doClick = ()=>{
+              try{
+                if(analyzeBtn){
+                  const wasDisabled = !!analyzeBtn.disabled;
+                  if(wasDisabled) analyzeBtn.disabled = false; // make sure click fires
+                  analyzeBtn.click();
+                  if(wasDisabled) analyzeBtn.disabled = true;  // restore
+                  if(typeof showToast === 'function') showToast('🔎 Analyze…', 1000);
+                }
+              }catch(_){ /* ignore */ }
+            };
+
+            // Ensure camera is ON before analyzing
+            if(!document.body.classList.contains('camera-on')){
+              document.getElementById('toggle-camera-button')?.click();
+              const video = document.getElementById('camera-preview');
+              const onReady = ()=>{ setTimeout(doClick, 150); };
+              if(video && video.readyState >= 2){ onReady(); }
+              else { video && video.addEventListener('loadeddata', onReady, { once:true }); }
+            }else{
+              doClick();
+            }
+
+            armed = false; document.body.classList.remove('vc-armed');
+            return;
+          }
         };
         rec.onerror = (e)=>{ console.warn('VC error', e.error); if(e.error==='not-allowed'){ setEnabled(false); } };
         rec.onend = ()=>{ if(enabled){ try{ rec.start(); }catch(_){} } };
