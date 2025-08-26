@@ -79,16 +79,6 @@
       border:1px solid rgba(255,255,255,.08); letter-spacing:.5px;
     }
     .hud-right{ display:flex; align-items:center; gap:8px; }
-    .hud-toggles{ display:flex; gap:6px; }
-    .tiny-btn{
-      background: linear-gradient(135deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
-      color:#eafffb; font-weight:700; letter-spacing:.2px;
-      border:1px solid rgba(255,255,255,.15);
-      border-radius:10px; padding:8px 10px; cursor:pointer;
-      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-      transition: transform .15s ease, background .15s ease, box-shadow .15s ease;
-    }
-    .tiny-btn:hover{ transform: translateY(-1px); background: rgba(255,255,255,.12); box-shadow: 0 6px 14px rgba(0,0,0,.25); }
     .hidden-block{ display:none !important; }
     /* Camera / Mirror area */
     #camera-wrapper{
@@ -185,12 +175,6 @@ body.idle-blackout .caption{ opacity: 0 !important; }
         color: #333;
     }
 
-    /* Ensure injected navbar/footer don't paint solid backgrounds in fullscreen */
-    #navbar, #footer-placeholder, header {
-      background: transparent !important;
-      box-shadow: none !important;
-    }
-    #navbar *[style*="background"], header *[style*="background"]{ background: transparent !important; }
 
     #container {
         display: flex;
@@ -775,9 +759,6 @@ h1{
     .vc-armed{ outline: 2px solid rgba(197,143,255,.6); outline-offset: 2px; }
     </style>
 
-
-
-
 </head>
     <body>
     <div id="holo-embed" aria-hidden="false">
@@ -801,76 +782,10 @@ h1{
           <div class="brand"><span class="dot"></span> QC Magic Mirror <span class="neon">AI</span></div>
           <div class="hud-right">
             <div class="clock" id="hud-clock">--:--</div>
-            <div class="hud-toggles">
-              <button id="toggle-navbar" class="tiny-btn" title="Show/Hide Navbar">Nav</button>
-              <button id="toggle-footer" class="tiny-btn" title="Show/Hide Footer">Footer</button>
-              <button id="toggle-heartbeat" class="tiny-btn" title="Mute/Unmute Heartbeat">Beat</button>
-            </div>
           </div>
         </div>
-        <div id="navbar" class="hidden-block mm-ui"></div>
+        
         <div id="lux-particles" aria-hidden="true"></div>
-    <script>
-        fetch('navbar.html')
-          .then(res => res.text())
-          .then(data => {
-            document.getElementById('navbar').innerHTML = data;
-          })
-          .then(() => {
-            const toggleBtn = document.querySelector('.navbar-toggle');
-            const menu = document.querySelector('.navbar-menu');
-            if (toggleBtn && menu) {
-              toggleBtn.addEventListener('click', () => {
-                menu.classList.toggle('show');
-              });
-            }
-          });
-    </script>
-    <script>
-    function bindDropdowns() {
-      const toggle = document.getElementById('dropdownToggle');
-      const menu = document.getElementById('dropdownMenu');
-      const toggle2 = document.getElementById('dropdownToggleEcourse');
-      const menu2 = document.getElementById('dropdownMenuEcourse');
-
-      if (toggle && menu && !toggle.dataset.bound) {
-        toggle.dataset.bound = true;
-        toggle.addEventListener('click', function (e) {
-          e.preventDefault();
-          menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
-        });
-        document.addEventListener('click', function (e) {
-          if (!toggle.contains(e.target) && !menu.contains(e.target)) {
-            menu.style.display = 'none';
-          }
-        });
-      }
-
-      if (toggle2 && menu2 && !toggle2.dataset.bound) {
-        toggle2.dataset.bound = true;
-        toggle2.addEventListener('click', function (e) {
-          e.preventDefault();
-          menu2.style.display = (menu2.style.display === 'block') ? 'none' : 'block';
-        });
-        document.addEventListener('click', function (e) {
-          if (!toggle2.contains(e.target) && !menu2.contains(e.target)) {
-            menu2.style.display = 'none';
-          }
-        });
-      }
-    }
-
-    // Try to bind dropdowns every 200ms until successful
-    let tries = 0;
-    const dropdownInterval = setInterval(() => {
-      const found = document.getElementById('dropdownToggle') && document.getElementById('dropdownToggleEcourse');
-      if (found || tries > 20) {
-        clearInterval(dropdownInterval);
-        bindDropdowns();
-      }
-      tries++;
-    }, 200);
-    </script>
     <section id="greetings" class="mm-ui" style="display:none; flex-direction:column; align-items:center; justify-content:center; padding:40px 20px; background: transparent; text-align:center;">
         <div class="shell glass ring-glow" style="border-radius:26px; padding:42px 28px; max-width:1000px; width:92%;">
             <div style="flex: 1; min-width: 280px; text-align: left;">
@@ -957,6 +872,7 @@ h1{
         if(armed && (/mulai\s+analisa/.test(txt) || /analy[sz]e/.test(txt))){
           // Ensure camera on & click Analyze (even if disabled)
           const doClick = ()=>{
+            if(window.__pageBusy){ vcToast('⏳ Masih memproses…', 900); return; }
             try{
               if(analyzeBtn){
                 const wasDisabled = !!analyzeBtn.disabled;
@@ -1027,7 +943,6 @@ h1{
           ⚠️ Maaf, saat ini fitur visualisasi AI sedang terkena batas limit karena tingginya traffic visitor. Silakan coba kembali dalam beberapa menit. 🙏
         </div>
         <div id="recommendation" class="glass" style="display:none;">
-            <div id="countdown-timer" style="font-size: 1rem; color: #ffdd57; margin-top: 12px;"></div>
             <div id="visual-loading" class="loading" style="display: none;"></div>
             <h2>Rekomendasi Gaya Rambut</h2>
             <p id="rec-content"></p>
@@ -1035,15 +950,9 @@ h1{
         <div id="waiting-replicate" style="display:none; font-size: 1rem; color: #ffdd57; margin-top: 10px;">
           ✨ Sedang memproses visualisasi gaya rambut AI... Harap tunggu hasilnya tampil di bawah, Estimasi 2 menit.
         </div>
-        <div id="loading" class="loading" style="display: none;"></div>
         <div id="gallery" style="display: flex; flex-wrap: wrap; justify-content: center; margin-top: 20px;"></div>
     </div>
-    <div id="footer-placeholder" class="hidden-block mm-ui"></div>
-    <script>
-      fetch('/footer.html')
-        .then(res => res.text())
-        .then(data => document.getElementById('footer-placeholder').innerHTML = data);
-    </script>
+    
 
     <div id="lightbox" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter: blur(8px); justify-content:center; align-items:center; z-index:9999;">
         <img id="lightbox-img" src="" style="max-width:90%; max-height:90%; border-radius:12px;">
@@ -1051,8 +960,6 @@ h1{
 
     <script>
     window.addEventListener('DOMContentLoaded', () => {
-        const video = document.getElementById('camera-preview');
-        const placeholder = document.getElementById('camera-placeholder');
         const toggleBtn = document.getElementById('toggle-camera-button');
         let stream = null;
 
@@ -1111,10 +1018,20 @@ h1{
         window.sessionId = sessionId;
         const socket = io('https://queensacademy.id');
         let connected = false;
-        // stream will be set by camera script, but for safety, we check window.stream too
-        function getStream() {
-            return typeof stream !== 'undefined' ? stream : window.stream;
+        // Busy/Abort management
+        window.__pageBusy = window.__pageBusy || false;
+        window.__analyzeAbort = null;
+        function setBusy(on){
+          window.__pageBusy = !!on;
+          const btn = document.getElementById('capture-button');
+          if(btn){
+            const isConnected = !!connected;
+            btn.disabled = on || !isConnected;
+            btn.style.cursor = on ? 'wait' : (isConnected ? 'pointer' : 'not-allowed');
+            btn.style.opacity = on ? '0.6' : (isConnected ? '1' : '0.5');
+          }
         }
+        // (getStream helper removed - no longer used)
         const captureBtn = document.getElementById('capture-button');
         function setStatus(msg, color) {
             const status = document.getElementById('status');
@@ -1123,17 +1040,24 @@ h1{
             else status.style.color = '#00ff99';
         }
         function updateCaptureButton() {
-            if (connected) {
+            const busy = !!window.__pageBusy;
+            if (connected && !busy) {
                 captureBtn.disabled = false;
                 captureBtn.style.opacity = '1';
                 captureBtn.style.cursor = 'pointer';
             } else {
                 captureBtn.disabled = true;
-                captureBtn.style.opacity = '0.5';
-                captureBtn.style.cursor = 'not-allowed';
+                captureBtn.style.opacity = busy ? '0.6' : '0.5';
+                captureBtn.style.cursor = busy ? 'wait' : 'not-allowed';
             }
         }
-        document.getElementById('capture-button').addEventListener('click', () => {
+document.getElementById('capture-button').addEventListener('click', () => {
+    if(window.__pageBusy){ try{ window.vcToast && window.vcToast('⏳ Masih memproses…', 900); }catch(_){} return; }
+    setBusy(true); // mark busy
+    // create abort controller for this request
+    try{ if(window.__analyzeAbort){ window.__analyzeAbort.abort(); } }catch(_){}
+    const __ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    window.__analyzeAbort = __ctrl;
             const video = document.getElementById('camera-preview');
             const canvas = document.createElement('canvas');
             canvas.width = video.videoWidth || 640;
@@ -1157,7 +1081,8 @@ h1{
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ photo: base64Photo, session_id: sessionId })
+                body: JSON.stringify({ photo: base64Photo, session_id: sessionId }),
+                signal: __ctrl ? __ctrl.signal : undefined
             })
             .then(response => response.json())
             .then(data => {
@@ -1193,34 +1118,46 @@ h1{
                 }
             })
             .catch(err => {
+                if (err && err.name === 'AbortError') {
+                    setStatus('⛔ Dibatalkan.', 'orange');
+                    document.getElementById('generate-waiting-box').style.display = 'none';
+                    document.getElementById('replicate-error-msg').style.display = 'none';
+                    setBusy(false);
+                    return;
+                }
                 console.error('❌ Error fetch:', err);
                 setStatus('❌ Gagal mengirim ke server.', 'red');
                 document.getElementById('replicate-error-msg').style.display = 'block';
             })
             .finally(() => {
                 document.getElementById('loading').style.display = 'none';
+                // Failsafe: auto-clear busy if nothing arrives within 3 minutes
+                clearTimeout(window.__busyTimeout);
+                window.__busyTimeout = setTimeout(()=>{ setBusy(false); }, 180000);
             });
         });
 
         socket.on('connect', () => {
             connected = true;
+            setBusy(false);
             setStatus('Standby, Turn on Magic Mirror', '#00ff99');
             document.getElementById('loading').style.display = 'none';
             updateCaptureButton();
             socket.emit('join', { session_id: sessionId });
             console.log("🔐 Session ID dikirim ke server:", sessionId);
         });
-        socket.on('ai_result', (data) => {
-            console.log('🧠 Rekomendasi AI diterima.');
-            const recommendation = document.getElementById('recommendation');
-            const recContent = document.getElementById('rec-content');
-            recContent.innerText = data.recommendationText || data.recommendation;
-            recommendation.style.display = 'block';
-            recommendation.classList.add('fade-in');
-            document.getElementById('loading').style.display = 'none';
-            setStatus('✅ Recommendation', '#00ff99');
-            document.getElementById('waiting-replicate').style.display = 'block';
-        });
+socket.on('ai_result', (data) => {
+    console.log('🧠 Rekomendasi AI diterima.');
+    const recommendation = document.getElementById('recommendation');
+    const recContent = document.getElementById('rec-content');
+    recContent.innerText = data.recommendationText || data.recommendation;
+    recommendation.style.display = 'block';
+    recommendation.classList.add('fade-in');
+    document.getElementById('loading').style.display = 'none';
+    setStatus('✅ Recommendation', '#00ff99');
+    document.getElementById('waiting-replicate').style.display = 'block';
+    // keep __pageBusy = true here; faces may still be generating
+});
 socket.on('generated_faces', (data) => {
     if (data.session_id && data.session_id !== sessionId) return; // ⛔ Abaikan jika bukan untuk sesi ini
     console.log('🖼️ Generated faces diterima.');
@@ -1289,12 +1226,18 @@ socket.on('generated_faces', (data) => {
         document.getElementById('countdown-timer').innerText = '';
         document.getElementById('generate-waiting-box').style.display = 'none';
         document.getElementById('replicate-error-msg').style.display = 'none';
+        setBusy(false);
+        clearTimeout(window.__busyTimeout);
+        try{ window.__analyzeAbort = null; }catch(_){ }
     }
 
     // Error/limit handling
     if (data.status === 'error' || (data.message && data.message.toLowerCase().includes('limit'))) {
         document.getElementById('replicate-error-msg').style.display = 'block';
         document.getElementById('generate-waiting-box').style.display = 'none';
+        setBusy(false);
+        clearTimeout(window.__busyTimeout);
+        try{ window.__analyzeAbort = null; }catch(_){ }
     }
 });
 
@@ -1321,6 +1264,29 @@ socket.on('generated_faces', (data) => {
         document.getElementById('toggle-camera-button').addEventListener('click', () => {
             setTimeout(updateCaptureButton, 500); // slight delay to ensure stream state updated
         });
+    </script>
+    <script>
+// Warn on browser back/close/reload while analysis is in progress
+(function(){
+  function shouldBlock(){
+    if (window.__pageBusy) return true;
+    const loading = document.getElementById('loading');
+    const waiting = document.getElementById('generate-waiting-box');
+    const thinking = document.getElementById('ai-avatar')?.classList.contains('thinking');
+    // also consider visible spinners/queues as busy
+    const isLoading = !!(loading && loading.style.display !== 'none');
+    const isWaiting = !!(waiting && waiting.style.display !== 'none');
+    return isLoading || isWaiting || thinking;
+  }
+  window.addEventListener('beforeunload', function (e) {
+    try{ window.__analyzeAbort && window.__analyzeAbort.abort(); }catch(_){ }
+    if (!shouldBlock()) return;
+    const msg = 'Proses masih berjalan. Jika kamu menutup/keluar halaman, progres bisa hilang dan harus mengulang.';
+    e.preventDefault();
+    e.returnValue = msg; // Required for Chrome/Edge/Firefox
+    return msg;
+  });
+})();
     </script>
     <script>
     // HUD Clock
@@ -1351,47 +1317,6 @@ socket.on('generated_faces', (data) => {
         } else {
           (document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen).call(document);
         }
-      });
-    })();
-    // Navbar & Footer toggles + keyboard shortcuts (+ Heartbeat mute)
-    (function(){
-      const nav = document.getElementById('navbar');
-      const footer = document.getElementById('footer-placeholder');
-      const btnN = document.getElementById('toggle-navbar');
-      const btnF = document.getElementById('toggle-footer');
-      const btnHB = document.getElementById('toggle-heartbeat');
-
-      function toggleEl(el){ if(!el) return; el.classList.toggle('hidden-block'); }
-
-      if(btnN){ btnN.addEventListener('click', ()=> toggleEl(nav)); }
-      if(btnF){ btnF.addEventListener('click', ()=> toggleEl(footer)); }
-
-      // Heartbeat mute toggle
-      window.HeartbeatMuted = window.HeartbeatMuted || false;
-      function updateBeatBtn(){
-        if(!btnHB) return;
-        btnHB.textContent = window.HeartbeatMuted ? 'Beat Off' : 'Beat';
-        btnHB.style.opacity = window.HeartbeatMuted ? 0.6 : 1;
-        btnHB.setAttribute('aria-pressed', String(window.HeartbeatMuted));
-      }
-      if(btnHB){
-        btnHB.addEventListener('click', ()=>{
-          window.HeartbeatMuted = !window.HeartbeatMuted;
-          if(window.HeartbeatCtl){
-            if(window.HeartbeatMuted){ window.HeartbeatCtl.stop?.(); }
-            else { window.HeartbeatCtl.startCalm?.(); }
-          }
-          updateBeatBtn();
-        });
-        updateBeatBtn();
-      }
-
-      // Shortcuts: Ctrl+N (navbar), Ctrl+F (footer), Ctrl+M (mute heartbeat)
-      document.addEventListener('keydown', (e)=>{
-        const k = (e.key || '').toLowerCase();
-        if(e.ctrlKey && k==='n'){ e.preventDefault(); toggleEl(nav); }
-        if(e.ctrlKey && k==='f'){ e.preventDefault(); toggleEl(footer); }
-        if(e.ctrlKey && k==='m'){ e.preventDefault(); btnHB?.click(); }
       });
     })();
     </script>
@@ -1913,5 +1838,3 @@ socket.on('generated_faces', (data) => {
     })();
     </script>
 </script>
-
-    <!-- Voice Command block moved and replaced above -->

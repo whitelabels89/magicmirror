@@ -37,23 +37,6 @@
     .hint-toggle[aria-pressed="true"]{ border-color: rgba(124,255,178,.6); box-shadow: 0 0 0 1px rgba(124,255,178,.25) inset, 0 8px 20px rgba(124,255,178,.25); }
     @media (max-width: 768px){ .hint-toggle{ left: 10px; bottom: 10px; width: 26px; height: 26px; font-size: 13px; } }
 
-    /* === Mic toggle (tiny) === */
-    .mic-toggle{
-      position: fixed; right: 12px; bottom: 12px; z-index: 9999;
-      width: 30px; height: 30px; border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.28);
-      background: linear-gradient(135deg, rgba(255,255,255,.14), rgba(255,255,255,.06));
-      color: #eafbf6; font-size: 14px; line-height: 1; font-weight: 700;
-      display: grid; place-items: center; cursor: pointer;
-      box-shadow: 0 6px 16px rgba(0,0,0,.35);
-    }
-    .mic-toggle:hover{ transform: translateY(-1px); }
-    .mic-toggle[aria-pressed="true"]{
-      border-color: rgba(197,143,255,.7);
-      box-shadow: 0 0 0 1px rgba(197,143,255,.35) inset,
-                  0 0 16px rgba(197,143,255,.35),
-                  0 8px 22px rgba(0,0,0,.35);
-    }
   </style>
   <script type="importmap">
   {
@@ -68,7 +51,6 @@
   <div id="app"></div>
   <div class="hint">Drag = look · <kbd>G</kbd> glow · <kbd>L</kbd> lines · <kbd>S</kbd> scan · <kbd>F</kbd> flow · [ ] density · , . size · - = speed · <kbd>B</kbd>/<kbd>C</kbd> boost/contrast · <kbd>4</kbd> switch · <kbd>6</kbd> tesla · <kbd>Shift+R</kbd> reload</div>
   <button id="hint-toggle" class="hint-toggle" aria-pressed="false" title="Show controls">?</button>
-  <button id="mic-toggle" class="mic-toggle" aria-pressed="false" title="Enable mic">🎤</button>
 
   <script type="module">
   import * as THREE from 'three';
@@ -100,31 +82,6 @@
     renderer.setPixelRatio(DPR); renderer.setSize(W,H); renderer.setClearColor(0x000000, 0);
     host.appendChild(renderer.domElement);
 
-    // === Mic (beat) reactive setup ===
-    let MIC = { ctx:null, analyser:null, data:null, level:0, ready:false, enabled:false };
-    async function initMic(){
-      try{
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation:true, noiseSuppression:true } });
-        const ctx = new (window.AudioContext||window.webkitAudioContext)();
-        const src = ctx.createMediaStreamSource(stream);
-        const analyser = ctx.createAnalyser();
-        analyser.fftSize = 512; // 256 bins
-        analyser.smoothingTimeConstant = 0.82;
-        src.connect(analyser);
-        MIC.ctx = ctx; MIC.analyser = analyser; MIC.data = new Uint8Array(analyser.frequencyBinCount); MIC.ready = true;
-      }catch(err){ console.warn('Mic init failed:', err); }
-    }
-
-    // Tiny toast helper (bottom-right)
-    function micToast(msg){
-      const el = document.createElement('div');
-      el.textContent = msg;
-      el.style.cssText = 'position:fixed;right:12px;bottom:52px;background:#0b1f1d;border:1px solid #2b4946;color:#dff9f3;padding:8px 10px;border-radius:8px;z-index:10000;font:600 12px system-ui;opacity:0;transform:translateY(6px);transition:opacity .18s ease, transform .18s ease;';
-      document.body.appendChild(el);
-      requestAnimationFrame(()=>{ el.style.opacity = '0.96'; el.style.transform = 'translateY(0)'; });
-      setTimeout(()=>{ el.style.opacity = '0'; el.style.transform = 'translateY(6px)'; }, 1400);
-      setTimeout(()=>{ el.remove(); }, 2000);
-    }
 
     // Lighting is minimal; most look comes from shader emissive/fresnel
     const rig = new THREE.Group();
@@ -389,8 +346,6 @@
     // === Procedural Variant: Tesla Orb (abstract AI core) — defined inside module scope
     function loadTesla(){
       clearHead();
-      // Init mic only when user enables it
-      if(MIC.enabled && !MIC.ready){ initMic(); }
       const grp = new THREE.Group(); grp.name = 'TeslaOrb';
 
       const teslaUniforms = {
@@ -666,34 +621,6 @@
       }
     });
 
-    // Mic toggle button wiring + hotkey (with toast + suspend/resume)
-    const micBtn = document.getElementById('mic-toggle');
-    function syncMicBtn(){ if(!micBtn) return; const on = !!MIC.enabled; micBtn.setAttribute('aria-pressed', on?'true':'false'); micBtn.title = on ? 'Disable mic' : 'Enable mic'; }
-    async function enableMic(){
-      MIC.enabled = true;
-      if(MIC.ready){ try{ await MIC.ctx.resume(); }catch(_){} }
-      if(!MIC.ready){ initMic(); }
-      syncMicBtn(); micToast('Mic ON');
-    }
-    async function disableMic(){
-      MIC.enabled = false;
-      if(MIC.ready){ try{ await MIC.ctx.suspend(); }catch(_){} }
-      MIC.level = 0; // hard reset level
-      syncMicBtn(); micToast('Mic OFF');
-    }
-    if(micBtn && !micBtn.__wired){
-      micBtn.__wired = true;
-      micBtn.addEventListener('click', ()=>{ (MIC.enabled ? disableMic() : enableMic()); });
-      syncMicBtn();
-    }
-    if(!window.__MIC_HOTKEY_WIRED__){
-      window.__MIC_HOTKEY_WIRED__ = true;
-      window.addEventListener('keydown', (e)=>{
-        if(e.key.toLowerCase()==='m'){
-          (MIC.enabled ? disableMic() : enableMic());
-        }
-      });
-    }
 
     // Resize
     function onResize(){ const w=host.clientWidth, h=host.clientHeight; renderer.setSize(w,h); camera.aspect=w/h; camera.updateProjectionMatrix(); }
@@ -702,15 +629,7 @@
     // Animate
     let t=0; function loop(){ requestAnimationFrame(loop); t+=0.016; uniforms.uTime.value = t; 
       // Mic sampling → simple beat factor (respect toggle)
-      let beat = 0.0;
-      if(MIC.enabled && MIC.ready && MIC.analyser && MIC.data){
-        MIC.analyser.getByteFrequencyData(MIC.data);
-        let sum = 0, cnt = 0; const limit = Math.min(36, MIC.data.length);
-        for(let i=2;i<limit;i++){ sum += MIC.data[i]; cnt++; }
-        const avg = (cnt>0)? (sum/cnt) : 0;
-        MIC.level = Math.max(0, Math.min(1, (avg - 32) / 80));
-        beat = MIC.level;
-      } else { MIC.level = 0; }
+      const beat = 0.0; // mic removed
       // ease rig rotation to target
       yaw += (targetYaw - yaw)*0.08; 
       pitch += (targetPitch - pitch)*0.08;
