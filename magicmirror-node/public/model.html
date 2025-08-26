@@ -129,7 +129,7 @@
     // Lighting is minimal; most look comes from shader emissive/fresnel
     const rig = new THREE.Group();
     // Global model vertical offset (raise/lower all variants together)
-    const MODEL_Y_OFFSET = 0.28; // ↑ raise model ~0.28 units
+    const MODEL_Y_OFFSET = 0.30; // ↑ raise model ~0.28 units
     scene.add(rig);
 
     // === Shader material for horizontal stripes + fresnel glow
@@ -591,8 +591,18 @@
       }
     });
 
-    // Auto-try head4 as default (others disabled)
-    loadHead(MODELS['4']);
+    // Initial model: use URL (?m=… / ?model=…) if provided, else default to 6 (Tesla Orb)
+    (function(){
+      function switchByKey(k){
+        const hit = MODELS[k]; if(!hit) return;
+        window.__LAST_MODEL_KEY = k;
+        if(hit === '__TESLA__') loadTesla(); else loadHead(hit);
+      }
+      const q = new URLSearchParams(location.search);
+      const m = q.get('m') || q.get('model');
+      if(m){ switchByKey(m); }
+      else { window.__LAST_MODEL_KEY = '6'; loadTesla(); }
+    })();
 
     // === Grounded neck pedestal (very subtle)
     const base = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.48, 0.3, 48), new THREE.MeshBasicMaterial({ color: 0x0a2321, transparent:true, opacity:0.35}));

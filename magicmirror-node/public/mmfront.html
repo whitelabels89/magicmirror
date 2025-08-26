@@ -113,6 +113,18 @@
       display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:center;
       margin:0; z-index: 4;
     }
+    /* Controls dock toggle */
+    .controls-toggle{
+      position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%);
+      z-index: 5; width: 34px; height: 34px; border-radius: 999px;
+      border:1px solid rgba(233,196,106,.35);
+      background: linear-gradient(135deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
+      color:#eafbf6; display:grid; place-items:center; cursor:pointer;
+      box-shadow:0 8px 22px rgba(0,0,0,.35);
+    }
+    .controls.hidden{ opacity:0; pointer-events:none; transform: translate(-50%, 12px); }
+    .controls{ transition: opacity .22s ease, transform .22s ease; }
+    body.idle-blackout .controls-toggle{ opacity:0; pointer-events:none; }
     @media (max-width: 768px){
       .controls{ bottom: 64px; gap:8px; }
       .controls .btn{ padding:12px 18px; font-size:.95rem; }
@@ -856,7 +868,8 @@ h1{
           <button id="flip-mirror" class="btn secondary" title="Flip preview horizontally">Flip Mirror</button>
           <button id="fullscreen" class="btn secondary" title="Fullscreen mode">Fullscreen</button>
         </div>
-        <div class="caption">Tip: posisi wajah sejajar kamera. Preview otomatis <strong>mirror</strong> agar natural di cermin.</div>
+        <button id="controls-toggle" class="controls-toggle" aria-pressed="true" title="Hide controls">▾</button>
+        <div id="tip-caption" class="caption">Tip: posisi wajah sejajar kamera. Preview otomatis <strong>mirror</strong> agar natural di cermin.</div>
         <h1></h1>
         <div id="status">Waiting Analyze...</div>
         <img id="photo" src="" style="display:none; max-width: 300px; margin-top: 20px;" />
@@ -1235,6 +1248,49 @@ socket.on('generated_faces', (data) => {
         if(e.ctrlKey && k==='f'){ e.preventDefault(); toggleEl(footer); }
         if(e.ctrlKey && k==='m'){ e.preventDefault(); btnHB?.click(); }
       });
+    })();
+    </script>
+    <script>
+    // Controls show/hide toggle + persist
+    (function(){
+      const dock = document.querySelector('.controls');
+      const tgl = document.getElementById('controls-toggle');
+      if(!dock || !tgl) return;
+      function sync(on){
+        dock.classList.toggle('hidden', !on);
+        tgl.setAttribute('aria-pressed', on? 'true':'false');
+        tgl.title = on? 'Hide controls':'Show controls';
+        tgl.textContent = on? '▾' : '▴';
+        try{ localStorage.setItem('controlsVisible', on? '1':'0'); }catch(_){ }
+      }
+      let vis = false;
+      try{
+        const saved = localStorage.getItem('controlsVisible');
+        if(saved === '1') vis = true; // only show if explicitly saved ON
+      }catch(_){ /* keep default false */ }
+      sync(vis);
+      tgl.addEventListener('click', ()=>{ vis = !vis; sync(vis); });
+      // Also collapse auto when entering idle blackout, expand on exit
+      const obs = new MutationObserver(()=>{
+        const idle = document.body.classList.contains('idle-blackout');
+        if(idle){ sync(false); }
+      });
+      obs.observe(document.body, { attributes:true, attributeFilter:['class'] });
+    })();
+    </script>
+    <script>
+    // Auto-hide tip caption after ~10s on first load
+    (function(){
+      const cap = document.getElementById('tip-caption');
+      if(!cap) return;
+      // show now (in case CSS ever changes), then fade out later
+      cap.style.opacity = '1';
+      setTimeout(()=>{
+        cap.style.transition = 'opacity .4s ease';
+        cap.style.opacity = '0';
+        cap.style.pointerEvents = 'none';
+        setTimeout(()=>{ cap.style.display = 'none'; }, 500);
+      }, 10000); // 10s
     })();
     </script>
     <!-- AI Avatar Orb -->
