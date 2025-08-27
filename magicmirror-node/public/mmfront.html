@@ -1075,6 +1075,9 @@ h1{
                 setTimeout(()=>{ if(!done){ done = true; resolve(true); } }, timeoutMs);
             });
         }
+        // expose helpers globally for other scripts
+        window.getCaptureVideo = getCaptureVideo;
+        window.ensureVideoReady = ensureVideoReady;
 
         function startCamera() {
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -1084,8 +1087,18 @@ h1{
                     const video = document.getElementById('camera-preview');
                     const placeholder = document.getElementById('camera-placeholder');
                     video.srcObject = stream;
-                    try{ video.play && video.play(); }catch(_){}
-                    if (orbCam) { orbCam.srcObject = stream; try{ orbCam.play && orbCam.play(); }catch(_){} orbCam.style.display = 'block'; }
+                    try{
+                      const _p = video.play && video.play();
+                      if (_p && typeof _p.catch === 'function') { _p.catch(()=>{}); }
+                    }catch(_){ }
+                    if (orbCam) {
+                      orbCam.srcObject = stream;
+                      try{
+                        const _p2 = orbCam.play && orbCam.play();
+                        if (_p2 && typeof _p2.catch === 'function') { _p2.catch(()=>{}); }
+                      }catch(_){ }
+                      orbCam.style.display = 'block';
+                    }
                     if (orbPh)  { orbPh.style.display = 'none'; }
                     video.style.display = 'block';
                     document.body.classList.add('camera-on');
@@ -1178,8 +1191,8 @@ document.getElementById('capture-button').addEventListener('click', async () => 
     try{ if(window.__analyzeAbort){ window.__analyzeAbort.abort(); } }catch(_){}
     const __ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
     window.__analyzeAbort = __ctrl;
-            const video = getCaptureVideo();
-            await ensureVideoReady(video, 2200);
+            const video = window.getCaptureVideo ? window.getCaptureVideo() : document.getElementById('camera-preview');
+            if(window.ensureVideoReady){ await window.ensureVideoReady(video, 2200); }
             const vw = video && video.videoWidth ? video.videoWidth : 640;
             const vh = video && video.videoHeight ? video.videoHeight : 480;
             const canvas = document.createElement('canvas');
