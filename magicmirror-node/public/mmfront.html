@@ -1321,23 +1321,6 @@ h1{
             }
         }
 
-// Heuristic: detect if analysis likely has NO FACE
-function isLikelyNoFace(analysis){
-  if(!analysis) return true;
-  const conf = (analysis.confidence != null) ? analysis.confidence : (analysis.score != null ? analysis.score : null);
-  const meshPts = (analysis.mesh && (typeof analysis.mesh.points_count === 'number' ? analysis.mesh.points_count : (Array.isArray(analysis.mesh.points) ? analysis.mesh.points.length : 0))) || 0;
-  const detN = (typeof analysis.detections === 'number') ? analysis.detections
-              : (Array.isArray(analysis.detections) ? analysis.detections.length
-              : (typeof analysis.faces === 'number') ? analysis.faces
-              : (Array.isArray(analysis.faces) ? analysis.faces.length : 0));
-  const explicitFlag = (analysis.face_detected === true) || (analysis.has_face === true) || (analysis.flags && (analysis.flags.face_detected === true || analysis.flags.no_face === false));
-  // Treat as valid if ANY of these look good
-  const confOk = (typeof conf === 'number') && conf >= 0.45; // threshold ~45%
-  const meshOk = meshPts > 50;                                // enough landmarks
-  const detOk  = detN > 0;                                    // detector saw faces
-  const ok = explicitFlag || confOk || meshOk || detOk;
-  return !ok;
-}
 
 document.getElementById('capture-button').addEventListener('click', async () => {
     if(window.__pageBusy){ try{ window.vcToast && window.vcToast('⏳ Masih memproses…', 900); }catch(_){} return; }
@@ -1364,10 +1347,34 @@ document.getElementById('capture-button').addEventListener('click', async () => 
             if(isMirrored){
               ctx.setTransform(1,0,0,1,0,0); // reset for safety
             }
+            // Simple brightness stats to distinguish very dark vs full black frame
+            function getFrameStats(ctx, w, h){
+              const step = 8; // sample every 8px for speed
+              const img = ctx.getImageData(0,0,w,h).data;
+              let sum=0, sum2=0, n=0;
+              for(let y=0; y<h; y+=step){
+                for(let x=0; x<w; x+=step){
+                  const i = (y*w + x) * 4;
+                  const r=img[i], g=img[i+1], b=img[i+2];
+                  const l = 0.2126*r + 0.7152*g + 0.0722*b; // luminance
+                  sum += l; sum2 += l*l; n++;
+                }
+              }
+              const mean = sum/n; const varc = (sum2/n) - (mean*mean); const std = Math.sqrt(Math.max(0,varc));
+              return { mean, std };
+            }
+            try{
+              const stats = getFrameStats(ctx, canvas.width, canvas.height);
+              window.__frameTooDark = stats.mean < 22; // redup (tetap lanjut analisa)
+              window.__frameBlack   = (stats.mean < 4) && (stats.std < 2); // hampir full hitam
+            }catch(_){ window.__frameTooDark = false; window.__frameBlack = false; }
 
             const base64Photo = canvas.toDataURL('image/jpeg').replace(/^data:image\/jpeg;base64,/, '');
 
             setStatus('🔍 Menganalisis wajah...', '#fff700');
+            if (window.__frameTooDark && !window.__frameBlack) {
+              setStatus('💡 Pencahayaan kurang — hasil tetap diproses, mungkin kurang akurat.', '#ffdd57');
+            }
             document.getElementById('loading').style.display = 'block';
             // ✅ Spinner awal rekomendasi tetap dipertahankan
             document.getElementById('recommendation').style.display = 'none';
@@ -1400,16 +1407,6 @@ document.getElementById('capture-button').addEventListener('click', async () => 
                 }
 
                 if (data.status === 'done') {
-                    // Guard: if no face detected, stop and show clear message
-                    if (isLikelyNoFace(data.analysis)) {
-                      setStatus('⚠️ Tidak terdeteksi wajah.', 'orange');
-                      document.getElementById('recommendation').style.display = 'none';
-                      const detail = document.getElementById('analysis-detail'); if(detail){ detail.style.display = 'none'; }
-                      document.getElementById('waiting-replicate').style.display = 'none';
-                      document.getElementById('visual-loading').style.display = 'none';
-                      setBusy(false);
-                      return; // do not render template/defaults
-                    }
                     document.getElementById('rec-content').innerText = data.recommendation || 'Tidak ada rekomendasi.';
                     document.getElementById('recommendation').style.display = 'block';
                     setStatus('✅ Rekomendasi siap!', '#00ff99');
@@ -1433,8 +1430,12 @@ document.getElementById('capture-button').addEventListener('click', async () => 
                     if (data.analysis) {
                       try { renderAnalysis(data.analysis); } catch(_) {}
                     }
-                    // ⬇️ Pindahkan waiting-replicate di sini, setelah recommendation tampil
-                    document.getElementById('waiting-replicate').style.display = 'block';
+                    // ⬇️ Ganti: hide pending status when done
+                    document.getElementById('waiting-replicate').style.display = 'none';
+                    document.getElementById('generate-waiting-box').style.display = 'none';
+                    document.getElementById('visual-loading').style.display = 'none';
+                    document.getElementById('countdown-timer').innerText = '';
+                    if (window.__genCountdownInterval) { clearInterval(window.__genCountdownInterval); window.__genCountdownInterval = null; }
                 } else {
                     setStatus('⚠️ Gagal: ' + (data.error || 'Tidak terdeteksi wajah.'), 'orange');
                 }
@@ -1470,21 +1471,13 @@ document.getElementById('capture-button').addEventListener('click', async () => 
         });
 socket.on('ai_result', (data) => {
     console.log('🧠 Rekomendasi AI diterima.');
-    // Guard: ignore template/default if face not detected
-    if (isLikelyNoFace(data.analysis)){
-      setStatus('⚠️ Tidak terdeteksi wajah.', 'orange');
-      const recommendation = document.getElementById('recommendation');
-      if (recommendation) recommendation.style.display = 'none';
-      const waBox = document.getElementById('wa-share'); if (waBox) waBox.style.display = 'none';
-      const detail = document.getElementById('analysis-detail'); if(detail){ detail.style.display = 'none'; }
-      document.getElementById('loading').style.display = 'none';
-      return;
-    }
     const recommendation = document.getElementById('recommendation');
     const recContent = document.getElementById('rec-content');
     recContent.innerText = data.recommendationText || data.recommendation;
     recommendation.style.display = 'block';
-    // (WA share UI now only shown after faces arrive)
+    // WA share UI: show when recommendation appears
+    const waBox = document.getElementById('wa-share');
+    if (waBox) waBox.style.display = 'block';
     recommendation.classList.add('fade-in');
     document.getElementById('loading').style.display = 'none';
     setStatus('✅ Recommendation', '#00ff99');
@@ -1573,6 +1566,9 @@ socket.on('generated_faces', (data) => {
         // Ensure any leftover waiting text is cleared
         waitingEl.innerText = '';
         document.getElementById('countdown-timer').innerText = '';
+        document.getElementById('waiting-replicate').style.display = 'none';
+        document.getElementById('generate-waiting-box').style.display = 'none';
+        document.getElementById('countdown-timer').innerText = '';
         setBusy(false);
         clearTimeout(window.__busyTimeout);
         try{ window.__analyzeAbort = null; }catch(_){ }
@@ -1583,6 +1579,9 @@ socket.on('generated_faces', (data) => {
         if (window.__genCountdownInterval) { clearInterval(window.__genCountdownInterval); window.__genCountdownInterval = null; }
         document.getElementById('replicate-error-msg').style.display = 'block';
         document.getElementById('generate-waiting-box').style.display = 'none';
+        document.getElementById('waiting-replicate').style.display = 'none';
+        document.getElementById('countdown-timer').innerText = '';
+        if (window.__genCountdownInterval) { clearInterval(window.__genCountdownInterval); window.__genCountdownInterval = null; }
         setBusy(false);
         clearTimeout(window.__busyTimeout);
         try{ window.__analyzeAbort = null; }catch(_){ }
@@ -1601,14 +1600,6 @@ function renderAnalysis(analysis){
   const mesh = analysis.mesh || {};
   const skin = analysis.skin || analysis.skin_tone || {};
   const conf = (analysis.confidence != null) ? analysis.confidence : (analysis.score || null);
-
-  // Early exit if this looks like a no-face payload
-  if (isLikelyNoFace(analysis)){
-    try{
-      const detail = document.getElementById('analysis-detail'); if(detail){ detail.style.display = 'none'; }
-    }catch(_){ }
-    return;
-  }
 
   // Face section
   const faceTxt = [];
