@@ -82,6 +82,32 @@
     renderer.setPixelRatio(DPR); renderer.setSize(W,H); renderer.setClearColor(0x000000, 0);
     host.appendChild(renderer.domElement);
 
+    // === Fit camera to current rig size (avoid crop) ===
+    function fitCameraToRig(padding = 0.6){
+      try{
+        const sphere = new THREE.Sphere();
+        new THREE.Box3().setFromObject(rig).getBoundingSphere(sphere);
+        if(Number.isFinite(sphere.radius) && sphere.radius > 0){
+          const desired = sphere.radius / Math.tan((camera.fov * Math.PI/180) / 2) + padding;
+          camera.position.z = Math.min(12, Math.max(2.2, desired));
+        }
+      }catch(_){ /* rig might not be ready yet */ }
+    }
+
+    // === Portrait tuning: scale rig + adjust FOV ===
+    function applyPortraitTuning(){
+      const portrait = window.matchMedia('(orientation: portrait)').matches;
+      if(portrait){
+        rig.scale.setScalar(0.82);
+        camera.fov = 20;
+      } else {
+        rig.scale.setScalar(1.0);
+        camera.fov = 18;
+      }
+      camera.updateProjectionMatrix();
+      fitCameraToRig(0.6);
+    }
+
 
     // Lighting is minimal; most look comes from shader emissive/fresnel
     const rig = new THREE.Group();
@@ -623,8 +649,15 @@
 
 
     // Resize
-    function onResize(){ const w=host.clientWidth, h=host.clientHeight; renderer.setSize(w,h); camera.aspect=w/h; camera.updateProjectionMatrix(); }
+    function onResize(){
+      const w = host.clientWidth, h = host.clientHeight;
+      renderer.setSize(w, h);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      applyPortraitTuning();
+    }
     window.addEventListener('resize', onResize);
+    applyPortraitTuning();
 
     // Animate
     let t=0; function loop(){ requestAnimationFrame(loop); t+=0.016; uniforms.uTime.value = t; 

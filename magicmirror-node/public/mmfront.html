@@ -17,6 +17,8 @@
       --accent:#FFB703;
       --danger:#ff6b6b;
       --soft:#e0e0e0;
+      --orb-left: 50%;
+      --orb-top: 48%;
     }
     /* Animated aurora background */
     body::before, body::after{
@@ -383,8 +385,8 @@ body.idle-blackout .caption{ opacity: 0 !important; }
     #ai-avatar{
       --intensity: .4; /* default glow/volume strength */
       position: fixed;
-      left: 50%;
-      top: 50%;
+      left: var(--orb-left);
+      top: var(--orb-top);
       right: auto;
       bottom: auto;
       transform: translate(-50%, -50%);
@@ -917,25 +919,24 @@ h1{
           if(!document.body.classList.contains('camera-on')){ camBtn?.click(); }
           setArmed(true);
           vcToast('✅ Hey Mirror — kamera siap. Ucap: "mulai analisa"', 1800);
+          try {
+            window.ttsSpeak && window.ttsSpeak("Hello, I am ready. Please say analyze to begin.", { rate:0.97, pitch:1.08 });
+          } catch(_) {}
           continue;
         }
         // Command: matikan kamera / stop (turn off live cam)
         if (/\b(matikan\s+kamera|stop)\b/.test(txt)) {
           if (document.body.classList.contains('camera-on')) {
-            camBtn?.click();
+            if (typeof stopCamera === 'function') stopCamera();
             vcToast('📷 Kamera dimatikan.', 1200);
-          } else {
-            vcToast('Kamera sudah mati.', 900);
           }
           continue;
         }
         // Command: hidupkan kamera / start (turn on live cam)
         if (/\b(hidupkan\s+kamera|start)\b/.test(txt)) {
           if (!document.body.classList.contains('camera-on')) {
-            camBtn?.click();
+            if (typeof startCamera === 'function') startCamera();
             vcToast('📷 Kamera dinyalakan.', 1200);
-          } else {
-            vcToast('Kamera sudah menyala.', 900);
           }
           continue;
         }
@@ -1000,6 +1001,11 @@ h1{
       vcBtn.setAttribute('aria-pressed','true');
       vcBtn.classList.add('listening');
       vcToast('🎧 Listening aktif — ucapkan: "Hey Mirror"', 1600);
+      // --- TTS greeting on mic/listening start ---
+      try{
+        window.ttsSpeak && window.ttsSpeak('Voice command is now active. Say: Hey Mirror.', { rate:0.97, pitch:1.08 });
+      }catch(_){ }
+      // --- end TTS greeting ---
     }catch(err){ console.error('VC start failed', err); vcToast('Mic ditolak? Klik izinkan.', 1600); }
   }
   function stop(){
@@ -1672,10 +1678,10 @@ function renderAnalysis(analysis){
       <div class="chat-wrap glass chat-box">
         <div class="header">AI Assistant <button class="close" id="ai-chat-close">×</button></div>
         <div class="msgs" id="ai-chat-msgs">
-          <div class="msg bot">Hi! Aku siap bantu konsultasi kecantikanmu. Tulis pertanyaanmu ✨</div>
+          <div class="msg bot">Hi! I’m your AI beauty stylist. Ask me anything ✨</div>
         </div>
         <form class="composer" id="ai-chat-form">
-          <input type="text" id="ai-chat-input" placeholder="Tanya apa saja..." autocomplete="off" />
+          <input type="text" id="ai-chat-input" placeholder="Ask me anything..." autocomplete="off" />
           <button class="mic" type="button" id="ai-voice-btn" title="Tahan untuk bicara / klik untuk toggle">🎤</button>
           <button class="send" type="submit">Kirim</button>
         </form>
@@ -1692,17 +1698,90 @@ function renderAnalysis(analysis){
       if(!orb || !chat) return;
 
       let dragging = false, moved = false, suppressClick = false;
+      let recentered = false;
       let startX = 0, startY = 0, startLeft = 0, startTop = 0;
       const CLICK_THRESHOLD = 6; // px
+
+      // === Global Pro Voice TTS (female) — Step 1 ===
+      (function(){
+        function pickVoice(){
+          const synth = window.speechSynthesis;
+          if(!synth) return null;
+          const voices = synth.getVoices ? synth.getVoices() : [];
+          if(!voices || !voices.length) return null;
+          const prefs = [
+            'Google UK English Female',
+            'Google US English',
+            'Samantha','Victoria','Serena','Moira', // macOS
+            'Allison','Ava','Susan',
+            'English (United Kingdom)','en-GB'
+          ];
+          const byName = (n)=> voices.find(v=> v && v.name && v.name.toLowerCase().includes(n.toLowerCase()));
+          for(const p of prefs){ const v = byName(p); if(v) return v; }
+          const en = voices.find(v=> /^en(?:-|_|\b)/i.test(v.lang || ''));
+          return en || voices[0] || null;
+        }
+        window.ttsSpeak = function(text, opts){
+          try{
+            const synth = window.speechSynthesis;
+            if(!synth || typeof window.SpeechSynthesisUtterance === 'undefined') return null;
+            const u = new SpeechSynthesisUtterance(String(text || ''));
+            const v = pickVoice();
+            if(v) u.voice = v;
+            u.lang   = (v && v.lang) || (opts && opts.lang) || 'en-US';
+            u.rate   = (opts && opts.rate  != null) ? opts.rate  : 0.97; // natural
+            u.pitch  = (opts && opts.pitch != null) ? opts.pitch : 1.10; // female-ish
+            u.volume = (opts && opts.volume!= null) ? opts.volume: 1;
+            try{ synth.cancel(); }catch(_){ }
+            try{ synth.resume && synth.resume(); }catch(_){ }
+            synth.speak(u);
+            return u;
+          }catch(_){ return null; }
+        };
+        // Warm up voices list for some browsers
+        try{ window.speechSynthesis && window.speechSynthesis.getVoices(); }catch(_){ }
+        if(window.speechSynthesis){
+          window.speechSynthesis.onvoiceschanged = ()=>{ try{ window.speechSynthesis.getVoices(); }catch(_){ } };
+        }
+      })();
+      // === TTS: speak greeting on first open (requires a user gesture) ===
+      const TTS = {
+        greeted: false,
+        speakGreeting() {
+          if (this.greeted) return;
+          ttsSpeak("Hi! I am your AI beauty stylist. Ask me anything.");
+          this.greeted = true;
+        }
+      };
+
+      function recenterOrb(){
+        const root = document.documentElement;
+        const l = getComputedStyle(root).getPropertyValue('--orb-left').trim() || '50%';
+        const t = getComputedStyle(root).getPropertyValue('--orb-top').trim()  || '50%';
+        orb.style.right = 'auto';
+        orb.style.bottom = 'auto';
+        orb.style.left = l;
+        orb.style.top  = t;
+        orb.style.transform = 'translate(-50%, -50%)';
+      }
 
       function openChat(){ body.classList.add('chat-open'); try{ input && input.focus(); }catch(_){} }
       function closeChat(){ body.classList.remove('chat-open'); }
       function isOpen(){ return body.classList.contains('chat-open'); }
 
+      // Center orb on initial load if not moved yet
+      if(!moved && !recentered){ recenterOrb(); recentered = true; }
+
       function onClick(e){
         if(suppressClick){ suppressClick = false; return; }
         if(dragging) return; // ignore click while dragging
-        if(isOpen()) closeChat(); else openChat();
+        if(isOpen()){
+          closeChat();
+        } else {
+          openChat();
+          // Speak once on first open after a user gesture (click)
+          TTS.speakGreeting();
+        }
       }
 
       function onPointerDown(e){
@@ -1737,6 +1816,7 @@ function renderAnalysis(analysis){
         if(moved){
           // prevent the trailing click after a drag
           suppressClick = true; setTimeout(()=> suppressClick = false, 150);
+          orb.dataset.moved = '1';
         }
       }
 
@@ -1747,5 +1827,8 @@ function renderAnalysis(analysis){
 
       if(closeBtn){ closeBtn.addEventListener('click', (e)=>{ e.preventDefault(); closeChat(); }); }
       document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeChat(); });
+
+      // Recenter orb on window resize if not moved
+      window.addEventListener('resize', ()=>{ if(!orb.dataset.moved){ recenterOrb(); } });
     })();
     </script>
