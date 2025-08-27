@@ -1042,6 +1042,29 @@ h1{
             <h2>Rekomendasi Gaya Rambut</h2>
             <p id="rec-content"></p>
         </div>
+        <!-- Detailed Analysis (Face Mesh + Skin Tone) -->
+        <div id="analysis-detail" class="glass" style="display:none; margin-top:16px; padding:16px;">
+          <h2 style="margin:0 0 10px; color: var(--accent);">Analisis Detail</h2>
+          <div id="analysis-summary" style="margin-bottom:8px; color:#eafbf6;"></div>
+          <div style="display:grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap:12px;">
+            <div class="glass" style="padding:12px;">
+              <div style="font-weight:700; color:#e9c46a; margin-bottom:6px;">Face Shape</div>
+              <div id="fld-face-shape">-</div>
+              <div id="fld-face-metrics" style="opacity:.9; font-size:.92rem; margin-top:4px;"></div>
+            </div>
+            <div class="glass" style="padding:12px;">
+              <div style="font-weight:700; color:#e9c46a; margin-bottom:6px;">Skin Tone</div>
+              <div id="fld-skin-hex">-</div>
+              <div id="fld-skin-ud" style="opacity:.9; font-size:.92rem; margin-top:4px;"></div>
+              <div id="fld-skin-swatches" style="display:flex; gap:6px; margin-top:8px;"></div>
+            </div>
+            <div class="glass" style="padding:12px;">
+              <div style="font-weight:700; color:#e9c46a; margin-bottom:6px;">Confidence</div>
+              <div id="fld-confidence">-</div>
+              <div id="fld-notes" style="opacity:.9; font-size:.92rem; margin-top:4px;"></div>
+            </div>
+          </div>
+        </div>
         <div id="waiting-replicate" style="display:none; font-size: 1rem; color: #ffdd57; margin-top: 10px;">
           ✨ Sedang memproses visualisasi gaya rambut AI... Harap tunggu hasilnya tampil di bawah, Estimasi 2 menit.
         </div>
@@ -1199,7 +1222,16 @@ document.getElementById('capture-button').addEventListener('click', async () => 
             canvas.width = vw;
             canvas.height = vh;
             const ctx = canvas.getContext('2d');
+            // Draw frame to canvas (account for mirrored preview so backend gets true orientation)
+            const isMirrored = document.getElementById('camera-wrapper')?.classList.contains('mirrored') || document.getElementById('ai-avatar')?.classList.contains('mirrored');
+            if(isMirrored){
+              ctx.translate(canvas.width, 0);
+              ctx.scale(-1, 1);
+            }
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            if(isMirrored){
+              ctx.setTransform(1,0,0,1,0,0); // reset for safety
+            }
 
             const base64Photo = canvas.toDataURL('image/jpeg').replace(/^data:image\/jpeg;base64,/, '');
 
@@ -1208,6 +1240,9 @@ document.getElementById('capture-button').addEventListener('click', async () => 
             // ✅ Spinner awal rekomendasi tetap dipertahankan
             document.getElementById('recommendation').style.display = 'none';
             document.getElementById('gallery').innerHTML = '';
+            // Hide analysis detail panel when starting new analysis
+            const detail = document.getElementById('analysis-detail');
+            if(detail){ detail.style.display = 'none'; }
             document.getElementById('waiting-replicate').style.display = 'none';
 
             const startTimestamp = Math.floor(Date.now() / 1000);
@@ -1217,7 +1252,7 @@ document.getElementById('capture-button').addEventListener('click', async () => 
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ photo: base64Photo, session_id: sessionId }),
+                body: JSON.stringify({ photo: base64Photo, session_id: sessionId, analyze_mode: 'pro', include_mesh: true, include_skin_metrics: true }),
                 signal: __ctrl ? __ctrl.signal : undefined
             })
             .then(response => response.json())
@@ -1246,6 +1281,10 @@ document.getElementById('capture-button').addEventListener('click', async () => 
                         setTimeout(() => {
                             gallery.scrollIntoView({ behavior: 'smooth' });
                         }, 300);
+                    }
+                    // ⬇️ Render detailed analysis if provided
+                    if (data.analysis) {
+                      try { renderAnalysis(data.analysis); } catch(_) {}
                     }
                     // ⬇️ Pindahkan waiting-replicate di sini, setelah recommendation tampil
                     document.getElementById('waiting-replicate').style.display = 'block';
@@ -1292,6 +1331,11 @@ socket.on('ai_result', (data) => {
     document.getElementById('loading').style.display = 'none';
     setStatus('✅ Recommendation', '#00ff99');
     document.getElementById('waiting-replicate').style.display = 'block';
+    // ⬇️ Render detailed analysis from socket if available
+    if (data.analysis) {
+      try { renderAnalysis(data.analysis); } catch(_) {}
+    }
+    const detail = document.getElementById('analysis-detail'); if(detail && detail.querySelector('#fld-face-shape').textContent !== '-') detail.style.display = 'block';
     // keep __pageBusy = true here; faces may still be generating
 });
 socket.on('generated_faces', (data) => {
@@ -1376,6 +1420,71 @@ socket.on('generated_faces', (data) => {
         try{ window.__analyzeAbort = null; }catch(_){ }
     }
 });
+
+// --- Detailed Analysis Renderer ---
+function renderAnalysis(analysis){
+  const wrap = document.getElementById('analysis-detail');
+  if(!wrap) return;
+  // Read values safely with defaults
+  const faceShape = analysis.face_shape || analysis.shape || '-';
+  const ratios = analysis.ratios || {};
+  const angles = analysis.angles || {};
+  const metrics = analysis.metrics || {};
+  const mesh = analysis.mesh || {};
+  const skin = analysis.skin || analysis.skin_tone || {};
+  const conf = (analysis.confidence != null) ? analysis.confidence : (analysis.score || null);
+
+  // Face section
+  const faceTxt = [];
+  if (ratios.wh_ratio) faceTxt.push(`W/H ratio: ${Number(ratios.wh_ratio).toFixed(2)}`);
+  if (metrics.cheekbone_prominence) faceTxt.push(`Cheekbone: ${Number(metrics.cheekbone_prominence).toFixed(2)}`);
+  if (angles.jaw_deg) faceTxt.push(`Jaw angle: ${Number(angles.jaw_deg).toFixed(1)}°`);
+  if (metrics.forehead_width) faceTxt.push(`Forehead width: ${Math.round(metrics.forehead_width)} px`);
+  if (metrics.chin_length) faceTxt.push(`Chin length: ${Math.round(metrics.chin_length)} px`);
+  if (mesh.points || mesh.points_count) faceTxt.push(`Mesh pts: ${mesh.points_count || mesh.points?.length || '-'}`);
+
+  document.getElementById('fld-face-shape').textContent = String(faceShape).toUpperCase();
+  document.getElementById('fld-face-metrics').textContent = faceTxt.join(' · ');
+
+  // Skin section
+  const hex = skin.hex || (skin.rgb ? `#${skin.rgb.map(v=>v.toString(16).padStart(2,'0')).join('')}` : null) || '-';
+  const undertone = skin.undertone || skin.tone || '-';
+  const season = skin.season || skin.palette || null;
+  const cie = skin.lab || skin.oklab || null;
+  const mi = skin.melanin_index || null;
+  document.getElementById('fld-skin-hex').textContent = `HEX: ${hex}`;
+  const udParts = [ `Undertone: ${undertone}` ];
+  if (season) udParts.push(`Palette: ${season}`);
+  if (cie) udParts.push(`CIELAB: ${Array.isArray(cie)? cie.map(n=>Number(n).toFixed(1)).join(', '): typeof cie==='object'? Object.values(cie).map(n=>Number(n).toFixed(1)).join(', ') : cie}`);
+  if (mi!=null) udParts.push(`Melanin idx: ${Number(mi).toFixed(2)}`);
+  document.getElementById('fld-skin-ud').textContent = udParts.join(' · ');
+
+  // Swatches (base + 3 suggestions if provided)
+  const sw = document.getElementById('fld-skin-swatches');
+  if (sw) {
+    sw.innerHTML = '';
+    const addSw = (color)=>{ if(!color) return; const d=document.createElement('div'); d.style.width='22px'; d.style.height='22px'; d.style.borderRadius='6px'; d.style.border='1px solid rgba(255,255,255,.2)'; d.style.boxShadow='0 2px 8px rgba(0,0,0,.35)'; d.style.background=color; sw.appendChild(d); };
+    addSw(hex && hex!=='-'? hex : null);
+    const pals = (skin.suggested_hex || skin.suggested || []).slice(0,3);
+    pals.forEach(c=> addSw(c));
+  }
+
+  // Confidence + notes
+  document.getElementById('fld-confidence').textContent = (conf!=null) ? `${Math.round(conf*100)}%` : '-';
+  const notes = analysis.notes || (analysis.flags ? Object.keys(analysis.flags).filter(k=>analysis.flags[k]).join(', ') : '');
+  document.getElementById('fld-notes').textContent = notes || '';
+
+  // Summary line
+  const sum = document.getElementById('analysis-summary');
+  if (sum) {
+    const fs = String(faceShape).toUpperCase();
+    const ud = String(undertone).toLowerCase();
+    sum.textContent = `Deteksi wajah: ${fs} · Undertone: ${ud}${season? ' · Palet: '+season: ''}`;
+  }
+
+  // Show card
+  wrap.style.display = 'block';
+}
 
 
         // Lightbox for gallery images
@@ -1562,6 +1671,38 @@ socket.on('generated_faces', (data) => {
         </form>
       </div>
     </div>
+
+    <script>
+    // Toggle AI Chat box by clicking the orb; click again to close
+    (function(){
+      const orb = document.getElementById('ai-avatar');
+      const chat = document.getElementById('ai-chat');
+      const closeBtn = document.getElementById('ai-chat-close');
+      const input = document.getElementById('ai-chat-input');
+      if(!orb || !chat) return;
+      function openChat(){
+        chat.style.display = 'block';
+        chat.classList.add('open');
+        try{ input && input.focus(); }catch(_){ /* ignore */ }
+      }
+      function closeChat(){
+        chat.style.display = 'none';
+        chat.classList.remove('open');
+      }
+      function isOpen(){
+        return chat.classList.contains('open') || chat.style.display === 'block';
+      }
+      function toggleChat(){
+        if(isOpen()) closeChat(); else openChat();
+      }
+      // Click orb to toggle
+      orb.addEventListener('click', toggleChat);
+      // Close button inside chat
+      if(closeBtn){ closeBtn.addEventListener('click', (e)=>{ e.preventDefault(); closeChat(); }); }
+      // ESC to close
+      document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && isOpen()) closeChat(); });
+    })();
+    </script>
 
     <script>
 // Ultra‑Luxe Gold Dust Particles (lightweight, CSS‑driven)
