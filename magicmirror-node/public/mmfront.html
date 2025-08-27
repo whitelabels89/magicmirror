@@ -1082,6 +1082,7 @@ h1{
         <div id="generate-waiting-box" style="display: none; text-align: center; margin-top: 16px;">
             <div id="loading" class="loading" style="margin: auto;"></div>
             <div id="countdown-timer" style="font-size: 1rem; color: #ffdd57; margin-top: 12px;"></div>
+            <div id="funbits" class="caption-inline" style="display:none; margin-top: 8px; color:#cffff0;"></div>
         </div>
         <div id="replicate-error-msg" style="display: none; color: #ff6b6b; margin-top: 20px; font-weight: 600; text-align: center;">
           ⚠️ Maaf, saat ini fitur visualisasi AI sedang terkena batas limit karena tingginya traffic visitor. Silakan coba kembali dalam beberapa menit. 🙏
@@ -1197,6 +1198,13 @@ window.addEventListener('DOMContentLoaded', ()=>{
     const url = map[app];
     if(!url) return;
     try{ window.vcToast && window.vcToast(`Membuka ${app.charAt(0).toUpperCase()+app.slice(1)}…`, 1400);}catch(_){ }
+    // 🔊 Custom TTS feedback in English for a premium feel
+    try{
+      if(window.ttsSpeak){
+        const appName = app === 'netflix' ? 'Netflix' : (app === 'spotify' ? 'Spotify' : app);
+        window.ttsSpeak(`Opening ${appName} for you...`, { rate: 0.98, pitch: 1.02 });
+      }
+    }catch(_){ }
     window.open(url, '_blank', 'noopener');
   }
   window.openApp = openApp; // expose globally
@@ -1349,6 +1357,35 @@ window.addEventListener('DOMContentLoaded', ()=>{
         window.__facesShown = false;           // becomes true once any face image is displayed
         window.__genCountdownInterval = null;  // countdown interval ref
         let connected = false;
+        // Fun facts / jokes while waiting
+        window.__funbitsInterval = null;
+        window.__funbitsIndex = 0;
+        const FUNBITS = [
+          'Fun Fact: Rambut manusia tumbuh rata-rata 1–1.5 cm per bulan.',
+          'Fun Fact: Kuku tangan tumbuh 2× lebih cepat dari kuku kaki.',
+          'Fun Fact: Setiap orang rata-rata punya 100.000–150.000 helai rambut di kepala.',
+          'Fun Fact: Tekstur rambut ditentukan bentuk folikel; bulat → lurus, oval → ikal/keriting.',
+          'Fun Fact: Rambut sehat bisa meregang hingga 30% saat basah.',
+        ];
+        function showFunbit(){
+          const box = document.getElementById('funbits');
+          if(!box || !FUNBITS.length) return;
+          const idx = (window.__funbitsIndex++) % FUNBITS.length;
+          box.textContent = FUNBITS[idx];
+        }
+        function startFunbits(){
+          const box = document.getElementById('funbits');
+          if(!box) return;
+          box.style.display = 'block';
+          showFunbit();
+          if(window.__funbitsInterval) { clearInterval(window.__funbitsInterval); }
+          window.__funbitsInterval = setInterval(showFunbit, 12000);
+        }
+        function stopFunbits(){
+          const box = document.getElementById('funbits');
+          if(box) box.style.display = 'none';
+          if(window.__funbitsInterval){ clearInterval(window.__funbitsInterval); window.__funbitsInterval = null; }
+        }
         // Busy/Abort management
         window.__pageBusy = window.__pageBusy || false;
         window.__analyzeAbort = null;
@@ -1545,6 +1582,7 @@ socket.on('ai_result', (data) => {
     document.getElementById('loading').style.display = 'none';
     setStatus('✅ Recommendation', '#00ff99');
     document.getElementById('waiting-replicate').style.display = 'block';
+    try{ startFunbits(); }catch(_){ }
     // ⬇️ Render detailed analysis from socket if available
     if (data.analysis) {
       try { renderAnalysis(data.analysis); } catch(_) {}
@@ -1576,6 +1614,7 @@ socket.on('generated_faces', (data) => {
         waitingEl.style.display = 'block';
         document.getElementById('visual-loading').style.display = 'block';
         try{ window.showAppSuggest && window.showAppSuggest(); }catch(_){ }
+        try{ startFunbits(); }catch(_){ }
 
         if (window.__genCountdownInterval) { clearInterval(window.__genCountdownInterval); }
         const updateCountdown = () => {
@@ -1631,6 +1670,7 @@ socket.on('generated_faces', (data) => {
         waitingEl.innerText = '';
         document.getElementById('countdown-timer').innerText = '';
         document.getElementById('waiting-replicate').style.display = 'none';
+        try{ stopFunbits(); }catch(_){ }
         document.getElementById('generate-waiting-box').style.display = 'none';
         document.getElementById('countdown-timer').innerText = '';
         setBusy(false);
@@ -1644,6 +1684,7 @@ socket.on('generated_faces', (data) => {
         document.getElementById('replicate-error-msg').style.display = 'block';
         document.getElementById('generate-waiting-box').style.display = 'none';
         document.getElementById('waiting-replicate').style.display = 'none';
+        try{ stopFunbits(); }catch(_){ }
         document.getElementById('countdown-timer').innerText = '';
         if (window.__genCountdownInterval) { clearInterval(window.__genCountdownInterval); window.__genCountdownInterval = null; }
         setBusy(false);
