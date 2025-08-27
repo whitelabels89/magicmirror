@@ -853,9 +853,9 @@ h1{
         </div>
         <button id="controls-toggle" class="controls-toggle" aria-pressed="true" title="Hide controls">▾</button>
         <button id="vc-toggle" class="vc-toggle" aria-pressed="false" title="Enable voice command">🎙️</button>
-    <div id="vc-toast" class="vc-toast" style="display:none;">Say: “Hey Mirror…”</div>
+    <div id="vc-toast" class="vc-toast" style="display:none;">Say: “Hey Queen…”</div>
     <script>
-// === Voice Command: Hey Mirror → (camera on) → commands (mulai analisa/analyze) ===
+(function(){
 (function(){
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   const vcBtn = document.getElementById('vc-toggle');
@@ -870,7 +870,7 @@ h1{
   // Toast helper
   function vcToast(msg, dur){
     if(!toastEl) return;
-    toastEl.textContent = msg || 'Say: “Hey Mirror…”';
+    toastEl.textContent = msg || 'Say: “Hey Queen…”';
     toastEl.style.display = 'block';
     toastEl.classList.add('show');
     if(dur){ setTimeout(()=>{ toastEl.classList.remove('show'); }, dur); }
@@ -881,9 +881,11 @@ h1{
   let rec = null;
   let listening = false;
   let armed = false; // after hotword
+  let armedAt = 0, lastCmdAt = 0; // timestamps for anti-echo & debounce
 
   function setArmed(on){
     armed = !!on;
+    armedAt = on ? Date.now() : 0;
     document.body.classList.toggle('vc-armed', armed);
     if(armed){ vcToast('🎤 Listening… ucapkan "mulai analisa"', 1600); }
   }
@@ -901,12 +903,12 @@ h1{
         const r = e.results[i];
         const txt = r[0] && r[0].transcript ? r[0].transcript.toLowerCase() : '';
         if(!txt) continue;
-        // Hotword: "hey mirror" / "hei miror" / common variants
-        if(/\b(hey|hei|hai)\s+mir+r?or\b/.test(txt)){
+        // Hotword: "hey queen" / "hei queen" / "hai queen"
+        if(/\b(hey|hei|hai)\s+queen\b/.test(txt)){
           // Turn camera ON immediately as requested
           if(!document.body.classList.contains('camera-on')){ camBtn?.click(); }
           setArmed(true);
-          vcToast('✅ Hey Mirror — kamera siap. Ucap: "mulai analisa"', 1800);
+          vcToast('✅ Hey Queen — kamera siap. Ucap: "mulai analisa"', 1800);
           continue;
         }
         // Command: matikan kamera / stop (turn off live cam)
@@ -948,7 +950,14 @@ h1{
           continue;
         }
         // Command: mulai analisa / analyze
-        if(armed && (/mulai\s+analisa/.test(txt) || /analy[sz]e/.test(txt))){
+        if (
+          armed &&
+          (Date.now() - armedAt) > 3000 && // anti-echo: ignore ~3s after hotword (TTS prompt window)
+          (e.results[i].isFinal === true) && // only react on final transcript
+          (/\bmulai\s+analisa\b/.test(txt) || /\banal(?:y[sz]|yse)\b/.test(txt) || /\banalisa\b/.test(txt) || /\banalisis\b/.test(txt)) &&
+          (Date.now() - lastCmdAt) > 1500 // debounce against double fire
+        ){
+          lastCmdAt = Date.now();
           // Ensure camera on & click Analyze (even if disabled)
           const doClick = ()=>{
             if(window.__pageBusy){ vcToast('⏳ Masih memproses…', 900); return; }
@@ -971,6 +980,7 @@ h1{
             doClick();
           }
           setArmed(false);
+          vcToast('✅ Ready to analyze', 1200);
         }
       }
     };
@@ -988,7 +998,7 @@ h1{
       listening = true;
       vcBtn.setAttribute('aria-pressed','true');
       vcBtn.classList.add('listening');
-      vcToast('🎧 Listening aktif — ucapkan: "Hey Mirror"', 1600);
+      vcToast('🎧 Listening aktif — ucapkan: "Hey Queen"', 1600);
     }catch(err){ console.error('VC start failed', err); vcToast('Mic ditolak? Klik izinkan.', 1600); }
   }
   function stop(){
@@ -1007,6 +1017,7 @@ h1{
 
   // Optional: auto-arm after first click of mic permission on page (UX sugar)
   // No auto-start without gesture due to browser policies.
+})();
 })();
     </script>
         <div id="tip-caption" class="caption">Tip: posisi wajah sejajar kamera. Preview otomatis <strong>mirror</strong> agar natural di cermin.</div>
@@ -2076,4 +2087,3 @@ socket.on('generated_faces', (data) => {
       loadPos();
     })();
     </script>
-</script>
