@@ -1912,7 +1912,7 @@ socket.on('generated_faces', (data) => {
       const on = document.body.classList.contains('camera-on');
       if(on && !greeted){
         greeted = true;
-        A.speak('Halo! Aku siap bantu analisa gaya yang cocok buatmu. Tekan Analyze atau bilang: mulai analisa.');
+        A.speak('Halo! Aku AI Assistant siap memberikan rekomendasi gaya yang cocok buatmu!');
       }
     });
     obs.observe(document.body, { attributes:true, attributeFilter:['class'] });
