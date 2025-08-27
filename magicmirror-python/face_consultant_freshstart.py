@@ -193,12 +193,35 @@ def _bgr_to_hex(bgr):
     b, g, r = [int(x) for x in bgr]
     return f"#{r:02x}{g:02x}{b:02x}"
 
+
 def _rgb_to_lab(rgb):
     # fast approximate sRGB to CIELAB via OpenCV
     import cv2, numpy as np
     arr = np.uint8([[rgb]])
     lab = cv2.cvtColor(arr, cv2.COLOR_RGB2LAB)[0,0]
     return [float(lab[0]), float(lab[1]), float(lab[2])]
+
+# Simple gray-world white balance to reduce warm bias from indoor lights
+def _gray_world_wb(img_bgr):
+    import numpy as np
+    img = img_bgr.astype('float32')
+    # compute per-channel scaling so each mean equals overall mean
+    mean_b, mean_g, mean_r = img[...,0].mean(), img[...,1].mean(), img[...,2].mean()
+    mean_gray = (mean_b + mean_g + mean_r) / 3.0 + 1e-6
+    kb, kg, kr = mean_gray/ (mean_b+1e-6), mean_gray/(mean_g+1e-6), mean_gray/(mean_r+1e-6)
+    img[...,0] *= kb; img[...,1] *= kg; img[...,2] *= kr
+    img = np.clip(img, 0, 255).astype('uint8')
+    return img
+
+# Individual Typology Angle (ITA) — skin depth metric (in degrees)
+# ITA = arctangent((L* - 50) / b*) * 180/pi
+def _ita_from_lab(lab):
+    import math
+    L, a, b = lab
+    try:
+        return math.degrees(math.atan2(L - 50.0, b if abs(b) > 1e-6 else 1e-6))
+    except Exception:
+        return 0.0
 
 
 def _sample_mean_bgr(img, pts, ksize=5):
@@ -221,9 +244,15 @@ def _sample_mean_bgr(img, pts, ksize=5):
 
 def _infer_undertone_from_lab(lab):
     L, a, b = lab
-    if a >= 6 and b >= 8:
+    # Use chroma to gate undertone; low-chroma -> neutral
+    import math
+    C = math.hypot(a, b)
+    if C < 8:  # very low chroma -> neutral
+        return 'neutral'
+    # Warm if b* significantly higher than a*, Cool if a* negative and b* modest
+    if (b - a) > 6 and b > 8:
         return 'warm'
-    if a <= -3 and b <= 4:
+    if a < -4 and b < 8:
         return 'cool'
     return 'neutral'
 
@@ -263,10 +292,12 @@ def _build_analysis_dict(img, lms, shape, face_shape_label):
     if ang > 180: ang = 360 - ang
 
     # skin sampling from multiple zones
+    img_wb = _gray_world_wb(img)
     sample_pts = [ gp(234), gp(454), gp(93), gp(323), gp(10) ]
-    mean_bgr = _sample_mean_bgr(img, sample_pts, ksize=7)
+    mean_bgr = _sample_mean_bgr(img_wb, sample_pts, ksize=7)
     mean_rgb = (int(mean_bgr[2]), int(mean_bgr[1]), int(mean_bgr[0]))
     lab = _rgb_to_lab(mean_rgb)
+    ita = _ita_from_lab(lab)
     undertone = _infer_undertone_from_lab(lab)
     season = _season_from_lab_undertone(lab, undertone)
 
@@ -285,6 +316,7 @@ def _build_analysis_dict(img, lms, shape, face_shape_label):
             'hex': _bgr_to_hex(mean_bgr),
             'undertone': undertone,
             'lab': [float(f"{lab[0]:.2f}"), float(f"{lab[1]:.2f}"), float(f"{lab[2]:.2f}")],
+            'ita': float(f"{ita:.2f}"),
             'season': season,
             'melanin_index': float(f"{(100-lab[0])/100:.3f}"),
             'suggested_hex': []
