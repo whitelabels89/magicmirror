@@ -887,7 +887,7 @@ h1{
     armed = !!on;
     armedAt = on ? Date.now() : 0;
     document.body.classList.toggle('vc-armed', armed);
-    if(armed){ vcToast('🎤 Listening… ucapkan "mulai analisa"', 1600); }
+    if(armed){ vcToast('🎤 Listening… ucapkan "mulai analisa" atau "analyze"', 1600); }
   }
 
   function ensureRec(){
@@ -908,7 +908,40 @@ h1{
           // Turn camera ON immediately as requested
           if(!document.body.classList.contains('camera-on')){ camBtn?.click(); }
           setArmed(true);
-          vcToast('✅ Hey Queen — kamera siap. Ucap: "mulai analisa"', 1800);
+          vcToast('✅ Hey Queen — kamera siap. Ucap: "mulai analisa" atau "analyze"', 2000);
+          // If the same utterance already includes the analyze command, run it after anti-echo window
+          const hasAnalyzeCmd = (/\bmulai\s+analisa\b/.test(txt) || /\banal(?:y[sz]|yse)\b/.test(txt) || /\banalisa\b/.test(txt) || /\banalisis\b/.test(txt));
+          if(hasAnalyzeCmd){
+            setTimeout(()=>{
+              if(!listening) return;
+              if((Date.now() - armedAt) < 3000) return; // still in anti-echo window
+              if((Date.now() - lastCmdAt) < 1500) return; // debounce
+              try{
+                // Ensure camera on & click Analyze
+                const doClick = ()=>{
+                  if(window.__pageBusy){ vcToast('⏳ Masih memproses…', 900); return; }
+                  if(analyzeBtn){
+                    const wasDisabled = !!analyzeBtn.disabled;
+                    if(wasDisabled) analyzeBtn.disabled = false;
+                    analyzeBtn.click();
+                    if(wasDisabled) analyzeBtn.disabled = true;
+                    vcToast('🔎 Analyze…', 900);
+                  }
+                };
+                if(!document.body.classList.contains('camera-on')){
+                  camBtn?.click();
+                  const onReady = ()=> setTimeout(doClick, 150);
+                  if(videoEl && videoEl.readyState >= 2){ onReady(); }
+                  else { videoEl?.addEventListener('loadeddata', onReady, { once:true }); }
+                }else{
+                  doClick();
+                }
+                lastCmdAt = Date.now();
+                setArmed(false);
+                vcToast('✅ Ready to analyze', 1200);
+              }catch(_){ /* ignore */ }
+            }, 3050);
+          }
           continue;
         }
         // Command: matikan kamera / stop (turn off live cam)
