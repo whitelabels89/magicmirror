@@ -374,10 +374,22 @@ body.idle-blackout .caption{ opacity: 0 !important; }
       transform: translate(var(--tx), var(--ty));
       transition: transform 120ms ease-out;
     }
+    /* Lock orb perfectly at center (no drift/eye-follow) */
+    #ai-avatar.lock-center .orb-motion{ transform: translate(0,0) !important; }
+    #ai-avatar.lock-center .orb-wrap{ animation: none !important; }
     #ai-avatar{
       --intensity: .4; /* default glow/volume strength */
-      position: fixed; right: 22px; bottom: 28px; z-index: 998;
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      right: auto;
+      bottom: auto;
+      transform: translate(-50%, -50%);
+      z-index: 998;
       width: 160px; height: 160px; pointer-events: auto; cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       touch-action: none; /* enable smooth drag on touch */
     }
     @media (max-width: 768px){ #ai-avatar{ width:120px; height:120px; right:14px; bottom:18px; } }
@@ -399,6 +411,34 @@ body.idle-blackout .caption{ opacity: 0 !important; }
                   inset 0 0 calc(80px + 60px * var(--intensity)) rgba(0,245,212,.25);
       animation: breathe 3.2s ease-in-out infinite;
     }
+    /* === Orb live cam embed === */
+    #ai-avatar .core #orb-cam,
+    #ai-avatar .core #orb-placeholder{
+      position:absolute; inset:0;
+      width:100%; height:100%;
+      border-radius:50%;
+      object-fit: cover;
+      display:block;
+    }
+    /* Make orb-cam video crystal clear, no overlay/grid/hologram */
+    #ai-avatar .core #orb-cam{
+      filter: none !important;
+      mix-blend-mode: normal !important;
+      background: none !important;
+    }
+    /* Mirrored orb-cam if #ai-avatar has .mirrored */
+    #ai-avatar.mirrored .core #orb-cam {
+      transform: scaleX(-1);
+    }
+    /* show video when camera on; otherwise show placeholder */
+    #ai-avatar .core #orb-cam{ display:none; }
+    body.camera-on #ai-avatar .core #orb-cam{ display:block; }
+    body.camera-on #ai-avatar .core #orb-placeholder{ display:none; }
+    /* hide hologram texture when live cam active */
+    body.camera-on #ai-avatar .holo-head{ display:none; }
+
+    /* Hide main camera video when camera is on (leave only orb) */
+    body.camera-on #camera-wrapper{ display: none !important; }
     /* === Orb: Hologram Head texture (ultra‑luxe) === */
     #ai-avatar .holo-head{
       position:absolute; inset:8%;
@@ -823,6 +863,7 @@ h1{
   const analyzeBtn = document.getElementById('capture-button');
   const camBtn = document.getElementById('toggle-camera-button');
   const videoEl = document.getElementById('camera-preview');
+  const fsBtn = document.getElementById('fullscreen');
 
   if(!vcBtn || !toastEl){ return; }
 
@@ -866,6 +907,44 @@ h1{
           if(!document.body.classList.contains('camera-on')){ camBtn?.click(); }
           setArmed(true);
           vcToast('✅ Hey Mirror — kamera siap. Ucap: "mulai analisa"', 1800);
+          continue;
+        }
+        // Command: matikan kamera / stop (turn off live cam)
+        if (/\b(matikan\s+kamera|stop)\b/.test(txt)) {
+          if (document.body.classList.contains('camera-on')) {
+            camBtn?.click();
+            vcToast('📷 Kamera dimatikan.', 1200);
+          } else {
+            vcToast('Kamera sudah mati.', 900);
+          }
+          continue;
+        }
+        // Command: hidupkan kamera / start (turn on live cam)
+        if (/\b(hidupkan\s+kamera|start)\b/.test(txt)) {
+          if (!document.body.classList.contains('camera-on')) {
+            camBtn?.click();
+            vcToast('📷 Kamera dinyalakan.', 1200);
+          } else {
+            vcToast('Kamera sudah menyala.', 900);
+          }
+          continue;
+        }
+        // Command: fullscreen
+        if (/\bfullscreen\b/.test(txt)) {
+          (fsBtn || document.getElementById('fullscreen'))?.click();
+          vcToast('⛶ Fullscreen toggle', 1000);
+          continue;
+        }
+        // Command: matikan mic (stop voice recognition)
+        if (/\b(matik(?:an)?\s+(mic|mikrofon)|mute(?:\s+mic)?|nonaktifkan\s+mic)\b/.test(txt)) {
+          stop();
+          vcToast('🎙️ Mic dimatikan.', 1200);
+          continue;
+        }
+        // Command: hidupkan mic (start/restart voice recognition)
+        if (/\b(hidup(?:kan)?\s+(mic|mikrofon)|aktifkan\s+mic|unmute(?:\s+mic)?)\b/.test(txt)) {
+          start();
+          vcToast('🎙️ Mic dinyalakan.', 1200);
           continue;
         }
         // Command: mulai analisa / analyze
@@ -961,6 +1040,8 @@ h1{
     <script>
     window.addEventListener('DOMContentLoaded', () => {
         const toggleBtn = document.getElementById('toggle-camera-button');
+        const orbCam = document.getElementById('orb-cam');
+        const orbPh  = document.getElementById('orb-placeholder');
         let stream = null;
 
         function startCamera() {
@@ -971,6 +1052,8 @@ h1{
                     const video = document.getElementById('camera-preview');
                     const placeholder = document.getElementById('camera-placeholder');
                     video.srcObject = stream;
+                    if (orbCam) { orbCam.srcObject = stream; orbCam.style.display = 'block'; }
+                    if (orbPh)  { orbPh.style.display = 'none'; }
                     video.style.display = 'block';
                     document.body.classList.add('camera-on');
                     toggleBtn.innerText = "Turn Off Magic Mirror";
@@ -990,6 +1073,8 @@ h1{
             }
             const video = document.getElementById('camera-preview');
             const placeholder = document.getElementById('camera-placeholder');
+            if (orbCam) { try{ orbCam.srcObject = null; }catch(_){} orbCam.style.display = 'none'; }
+            if (orbPh)  { orbPh.style.display = 'block'; }
             video.style.display = 'none';
             document.body.classList.remove('camera-on');
             toggleBtn.innerText = "Turn On Magic Mirror";
@@ -1301,9 +1386,13 @@ socket.on('generated_faces', (data) => {
     // Flip mirror toggle
     (function(){
       const wrap = document.getElementById('camera-wrapper');
+      const orb = document.getElementById('ai-avatar');
       const btn = document.getElementById('flip-mirror');
-      if(btn && wrap){
-        btn.addEventListener('click', ()=> wrap.classList.toggle('mirrored'));
+      if(btn && wrap && orb){
+        btn.addEventListener('click', ()=>{
+          wrap.classList.toggle('mirrored');
+          orb.classList.toggle('mirrored');
+        });
       }
     })();
     // Fullscreen toggle
@@ -1364,11 +1453,15 @@ socket.on('generated_faces', (data) => {
     })();
     </script>
     <!-- AI Avatar Orb -->
-    <div id="ai-avatar" aria-hidden="true">
+    <div id="ai-avatar" class="lock-center" aria-hidden="true">
       <div class="orb-motion">
         <div class="orb-wrap">
           <div class="halo"></div>
-          <div class="core"><div class="holo-head" aria-hidden="true"></div></div>
+          <div class="core">
+            <video id="orb-cam" autoplay playsinline muted style="display:none;"></video>
+            <img id="orb-placeholder" src="/magic_mirror.png" alt="Mirror" />
+            <div class="holo-head" aria-hidden="true"></div>
+          </div>
           <div class="pulse"></div>
           <div class="pulse pulse2"></div>
           <!-- SVG noise using feTurbulence for organic life -->
@@ -1574,16 +1667,16 @@ socket.on('generated_faces', (data) => {
               const maxShift = 28; // px
               const tx = (nx * maxShift).toFixed(1) + 'px';
               const ty = (ny * maxShift).toFixed(1) + 'px';
-              if(motion){
+              const avatarEl = document.getElementById('ai-avatar');
+              const locked = !!(avatarEl && avatarEl.classList.contains('lock-center'));
+              if(motion && !locked){
                 motion.style.setProperty('--tx', tx);
                 motion.style.setProperty('--ty', ty);
               }
-              // Intensitas: wajah makin besar (dekat) -> intensitas naik (0.2..1)
+              // Intensitas tetap dihitung, tapi kalau lock-center aktif, pakai nilai default lebih tenang
               const vw = video.videoWidth || 1, vh = video.videoHeight || 1;
               const areaRatio = Math.min(1, Math.max(0, (r.width * r.height) / (vw * vh)));
-              const intensity = Math.min(1, Math.max(0.2, areaRatio * 3));
-              // Apply ke CSS var & heartbeat controller bila ada
-              const avatarEl = document.getElementById('ai-avatar');
+              const intensity = locked ? 0.4 : Math.min(1, Math.max(0.2, areaRatio * 3));
               if(avatarEl){ avatarEl.style.setProperty('--intensity', intensity.toFixed(2)); }
               if(window.HeartbeatCtl && typeof window.HeartbeatCtl.setIntensity === 'function'){
                 window.HeartbeatCtl.setIntensity(intensity);
