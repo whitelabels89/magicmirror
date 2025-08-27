@@ -881,11 +881,9 @@ h1{
   let rec = null;
   let listening = false;
   let armed = false; // after hotword
-  let armedAt = 0, lastCmdAt = 0; // timestamps for anti-echo & debounce
 
   function setArmed(on){
     armed = !!on;
-    armedAt = on ? Date.now() : 0;
     document.body.classList.toggle('vc-armed', armed);
     if(armed){ vcToast('🎤 Listening… ucapkan "mulai analisa"', 1600); }
   }
@@ -950,14 +948,7 @@ h1{
           continue;
         }
         // Command: mulai analisa / analyze
-        if (
-          armed &&
-          (Date.now() - armedAt) > 1400 && // anti-echo: ignore ~1.4s after hotword (TTS prompt window)
-          (e.results[i].isFinal === true) && // only react on final transcript
-          (/\bmulai\s+analisa\b/.test(txt) || /\banal(?:y[sz]|yse)\b/.test(txt) || /\banalisa\b/.test(txt) || /\banalisis\b/.test(txt)) &&
-          (Date.now() - lastCmdAt) > 1500 // debounce against double fire
-        ){
-          lastCmdAt = Date.now();
+        if(armed && (/mulai\s+analisa/.test(txt) || /analy[sz]e/.test(txt))){
           // Ensure camera on & click Analyze (even if disabled)
           const doClick = ()=>{
             if(window.__pageBusy){ vcToast('⏳ Masih memproses…', 900); return; }
