@@ -1129,9 +1129,8 @@ h1{
             if(!digits.startsWith('62')){ alert('Nomor harus diawali 62 (contoh: 62812xxxx).'); inp && inp.focus && inp.focus(); return; }
             const number = digits; // already validated
             const { text } = buildWhatsAppSummary();
-            if(window.__pageBusy){ try{ window.vcToast && window.vcToast('⏳ Tunggu sebentar…', 1100);}catch(_){} return; }
+            // Allow sending WhatsApp even if analysis is still generating faces
             setWaSending(true);
-            setBusy(true);
             try{
               const res = await fetch('/send-whatsapp', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -1149,7 +1148,6 @@ h1{
               alert('Gagal mengirim WhatsApp.');
             }finally{
               setWaSending(false);
-              setBusy(false);
             }
           });
         });
@@ -1285,6 +1283,9 @@ h1{
         const sessionId = `${Date.now()}_${Math.floor(Math.random() * 100000)}`;
         window.sessionId = sessionId;
         const socket = io('https://queensacademy.id');
+        // Global flags for face generation lifecycle
+        window.__facesShown = false;           // becomes true once any face image is displayed
+        window.__genCountdownInterval = null;  // countdown interval ref
         let connected = false;
         // Busy/Abort management
         window.__pageBusy = window.__pageBusy || false;
@@ -1319,6 +1320,25 @@ h1{
                 captureBtn.style.cursor = busy ? 'wait' : 'not-allowed';
             }
         }
+
+// Heuristic: detect if analysis likely has NO FACE
+function isLikelyNoFace(analysis){
+  if(!analysis) return true;
+  const conf = (analysis.confidence != null) ? analysis.confidence : (analysis.score != null ? analysis.score : null);
+  const meshPts = (analysis.mesh && (typeof analysis.mesh.points_count === 'number' ? analysis.mesh.points_count : (Array.isArray(analysis.mesh.points) ? analysis.mesh.points.length : 0))) || 0;
+  const detN = (typeof analysis.detections === 'number') ? analysis.detections
+              : (Array.isArray(analysis.detections) ? analysis.detections.length
+              : (typeof analysis.faces === 'number') ? analysis.faces
+              : (Array.isArray(analysis.faces) ? analysis.faces.length : 0));
+  const explicitFlag = (analysis.face_detected === true) || (analysis.has_face === true) || (analysis.flags && (analysis.flags.face_detected === true || analysis.flags.no_face === false));
+  // Treat as valid if ANY of these look good
+  const confOk = (typeof conf === 'number') && conf >= 0.45; // threshold ~45%
+  const meshOk = meshPts > 50;                                // enough landmarks
+  const detOk  = detN > 0;                                    // detector saw faces
+  const ok = explicitFlag || confOk || meshOk || detOk;
+  return !ok;
+}
+
 document.getElementById('capture-button').addEventListener('click', async () => {
     if(window.__pageBusy){ try{ window.vcToast && window.vcToast('⏳ Masih memproses…', 900); }catch(_){} return; }
     setBusy(true); // mark busy
@@ -1356,6 +1376,11 @@ document.getElementById('capture-button').addEventListener('click', async () => 
             const detail = document.getElementById('analysis-detail');
             if(detail){ detail.style.display = 'none'; }
             document.getElementById('waiting-replicate').style.display = 'none';
+            // Reset face generation state & hide WA box
+            window.__facesShown = false;
+            if (window.__genCountdownInterval) { clearInterval(window.__genCountdownInterval); window.__genCountdownInterval = null; }
+            const waBoxInitial = document.getElementById('wa-share'); if (waBoxInitial) waBoxInitial.style.display = 'none';
+            document.getElementById('countdown-timer').innerText = '';
 
             const startTimestamp = Math.floor(Date.now() / 1000);
             console.log("📤 Mengirim foto ke backend... start_timestamp:", startTimestamp);
@@ -1375,6 +1400,16 @@ document.getElementById('capture-button').addEventListener('click', async () => 
                 }
 
                 if (data.status === 'done') {
+                    // Guard: if no face detected, stop and show clear message
+                    if (isLikelyNoFace(data.analysis)) {
+                      setStatus('⚠️ Tidak terdeteksi wajah.', 'orange');
+                      document.getElementById('recommendation').style.display = 'none';
+                      const detail = document.getElementById('analysis-detail'); if(detail){ detail.style.display = 'none'; }
+                      document.getElementById('waiting-replicate').style.display = 'none';
+                      document.getElementById('visual-loading').style.display = 'none';
+                      setBusy(false);
+                      return; // do not render template/defaults
+                    }
                     document.getElementById('rec-content').innerText = data.recommendation || 'Tidak ada rekomendasi.';
                     document.getElementById('recommendation').style.display = 'block';
                     setStatus('✅ Rekomendasi siap!', '#00ff99');
@@ -1435,13 +1470,21 @@ document.getElementById('capture-button').addEventListener('click', async () => 
         });
 socket.on('ai_result', (data) => {
     console.log('🧠 Rekomendasi AI diterima.');
+    // Guard: ignore template/default if face not detected
+    if (isLikelyNoFace(data.analysis)){
+      setStatus('⚠️ Tidak terdeteksi wajah.', 'orange');
+      const recommendation = document.getElementById('recommendation');
+      if (recommendation) recommendation.style.display = 'none';
+      const waBox = document.getElementById('wa-share'); if (waBox) waBox.style.display = 'none';
+      const detail = document.getElementById('analysis-detail'); if(detail){ detail.style.display = 'none'; }
+      document.getElementById('loading').style.display = 'none';
+      return;
+    }
     const recommendation = document.getElementById('recommendation');
     const recContent = document.getElementById('rec-content');
     recContent.innerText = data.recommendationText || data.recommendation;
     recommendation.style.display = 'block';
-    // Show WA share UI when recommendation available
-    const waBox = document.getElementById('wa-share');
-    if (waBox) waBox.style.display = 'block';
+    // (WA share UI now only shown after faces arrive)
     recommendation.classList.add('fade-in');
     document.getElementById('loading').style.display = 'none';
     setStatus('✅ Recommendation', '#00ff99');
@@ -1471,13 +1514,13 @@ socket.on('generated_faces', (data) => {
     }
 
     // ⏳ Countdown dan spinner hanya saat status === 'pending'
-    if (data.status === 'pending' && data.start_timestamp && validFaces.length === 0) {
+    if (data.status === 'pending' && data.start_timestamp && validFaces.length === 0 && !window.__facesShown) {
         document.getElementById('generate-waiting-box').style.display = 'block';
         const countdownTarget = data.start_timestamp + 120;
         waitingEl.style.display = 'block';
         document.getElementById('visual-loading').style.display = 'block';
 
-        let interval = null;
+        if (window.__genCountdownInterval) { clearInterval(window.__genCountdownInterval); }
         const updateCountdown = () => {
             const now = Math.floor(Date.now() / 1000);
             const remaining = countdownTarget - now;
@@ -1487,13 +1530,13 @@ socket.on('generated_faces', (data) => {
                 document.getElementById('visual-loading').style.display = 'none';
                 document.getElementById('countdown-timer').innerText = '';
                 // Do not hide waitingEl yet, let it display the message
-                clearInterval(interval);
+                if (window.__genCountdownInterval) { clearInterval(window.__genCountdownInterval); window.__genCountdownInterval = null; }
             } else {
                 document.getElementById('countdown-timer').innerText = `✨ Visualisasi akan tampil dalam ${remaining} detik...`;
             }
         };
         updateCountdown();
-        interval = setInterval(updateCountdown, 1000);
+        window.__genCountdownInterval = setInterval(updateCountdown, 1000);
 
         // ✅ Spinner awal rekomendasi tetap dipertahankan
         loadingEl.style.display = 'block';
@@ -1502,6 +1545,9 @@ socket.on('generated_faces', (data) => {
 
     // 🎨 Kalau ada hasil wajah, tampilkan ke galeri
     if (validFaces.length > 0) {
+        // Mark that faces are shown; stop any countdown
+        window.__facesShown = true;
+        if (window.__genCountdownInterval) { clearInterval(window.__genCountdownInterval); window.__genCountdownInterval = null; }
         gallery.innerHTML = '';
         validFaces.forEach((url, index) => {
             const card = document.createElement('div');
@@ -1521,6 +1567,12 @@ socket.on('generated_faces', (data) => {
         document.getElementById('countdown-timer').innerText = '';
         document.getElementById('generate-waiting-box').style.display = 'none';
         document.getElementById('replicate-error-msg').style.display = 'none';
+        // Now it's safe to show WhatsApp share UI
+        const waBox = document.getElementById('wa-share');
+        if (waBox) waBox.style.display = 'block';
+        // Ensure any leftover waiting text is cleared
+        waitingEl.innerText = '';
+        document.getElementById('countdown-timer').innerText = '';
         setBusy(false);
         clearTimeout(window.__busyTimeout);
         try{ window.__analyzeAbort = null; }catch(_){ }
@@ -1528,6 +1580,7 @@ socket.on('generated_faces', (data) => {
 
     // Error/limit handling
     if (data.status === 'error' || (data.message && data.message.toLowerCase().includes('limit'))) {
+        if (window.__genCountdownInterval) { clearInterval(window.__genCountdownInterval); window.__genCountdownInterval = null; }
         document.getElementById('replicate-error-msg').style.display = 'block';
         document.getElementById('generate-waiting-box').style.display = 'none';
         setBusy(false);
@@ -1548,6 +1601,14 @@ function renderAnalysis(analysis){
   const mesh = analysis.mesh || {};
   const skin = analysis.skin || analysis.skin_tone || {};
   const conf = (analysis.confidence != null) ? analysis.confidence : (analysis.score || null);
+
+  // Early exit if this looks like a no-face payload
+  if (isLikelyNoFace(analysis)){
+    try{
+      const detail = document.getElementById('analysis-detail'); if(detail){ detail.style.display = 'none'; }
+    }catch(_){ }
+    return;
+  }
 
   // Face section
   const faceTxt = [];
