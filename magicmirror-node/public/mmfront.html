@@ -377,6 +377,9 @@ body.idle-blackout .caption{ opacity: 0 !important; }
     /* Lock orb perfectly at center (no drift/eye-follow) */
     #ai-avatar.lock-center .orb-motion{ transform: translate(0,0) !important; }
     #ai-avatar.lock-center .orb-wrap{ animation: none !important; }
+    /* Disable any motion when user is dragging the orb */
+    #ai-avatar.dragging .orb-motion{ transition: none !important; transform: translate(var(--tx), var(--ty)) !important; }
+    #ai-avatar.dragging .orb-wrap{ animation: none !important; }
     #ai-avatar{
       --intensity: .4; /* default glow/volume strength */
       position: fixed;
@@ -392,6 +395,8 @@ body.idle-blackout .caption{ opacity: 0 !important; }
       justify-content: center;
       touch-action: none; /* enable smooth drag on touch */
     }
+    /* Ensure inner elements don't steal events */
+    #ai-avatar *{ pointer-events: none; }
     @media (max-width: 768px){ #ai-avatar{ width:120px; height:120px; right:14px; bottom:18px; } }
     #ai-avatar .orb-wrap{
       position:relative; width:100%; height:100%;
@@ -531,6 +536,11 @@ body.idle-blackout .caption{ opacity: 0 !important; }
   @media (max-width: 768px){ #ai-chat{ right:14px; width:80vw; bottom:160px; } }
 
   /* === Voice input styles === */
+  /* === Chat open state (robust toggle) === */
+  body.chat-open #ai-chat{ display:block !important; }
+  body.chat-open #ai-avatar{ --tx:0px; --ty:0px; }
+  body.chat-open #ai-avatar .orb-motion{ transform: translate(0,0) !important; transition: none !important; }
+  body.chat-open #ai-avatar .orb-wrap{ animation: none !important; }
   #ai-chat button.mic{ padding:10px 12px; border-radius:10px; border:1px solid rgba(124,255,124,.3); background: linear-gradient(135deg, rgba(255,255,255,.12), rgba(255,255,255,.06)); color:#eafffb; font-weight:700; cursor:pointer; }
   #ai-chat button.mic.listening{ background: linear-gradient(135deg, #ff7b7b, #ffb3a3); color:#1b1b1b; box-shadow:0 0 18px rgba(255,120,120,.5); }
   /* Orb listening visuals */
@@ -1673,633 +1683,69 @@ function renderAnalysis(analysis){
     </div>
 
     <script>
-    // Toggle AI Chat box by clicking the orb; click again to close (lock orb to center while open)
     (function(){
+      const body = document.body;
       const orb = document.getElementById('ai-avatar');
       const chat = document.getElementById('ai-chat');
       const closeBtn = document.getElementById('ai-chat-close');
       const input = document.getElementById('ai-chat-input');
       if(!orb || !chat) return;
 
-      // Cache inner parts for freeze
-      const motion = orb.querySelector('.orb-motion');
-      const wrap = orb.querySelector('.orb-wrap');
+      let dragging = false, moved = false, suppressClick = false;
+      let startX = 0, startY = 0, startLeft = 0, startTop = 0;
+      const CLICK_THRESHOLD = 6; // px
 
-      let clickLock = false; // simple debounce to avoid double fire
-      function freezeOrb(){
-        try{
-          // Force to true center and stop any wander/eye-follow
-          orb.classList.add('lock-center');
-          orb.style.setProperty('--tx','0px');
-          orb.style.setProperty('--ty','0px');
-          if(motion){ motion.style.transition = 'none'; motion.style.transform = 'translate(0,0)'; }
-          if(wrap){ wrap.style.animation = 'none'; }
-        }catch(_){/* ignore */}
-      }
-      function unfreezeOrb(){
-        try{
-          // Keep lock-center by default to prevent future jumps; comment next line if you want to restore wander
-          orb.classList.add('lock-center');
-          if(motion){ motion.style.transition = ''; motion.style.transform = ''; }
-          if(wrap){ wrap.style.animation = ''; }
-          orb.style.setProperty('--tx','0px');
-          orb.style.setProperty('--ty','0px');
-        }catch(_){/* ignore */}
-      }
+      function openChat(){ body.classList.add('chat-open'); try{ input && input.focus(); }catch(_){} }
+      function closeChat(){ body.classList.remove('chat-open'); }
+      function isOpen(){ return body.classList.contains('chat-open'); }
 
-      function openChat(){
-        freezeOrb();
-        chat.style.display = 'block';
-        chat.classList.add('open');
-        try{ input && input.focus(); }catch(_){ /* ignore */ }
-      }
-      function closeChat(){
-        chat.style.display = 'none';
-        chat.classList.remove('open');
-        unfreezeOrb();
-      }
-      function isOpen(){
-        return chat.classList.contains('open') || chat.style.display === 'block';
-      }
-      function toggleChat(e){
-        if(clickLock) return; clickLock = true; setTimeout(()=> clickLock=false, 180);
-        if(e){ e.preventDefault(); e.stopPropagation(); }
+      function onClick(e){
+        if(suppressClick){ suppressClick = false; return; }
+        if(dragging) return; // ignore click while dragging
         if(isOpen()) closeChat(); else openChat();
       }
-      // Click orb to toggle
-      orb.addEventListener('click', toggleChat, { passive:false });
-      // Guard against accidental drags causing position jumps
-      orb.addEventListener('mousedown', (e)=>{ e.preventDefault(); freezeOrb(); }, { passive:false });
-      orb.addEventListener('touchstart', (e)=>{ freezeOrb(); }, { passive:true });
-      // Close button inside chat
-      if(closeBtn){ closeBtn.addEventListener('click', (e)=>{ e.preventDefault(); closeChat(); }); }
-      // ESC to close
-      document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && isOpen()) closeChat(); });
-    })();
-    </script>
 
-    <script>
-// Ultra‑Luxe Gold Dust Particles (lightweight, CSS‑driven)
-(function(){
-  const wrap = document.getElementById('lux-particles');
-  if(!wrap) return;
-  const MAX = 48; // keep it subtle
-  const seed = (n)=> Math.floor(Math.random()*n);
-  // Create particles once
-  for(let i=0;i<MAX;i++){
-    const s = document.createElement('span');
-    s.className = 'p ' + (i%7===0? 'big' : i%5===0? 'mid' : 'tiny');
-    // random horizontal start
-    const left = seed(100);
-    s.style.left = left + 'vw';
-    // slight drift sideways
-    const drift = (seed(40) - 20); // -20..19 px across full path
-    s.style.setProperty('--sx', drift + 'px');
-    // duration + delay variety
-    const dur = 14 + seed(14); // 14s..27s
-    const delay = seed(160)/10 - 8; // -8..+8s (staggered)
-    s.style.setProperty('--dur', dur + 's');
-    s.style.setProperty('--delay', delay + 's');
-    // random vertical offset so not all start at bottom together
-    const offsetY = seed(100);
-    s.style.transform = `translate3d(0, ${offsetY}vh, 0)`;
-    wrap.appendChild(s);
-  }
-  // Pause when tab hidden (saves battery); resume when visible
-  document.addEventListener('visibilitychange', ()=>{
-    wrap.style.animationPlayState = document.hidden ? 'paused' : 'running';
-    [...wrap.children].forEach(el=> el.style.animationPlayState = document.hidden ? 'paused' : 'running');
-  });
-})();
-    </script>
-  
-    <!-- Avatar state controller -->
-    <script>
-      (function(){
-        const avatar = document.getElementById('ai-avatar');
-        if(!avatar) return;
-        // Hook into existing analyze flow
-        const capBtn = document.getElementById('capture-button');
-        if(capBtn){
-          capBtn.addEventListener('click', ()=> avatar.classList.add('thinking'));
-        }
-        // When status returns to success or error, remove thinking
-        const setStatusOrig = window.setStatus;
-        if(typeof setStatusOrig === 'function'){
-          window.setStatus = function(){
-            setStatusOrig.apply(this, arguments);
-            const msg = arguments[0] ? String(arguments[0]).toLowerCase() : '';
-            if(msg.includes('✅') || msg.includes('gagal') || msg.includes('recommendation')){
-              avatar.classList.remove('thinking');
-              if(window.HeartbeatCtl){ window.HeartbeatCtl.startCalm?.(); }
-            }
-          }
-        }
-        // Also listen to socket events
-        if(window.socket){
-          socket.on('ai_result', ()=> avatar.classList.remove('thinking'));
-          socket.on('generated_faces', ()=> avatar.classList.remove('thinking'));
-        }
-      })();
-    </script>
-    <script>
-    // === Heartbeat Audio (no mp3 required) ===
-    (function(){
-      let audioCtx = null, hbTimer = null, firstUserGestureBound = false;
-      let currentMode = 'idle';
-      let currentIntensity = 0.4;
-      const avatar = document.getElementById('ai-avatar');
-
-      function ensureCtx(){
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        return audioCtx;
-      }
-      function pulseOnce(loud=0.12, freq=60){
-        const ctx = ensureCtx();
-        const t = ctx.currentTime;
-        // Kick-like thump
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, t);
-        osc.frequency.exponentialRampToValueAtTime(40, t + 0.15);
-        gain.gain.setValueAtTime(0.0001, t);
-        gain.gain.exponentialRampToValueAtTime(loud, t + 0.01);
-        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.start(t); osc.stop(t + 0.26);
-      }
-      function startHeartbeat(mode){
-        if (window.HeartbeatMuted) { return; }
-        stopHeartbeat();
-        currentMode = mode || 'calm';
-        try{ ensureCtx().resume(); }catch(e){}
-        const basePeriod = (currentMode === 'thinking') ? 800 : 1500; // ms
-        const baseLoud   = (currentMode === 'thinking') ? 0.14 : 0.06;
-        const beat = ()=>{
-          const loud = baseLoud * (0.8 + 0.6 * currentIntensity); // link intensity -> volume
-          pulseOnce(loud, currentMode === 'thinking' ? 65 : 58);
-          setTimeout(()=>pulseOnce(loud*0.85, currentMode === 'thinking' ? 55 : 48), 170);
-        };
-        hbTimer = setInterval(beat, basePeriod);
-        beat();
-        if(mode === 'thinking'){ document.getElementById('ai-avatar')?.classList.add('thinking'); }
-      }
-      function stopHeartbeat(){
-        if (hbTimer){ clearInterval(hbTimer); hbTimer = null; }
-      }
-      // hook into existing capture & socket events for start/stop
-      const cap = document.getElementById('capture-button');
-      if(cap && !firstUserGestureBound){
-        firstUserGestureBound = true;
-        cap.addEventListener('click', ()=> startHeartbeat('thinking'), { once:false });
-      }
-      if(window.socket){
-        socket.on('ai_result', ()=> startHeartbeat('calm'));
-        socket.on('generated_faces', ()=> startHeartbeat('calm'));
-      }
-      // Also stop when page hidden (safety)
-      document.addEventListener('visibilitychange', ()=> { if(document.hidden) stopHeartbeat(); });
-      // Expose controller for other scripts (e.g., eye-follow)
-      window.HeartbeatCtl = {
-        setIntensity(v){ currentIntensity = Math.max(0, Math.min(1, v)); },
-        startCalm(){ startHeartbeat('calm'); },
-        startThinking(){ startHeartbeat('thinking'); },
-        stop(){ stopHeartbeat(); }
-      };
-    })();
-
-    // === Eye Follow using FaceDetector API ===
-    (function(){
-      const video = document.getElementById('camera-preview');
-      const avatar = document.getElementById('ai-avatar');
-      const motion = avatar ? avatar.querySelector('.orb-motion') : null;
-      const hasFD = ('FaceDetector' in window);
-      let fd = null, running = false;
-
-      async function detectLoop(){
-        if(!running) return;
-        if(video && video.readyState >= 2){
-          try{
-            let faces = [];
-            if(fd){ faces = await fd.detect(video); }
-            if(faces && faces[0]){
-              const r = faces[0].boundingBox;
-              const cx = r.x + r.width/2;
-              const cy = r.y + r.height/2;
-              const nx = (cx / (video.videoWidth || 1)) - 0.5;
-              const ny = (cy / (video.videoHeight || 1)) - 0.5;
-              // Jangkauan gerak orb (lebih ekspresif)
-              const maxShift = 28; // px
-              const tx = (nx * maxShift).toFixed(1) + 'px';
-              const ty = (ny * maxShift).toFixed(1) + 'px';
-              const avatarEl = document.getElementById('ai-avatar');
-              const locked = !!(avatarEl && avatarEl.classList.contains('lock-center'));
-              if(motion && !locked){
-                motion.style.setProperty('--tx', tx);
-                motion.style.setProperty('--ty', ty);
-              }
-              // Intensitas tetap dihitung, tapi kalau lock-center aktif, pakai nilai default lebih tenang
-              const vw = video.videoWidth || 1, vh = video.videoHeight || 1;
-              const areaRatio = Math.min(1, Math.max(0, (r.width * r.height) / (vw * vh)));
-              const intensity = locked ? 0.4 : Math.min(1, Math.max(0.2, areaRatio * 3));
-              if(avatarEl){ avatarEl.style.setProperty('--intensity', intensity.toFixed(2)); }
-              if(window.HeartbeatCtl && typeof window.HeartbeatCtl.setIntensity === 'function'){
-                window.HeartbeatCtl.setIntensity(intensity);
-              }
-            }
-          }catch(e){ /* ignore detection errors */ }
-        }
-        requestAnimationFrame(detectLoop);
-      }
-
-      function tryStart(){
-        if(!avatar || !motion) return;
-        if(!hasFD){ return; } // silently skip if not supported
-        if(!fd){ fd = new FaceDetector({ fastMode:true, maxDetectedFaces:1 }); }
-        if(!running){ running = true; requestAnimationFrame(detectLoop); }
-      }
-
-      // Start when camera is toggled on (video becomes visible)
-      const obs = new MutationObserver(()=> { if(video && video.style.display !== 'none') tryStart(); });
-      obs.observe(video, { attributes:true, attributeFilter:['style'] });
-      // Also try on load and when metadata available
-      video.addEventListener('loadeddata', tryStart);
-      tryStart();
-    })();
-    </script>
-    <script>
-    // Toggle chat saat avatar diklik
-    (function(){
-      const avatar = document.getElementById('ai-avatar');
-      const panel = document.getElementById('ai-chat');
-      const closeBtn = document.getElementById('ai-chat-close');
-      const input = document.getElementById('ai-chat-input');
-      const form = document.getElementById('ai-chat-form');
-      const msgs = document.getElementById('ai-chat-msgs');
-
-      function openChat(){ panel.style.display = 'block'; setTimeout(()=> input.focus(), 50); }
-      function closeChat(){ panel.style.display = 'none'; }
-      function addMsg(text, who){
-        const div = document.createElement('div');
-        div.className = 'msg ' + (who||'bot');
-        div.textContent = text;
-        msgs.appendChild(div); msgs.scrollTop = msgs.scrollHeight;
-      }
-
-      if(avatar){ avatar.addEventListener('click', ()=>{ if(panel.style.display==='block') closeChat(); else openChat(); }); }
-      if(closeBtn){ closeBtn.addEventListener('click', closeChat); }
-
-      async function sendToAI(prompt){
-        // ⚠️ API KEY tidak disimpan di client. Panggil endpoint backend yang memakai ENV OPENAI_API_KEY.
-        // Ganti URL ini jika backend kamu berbeda.
-        const url = '/chat';
-        try{
-          window.HeartbeatCtl?.startThinking?.();
-          addMsg(prompt, 'user');
-          const res = await fetch(url, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ session_id: window.sessionId, message: prompt })});
-          if(!res.ok) throw new Error('HTTP '+res.status);
-          const data = await res.json();
-          const reply = data.reply || data.message || 'Maaf, aku belum bisa menjawab.';
-          addMsg(reply, 'bot');
-        }catch(e){
-          console.error('Chat error', e);
-          addMsg('Maaf, server chat sedang bermasalah. Coba lagi nanti.', 'bot');
-        }finally{
-          window.HeartbeatCtl?.startCalm?.();
-        }
-      }
-
-      if(form){
-        form.addEventListener('submit', (e)=>{
-          e.preventDefault();
-          const val = (input.value||'').trim();
-          if(!val) return;
-          input.value='';
-          sendToAI(val);
-        });
-      }
-    })();
-    </script>
-    <script>
-    // === Voice Prompt via Web Speech API + Long-Press on Orb ===
-    (function(){
-      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const supportsSR = !!SpeechRec;
-      const voiceBtn = document.getElementById('ai-voice-btn');
-      const input = document.getElementById('ai-chat-input');
-      const form = document.getElementById('ai-chat-form');
-      const avatar = document.getElementById('ai-avatar');
-      const panel = document.getElementById('ai-chat');
-
-      let rec = null, listening = false, longPressTimer = null, suppressClick = false;
-
-      function ensurePanel(){ if(panel.style.display !== 'block'){ panel.style.display = 'block'; } }
-      function setListening(on){
-        listening = on;
-        if(voiceBtn){ voiceBtn.classList.toggle('listening', on); }
-        if(avatar){ avatar.classList.toggle('listening', on); }
-        if(on){ window.HeartbeatCtl?.startThinking?.(); } else { window.HeartbeatCtl?.startCalm?.(); }
-      }
-
-      function startRec(){
-        if(!supportsSR) { alert('Browser belum mendukung speech recognition. Coba Chrome/Edge terbaru.'); return; }
-        if(listening) return;
-        try {
-          if(!rec){
-            rec = new SpeechRec();
-            rec.lang = 'id-ID';
-            rec.interimResults = true;
-            rec.continuous = false; // single utterance
-            rec.maxAlternatives = 1;
-            rec.onresult = (e)=>{
-              let finalTxt = '';
-              for(let i=0;i<e.results.length;i++){
-                const res = e.results[i];
-                if(res.isFinal){ finalTxt += res[0].transcript; }
-              }
-              if(finalTxt){ input.value = finalTxt.trim(); }
-            };
-            rec.onerror = (e)=>{ console.warn('SR error', e.error); stopRec(); };
-            rec.onend = ()=>{ setListening(false); };
-          }
-          ensurePanel();
-          setListening(true);
-          rec.start();
-        } catch(err){ console.error('SR start failed', err); setListening(false); }
-      }
-      function stopRec(){
-        try{ rec && rec.stop && rec.stop(); }catch(_){}
-        setListening(false);
-      }
-
-      if(voiceBtn){
-        voiceBtn.addEventListener('mousedown', startRec);
-        voiceBtn.addEventListener('mouseup', stopRec);
-        voiceBtn.addEventListener('mouseleave', stopRec);
-        voiceBtn.addEventListener('touchstart', (e)=>{ e.preventDefault(); startRec(); }, {passive:false});
-        voiceBtn.addEventListener('touchend', (e)=>{ e.preventDefault(); stopRec(); }, {passive:false});
-        // click to toggle (for accessibility)
-        voiceBtn.addEventListener('click', ()=>{ if(!supportsSR) return; if(listening) stopRec(); else startRec(); });
-      }
-
-      // Long-press on orb to talk (>=400ms)
-      if(avatar){
-        const down = ()=>{ longPressTimer = setTimeout(()=>{ suppressClick = true; ensurePanel(); startRec(); }, 400); };
-        const up = ()=>{ clearTimeout(longPressTimer); if(listening) stopRec(); setTimeout(()=> suppressClick=false, 50); };
-        avatar.addEventListener('mousedown', down);
-        avatar.addEventListener('touchstart', (e)=>{ e.preventDefault(); down(); }, {passive:false});
-        avatar.addEventListener('mouseup', up);
-        avatar.addEventListener('mouseleave', up);
-        avatar.addEventListener('touchend', (e)=>{ e.preventDefault(); up(); }, {passive:false});
-        // prevent normal toggle if we just long-pressed
-        avatar.addEventListener('click', (e)=>{ if(suppressClick){ e.stopImmediatePropagation(); e.preventDefault(); } });
-      }
-
-      // Auto-send when recognition ends and input has text
-      if(form){
-        document.addEventListener('speechend', ()=>{
-          const val = (input.value||'').trim();
-          if(val){ form.dispatchEvent(new Event('submit', {cancelable:true})); }
-        });
-      }
-    })();
-    </script>
-    <script>
-// === Assistant Fase 1: TTS + Proactive Greet + Quick Actions + Speak on results ===
-(function(){
-  // Namespace
-  window.Assistant = window.Assistant || {};
-  const A = window.Assistant;
-  A._spoken = A._spoken || {};
-  // Configurable TTS provider: 'web' (SpeechSynthesis) or 'remote' (your /tts endpoint)
-  A.config = Object.assign({ provider:'web', lang:'id-ID', voice:'', rate:1.0, pitch:1.0, volume:1.0 }, A.config||{});
-  A._audio = A._audio || new Audio();
-  A._audio.preload = 'none';
-  A._queue = A._queue || [];
-  A.setProvider = function(provider){ A.config.provider = provider; };
-  A.setVoice = function(voice){ A.config.voice = voice || ''; };
-  A.cancel = function(){ try{ speechSynthesis.cancel(); }catch(_){} try{ A._audio.pause(); A._audio.currentTime = 0; }catch(_){} A._queue.length = 0; };
-
-  A.speak = async function(text){
-    try{
-      if(!text) return;
-      const cfg = A.config || { provider:'web', lang:'id-ID' };
-      // Queue simple: if audio playing, enqueue; else play now
-      const playNext = async ()=>{
-        if(A._playing) return; // guard
-        const item = A._queue.shift();
-        if(!item) return;
-        A._playing = true;
-        if(cfg.provider === 'remote'){
-          // Call your backend TTS: POST /tts {text, lang, voice}
-          try{
-            const res = await fetch('/tts', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ text: item.text, lang: cfg.lang || 'id-ID', voice: cfg.voice || 'id-ID-female' }) });
-            const data = await res.json();
-            const src = data.audioUrl || (data.audioBase64 ? ('data:audio/mp3;base64,'+data.audioBase64) : '');
-            if(!src) throw new Error('TTS: no audio received');
-            A._audio.src = src;
-            A._audio.volume = (typeof cfg.volume==='number')? cfg.volume : 1.0;
-            await A._audio.play();
-            A._audio.onended = ()=>{ A._playing = false; playNext(); };
-          }catch(err){ console.warn('Remote TTS failed, fallback to web:', err); cfg.provider = 'web'; A._playing = false; A._queue.unshift(item); return playNext(); }
-        } else {
-          if(!('speechSynthesis' in window)) return; // no web TTS
-          const u = new SpeechSynthesisUtterance(String(item.text));
-          u.lang = cfg.lang || 'id-ID';
-          try{
-            const vs = speechSynthesis.getVoices();
-            let v = null;
-            if(cfg.voice){ v = vs.find(x=> (x.name&&x.name===cfg.voice) || (x.voiceURI&&x.voiceURI===cfg.voice)); }
-            if(!v){ v = vs.find(x=> x.lang && x.lang.toLowerCase().startsWith('id')); }
-            if(!v){ v = vs.find(x=> x.lang && x.lang.toLowerCase().startsWith('en')); }
-            if(v) u.voice = v;
-          }catch(_){ }
-          u.rate = (typeof cfg.rate==='number')? cfg.rate : 1.0;
-          u.pitch = (typeof cfg.pitch==='number')? cfg.pitch : 1.0;
-          u.volume = (typeof cfg.volume==='number')? cfg.volume : 1.0;
-          try{ speechSynthesis.cancel(); }catch(_){ }
-          speechSynthesis.speak(u);
-          u.onend = ()=>{ A._playing = false; playNext(); };
-          u.onerror = ()=>{ A._playing = false; playNext(); };
-        }
-      };
-      // enqueue and maybe start
-      A._queue.push({ text:String(text) });
-      playNext();
-    }catch(_){ /* ignore */ }
-  };
-  A.sayOnce = function(key, text){ if(A._spoken[key]) return; A._spoken[key]=1; A.speak(text); };
-
-  // Proactive greet: when camera turns ON for the first time
-  (function(){
-    let greeted = false;
-    const obs = new MutationObserver(()=>{
-      const on = document.body.classList.contains('camera-on');
-      if(on && !greeted){
-        greeted = true;
-        A.speak('Halo! Aku AI Assistant siap memberikan rekomendasi gaya yang cocok buatmu!');
-      }
-    });
-    obs.observe(document.body, { attributes:true, attributeFilter:['class'] });
-  })();
-
-  // Quick actions (chips) in chat
-  (function(){
-    const panel = document.getElementById('ai-chat');
-    const form  = document.getElementById('ai-chat-form');
-    const msgs  = document.getElementById('ai-chat-msgs');
-    const input = document.getElementById('ai-chat-input');
-    if(!panel || !form || !msgs || document.getElementById('ai-quick-actions')) return;
-
-    function addMsg(text, who){
-      const div = document.createElement('div');
-      div.className = 'msg ' + (who||'bot');
-      div.textContent = text;
-      msgs.appendChild(div); msgs.scrollTop = msgs.scrollHeight;
-    }
-    async function sendQuick(prompt){
-      try{
-        addMsg(prompt, 'user');
-        const res = await fetch('/chat', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ session_id: window.sessionId, message: prompt })});
-        const data = await res.json().catch(()=>({}));
-        const reply = data.reply || data.message || 'Siap, aku bantu ya.';
-        addMsg(reply, 'bot');
-        A.speak(reply);
-      }catch(_){ addMsg('Maaf, server chat sedang sibuk. Coba lagi ya.', 'bot'); }
-    }
-
-    const qa = document.createElement('div');
-    qa.id = 'ai-quick-actions';
-    qa.style.display = 'flex'; qa.style.flexWrap = 'wrap'; qa.style.gap = '6px';
-    qa.style.padding = '8px 10px'; qa.style.borderTop = '1px solid rgba(255,255,255,.06)';
-
-    const presets = [
-      'Rekomendasi cepat',
-      'Tips perawatan rambut',
-      'Gaya untuk wajah bulat',
-      'Produk yang cocok',
-      'Apa tren terbaru?'
-    ];
-    presets.forEach(t=>{
-      const b = document.createElement('button');
-      b.type = 'button'; b.textContent = t;
-      b.style.padding='8px 10px'; b.style.borderRadius='10px';
-      b.style.border='1px solid rgba(124,255,124,.3)';
-      b.style.background='linear-gradient(135deg, rgba(255,255,255,.12), rgba(255,255,255,.06))';
-      b.style.color='#eafffb'; b.style.cursor='pointer';
-      b.addEventListener('click', ()=> sendQuick(t));
-      qa.appendChild(b);
-    });
-
-    // Insert above the composer form
-    form.parentNode.insertBefore(qa, form);
-  })();
-
-  // Speak during analysis lifecycle
-  (function(){
-    if(window.socket){
-      socket.on('ai_result', ()=>{
-        A.sayOnce('ai_result', 'Rekomendasi siap. Silakan lihat bagian rekomendasi di bawah.');
-      });
-      socket.on('generated_faces', (d)=>{
-        if(Array.isArray(d && d.faces) && d.faces.length>0){
-          A.speak('Visualisasi gaya rambut sudah tampil. Pilih yang paling kamu suka, ya.');
-        }
-      });
-    }
-  })();
-})();
-    </script>
-    <script>
-    // === Draggable Orb (bounded within screen, with persistence) ===
-    (function(){
-      const orb = document.getElementById('ai-avatar');
-      const panel = document.getElementById('ai-chat');
-      if(!orb) return;
-
-      const margin = 8; // px
-      let dragging = false, sx = 0, sy = 0, startLeft = 0, startTop = 0;
-
-      const px = (n)=> `${Math.round(n)}px`;
-      function positionPanelNearOrb(){
-        if(!panel || panel.style.display !== 'block') return;
-        const r = orb.getBoundingClientRect();
-        const panelW = panel.offsetWidth || 320;
-        let left = r.right + 12; // prefer right side of orb
-        if (left + panelW + margin > window.innerWidth) left = r.left - panelW - 12; // else put left of orb
-        left = Math.max(margin, Math.min(left, window.innerWidth - panelW - margin));
-        const bottom = Math.max(margin, window.innerHeight - r.top + 12);
-        panel.style.left = px(left);
-        panel.style.right = 'auto';
-        panel.style.bottom = px(bottom);
-      }
-
-      function setPos(l, t){
-        const r = orb.getBoundingClientRect();
-        const w = r.width, h = r.height;
-        const maxL = window.innerWidth - w - margin;
-        const maxT = window.innerHeight - h - margin;
-        l = Math.max(margin, Math.min(l, maxL));
-        t = Math.max(margin, Math.min(t, maxT));
-        orb.style.left = px(l);
-        orb.style.top = px(t);
-        // clear opposite anchors so left/top take effect
+      function onPointerDown(e){
+        if(e.button !== undefined && e.button !== 0) return; // primary only
+        dragging = true; moved = false;
+        const rect = orb.getBoundingClientRect();
+        startLeft = rect.left; startTop = rect.top;
+        startX = e.clientX; startY = e.clientY;
+        // switch to absolute placement for smooth drag
         orb.style.right = 'auto';
         orb.style.bottom = 'auto';
-        try{ localStorage.setItem('orbLeft', String(l)); localStorage.setItem('orbTop', String(t)); }catch(_){ }
-        positionPanelNearOrb();
+        orb.style.left = `${startLeft}px`;
+        orb.style.top  = `${startTop}px`;
+        // disable center-translate during free drag
+        orb.style.transform = 'translate(0,0)';
+        try{ orb.setPointerCapture && orb.setPointerCapture(e.pointerId); }catch(_){}
       }
 
-      function loadPos(){
-        const l = parseFloat(localStorage.getItem('orbLeft'));
-        const t = parseFloat(localStorage.getItem('orbTop'));
-        if(!Number.isNaN(l) && !Number.isNaN(t)) setPos(l, t); else positionPanelNearOrb();
+      function onPointerMove(e){
+        if(!dragging) return;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        if(!moved && (Math.abs(dx) > CLICK_THRESHOLD || Math.abs(dy) > CLICK_THRESHOLD)) moved = true;
+        orb.style.left = `${startLeft + dx}px`;
+        orb.style.top  = `${startTop  + dy}px`;
       }
 
-      // Mouse drag
-      orb.addEventListener('mousedown', (e)=>{
-        if(e.button !== 0) return;
-        dragging = true;
-        const r = orb.getBoundingClientRect();
-        sx = e.clientX; sy = e.clientY; startLeft = r.left; startTop = r.top;
-        e.preventDefault();
-      });
-      window.addEventListener('mousemove', (e)=>{
+      function onPointerUp(e){
         if(!dragging) return;
-        const dx = e.clientX - sx, dy = e.clientY - sy;
-        setPos(startLeft + dx, startTop + dy);
-      });
-      window.addEventListener('mouseup', ()=> dragging = false);
+        dragging = false;
+        try{ orb.releasePointerCapture && orb.releasePointerCapture(e.pointerId); }catch(_){}
+        if(moved){
+          // prevent the trailing click after a drag
+          suppressClick = true; setTimeout(()=> suppressClick = false, 150);
+        }
+      }
 
-      // Touch drag
-      orb.addEventListener('touchstart', (e)=>{
-        const t = e.touches[0];
-        dragging = true;
-        const r = orb.getBoundingClientRect();
-        sx = t.clientX; sy = t.clientY; startLeft = r.left; startTop = r.top;
-      }, {passive:true});
-      window.addEventListener('touchmove', (e)=>{
-        if(!dragging) return;
-        const t = e.touches[0]; if(!t) return;
-        const dx = t.clientX - sx, dy = t.clientY - sy;
-        setPos(startLeft + dx, startTop + dy);
-        e.preventDefault();
-      }, {passive:false});
-      window.addEventListener('touchend', ()=> dragging = false);
+      orb.addEventListener('pointerdown', onPointerDown);
+      window.addEventListener('pointermove', onPointerMove);
+      window.addEventListener('pointerup', onPointerUp);
+      orb.addEventListener('click', onClick);
 
-      // Keep orb in bounds on resize/orientation change
-      window.addEventListener('resize', ()=>{
-        const r = orb.getBoundingClientRect();
-        setPos(r.left, r.top);
-      });
-
-      // Position chat near orb when opened (if other code toggles it)
-      const mo = new MutationObserver(()=> positionPanelNearOrb());
-      if(panel) mo.observe(panel, { attributes: true, attributeFilter: ['style', 'class'] });
-
-      // initial load
-      loadPos();
+      if(closeBtn){ closeBtn.addEventListener('click', (e)=>{ e.preventDefault(); closeChat(); }); }
+      document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeChat(); });
     })();
     </script>
-</script>
