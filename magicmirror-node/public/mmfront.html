@@ -983,12 +983,12 @@ h1{
           continue;
         }
         // Command: mulai analisa / analyze
+        const __hasAnalyzeCmd = (/\bmulai\s+analisa\b/.test(txt) || /\banal(?:y[sz]|yse)\b/.test(txt) || /\banalisa\b/.test(txt) || /\banalisis\b/.test(txt));
         if (
           armed &&
-          (Date.now() - armedAt) > 3000 && // anti-echo: ignore ~3s after hotword (TTS prompt window)
-          (e.results[i].isFinal === true) && // only react on final transcript
-          (/\bmulai\s+analisa\b/.test(txt) || /\banal(?:y[sz]|yse)\b/.test(txt) || /\banalisa\b/.test(txt) || /\banalisis\b/.test(txt)) &&
-          (Date.now() - lastCmdAt) > 1500 // debounce against double fire
+          (Date.now() - armedAt) > 3000 && // anti-echo 3s
+          __hasAnalyzeCmd &&
+          (Date.now() - lastCmdAt) > 1500 // debounce
         ){
           lastCmdAt = Date.now();
           // Ensure camera on & click Analyze (even if disabled)
