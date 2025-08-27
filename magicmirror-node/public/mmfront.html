@@ -139,6 +139,13 @@
 @media (max-width: 768px){ .caption{ bottom: 8px; font-size: .9rem; } }
 /* Hide caption during idle */
 body.idle-blackout .caption{ opacity: 0 !important; }
+
+/* Inline caption variant (not fixed to viewport) */
+.caption-inline{
+  color:#cffff0; font-size:.95rem; opacity:.9;
+  position: static; left:auto; bottom:auto; transform:none;
+  margin-top:8px; padding:0; background:transparent; border:none; box-shadow:none;
+}
     /* Main container refinement */
     #container{
       gap: 16px;
@@ -1073,7 +1080,7 @@ h1{
                    style="flex:1; min-width:220px; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.08); color:#eafffb;"/>
             <button id="wa-send" class="btn" type="button">Kirim WhatsApp</button>
           </div>
-          <div id="wa-hint" class="caption" style="position:static; margin-top:8px; background:transparent; border:none; box-shadow:none; padding:0; color:#cffff0;">
+          <div id="wa-hint" class="caption-inline">
             Nomor <b>harus</b> diawali <b>62</b> dan hanya berisi angka.
           </div>
         </div>
@@ -1589,6 +1596,15 @@ socket.on('generated_faces', (data) => {
 });
 
 // --- Detailed Analysis Renderer ---
+function normalizeConfidence(a){
+  let c = (a && (a.confidence ?? a.score ?? a.confidence_pct ?? a.confidence_percent ?? a.prob ?? a.probability ?? (a.metrics && a.metrics.confidence)));
+  if (c == null) return null;
+  let n = Number(c);
+  if (!isFinite(n)) return null;
+  if (n <= 1) return n * 100;       // 0..1 → percent
+  if (n <= 100) return n;           // already percent
+  return Math.min(100, Math.max(0, n));
+}
 function renderAnalysis(analysis){
   const wrap = document.getElementById('analysis-detail');
   if(!wrap) return;
@@ -1599,7 +1615,8 @@ function renderAnalysis(analysis){
   const metrics = analysis.metrics || {};
   const mesh = analysis.mesh || {};
   const skin = analysis.skin || analysis.skin_tone || {};
-  const conf = (analysis.confidence != null) ? analysis.confidence : (analysis.score || null);
+  // const conf = (analysis.confidence != null) ? analysis.confidence : (analysis.score || null);
+  const confPct = normalizeConfidence(analysis);
 
   // Face section
   const faceTxt = [];
@@ -1637,7 +1654,7 @@ function renderAnalysis(analysis){
   }
 
   // Confidence + notes
-  document.getElementById('fld-confidence').textContent = (conf!=null) ? `${Math.round(conf*100)}%` : '-';
+  document.getElementById('fld-confidence').textContent = (confPct != null) ? `${Math.round(confPct)}%` : '—';
   const notes = analysis.notes || (analysis.flags ? Object.keys(analysis.flags).filter(k=>analysis.flags[k]).join(', ') : '');
   document.getElementById('fld-notes').textContent = notes || '';
 
