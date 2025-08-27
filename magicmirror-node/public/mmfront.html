@@ -1673,14 +1673,42 @@ function renderAnalysis(analysis){
     </div>
 
     <script>
-    // Toggle AI Chat box by clicking the orb; click again to close
+    // Toggle AI Chat box by clicking the orb; click again to close (lock orb to center while open)
     (function(){
       const orb = document.getElementById('ai-avatar');
       const chat = document.getElementById('ai-chat');
       const closeBtn = document.getElementById('ai-chat-close');
       const input = document.getElementById('ai-chat-input');
       if(!orb || !chat) return;
+
+      // Cache inner parts for freeze
+      const motion = orb.querySelector('.orb-motion');
+      const wrap = orb.querySelector('.orb-wrap');
+
+      let clickLock = false; // simple debounce to avoid double fire
+      function freezeOrb(){
+        try{
+          // Force to true center and stop any wander/eye-follow
+          orb.classList.add('lock-center');
+          orb.style.setProperty('--tx','0px');
+          orb.style.setProperty('--ty','0px');
+          if(motion){ motion.style.transition = 'none'; motion.style.transform = 'translate(0,0)'; }
+          if(wrap){ wrap.style.animation = 'none'; }
+        }catch(_){/* ignore */}
+      }
+      function unfreezeOrb(){
+        try{
+          // Keep lock-center by default to prevent future jumps; comment next line if you want to restore wander
+          orb.classList.add('lock-center');
+          if(motion){ motion.style.transition = ''; motion.style.transform = ''; }
+          if(wrap){ wrap.style.animation = ''; }
+          orb.style.setProperty('--tx','0px');
+          orb.style.setProperty('--ty','0px');
+        }catch(_){/* ignore */}
+      }
+
       function openChat(){
+        freezeOrb();
         chat.style.display = 'block';
         chat.classList.add('open');
         try{ input && input.focus(); }catch(_){ /* ignore */ }
@@ -1688,15 +1716,21 @@ function renderAnalysis(analysis){
       function closeChat(){
         chat.style.display = 'none';
         chat.classList.remove('open');
+        unfreezeOrb();
       }
       function isOpen(){
         return chat.classList.contains('open') || chat.style.display === 'block';
       }
-      function toggleChat(){
+      function toggleChat(e){
+        if(clickLock) return; clickLock = true; setTimeout(()=> clickLock=false, 180);
+        if(e){ e.preventDefault(); e.stopPropagation(); }
         if(isOpen()) closeChat(); else openChat();
       }
       // Click orb to toggle
-      orb.addEventListener('click', toggleChat);
+      orb.addEventListener('click', toggleChat, { passive:false });
+      // Guard against accidental drags causing position jumps
+      orb.addEventListener('mousedown', (e)=>{ e.preventDefault(); freezeOrb(); }, { passive:false });
+      orb.addEventListener('touchstart', (e)=>{ freezeOrb(); }, { passive:true });
       // Close button inside chat
       if(closeBtn){ closeBtn.addEventListener('click', (e)=>{ e.preventDefault(); closeChat(); }); }
       // ESC to close
