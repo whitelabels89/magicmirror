@@ -279,6 +279,13 @@ body.idle-blackout .caption{ opacity: 0 !important; }
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        /* Mini spinner for WA button */
+        .mini-spinner{
+          width:16px; height:16px; border:2px solid rgba(255,255,255,.55);
+          border-top-color: transparent; border-radius:50%;
+          display:inline-block; margin-right:8px; vertical-align:-3px;
+          animation: spin 0.9s linear infinite;
+        }
         .fade-in {
             animation: fadeIn 1s ease forwards;
         }
@@ -1067,9 +1074,86 @@ h1{
             <button id="wa-send" class="btn" type="button">Kirim WhatsApp</button>
           </div>
           <div id="wa-hint" class="caption" style="position:static; margin-top:8px; background:transparent; border:none; box-shadow:none; padding:0; color:#cffff0;">
-            Otomatis menambahkan awalan <b>62</b> bila belum ada.
+            Nomor <b>harus</b> diawali <b>62</b> dan hanya berisi angka.
           </div>
         </div>
+        <script>
+        // === WhatsApp helpers (global) ===
+        function buildWhatsAppSummary(){
+          const rec = (document.getElementById('rec-content')?.innerText || '').trim();
+          const fs  = (document.getElementById('fld-face-shape')?.innerText || '-').trim();
+          const skinHex = (document.getElementById('fld-skin-hex')?.innerText || '').replace('HEX: ','').trim();
+          const undertone = (document.getElementById('fld-skin-ud')?.innerText || '').trim();
+          const conf = (document.getElementById('fld-confidence')?.innerText || '').trim();
+          const imgs = Array.from(document.querySelectorAll('#gallery img')).slice(0,4).map(img=> img.src);
+          let msg = `✨ QC Magic Mirror — Hasil Analisa\n\n`+
+                    `• Face Shape: ${fs}\n`+
+                    (skinHex? `• Skin Tone: ${skinHex}\n` : '')+
+                    (undertone? `• ${undertone}\n` : '')+
+                    (conf? `• Confidence: ${conf}\n` : '')+
+                    `\n💇 Rekomendasi:\n${rec || '-'}\n`;
+          if(imgs.length){
+            msg += `\n📸 Visualisasi AI:`;
+            imgs.forEach((u,i)=>{ msg += `\n${i+1}. ${u}`; });
+          }
+          msg += `\n\n— dikirim otomatis dari QC Magic Mirror`;
+          return { text: msg, images: imgs };
+        }
+
+        function setWaSending(on){
+          const btn = document.getElementById('wa-send');
+          if(!btn) return;
+          if(on){
+            btn.disabled = true;
+            if(!btn.dataset.prevHtml){ btn.dataset.prevHtml = btn.innerHTML; }
+            btn.innerHTML = '<span class="mini-spinner"></span>Mengirim...';
+            btn.style.opacity = '0.7';
+            btn.style.cursor = 'wait';
+          }else{
+            btn.disabled = false;
+            if(btn.dataset.prevHtml){ btn.innerHTML = btn.dataset.prevHtml; }
+            btn.style.opacity = '1';
+            btn.style.cursor = 'pointer';
+          }
+        }
+
+        window.addEventListener('DOMContentLoaded', ()=>{
+          const btn = document.getElementById('wa-send');
+          if(!btn) return;
+          btn.addEventListener('click', async ()=>{
+            const inp = document.getElementById('wa-phone');
+            const raw = (inp?.value || '').trim();
+            if(!raw){ alert('Masukkan nomor WhatsApp dulu ya.'); inp && inp.focus && inp.focus(); return; }
+            const digits = raw.replace(/\s+/g, '');
+            if(!/^\d+$/.test(digits)){ alert('Nomor hanya boleh angka (tanpa spasi/tanda).'); inp && inp.focus && inp.focus(); return; }
+            if(!digits.startsWith('62')){ alert('Nomor harus diawali 62 (contoh: 62812xxxx).'); inp && inp.focus && inp.focus(); return; }
+            const number = digits; // already validated
+            const { text } = buildWhatsAppSummary();
+            if(window.__pageBusy){ try{ window.vcToast && window.vcToast('⏳ Tunggu sebentar…', 1100);}catch(_){} return; }
+            setWaSending(true);
+            setBusy(true);
+            try{
+              const res = await fetch('/send-whatsapp', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ number, message: text })
+              });
+              const out = await res.json().catch(()=>({ ok:false }));
+              console.log('WA resp:', out);
+              if(res.ok && out && out.ok){
+                try{ window.vcToast && window.vcToast('✅ Terkirim ke WhatsApp.', 1400);}catch(_){ }
+              }else{
+                alert('Gagal mengirim WhatsApp. Cek server atau device Whacenter.');
+              }
+            }catch(err){
+              console.error('WA send error', err);
+              alert('Gagal mengirim WhatsApp.');
+            }finally{
+              setWaSending(false);
+              setBusy(false);
+            }
+          });
+        });
+        </script>
         <!-- Detailed Analysis (Face Mesh + Skin Tone) -->
         <div id="analysis-detail" class="glass" style="display:none; margin-top:16px; padding:16px;">
           <h2 style="margin:0 0 10px; color: var(--accent);">Analisis Detail</h2>
@@ -1454,70 +1538,6 @@ socket.on('generated_faces', (data) => {
 
 // --- Detailed Analysis Renderer ---
 function renderAnalysis(analysis){
-// === Build analysis summary text for WhatsApp ===
-function buildWhatsAppSummary(){
-  const rec = (document.getElementById('rec-content')?.innerText || '').trim();
-  const fs  = (document.getElementById('fld-face-shape')?.innerText || '-').trim();
-  const skinHex = (document.getElementById('fld-skin-hex')?.innerText || '').replace('HEX: ','').trim();
-  const undertone = (document.getElementById('fld-skin-ud')?.innerText || '').trim();
-  const conf = (document.getElementById('fld-confidence')?.innerText || '').trim();
-
-  // Collect image URLs currently in gallery (max 4)
-  const imgs = Array.from(document.querySelectorAll('#gallery img'))
-                .slice(0,4).map(img=> img.src);
-
-  // Compose neat text (Bahasa + emoji minimal)
-  let msg = `✨ QC Magic Mirror — Hasil Analisa\n\n`+
-            `• Face Shape: ${fs}\n`+
-            (skinHex? `• Skin Tone: ${skinHex}\n` : '')+
-            (undertone? `• ${undertone}\n` : '')+
-            (conf? `• Confidence: ${conf}\n` : '')+
-            `\n💇 Rekomendasi:\n${rec || '-'}\n`;
-  if(imgs.length){
-    msg += `\n📸 Visualisasi AI:`;
-    imgs.forEach((u,i)=>{ msg += `\n${i+1}. ${u}`; });
-  }
-  msg += `\n\n— dikirim otomatis dari QC Magic Mirror`;
-  return { text: msg, images: imgs };
-}
-
-function normalizePhone(num){
-  num = String(num||'').replace(/[^0-9+]/g,'');
-  if(num.startsWith('+')) num = num.slice(1);
-  if(num.startsWith('08')) num = '62' + num.slice(1);
-  if(num.startsWith('8'))  num = '62' + num; // user typed 812xxxx
-  if(!num.startsWith('62')) num = '62' + num; // last fallback
-  return num;
-}
-
-// Attach handler once DOM is ready
-(function(){
-  const btn = document.getElementById('wa-send');
-  if(!btn) return;
-  btn.addEventListener('click', async ()=>{
-    const inp = document.getElementById('wa-phone');
-    const raw = (inp?.value || '').trim();
-    if(!raw){ alert('Masukkan nomor WhatsApp dulu ya.'); return; }
-    const number = normalizePhone(raw);
-    const { text } = buildWhatsAppSummary();
-    // debounce while busy
-    if(window.__pageBusy){ try{ window.vcToast && window.vcToast('⏳ Tunggu sebentar…', 1100);}catch(_){} return; }
-    setBusy(true);
-    try{
-      const res = await fetch('/send-whatsapp', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ number, message: text })
-      });
-      const out = await res.json().catch(()=>({ ok:false }));
-      if(res.ok && out && out.ok){
-        try{ window.vcToast && window.vcToast('✅ Terkirim ke WhatsApp.', 1400);}catch(_){}
-      }else{
-        alert('Gagal mengirim WhatsApp. Coba lagi.');
-      }
-    }catch(err){ console.error('WA send error', err); alert('Gagal mengirim WhatsApp.'); }
-    finally{ setBusy(false); }
-  });
-})();
   const wrap = document.getElementById('analysis-detail');
   if(!wrap) return;
   // Read values safely with defaults
