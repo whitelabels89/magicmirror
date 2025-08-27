@@ -180,10 +180,119 @@ status_msg = "👀 Arahkan wajah ke kamera."
 typing_text = ""
 text_queue = []
 latest_captured_face_path = None
+
 generated_faces = []
+last_analysis = None
 
 
 # -------------------------- UTILITIES --------------------------
+# --- Analysis helpers (color & metrics) ---
+from math import atan2, degrees
+
+def _bgr_to_hex(bgr):
+    b, g, r = [int(x) for x in bgr]
+    return f"#{r:02x}{g:02x}{b:02x}"
+
+def _rgb_to_lab(rgb):
+    # fast approximate sRGB to CIELAB via OpenCV
+    import cv2, numpy as np
+    arr = np.uint8([[rgb]])
+    lab = cv2.cvtColor(arr, cv2.COLOR_RGB2LAB)[0,0]
+    return [float(lab[0]), float(lab[1]), float(lab[2])]
+
+
+def _sample_mean_bgr(img, pts, ksize=5):
+    import numpy as np, cv2
+    h, w = img.shape[:2]
+    samples = []
+    r = max(1, ksize//2)
+    for (x, y) in pts:
+        xi = min(max(0, int(x)), w-1)
+        yi = min(max(0, int(y)), h-1)
+        x0, x1 = max(0, xi-r), min(w, xi+r+1)
+        y0, y1 = max(0, yi-r), min(h, yi+r+1)
+        patch = img[y0:y1, x0:x1]
+        if patch.size:
+            samples.append(patch.reshape(-1,3).mean(axis=0))
+    if not samples:
+        return (128,128,128)
+    return tuple(np.array(samples).mean(axis=0))
+
+
+def _infer_undertone_from_lab(lab):
+    L, a, b = lab
+    if a >= 6 and b >= 8:
+        return 'warm'
+    if a <= -3 and b <= 4:
+        return 'cool'
+    return 'neutral'
+
+
+def _season_from_lab_undertone(lab, undertone):
+    L, a, b = lab
+    if undertone == 'warm':
+        return 'Spring' if L >= 65 else 'Autumn'
+    if undertone == 'cool':
+        return 'Summer' if L >= 65 else 'Winter'
+    return None
+
+
+def _build_analysis_dict(img, lms, shape, face_shape_label):
+    # Points util
+    def gp(idx):
+        h, w, _ = shape
+        lm = lms[idx]
+        return (lm.x * w, lm.y * h)
+    def dist(p1, p2):
+        return math.hypot(p1[0]-p2[0], p1[1]-p2[1])
+
+    chin = gp(152)
+    forehead = gp(10)
+    left_cheek = gp(234)
+    right_cheek = gp(454)
+    jaw_width = dist(left_cheek, right_cheek)
+    height = dist(forehead, chin)
+    forehead_width = dist(gp(127), gp(356))
+    wh_ratio = jaw_width / max(1e-6, height)
+    chin_len = dist(gp(199), gp(152)) if hasattr(lms, 'landmark') else height*0.25
+
+    # crude jaw angle: angle between cheeks and chin
+    v1 = (left_cheek[0]-chin[0], left_cheek[1]-chin[1])
+    v2 = (right_cheek[0]-chin[0], right_cheek[1]-chin[1])
+    ang = abs(degrees(atan2(v2[1], v2[0]) - atan2(v1[1], v1[0])))
+    if ang > 180: ang = 360 - ang
+
+    # skin sampling from multiple zones
+    sample_pts = [ gp(234), gp(454), gp(93), gp(323), gp(10) ]
+    mean_bgr = _sample_mean_bgr(img, sample_pts, ksize=7)
+    mean_rgb = (int(mean_bgr[2]), int(mean_bgr[1]), int(mean_bgr[0]))
+    lab = _rgb_to_lab(mean_rgb)
+    undertone = _infer_undertone_from_lab(lab)
+    season = _season_from_lab_undertone(lab, undertone)
+
+    analysis = {
+        'face_shape': face_shape_label,
+        'confidence': None,
+        'ratios': {'wh_ratio': float(f"{wh_ratio:.4f}")},
+        'angles': {'jaw_deg': float(f"{ang:.2f}")},
+        'metrics': {
+            'forehead_width': float(f"{forehead_width:.2f}"),
+            'chin_length': float(f"{chin_len:.2f}"),
+            'cheekbone_prominence': float(f"{(jaw_width/ max(1e-6, forehead_width)):.3f}")
+        },
+        'mesh': { 'points_count': 468 },
+        'skin': {
+            'hex': _bgr_to_hex(mean_bgr),
+            'undertone': undertone,
+            'lab': [float(f"{lab[0]:.2f}"), float(f"{lab[1]:.2f}"), float(f"{lab[2]:.2f}")],
+            'season': season,
+            'melanin_index': float(f"{(100-lab[0])/100:.3f}"),
+            'suggested_hex': []
+        },
+        'notes': ''
+    }
+    return analysis
+
 def send_result_to_web(photo_path, ai_text):
     if not sio.connected:
         print("❌ WebSocket tidak terhubung.")
@@ -466,6 +575,17 @@ def analyze_face(session_id=None):
         ]
     )
     recommendation = response.choices[0].message['content']
+    # Emit recommendation and current analysis to frontend via Socket.IO
+    try:
+        if sio.connected:
+            sio.emit('ai_result', {
+                'recommendation': recommendation,
+                'analysis': globals().get('last_analysis'),
+                'session_id': session_id
+            })
+            print('📡 Emit ai_result (with analysis) ke frontend berhasil.', flush=True)
+    except Exception as e:
+        print(f"⚠️ Gagal emit ai_result: {e}", flush=True)
 
     # 🔎 Ambil ringkasan warna & gaya rambut dari hasil GPT
     summary_response = openai.ChatCompletion.create(
@@ -874,6 +994,7 @@ def run(photo_base64, session_id=None):
         img = cv2.imread(capture_filename)
         rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         results = face_mesh.process(rgb_img)
+        analysis = None
 
         if results.multi_face_landmarks:
             for landmarks in results.multi_face_landmarks:
@@ -928,11 +1049,23 @@ def run(photo_base64, session_id=None):
                 globals()["face_shape"] = face_shape
                 globals()["skin_tone"] = skin_tone
                 print(f"📸 Deteksi dari run berhasil: {face_shape=} {skin_tone=}", flush=True)
+                try:
+                    analysis = _build_analysis_dict(
+                        img,
+                        landmarks.landmark if hasattr(landmarks, 'landmark') else landmarks,
+                        shape,
+                        face_shape
+                    )
+                except Exception as _ae:
+                    print(f"⚠️ Build analysis failed: {_ae}", flush=True)
+                    analysis = None
                 break
         else:
             print("❌ Tidak ada wajah terdeteksi di gambar dari run().", flush=True)
     except Exception as e:
         print(f"⚠️ Gagal baca landmark dari file foto di run(): {e}", flush=True)
+
+    globals()["last_analysis"] = analysis
 
     print(f"📂 latest_captured_face_path = {latest_captured_face_path}", flush=True)
     print(f"📂 exists = {os.path.exists(latest_captured_face_path)}", flush=True)
@@ -940,7 +1073,6 @@ def run(photo_base64, session_id=None):
     # ✅ Tambahkan patch ini:
     if session_id:
         globals()["session_id"] = session_id
-
 
     analysis_started = True
     analyze_face(session_id=session_id)
@@ -951,7 +1083,8 @@ def run(photo_base64, session_id=None):
         "status": "done",
         "face_shape": face_shape if face_shape else "-",
         "skin_tone": skin_tone if skin_tone else "-",
-        "recommendation": recommendation
+        "recommendation": recommendation,
+        "analysis": globals().get("last_analysis")
     }
 
     # Always use global generated_faces (which may be updated with Drive links)
