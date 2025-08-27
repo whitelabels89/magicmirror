@@ -1058,6 +1058,18 @@ h1{
             <h2>Rekomendasi Gaya Rambut</h2>
             <p id="rec-content"></p>
         </div>
+        <!-- WhatsApp Share UI -->
+        <div id="wa-share" class="glass" style="display:none; margin-top:12px; padding:12px;">
+          <div style="font-weight:700; color: var(--accent); margin-bottom:8px;">Kirim hasil ke WhatsApp</div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+            <input id="wa-phone" type="tel" inputmode="numeric" placeholder="Nomor WhatsApp (contoh: 62812xxxx)" 
+                   style="flex:1; min-width:220px; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.08); color:#eafffb;"/>
+            <button id="wa-send" class="btn" type="button">Kirim WhatsApp</button>
+          </div>
+          <div id="wa-hint" class="caption" style="position:static; margin-top:8px; background:transparent; border:none; box-shadow:none; padding:0; color:#cffff0;">
+            Otomatis menambahkan awalan <b>62</b> bila belum ada.
+          </div>
+        </div>
         <!-- Detailed Analysis (Face Mesh + Skin Tone) -->
         <div id="analysis-detail" class="glass" style="display:none; margin-top:16px; padding:16px;">
           <h2 style="margin:0 0 10px; color: var(--accent);">Analisis Detail</h2>
@@ -1343,6 +1355,9 @@ socket.on('ai_result', (data) => {
     const recContent = document.getElementById('rec-content');
     recContent.innerText = data.recommendationText || data.recommendation;
     recommendation.style.display = 'block';
+    // Show WA share UI when recommendation available
+    const waBox = document.getElementById('wa-share');
+    if (waBox) waBox.style.display = 'block';
     recommendation.classList.add('fade-in');
     document.getElementById('loading').style.display = 'none';
     setStatus('✅ Recommendation', '#00ff99');
@@ -1439,6 +1454,70 @@ socket.on('generated_faces', (data) => {
 
 // --- Detailed Analysis Renderer ---
 function renderAnalysis(analysis){
+// === Build analysis summary text for WhatsApp ===
+function buildWhatsAppSummary(){
+  const rec = (document.getElementById('rec-content')?.innerText || '').trim();
+  const fs  = (document.getElementById('fld-face-shape')?.innerText || '-').trim();
+  const skinHex = (document.getElementById('fld-skin-hex')?.innerText || '').replace('HEX: ','').trim();
+  const undertone = (document.getElementById('fld-skin-ud')?.innerText || '').trim();
+  const conf = (document.getElementById('fld-confidence')?.innerText || '').trim();
+
+  // Collect image URLs currently in gallery (max 4)
+  const imgs = Array.from(document.querySelectorAll('#gallery img'))
+                .slice(0,4).map(img=> img.src);
+
+  // Compose neat text (Bahasa + emoji minimal)
+  let msg = `✨ QC Magic Mirror — Hasil Analisa\n\n`+
+            `• Face Shape: ${fs}\n`+
+            (skinHex? `• Skin Tone: ${skinHex}\n` : '')+
+            (undertone? `• ${undertone}\n` : '')+
+            (conf? `• Confidence: ${conf}\n` : '')+
+            `\n💇 Rekomendasi:\n${rec || '-'}\n`;
+  if(imgs.length){
+    msg += `\n📸 Visualisasi AI:`;
+    imgs.forEach((u,i)=>{ msg += `\n${i+1}. ${u}`; });
+  }
+  msg += `\n\n— dikirim otomatis dari QC Magic Mirror`;
+  return { text: msg, images: imgs };
+}
+
+function normalizePhone(num){
+  num = String(num||'').replace(/[^0-9+]/g,'');
+  if(num.startsWith('+')) num = num.slice(1);
+  if(num.startsWith('08')) num = '62' + num.slice(1);
+  if(num.startsWith('8'))  num = '62' + num; // user typed 812xxxx
+  if(!num.startsWith('62')) num = '62' + num; // last fallback
+  return num;
+}
+
+// Attach handler once DOM is ready
+(function(){
+  const btn = document.getElementById('wa-send');
+  if(!btn) return;
+  btn.addEventListener('click', async ()=>{
+    const inp = document.getElementById('wa-phone');
+    const raw = (inp?.value || '').trim();
+    if(!raw){ alert('Masukkan nomor WhatsApp dulu ya.'); return; }
+    const number = normalizePhone(raw);
+    const { text } = buildWhatsAppSummary();
+    // debounce while busy
+    if(window.__pageBusy){ try{ window.vcToast && window.vcToast('⏳ Tunggu sebentar…', 1100);}catch(_){} return; }
+    setBusy(true);
+    try{
+      const res = await fetch('/send-whatsapp', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ number, message: text })
+      });
+      const out = await res.json().catch(()=>({ ok:false }));
+      if(res.ok && out && out.ok){
+        try{ window.vcToast && window.vcToast('✅ Terkirim ke WhatsApp.', 1400);}catch(_){}
+      }else{
+        alert('Gagal mengirim WhatsApp. Coba lagi.');
+      }
+    }catch(err){ console.error('WA send error', err); alert('Gagal mengirim WhatsApp.'); }
+    finally{ setBusy(false); }
+  });
+})();
   const wrap = document.getElementById('analysis-detail');
   if(!wrap) return;
   // Read values safely with defaults

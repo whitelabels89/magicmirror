@@ -1334,6 +1334,74 @@ app.post('/upload_ai_result', (req, res) => {
     }
 });
 
+// === Step 2: Relay hasil analisa ke WhatsApp via Whacenter ===
+// Body: { number: '62812xxxx', message: 'text' }
+app.post('/send-whatsapp', async (req, res) => {
+  try {
+    const body = req.body || {};
+    let { number, message } = body;
+    if (!number || !message) {
+      return res.status(400).json({ ok: false, error: 'missing number/message' });
+    }
+
+    // Normalisasi nomor ke format 62
+    function normalize(num) {
+      num = String(num || '').replace(/[^0-9+]/g, '');
+      if (num.startsWith('+')) num = num.slice(1);
+      if (num.startsWith('08')) num = '62' + num.slice(1);
+      if (num.startsWith('8'))  num = '62' + num;
+      if (!num.startsWith('62')) num = '62' + num;
+      return num;
+    }
+    number = normalize(number);
+
+    // Ambil cred dari ENV (dukung dua nama var yang sudah dipakai di proyekmu)
+    const deviceId = process.env.WHACENTER_DEVICE || process.env.WHA_DEVICE_ID;
+    const apiKey   = process.env.WHACENTER_KEY   || process.env.WHA_API_KEY; // opsional
+
+    if (!deviceId) {
+      return res.status(500).json({ ok: false, error: 'server not configured (device id missing)' });
+    }
+
+    // Coba payload JSON (beberapa akun menerima field `number`)
+    const attemptJson = await fetch('https://app.whacenter.com/api/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        device_id: deviceId,
+        number,
+        message,
+        ...(apiKey ? { key: apiKey } : {})
+      })
+    });
+    const jsonResp = await attemptJson.json().catch(() => ({}));
+    let ok = !!(jsonResp && (jsonResp.status === true || jsonResp.success === true));
+    let lastProvider = jsonResp;
+
+    // Fallback: beberapa akun memakai field `phone` alih-alih `number`
+    if (!ok) {
+      const attemptJsonAlt = await fetch('https://app.whacenter.com/api/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          device_id: deviceId,
+          phone: number,
+          message,
+          ...(apiKey ? { key: apiKey } : {})
+        })
+      });
+      const altResp = await attemptJsonAlt.json().catch(() => ({}));
+      ok = !!(altResp && (altResp.status === true || altResp.success === true));
+      lastProvider = altResp;
+    }
+
+    return res.status(ok ? 200 : 502).json({ ok, provider: lastProvider });
+  } catch (err) {
+    console.error('send-whatsapp error', err);
+    return res.status(500).json({ ok: false, error: 'internal error' });
+  }
+});
+
 // Endpoint: fallback push generated_faces dari Python jika WebSocket gagal
 app.post('/push_faces_to_frontend', (req, res) => {
     const { faces, face_shape, skin_tone } = req.body;
