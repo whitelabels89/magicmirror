@@ -146,6 +146,11 @@ body.idle-blackout .caption{ opacity: 0 !important; }
   position: static; left:auto; bottom:auto; transform:none;
   margin-top:8px; padding:0; background:transparent; border:none; box-shadow:none;
 }
+/* App suggestion responsive */
+#app-suggest .btn{ padding:10px 16px; }
+@media (max-width: 480px){
+  #app-suggest{ padding:10px; }
+}
     /* Main container refinement */
     #container{
       gap: 16px;
@@ -936,6 +941,7 @@ h1{
           try {
             window.ttsSpeak && window.ttsSpeak("Hello, I am ready. Please say analyze to begin.", { rate:0.97, pitch:1.08 });
           } catch(_) {}
+          try{ window.showAppSuggest && window.showAppSuggest(); }catch(_){ }
           continue;
         }
         // Command: matikan kamera / stop (turn off live cam)
@@ -958,6 +964,19 @@ h1{
         if (/\bfullscreen\b/.test(txt)) {
           (fsBtn || document.getElementById('fullscreen'))?.click();
           vcToast('⛶ Fullscreen toggle', 1000);
+          continue;
+        }
+        // Command: buka/nonton/open/watch Netflix
+        if (armed && (/(buka|nonton|tonton|open|watch)\s+netflix\b/.test(txt) || /\bnetflix\b/.test(txt))) {
+          try{ window.openApp && window.openApp('netflix'); }catch(_){ }
+          setArmed(false);
+          continue;
+        }
+
+        // Command: buka/dengarkan/putar/open/listen/play Spotify
+        if (armed && (/(buka|dengarkan|dengerin|putar|mainkan|open|listen|play)\s+spotify\b/.test(txt) || /\bspotify\b/.test(txt))) {
+          try{ window.openApp && window.openApp('spotify'); }catch(_){ }
+          setArmed(false);
           continue;
         }
         // Command: matikan mic (stop voice recognition)
@@ -1084,6 +1103,17 @@ h1{
             Nomor <b>harus</b> diawali <b>62</b> dan hanya berisi angka.
           </div>
         </div>
+        <!-- App Suggestion: Netflix / Spotify -->
+        <div id="app-suggest" class="glass" style="display:none; margin-top:12px; padding:12px; align-items:center;">
+          <div style="font-weight:700; color: var(--accent); margin-bottom:8px;">Mau hiburan sambil menunggu?</div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+            <button id="btn-netflix" class="btn secondary" type="button" title="Buka Netflix">Watch on Netflix</button>
+            <button id="btn-spotify" class="btn secondary" type="button" title="Buka Spotify">Listen on Spotify</button>
+            <div class="caption-inline" style="margin-left:auto;">
+              Ucapkan: <b>"buka netflix"</b> atau <b>"buka spotify"</b>
+            </div>
+          </div>
+        </div>
         <script>
         // === WhatsApp helpers (global) ===
         function buildWhatsAppSummary(){
@@ -1124,40 +1154,65 @@ h1{
           }
         }
 
-        window.addEventListener('DOMContentLoaded', ()=>{
-          const btn = document.getElementById('wa-send');
-          if(!btn) return;
-          btn.addEventListener('click', async ()=>{
-            const inp = document.getElementById('wa-phone');
-            const raw = (inp?.value || '').trim();
-            if(!raw){ alert('Masukkan nomor WhatsApp dulu ya.'); inp && inp.focus && inp.focus(); return; }
-            const digits = raw.replace(/\s+/g, '');
-            if(!/^\d+$/.test(digits)){ alert('Nomor hanya boleh angka (tanpa spasi/tanda).'); inp && inp.focus && inp.focus(); return; }
-            if(!digits.startsWith('62')){ alert('Nomor harus diawali 62 (contoh: 62812xxxx).'); inp && inp.focus && inp.focus(); return; }
-            const number = digits; // already validated
-            const { text } = buildWhatsAppSummary();
-            // Allow sending WhatsApp even if analysis is still generating faces
-            setWaSending(true);
-            try{
-              const res = await fetch('/send-whatsapp', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ number, message: text })
-              });
-              const out = await res.json().catch(()=>({ ok:false }));
-              console.log('WA resp:', out);
-              if(res.ok && out && out.ok){
-                try{ window.vcToast && window.vcToast('✅ Terkirim ke WhatsApp.', 1400);}catch(_){ }
-              }else{
-                alert('Gagal mengirim WhatsApp. Cek server atau device Whacenter.');
-              }
-            }catch(err){
-              console.error('WA send error', err);
-              alert('Gagal mengirim WhatsApp.');
-            }finally{
-              setWaSending(false);
-            }
-          });
-        });
+window.addEventListener('DOMContentLoaded', ()=>{
+  const btn = document.getElementById('wa-send');
+  if(!btn) return;
+  btn.addEventListener('click', async ()=>{
+    const inp = document.getElementById('wa-phone');
+    const raw = (inp?.value || '').trim();
+    if(!raw){ alert('Masukkan nomor WhatsApp dulu ya.'); inp && inp.focus && inp.focus(); return; }
+    const digits = raw.replace(/\s+/g, '');
+    if(!/^\d+$/.test(digits)){ alert('Nomor hanya boleh angka (tanpa spasi/tanda).'); inp && inp.focus && inp.focus(); return; }
+    if(!digits.startsWith('62')){ alert('Nomor harus diawali 62 (contoh: 62812xxxx).'); inp && inp.focus && inp.focus(); return; }
+    const number = digits; // already validated
+    const { text } = buildWhatsAppSummary();
+    // Allow sending WhatsApp even if analysis is still generating faces
+    setWaSending(true);
+    try{
+      const res = await fetch('/send-whatsapp', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ number, message: text })
+      });
+      const out = await res.json().catch(()=>({ ok:false }));
+      console.log('WA resp:', out);
+      if(res.ok && out && out.ok){
+        try{ window.vcToast && window.vcToast('✅ Terkirim ke WhatsApp.', 1400);}catch(_){ }
+      }else{
+        alert('Gagal mengirim WhatsApp. Cek server atau device Whacenter.');
+      }
+    }catch(err){
+      console.error('WA send error', err);
+      alert('Gagal mengirim WhatsApp.');
+    }finally{
+      setWaSending(false);
+    }
+  });
+
+  // === App open helpers ===
+  function openApp(app){
+    const map = {
+      netflix: 'https://www.netflix.com/browse',
+      spotify: 'https://open.spotify.com/'
+    };
+    const url = map[app];
+    if(!url) return;
+    try{ window.vcToast && window.vcToast(`Membuka ${app.charAt(0).toUpperCase()+app.slice(1)}…`, 1400);}catch(_){ }
+    window.open(url, '_blank', 'noopener');
+  }
+  window.openApp = openApp; // expose globally
+
+  function showAppSuggest(){
+    const el = document.getElementById('app-suggest');
+    if(el){ el.style.display = 'block'; }
+  }
+  window.showAppSuggest = showAppSuggest;
+
+  // Wire buttons
+  const bN = document.getElementById('btn-netflix');
+  const bS = document.getElementById('btn-spotify');
+  bN && bN.addEventListener('click', ()=> openApp('netflix'));
+  bS && bS.addEventListener('click', ()=> openApp('spotify'));
+});
         </script>
         <!-- Detailed Analysis (Face Mesh + Skin Tone) -->
         <div id="analysis-detail" class="glass" style="display:none; margin-top:16px; padding:16px;">
@@ -1486,6 +1541,7 @@ socket.on('ai_result', (data) => {
     const waBox = document.getElementById('wa-share');
     if (waBox) waBox.style.display = 'block';
     recommendation.classList.add('fade-in');
+    try{ window.showAppSuggest && window.showAppSuggest(); }catch(_){ }
     document.getElementById('loading').style.display = 'none';
     setStatus('✅ Recommendation', '#00ff99');
     document.getElementById('waiting-replicate').style.display = 'block';
@@ -1519,6 +1575,7 @@ socket.on('generated_faces', (data) => {
         const countdownTarget = data.start_timestamp + 120;
         waitingEl.style.display = 'block';
         document.getElementById('visual-loading').style.display = 'block';
+        try{ window.showAppSuggest && window.showAppSuggest(); }catch(_){ }
 
         if (window.__genCountdownInterval) { clearInterval(window.__genCountdownInterval); }
         const updateCountdown = () => {
