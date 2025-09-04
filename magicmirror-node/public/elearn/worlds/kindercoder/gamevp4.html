@@ -54,7 +54,7 @@
 
     .board-wrap{display:flex;align-items:center;justify-content:center;padding:24px}
     .board{position:relative;width:520px;aspect-ratio: 1.2 / 1; background:transparent}
-    .grid{position:absolute;right:16px;top:16px;width:320px;height:240px;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(3,1fr);gap:4px;z-index:2;}
+    .grid{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:320px;height:240px;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(3,1fr);gap:4px;z-index:2;}
     .cell{background:var(--tile);border-radius:6px;box-shadow:inset 0 -4px 0 rgba(0,0,0,.2)}
     .cell.goal{background:var(--tile-2);position:relative}
     .cell.goal::after{content:"✖";position:absolute;inset:0;display:grid;place-items:center;font-size:28px;color:#ffedd5}
@@ -96,9 +96,27 @@
     .blocklyZoom{
       filter: drop-shadow(2px 4px 6px rgba(0,0,0,.2));
     }
+    /* ===== Top Slides Bar ===== */
+    .top-slides{position:absolute;top:10px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:1000;background:rgba(11,18,32,.75);backdrop-filter:blur(6px);border:1px solid #1f2937;padding:8px 12px;border-radius:999px}
+    .slide-dot{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:12px;color:#0b1220;background:#22c55e;cursor:pointer;user-select:none}
+    .slide-dot.inactive{background:#334155;color:#e5e7eb}
+    .slide-dot:active{transform:translateY(1px)}
+
+    /* ===== Right Side Play Menu ===== */
+    .side-play{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:999;display:flex;flex-direction:column;align-items:center;gap:8px}
+    .side-play .big-play{width:72px;height:72px;border-radius:50%;border:0;background:#22c55e;color:#0b1220;font-size:28px;font-weight:900;display:grid;place-items:center;cursor:pointer;box-shadow:0 10px 24px rgba(0,0,0,.35)}
+    .side-play .big-play:hover{filter:brightness(1.05)}
+    .side-play .big-play:active{transform:scale(.98)}
+    .side-play .tip{font-size:12px;color:#9aa4b2;background:#0b1220;border:1px solid #1f2937;padding:4px 8px;border-radius:8px}
   </style>
 </head>
 <body>
+
+  <!-- Right-side play menu -->
+  <aside class="side-play" aria-label="menu-main">
+    <button class="big-play" id="btnPlaySide" title="Jalankan">▶</button>
+    <div class="tip">Jalankan</div>
+  </aside>
   <div class="wrap">
     <section class="left" aria-label="blok">
       <h3>Blok Perintah</h3>
@@ -127,6 +145,21 @@
     </section>
 
     <section class="right" aria-label="papan">
+      <!-- Top slides: 1..12 (centered to right panel) -->
+      <nav class="top-slides" aria-label="slides">
+        <div class="slide-dot">1</div>
+        <div class="slide-dot">2</div>
+        <div class="slide-dot">3</div>
+        <div class="slide-dot">4</div>
+        <div class="slide-dot">5</div>
+        <div class="slide-dot">6</div>
+        <div class="slide-dot">7</div>
+        <div class="slide-dot">8</div>
+        <div class="slide-dot">9</div>
+        <div class="slide-dot">10</div>
+        <div class="slide-dot">11</div>
+        <div class="slide-dot">12</div>
+      </nav>
       <div class="board-wrap">
         <div class="board">
           <div class="grid" id="grid"></div>
@@ -162,7 +195,6 @@
       </div>
       <div class="hud">
         <div>Tujuan: pindahkan robot ke kotak ✖</div>
-        <button class="btn play" id="btnPlay">▶️ Jalankan</button>
       </div>
     </section>
   </div>
@@ -261,8 +293,7 @@
     "contents":[
       {"kind":"category","name":"Gerak","categorystyle":"robot_category","contents":[
         {"kind":"block","type":"robot_move"},
-        {"kind":"block","type":"robot_left"},
-        {"kind":"block","type":"robot_right"}
+        {"kind":"block","type":"robot_turn"}
       ]},
       {"kind":"category","name":"Kontrol","categorystyle":"control_category","contents":[
         {"kind":"block","type":"robot_repeat"}
@@ -273,8 +304,7 @@
   // Define custom robot blocks
   Blockly.defineBlocksWithJsonArray([
     {"type":"robot_move","message0":"melangkah maju","previousStatement":null,"nextStatement":null,"style":"robot_blocks"},
-    {"type":"robot_left","message0":"belok kiri ↺","previousStatement":null,"nextStatement":null,"style":"robot_blocks"},
-    {"type":"robot_right","message0":"belok kanan ↻","previousStatement":null,"nextStatement":null,"style":"robot_blocks"},
+    {"type":"robot_turn","message0":"belok %1","args0":[{"type":"field_dropdown","name":"DIR","options":[["kiri ↺","LEFT"],["kanan ↻","RIGHT"]]}],"previousStatement":null,"nextStatement":null,"style":"robot_blocks"},
     {"type":"robot_repeat","message0":"ulangi %1 kali %2",
       "args0":[{"type":"field_number","name":"TIMES","value":2,"min":1,"max":20},{"type":"input_statement","name":"DO"}],
       "previousStatement":null,"nextStatement":null,"style":"control_blocks"}
@@ -306,8 +336,11 @@
       if(!block) return;
       switch(block.type){
         case 'robot_move': arr.push('move'); break;
-        case 'robot_left': arr.push('left'); break;
-        case 'robot_right': arr.push('right'); break;
+        case 'robot_turn': {
+          const d = (block.getFieldValue('DIR')||'LEFT');
+          arr.push(d === 'LEFT' ? 'left' : 'right');
+          break;
+        }
         case 'robot_repeat': {
           const n = parseInt(block.getFieldValue('TIMES')||1,10);
           const inner = block.getInputTargetBlock('DO');
@@ -407,7 +440,8 @@
   document.getElementById('btnStep').onclick = ()=>{ stepOnce(); };
   document.getElementById('btnReset').onclick = ()=>{ pc = 0; hasStarted = false; pos = {r:start.r, c:start.c}; dir = 0; placeRobot(); showToast('Diulang dari awal.'); };
   document.getElementById('btnRun').onclick = ()=>{ runProgram(); };
-  document.getElementById('btnPlay').onclick = ()=>{ runProgram(); };
+  const btnPlaySide = document.getElementById('btnPlaySide');
+  if(btnPlaySide){ btnPlaySide.onclick = ()=>{ runProgram(); }; }
 
   // Program runner
   let running = false;
@@ -465,6 +499,10 @@
     return true;
   }
 
+  // (Optional visual state) Mark slide 1 as active and others inactive for now
+  document.querySelectorAll('.top-slides .slide-dot').forEach((el,i)=>{
+    if(i>0) el.classList.add('inactive');
+  });
   initBlockly();
   updateCounter();
 })();

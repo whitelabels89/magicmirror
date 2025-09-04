@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>World Select — Interland-style Portal</title>
+  <meta name="description" content="Pilih dunia dengan animasi terbang antar pulau — versi Queen’s Academy.">
+  <style>
+    :root{
+      --sky1:#8fd3ff;--sky2:#cfefff;--ink:#ffffff;--ink-d:#e8f4ff;--btn:#22c55e;--btn-d:#17a34a;
+      --ring: rgba(255,255,255,.65);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,var(--sky1) 0%, var(--sky2) 100%);overflow:hidden;color:#0b1b2b}
+
+    /* Stage */
+    .stage{position:relative;width:100vw;height:100vh;isolation:isolate}
+    .brand{position: absolute; top:16px; left: 50%; transform: translateX(-50%); font-weight:900; letter-spacing:.18em; color:#fff; text-shadow:0 2px 10px rgba(0,0,0,.25)}
+
+    /* Controls */
+    .navbtn{position:absolute;top:50%;transform:translateY(-50%);width:64px;height:64px;border-radius:50%;display:grid;place-items:center;border:2px solid var(--ring);color:#fff;background:rgba(255,255,255,.12);backdrop-filter: blur(4px);cursor:pointer;user-select:none}
+    .navbtn:hover{filter:brightness(1.05)}
+    .navbtn:active{transform:translateY(-50%) scale(.98)}
+    .prev{left:24px}
+    .next{right:24px}
+
+    /* Bottom dots */
+    .dots{position:absolute;left:50%;bottom:20px;transform:translateX(-50%);display:flex;gap:10px}
+    .dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.5)}
+    .dot.active{background:#fff;box-shadow:0 0 0 4px rgba(255,255,255,.25)}
+
+    /* Right info panel */
+    .info{position:absolute;right:8vw;top:28vh;max-width:520px;color:#fff;text-shadow:0 3px 18px rgba(0,0,0,.35)}
+    .title{font-weight:900;font-size:clamp(28px,4.2vw,58px);line-height:1.04;margin:0 0 8px}
+    .subtitle{font-size:clamp(14px,1.6vw,22px);opacity:.95;margin:0 0 18px}
+    .cta{display:inline-block;background:var(--btn);color:#fff;font-weight:800;border:none;padding:14px 20px;border-radius:12px;cursor:pointer;text-decoration:none}
+    .cta:active{transform:translateY(1px)}
+
+
+    /* Simple island styling */
+    .island{filter:drop-shadow(0 16px 28px rgba(0,0,0,.35))}
+    .cloud{opacity:.9;filter:drop-shadow(0 10px 12px rgba(0,0,0,.2))}
+    .hidden{opacity:0;pointer-events:none}
+    .fade{transition:opacity .5s ease}
+
+    /* Mobile tweaks */
+    @media (max-width:900px){
+      .info{top:auto; bottom:14vh; right:50%; transform:translateX(50%); text-align:center; padding:0 12px}
+      .prev{left:10px}.next{right:10px}
+    }
+    
+    /* Cloud Curtain */
+    .curtain{position:absolute;inset:0;z-index:9999;pointer-events:none;}
+    .curtain.hidden{opacity:0;visibility:hidden;}
+    .curtain .curtain-clouds{position:absolute;inset:-10vh 0  -10vh 0; overflow:hidden}
+    .puff{position:absolute;border-radius:50%;background:#fff;filter:blur(1px) drop-shadow(0 10px 14px rgba(0,0,0,.15));opacity:.95}
+    .puff::after,.puff::before{content:"";position:absolute;border-radius:50%;background:#fff;opacity:.95}
+    .puff::after{width:80%;height:80%;left:-25%;top:20%}
+    .puff::before{width:66%;height:66%;right:-20%;top:10%}
+
+    @keyframes curtainIn{
+      0%{transform:translateY(100vh); opacity:0}
+      60%{opacity:1}
+      100%{transform:translateY(0); opacity:1}
+    }
+    @keyframes curtainOut{
+      0%{transform:translateY(0); opacity:1}
+      100%{transform:translateY(-100vh); opacity:0}
+    }
+    .curtain.enter{visibility:visible;opacity:1;}
+    .curtain.enter .puff{animation: curtainIn .55s cubic-bezier(.22,.61,.36,1) forwards;}
+    .curtain.exit  .puff{animation: curtainOut .6s cubic-bezier(.22,.61,.36,1) forwards;}
+  </style>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div class="stage" id="stage">
+    <div class="brand">INTERLAND • STYLE</div>
+
+    <div id="glwrap" style="position:absolute;inset:0;z-index:0"></div>
+
+    <!-- Info panel -->
+    <div class="info" id="info">
+      <h1 class="title" id="title">Kerajaan Kebaikan</h1>
+      <p class="subtitle" id="subtitle">Jadi teladan kebaikan.</p>
+      <a class="cta" id="cta" href="#">Ayo Mulai!</a>
+    </div>
+
+    <!-- Controls -->
+    <div class="navbtn prev" id="prev" aria-label="Sebelumnya">&#10094;</div>
+    <div class="navbtn next" id="next" aria-label="Berikutnya">&#10095;</div>
+
+    <div class="dots" id="dots"></div>
+
+    <!-- Cloud Curtain Overlay -->
+    <div id="cloudCurtain" class="curtain hidden" aria-hidden="true">
+      <div class="curtain-clouds" id="curtainClouds"></div>
+    </div>
+  </div>
+
+  <script>
+    const W = 1600, H = 900; // viewport size
+    const STEP = 1600; // distance between worlds
+    const SCENES = [
+      { key:'kind', title:'Kerajaan Kebaikan', subtitle:'Jadi teladan kebaikan', link:'#kind', anchor:{x:980, y:360}, cam:{x:0, y:0}, cam3d:0, island:0 },
+      { key:'treasure', title:'Menara Harta Karun', subtitle:'Jaga rahasiamu', link:'/elearn/worlds/calistung/exp43d.html', anchor:{x:1600+930, y:360}, cam:{x:1600, y:0}, cam3d:100, island:1 },
+      { key:'river', title:'Sungai Realita', subtitle:'Bedakan fakta & phising', link:'#river', anchor:{x:3200+950, y:380}, cam:{x:3200, y:0}, cam3d:185, island:2 },
+      { key:'mountain', title:'Gunung Bijak', subtitle:'Pikirkan jejak digital', link:'#mountain', anchor:{x:4800+960, y:350}, cam:{x:4800, y:0}, cam3d:280, island:3 },
+    ];
+
+    let idx = 0;
+
+    const titleEl = document.getElementById('title');
+    const subtitleEl = document.getElementById('subtitle');
+    const ctaEl = document.getElementById('cta');
+
+    // dots
+    const dotsEl = document.getElementById('dots');
+    SCENES.forEach((s,i)=>{ const d=document.createElement('div'); d.className='dot'+(i===0?' active':''); d.addEventListener('click',()=>go(i)); dotsEl.appendChild(d); });
+
+    function setInfo(i){
+      const s = SCENES[i];
+      titleEl.textContent = s.title; subtitleEl.textContent = s.subtitle; ctaEl.href = s.link;
+      [...dotsEl.children].forEach((d,k)=>d.classList.toggle('active', k===i));
+    }
+
+    // --- Cloud Curtain builder & helpers ---
+    const curtainEl = document.getElementById('cloudCurtain');
+    const curtainClouds = document.getElementById('curtainClouds');
+    function buildCurtain(){
+      if(!curtainClouds) return;
+      if(curtainClouds.childElementCount) return; // build once
+      const cols = 10, rows = 5; // grid of cloud puffs
+      const vw = window.innerWidth, vh = window.innerHeight;
+      for(let r=0;r<rows;r++){
+        for(let c=0;c<cols;c++){
+          const d = document.createElement('div'); d.className='puff';
+          const w = 160 + Math.random()*180; const h = w*(0.7+Math.random()*0.25);
+          d.style.width = w+'px'; d.style.height = h+'px';
+          const x = (c+Math.random()*0.6-0.3) * (vw/cols) + (vw/cols)*0.15;
+          const y = (r+Math.random()*0.6-0.3) * (vh/rows) + (vh/rows)*0.15;
+          d.style.left = Math.max(-80, Math.min(vw-60, x))+'px';
+          d.style.top  = Math.max(-80, Math.min(vh-60, y))+'px';
+          // small stagger so they don't move all together
+          d.style.animationDelay = (Math.random()*0.12)+'s';
+          curtainClouds.appendChild(d);
+        }
+      }
+    }
+    function curtainIn(){
+      return new Promise(res=>{
+        buildCurtain();
+        curtainEl.classList.remove('hidden');
+        curtainEl.classList.remove('exit');
+        curtainEl.classList.add('enter');
+        setTimeout(res, 560);
+      });
+    }
+    function curtainOut(){
+      return new Promise(res=>{
+        curtainEl.classList.remove('enter');
+        curtainEl.classList.add('exit');
+        setTimeout(()=>{ curtainEl.classList.add('hidden'); curtainEl.classList.remove('exit'); res(); }, 620);
+      });
+    }
+
+
+    async function go(next){
+      if(next===idx) return;
+      const dst = SCENES[next];
+      // 1) Tutup dengan tirai awan
+      await curtainIn();
+      // 2) Update UI teks & dots segera
+      idx = next; setInfo(idx);
+      // 3) Pindahkan 3D ke island tujuan TANPA animasi panning (biar langsung siap saat tirai dibuka)
+      window.TRANSITION_SKIP_TRAVEL = true;
+      window.dispatchEvent(new CustomEvent('qa-scene-change', { detail:{ cam3d: dst.cam3d }}));
+      // 4) Buka tirai awan
+      await curtainOut();
+    }
+
+    document.getElementById('prev').addEventListener('click',()=>go((idx+SCENES.length-1)%SCENES.length));
+    document.getElementById('next').addEventListener('click',()=>go((idx+1)%SCENES.length));
+
+    // init
+    setInfo(0);
+    window.dispatchEvent(new CustomEvent('qa-scene-change', { detail:{ cam3d: SCENES[0].cam3d }}));
+  </script>
+<script type="module">
+window.TRANSITION_SKIP_TRAVEL = window.TRANSITION_SKIP_TRAVEL || false;
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js';
+import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/loaders/GLTFLoader.js';
+
+// === Per‑island tuning (edit these numbers to adjust each island) ===
+const ISLAND_TUNING = [
+  // 0 = Kind, 1 = Treasure, 2 = River, 3 = Mountain
+  { key:'kind',     arc:  0, rotateDeg: 0, scale: null, scaleMul: 80, lift: -10, rMul: 2.2, hMul: 0.70,
+    look:{ factor:0.35, cap:8,  bias:0 },
+    camera:{ fov:55, heightOffset:20,  distanceMul:1.8,  orbit:{ minDeg:-105, maxDeg:-25, speed:0.0020 }, minHeightAtZoomIn: 3.0, maxHeightAtZoomOut: 26, zoom:{ min: 28, max: 80 }, heightAbs: 14, heightZoomPow: 0.7 },
+    scaleClamp:{ min:0.05, max:60.0 }
+  },
+  { key:'treasure', arc: 100, rotateDeg: -88, scale: 0.04, lift: -10, rMul: 2.65, hMul: 2.45,
+    look:{ factor:0.06, cap:8 ,bias:-4 },
+    camera:{ fov:58, heightOffset:0, distanceMul:1.1,  orbit:{ minDeg:-35, maxDeg:0, speed:0.0024 }, minHeightAtZoomIn: 1.0, maxHeightAtZoomOut: 24, zoom:{ min: 16, max: 45 }, heightAbs: 32, heightZoomPow: 0.0 },
+    scaleClamp:{ min:0.01, max:6.0 }
+  },
+  { key:'river',    arc:185, rotateDeg: 0, scale: null, lift: -50, rMul: 2.2, hMul: 0.70,
+    look:{ factor:0.42, cap:6, bias:5 },
+    camera:{
+      fov:55,
+      heightOffset:0,
+      distanceMul:1.35,
+      orbit:{ minDeg:-20, maxDeg:20, speed:0.0022, centerDeg: 180 },
+      minHeightAtZoomIn: 56,
+      maxHeightAtZoomOut: 64,
+      zoom:{ min: 28, max: 94 },
+      heightAbs: 64,
+      heightZoomPow: 0.7,
+      panArcBias: -2
+    },
+    scaleClamp:{ min:0.05, max:6.0 }
+  },
+  { key:'mountain', arc:280, rotateDeg: 0, scale: null, scaleMul: 3, lift: -28, rMul: 2.2, hMul: 0.70,
+    look:{ factor:0.35, cap:8,  bias: 0 },
+    camera:{ fov:52, heightOffset:3,  distanceMul:1.05, orbit:{ minDeg:-35, maxDeg:35, speed:0.0022, centerDeg: 0 }, minHeightAtZoomIn: 6.0, maxHeightAtZoomOut: 40, zoom:{ min: 20, max: 60 }, heightAbs: 120, heightZoomPow: 0.65 },
+    scaleClamp:{ min:0.01, max:0.6 }
+  },
+];
+// helper to change quickly from console: window.ISLAND_TUNING = ISLAND_TUNING;
+window.ISLAND_TUNING = ISLAND_TUNING;
+
+// Basic renderer
+const wrap = document.getElementById('glwrap');
+const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(wrap.clientWidth, wrap.clientHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.setClearColor(0x000000, 0); // fully transparent background
+renderer.setClearAlpha(0);            // ensure no black clear color
+wrap.appendChild(renderer.domElement);
+console.log('WebGL init OK');
+
+document.body.setAttribute('data-webgl','1');
+
+// Scene & camera
+const scene3 = new THREE.Scene();
+scene3.fog = new THREE.Fog(0xbfe7ff, 60, 260);
+const cam3 = new THREE.PerspectiveCamera(55, wrap.clientWidth / wrap.clientHeight, 0.1, 1000);
+cam3.position.set(0, 18, 60);
+
+// Lights
+const amb = new THREE.AmbientLight(0xffffff, 0.6); scene3.add(amb);
+const dir = new THREE.DirectionalLight(0xffffff, 0.9); dir.position.set(50,80,40); scene3.add(dir);
+// Sun light (neutral white) — no sunset
+const sun = new THREE.DirectionalLight(0xffffff, 1.0);
+sun.position.set(-1, 0.6, -0.4).multiplyScalar(140);
+sun.castShadow = false;
+scene3.add(sun);
+
+// Procedural gradient sky (space at top, blue at horizon) with world-up falloff
+const skyGeo = new THREE.SphereGeometry(500, 32, 16);
+const skyMat = new THREE.ShaderMaterial({
+  uniforms: {
+    topColor:    { value: new THREE.Color(0x0b1020) },  // deep space
+    bottomColor: { value: new THREE.Color(0xa7d0ff) },  // atmosphere near horizon
+    offset:      { value: 10.0 },
+    exponent:    { value: 0.85 }
+  },
+  vertexShader: `
+    varying vec3 vWorldPosition;
+    void main(){
+      vec4 wp = modelMatrix * vec4(position, 1.0);
+      vWorldPosition = wp.xyz;
+      gl_Position = projectionMatrix * viewMatrix * wp;
+    }
+  `,
+  fragmentShader: `
+    uniform vec3 topColor;
+    uniform vec3 bottomColor;
+    uniform float offset;
+    uniform float exponent;
+    varying vec3 vWorldPosition;
+    void main(){
+      float h = normalize(vWorldPosition + vec3(0.0, offset, 0.0)).y;
+      float f = pow(clamp(h, 0.0, 1.0), exponent);
+      vec3 col = mix(bottomColor, topColor, f);
+      gl_FragColor = vec4(col, 1.0);
+    }
+  `,
+  side: THREE.BackSide,
+  depthWrite: false
+});
+scene3.add(new THREE.Mesh(skyGeo, skyMat));
+// match fog with sky bottom tint for cohesion
+scene3.fog.color.set(0xbfe3ff);
+
+// Planet ground: huge sphere below camera so horizon looks curved
+const planetGeo = new THREE.SphereGeometry(220, 48, 32);
+const planetMat = new THREE.MeshStandardMaterial({ color:0x173a5e, roughness:0.95, metalness:0.0 }); // deep ocean
+const planet = new THREE.Mesh(planetGeo, planetMat);
+planet.position.set(0, -220, 0);
+scene3.add(planet);
+// thin atmospheric glow at horizon
+const atmoGeo = new THREE.SphereGeometry(222, 48, 32);
+const atmoMat = new THREE.MeshBasicMaterial({ color:0x77c7ff, transparent:true, opacity:0.08 });
+const atmosphere = new THREE.Mesh(atmoGeo, atmoMat);
+atmosphere.position.copy(planet.position);
+scene3.add(atmosphere);
+
+// ==== Stars with twinkle (GPU-friendly) ====
+const starsGroup = new THREE.Group();
+scene3.add(starsGroup);
+
+function makeStars(count, radius, sizeMin, sizeMax, twinkleSpeed){
+  const g = new THREE.BufferGeometry();
+  const pos = new Float32Array(count*3);
+  const phase = new Float32Array(count);
+  const size = new Float32Array(count);
+  for(let i=0;i<count;i++){
+    // distribute roughly on a dome above horizon
+    const theta = Math.random() * Math.PI; // 0..pi
+    const phi = (Math.random() * Math.PI) - Math.PI/2; // -pi/2..pi/2
+    const r = radius + Math.random()*8;
+    const x = r * Math.sin(theta) * Math.cos(phi);
+    const y = Math.abs(r * Math.cos(theta)) + 10; // keep above horizon
+    const z = r * Math.sin(theta) * Math.sin(phi) - 120; // push behind islands
+    pos[i*3+0]=x; pos[i*3+1]=y; pos[i*3+2]=z;
+    phase[i]=Math.random()*Math.PI*2;
+    size[i]=sizeMin + Math.random()*(sizeMax-sizeMin);
+  }
+  g.setAttribute('position', new THREE.BufferAttribute(pos,3));
+  g.setAttribute('aPhase', new THREE.BufferAttribute(phase,1));
+  g.setAttribute('aSize', new THREE.BufferAttribute(size,1));
+
+  const mat = new THREE.ShaderMaterial({
+    transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
+    uniforms:{ uTime:{value:0}, uColor:{value:new THREE.Color(0xffffff)}, uSpeed:{value:twinkleSpeed} },
+    vertexShader:`
+      uniform float uTime; uniform float uSpeed; attribute float aPhase; attribute float aSize;
+      varying float vAlpha; 
+      void main(){
+        vec4 mv = modelViewMatrix * vec4(position,1.0);
+        float tw = 0.65 + 0.35*sin(uTime*uSpeed + aPhase);
+        gl_PointSize = aSize * tw * (300.0 / -mv.z);
+        vAlpha = smoothstep(0.0, 1.0, tw);
+        gl_Position = projectionMatrix * mv;
+      }
+    `,
+    fragmentShader:`
+      uniform vec3 uColor; varying float vAlpha; 
+      void main(){
+        vec2 uv = gl_PointCoord.xy - 0.5; float d = length(uv);
+        float alpha = smoothstep(0.5, 0.0, d) * vAlpha; // soft round
+        gl_FragColor = vec4(uColor, alpha);
+      }
+    `
+  });
+  const pts = new THREE.Points(g, mat);
+  return { points: pts, material: mat };
+}
+
+// two layers: far (slow) and near (faster)
+const starsFar  = makeStars(1800, 260, 1.0, 2.4, 0.6);
+const starsNear = makeStars(1200, 200, 1.6, 3.2, 1.1);
+starsFar.points.renderOrder = 0; starsNear.points.renderOrder = 1;
+
+starsGroup.add(starsFar.points); starsGroup.add(starsNear.points);
+
+// ==== Aura (soft colored fog) around active island ====
+const AURA_COLORS = [0x7af0c2, 0xffc073, 0x7db9ff, 0xb3c2ff]; // kind, treasure, river, mountain
+const auraGeo = new THREE.SphereGeometry(16, 32, 24);
+const auraMat = new THREE.ShaderMaterial({
+  transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
+  uniforms:{ uColor:{value:new THREE.Color(0xffffff)}, uAlpha:{value:0.35} },
+  vertexShader:`
+    varying vec3 vPos; 
+    void main(){ vPos = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }
+  `,
+  fragmentShader:`
+    uniform vec3 uColor; uniform float uAlpha; varying vec3 vPos;
+    void main(){
+      float r = length(vPos);            // distance from center
+      float a = smoothstep(16.0, 6.0, r); // fade outer→inner (soft)
+      gl_FragColor = vec4(uColor, a * uAlpha);
+    }
+  `
+});
+const aura = new THREE.Mesh(auraGeo, auraMat);
+aura.visible = false; // only show when a world is active
+scene3.add(aura);
+
+// Materials helper
+const m = {
+  green: new THREE.MeshStandardMaterial({ color:0x45c987, roughness:0.9, metalness:0.0 }),
+  dark:  new THREE.MeshStandardMaterial({ color:0x2f9e44, roughness:0.95 }),
+  sand:  new THREE.MeshStandardMaterial({ color:0xffb74d, roughness:0.9 }),
+  lava:  new THREE.MeshStandardMaterial({ color:0xf97316, roughness:0.85 }),
+  rock:  new THREE.MeshStandardMaterial({ color:0x6b7280, roughness:0.95 }),
+  water: new THREE.MeshStandardMaterial({ color:0x60a5fa, roughness:0.7, metalness:0.1 })
+};
+
+
+// ==== Animated Environment Materials ====
+// Water shimmer material (for Reality River)
+const waterUniforms = {
+  uTime: { value: 0 },
+  uColor: { value: new THREE.Color(0x60a5fa) }
+};
+const waterMat = new THREE.ShaderMaterial({
+  uniforms: waterUniforms,
+  transparent: false,
+  vertexShader: `
+    varying vec2 vUv;
+    void main(){
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform float uTime;
+    uniform vec3 uColor;
+    varying vec2 vUv;
+    void main(){
+      float wave = sin(vUv.x*10.0 + uTime*2.0) * 0.1 + cos(vUv.y*12.0 + uTime*2.0) * 0.1;
+      float brightness = 0.8 + wave;
+      gl_FragColor = vec4(uColor * brightness, 1.0);
+    }
+  `
+});
+
+// Torch glow material (for Treasure Tower top cone)
+const torchUniforms = {
+  uTime: { value: 0 },
+  uColor: { value: new THREE.Color(0xff7b00) }
+};
+const torchMat = new THREE.ShaderMaterial({
+  uniforms: torchUniforms,
+  transparent:true, blending:THREE.AdditiveBlending, depthWrite:false,
+  vertexShader:`
+    varying vec3 vPos;
+    void main(){ vPos = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }
+  `,
+  fragmentShader:`
+    uniform float uTime;
+    uniform vec3 uColor;
+    varying vec3 vPos;
+    void main(){
+      float flicker = 0.6 + 0.4*sin(uTime*8.0 + vPos.y*2.0) + 0.2*cos(uTime*5.0);
+      gl_FragColor = vec4(uColor, flicker);
+    }
+  `
+});
+
+// Build world on planet surface (arc along +X)
+const world = new THREE.Group(); scene3.add(world);
+const R = 220;           // planet radius (matches planetGeo)
+const ELEV = 2.2;        // small elevation above ground
+const ARC_X = ISLAND_TUNING.map(t => t.arc); // arc degrees along the sphere
+function surfY(x){ const theta = x / R; return -R + R*Math.cos(theta); }
+function placeOnGlobe(g, s, i){
+  const theta = s / R;                    // radians along +X great circle
+  const x = R * Math.sin(theta);
+  const y = -R + R * Math.cos(theta) + ELEV;
+  g.position.set(x, y, 0);
+  // orient Y-up to surface normal (from center to point)
+  const normal = new THREE.Vector3(x, y + R, 0).normalize(); // add R to offset center
+  const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0), normal);
+  g.setRotationFromQuaternion(q);
+  // apply per-island yaw around local up (Y) so the island faces desired direction
+  const yawDeg = (ISLAND_TUNING[i] && typeof ISLAND_TUNING[i].rotateDeg === 'number') ? ISLAND_TUNING[i].rotateDeg : 0;
+  if(yawDeg){ g.rotateOnAxis(new THREE.Vector3(0,1,0), THREE.MathUtils.degToRad(yawDeg)); }
+  world.add(g);
+}
+
+function addGlassDomeForIsland(g, i){
+  // remove old dome if exists
+  g.traverse((o)=>{ if(o.name === '__glassDome'){ if(o.parent) o.parent.remove(o); } });
+  // compute bounds & center
+  const box = new THREE.Box3().setFromObject(g);
+  const size = new THREE.Vector3(); box.getSize(size);
+  const centerW = new THREE.Vector3(); box.getCenter(centerW);
+  const centerL = g.worldToLocal(centerW.clone());
+  const maxDim = Math.max(size.x, size.y, size.z);
+  const radius = Math.max(4, maxDim * 0.62 + 3); // slightly larger than island
+  const geo = new THREE.SphereGeometry(radius, 48, 32);
+  const mat = new THREE.MeshPhysicalMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0.18,
+    roughness: 0.05,
+    transmission: 0.92,
+    ior: 1.15,
+    thickness: 0.7,
+    side: THREE.FrontSide,
+    depthWrite: false
+  });
+  const dome = new THREE.Mesh(geo, mat);
+  dome.name = '__glassDome';
+  dome.position.copy(centerL);
+  dome.renderOrder = 10;
+  g.add(dome);
+}
+
+// Expected GLB paths (drop files here to override placeholders)
+const glbPaths = [
+  '/elearn/models/island-kind2.glb',
+  '/elearn/models/island-treasure.glb',
+  '/elearn/models/island-kind.glb',
+  '/elearn/models/island-mountain.glb'
+];
+
+// Optional per-model scale multipliers (smaller so model tidak kebesaran)
+const glbScales = ISLAND_TUNING.map(t => t.scale);
+const glbLifts  = ISLAND_TUNING.map(t => t.lift);
+
+const islands3 = new Array(4);
+const loader = new GLTFLoader();
+
+function swapInGLB(i){
+  const url = glbPaths[i];
+  // try load; if 404, keep placeholder silently
+  loader.load(url, glb=>{
+    const g = glb.scene;
+
+    // --- Material fixup (preserve UNLIT + sRGB + vertex colors) ---
+    g.traverse(o=>{
+      if(!o.isMesh) return;
+      o.castShadow = false; o.receiveShadow = false;
+      let mat = o.material;
+      const hasVtxColor = !!(o.geometry && o.geometry.attributes && o.geometry.attributes.color);
+
+      // Detect GLTF unlit (KHR_materials_unlit) or explicit MeshBasicMaterial
+      const isUnlit = !!(mat && (mat.isMeshBasicMaterial || (mat.userData && mat.userData.gltfExtensions && mat.userData.gltfExtensions.KHR_materials_unlit) || (typeof mat.name === 'string' && /unlit|basic/i.test(mat.name))));
+
+      if(isUnlit){
+        // Force MeshBasicMaterial to keep flat colors as-authored
+        const next = new THREE.MeshBasicMaterial({
+          color: (mat && mat.color) ? mat.color : new THREE.Color(0xffffff),
+          transparent: !!(mat && mat.transparent),
+          opacity: (mat && mat.opacity !== undefined) ? mat.opacity : 1.0,
+          vertexColors: hasVtxColor
+        });
+        if(mat && mat.map){ next.map = mat.map; if(next.map) next.map.colorSpace = THREE.SRGBColorSpace; }
+        o.material = next; mat = next;
+      } else if(!mat || !(mat.isMeshStandardMaterial || mat.isMeshPhysicalMaterial)){
+        // Convert other types to PBR standard material
+        const next = new THREE.MeshStandardMaterial({
+          color: (mat && mat.color) ? mat.color : new THREE.Color(0xffffff),
+          roughness: (mat && mat.roughness !== undefined) ? mat.roughness : 0.9,
+          metalness: (mat && mat.metalness !== undefined) ? mat.metalness : 0.0,
+          transparent: !!(mat && mat.transparent),
+          opacity: (mat && mat.opacity !== undefined) ? mat.opacity : 1.0,
+          vertexColors: hasVtxColor
+        });
+        if(mat && mat.map){ next.map = mat.map; if(next.map) next.map.colorSpace = THREE.SRGBColorSpace; }
+        if(mat && mat.emissive){ next.emissive = mat.emissive; }
+        o.material = next; mat = next;
+      } else {
+        // Already PBR — just normalize
+        if(mat.map){ mat.map.colorSpace = THREE.SRGBColorSpace; }
+        if(hasVtxColor) mat.vertexColors = true;
+        if(mat.opacity === 0){ mat.opacity = 1.0; mat.transparent = false; }
+        if(mat.roughness === undefined) mat.roughness = 0.9;
+        if(mat.metalness === undefined) mat.metalness = 0.0;
+      }
+
+      // Common tweaks
+      if(mat && mat.map){ mat.map.needsUpdate = true; }
+      if(mat){ mat.needsUpdate = true; }
+    });
+
+    // --- Normalize pivot & auto scale ---
+    const box = new THREE.Box3().setFromObject(g);
+    const size = new THREE.Vector3(); box.getSize(size);
+    const center = new THREE.Vector3(); box.getCenter(center);
+    const minY = box.min.y; // base height
+
+    // Wrap model so we can shift local origin to base-center
+    const wrapG = new THREE.Group();
+    // center horizontally
+    g.position.sub(center);
+    // drop so base sits at y=0
+    g.position.y -= minY;
+    wrapG.add(g);
+
+    // Target heights per island (approx). Adjust freely. Lebih kecil supaya proporsional.
+    const targetHeights = [7, 6, 9, 22]; // treasure target height smaller
+    const autoS = (size.y > 0 ? (targetHeights[i] / size.y) : 1.0);
+    let s = (glbScales[i] !== undefined && glbScales[i] !== null) ? glbScales[i] : autoS;
+    // Optional: allow relative scaling via scaleMul (multiplies autoS)
+    if (ISLAND_TUNING[i] && typeof ISLAND_TUNING[i].scaleMul === 'number'){
+      s = autoS * ISLAND_TUNING[i].scaleMul;
+    }
+    // Always use positive uniform scale
+    s = Math.abs(s) || 1.0;
+    wrapG.scale.set(s, s, s);
+    // safety clamp (per‑island if provided)
+    const clampCfg = (ISLAND_TUNING[i] && ISLAND_TUNING[i].scaleClamp) ? ISLAND_TUNING[i].scaleClamp : {min:0.05, max:1.6};
+    const minS = (typeof clampCfg.min === 'number') ? clampCfg.min : 0.05;
+    const maxS = (typeof clampCfg.max === 'number') ? clampCfg.max : 1.6;
+    wrapG.scale.set(
+      Math.max(minS, Math.min(maxS, wrapG.scale.x)),
+      Math.max(minS, Math.min(maxS, wrapG.scale.y)),
+      Math.max(minS, Math.min(maxS, wrapG.scale.z))
+    );
+    console.log('Island', i, 'final scale =', wrapG.scale.x.toFixed(3));
+
+    // place directly on globe using tuning arc (no SVG placeholder)
+    {
+      const s = ARC_X[i];
+      const theta = s / R;
+      const x = R * Math.sin(theta);
+      const y = -R + R * Math.cos(theta) + ELEV;
+      wrapG.position.set(x, y, 0);
+      // orient Y-up to surface normal
+      const normal = new THREE.Vector3(x, y + R, 0).normalize();
+      const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0), normal);
+      wrapG.setRotationFromQuaternion(q);
+      // apply per-island yaw so it faces desired direction
+      const yawDeg = (ISLAND_TUNING[i] && typeof ISLAND_TUNING[i].rotateDeg === 'number') ? ISLAND_TUNING[i].rotateDeg : 0;
+      if(yawDeg){ wrapG.rotateOnAxis(new THREE.Vector3(0,1,0), THREE.MathUtils.degToRad(yawDeg)); }
+      // lift along surface normal
+      const lift = (glbLifts[i] !== undefined ? glbLifts[i] : 0);
+      wrapG.position.add(normal.clone().multiplyScalar(lift));
+    }
+
+    // Add per-island glass dome (mini snow globe)
+    addGlassDomeForIsland(wrapG, i);
+
+    // River (index 2): kill occluders + fix alpha materials (no more black boxes)
+    if(i === 2){
+      // PASS 1 — Matikan occluder/backdrop besar & gelap (deteksi nama + ukuran + warna)
+      wrapG.traverse(o=>{
+        if(!o.isMesh) return;
+        const mat = o.material;
+        const nm  = ((o.name||'') + ' ' + (mat?.name||'')).toLowerCase();
+
+        const namedLikeOccluder = /(occluder|backdrop|bg|skybox|cube|box|floor|ground|shadow|occl)/.test(nm);
+
+        const bb = new THREE.Box3().setFromObject(o);
+        const sz = new THREE.Vector3(); bb.getSize(sz);
+        const isVeryLarge = (sz.x>40 && sz.y>40 && sz.z>40);
+
+        const noTex = !(mat && mat.map);
+        const isVeryDark = !!(mat && mat.color && mat.color.r<0.05 && mat.color.g<0.05 && mat.color.b<0.05);
+
+        if(namedLikeOccluder || (isVeryLarge && noTex && isVeryDark)){
+          o.visible = false;
+        }
+      });
+
+      // PASS 2 — Perbaiki material ber-alpha (air, daun, billboard) supaya tidak muncul kotak/halo
+      wrapG.traverse(o=>{
+        if(!o.isMesh) return;
+        const mat = o.material;
+        if(!mat) return;
+
+        // Pastikan sRGB & mipmap untuk tekstur
+        if(mat.map){
+          if(mat.map.colorSpace !== THREE.SRGBColorSpace) mat.map.colorSpace = THREE.SRGBColorSpace;
+          mat.map.generateMipmaps = true;
+        }
+
+        // Jika ada tekstur (umumnya PNG dengan alpha), aktifkan cutout + tweak depth
+        if(mat.map){
+          mat.transparent = true;
+          mat.alphaTest = 0.5;          // buang fringe hitam
+          mat.depthWrite = false;       // hindari “kotak” akibat urutan depth
+          mat.depthTest  = true;
+          mat.blending   = THREE.NormalBlending;
+          mat.side       = THREE.DoubleSide;
+
+          // Jika didukung, aktifkan alpha-to-coverage (MSAA) biar tepinya halus
+          if('alphaToCoverage' in mat) mat.alphaToCoverage = true;
+
+          // Bantu hilangkan halo gelap bila source premultiplied
+          mat.premultipliedAlpha = true;
+
+          mat.needsUpdate = true;
+        }
+      });
+    }
+
+    // swap in scene graph (placeholder may not exist anymore)
+    if(islands3[i]) world.remove(islands3[i]);
+    world.add(wrapG);
+    islands3[i] = wrapG;
+
+    // If this island is currently active, or it's the initial island before any target was set,
+    // recompute orbit using real GLB bounds and resave HOME
+    if (orbit.targetIndex === i || (orbit.targetIndex < 0 && i === 0)){
+      setOrbitAroundIsland(i);
+      saveCurrentAsHome(i);
+    }
+
+    console.log('GLB loaded for island', i, url, 'size=', size, 'autoS=', autoS.toFixed(2));
+  }, undefined, err=>{
+    console.warn('GLB not loaded for island', i, url, err?.message || err);
+  });
+}
+
+// Place islands on globe and swap in GLBs directly
+for(let i=0;i<4;i++){
+  // Instead of creating SVG placeholders, just swap in the GLB model after computing placement
+  swapInGLB(i);
+}
+
+// ===== Parallax Background Layers =====
+const clouds = new THREE.Group();
+scene3.add(clouds);
+
+// Procedural fluffy clouds (billboard-ish spheres merged per group)
+function makeCloud(){
+  const g = new THREE.Group();
+  const puffMat = new THREE.MeshStandardMaterial({ color:0xffffff, roughness:1 });
+  for(let i=0;i<3+Math.floor(Math.random()*4);i++){
+    const s = 3 + Math.random()*4;
+    const puff = new THREE.Mesh(new THREE.SphereGeometry(1.0, 12, 12), puffMat);
+    puff.scale.set(s, s*0.7, s);
+    puff.position.set((i-1.5)*3 + Math.random()*1.2, Math.random()*2, Math.random()*1.5);
+    g.add(puff);
+  }
+  return g;
+}
+for(let i=0;i<12;i++){
+  const c = makeCloud();
+  c.position.set(-30 + Math.random()*240, 20+Math.random()*18, -30 - Math.random()*20);
+  clouds.add(c);
+}
+
+// Simple "internaut" pilot
+const pilotGeom = new THREE.OctahedronGeometry(2,0);
+const pilotMat = new THREE.MeshStandardMaterial({color:0xffd84d, roughness:0.8});
+const pilot3 = new THREE.Mesh(pilotGeom, pilotMat); pilot3.position.set(0,8,0); scene3.add(pilot3);
+
+// --- Camera orbit state around active island ---
+let orbitActive = false;
+const orbit = {
+  center: new THREE.Vector3(),
+  normal: new THREE.Vector3(0,1,0),
+  tangent: new THREE.Vector3(0,0,60),
+  radius: 60,
+  height: 12,
+  speed: 0.004,
+  lookFactor: 0.35,
+  lookCap: 8,
+  lookBias: 0,
+  // base values captured at the moment an island becomes active
+  baseRadius: 60,
+  baseHeight: 12,
+  baseLookFactor: 0.35,
+  baseLookCap: 8,
+  baseLookBias: 0,
+  targetIndex: -1, // island in focus for look targeting
+  currentAngle: 0, // radians within limited swing
+  dir: 1,          // +1 forward, -1 backward (for bounce)
+  tangentRef: new THREE.Vector3(1,0,0) // basis tangent (orthogonal to normal)
+};
+
+// --- Stable HOME pose per island (ensures returns are identical) ---
+const HOME_POSE = new Array(4);
+window.resetHome = (i)=>{ if(i===undefined){ for(let k=0;k<HOME_POSE.length;k++) HOME_POSE[k]=undefined; } else { HOME_POSE[i]=undefined; } };
+window.addEventListener('keydown', (e)=>{
+  if((e.key === 'R' || e.key === 'r') && (e.shiftKey || e.ctrlKey)){
+    const i = (typeof orbit.targetIndex === 'number' && orbit.targetIndex>=0)? orbit.targetIndex : 0;
+    window.resetHome(i);
+    setOrbitAroundIsland(i);
+    console.log('[Pose] HOME reset for island', i);
+  }
+});
+
+function snapshotHomePose(){
+  return {
+    center: orbit.center.clone(),
+    normal: orbit.normal.clone(),
+    tangentRef: orbit.tangentRef.clone(),
+    radius: orbit.radius,
+    height: orbit.height,
+    fov: cam3.fov,
+    lookFactor: orbit.lookFactor,
+    lookCap: orbit.lookCap,
+    lookBias: orbit.lookBias,
+    zoom: { min: ZOOM.min, max: ZOOM.max },
+    centerAngleRad: orbit.currentAngle || 0
+  };
+}
+function applyHomePose(h){
+  orbit.center.copy(h.center);
+  orbit.normal.copy(h.normal);
+  orbit.tangentRef.copy(h.tangentRef);
+
+  // Restore primary orbit values
+  orbit.radius = h.radius;
+  orbit.height = h.height;
+  orbit.lookFactor = h.lookFactor;
+  orbit.lookCap = h.lookCap;
+  orbit.lookBias = h.lookBias;
+
+  // IMPORTANT: also reset base* so applyZoomReframe() doesn't drift the pose
+  orbit.baseRadius = h.radius;
+  orbit.baseHeight = h.height;
+  orbit.baseLookFactor = h.lookFactor;
+  orbit.baseLookCap = h.lookCap;
+  orbit.baseLookBias = h.lookBias;
+
+  // Restore zoom limits and baseline
+  ZOOM.min = h.zoom.min; 
+  ZOOM.max = h.zoom.max; 
+  ZOOM.startRadius = h.radius;
+
+  // Restore optics and angle
+  cam3.fov = h.fov; 
+  cam3.updateProjectionMatrix();
+  orbit.currentAngle = h.centerAngleRad || 0;
+
+  // Rebuild tangent and camera placement
+  const q = new THREE.Quaternion().setFromAxisAngle(orbit.normal, orbit.currentAngle);
+  orbit.tangent.copy(orbit.tangentRef.clone().applyQuaternion(q)).setLength(orbit.radius);
+  cam3.up.copy(orbit.normal);
+  cam3.position.copy(orbit.center).addScaledVector(orbit.normal, orbit.height).add(orbit.tangent);
+  cam3.lookAt(currentLookTarget());
+}
+function saveCurrentAsHome(index){ HOME_POSE[index] = snapshotHomePose(); }
+
+function islandCenterWS(i){
+  if(!islands3[i]) return null;
+  const box = new THREE.Box3().setFromObject(islands3[i]);
+  const c = new THREE.Vector3();
+  box.getCenter(c);
+  return c;
+}
+function currentLookTarget(){
+  // Always aim slightly above/below island center based on look config
+  const c = islandCenterWS(orbit.targetIndex) || orbit.center.clone();
+  const off = Math.min(orbit.height * orbit.lookFactor, orbit.lookCap) + orbit.lookBias;
+  return c.clone().addScaledVector(orbit.normal, off);
+}
+
+function setOrbitAroundIsland(index){
+  if(!islands3[index]){ orbitActive = false; return; }
+  orbit.targetIndex = index;
+
+  // If we have a stored HOME for this island, restore it exactly and return
+  if (HOME_POSE[index]){
+    applyHomePose(HOME_POSE[index]);
+    // Aura placement each time (center may drift with planet curve)
+    const centerWS = islands3[index].getWorldPosition(new THREE.Vector3());
+    aura.position.copy(centerWS);
+    aura.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), orbit.normal);
+    aura.material.uniforms.uColor.value.setHex(AURA_COLORS[index] || 0xffffff);
+    aura.visible = true;
+    orbitActive = true;
+    return;
+  }
+
+  // 1) Center & surface normal at island
+  const centerWS = islands3[index].getWorldPosition(new THREE.Vector3());
+  orbit.center.copy(centerWS);
+  orbit.normal.set(centerWS.x, centerWS.y + R, centerWS.z).normalize();
+  cam3.up.copy(orbit.normal);
+
+  // 2) Island bounds to estimate size
+  const box = new THREE.Box3().setFromObject(islands3[index]);
+  const size = new THREE.Vector3(); box.getSize(size);
+  const height = Math.max(6, Math.min(40, size.y)); // clamp sanity
+
+  // 3) Choose camera height & radius relative to island using ISLAND_TUNING
+  const tune = ISLAND_TUNING[index] || ISLAND_TUNING[0];
+  orbit.height = Math.max(6, Math.min(28, height * (tune.hMul ?? 0.7)));
+  orbit.radius = Math.max(30, Math.min(120, height * (tune.rMul ?? 2.2)));
+
+  // --- Apply per-island camera tuning ---
+  if(tune.camera){
+    if(tune.camera.fov){ cam3.fov = tune.camera.fov; cam3.updateProjectionMatrix(); }
+    if(tune.camera.heightOffset){ orbit.height += tune.camera.heightOffset; }
+    if(tune.camera.distanceMul){ orbit.radius *= tune.camera.distanceMul; }
+  }
+
+  // Apply absolute camera height if provided (overrides computed height)
+  if(tune.camera && typeof tune.camera.heightAbs === 'number'){
+    orbit.height = tune.camera.heightAbs;
+  }
+
+  // Apply per‑island zoom limits
+  if(tune.camera && tune.camera.zoom){
+    const zc = tune.camera.zoom;
+    if(typeof zc.min === 'number') ZOOM.min = zc.min;
+    if(typeof zc.max === 'number') ZOOM.max = zc.max;
+  } else {
+    // fallback defaults
+    ZOOM.min = 30; ZOOM.max = 120;
+  }
+  orbit.radius = Math.max(ZOOM.min, Math.min(ZOOM.max, orbit.radius));
+
+  // 4) Build a tangent vector perpendicular to normal
+  const ref = Math.abs(orbit.normal.y) > 0.9 ? new THREE.Vector3(1,0,0) : new THREE.Vector3(0,1,0);
+  orbit.tangentRef.copy(ref).cross(orbit.normal).normalize(); // unit basis tangent
+
+  // Per‑island orbit settings
+  const oConf = (tune.camera && tune.camera.orbit) ? tune.camera.orbit : null;
+  orbit.speed = (oConf && typeof oConf.speed === 'number') ? oConf.speed : 0.004;
+
+  // Landing yaw offset (degrees) so camera faces the intended front of the island
+  // If centerDeg is not defined, derive it from island yaw (rotateDeg) so camera faces the island.
+  const autoCenterDeg = (typeof tune.rotateDeg === 'number') ? (tune.rotateDeg + 180) : 0; // opposite of island facing
+  const centerDeg = (oConf && typeof oConf.centerDeg === 'number') ? oConf.centerDeg : autoCenterDeg;
+  orbit.currentAngle = THREE.MathUtils.degToRad(centerDeg);
+  orbit.dir = 1;
+
+  // Build tangent with the initial yaw applied
+  const q0 = new THREE.Quaternion().setFromAxisAngle(orbit.normal, orbit.currentAngle);
+  orbit.tangent.copy(orbit.tangentRef.clone().applyQuaternion(q0)).setLength(orbit.radius);
+
+  // 5) Per-island look target config
+  orbit.lookFactor = (tune.look?.factor ?? 0.35);
+  orbit.lookCap    = (tune.look?.cap ?? 8);
+  orbit.lookBias   = (tune.look?.bias ?? 0);
+
+  // Capture base values for zoom re-framing
+  orbit.baseRadius = orbit.radius;
+  orbit.baseHeight = orbit.height;
+  orbit.baseLookFactor = orbit.lookFactor;
+  orbit.baseLookCap = orbit.lookCap;
+  orbit.baseLookBias = orbit.lookBias;
+
+  // 6) Position camera: center + normal*height + tangent
+  cam3.position.copy(orbit.center).addScaledVector(orbit.normal, orbit.height).add(orbit.tangent);
+  cam3.lookAt(currentLookTarget());
+
+  // Immediately apply downstream clamps/reframe
+  updateCamFromOrbit();
+  ZOOM.startRadius = orbit.radius; // sync pinch baseline to new island
+
+  // Aura tint & place
+  aura.position.copy(centerWS);
+  aura.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), orbit.normal);
+  aura.material.uniforms.uColor.value.setHex(AURA_COLORS[index] || 0xffffff);
+  aura.visible = true;
+
+  // Capture this first good pose as HOME so going back is pixel-perfect
+  if (!HOME_POSE[index]) saveCurrentAsHome(index);
+
+  orbitActive = true;
+}
+function rotateAroundAxis(v, axis, angle){
+  const q = new THREE.Quaternion();
+  q.setFromAxisAngle(axis, angle);
+  return v.clone().applyQuaternion(q);
+}
+
+function applyZoomReframe(){
+  const z = Math.max(0.2, Math.min(3.0, orbit.radius / Math.max(1e-3, orbit.baseRadius)));
+  const tune = ISLAND_TUNING[orbit.targetIndex] || {};
+  const camT = tune.camera || {};
+
+  const minH = (typeof camT.minHeightAtZoomIn === 'number') ? camT.minHeightAtZoomIn : 6;
+  const maxH = (typeof camT.maxHeightAtZoomOut === 'number') ? camT.maxHeightAtZoomOut : 28;
+
+  // Base tinggi: gunakan heightAbs jika ada, jika tidak pakai baseHeight.
+  const baseH = (typeof camT.heightAbs === 'number') ? camT.heightAbs : orbit.baseHeight;
+  // Respons terhadap zoom: 0 = tetap, 0.7 default
+  const pow  = (typeof camT.heightZoomPow === 'number') ? camT.heightZoomPow : 0.7;
+
+  orbit.height = THREE.MathUtils.clamp( baseH * Math.pow(z, pow), minH, maxH );
+
+  // Bias & look penyesuaian (tetap)
+  const biasAdj = (z - 1.0) * 3.5;
+  orbit.lookBias = orbit.baseLookBias - biasAdj;
+  const lfAdj = (z - 1.0) * 0.12;
+  orbit.lookFactor = Math.max(0.06, orbit.baseLookFactor - lfAdj);
+  orbit.lookCap = orbit.baseLookCap;
+}
+
+// --- Pinch & Wheel Zoom (adjust orbit radius) ---
+const ZOOM = { min: 30, max: 120, wheelStep: 1.0, active:false, startDist:0, startRadius:60 };
+function clampZoom(r){ return Math.max(ZOOM.min, Math.min(ZOOM.max, r)); }
+function updateCamFromOrbit(){
+  applyZoomReframe();
+  // keep current orientation; only enforce radius
+  orbit.tangent.setLength(orbit.radius);
+  cam3.position.copy(orbit.center).addScaledVector(orbit.normal, orbit.height).add(orbit.tangent);
+  cam3.lookAt(currentLookTarget());
+}
+
+// Touch helpers
+function touchDistance(touches){
+  const dx = touches[0].clientX - touches[1].clientX;
+  const dy = touches[0].clientY - touches[1].clientY;
+  return Math.hypot(dx, dy);
+}
+
+// Attach listeners to the canvas wrapper
+wrap.addEventListener('touchstart', (e)=>{
+  if(e.touches.length === 2){
+    // disable zoom during camera tween
+    if(!orbitActive) return;
+    ZOOM.active = true;
+    ZOOM.startDist = touchDistance(e.touches);
+    ZOOM.startRadius = orbit.radius;
+  }
+}, {passive:true});
+
+wrap.addEventListener('touchmove', (e)=>{
+  if(!ZOOM.active || e.touches.length !== 2) return;
+  const dist = touchDistance(e.touches);
+  const scale = (ZOOM.startDist>0)? (ZOOM.startDist / dist) : 1.0; // pinch in => bigger scale
+  let r = ZOOM.startRadius * scale;
+  orbit.radius = clampZoom(r);
+  updateCamFromOrbit();
+}, {passive:true});
+
+wrap.addEventListener('touchend', ()=>{ ZOOM.active = false; }, {passive:true});
+
+// Wheel zoom for desktop
+wrap.addEventListener('wheel', (e)=>{
+  // disable zoom during tween
+  if(!orbitActive) return;
+  const dir = Math.sign(e.deltaY); // 1 = zoom out, -1 = zoom in
+  let r = orbit.radius + dir * ZOOM.wheelStep * 3.0; // feel free to tune
+  orbit.radius = clampZoom(r);
+  updateCamFromOrbit();
+  e.preventDefault();
+}, {passive:false});
+
+// Resize handler
+function onResize(){ const w = wrap.clientWidth, h = wrap.clientHeight; cam3.aspect = w/h; cam3.updateProjectionMatrix(); renderer.setSize(w,h); }
+window.addEventListener('resize', onResize);
+// ensure first parallax alignment
+
+let t=0; function animate(){
+  t+=0.01;
+  // pilot idle bob (float relative to planet surface)
+  pilot3.position.y = surfY(cam3.position.x) + 8 + Math.sin(t)*0.6;
+  // drifting clouds with wrap
+  clouds.children.forEach(c=>{
+    c.position.x += 0.02; // global drift
+    // keep clouds roughly around camera for endless sky
+    if(c.position.x > cam3.position.x + 140) c.position.x = cam3.position.x - 140 - Math.random()*20;
+    // very light sway
+    c.position.y += Math.sin(t*0.5 + c.id)*0.004;
+  });
+  // orbit camera around active island when idle
+  if(orbitActive){
+    applyZoomReframe();
+    const tune = ISLAND_TUNING[orbit.targetIndex] || {};
+    const oConf = tune.camera && tune.camera.orbit ? tune.camera.orbit : null;
+    if(oConf){
+      // Bounded swing around landing yaw (centerDeg)
+      const base = THREE.MathUtils.degToRad(oConf.centerDeg ?? 0);
+      const minRad = base + THREE.MathUtils.degToRad(oConf.minDeg ?? -30);
+      const maxRad = base + THREE.MathUtils.degToRad(oConf.maxDeg ?? 30);
+      orbit.currentAngle += orbit.speed * orbit.dir;
+      if(orbit.currentAngle > maxRad){ orbit.currentAngle = maxRad; orbit.dir = -1; }
+      if(orbit.currentAngle < minRad){ orbit.currentAngle = minRad; orbit.dir = 1; }
+      // Recompute tangent from basis
+      const q = new THREE.Quaternion().setFromAxisAngle(orbit.normal, orbit.currentAngle);
+      orbit.tangent.copy(orbit.tangentRef).applyQuaternion(q).setLength(orbit.radius);
+    } else {
+      // Unlimited: continuous rotation
+      orbit.tangent = rotateAroundAxis(orbit.tangent, orbit.normal, orbit.speed).setLength(orbit.radius);
+    }
+    cam3.position.copy(orbit.center).addScaledVector(orbit.normal, orbit.height).add(orbit.tangent);
+    cam3.lookAt(currentLookTarget());
+  }
+  // update stars: twinkle & subtle parallax with camera
+  const now = performance.now();
+  starsFar.material.uniforms.uTime.value = now * 0.001;
+  starsNear.material.uniforms.uTime.value = now * 0.001;
+  // update animated environment materials
+  waterUniforms.uTime.value = now * 0.001;
+  torchUniforms.uTime.value = now * 0.001;
+  starsGroup.position.x = cam3.position.x * 0.02; // slight parallax
+  renderer.render(scene3, cam3);
+  requestAnimationFrame(animate);
+}
+animate();
+
+// --- Camera pan helper: computes target Y for panning to island, taking lift & island height into account ---
+function targetPanYForIsland(i){
+  // Gunakan posisi dunia island (sudah mengandung lift & orientasi di globe)
+  if(!islands3[i]) return surfY(ISLAND_TUNING[i]?.arc || 0) + 18;
+  const c = islands3[i].getWorldPosition(new THREE.Vector3());
+  // Ambil baseline offset sederhana agar kamera sedikit di atas horizon pulau saat panning
+  const tune = ISLAND_TUNING[i] || {};
+  const camT = tune.camera || {};
+  // Jika ada heightAbs → pakai sebagian (lebih rendah dari landing), else pakai 12 sebagai default panning offset
+  const offset = (typeof camT.heightAbs === 'number') ? Math.max(8, Math.min(24, camT.heightAbs * 0.5)) : 12;
+  return c.y + offset;
+}
+
+// === Helper: Compute arc s dari posisi dunia island agar target X panning tepat di tengah pulau meski ada lift ===
+function islandArc(i){
+  if(!islands3[i]) return (ISLAND_TUNING[i]?.arc)||0;
+  const c = islands3[i].getWorldPosition(new THREE.Vector3());
+  // Vector dari pusat planet (0,-R,0) ke posisi pulau = (x, y+R, z)
+  const vx = c.x; const vy = c.y + R; // z kita abaikan (jalur great-circle di bidang X-Y)
+  const theta = Math.atan2(vx, vy);   // sudut dari sumbu +Y menuju posisi pulau
+  let s = theta * R;                  // arc length di "rel" panning
+  // Per‑island fine tuning agar tidak terlihat kelewatan/kurang beberapa satuan arc
+  const camT = (ISLAND_TUNING[i] && ISLAND_TUNING[i].camera) ? ISLAND_TUNING[i].camera : {};
+  const bias = (typeof camT.panArcBias === 'number') ? camT.panArcBias : 0;
+  return s + bias;
+}
+
+// === Globe helpers: convert (x,y) to arc length s, and get shortest delta along great circle ===
+function arcFromXY(x, y){
+  // camera moves on plane X-Y around sphere center (0,-R,0)
+  const theta = Math.atan2(x, y + R); // [-pi, pi]
+  return theta * R;                    // arc length s
+}
+function shortestArcDelta(s0, s1){
+  const C = Math.PI * 2 * R; // circumference in arc units
+  let d = s1 - s0;
+  // wrap to [-C/2, C/2] so we take the shortest path
+  d = ((d + C/2) % C + C) % C - C/2;
+  return d;
+}
+
+// === SUPER SIMPLE travel: great-circle + single bell altitude, no FOV/lookahead gimmicks ===
+async function travelToIslandSimple(i, dur=900){
+  const s1 = islandArc(i);
+  const endYTarget = targetPanYForIsland(i);
+  const s0 = islandArc( (orbit.targetIndex>=0)? orbit.targetIndex : 0 );
+  const delta = shortestArcDelta(s0, s1);
+
+  // Altitude (above surface) start & end
+  const surfY0 = surfY(cam3.position.x);
+  const alt0 = cam3.position.y - surfY0;
+  const surfY1 = surfY(s1);
+  const alt1 = endYTarget - surfY1;
+
+  // One clean zoom profile (zoom-out mid then back), fixed & clamped so tidak berantakan
+  const travel = Math.abs(delta);
+  const peakExtra = THREE.MathUtils.clamp(16 + travel*0.04, 18, 70);
+  const baseLine = Math.max(alt0, alt1);
+  const peakAlt = baseLine + peakExtra;
+
+  await new Promise(res=>{
+    const t0 = performance.now();
+    function step(now){
+      const u = Math.min(1, (now - t0) / dur);
+      // smootherstep timing untuk gerak lembut konsisten
+      const e = u*u*u*(u*(u*6 - 15) + 10);
+      const s = s0 + delta * e;
+      const th = s / R;
+      const x = R * Math.sin(th);
+      const ySurf = -R + R * Math.cos(th);
+      const altLin = alt0 + (alt1 - alt0) * e;
+      const w = 4 * e * (1 - e); // bell 0..1..0
+      const alt = altLin + w * (peakAlt - altLin);
+      const y = ySurf + alt;
+
+      cam3.position.set(x, y, 0);
+      // Up mengikuti normal permukaan agar nggak goyang
+      const normal = new THREE.Vector3(x, ySurf + R, 0).normalize();
+      cam3.up.copy(normal);
+      // Look stabil: sedikit ke horizon lokal, tanpa lookahead
+      const lookY = ySurf + Math.max(8, alt * 0.6);
+      cam3.lookAt(x, lookY, 0);
+
+      if(u < 1) requestAnimationFrame(step); else res();
+    }
+    requestAnimationFrame(step);
+  });
+
+  // Finish with exact orbit pose (singkat, rapi)
+  const target = computeTargetPoseForIsland(i);
+  await tweenCamToPose(target, 260);
+}
+
+// === GAME-LIKE travel: FOV zoom-out → great-circle glide → FOV zoom-in to island target ===
+async function travelToIslandGame(i, dur=900){
+  const s1 = islandArc(i);
+  const endYTarget = targetPanYForIsland(i);
+  const s0 = islandArc( (orbit.targetIndex>=0)? orbit.targetIndex : 0 );
+  const delta = shortestArcDelta(s0, s1);
+
+  // Start/End altitude (above surface)
+  const surfY0 = surfY(cam3.position.x);
+  const alt0 = cam3.position.y - surfY0;
+  const surfY1 = surfY(s1);
+  const alt1 = endYTarget - surfY1;
+
+  // FOV zoom-out/in
+  const targetPose = computeTargetPoseForIsland(i);
+  const f0 = cam3.fov;          // current
+  const f1 = targetPose.fov;    // island target
+  const travel = Math.abs(delta);
+  const fPeak = Math.min(86, Math.max(f0, f1) + 12 + Math.min(10, travel*0.01)); // cinematic but safe
+
+  await new Promise(res=>{
+    const t0 = performance.now();
+    function step(now){
+      const u = Math.min(1, (now - t0) / dur);
+      const e = u*u*u*(u*(u*6 - 15) + 10); // smootherstep
+
+      // Along great-circle
+      const s = s0 + delta * e;
+      const th = s / R;
+      const x = R * Math.sin(th);
+      const ySurf = -R + R * Math.cos(th);
+
+      // Altitude: linear blend + **small** hump (anti-tabrak), bukan loncatan besar
+      const altLin = alt0 + (alt1 - alt0) * e;
+      const w = 4 * e * (1 - e);            // 0..1..0
+      const alt = altLin + w * 8;           // hump kecil (8u)
+      const y = ySurf + alt;
+
+      // FOV: out → in, puncak di tengah, dan berakhir di FOV target island
+      const fLin = f0 + (f1 - f0) * e;      // baseline to end
+      const f = fLin + w * (fPeak - fLin);  // bell to peak
+      cam3.fov = f; cam3.updateProjectionMatrix();
+
+      cam3.position.set(x, y, 0);
+      const normal = new THREE.Vector3(x, ySurf + R, 0).normalize();
+      cam3.up.copy(normal);
+      // Look a bit ahead along the path (tanpa jitter)
+      const sA = s + Math.sign(delta) * Math.min(travel*0.05, R*0.12);
+      const thA = sA / R; const xA = R*Math.sin(thA); const ySurfA = -R + R*Math.cos(thA);
+      const lookY = ySurfA + Math.max(8, alt * 0.55);
+      cam3.lookAt(xA, lookY, 0);
+
+      if(u < 1) requestAnimationFrame(step); else res();
+    }
+    requestAnimationFrame(step);
+  });
+
+  // Short settle to exact orbit pose (ensures pixel-perfect landing & radius/height)
+  await tweenCamToPose(targetPose, 200);
+}
+
+// === Cinematic travel: zoom-out → glide (great-circle) → settle (zoom-in) ===
+function smootherstep(t){ return t*t*t*(t*(t*6 - 15) + 10); } // 0..1 smooth
+function quintOutIn(t){ return t<0.5 ? 1 - Math.pow(1-2*t, 5) : Math.pow((2*t-1), 5); }
+
+async function travelToIslandCinematic(i){
+  const s1 = islandArc(i);
+  const endYTarget = targetPanYForIsland(i);
+  const s0 = islandArc( (orbit.targetIndex>=0)? orbit.targetIndex : 0 );
+  const delta = shortestArcDelta(s0, s1);
+
+  // START/END altitude
+  const surfY0 = surfY(cam3.position.x);
+  const alt0 = cam3.position.y - surfY0;
+  const surfY1 = surfY(s1);
+  const alt1 = endYTarget - surfY1;
+
+  // Peak altitude (zoom-out) — proportional to distance, clamped
+  const travel = Math.abs(delta);
+  const peakExtra = THREE.MathUtils.clamp(10 + travel*0.06, 12, 90);
+  const baseLine = Math.max(alt0, alt1);
+  const peakAlt = baseLine + peakExtra;
+
+  // Phase A: very short prep zoom‑out (widen FOV + raise a bit) — 220ms
+  await new Promise(res=>{
+    const f0 = cam3.fov, f1 = Math.min(80, f0 + 6);
+    const a0 = alt0, a1 = Math.min(peakAlt, a0 + peakExtra*0.35);
+    const t0 = performance.now(); const dur = 220;
+    function step(now){
+      const u = Math.min(1,(now-t0)/dur); const e = smootherstep(u);
+      const s = s0; const th = s/R; // stay near start
+      const x = R*Math.sin(th); const ySurf = -R + R*Math.cos(th);
+      const alt = a0 + (a1-a0)*e; const y = ySurf + alt;
+      cam3.position.set(x,y,0);
+      cam3.fov = f0 + (f1-f0)*e; cam3.updateProjectionMatrix();
+      const normal = new THREE.Vector3(x, ySurf+R, 0).normalize(); cam3.up.copy(normal);
+      cam3.lookAt(x, ySurf + Math.max(8, alt*0.6), 0);
+      if(u<1) requestAnimationFrame(step); else res();
+    }
+    requestAnimationFrame(step);
+  });
+
+  // Phase B: glide along great‑circle with bell‑altitude and slight look‑ahead — 740ms
+  await new Promise(res=>{
+    const t0 = performance.now(); const dur = 740;
+    function step(now){
+      const u = Math.min(1,(now-t0)/dur); const e = smootherstep(u);
+      const s = s0 + delta*e; const th = s/R;
+      const x = R*Math.sin(th); const ySurf = -R + R*Math.cos(th);
+      const altLin = alt0 + (alt1-alt0)*e; const w = 4*e*(1-e); // bell
+      const alt = altLin + w*(peakAlt - altLin); const y = ySurf + alt;
+      cam3.position.set(x,y,0);
+      const normal = new THREE.Vector3(x, ySurf+R, 0).normalize(); cam3.up.copy(normal);
+      // look‑ahead kecil
+      const sA = s + Math.sign(delta) * Math.min(travel*0.06, R*0.15); const thA = sA/R;
+      const xA = R*Math.sin(thA); const ySurfA = -R + R*Math.cos(thA);
+      const lookY = Math.min(y, ySurfA + Math.max(8, alt*0.6));
+      cam3.lookAt(xA, lookY, 0);
+      if(u<1) requestAnimationFrame(step); else res();
+    }
+    requestAnimationFrame(step);
+  });
+
+  // Phase C: settle/zoom‑in to exact orbit pose — 300ms
+  const target = computeTargetPoseForIsland(i);
+  await tweenCamToPose(target, 300);
+}
+
+function tweenCamToIsland(i, dur=1100){
+  const s1 = islandArc(i);              // target arc from island world position (with panArcBias)
+  const endYTarget = targetPanYForIsland(i); // target world Y (used to derive target altitude)
+  const s0 = islandArc( (orbit.targetIndex>=0)? orbit.targetIndex : 0 );
+  const delta = shortestArcDelta(s0, s1);
+
+  // Altitude at start & end (above surface), honoring globe geometry
+  const surfY0 = surfY(cam3.position.x);
+  const alt0 = cam3.position.y - surfY0;
+  const surfY1 = surfY(s1);
+  const alt1 = endYTarget - surfY1;
+
+  // Create a bell-shaped altitude profile (zoom-out then zoom-in)
+  // Peak altitude grows with travel distance, clamped to a sane range
+  const travel = Math.abs(delta);
+  const peakExtra = THREE.MathUtils.clamp(10 + travel * 0.06, 12, 90); // proportional to arc distance
+  const baseLine = Math.max(alt0, alt1);
+  const peakAlt = baseLine + peakExtra;
+
+  return new Promise(res=>{
+    const t0 = performance.now();
+    function step(now){
+      const u = Math.min(1, (now - t0) / dur);
+      const e = (u < 0.5) ? 2*u*u : -1 + (4 - 2*u)*u; // easeInOutQuad for timing
+      // interpolate along shortest arc
+      const s = s0 + delta * e;
+      const theta = s / R;
+      const x = R * Math.sin(theta);
+      const ySurf = -R + R * Math.cos(theta);
+
+      // Baseline (straight) altitude blend between alt0 -> alt1
+      const altLin = alt0 + (alt1 - alt0) * e;
+      // Bell curve weight (0..1..0) for zoom-out then in
+      const w = 4 * e * (1 - e); // parabola, peak at e=0.5
+      const alt = altLin + w * (peakAlt - altLin);
+      const y = ySurf + alt;
+
+      cam3.position.set(x, y, 0);
+      // Up vector = surface normal at current point
+      const normal = new THREE.Vector3(x, ySurf + R, 0).normalize();
+      cam3.up.copy(normal);
+
+      // Look slightly ahead along the path and above the surface to avoid "menabrak" feel
+      // Predict a tiny step forward along arc for look-ahead
+      const sAhead = s + Math.sign(delta) * Math.min(travel*0.06, R*0.15);
+      const thA = sAhead / R;
+      const xA = R * Math.sin(thA);
+      const ySurfA = -R + R * Math.cos(thA);
+      const lookY = Math.min(y, ySurfA + Math.max(8, alt * 0.6));
+      cam3.lookAt(xA, lookY, 0);
+
+      if(u < 1) requestAnimationFrame(step); else res();
+    }
+    requestAnimationFrame(step);
+  });
+}
+
+// Camera tween util (follows planet curvature)
+function tweenCam3D(toX, dur=1100){
+  return new Promise(res=>{
+    const startX = cam3.position.x; const startT = performance.now();
+    const startY = cam3.position.y; const endY = surfY(toX) + 18; // keep altitude above surface
+    const endX = toX;
+    function step(now){
+      const u = Math.min(1,(now-startT)/dur);
+      const e = u<.5?2*u*u:-1+(4-2*u)*u; // easeInOutQuad
+      cam3.position.x = startX + (endX-startX)*e;
+      cam3.position.y = startY + (endY-startY)*e;
+      const lookY = surfY(cam3.position.x) + 6; // aim a bit lower toward surface
+      // roll camera to match planet curvature (use surface normal as up vector)
+      const nx = cam3.position.x;
+      const ny = surfY(nx) + R; // center of planet at (0,-R,0)
+      const normal = new THREE.Vector3(nx, ny, 0).normalize();
+      cam3.up.copy(normal);
+      cam3.lookAt(cam3.position.x, lookY, 0);
+      if(u<1) requestAnimationFrame(step); else res();
+    }
+    requestAnimationFrame(step);
+  });
+}
+
+// === Camera snapshot/restore and pose utilities ===
+function snapshotCameraAndOrbit(){
+  return {
+    camPos: cam3.position.clone(),
+    camUp: cam3.up.clone(),
+    fov: cam3.fov,
+    orbit: {
+      center: orbit.center.clone(), normal: orbit.normal.clone(), tangent: orbit.tangent.clone(),
+      tangentRef: orbit.tangentRef.clone(), radius: orbit.radius, height: orbit.height, speed: orbit.speed,
+      lookFactor: orbit.lookFactor, lookCap: orbit.lookCap, lookBias: orbit.lookBias,
+      baseRadius: orbit.baseRadius, baseHeight: orbit.baseHeight,
+      baseLookFactor: orbit.baseLookFactor, baseLookCap: orbit.baseLookCap, baseLookBias: orbit.baseLookBias,
+      currentAngle: orbit.currentAngle, dir: orbit.dir, targetIndex: orbit.targetIndex
+    },
+    zoom: { ...ZOOM }
+  };
+}
+function restoreCameraAndOrbit(s){
+  cam3.position.copy(s.camPos);
+  cam3.up.copy(s.camUp);
+  cam3.fov = s.fov; cam3.updateProjectionMatrix();
+  Object.assign(orbit, s.orbit);
+  ZOOM.min = s.zoom.min; ZOOM.max = s.zoom.max; ZOOM.startRadius = s.zoom.startRadius; ZOOM.wheelStep = s.zoom.wheelStep;
+}
+function computeTargetPoseForIsland(i){
+  const snap = snapshotCameraAndOrbit();
+  setOrbitAroundIsland(i); // compute precise final landing pose
+  const pose = {
+    pos: cam3.position.clone(),
+    up: cam3.up.clone(),
+    look: currentLookTarget().clone(),
+    fov: cam3.fov
+  };
+  restoreCameraAndOrbit(snap);
+  return pose;
+}
+
+// Simple camera pose tween (interpolate position and lookAt directly to target)
+function tweenCamToPose(target, dur=900){
+  return new Promise(res=>{
+    const p0 = cam3.position.clone();
+    const f0 = cam3.fov;
+    const start = performance.now();
+    function step(now){
+      const t = Math.min(1, (now-start)/dur);
+      const e = t<.5 ? 2*t*t : -1 + (4-2*t)*t;
+      cam3.position.lerpVectors(p0, target.pos, e);
+      cam3.fov = f0 + (target.fov - f0)*e; cam3.updateProjectionMatrix();
+      const lookNow = currentLookTarget().clone().lerp(target.look, e);
+      cam3.lookAt(lookNow);
+      if(t<1) requestAnimationFrame(step); else res();
+    }
+    requestAnimationFrame(step);
+  });
+}
+
+window.addEventListener('qa-scene-change', async (ev)=>{
+  const {cam3d} = ev.detail;
+  const idx = SCENES.findIndex(s=>s.cam3d === cam3d);
+  if(idx < 0) return;
+  orbitActive = false;
+  aura.visible = false;
+
+  if(window.TRANSITION_SKIP_TRAVEL){
+    // Langsung set pose final tanpa animasi — kita sedang pakai tirai awan
+    setOrbitAroundIsland(idx);
+    ZOOM.startRadius = orbit.radius;
+    aura.visible = true;
+    orbitActive = true;
+    window.TRANSITION_SKIP_TRAVEL = false; // reset flag
+    return;
+  }
+
+  // Default: pakai animasi travel biasa
+  await travelToIslandGame(idx);
+  setOrbitAroundIsland(idx);
+  ZOOM.startRadius = orbit.radius;
+  aura.visible = true;
+  orbitActive = true;
+});
+
+// Initial camera and pilot position (follow globe)
+cam3.position.x = SCENES[0].cam3d;
+cam3.position.y = surfY(cam3.position.x) + 18;
+(()=>{ const nx = cam3.position.x; const ny = surfY(nx) + R; const normal = new THREE.Vector3(nx, ny, 0).normalize(); cam3.up.copy(normal); })();
+cam3.lookAt(cam3.position.x, surfY(cam3.position.x) + 8, 0);
+setOrbitAroundIsland(0);
+saveCurrentAsHome(0);
+
+</script>
+</body>
+</html>

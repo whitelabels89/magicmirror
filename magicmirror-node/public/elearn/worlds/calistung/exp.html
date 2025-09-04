@@ -40,9 +40,25 @@
     .card{max-width:720px;width:100%;background:linear-gradient(160deg,#0b1a2e,#0d223c);border:1px solid #23406a;border-radius:16px;padding:16px}
     .card h3{margin:0 0 8px 0}
     .choices{display:grid;grid-template-columns:1fr;gap:8px;margin-top:12px}
-    .choice{background:#0f1f36;border:1px solid #2a4a78;border-radius:12px;padding:10px;cursor:pointer}
+    .choice{
+      background:#0f1f36;
+      border:1px solid #2a4a78;
+      border-radius:12px;
+      padding:10px;
+      cursor:pointer;
+      color:var(--text);
+      -webkit-text-fill-color: var(--text); /* iOS Safari form/button text */
+      font-weight:600;
+    }
+    .choice:hover{ filter:brightness(1.06); }
     .choice.correct{border-color:#18c964;box-shadow:0 0 0 2px rgba(24,201,100,.3) inset}
     .choice.wrong{border-color:#ef4444;box-shadow:0 0 0 2px rgba(239,68,68,.25) inset}
+
+    .choice:disabled{
+      opacity:.9;
+      color:var(--text);
+      -webkit-text-fill-color: var(--text);
+    }
 
     .toast{position:fixed;right:16px;top:16px;background:#0e1c30;border:1px solid #24406a;border-radius:12px;padding:10px 12px;display:none;z-index:60}
     .toast.show{display:block}
@@ -165,7 +181,13 @@
     const ctx=canvas.getContext('2d');
     function resize(){
       const dpi = Math.max(1, window.devicePixelRatio||1);
-      const w = Math.min(960, document.querySelector('.canvasWrap').clientWidth);
+      const wrap = document.querySelector('.canvasWrap');
+      let w = wrap ? wrap.clientWidth : 800;
+      if (!w || w < 10) {
+        // fallback if layout not computed yet
+        w = (canvas.parentElement && canvas.parentElement.clientWidth) || 800;
+      }
+      w = Math.min(960, w);
       const h = parseInt(getComputedStyle(canvas).height);
       canvas.width = w * dpi; canvas.height = h * dpi; ctx.setTransform(dpi,0,0,dpi,0,0);
       view.w=w; view.h=h;
@@ -180,7 +202,7 @@
       progress:0, trust:80, privacy:80,
       speed:120, // px/sec base
       items:[], tSpawn:0, level:1,
-      player:{lane:1,x:0,y:0,blink:0}
+      player:{lane:1,x:0,tx:0,y:0,blink:0}
     };
 
     // ===== Levels config =====
@@ -207,9 +229,14 @@
 
     function reset(){
       state.progress=0; state.trust=80; state.privacy=80; state.level=1; state.speed=120;
-      state.items=[]; state.tSpawn=0; state.player={lane:1,x:laneX(1),y:view.h-90,blink:0};
+      state.items=[]; state.tSpawn=0; state.player={lane:1,x:laneX(1),tx:laneX(1),y:view.h-90,blink:0};
       updateBars();
       currentLevelCfg = LEVELS[0]; if(levelPill) levelPill.textContent = 'Level 1';
+    }
+
+    // ===== Ensure Started Helper =====
+    function ensureStarted(){
+      if(!state.started){ startGame(); }
     }
 
     // ===== UI elements =====
@@ -306,14 +333,15 @@
     document.getElementById('btnCloseHelp').onclick=()=>{ modalHelp.classList.remove('active'); };
 
     // ===== Input =====
-    function moveLeft(){ if(state.decision||!state.running) return; state.player.lane=Math.max(0,state.player.lane-1); state.player.x=laneX(state.player.lane); }
-    function moveRight(){ if(state.decision||!state.running) return; state.player.lane=Math.min(2,state.player.lane+1); state.player.x=laneX(state.player.lane); }
+    function moveLeft(){ if(state.decision||!state.running) return; state.player.lane=Math.max(0,state.player.lane-1); state.player.tx=laneX(state.player.lane); }
+    function moveRight(){ if(state.decision||!state.running) return; state.player.lane=Math.min(2,state.player.lane+1); state.player.tx=laneX(state.player.lane); }
 
-    document.getElementById('leftBtn').onclick=moveLeft;
-    document.getElementById('rightBtn').onclick=moveRight;
+    document.getElementById('leftBtn').onclick=()=>{ ensureStarted(); moveLeft(); };
+    document.getElementById('rightBtn').onclick=()=>{ ensureStarted(); moveRight(); };
     document.getElementById('pauseBtn').onclick=()=>{ if(!state.started) return; state.paused=!state.paused; toast(state.paused?'⏸️ Jeda':'▶ Lanjut'); };
 
     window.addEventListener('keydown',e=>{
+      ensureStarted();
       if(e.key==='ArrowLeft') moveLeft();
       else if(e.key==='ArrowRight') moveRight();
       else if(e.key===' '){ state.paused=!state.paused; }
@@ -402,9 +430,47 @@
     // ===== Game Loop =====
     let last=0, deciTimer=rand(5,10);
     function step(ts){
-      if(!state.running){ last=ts; requestAnimationFrame(step); return; }
+      if(!state.running){
+        last=ts;
+        // draw idle scene so canvas is never blank
+        ctx.clearRect(0,0,view.w,view.h);
+        drawBg(0);
+        if(!state.player.x) state.player={lane:1,x:laneX(1),tx:laneX(1),y:view.h-90,blink:0};
+        // idle tween so movement still smooth before start
+        if(state.player && (state.player.tx!==undefined)){
+          const dx = state.player.tx - state.player.x;
+          const adx = Math.abs(dx);
+          if(adx > 0.5){
+            const stepX = Math.min(adx, 520*0.016) * Math.sign(dx);
+            state.player.x += stepX;
+          } else {
+            state.player.x = state.player.tx;
+          }
+        }
+        drawPlayer();
+        requestAnimationFrame(step);
+        return;
+      }
       const dt=Math.min(0.05,(ts-last)/1000); last=ts;
+      // Guard: recover if canvas width/height is 0
+      if (!view.w || !view.h || canvas.width === 0 || canvas.height === 0) {
+        resize();
+      }
+      last=ts;
       if(state.paused){ requestAnimationFrame(step); return; }
+
+      // Smooth lateral movement (no instant jump per lane)
+      const lateral = 520; // px/sec
+      if(state.player && (state.player.tx!==undefined)){
+        const dx = state.player.tx - state.player.x;
+        const adx = Math.abs(dx);
+        if(adx > 0.5){
+          const stepX = Math.min(adx, lateral*dt) * Math.sign(dx);
+          state.player.x += stepX;
+        } else {
+          state.player.x = state.player.tx;
+        }
+      }
 
       ctx.clearRect(0,0,view.w,view.h);
       drawBg(dt);
@@ -475,8 +541,18 @@
       showEnd(state.progress>=100);
     };
 
-    // initial
-    resize(); reset(); requestAnimationFrame(step);
+    // initial — wait for layout to be ready so canvas width isn't 0
+    window.addEventListener('load', () => {
+      // double-tap resize to catch late CSS/layout
+      requestAnimationFrame(() => {
+        resize();
+        reset();
+        requestAnimationFrame(step);
+      });
+    });
+
+    // auto-start fallback: if user belum klik apa-apa dalam 800ms, mulai saja
+    setTimeout(()=>{ if(!state.started){ startGame(); } }, 800);
   })();
   </script>
 </body>
