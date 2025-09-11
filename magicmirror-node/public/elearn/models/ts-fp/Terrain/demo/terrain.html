@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Terrain Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { color-scheme: dark; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, Noto Sans, sans-serif;
+      background: #0d0f14;
+      color: #e6ebf2;
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      grid-template-rows: auto 1fr;
+      grid-template-areas:
+        "header header"
+        "panel  main";
+      height: 100vh;
+    }
+    header {
+      grid-area: header;
+      padding: 12px 16px;
+      background: #111622;
+      border-bottom: 1px solid #1b2233;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+    header h1 { font-size: 16px; margin: 0; opacity: .9; }
+    #panel {
+      grid-area: panel;
+      padding: 14px;
+      border-right: 1px solid #1b2233;
+      overflow: auto;
+    }
+    #main {
+      grid-area: main;
+      display: grid;
+      place-items: center;
+      overflow: auto;
+    }
+    .field { margin-bottom: 12px; }
+    label { display: block; margin-bottom: 6px; font-size: 12px; opacity: .8; }
+    select, button, input[type="number"] {
+      width: 100%;
+      background: #0f1522;
+      border: 1px solid #22314b;
+      color: #e6ebf2;
+      padding: 8px 10px;
+      border-radius: 8px;
+      outline: none;
+    }
+    button {
+      cursor: pointer;
+      background: #1a2742;
+      border-color: #2a3c5f;
+    }
+    button:hover { background: #203155; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .muted { font-size: 12px; opacity: .7; }
+    canvas { image-rendering: pixelated; border: 1px solid #1b2233; background: #0b0e15; }
+    #stage { position: relative; }
+    #trees-canvas {
+      position: absolute; left: 0; top: 0; pointer-events: none; z-index: 10;
+      background: transparent !important; border: 0 !important;
+    }
+    .switch {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 10px; border: 1px solid #22314b; border-radius: 8px; margin-bottom: 8px; background:#0f1522;
+    }
+    .switch input { transform: scale(1.15); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Terrain Demo</h1>
+    <div class="muted">Atlas: <code>/elearn/models/ts-fp/Terrain/atlas/terrain-atlas.json</code> · <span id="gridInfo"></span></div>
+  </header>
+
+  <aside id="panel">
+    <div class="field">
+      <label for="variant">Tileset Variant</label>
+      <select id="variant">
+        <option value="color1">color1</option>
+        <option value="color2">color2</option>
+        <option value="color3">color3</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="width">Canvas Width</label>
+        <input id="width" type="number" min="256" step="64" value="1024" />
+      </div>
+      <div class="field">
+        <label for="height">Canvas Height</label>
+        <input id="height" type="number" min="256" step="64" value="640" />
+      </div>
+    </div>
+
+    <div class="row">
+      <button id="applySize">Apply Size</button>
+      <button id="clear">Clear</button>
+    </div>
+
+    <div class="field">
+      <label>Paint Mode</label>
+      <div class="row">
+        <button id="paintToggle">Paint: OFF</button>
+      </div>
+      <small class="muted">Klik/drag untuk menggambar. Pakai menu Tool untuk Paint/Erase.</small>
+    </div>
+
+    <div class="field">
+      <label>Tool</label>
+      <div class="row">
+        <button id="toolPaint" aria-pressed="true">Tool: Paint</button>
+        <button id="toolErase" aria-pressed="false">Tool: Erase</button>
+      </div>
+      <small class="muted">Klik kanvas untuk menggambar sesuai tool. Drag = continuous. Gunakan Erase untuk menghapus tanpa toggle.</small>
+    </div>
+
+    <div class="field">
+      <label for="paintLayer">Paint Target Layer</label>
+      <select id="paintLayer"></select>
+      <small class="muted">Pilih layer yang akan digambar. Default: ground.</small>
+    </div>
+
+    <div class="field">
+      <label>Layers</label>
+      <div id="layersBox" class="muted">Loading layers…</div>
+    </div>
+
+    <div class="field">
+      <label>Quick Actions</label>
+      <div class="row">
+        <button id="makeIsland">Generate Island</button>
+        <button id="render">Render</button>
+      </div>
+      <small class="muted">Generate Island akan mengisi layer <b>ground</b> dengan bentuk pulau sederhana supaya kamu bisa melihat auto-tiler bekerja (edges + corners).</small>
+    </div>
+
+    <div class="field">
+      <label>About</label>
+      <div class="muted">
+        - Tile size ditentukan dari atlas (default 64).<br/>
+        - Atlas indexing mode: <code>grid</code>.<br/>
+        - Saat ini hanya set <b>ground</b> yang sudah terisi koordinat.<br/>
+        - Nanti <code>cliff_water</code> & <code>cliff_land</code> menyusul.
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Debug: Cliff Land Skirt</label>
+      <div class="row">
+        <input id="clSkCol" type="number" min="0" step="1" value="15" title="skirt col" />
+        <input id="clSkRow" type="number" min="0" step="1" value="4"  title="skirt row" />
+      </div>
+      <div class="row" style="margin-top:6px;">
+        <input id="clCapCol" type="number" min="0" step="1" value="15" title="skirt_end col" />
+        <input id="clCapRow" type="number" min="0" step="1" value="6"  title="skirt_end row" />
+      </div>
+      <div class="row" style="margin-top:6px;">
+        <label style="display:flex;align-items:center;gap:8px;">
+          <input id="clToBottom" type="checkbox" checked /> To Bottom
+        </label>
+        <input id="clDepth" type="number" min="1" step="1" value="8" title="skirtDepth" />
+      </div>
+      <div class="row" style="margin-top:6px;">
+        <button id="applyCliffLand">Apply Cliff Land Skirt</button>
+        <button id="render">Render</button>
+      </div>
+      <small class="muted">Ubah col,row untuk tile <b>skirt</b> & <b>skirt_end</b>, lalu Apply.</small>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div id="stage">
+      <canvas id="terrain" width="1024" height="640"></canvas>
+      <canvas id="trees-canvas" width="1024" height="640"></canvas>
+    </div>
+  </main>
+
+  <!-- Core modules -->
+  <script src="../js/terrain-atlas.js"></script>
+  <script src="../js/auto-tiler.js"></script>
+  <script src="../js/terrain-engine.js"></script>
+
+  <script type="module">
+    import { initTrees, spawnForest, clearTrees } from "../script/trees.js";
+    (async function () {
+      const atlasUrl = '/elearn/models/ts-fp/Terrain/atlas/terrain-atlas.json';
+      const layersUrl = '/elearn/models/ts-fp/Terrain/atlas/terrain-layers.json';
+
+      const canvas = document.getElementById('terrain');
+      const treesCanvas = document.getElementById('trees-canvas');
+      treesCanvas.width = canvas.width;
+      treesCanvas.height = canvas.height;
+      const ctx = canvas.getContext('2d');
+      let treesReady = false;
+      async function spawnDefaultForest(){
+        if (!treesReady) {
+          await initTrees({ canvas: '#trees-canvas', clearEachFrame: true });
+          treesReady = true;
+        }
+        clearTrees();
+
+        // ensure canvas sizes are finalized before computing area
+        await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+        // Build terrain-based filter: allow only ground or cliff top grass; forbid water & cliff_water
+        const tileSize = TerrainAtlas.getConfig().tileSize;
+        const g  = TerrainEngine.getGrid('ground');
+        const cl = TerrainEngine.getGrid('cliff_land');
+        const w  = TerrainEngine.getGrid('water');
+        const cw = TerrainEngine.getGrid('cliff_water');
+        function allowed(px, py){
+          const col = Math.floor(px / tileSize);
+          const row = Math.floor(py / tileSize);
+          // bounds
+          if (!g || !g[row] || typeof g[row][col] === 'undefined') return false;
+
+          // Current cell must be pure ground and not any cliff/water
+          const bad = (grid, r, c) => grid && grid[r]?.[c] === 1;
+          const isGround = g[row][col] === 1;
+          if (!isGround || bad(cl,row,col) || bad(cw,row,col) || bad(w,row,col)) return false;
+
+          // SAFETY BUFFER: require two rows SOUTH all to be ground & not cliff/water
+          for (let dy = 1; dy <= 2; dy++){
+            const r = row + dy;
+            if (!g[r] || g[r][col] !== 1) return false;
+            if (bad(cl,r,col) || bad(cw,r,col) || bad(w,r,col)) return false;
+            // also guard diagonals to avoid foot overlap on skirt corners
+            for (let dx of [-1, 1]){
+              const c = col + dx;
+              if (!g[r] || typeof g[r][c] === 'undefined') return false;
+              if (g[r][c] !== 1) return false;
+              if (bad(cl,r,c) || bad(cw,r,c) || bad(w,r,c)) return false;
+            }
+          }
+
+          return true;
+        }
+
+        const forestArea = {
+          x: canvas.width * 0.10,
+          y: canvas.height * 0.55,
+          width:  canvas.width * 0.80,
+          height: canvas.height * 0.35
+        };
+
+        await spawnForest({
+          area: forestArea,
+          layout: "banded",
+          rows: 3,
+          count: 2,
+          edgePadding: 56,
+          avoidMinDist: 112,
+          jitterY: 4,
+          types: ["pineA","birchA","pineB","birchB"],
+          scaleRange: [0.95, 1.06],
+          fpsRange: [9, 11],
+          footLift: 30,
+          filter: allowed
+        });
+      }
+
+      // Helpers
+      const $ = (sel) => document.querySelector(sel);
+      const layersBox = $('#layersBox');
+      const variantSel = $('#variant');
+
+      // Init engine
+      await TerrainEngine.init({ atlasUrl, layersUrl, variant: variantSel.value, canvas });
+      // Set water background texture
+      await TerrainEngine.setWaterTexture('/elearn/models/ts-up/Terrain/Water/Water.png');
+      function updateGridInfo() {
+        const cfg = TerrainAtlas.getConfig();
+        document.getElementById('gridInfo').textContent = `Grid ${cfg.cols}×${cfg.rows} · tile ${cfg.tileSize}`;
+      }
+      updateGridInfo();
+
+      // Build layer toggles dynamically
+      const layerDoc = await (await fetch(layersUrl, { cache: 'no-cache' })).json();
+      layersBox.innerHTML = '';
+      (layerDoc.layers || []).forEach(L => {
+        const row = document.createElement('div');
+        row.className = 'switch';
+        row.innerHTML = `
+          <span>${L.id} <span class="muted">(z:${L.z ?? 0})</span></span>
+          <input type="checkbox" ${L.visible ? 'checked' : ''} data-layer="${L.id}">
+        `;
+        layersBox.appendChild(row);
+      });
+
+      // Populate paint layer selector
+      const paintLayerSel = document.getElementById('paintLayer');
+      paintLayerSel.innerHTML = '';
+      (layerDoc.layers || []).forEach(L => {
+        const opt = document.createElement('option');
+        opt.value = L.id;
+        opt.textContent = L.id;
+        if (L.id === 'ground') opt.selected = true; // default ke ground
+        paintLayerSel.appendChild(opt);
+      });
+
+      layersBox.addEventListener('change', (e) => {
+        const t = e.target;
+        if (t && t.matches('input[type="checkbox"][data-layer]')) {
+          TerrainEngine.toggleLayer(t.dataset.layer, t.checked);
+          TerrainEngine.render();
+        }
+      });
+
+      // Variant select
+      variantSel.addEventListener('change', async () => {
+        await TerrainEngine.setVariant(variantSel.value);
+        updateGridInfo();
+        TerrainEngine.render();
+      });
+
+      // Apply size
+      function applySize() {
+        const w = Math.max(256, Math.floor(parseInt($('#width').value || '1024', 10) / 64) * 64);
+        const h = Math.max(256, Math.floor(parseInt($('#height').value || '640', 10) / 64) * 64);
+        canvas.width = w;
+        canvas.height = h;
+        const treesCanvas = document.getElementById('trees-canvas');
+        if (treesCanvas) { treesCanvas.width = w; treesCanvas.height = h; }
+
+        // Re-init to rebuild default grids sized to canvas
+        TerrainEngine.init({ atlasUrl, layersUrl, variant: variantSel.value, canvas })
+          .then(() => TerrainEngine.setWaterTexture('/elearn/models/ts-up/Terrain/Water/Water.png'))
+          .then(async () => {
+            updateGridInfo();
+            TerrainEngine.render();
+            await spawnDefaultForest();
+          });
+      }
+      $('#applySize').addEventListener('click', applySize);
+
+      // Clear
+      $('#clear').addEventListener('click', () => {
+        const layers = (layerDoc.layers || []).map(L => L.id);
+        for (const id of layers) {
+          const cfg = TerrainEngine.getGrid(id);
+          if (!cfg) continue;
+          for (let y = 0; y < cfg.length; y++) cfg[y].fill(0);
+          TerrainEngine.setGrid(id, cfg);
+        }
+        TerrainEngine.render();
+      });
+
+      // Paint Mode (toggle => toggle cell; drag => paint same value)
+      let paintMode = false;
+      let painting = false;
+      let paintValue = 1; // value applied during drag
+
+      let currentTool = 'paint'; // 'paint' | 'erase'
+      const btnPaint = document.getElementById('toolPaint');
+      const btnErase = document.getElementById('toolErase');
+
+      function setTool(t) {
+        currentTool = t;
+        const isPaint = t === 'paint';
+        btnPaint.setAttribute('aria-pressed', isPaint ? 'true' : 'false');
+        btnErase.setAttribute('aria-pressed', isPaint ? 'false' : 'true');
+      }
+
+      btnPaint.addEventListener('click', () => setTool('paint'));
+      btnErase.addEventListener('click', () => setTool('erase'));
+
+      const paintBtn = document.getElementById('paintToggle');
+      paintBtn.addEventListener('click', () => {
+        paintMode = !paintMode;
+        paintBtn.textContent = `Paint: ${paintMode ? 'ON' : 'OFF'}`;
+      });
+
+      canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+      function getCellFromEvent(e) {
+        const { tileSize } = TerrainAtlas.getConfig();
+        const rect = canvas.getBoundingClientRect();
+        // Map client pixels -> canvas pixels using actual render scale
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const px = (e.clientX - rect.left) * scaleX;
+        const py = (e.clientY - rect.top) * scaleY;
+        const x = Math.floor(px / tileSize);
+        const y = Math.floor(py / tileSize);
+        return { x, y };
+      }
+
+      function setCell(layerId, x, y, val) {
+        const g = TerrainEngine.getGrid(layerId);
+        if (!g) return false;
+        if (y < 0 || y >= g.length) return false;
+        if (x < 0 || x >= g[0].length) return false;
+        g[y][x] = val ? 1 : 0;
+        TerrainEngine.setGrid(layerId, g);
+        return true;
+      }
+
+      function startPaint(e) {
+        if (!paintMode) return;
+        const { x, y } = getCellFromEvent(e);
+        const layerId = document.getElementById('paintLayer').value || 'ground';
+        const g = TerrainEngine.getGrid(layerId);
+        if (!g) return;
+        paintValue = (currentTool === 'paint') ? 1 : 0; // fixed by tool, NOT toggle
+        painting = true;
+        TerrainEngine.paintCell(layerId, x, y, paintValue, true);
+        TerrainEngine.render();
+        canvas.setPointerCapture?.(e.pointerId);
+      }
+
+      function movePaint(e) {
+        if (!paintMode || !painting) return;
+        const { x, y } = getCellFromEvent(e);
+        const layerId = document.getElementById('paintLayer').value || 'ground';
+        if (TerrainEngine.paintCell(layerId, x, y, paintValue, true)) {
+          TerrainEngine.render();
+        }
+      }
+
+      function endPaint(e) {
+        painting = false;
+        try { canvas.releasePointerCapture?.(e.pointerId); } catch (_) {}
+      }
+
+      canvas.addEventListener('pointerdown', startPaint);
+      canvas.addEventListener('pointermove', movePaint);
+      canvas.addEventListener('pointerup', endPaint);
+      canvas.addEventListener('pointerleave', endPaint);
+
+      // Generate a simple island and demo features (water, cliffs)
+      function generateIsland() {
+        const g = TerrainEngine.getGrid('ground');
+        const w = TerrainEngine.getGrid('water');
+        const cl = TerrainEngine.getGrid('cliff_land');
+        const cw = TerrainEngine.getGrid('cliff_water');
+        if (!g) return;
+
+        const rows = g.length;
+        const cols = g[0].length;
+        // Ellipse mask in the middle for ground
+        const cx = Math.floor(cols * 0.5);
+        const cy = Math.floor(rows * 0.5);
+        const rx = Math.floor(cols * 0.30);
+        const ry = Math.floor(rows * 0.35);
+
+        for (let y = 0; y < rows; y++) {
+          for (let x = 0; x < cols; x++) {
+            const dx = (x - cx) / rx;
+            const dy = (y - cy) / ry;
+            const onIsland = (dx*dx + dy*dy) <= 1.0 ? 1 : 0;
+            g[y][x] = onIsland;
+            if (w) w[y][x] = onIsland ? 0 : 1; // water fills the rest
+          }
+        }
+        // add some ground noise jaggies
+        for (let i = 0; i < 400; i++) {
+          const x = Math.floor(Math.random() * cols);
+          const y = Math.floor(Math.random() * rows);
+          g[y][x] = 1;
+          if (w) w[y][x] = 0;
+        }
+
+        // Clear existing cliffs
+        if (cl) { for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) cl[y][x] = 0; }
+        if (cw) { for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) cw[y][x] = 0; }
+
+        // Add a plateau of cliff_land somewhere near the center (3–6 tiles tall)
+        if (cl) {
+          const pad = 3;
+          const rw = Math.max(4, Math.floor(cols * (0.20 + Math.random()*0.10)));
+          const rh = Math.max(3, Math.floor(rows * (0.10 + Math.random()*0.06)));
+          const ox = Math.max(pad, Math.min(cols - pad - rw, Math.floor(cx - rw/2 + (Math.random()*4-2))));
+          const oy = Math.max(pad, Math.min(rows - pad - rh, Math.floor(cy - rh/2 + (Math.random()*4-2))));
+          for (let y = oy; y < oy + rh; y++) {
+            for (let x = ox; x < ox + rw; x++) {
+              if (g[y]?.[x]) cl[y][x] = 1; // only on land
+            }
+          }
+        }
+
+        // Add some cliff_water segments along southern coastline
+        if (cw) {
+          for (let y = 1; y < rows-1; y++) {
+            for (let x = 1; x < cols-1; x++) {
+              if (g[y][x] && !g[y+1][x]) {
+                // boundary to water at south; sprinkle segments
+                if (Math.random() < 0.12) {
+                  cw[y][x] = 1;
+                  if (Math.random() < 0.7 && x+1 < cols && g[y][x+1] && !g[y+1][x+1]) cw[y][x+1] = 1;
+                  if (Math.random() < 0.4 && x+2 < cols && g[y][x+2] && !g[y+1][x+2]) cw[y][x+2] = 1;
+                }
+              }
+            }
+          }
+        }
+
+        TerrainEngine.setGrid('ground', g);
+        if (w) TerrainEngine.setGrid('water', w);
+        if (cl) TerrainEngine.setGrid('cliff_land', cl);
+        if (cw) TerrainEngine.setGrid('cliff_water', cw);
+      }
+      $('#makeIsland').addEventListener('click', async () => {
+        generateIsland();
+        TerrainEngine.render();
+        await spawnDefaultForest();
+      });
+
+      // Debug controls for cliff_land skirt
+      function applyCliffLand() {
+        const sc = parseInt(document.getElementById('clSkCol').value, 10) || 0;
+        const sr = parseInt(document.getElementById('clSkRow').value, 10) || 0;
+        const ec = parseInt(document.getElementById('clCapCol').value, 10) || 0;
+        const er = parseInt(document.getElementById('clCapRow').value, 10) || 0;
+        const toBottom = !!document.getElementById('clToBottom').checked;
+        const depth = Math.max(1, parseInt(document.getElementById('clDepth').value, 10) || 1);
+
+        TerrainEngine.overrideLayer('cliff_land', {
+          coordsPatch: { skirt: [sc, sr], skirt_end: [ec, er] },
+          options: { skirtToBottom: toBottom, skirtDepth: depth }
+        });
+        TerrainEngine.render();
+      }
+      document.getElementById('applyCliffLand').addEventListener('click', applyCliffLand);
+
+      // Initial paint + start animation loop (for foam)
+      generateIsland();
+      await spawnDefaultForest();
+
+      let rafId;
+      function animate() {
+        TerrainEngine.render();
+        rafId = requestAnimationFrame(animate);
+      }
+      animate();
+    })();
+  </script>
+</body>
+</html>

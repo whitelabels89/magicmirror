@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Foam Demo (Water-Clipped)</title>
+  <style>
+    html, body { height: 100%; margin: 0; background: #001018; color: #cdeff0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+    #hud { position: fixed; top: 12px; left: 12px; background: rgba(0,20,28,.6); padding: 10px 12px; border-radius: 10px; backdrop-filter: blur(4px); box-shadow: 0 6px 16px rgba(0,0,0,.3); z-index: 10; }
+    #hud h1 { margin: 0 0 6px; font-size: 14px; letter-spacing: .4px; }
+    #hud .row { display: flex; gap: 8px; align-items: center; margin: 6px 0; font-size: 12px; flex-wrap: wrap; }
+    #hud input[type="range"] { width: 120px; }
+    #hud button, #hud label.btn { cursor: pointer; background: #0aa; color: #00262d; border: none; border-radius: 8px; padding: 6px 10px; font-weight: 700; }
+    #hud button:active, #hud label.btn:active { transform: translateY(1px); }
+    #stage { position: fixed; inset: 0; display: grid; place-items: center; }
+    .stack { position: relative; width: 100%; height: 100%; }
+    canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+    #foam-canvas { pointer-events: none; }
+    #mask-canvas { pointer-events: auto; }
+    #legend { position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); font-size: 12px; opacity: .85; background: rgba(0,20,28,.6); padding: 6px 10px; border-radius: 10px; }
+    .dot { display:inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right:6px; }
+  </style>
+</head>
+<body>
+  <div id="hud">
+    <h1>Foam ➝ Clipped to Water</h1>
+    <div class="row">Scale <input id="scale" type="range" min="0.4" max="2.0" value="1" step="0.1"><span id="scaleVal">1.0</span></div>
+    <div class="row">FPS <input id="fps" type="range" min="8" max="32" value="16" step="1"><span id="fpsVal">16</span></div>
+    <div class="row">
+      <button id="btnBurst">Burst x10</button>
+      <button id="btnLine">Spawn Along</button>
+      <label class="btn"><input id="maskMode" type="checkbox" style="display:none"> Mask Mode</label>
+      <label>Brush <input id="brush" type="range" min="6" max="48" value="20" step="2"></label>
+      <button id="btnClearMask">Clear Mask</button>
+      <label class="btn"><input id="clipToggle" type="checkbox" style="display:none" checked> Clip ON</label>
+    </div>
+  </div>
+  <div id="legend"><span class="dot" style="background:#0af"></span>Draw WATER mask (foam hanya muncul di area biru). Tahan shift untuk menghapus.</div>
+
+  <div id="stage">
+    <div class="stack" id="stack">
+      <canvas id="foam-canvas"></canvas>
+      <canvas id="mask-canvas"></canvas>
+    </div>
+  </div>
+
+  <script src="./foam.js"></script>
+  <script>
+  (async function(){
+    const foamCanvas = document.getElementById('foam-canvas');
+    const maskCanvas = document.getElementById('mask-canvas');
+    const stackEl = document.getElementById('stack');
+
+    // Size & DPR sync
+    function resize() {
+      const dpr = Math.max(1, Math.min(2, window.devicePixelRatio||1));
+      const w = window.innerWidth|0, h = window.innerHeight|0;
+      for (const c of [foamCanvas, maskCanvas]) {
+        c.width = w * dpr; c.height = h * dpr;
+        c.style.width = w+'px'; c.style.height = h+'px';
+        const ctx = c.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0);
+      }
+      stackEl.style.width = w+'px'; stackEl.style.height = h+'px';
+      drawMaskPreview();
+    }
+    window.addEventListener('resize', resize);
+
+    // Init Foam
+    await Foam.init({ imageSrc: './Foam.png', canvas: foamCanvas, fps: 16, scale: 1, alpha: 0.8, composite: 'screen' });
+
+    // HUD bindings
+    const scaleEl = document.getElementById('scale');
+    const fpsEl = document.getElementById('fps');
+    const scaleVal = document.getElementById('scaleVal');
+    const fpsVal = document.getElementById('fpsVal');
+    const maskModeEl = document.getElementById('maskMode');
+    const brushEl = document.getElementById('brush');
+    const clipToggleEl = document.getElementById('clipToggle');
+
+    function applyCfg(){
+      Foam._cfg.scale = +scaleEl.value;
+      Foam._cfg.fps = +fpsEl.value;
+      scaleVal.textContent = (+scaleEl.value).toFixed(1);
+      fpsVal.textContent = (+fpsEl.value).toFixed(0);
+    }
+    scaleEl.addEventListener('input', applyCfg);
+    fpsEl.addEventListener('input', applyCfg);
+    applyCfg();
+
+    // Spawn demos
+    document.getElementById('btnBurst').addEventListener('click', () => {
+      const rect = foamCanvas.getBoundingClientRect();
+      for (let i = 0; i < 10; i++) {
+        const x = rect.width * Math.random();
+        const y = rect.height * Math.random();
+        Foam.spawn(x - 32, y - 32, { scale: Foam._cfg.scale, fps: Foam._cfg.fps });
+      }
+    });
+    document.getElementById('btnLine').addEventListener('click', () => {
+      const w = foamCanvas.width / (window.devicePixelRatio||1);
+      const h = foamCanvas.height / (window.devicePixelRatio||1);
+      const poly = [ {x:w*0.12,y:h*0.72}, {x:w*0.32,y:h*0.62}, {x:w*0.51,y:h*0.65}, {x:w*0.72,y:h*0.59}, {x:w*0.9,y:h*0.61} ];
+      Foam.spawnAlong(poly, 48, { scale: Foam._cfg.scale, fps: Foam._cfg.fps });
+    });
+
+    // ===== Water Mask =====
+    const mctx = maskCanvas.getContext('2d');
+    mctx.imageSmoothingEnabled = false;
+    function drawMaskPreview(){
+      // paint mask preview (semi-transparent blue)
+      const prev = mctx.globalCompositeOperation;
+      mctx.globalCompositeOperation = 'destination-over';
+      mctx.fillStyle = 'rgba(0,170,255,0.15)';
+      mctx.fillRect(0,0,maskCanvas.width,maskCanvas.height);
+      mctx.globalCompositeOperation = prev;
+    }
+
+    let drawing = false; let lastX=0, lastY=0;
+    function handlePointer(e){
+      if (!maskModeEl.checked) return;
+      const rect = maskCanvas.getBoundingClientRect();
+      const x = e.clientX - rect.left; const y = e.clientY - rect.top;
+      const size = +brushEl.value;
+      const erase = e.shiftKey; // hold Shift to erase
+      mctx.save();
+      mctx.globalCompositeOperation = erase ? 'destination-out' : 'source-over';
+      mctx.fillStyle = '#0af';
+      mctx.beginPath(); mctx.arc(x, y, size, 0, Math.PI*2); mctx.fill();
+      mctx.restore();
+    }
+    maskCanvas.addEventListener('pointerdown', (e)=>{ if (!maskModeEl.checked) return; drawing=true; handlePointer(e); });
+    maskCanvas.addEventListener('pointermove', (e)=>{ if (drawing) handlePointer(e); });
+    window.addEventListener('pointerup', ()=> drawing=false);
+    document.getElementById('btnClearMask').addEventListener('click', ()=>{ mctx.clearRect(0,0,maskCanvas.width,maskCanvas.height); drawMaskPreview(); });
+
+    // ===== Clip loop =====
+    function clipLoop(){
+      if (clipToggleEl.checked){
+        const fctx = foamCanvas.getContext('2d');
+        fctx.save();
+        fctx.globalCompositeOperation = 'destination-in';
+        fctx.drawImage(maskCanvas, 0, 0);
+        fctx.restore();
+      }
+      requestAnimationFrame(clipLoop);
+    }
+
+    // bootstrap
+    resize();
+    drawMaskPreview();
+    clipLoop();
+  })();
+  </script>
+</body>
+</html>

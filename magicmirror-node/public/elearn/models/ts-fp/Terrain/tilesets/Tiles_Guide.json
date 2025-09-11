@@ -1,0 +1,317 @@
+{ "frames": {
+   "Tiles Guide 0.aseprite": {
+    "frame": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 1.aseprite": {
+    "frame": { "x": 1280, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 2.aseprite": {
+    "frame": { "x": 2560, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 3.aseprite": {
+    "frame": { "x": 3840, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 4.aseprite": {
+    "frame": { "x": 5120, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 5.aseprite": {
+    "frame": { "x": 6400, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 6.aseprite": {
+    "frame": { "x": 7680, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 7.aseprite": {
+    "frame": { "x": 8960, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 8.aseprite": {
+    "frame": { "x": 10240, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 9.aseprite": {
+    "frame": { "x": 11520, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 10.aseprite": {
+    "frame": { "x": 12800, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 11.aseprite": {
+    "frame": { "x": 14080, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 12.aseprite": {
+    "frame": { "x": 15360, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 13.aseprite": {
+    "frame": { "x": 16640, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 14.aseprite": {
+    "frame": { "x": 17920, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 15.aseprite": {
+    "frame": { "x": 19200, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 16.aseprite": {
+    "frame": { "x": 20480, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 17.aseprite": {
+    "frame": { "x": 21760, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 18.aseprite": {
+    "frame": { "x": 23040, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 19.aseprite": {
+    "frame": { "x": 24320, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 20.aseprite": {
+    "frame": { "x": 25600, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 21.aseprite": {
+    "frame": { "x": 26880, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 22.aseprite": {
+    "frame": { "x": 28160, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 23.aseprite": {
+    "frame": { "x": 29440, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 24.aseprite": {
+    "frame": { "x": 30720, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 25.aseprite": {
+    "frame": { "x": 32000, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 26.aseprite": {
+    "frame": { "x": 33280, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 27.aseprite": {
+    "frame": { "x": 34560, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 28.aseprite": {
+    "frame": { "x": 35840, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 29.aseprite": {
+    "frame": { "x": 37120, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 30.aseprite": {
+    "frame": { "x": 38400, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 31.aseprite": {
+    "frame": { "x": 39680, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 32.aseprite": {
+    "frame": { "x": 40960, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 33.aseprite": {
+    "frame": { "x": 42240, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 34.aseprite": {
+    "frame": { "x": 43520, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   },
+   "Tiles Guide 35.aseprite": {
+    "frame": { "x": 44800, "y": 0, "w": 1280, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1280, "h": 512 },
+    "sourceSize": { "w": 1280, "h": 512 },
+    "duration": 100
+   }
+ },
+ "meta": {
+  "app": "https://www.aseprite.org/",
+  "version": "1.3.15.2-arm64",
+  "format": "RGBA8888",
+  "size": { "w": 46080, "h": 512 },
+  "scale": "1",
+  "frameTags": [
+   { "name": "Color 1", "from": 0, "to": 11, "direction": "forward", "color": "#000000ff" },
+   { "name": "Color 2", "from": 12, "to": 23, "direction": "forward", "color": "#000000ff" },
+   { "name": "Color 3", "from": 24, "to": 35, "direction": "forward", "color": "#000000ff" }
+  ],
+  "layers": [
+   { "name": "Tiles", "opacity": 255, "blendMode": "normal" },
+   { "name": "Water 1", "opacity": 255, "blendMode": "normal" },
+   { "name": "Water 2", "opacity": 255, "blendMode": "normal" },
+   { "name": "Water 3", "opacity": 255, "blendMode": "normal" },
+   { "name": "Water 4", "opacity": 255, "blendMode": "normal" },
+   { "name": "Water 5", "opacity": 255, "blendMode": "normal" },
+   { "name": "Water 6", "opacity": 255, "blendMode": "normal" },
+   { "name": "Water 7", "opacity": 255, "blendMode": "normal" },
+   { "name": "Water 8", "opacity": 255, "blendMode": "normal" },
+   { "name": "Guide", "opacity": 255, "blendMode": "normal" }
+  ],
+  "slices": [
+  ]
+ }
+}

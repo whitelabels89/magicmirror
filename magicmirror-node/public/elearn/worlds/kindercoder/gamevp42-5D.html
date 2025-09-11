@@ -6,10 +6,6 @@
   <title>KinderCoder – GameVP4</title>
   <script src="https://unpkg.com/blockly/blockly.min.js"></script>
   <script src="https://unpkg.com/blockly/msg/id.js"></script>
-  <!-- Terrain Engine & Atlas -->
-  <script src="/elearn/models/ts-fp/Terrain/js/terrain-atlas.js"></script>
-  <script src="/elearn/models/ts-fp/Terrain/js/auto-tiler.js"></script>
-  <script src="/elearn/models/ts-fp/Terrain/js/terrain-engine.js"></script>
   <style>
     :root{
       --bg:#131822; --panel:#0f1520; --panel-2:#111827; --text:#e6edf3; --muted:#9aa4b2;
@@ -54,14 +50,7 @@
     .trash.active{border-color:#ef4444;background:#180f11;color:#fecaca}
 
     /* Right – board */
-    .right{position:relative;background:#1e3a8a;border-radius:16px;overflow:hidden;display:grid;grid-template-rows: 1fr auto}
-
-    .right .water-bg{
-      position:absolute; inset:0;
-      width:100%; height:100%;
-      object-fit:cover; object-position:center;
-      z-index:0; pointer-events:none;
-    }
+    .right{position:relative;background:radial-gradient(1200px 600px at 70% 20%, #1e293b 0%, #0b0f17 60%);border-radius:16px;overflow:hidden;display:grid;grid-template-rows: 1fr auto}
 
     .board-wrap{display:flex;align-items:center;justify-content:center;padding:24px}
     .board{position:relative;width:520px;aspect-ratio: 1.2 / 1; background:transparent}
@@ -156,7 +145,6 @@
     </section>
 
     <section class="right" aria-label="papan">
-      <img class="water-bg" src="/elearn/models/ts-fp/Terrain/Water%20Background%20color.png" alt="">
       <!-- Top slides: 1..12 (centered to right panel) -->
       <nav class="top-slides" aria-label="slides">
         <div class="slide-dot">1</div>
@@ -174,9 +162,23 @@
       </nav>
       <div class="board-wrap">
         <div class="board">
-          <!-- MINI TERRAIN RENDER (hanya tampilan; tanpa paint mode) -->
-          <canvas id="terrainMini" width="320" height="240" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);image-rendering:pixelated"></canvas>
-          
+          <div class="grid" id="grid"></div>
+          <div class="deco" aria-hidden="true">
+            <svg viewBox="0 0 180 130" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <!-- roof -->
+              <path d="M20 72 L90 18 L160 72 Z" fill="#2a2f36"/>
+              <path d="M28 72 L90 26 L152 72 Z" fill="#343a40"/>
+              <!-- house body -->
+              <rect x="36" y="72" width="108" height="50" rx="8" fill="#c7773f" />
+              <rect x="36" y="72" width="108" height="10" fill="#b46332"/>
+              <!-- door -->
+              <rect x="112" y="84" width="20" height="38" rx="3" fill="#2a2f36"/>
+              <circle cx="128" cy="103" r="2.6" fill="#e5e7eb"/>
+              <!-- window -->
+              <rect x="52" y="86" width="34" height="22" rx="4" fill="#f1cf92"/>
+              <path d="M69 86 v22 M52 97 h34" stroke="#e7b877" stroke-width="3"/>
+            </svg>
+          </div>
           <div class="robot" id="robot" style="--r:0;">
             <!-- simple robot svg -->
             <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -201,141 +203,37 @@
 
 <script>
   (function(){
-  // --- MINI TERRAIN RENDERER (pakai TerrainEngine & Atlas) ---
-  const CANVAS = document.getElementById('terrainMini');
-  const ROWS = 8, COLS = 8;
-  // Start & Goal
-  const start = { r: 3, c: 0 };
-  const goal  = { r: 3, c: 3 };
-
-  // Setup TerrainEngine (defensive loader)
-  let terrainEngine, tileSize;
-  function drawFallback(){
-    // simple grey board so layar tidak kosong kalau engine belum siap
-    const ctx = CANVAS.getContext('2d');
-    const w = CANVAS.width, h = CANVAS.height;
-    const cellW = Math.floor(w / COLS), cellH = Math.floor(h / ROWS);
-    ctx.clearRect(0,0,w,h);
-    for(let r=0;r<ROWS;r++){
-      for(let c=0;c<COLS;c++){
-        ctx.fillStyle = '#223047';
-        ctx.fillRect(c*cellW, r*cellH, cellW-1, cellH-1);
-      }
+  // --- Grid setup (3 rows x 4 cols like screenshot; goal at row2 col4) ---
+  const gridEl = document.getElementById('grid');
+  const ROWS = 3, COLS = 4; // 3x4
+  let cells = [];
+  for(let r=0;r<ROWS;r++){
+    for(let c=0;c<COLS;c++){
+      const div = document.createElement('div');
+      div.className = 'cell';
+      if(r===1 && c===2){ div.classList.add('goal'); }
+      gridEl.appendChild(div);
+      cells.push(div);
     }
-    // goal sign
-    ctx.fillStyle = 'rgba(0,0,0,.18)';
-    ctx.fillRect(goal.c*cellW, goal.r*cellH, cellW, cellH);
-    ctx.fillStyle = '#ffedd5';
-    ctx.font = `${Math.floor(cellH*0.6)}px system-ui`;
-    ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText('✖', goal.c*cellW + cellW/2, goal.r*cellH + cellH/2);
   }
-  function setupTerrainMini(){
-    if(!(window.TerrainAtlas && window.TerrainEngine)){
-      console.warn('[GameVP4] Terrain scripts belum ter-load. Cek path /elearn/models/ts-fp/Terrain/js/*.js');
-      drawFallback();
-      return;
-    }
-
-    // Lokasi JSON atlas & layers (sesuaikan jika berbeda dengan terrain.html kamu)
-    const ATLAS_JSON  = '/elearn/models/ts-fp/Terrain/atlas/terrain-atlas.json';
-    const LAYERS_JSON = '/elearn/models/ts-fp/Terrain/atlas/terrain-layers.json';
-
-    (async () => {
-      try {
-        // 1) Preload atlas untuk mendapatkan tileSize & set variant default
-        const atlasJson = await TerrainAtlas.load(ATLAS_JSON);
-        await TerrainAtlas.setVariant(atlasJson.defaultVariant || 'color1');
-        const cfg = TerrainAtlas.getConfig();
-        const t = cfg.tileSize || 48;
-
-        // 2) Pastikan canvas mini pas 4x3 tile
-        CANVAS.width  = COLS * t;
-        CANVAS.height = ROWS * t;
-
-        // 3) Init engine (bukan constructor)
-        await TerrainEngine.init({
-          atlasUrl: ATLAS_JSON,
-          layersUrl: LAYERS_JSON,
-          variant: atlasJson.defaultVariant || 'color1',
-          canvas: CANVAS
-        });
-
-        tileSize = t;
-
-        // 4) Isi grid mini: semua baris kecuali paling bawah = ground; baris paling bawah = water
-        const g  = TerrainEngine.getGrid('ground');
-        const w  = TerrainEngine.getGrid('water');
-        const cl = TerrainEngine.getGrid('cliff_land'); // kosongkan
-
-        for(let r=0;r<ROWS;r++){
-          for(let c=0;c<COLS;c++){
-            // Semua baris kecuali paling bawah = ground; baris paling bawah = water
-            const isLastRow = (r === ROWS - 1);
-            if (g && g[r])  g[r][c]  = isLastRow ? 0 : 1;
-            if (w && w[r])  w[r][c]  = isLastRow ? 0 : 0;
-            if (cl && cl[r]) cl[r][c] = 0; // kosongkan cliff di daratan mini
-          }
-        }
-        // Aktifkan cliff_water di batas antara daratan terakhir dan air
-        const cw = TerrainEngine.getGrid('cliff_water');
-        if (cw) {
-          const boundaryRow = ROWS - 2; // baris daratan yang tepat di atas air
-          for (let c = 0; c < COLS; c++) {
-            cw[boundaryRow][c] = (g && w && g[boundaryRow] && w[boundaryRow + 1] && g[boundaryRow][c] === 1 && w[boundaryRow + 1][c] === 1) ? 1 : 0;
-          }
-          TerrainEngine.setGrid('cliff_water', cw);
-        }
-
-        if(g)  TerrainEngine.setGrid('ground', g);
-        if(w)  TerrainEngine.setGrid('water', w);
-        if(cl) TerrainEngine.setGrid('cliff_land', cl);
-
-        // 5) Render + posisikan robot
-        TerrainEngine.render();
-        placeRobot();
-      } catch (e){
-        console.error('[GameVP4] setupTerrainMini error:', e);
-        drawFallback();
-      }
-    })();
-  }
-  // Poll sampai ready (maks 2 detik)
-  (function waitForTerrain(maxTry=20){
-    if(window.TerrainAtlas && window.TerrainEngine){ setupTerrainMini(); return; }
-    if(maxTry<=0){ setupTerrainMini(); return; } // akan gambar fallback + warning
-    setTimeout(()=>waitForTerrain(maxTry-1), 100);
-  })();
-
-  // Walkability: check ground, water, cliff_land using TerrainEngine layers
-  function isWalkable(r, c, fromDir) {
-    // Saat engine belum siap (fallback) → izinkan selama masih di papan
-    if (!(window.TerrainEngine && TerrainEngine.getGrid)) {
-      return r>=0 && c>=0 && r<ROWS && c<COLS;
-    }
-    if (r < 0 || c < 0 || r >= ROWS || c >= COLS) return false;
-
-    const g  = TerrainEngine.getGrid('ground');
-    const w  = TerrainEngine.getGrid('water');
-    const cl = TerrainEngine.getGrid('cliff_land');
-
-    if (w  && w[r]  && w[r][c]  === 1) return false;
-    if (cl && cl[r] && cl[r][c] === 1) return false;
-    return g && g[r] && g[r][c] === 1;
-  }
+  // Put extra X tile look alike by using goal on (1,2). Start at (1,0)
+  const start = {r:1, c:0};
+  const goal  = {r:1, c:2};
 
   // --- Robot state ---
   const robot = document.getElementById('robot');
+  const cellRect = ()=> gridEl.getBoundingClientRect();
   let dir = 0; // 0:right, 1:down, 2:left, 3:up
   let pos = {r:start.r, c:start.c};
 
   function placeRobot(){
-    // Use tileSize from TerrainAtlas if available
-    const tsize = (typeof tileSize === "number") ? tileSize : 80;
-    const canvasBB = CANVAS.getBoundingClientRect();
-    const boardBB  = robot.parentElement.getBoundingClientRect();
-    const x = (canvasBB.left - boardBB.left) + pos.c * tsize + tsize/2 - 26;
-    const y = (canvasBB.top  - boardBB.top)  + pos.r * tsize + tsize/2 - 26;
+    const gridBB  = gridEl.getBoundingClientRect();
+    const boardBB = robot.parentElement.getBoundingClientRect();
+    const cellW = gridBB.width / COLS;
+    const cellH = gridBB.height / ROWS;
+    // position relative to the board container, not the viewport
+    const x = (gridBB.left - boardBB.left) + pos.c * cellW + cellW / 2 - 26; // 26 = half robot size
+    const y = (gridBB.top  - boardBB.top)  + pos.r * cellH + cellH / 2 - 26;
     robot.style.transform = `translate(${x}px, ${y}px) rotate(${dir*90}deg)`;
   }
   window.addEventListener('resize', placeRobot);
@@ -591,27 +489,11 @@
     if(type==='left'){ dir = (dir+3)%4; placeRobot(); await sleep(220); return true; }
     if(type==='right'){ dir = (dir+1)%4; placeRobot(); await sleep(220); return true; }
     if(type==='move'){
-      const next = {
-        r: pos.r + (dir===1?1:dir===3?-1:0),
-        c: pos.c + (dir===0?1:dir===2?-1:0)
-      };
-
-      // Cek batas atlas
-      if(next.r<0 || next.c<0 || next.r>=ROWS || next.c>=COLS){
-        robot.animate([{transform:robot.style.transform},
-                       {transform:robot.style.transform+' translateY(-4px)'},
-                       {transform:robot.style.transform}], {duration:220});
+      const next = {r: pos.r + (dir===1?1:dir===3?-1:0), c: pos.c + (dir===0?1:dir===2?-1:0)};
+      if(next.r<0||next.c<0||next.r>=ROWS||next.c>=COLS){ // bump
+        robot.animate([{transform:robot.style.transform},{transform:robot.style.transform+' translateY(-4px)'},{transform:robot.style.transform}],{duration:220});
         await sleep(220); return false;
       }
-
-      // Cek walkability berdasarkan jenis tile (ground/water/cliff/slope)
-      if(!isWalkable(next.r, next.c, dir)){
-        robot.animate([{transform:robot.style.transform},
-                       {transform:robot.style.transform+' translateY(-4px)'},
-                       {transform:robot.style.transform}], {duration:220});
-        await sleep(220); return false;
-      }
-
       pos = next; placeRobot(); await sleep(260); return true;
     }
     return true;

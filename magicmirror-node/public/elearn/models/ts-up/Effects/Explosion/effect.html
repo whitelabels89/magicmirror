@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Explosion Test (Reusable)</title>
+  <style>
+    body {
+      background: #111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    canvas { image-rendering: pixelated; }
+  </style>
+</head>
+<body>
+  <canvas id="explosionCanvas" width="256" height="256"></canvas>
+
+  <script src="effect-explosion.js"></script>
+  <script>
+    const fx = new ExplosionEffect({
+      canvas: document.getElementById('explosionCanvas'),
+      spriteUrl: 'Explosions.png',
+      totalFrames: 9,
+      fps: 8,
+      scale: 1,
+      centerMode: 'global' // atau 'frame'
+      // cols: 9, rows: 1, // aktifkan jika sheet multi-baris
+    });
+    fx.start();
+
+    // Optional: klik untuk pindahkan lokasi ledakan
+    document.getElementById('explosionCanvas').addEventListener('click', (e) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      fx.setPosition(e.clientX - rect.left, e.clientY - rect.top);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+
+
+{
+  "version": 1,
+  "_comment": "Definisi urutan layer terrain. Engine menggambar dari z terendah ke tertinggi.",
+  "layers": [
+    {
+      "id": "water",
+      "set": "water",
+      "visible": true,
+      "z": 0,
+      "blend": "source-over"
+    },
+    {
+      "id": "ground",
+      "set": "ground",
+      "visible": true,
+      "z": 1,
+      "blend": "source-over"
+    },
+    {
+      "id": "cliff_water",
+      "set": "cliff_water",
+      "visible": true,
+      "z": 2,
+      "blend": "source-over"
+    },
+    {
+      "id": "cliff_land",
+      "set": "cliff_land",
+      "visible": true,
+      "z": 3,
+      "blend": "source-over",
+      "skirtToBottom": true,
+      "skirtDepth": 8
+    },
+    {
+      "id": "slopes",
+      "set": "slopes",
+      "visible": true,
+      "z": 4,
+      "blend": "source-over"
+    },
+    {
+      "id": "decor",
+      "set": "decor",
+      "_comment": "Opsional: bunga/batu/rumput kecil. Abaikan jika tidak ada di atlas.",
+      "visible": true,
+      "z": 5,
+      "blend": "source-over"
+    }
+  ]
+}
