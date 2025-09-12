@@ -1,0 +1,9 @@
+{
+  "type":"unit",
+  "id":"goblin_scout",
+  "sprite":"goblin_scout",
+  "defaultAnim":"idle",
+  "speed":1.2,
+  "faction":"goblin",
+  "tags":["melee","fast"]
+}

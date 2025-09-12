@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Sheep Preview – Activation</title>
+  <style>
+    :root{ --bg:#0b1220; --panel:#0f172a; --muted:#94a3b8; --acc:#22c55e }
+    html,body{height:100%;margin:0;background:var(--bg);color:#e5e7eb;font:500 14px/1.45 system-ui,Segoe UI,Roboto,Helvetica,Arial}
+    .wrap{display:grid;grid-template-columns:320px 1fr;gap:12px;height:100vh;padding:12px;box-sizing:border-box}
+    .left{background:var(--panel);border:1px solid #1f2937;border-radius:12px;display:flex;flex-direction:column}
+    .row{padding:10px 12px;border-bottom:1px solid #1f2937}
+    .row:last-child{border-bottom:0}
+    label{display:block;font-size:12px;color:#cbd5e1;margin-bottom:6px}
+    select,input[type="number"],input[type="range"]{width:100%;background:#0b1220;border:1px solid #334155;color:#e5e7eb;border-radius:8px;padding:8px}
+    .btn{appearance:none;border:1px solid #334155;border-radius:10px;background:#1f2937;color:#e5e7eb;padding:8px 12px;cursor:pointer}
+    .right{position:relative;background:#0e1525;border:1px solid #1f2937;border-radius:12px;display:grid;place-items:center;overflow:hidden}
+    #stage{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);image-rendering:pixelated}
+    .hint{color:var(--muted);font-size:12px;margin-top:6px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <aside class="left">
+      <div class="row">
+        <h3 style="margin:6px 0 8px">Sheep Preview</h3>
+        <div class="hint">Memuat Sheep_Idle/Grass/Move + Sheep.json; klik kanvas untuk menaruh.</div>
+      </div>
+      <div class="row">
+        <label for="anim">Anim</label>
+        <select id="anim">
+          <option value="idle">Idle</option>
+          <option value="grass">Grass</option>
+          <option value="move">Move</option>
+        </select>
+      </div>
+      <div class="row">
+        <label for="scale">Scale</label>
+        <input id="scale" type="range" min="0.5" max="3" step="0.1" value="1"/>
+      </div>
+      <div class="row">
+        <label for="fps">FPS</label>
+        <input id="fps" type="number" min="1" max="30" value="10"/>
+      </div>
+      <div class="row">
+        <button class="btn" id="btnAdd">Tambah Domba</button>
+        <button class="btn" id="btnClear" style="margin-left:6px">Bersihkan</button>
+        <div class="hint">Drag domba untuk menggeser.</div>
+      </div>
+    </aside>
+    <section class="right">
+      <canvas id="stage" width="960" height="640"></canvas>
+    </section>
+  </div>
+  <script type="module" src="./sheep-preview.js"></script>
+</body>
+</html>
+

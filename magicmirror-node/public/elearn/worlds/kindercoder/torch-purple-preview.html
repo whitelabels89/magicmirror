@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Torch Purple – Animation Preview</title>
+  <style>
+    :root{ --bg:#0b1220; --panel:#0f172a; --muted:#94a3b8; --acc:#a78bfa }
+    html,body{height:100%;margin:0;background:var(--bg);color:#e5e7eb;font:500 14px/1.45 system-ui,Segoe UI,Roboto,Helvetica,Arial}
+    .wrap{display:grid;grid-template-columns:320px 1fr;gap:12px;height:100vh;padding:12px;box-sizing:border-box}
+    .left{background:var(--panel);border:1px solid #1f2937;border-radius:12px;display:flex;flex-direction:column}
+    .row{padding:10px 12px;border-bottom:1px solid #1f2937}
+    .row:last-child{border-bottom:0}
+    label{display:block;font-size:12px;color:#cbd5e1;margin-bottom:6px}
+    select,input[type="number"],input[type="range"]{width:100%;background:#0b1220;border:1px solid #334155;color:#e5e7eb;border-radius:8px;padding:8px}
+    .btn{appearance:none;border:1px solid #334155;border-radius:10px;background:#1f2937;color:#e5e7eb;padding:8px 12px;cursor:pointer}
+    .right{position:relative;background:#0e1525;border:1px solid #1f2937;border-radius:12px;display:grid;place-items:center;overflow:hidden}
+    #stage{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);image-rendering:pixelated}
+    .hint{color:var(--muted);font-size:12px;margin-top:6px}
+  </style>
+  <link rel="preload" as="image" href="/elearn/models/ts-up/Factions/Goblins/Troops/Torch/Purple/Torch_Purple.png" />
+  <link rel="preload" as="fetch" href="/elearn/models/ts-up/Factions/Goblins/Troops/Torch/Purple/Torch_Purple.json" />
+  <meta name="description" content="Preview animasi Torch_Purple (Aseprite JSON + spritesheet)." />
+  <meta name="robots" content="noindex" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  
+</head>
+<body>
+  <div class="wrap">
+    <aside class="left">
+      <div class="row">
+        <h3 style="margin:6px 0 8px">Torch Purple Preview</h3>
+        <div class="hint">Memuat Torch_Purple.png + Torch_Purple.json; pilih tag animasinya.</div>
+      </div>
+      <div class="row">
+        <label for="anim">Animasi (frameTags)</label>
+        <select id="anim"></select>
+      </div>
+      <div class="row">
+        <label for="scale">Scale</label>
+        <input id="scale" type="range" min="0.5" max="3" step="0.1" value="1.5" />
+      </div>
+      <div class="row">
+        <label for="speed">Kecepatan</label>
+        <input id="speed" type="range" min="0.25" max="2" step="0.05" value="1" />
+        <div class="hint">0.5 = lambat, 2 = cepat</div>
+      </div>
+      <div class="row">
+        <button class="btn" id="btnPlay">Pause/Play</button>
+        <button class="btn" id="btnReset" style="margin-left:6px">Reset</button>
+      </div>
+    </aside>
+    <section class="right">
+      <canvas id="stage" width="960" height="640"></canvas>
+    </section>
+  </div>
+  <script type="module" src="./torch-purple-preview.js"></script>
+</body>
+</html>
+

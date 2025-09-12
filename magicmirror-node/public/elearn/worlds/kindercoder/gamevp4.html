@@ -176,6 +176,8 @@
         <div class="board">
           <!-- MINI TERRAIN RENDER (hanya tampilan; tanpa paint mode) -->
           <canvas id="terrainMini" width="320" height="240" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);image-rendering:pixelated"></canvas>
+
+          <canvas id="overlaySprites" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);image-rendering:pixelated;pointer-events:none"></canvas>
           
           <div class="robot" id="robot" style="--r:0;">
             <!-- simple robot svg -->
@@ -203,7 +205,7 @@
   (function(){
   // --- MINI TERRAIN RENDERER (pakai TerrainEngine & Atlas) ---
   const CANVAS = document.getElementById('terrainMini');
-  const ROWS = 8, COLS = 8;
+  let ROWS = 8, COLS = 8; // can be overridden by map json
   // Start & Goal
   const start = { r: 3, c: 0 };
   const goal  = { r: 3, c: 3 };
@@ -247,51 +249,121 @@
         const atlasJson = await TerrainAtlas.load(ATLAS_JSON);
         await TerrainAtlas.setVariant(atlasJson.defaultVariant || 'color1');
         const cfg = TerrainAtlas.getConfig();
-        const t = cfg.tileSize || 48;
+        const t = cfg.tileSize || 64;
 
-        // 2) Pastikan canvas mini pas 4x3 tile
+        // Try external map json for no-code island layout
+        const qs = new URLSearchParams(location.search);
+        const mapName = qs.get('map') || 'island1.json';
+        let map = null;
+        try{
+          const res = await fetch('/elearn/worlds/kindercoder/maps/' + mapName, {cache:'no-cache'});
+          if(res.ok) map = await res.json();
+        }catch(_){}
+
+        if(map && Number.isFinite(map.cols) && Number.isFinite(map.rows)){
+          COLS = map.cols; ROWS = map.rows;
+        }
+
         CANVAS.width  = COLS * t;
         CANVAS.height = ROWS * t;
 
-        // 3) Init engine (bukan constructor)
         await TerrainEngine.init({
           atlasUrl: ATLAS_JSON,
           layersUrl: LAYERS_JSON,
-          variant: atlasJson.defaultVariant || 'color1',
+          variant: (map && map.variant) || atlasJson.defaultVariant || 'color1',
           canvas: CANVAS
         });
 
         tileSize = t;
 
-        // 4) Isi grid mini: semua baris kecuali paling bawah = ground; baris paling bawah = water
+        // Optional: tiled water background texture
+        try{ await TerrainEngine.setWaterTexture('/elearn/models/ts-fp/Terrain/Water%20Background%20color.png'); }catch(_){ }
+
+        // Build grids either from map json or fallback to a handcrafted island
         const g  = TerrainEngine.getGrid('ground');
         const w  = TerrainEngine.getGrid('water');
-        const cl = TerrainEngine.getGrid('cliff_land'); // kosongkan
-
-        for(let r=0;r<ROWS;r++){
-          for(let c=0;c<COLS;c++){
-            // Semua baris kecuali paling bawah = ground; baris paling bawah = water
-            const isLastRow = (r === ROWS - 1);
-            if (g && g[r])  g[r][c]  = isLastRow ? 0 : 1;
-            if (w && w[r])  w[r][c]  = isLastRow ? 0 : 0;
-            if (cl && cl[r]) cl[r][c] = 0; // kosongkan cliff di daratan mini
-          }
-        }
-        // Aktifkan cliff_water di batas antara daratan terakhir dan air
+        const cl = TerrainEngine.getGrid('cliff_land');
+        const cl2= TerrainEngine.getGrid('cliff_land2');
         const cw = TerrainEngine.getGrid('cliff_water');
-        if (cw) {
-          const boundaryRow = ROWS - 2; // baris daratan yang tepat di atas air
-          for (let c = 0; c < COLS; c++) {
-            cw[boundaryRow][c] = (g && w && g[boundaryRow] && w[boundaryRow + 1] && g[boundaryRow][c] === 1 && w[boundaryRow + 1][c] === 1) ? 1 : 0;
+        const sl = TerrainEngine.getGrid('slopes');
+
+        function applyMask(grid, mask){
+          if(!grid || !mask) return;
+          for(let r=0;r<ROWS;r++){
+            for(let c=0;c<COLS;c++){
+              const bit = mask[r]?.charAt(c) === '1' ? 1 : 0;
+              grid[r][c] = bit;
+            }
           }
-          TerrainEngine.setGrid('cliff_water', cw);
         }
 
-        if(g)  TerrainEngine.setGrid('ground', g);
-        if(w)  TerrainEngine.setGrid('water', w);
-        if(cl) TerrainEngine.setGrid('cliff_land', cl);
+        if(map && map.layers){
+          applyMask(w,  map.layers.water);
+          applyMask(g,  map.layers.ground);
+          applyMask(cl, map.layers.cliff_land);
+          applyMask(cw, map.layers.cliff_water);
+          applyMask(cl2, map.layers.cliff_land2);
+          applyMask(sl, map.layers.slopes);
+          if(g)  TerrainEngine.setGrid('ground', g);
+          if(w)  TerrainEngine.setGrid('water', w);
+          if(cl) TerrainEngine.setGrid('cliff_land', cl);
+          if(cl2)TerrainEngine.setGrid('cliff_land2', cl2);
+          if(cw) TerrainEngine.setGrid('cliff_water', cw);
+          if(sl) TerrainEngine.setGrid('slopes', sl);
+        } else {
+          // --- Fallback handcrafted layout (8x8) with plateau, stairs, and small islets ---
+          const G = [
+            '01111000',
+            '01111100',
+            '11111100',
+            '11101110',
+            '11101110',
+            '01111110',
+            '00111100',
+            '00010000'
+          ];
+          const CL = [
+            '00111000',
+            '00111000',
+            '00000000',
+            '00001000',
+            '00000000',
+            '00000000',
+            '00000000',
+            '00000000'
+          ];
+          const CW = [
+            '00000000',
+            '00000000',
+            '00000000',
+            '00000010',
+            '00000000',
+            '00000000',
+            '00000110',
+            '00000000'
+          ];
+          const SL = [
+            '00000000',
+            '00000000',
+            '00000000',
+            '00001000',
+            '00000000',
+            '00000100',
+            '00000000',
+            '00000000'
+          ];
+          // Fill water everywhere then carve ground/cliffs
+          for(let r=0;r<ROWS;r++){ for(let c=0;c<COLS;c++){ if(w&&w[r]) w[r][c]=1; if(g&&g[r]) g[r][c]=0; if(cl&&cl[r]) cl[r][c]=0; if(cw&&cw[r]) cw[r][c]=0; if(sl&&sl[r]) sl[r][c]=0; } }
+          applyMask(g, G); applyMask(cl, CL); applyMask(cw, CW); applyMask(sl, SL);
+          if(g)  TerrainEngine.setGrid('ground', g);
+          if(w)  TerrainEngine.setGrid('water', w);
+          if(cl) TerrainEngine.setGrid('cliff_land', cl);
+          if(cl2)TerrainEngine.setGrid('cliff_land2', cl2);
+          if(cw) TerrainEngine.setGrid('cliff_water', cw);
+          if(sl) TerrainEngine.setGrid('slopes', sl);
+        }
 
-        // 5) Render + posisikan robot
+        // Render + posisikan robot
         TerrainEngine.render();
         placeRobot();
       } catch (e){
@@ -318,10 +390,25 @@
     const g  = TerrainEngine.getGrid('ground');
     const w  = TerrainEngine.getGrid('water');
     const cl = TerrainEngine.getGrid('cliff_land');
+    const cl2= TerrainEngine.getGrid('cliff_land2');
+    const cw = TerrainEngine.getGrid('cliff_water');
+    const sl = TerrainEngine.getGrid('slopes');
 
-    if (w  && w[r]  && w[r][c]  === 1) return false;
-    if (cl && cl[r] && cl[r][c] === 1) return false;
-    return g && g[r] && g[r][c] === 1;
+    const val = (grid, rr, cc) => (grid && grid[rr] ? (grid[rr][cc] ? 1 : 0) : 0);
+    const levelAt = (rr, cc) => {
+      const base = val(g, rr, cc) ? 1 : (val(cw, rr, cc) ? 1 : 0);
+      return base + val(cl, rr, cc) + val(cl2, rr, cc);
+    };
+    const hereLvl = levelAt(pos.r, pos.c);
+    const thereLvl = levelAt(r, c);
+    if (thereLvl <= 0) return false; // water/void
+    const delta = thereLvl - hereLvl;
+    if (Math.abs(delta) === 0) return true;
+    if (Math.abs(delta) > 1) return false; // too steep
+    // Require slopes at source or target cell to change elevation
+    const slopeHere = val(sl, pos.r, pos.c) === 1;
+    const slopeThere = val(sl, r, c) === 1;
+    return slopeHere || slopeThere;
   }
 
   // --- Robot state ---
@@ -337,7 +424,13 @@
     const x = (canvasBB.left - boardBB.left) + pos.c * tsize + tsize/2 - 26;
     const y = (canvasBB.top  - boardBB.top)  + pos.r * tsize + tsize/2 - 26;
     robot.style.transform = `translate(${x}px, ${y}px) rotate(${dir*90}deg)`;
+    // Notify overlay listeners to sync warrior position (center of tile)
+    const centerX = (canvasBB.left - boardBB.left) + pos.c * tsize + tsize/2;
+    const centerY = (canvasBB.top  - boardBB.top)  + pos.r * tsize + tsize/2;
+    window.dispatchEvent(new CustomEvent('gvp4:place', { detail:{ r:pos.r, c:pos.c, dir, tileSize:tsize, x:centerX, y:centerY } }));
   }
+  // Allow external listeners to request current placement broadcast
+  window.addEventListener('gvp4:requestPlace', ()=>{ placeRobot(); });
   window.addEventListener('resize', placeRobot);
   setTimeout(placeRobot, 0);
 
@@ -612,7 +705,12 @@
         await sleep(220); return false;
       }
 
-      pos = next; placeRobot(); await sleep(260); return true;
+      // Announce start of movement for overlay animation (run)
+      window.dispatchEvent(new CustomEvent('gvp4:moveStart', { detail:{ from:{...pos}, to:next, dir } }));
+      pos = next; placeRobot();
+      await sleep(260);
+      window.dispatchEvent(new CustomEvent('gvp4:moveEnd', { detail:{ pos:{...pos}, dir } }));
+      return true;
     }
     return true;
   }
@@ -624,6 +722,81 @@
   initBlockly();
   updateCounter();
 })();
+</script>
+
+<script type="module">
+  import * as Assets from '/elearn/engine/assets-runtime.js';
+
+  const terrain = document.getElementById('terrainMini');
+  const overlay = document.getElementById('overlaySprites');
+  function syncOverlaySize(){
+    overlay.width = terrain.width; overlay.height = terrain.height;
+    overlay.style.width = terrain.style.width; overlay.style.height = terrain.style.height;
+  }
+  syncOverlaySize(); new ResizeObserver(syncOverlaySize).observe(terrain);
+
+  await Assets.init({ manifestUrl:'/elearn/assets/manifest.json', prewarm:['unit','building','decor'] });
+
+  const scene = Assets.createScene(overlay);
+  // Note: Remove sample spawns to avoid fallback red boxes when assets are missing
+  // const gob = await Assets.spawn('goblin_scout', { x: 96, y: 96, state:{anim:'idle'} });
+  // const castle = await Assets.spawn('castle_blue', { x: 240, y: 180 });
+  // const trees = await Assets.spawn('forest_pack_a');
+  // scene.add(gob, castle, trees);
+
+  // --- Warrior overlay actor (uses PNG strips, not Aseprite JSON) ---
+  const WARRIOR_BASE = '/elearn/models/ts-fp/Units/Blue Units/Warrior';
+  const W_STATES = ['Idle','Run','Guard','Attack1','Attack2'];
+  const W_FPS = { Idle:6, Run:12, Guard:8, Attack1:12, Attack2:12 };
+  function inferMeta(img){
+    let frames=1, fw=img.width, fh=img.height, vertical=false;
+    if(img.width>img.height && img.width%img.height===0){ frames=img.width/img.height; fw=img.height; fh=img.height; }
+    else if(img.height>img.width && img.height%img.width===0){ frames=img.height/img.width; fw=img.width; fh=img.width; vertical=true; }
+    else{ for(let n=2;n<=16;n++){ if(img.width % n===0){ frames=n; fw=img.width/n; fh=img.height; break; } } }
+    return {frames, fw, fh, vertical};
+  }
+  function loadImage(src){ return new Promise((res,rej)=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=rej; im.src=src; }); }
+  async function loadWarrior(){
+    const cache=new Map();
+    for(const s of W_STATES){
+      try{ const img = await loadImage(`${WARRIOR_BASE}/Warrior_${s}.png`); cache.set(s,{img, ...inferMeta(img)}); }
+      catch{ /* tolerate */ }
+    }
+    return cache;
+  }
+  const warrior = {
+    cache: await loadWarrior(), x: 0, y: 0, state: 'Idle', t: 0, frameIdx:0, acc:0,
+    update(dt){ this.t += dt; this.acc += dt; const fps=W_FPS[this.state]||10; const frameMs=1000/fps; const entry=this.cache.get(this.state)||this.cache.get('Idle'); if(!entry) return; while(this.acc>=frameMs){ this.acc-=frameMs; this.frameIdx=(this.frameIdx+1)%(entry.frames||1);} },
+    draw(ctx){ const entry=this.cache.get(this.state)||this.cache.get('Idle'); if(!entry) return; const {img,frames,fw,fh,vertical}=entry; const idx=this.frameIdx%(frames||1); const sx=vertical?0:idx*fw; const sy=vertical?idx*fh:0; const scale=1; const dx=Math.round(this.x - fw*scale/2); const dy=Math.round(this.y - fh*scale); ctx.drawImage(img, sx, sy, fw, fh, dx, dy, fw*scale, fh*scale); }
+  };
+  scene.add(warrior);
+
+  // Sync warrior with robot grid position via custom events from the non-module script
+  window.addEventListener('gvp4:place', (e)=>{
+    // e.detail contains center x,y computed in DOM space; we need canvas coords (overlay origin is the board's center canvas origin)
+    // Because overlay is absolutely centered over terrain canvas and has identical pixel size, we can compute x,y based on tileSize and pos.
+    const { r, c, tileSize } = e.detail || {};
+    warrior.x = c * tileSize + tileSize/2;
+    warrior.y = r * tileSize + tileSize/2;
+  });
+  window.addEventListener('gvp4:moveStart', ()=>{ warrior.state = 'Run'; warrior.acc=0; });
+  window.addEventListener('gvp4:moveEnd',   ()=>{ warrior.state = 'Idle'; });
+
+  // Hide original robot SVG (we draw warrior instead)
+  const robotEl = document.getElementById('robot');
+  if(robotEl) robotEl.style.display = 'none';
+
+  // Ask for initial placement once listeners are ready
+  window.dispatchEvent(new CustomEvent('gvp4:requestPlace'));
+
+  scene.start();
+
+  // Quick switch tileset variants with keys 1/2/3
+  window.addEventListener('keydown', async (e)=>{
+    if(e.key==='1'){ await TerrainEngine.setVariant('color1'); TerrainEngine.render(); }
+    if(e.key==='2'){ await TerrainEngine.setVariant('color2'); TerrainEngine.render(); }
+    if(e.key==='3'){ await TerrainEngine.setVariant('color3'); TerrainEngine.render(); }
+  });
 </script>
 </body>
 </html>

@@ -1,0 +1,298 @@
+{
+  "version": 1,
+  "generatedAt": "2025-09-11T17:26:16.503Z",
+  "roots": [
+    "/elearn/models/ts-fp/",
+    "/elearn/models/ts-up/"
+  ],
+  "assets": [
+    {
+      "id": "ts_up_effects_fire_fire",
+      "name": "Fire",
+      "category": "effects",
+      "png": "/elearn/models/ts-up/Effects/Fire/Fire.png",
+      "json": "/elearn/models/ts-up/Effects/Fire/Fire.json",
+      "tags": [
+        "ts-up",
+        "effects",
+        "fire",
+        "effects"
+      ]
+    },
+    {
+      "id": "ts_up_factions_goblins_buildings_wood_tower_wood_tower_blue",
+      "name": "Wood Tower Blue",
+      "category": "building",
+      "png": "/elearn/models/ts-up/Factions/Goblins/Buildings/Wood_Tower/Wood_Tower_Blue.png",
+      "json": "/elearn/models/ts-up/Factions/Goblins/Buildings/Wood_Tower/Wood_Tower_Blue.json",
+      "tags": [
+        "ts-up",
+        "factions",
+        "goblins",
+        "buildings",
+        "wood_tower",
+        "building"
+      ]
+    },
+    {
+      "id": "ts_up_factions_goblins_buildings_wood_tower_wood_tower_purple",
+      "name": "Wood Tower Purple",
+      "category": "building",
+      "png": "/elearn/models/ts-up/Factions/Goblins/Buildings/Wood_Tower/Wood_Tower_Purple.png",
+      "json": "/elearn/models/ts-up/Factions/Goblins/Buildings/Wood_Tower/Wood_Tower_Purple.json",
+      "tags": [
+        "ts-up",
+        "factions",
+        "goblins",
+        "buildings",
+        "wood_tower",
+        "building"
+      ]
+    },
+    {
+      "id": "ts_up_factions_goblins_buildings_wood_tower_wood_tower_red",
+      "name": "Wood Tower Red",
+      "category": "building",
+      "png": "/elearn/models/ts-up/Factions/Goblins/Buildings/Wood_Tower/Wood_Tower_Red.png",
+      "json": "/elearn/models/ts-up/Factions/Goblins/Buildings/Wood_Tower/Wood_Tower_Red.json",
+      "tags": [
+        "ts-up",
+        "factions",
+        "goblins",
+        "buildings",
+        "wood_tower",
+        "building"
+      ]
+    },
+    {
+      "id": "ts_up_factions_goblins_buildings_wood_tower_wood_tower_yellow",
+      "name": "Wood Tower Yellow",
+      "category": "building",
+      "png": "/elearn/models/ts-up/Factions/Goblins/Buildings/Wood_Tower/Wood_Tower_Yellow.png",
+      "json": "/elearn/models/ts-up/Factions/Goblins/Buildings/Wood_Tower/Wood_Tower_Yellow.json",
+      "tags": [
+        "ts-up",
+        "factions",
+        "goblins",
+        "buildings",
+        "wood_tower",
+        "building"
+      ]
+    },
+    {
+      "id": "ts_up_factions_goblins_troops_barrel_red_barrel_red",
+      "name": "Barrel Red",
+      "category": "faction",
+      "png": "/elearn/models/ts-up/Factions/Goblins/Troops/Barrel/Red/Barrel_Red.png",
+      "json": "/elearn/models/ts-up/Factions/Goblins/Troops/Barrel/Red/Barrel_Red.json",
+      "tags": [
+        "ts-up",
+        "factions",
+        "goblins",
+        "troops",
+        "barrel",
+        "red",
+        "faction"
+      ]
+    },
+    {
+      "id": "ts_up_factions_goblins_troops_tnt_red_tnt_red",
+      "name": "TNT Red",
+      "category": "faction",
+      "png": "/elearn/models/ts-up/Factions/Goblins/Troops/TNT/Red/TNT_Red.png",
+      "json": "/elearn/models/ts-up/Factions/Goblins/Troops/TNT/Red/TNT_Red.json",
+      "tags": [
+        "ts-up",
+        "factions",
+        "goblins",
+        "troops",
+        "tnt",
+        "red",
+        "faction"
+      ]
+    },
+    {
+      "id": "ts_up_factions_goblins_troops_torch_red_torch_red",
+      "name": "Torch Red",
+      "category": "faction",
+      "png": "/elearn/models/ts-up/Factions/Goblins/Troops/Torch/Red/Torch_Red.png",
+      "json": "/elearn/models/ts-up/Factions/Goblins/Troops/Torch/Red/Torch_Red.json",
+      "tags": [
+        "ts-up",
+        "factions",
+        "goblins",
+        "troops",
+        "torch",
+        "red",
+        "faction"
+      ]
+    },
+    {
+      "id": "ts_up_factions_knights_troops_archer_blue_archer_blue",
+      "name": "Archer Blue",
+      "category": "faction",
+      "png": "/elearn/models/ts-up/Factions/Knights/Troops/Archer/Blue/Archer_Blue.png",
+      "json": "/elearn/models/ts-up/Factions/Knights/Troops/Archer/Blue/Archer_Blue.json",
+      "tags": [
+        "ts-up",
+        "factions",
+        "knights",
+        "troops",
+        "archer",
+        "blue",
+        "faction"
+      ]
+    },
+    {
+      "id": "ts_up_factions_knights_troops_archer_red_archer_red",
+      "name": "Archer Red",
+      "category": "faction",
+      "png": "/elearn/models/ts-up/Factions/Knights/Troops/Archer/Red/Archer_Red.png",
+      "json": "/elearn/models/ts-up/Factions/Knights/Troops/Archer/Red/Archer_Red.json",
+      "tags": [
+        "ts-up",
+        "factions",
+        "knights",
+        "troops",
+        "archer",
+        "red",
+        "faction"
+      ]
+    },
+    {
+      "id": "ts_up_factions_knights_troops_dead_dead",
+      "name": "Dead",
+      "category": "faction",
+      "png": "/elearn/models/ts-up/Factions/Knights/Troops/Dead/Dead.png",
+      "json": "/elearn/models/ts-up/Factions/Knights/Troops/Dead/Dead.json",
+      "tags": [
+        "ts-up",
+        "factions",
+        "knights",
+        "troops",
+        "dead",
+        "faction"
+      ]
+    },
+    {
+      "id": "ts_up_factions_knights_troops_pawn_blue_pawn_blue",
+      "name": "Pawn Blue",
+      "category": "faction",
+      "png": "/elearn/models/ts-up/Factions/Knights/Troops/Pawn/Blue/Pawn_Blue.png",
+      "json": "/elearn/models/ts-up/Factions/Knights/Troops/Pawn/Blue/Pawn_Blue.json",
+      "tags": [
+        "ts-up",
+        "factions",
+        "knights",
+        "troops",
+        "pawn",
+        "blue",
+        "faction"
+      ]
+    },
+    {
+      "id": "ts_up_factions_knights_troops_pawn_red_pawn_red",
+      "name": "Pawn Red",
+      "category": "faction",
+      "png": "/elearn/models/ts-up/Factions/Knights/Troops/Pawn/Red/Pawn_Red.png",
+      "json": "/elearn/models/ts-up/Factions/Knights/Troops/Pawn/Red/Pawn_Red.json",
+      "tags": [
+        "ts-up",
+        "factions",
+        "knights",
+        "troops",
+        "pawn",
+        "red",
+        "faction"
+      ]
+    },
+    {
+      "id": "ts_up_factions_knights_troops_warrior_blue_warrior_blue",
+      "name": "Warrior Blue",
+      "category": "faction",
+      "png": "/elearn/models/ts-up/Factions/Knights/Troops/Warrior/Blue/Warrior_Blue.png",
+      "json": "/elearn/models/ts-up/Factions/Knights/Troops/Warrior/Blue/Warrior_Blue.json",
+      "tags": [
+        "ts-up",
+        "factions",
+        "knights",
+        "troops",
+        "warrior",
+        "blue",
+        "faction"
+      ]
+    },
+    {
+      "id": "ts_up_factions_knights_troops_warrior_red_warrior_red",
+      "name": "Warrior Red",
+      "category": "faction",
+      "png": "/elearn/models/ts-up/Factions/Knights/Troops/Warrior/Red/Warrior_Red.png",
+      "json": "/elearn/models/ts-up/Factions/Knights/Troops/Warrior/Red/Warrior_Red.json",
+      "tags": [
+        "ts-up",
+        "factions",
+        "knights",
+        "troops",
+        "warrior",
+        "red",
+        "faction"
+      ]
+    },
+    {
+      "id": "ts_up_factions_knights_troops_warrior_yellow_warrior_yellow",
+      "name": "Warrior Yellow",
+      "category": "faction",
+      "png": "/elearn/models/ts-up/Factions/Knights/Troops/Warrior/Yellow/Warrior_Yellow.png",
+      "json": "/elearn/models/ts-up/Factions/Knights/Troops/Warrior/Yellow/Warrior_Yellow.json",
+      "tags": [
+        "ts-up",
+        "factions",
+        "knights",
+        "troops",
+        "warrior",
+        "yellow",
+        "faction"
+      ]
+    },
+    {
+      "id": "ts_up_resources_trees_tree",
+      "name": "Tree",
+      "category": "misc",
+      "png": "/elearn/models/ts-up/Resources/Trees/Tree.png",
+      "json": "/elearn/models/ts-up/Resources/Trees/Tree.json",
+      "tags": [
+        "ts-up",
+        "resources",
+        "trees",
+        "misc"
+      ]
+    }
+  ],
+  "indexByCategory": {
+    "effects": [
+      "ts_up_effects_fire_fire"
+    ],
+    "building": [
+      "ts_up_factions_goblins_buildings_wood_tower_wood_tower_blue",
+      "ts_up_factions_goblins_buildings_wood_tower_wood_tower_purple",
+      "ts_up_factions_goblins_buildings_wood_tower_wood_tower_red",
+      "ts_up_factions_goblins_buildings_wood_tower_wood_tower_yellow"
+    ],
+    "faction": [
+      "ts_up_factions_goblins_troops_barrel_red_barrel_red",
+      "ts_up_factions_goblins_troops_tnt_red_tnt_red",
+      "ts_up_factions_goblins_troops_torch_red_torch_red",
+      "ts_up_factions_knights_troops_archer_blue_archer_blue",
+      "ts_up_factions_knights_troops_archer_red_archer_red",
+      "ts_up_factions_knights_troops_dead_dead",
+      "ts_up_factions_knights_troops_pawn_blue_pawn_blue",
+      "ts_up_factions_knights_troops_pawn_red_pawn_red",
+      "ts_up_factions_knights_troops_warrior_blue_warrior_blue",
+      "ts_up_factions_knights_troops_warrior_red_warrior_red",
+      "ts_up_factions_knights_troops_warrior_yellow_warrior_yellow"
+    ],
+    "misc": [
+      "ts_up_resources_trees_tree"
+    ]
+  }
+}

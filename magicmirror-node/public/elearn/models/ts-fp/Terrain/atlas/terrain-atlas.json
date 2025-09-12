@@ -9,8 +9,8 @@
   "variants": {
     "_comment": "Semua varian HARUS punya layout identik (hanya beda palet warna). cols/rows auto dari ukuran gambar.",
     "color1": { "url": "/elearn/models/ts-fp/Terrain/tilesets/Tilemap_color1.png", "cols": null, "rows": null },
-    "color2": { "url": "../tilesets/Tilemap_color2.png", "cols": null, "rows": null },
-    "color3": { "url": "../tilesets/Tilemap_color3.png", "cols": null, "rows": null }
+    "color2": { "url": "/elearn/models/ts-fp/Terrain/tilesets/Tilemap_color2.png", "cols": null, "rows": null },
+    "color3": { "url": "/elearn/models/ts-fp/Terrain/tilesets/Tilemap_color3.png", "cols": null, "rows": null }
   },
   "defaultVariant": "color1",
 

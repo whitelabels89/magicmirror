@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Warrior State Preview</title>
+  <style>
+    :root{ --bg:#0e0f13; --card:#161821; --txt:#eaeef7; --muted:#9aa5b1; --accent:#4da3ff }
+    html,body{ height:100%; margin:0; background:var(--bg); color:var(--txt); font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji" }
+    .wrap{ display:grid; grid-template-rows:auto 1fr auto; min-height:100%; }
+    header{ padding:12px 16px; border-bottom:1px solid #222633; font-weight:600; letter-spacing:.3px }
+    main{ display:grid; place-items:center; padding:16px; }
+    .stage{
+      position:relative; width:min(90vw,720px); aspect-ratio:16/9; background:var(--card);
+      border:1px solid #23283a; border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,.3);
+      display:grid; place-items:center; overflow:hidden;
+    }
+    .stage-inner{
+      position:relative; width:85%; height:85%; display:grid; place-items:center;
+      background:radial-gradient(ellipse at bottom, #1d2233 0%, #111421 60%);
+      border:1px solid #2a3146; border-radius:12px;
+    }
+    #warriorImg{
+      width:320px; height:320px; image-rendering:pixelated; image-rendering:crisp-edges;
+      object-fit:contain; filter: drop-shadow(0 6px 18px rgba(0,0,0,.45));
+      transition: transform .12s ease;
+    }
+    .controls{ display:flex; flex-wrap:wrap; gap:8px; padding:12px 16px; border-top:1px solid #222633 }
+    button{
+      background:#1e2435; color:var(--txt); border:1px solid #2a3146; border-radius:8px; padding:8px 12px;
+      cursor:pointer; font-size:14px; letter-spacing:.2px
+    }
+    button:hover{ border-color:var(--accent); color:#fff }
+    .state{ color:var(--muted); margin-left:auto; font-size:13px }
+    .hint{ color:var(--muted); font-size:12px; margin-left:8px }
+  </style>
+  <link rel="preload" as="image" href="/elearn/models/ts-fp/Units/Black Units/Warrior/Warrior_Idle.png">
+  <link rel="preload" as="image" href="/elearn/models/ts-fp/Units/Black Units/Warrior/Warrior_Run.png">
+  <link rel="preload" as="image" href="/elearn/models/ts-fp/Units/Black Units/Warrior/Warrior_Guard.png">
+  <link rel="preload" as="image" href="/elearn/models/ts-fp/Units/Black Units/Warrior/Warrior_Attack1.png">
+  <link rel="preload" as="image" href="/elearn/models/ts-fp/Units/Black Units/Warrior/Warrior_Attack2.png">
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      Warrior Preview • Idle / Run / Guard / Attack1 / Attack2
+    </header>
+    <main>
+      <div class="stage">
+        <div class="stage-inner">
+          <canvas id="warriorCanvas" style="image-rendering:pixelated;image-rendering:crisp-edges"></canvas>
+        </div>
+      </div>
+    </main>
+    <div class="controls">
+      <button data-state="Idle">Idle (1)</button>
+      <button data-state="Run">Run (2)</button>
+      <button data-state="Guard">Guard (3)</button>
+      <button data-state="Attack1">Attack1 (4)</button>
+      <button data-state="Attack2">Attack2 (5)</button>
+      <button id="btnCycle">Cycle States (C)</button>
+      <button id="btnPause">Pause/Play (Space)</button>
+      <span class="state" id="stateLabel">state: Idle</span>
+      <span class="hint">Tip: press keys 1-5 or click the stage to cycle</span>
+    </div>
+  </div>
+  <script type="module" src="./warrior-preview.js"></script>
+  </body>
+  </html>

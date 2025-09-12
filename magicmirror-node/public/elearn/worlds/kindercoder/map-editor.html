@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Mini Map Editor – KinderCoder</title>
+  <script src="/elearn/models/ts-fp/Terrain/js/terrain-atlas.js"></script>
+  <script src="/elearn/models/ts-fp/Terrain/js/auto-tiler.js"></script>
+  <script src="/elearn/models/ts-fp/Terrain/js/terrain-engine.js"></script>
+  <style>
+    :root{ --bg:#0b1220; --panel:#0f172a; --muted:#94a3b8; --acc:#22c55e }
+    html,body{height:100%;margin:0;background:var(--bg);color:#e5e7eb;font:500 14px/1.45 system-ui,Segoe UI,Roboto,Helvetica,Arial}
+    .wrap{display:grid;grid-template-columns:320px 1fr;gap:12px;height:100vh;padding:12px;box-sizing:border-box}
+    .left{background:var(--panel);border:1px solid #1f2937;border-radius:12px;display:flex;flex-direction:column}
+    .right{
+      background:#3aa9a5 url('/elearn/models/ts-fp/Terrain/Water%20Background%20color.png') 0 0 / 512px 512px repeat;
+      border:1px solid #1f2937;border-radius:12px;position:relative;overflow:hidden
+    }
+    .row{padding:10px 12px;border-bottom:1px solid #1f2937}
+    .row:last-child{border-bottom:0}
+    .row h4{margin:0 0 8px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+    .btn{appearance:none;border:1px solid #334155;border-radius:10px;background:#1f2937;color:#e5e7eb;padding:8px 12px;cursor:pointer}
+    .btn.primary{background:var(--acc);border-color:var(--acc);color:#0b1220;font-weight:800}
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+    select,input[type="number"]{background:#0b1220;border:1px solid #334155;color:#e5e7eb;border-radius:8px;padding:8px}
+    label{display:block;font-size:12px;color:#cbd5e1;margin-bottom:4px}
+    .palette{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+    .sw{display:flex;align-items:center;gap:8px;padding:8px;border:1px solid #334155;border-radius:8px;background:#0b1220;cursor:pointer}
+    .sw input{margin:0}
+    .hint{color:var(--muted);font-size:12px;margin-top:6px}
+    #board{position:absolute;inset:0;overflow:hidden}
+    #cvs{position:absolute;left:0;top:0;image-rendering:pixelated;z-index:1}
+    .topbar{position:absolute;top:10px;left:50%;transform:translateX(-50%);display:flex;gap:8px;padding:8px 10px;background:rgba(11,18,32,.6);backdrop-filter:blur(6px);border:1px solid #1f2937;border-radius:12px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <aside class="left">
+      <div class="row">
+        <h4>Ukuran & Tileset</h4>
+        <div class="grid">
+          <div>
+            <label>Cols</label>
+            <input type="number" id="cols" min="4" max="64" value="8"/>
+          </div>
+          <div>
+            <label>Rows</label>
+            <input type="number" id="rows" min="4" max="64" value="8"/>
+          </div>
+        </div>
+        <div style="margin-top:8px">
+          <label>Variant</label>
+          <select id="variant">
+            <option value="color1">color1</option>
+            <option value="color2">color2</option>
+            <option value="color3">color3</option>
+          </select>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn" id="btnResize">Terapkan</button>
+          <button class="btn" id="btnClear">Clear</button>
+          <button class="btn" id="btnFit">Fit to Board</button>
+        </div>
+      </div>
+      <div class="row">
+        <h4>Layer</h4>
+        <div class="palette" id="layers"></div>
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+          <button class="btn" id="btnUndo" title="Ctrl+Z">Undo</button>
+          <button class="btn" id="btnRedo" title="Ctrl+Y / Ctrl+Shift+Z">Redo</button>
+          <button class="btn" id="btnEraser">Eraser: OFF</button>
+        </div>
+        <div class="hint">Klik/drag kiri = isi 1, kanan = 0. Shift+drag = garis lurus. Gunakan Undo/Redo untuk membatalkan/ulang stroke.</div>
+      </div>
+      <div class="row">
+        <h4>Decor</h4>
+        <label>Type</label>
+        <select id="decorType">
+          <option value="tree">Tree</option>
+          <option value="sheep">Sheep</option>
+        </select>
+      </div>
+      <div class="row">
+        <h4>Decor Trees</h4>
+        <label>Varian</label>
+        <select id="treeVariant">
+          <option value="1">Tree 1</option>
+          <option value="2">Tree 2</option>
+          <option value="3">Tree 3</option>
+          <option value="4">Tree 4</option>
+        </select>
+        <label style="margin-top:8px">Scale</label>
+        <input id="treeScale" type="range" min="0.5" max="2" step="0.1" value="1">
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn" id="btnAddTree">Tambah Pohon</button>
+          <button class="btn" id="btnClearTrees">Bersihkan Pohon</button>
+        </div>
+        <div class="hint">Pilih layer "Trees (Decor)" untuk menaruh/drag pohon.</div>
+      </div>
+      <div class="row">
+        <h4>Decor Sheep</h4>
+        <label>Anim</label>
+        <select id="sheepAnim">
+          <option value="idle">Idle</option>
+          <option value="grass">Grass</option>
+          <option value="move">Move</option>
+        </select>
+        <label style="margin-top:8px">Scale</label>
+        <input id="sheepScale" type="range" min="0.5" max="3" step="0.1" value="1">
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn" id="btnAddSheep">Tambah Sheep</button>
+          <button class="btn" id="btnClearSheep">Bersihkan Sheep</button>
+        </div>
+      </div>
+      <div class="row">
+        <h4>File</h4>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn" id="btnExport">Export JSON</button>
+          <label class="btn" for="fileImport" style="display:inline-block;cursor:pointer">Import JSON</label>
+          <input id="fileImport" type="file" accept="application/json" style="display:none"/>
+          <button class="btn primary" id="btnOpenGame">Open in GameVP4</button>
+        </div>
+        <div class="hint">File akan di-download. Pindahkan ke folder: /elearn/worlds/kindercoder/maps/ lalu buka gamevp4.html?map=namafile.json</div>
+      </div>
+    </aside>
+    <section class="right">
+      <div id="board">
+        <canvas id="cvs" width="640" height="480"></canvas>
+        <canvas id="decor" width="640" height="480" style="position:absolute;left:0;top:0;image-rendering:pixelated;z-index:2;pointer-events:none"></canvas>
+        <div class="topbar">
+          <span id="status">Ready</span>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script type="module" src="./map-editor.js"></script>
+</body>
+</html>

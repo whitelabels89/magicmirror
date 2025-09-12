@@ -35,10 +35,19 @@
       "skirtDepth": 8
     },
     {
+      "id": "cliff_land2",
+      "set": "cliff_land",
+      "visible": true,
+      "z": 4,
+      "blend": "source-over",
+      "skirtToBottom": true,
+      "skirtDepth": 8
+    },
+    {
       "id": "slopes",
       "set": "slopes",
       "visible": true,
-      "z": 4,
+      "z": 5,
       "blend": "source-over"
     },
     {
@@ -46,7 +55,7 @@
       "set": "decor",
       "_comment": "Opsional: bunga/batu/rumput kecil. Abaikan jika tidak ada di atlas.",
       "visible": true,
-      "z": 5,
+      "z": 6,
       "blend": "source-over"
     }
   ]

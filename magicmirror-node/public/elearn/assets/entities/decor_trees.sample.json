@@ -1,0 +1,6 @@
+{
+  "type":"decor",
+  "id":"forest_pack_a",
+  "sprite":"forest_tree_a",
+  "placements":[{"x":120,"y":80},{"x":200,"y":160}]
+}

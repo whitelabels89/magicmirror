@@ -4,7 +4,8 @@
   "description": "Magic Mirror Node Server",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "build:assets": "node scripts/build-assets-manifest.mjs"
   },
   "dependencies": {
     "axios": "^1.9.0",

@@ -1,0 +1,7 @@
+{
+  "type":"building",
+  "id":"castle_blue",
+  "sprite":"castle_blue",
+  "defaultAnim":"idle",
+  "hp":1000
+}
