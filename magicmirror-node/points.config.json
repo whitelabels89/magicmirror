@@ -2,6 +2,18 @@
   "default_per_lesson": 10,
   "overrides": {
     "numbers-basic:L5": 20,
-    "alphabet-world:L10": 30
+    "alphabet-world:L10": 30,
+    "kindercoder:gamevp4-s1": 10,
+    "kindercoder:gamevp4-s2": 10,
+    "kindercoder:gamevp4-s3": 10,
+    "kindercoder:gamevp4-s4": 10,
+    "kindercoder:gamevp4-s5": 10,
+    "kindercoder:gamevp4-s6": 10,
+    "kindercoder:gamevp4-s7": 10,
+    "kindercoder:gamevp4-s8": 10,
+    "kindercoder:gamevp4-s9": 10,
+    "kindercoder:gamevp4-s10": 10,
+    "kindercoder:gamevp4-s11": 10,
+    "kindercoder:gamevp4-s12": 10
   }
 }

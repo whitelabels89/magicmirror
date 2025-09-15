@@ -63,6 +63,29 @@
       z-index:0; pointer-events:none;
     }
 
+    /* Decorative sea strip on the left: ripples (+ optional clouds) */
+    .sea-decor{position:absolute;left:0;top:0;height:100%;width:120px;pointer-events:none;z-index:1;overflow:hidden;}
+    /* ripples layer using inline SVG pattern */
+    .sea-decor::before{content:"";position:absolute;inset:0;opacity:.28; z-index:0;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='360' viewBox='0 0 640 360'%3E%3Cg fill='none' stroke-linecap='round'%3E%3Cpath d='M-40 30 C 40 10, 140 50, 240 30 S 440 10, 640 30' stroke='rgba(255,255,255,0.23)' stroke-width='2.5'/%3E%3Cpath d='M-60 70 C 30 45, 150 85, 260 70 S 470 45, 660 70' stroke='rgba(255,255,255,0.18)' stroke-width='1.2'/%3E%3Cpath d='M-50 115 C 60 95, 160 135, 300 120 S 520 95, 690 120' stroke='rgba(255,255,255,0.2)' stroke-width='1.4'/%3E%3Cpath d='M-30 160 C 80 140, 200 180, 340 165 S 560 140, 720 165' stroke='rgba(255,255,255,0.16)' stroke-width='1.1'/%3E%3Cpath d='M-70 210 C 20 185, 140 225, 260 210 S 480 185, 670 210' stroke='rgba(255,255,255,0.18)' stroke-width='1.3'/%3E%3Cpath d='M-40 255 C 100 235, 220 275, 360 255 S 580 235, 760 255' stroke='rgba(255,255,255,0.15)' stroke-width='1.2'/%3E%3Cpath d='M-50 305 C 60 285, 200 325, 340 305 S 560 285, 740 305' stroke='rgba(255,255,255,0.18)' stroke-width='1.2'/%3E%3C/g%3E%3C/svg%3E");
+      background-size: 640px 360px; background-repeat: repeat; background-position: 0 0;
+      animation: rippleShift 36s linear infinite;
+    }
+    @keyframes rippleShift{ 0%{ background-position:0 0;} 100%{ background-position:-640px 360px;} }
+    /* second, larger/looser ripple layer for randomness */
+    .sea-decor::after{content:"";position:absolute;inset:0;opacity:.20; z-index:0; pointer-events:none;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='960' height='540' viewBox='0 0 960 540'%3E%3Cg fill='none' stroke-linecap='round'%3E%3Cpath d='M-60 55 C 60 5, 240 85, 420 40 S 780 5, 1020 55' stroke='rgba(255,255,255,0.16)' stroke-width='2'/%3E%3Cpath d='M-80 145 C 80 100, 280 170, 500 130 S 900 100, 1100 145' stroke='rgba(255,255,255,0.14)' stroke-width='1.7'/%3E%3Cpath d='M-40 250 C 120 210, 340 280, 560 240 S 940 210, 1180 250' stroke='rgba(255,255,255,0.15)' stroke-width='1.8'/%3E%3C/svg%3E");
+      background-size: 960px 540px; background-repeat: repeat; background-position: 0 0;
+      animation: rippleShift2 48s linear infinite;
+    }
+    @keyframes rippleShift2{ 0%{ background-position:0 0;} 100%{ background-position:-960px 270px;} }
+    /* cloud images from asset (no sea color overlay) */
+    img.cloud{position:absolute;left:-80px;height:auto;filter: drop-shadow(0 6px 0 rgba(0,0,0,.18));opacity:.95;animation: floatX 26s ease-in-out infinite; z-index:1;}
+    img.cloud.c1{top:10%; width:200px}
+    img.cloud.c2{top:46%; width:220px; animation-duration: 34s;}
+    img.cloud.c3{top:80%; width:190px; animation-duration: 28s;}
+    @keyframes floatX{ 0%,100%{ transform: translateX(0) } 50%{ transform: translateX(6px) } }
+
     .board-wrap{display:flex;align-items:center;justify-content:center;padding:24px}
     .board{position:relative;width:520px;aspect-ratio: 1.2 / 1; background:transparent}
     .grid{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:320px;height:240px;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(3,1fr);gap:4px;z-index:2;}
@@ -157,6 +180,11 @@
 
     <section class="right" aria-label="papan">
       <img class="water-bg" src="/elearn/models/ts-fp/Terrain/Water%20Background%20color.png" alt="">
+      <div class="sea-decor">
+        <img class="cloud c1" src="/elearn/models/ts-up/cloud1.png" alt="cloud1">
+        <img class="cloud c2" src="/elearn/models/ts-up/cloud2.png" alt="cloud2">
+        <img class="cloud c3" src="/elearn/models/ts-up/cloud3.png" alt="cloud3">
+      </div>
       <!-- Top slides: 1..12 (centered to right panel) -->
       <nav class="top-slides" aria-label="slides">
         <div class="slide-dot">1</div>
@@ -179,18 +207,7 @@
 
           <canvas id="overlaySprites" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);image-rendering:pixelated;pointer-events:none"></canvas>
           
-          <div class="robot" id="robot" style="--r:0;">
-            <!-- simple robot svg -->
-            <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="18" y="18" width="44" height="44" rx="12" fill="#ffcc66"/>
-              <circle cx="36" cy="38" r="6" fill="#fff"/>
-              <circle cx="36" cy="38" r="3" fill="#111"/>
-              <circle cx="50" cy="38" r="6" fill="#fff"/>
-              <circle cx="50" cy="38" r="3" fill="#111"/>
-              <rect x="28" y="52" width="24" height="5" rx="2.5" fill="#111" opacity=".35"/>
-              <path d="M16 42 q-6 4 0 9" stroke="#111" stroke-width="5" stroke-linecap="round"/>
-            </svg>
-          </div>
+          <!-- Robot SVG removed; warrior overlay is the only character renderer -->
         </div>
       </div>
       <div class="hud">
@@ -205,10 +222,20 @@
   (function(){
   // --- MINI TERRAIN RENDERER (pakai TerrainEngine & Atlas) ---
   const CANVAS = document.getElementById('terrainMini');
+  // Slide handling (12 dots on top). Current slide from URL ?s=1..12
+  const qs0 = new URLSearchParams(location.search);
+  const SLIDE_MAX = 12;
+  let curSlide = Math.max(1, Math.min(SLIDE_MAX, parseInt(qs0.get('s')||'1',10)||1));
   let ROWS = 8, COLS = 8; // can be overridden by map json
-  // Start & Goal
-  const start = { r: 3, c: 0 };
-  const goal  = { r: 3, c: 3 };
+  // Start & Goal (will follow JSON or query; defaults only if missing)
+  let start = { r: 0, c: 6 };
+  let goal  = { r: 0, c: 0 };
+  // Optional markers
+  let checkpoints = [];
+  let items = [];
+  let obstacles = [];
+  const visited = new Set();
+  const collected = new Set();
 
   // Setup TerrainEngine (defensive loader)
   let terrainEngine, tileSize;
@@ -224,13 +251,15 @@
         ctx.fillRect(c*cellW, r*cellH, cellW-1, cellH-1);
       }
     }
-    // goal sign
-    ctx.fillStyle = 'rgba(0,0,0,.18)';
-    ctx.fillRect(goal.c*cellW, goal.r*cellH, cellW, cellH);
-    ctx.fillStyle = '#ffedd5';
-    ctx.font = `${Math.floor(cellH*0.6)}px system-ui`;
-    ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText('✖', goal.c*cellW + cellW/2, goal.r*cellH + cellH/2);
+    // goal sign (guard if goal not valid yet)
+    if(goal && Number.isFinite(goal.r) && Number.isFinite(goal.c)){
+      ctx.fillStyle = 'rgba(0,0,0,.18)';
+      ctx.fillRect(goal.c*cellW, goal.r*cellH, cellW, cellH);
+      ctx.fillStyle = '#ffedd5';
+      ctx.font = `${Math.floor(cellH*0.6)}px system-ui`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('✖', goal.c*cellW + cellW/2, goal.r*cellH + cellH/2);
+    }
   }
   function setupTerrainMini(){
     if(!(window.TerrainAtlas && window.TerrainEngine)){
@@ -250,10 +279,13 @@
         await TerrainAtlas.setVariant(atlasJson.defaultVariant || 'color1');
         const cfg = TerrainAtlas.getConfig();
         const t = cfg.tileSize || 64;
+        // Expose tile size globally so placement and overlay can stay in sync
+        tileSize = t;
 
         // Try external map json for no-code island layout
         const qs = new URLSearchParams(location.search);
-        const mapName = qs.get('map') || 'island1.json';
+        // Default to an existing map file in repo
+        const mapName = qs.get('map') || 'island.json';
         let map = null;
         try{
           const res = await fetch('/elearn/worlds/kindercoder/maps/' + mapName, {cache:'no-cache'});
@@ -264,8 +296,64 @@
           COLS = map.cols; ROWS = map.rows;
         }
 
+        // Allow custom start/goal from map JSON or URL query (?start=r,c&goal=r,c)
+        function clampRC(p){
+          if(!p) return null; const r = Math.max(0, Math.min(ROWS-1, p.r|0)); const c = Math.max(0, Math.min(COLS-1, p.c|0)); return {r,c};
+        }
+        function parseRC(s){ if(!s) return null; const a=s.split(',').map(x=>+x); if(a.length!==2||!a.every(Number.isFinite)) return null; return {r:a[0], c:a[1]}; }
+        let mapStart = clampRC(map?.start);
+        let mapGoal  = clampRC(map?.goal);
+        const qsStart  = clampRC(parseRC(qs.get('start')));
+        const qsGoal   = clampRC(parseRC(qs.get('goal')));
+        if(qsStart) start = qsStart; else if(mapStart) start = mapStart; else start = start || { r: 0, c: 0 };
+        if(qsGoal)  goal  = qsGoal;  else if(mapGoal)  goal  = mapGoal;  else goal  = goal  || { r: Math.min(ROWS-1, 3), c: Math.min(COLS-1, 3) };
+
+        // Optional: per-slide preset ONLY if explicitly requested via ?preset=1
+        // Preserve existing start/goal (map or defaults) by default.
+        if (!qsStart && !qsGoal && String(qs.get('preset')) === '1') {
+          const preset = levelPreset(curSlide, ROWS, COLS);
+          if (preset && preset.start && preset.goal) { start = preset.start; goal = preset.goal; }
+        }
+
+        // Sync internal robot position to map start so initial placement matches JSON
+        if (start && Number.isFinite(start.r) && Number.isFinite(start.c)) {
+          pos = { r: start.r, c: start.c };
+        }
+        // Clamp only (JSON already uses 0-based r,c like the engine)
+        const adj = (p)=> ({ r: Math.max(0, Math.min(ROWS-1, (p.r|0))), c: Math.max(0, Math.min(COLS-1, (p.c|0))) });
+        if (mapStart) mapStart = adj(mapStart);
+        if (mapGoal)  mapGoal  = adj(mapGoal);
+        checkpoints = Array.isArray(map?.checkpoints) ? map.checkpoints.map(adj) : [];
+        items       = Array.isArray(map?.items) ? map.items.map(adj) : [];
+        obstacles   = Array.isArray(map?.obstacles) ? map.obstacles.map(adj) : [];
+
         CANVAS.width  = COLS * t;
         CANVAS.height = ROWS * t;
+
+        // CSS scale canvas to fit the board container without cropping
+        const boardEl = document.querySelector('.board');
+        // If map json provides viewport hint, honor it for exact match with editor
+        if(map && map.viewport && Number.isFinite(map.viewport.cssWidth) && Number.isFinite(map.viewport.cssHeight)){
+          boardEl.style.width  = map.viewport.cssWidth + 'px';
+          boardEl.style.height = map.viewport.cssHeight + 'px';
+          boardEl.style.aspectRatio = `${COLS} / ${ROWS}`;
+          CANVAS.style.width  = map.viewport.cssWidth + 'px';
+          CANVAS.style.height = map.viewport.cssHeight + 'px';
+        } else {
+          // Fallback: fit responsively into board
+          if(boardEl && COLS && ROWS){ boardEl.style.aspectRatio = `${COLS} / ${ROWS}`; }
+          function fitCanvasCSS(){
+            const availW = boardEl.clientWidth  || (COLS * t);
+            const availH = boardEl.clientHeight || (ROWS * t);
+            const sx = availW / (COLS * t);
+            const sy = availH / (ROWS * t);
+            const s = Math.min(sx, sy); // allow upscale; canvas uses pixelated rendering
+            CANVAS.style.width  = Math.floor(CANVAS.width  * s) + 'px';
+            CANVAS.style.height = Math.floor(CANVAS.height * s) + 'px';
+          }
+          fitCanvasCSS();
+          new ResizeObserver(fitCanvasCSS).observe(boardEl);
+        }
 
         await TerrainEngine.init({
           atlasUrl: ATLAS_JSON,
@@ -278,6 +366,7 @@
 
         // Optional: tiled water background texture
         try{ await TerrainEngine.setWaterTexture('/elearn/models/ts-fp/Terrain/Water%20Background%20color.png'); }catch(_){ }
+        try{ await TerrainEngine.enableWaterWaves({ fps: 12, opacity: 0.7 }); }catch(_){ }
 
         // Build grids either from map json or fallback to a handcrafted island
         const g  = TerrainEngine.getGrid('ground');
@@ -296,20 +385,42 @@
             }
           }
         }
+        function applyColors(grid, colors){
+          if(!grid || !colors) return;
+          for(let r=0;r<ROWS;r++){
+            const row = colors[r] || ''.padEnd(COLS,'0');
+            for(let c=0;c<COLS;c++){
+              const ch = row.charAt(c);
+              const n = parseInt(ch,10);
+              grid[r][c] = Number.isFinite(n) ? n : (ch==='1'?1:0);
+            }
+          }
+        }
 
         if(map && map.layers){
           applyMask(w,  map.layers.water);
-          applyMask(g,  map.layers.ground);
-          applyMask(cl, map.layers.cliff_land);
-          applyMask(cw, map.layers.cliff_water);
-          applyMask(cl2, map.layers.cliff_land2);
-          applyMask(sl, map.layers.slopes);
+          // If map.colors exists, prefer exact per-cell palette codes
+          if(map.colors){
+            applyColors(g,  map.colors.ground);
+            applyColors(cl, map.colors.cliff_land);
+            applyColors(cw, map.colors.cliff_water);
+            applyColors(cl2, map.colors.cliff_land2);
+            applyColors(sl, map.colors.slopes);
+          } else {
+            applyMask(g,  map.layers.ground);
+            applyMask(cl, map.layers.cliff_land);
+            applyMask(cw, map.layers.cliff_water);
+            applyMask(cl2, map.layers.cliff_land2);
+            applyMask(sl, map.layers.slopes);
+          }
           if(g)  TerrainEngine.setGrid('ground', g);
           if(w)  TerrainEngine.setGrid('water', w);
           if(cl) TerrainEngine.setGrid('cliff_land', cl);
           if(cl2)TerrainEngine.setGrid('cliff_land2', cl2);
           if(cw) TerrainEngine.setGrid('cliff_water', cw);
           if(sl) TerrainEngine.setGrid('slopes', sl);
+          // Expose map to module overlay and fire event for decor/buildings rendering
+          try{ window.__gvp4_map = map; window.dispatchEvent(new CustomEvent('gvp4:mapLoaded', { detail:{ map } })); }catch(_){ }
         } else {
           // --- Fallback handcrafted layout (8x8) with plateau, stairs, and small islets ---
           const G = [
@@ -365,12 +476,26 @@
 
         // Render + posisikan robot
         TerrainEngine.render();
+        // Ensure consumers can access current tileSize
+        try{ window.__gvp4_tileSize = t; }catch(_){ }
         placeRobot();
       } catch (e){
         console.error('[GameVP4] setupTerrainMini error:', e);
         drawFallback();
       }
     })();
+  }
+  // Compute simple per-slide start/goal presets based on grid size
+  function levelPreset(n, R, C){
+    // Keep player near right, goal near left; vary rows each slide
+    const rows = Math.max(4, R);
+    const cols = Math.max(4, C);
+    const bandTop = 2, bandBottom = rows - 3;
+    const span = Math.max(1, bandBottom - bandTop);
+    const r = bandTop + ((n-1) % span);
+    const start = { r, c: Math.max(1, cols - 2) };
+    const goal  = { r, c: 1 };
+    return { start, goal };
   }
   // Poll sampai ready (maks 2 detik)
   (function waitForTerrain(maxTry=20){
@@ -412,22 +537,28 @@
   }
 
   // --- Robot state ---
-  const robot = document.getElementById('robot');
+  // DOM robot removed; keep logical position only and notify overlay
   let dir = 0; // 0:right, 1:down, 2:left, 3:up
   let pos = {r:start.r, c:start.c};
 
+  // Visual-only correction so warrior aligns 1:1 with Map Editor markers.
+  // If you observe a 1-row shift, tweak this to 0 or -1 accordingly.
+  const OVERLAY_ROW_OFFSET = +1; // -1 moves warrior up one row; 0 = no shift
   function placeRobot(){
-    // Use tileSize from TerrainAtlas if available
-    const tsize = (typeof tileSize === "number") ? tileSize : 80;
+    // Use actual CSS-scaled tile size so DOM placement matches canvas
+    const baseTile = (typeof tileSize === 'number') ? tileSize : 64;
     const canvasBB = CANVAS.getBoundingClientRect();
-    const boardBB  = robot.parentElement.getBoundingClientRect();
-    const x = (canvasBB.left - boardBB.left) + pos.c * tsize + tsize/2 - 26;
-    const y = (canvasBB.top  - boardBB.top)  + pos.r * tsize + tsize/2 - 26;
-    robot.style.transform = `translate(${x}px, ${y}px) rotate(${dir*90}deg)`;
-    // Notify overlay listeners to sync warrior position (center of tile)
-    const centerX = (canvasBB.left - boardBB.left) + pos.c * tsize + tsize/2;
-    const centerY = (canvasBB.top  - boardBB.top)  + pos.r * tsize + tsize/2;
-    window.dispatchEvent(new CustomEvent('gvp4:place', { detail:{ r:pos.r, c:pos.c, dir, tileSize:tsize, x:centerX, y:centerY } }));
+    const boardBB  = CANVAS.parentElement.getBoundingClientRect();
+    const scaleX = CANVAS.width > 0 ? (canvasBB.width / CANVAS.width) : 1;
+    const tcss = baseTile * scaleX;
+    const x = (canvasBB.left - boardBB.left) + pos.c * tcss + tcss/2 - 26;
+    const y = (canvasBB.top  - boardBB.top)  + pos.r * tcss + tcss/2 - 26;
+    // Notify overlay listeners to sync warrior position using canvas tile size (not CSS)
+    const centerX = (canvasBB.left - boardBB.left) + pos.c * tcss + tcss/2;
+    const centerY = (canvasBB.top  - boardBB.top)  + pos.r * tcss + tcss/2;
+    const canvasTile = (typeof tileSize === 'number' && tileSize > 0) ? tileSize : (CANVAS.width/Math.max(1,COLS));
+    const rOverlay = Math.max(0, Math.min(ROWS-1, pos.r + OVERLAY_ROW_OFFSET));
+    window.dispatchEvent(new CustomEvent('gvp4:place', { detail:{ r:rOverlay, c:pos.c, dir, tileSize: canvasTile, x:centerX, y:centerY } }));
   }
   // Allow external listeners to request current placement broadcast
   window.addEventListener('gvp4:requestPlace', ()=>{ placeRobot(); });
@@ -653,7 +784,12 @@
       const ok = await exec(t);
       if(!ok){ showToast('Ups, menabrak dinding.', 'fail'); break; }
       pc++;
-      if(pos.r===goal.r && pos.c===goal.c){ showToast('Mantap! Sampai tujuan ✔', 'success'); break; }
+      if(pos.r===goal.r && pos.c===goal.c){
+        const need = (checkpoints.length>0 || items.length>0);
+        const ok = (!need) || (visited.size>=checkpoints.length && collected.size>=items.length);
+        if(ok){ showToast('Mantap! Sampai tujuan ✔', 'success'); try{ onWinOnce(); }catch(_){} break; }
+        else { showToast('Belum memenuhi syarat!'); }
+      }
     }
     running = false;
   }
@@ -676,7 +812,12 @@
     if(!ok){ showToast('Ups, menabrak dinding.', 'fail'); return; }
 
     pc++;
-    if(pos.r===goal.r && pos.c===goal.c){ showToast('Mantap! Sampai tujuan ✔', 'success'); }
+    if(pos.r===goal.r && pos.c===goal.c){
+      const need = (checkpoints.length>0 || items.length>0);
+      const ok = (!need) || (visited.size>=checkpoints.length && collected.size>=items.length);
+      if(ok){ showToast('Mantap! Sampai tujuan ✔', 'success'); try{ onWinOnce(); }catch(_){} }
+      else { showToast('Belum memenuhi syarat!'); }
+    }
   }
 
   function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
@@ -691,23 +832,29 @@
 
       // Cek batas atlas
       if(next.r<0 || next.c<0 || next.r>=ROWS || next.c>=COLS){
-        robot.animate([{transform:robot.style.transform},
-                       {transform:robot.style.transform+' translateY(-4px)'},
-                       {transform:robot.style.transform}], {duration:220});
         await sleep(220); return false;
       }
 
       // Cek walkability berdasarkan jenis tile (ground/water/cliff/slope)
       if(!isWalkable(next.r, next.c, dir)){
-        robot.animate([{transform:robot.style.transform},
-                       {transform:robot.style.transform+' translateY(-4px)'},
-                       {transform:robot.style.transform}], {duration:220});
         await sleep(220); return false;
       }
 
       // Announce start of movement for overlay animation (run)
       window.dispatchEvent(new CustomEvent('gvp4:moveStart', { detail:{ from:{...pos}, to:next, dir } }));
       pos = next; placeRobot();
+      // Gameplay markers
+      const key = `${pos.r},${pos.c}`;
+      // Obstacle -> reset to start
+      if(obstacles.some(p=>p.r===pos.r && p.c===pos.c)){
+        showToast('Menabrak rintangan! Kembali ke Start.', 'fail');
+        pos = {r:start.r, c:start.c}; dir = 0; placeRobot();
+        await sleep(260);
+        window.dispatchEvent(new CustomEvent('gvp4:moveEnd', { detail:{ pos:{...pos}, dir } }));
+        return false;
+      }
+      if(checkpoints.some(p=>p.r===pos.r && p.c===pos.c)) visited.add(key);
+      if(items.some(p=>p.r===pos.r && p.c===pos.c)) collected.add(key);
       await sleep(260);
       window.dispatchEvent(new CustomEvent('gvp4:moveEnd', { detail:{ pos:{...pos}, dir } }));
       return true;
@@ -715,12 +862,97 @@
     return true;
   }
 
-  // (Optional visual state) Mark slide 1 as active and others inactive for now
-  document.querySelectorAll('.top-slides .slide-dot').forEach((el,i)=>{
-    if(i>0) el.classList.add('inactive');
-  });
+  // Slide navigation: highlight current + allow click to jump
+  (function initSlides(){
+    const dots = Array.from(document.querySelectorAll('.top-slides .slide-dot'));
+    dots.forEach((el,i)=>{
+      const idx=i+1; el.classList.toggle('inactive', idx!==curSlide);
+      el.onclick = ()=>{
+        const sp = new URLSearchParams(location.search); sp.set('s', String(idx));
+        location.search = sp.toString();
+      };
+    });
+  })();
   initBlockly();
   updateCounter();
+})();
+</script>
+
+<script>
+// Simple win popup + coin claim integration
+(function(){
+  let WIN_DONE = false;
+  window.onWinOnce = async function(){
+    if (WIN_DONE) return; WIN_DONE = true;
+    try{ showWinPopup({ state:'pending' }); }catch(_){ }
+    try{
+      // Attach slide to lesson id so points can be configured per slide in points.config.json overrides
+      const s = new URLSearchParams(location.search).get('s') || '1';
+      const payload = { course_id: 'kindercoder', lesson_id: `gamevp4-s${s}` };
+      // Try to pass FE user as header (server middleware accepts X-UID/X-ROLE)
+      let info = {};
+      try { if (typeof getUserInfo === 'function') info = getUserInfo() || {}; } catch(_){}
+      const headers = { 'Content-Type': 'application/json' };
+      if (info.uid) headers['X-UID'] = String(info.uid);
+      if (info.role) headers['X-ROLE'] = String(info.role).toLowerCase();
+      const res = await fetch('/api/points/claim', { method:'POST', credentials:'include', headers, body: JSON.stringify(payload) });
+      const data = await res.json().catch(()=>({ ok:false }));
+      if (data && (data.ok || typeof data.total_points === 'number')){
+        const total = Number(data.total_points || 0);
+        const added = Number(data.added || 0);
+        try { window.dispatchEvent(new CustomEvent('points:updated', { detail:{ total_points: total } })); } catch(_){ }
+        showWinPopup({ state:'success', added, total });
+      } else {
+        showWinPopup({ state:'error', message: (data && (data.error||data.message)) || 'Gagal klaim poin' });
+      }
+    } catch (e) {
+      showWinPopup({ state:'error', message: e.message || 'Gagal klaim poin' });
+    }
+  };
+
+  function showWinPopup({ state='success', added=0, total=0, message='' }={}){
+    // Reuse if already visible
+    let ov = document.getElementById('gvpWinOverlay');
+    if (!ov) {
+      ov = document.createElement('div'); ov.id='gvpWinOverlay';
+      Object.assign(ov.style,{ position:'fixed', inset:'0', background:'rgba(0,0,0,0.6)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:10060 });
+      const box = document.createElement('div'); box.id='gvpWinBox';
+      Object.assign(box.style,{ width:'min(560px,92vw)', background:'#111827', color:'#fff', border:'1px solid #243249', borderRadius:'14px', boxShadow:'0 10px 30px rgba(0,0,0,.45)', padding:'18px 20px' });
+      box.innerHTML = `
+        <div style="font-size:28px;font-weight:900;letter-spacing:.5px;text-align:center;margin-bottom:8px">MENANG 🎉</div>
+        <div id="gvpWinBody" style="text-align:center;font-size:15px;opacity:.95">Sedang memproses hadiah...</div>
+        <div style="display:flex;gap:10px;justify-content:center;margin-top:14px">
+          <button id="gvpContinue" style="background:#22c55e;color:#0b1220;border:none;border-radius:10px;padding:10px 16px;font-weight:800;cursor:pointer">Lanjutkan</button>
+        </div>`;
+      ov.appendChild(box);
+      document.body.appendChild(ov);
+      document.getElementById('gvpContinue').onclick = ()=>{
+        // Next slide by query param ?s=..
+        const sp = new URLSearchParams(location.search);
+        const cur = Math.max(1, Math.min(12, parseInt(sp.get('s')||'1',10)||1));
+        const next = Math.min(12, cur + 1);
+        sp.set('s', String(next));
+        location.search = sp.toString();
+      };
+      ov.addEventListener('click', (e)=>{ if (e.target===ov) ov.remove(); });
+      document.addEventListener('keydown', (e)=>{ if (e.key==='Escape') ov.remove(); }, { once:true });
+    }
+    const body = document.getElementById('gvpWinBody');
+    if (!body) return;
+    if (state==='pending'){
+      body.textContent = 'Sedang memproses hadiah...';
+    } else if (state==='success'){
+      body.innerHTML = `
+        <div style="display:flex;justify-content:center;gap:14px;align-items:baseline;margin:6px 0 2px">
+          <div style="font-size:40px">🪙</div>
+          <div style="font-size:40px;font-weight:900">+${added}</div>
+        </div>
+        <div style="opacity:.9;margin-top:6px">Total Coin: ${total}</div>
+      `;
+    } else {
+      body.innerHTML = `<div style="color:#fecaca">${message || 'Terjadi kesalahan.'}</div>`;
+    }
+  }
 })();
 </script>
 
@@ -769,7 +1001,7 @@
     update(dt){ this.t += dt; this.acc += dt; const fps=W_FPS[this.state]||10; const frameMs=1000/fps; const entry=this.cache.get(this.state)||this.cache.get('Idle'); if(!entry) return; while(this.acc>=frameMs){ this.acc-=frameMs; this.frameIdx=(this.frameIdx+1)%(entry.frames||1);} },
     draw(ctx){ const entry=this.cache.get(this.state)||this.cache.get('Idle'); if(!entry) return; const {img,frames,fw,fh,vertical}=entry; const idx=this.frameIdx%(frames||1); const sx=vertical?0:idx*fw; const sy=vertical?idx*fh:0; const scale=1; const dx=Math.round(this.x - fw*scale/2); const dy=Math.round(this.y - fh*scale); ctx.drawImage(img, sx, sy, fw, fh, dx, dy, fw*scale, fh*scale); }
   };
-  scene.add(warrior);
+  // Do not add warrior directly; we will draw it within decor pass for proper y-sorting
 
   // Sync warrior with robot grid position via custom events from the non-module script
   window.addEventListener('gvp4:place', (e)=>{
@@ -782,14 +1014,148 @@
   window.addEventListener('gvp4:moveStart', ()=>{ warrior.state = 'Run'; warrior.acc=0; });
   window.addEventListener('gvp4:moveEnd',   ()=>{ warrior.state = 'Idle'; });
 
-  // Hide original robot SVG (we draw warrior instead)
-  const robotEl = document.getElementById('robot');
-  if(robotEl) robotEl.style.display = 'none';
+  // Robot SVG removed; warrior overlay is the only character
 
-  // Ask for initial placement once listeners are ready
+  // Ask for initial placement once listeners are ready, with safe fallback
+  if(typeof tileSize === 'number' && start){ warrior.x = start.c*tileSize + tileSize/2; warrior.y = start.r*tileSize + tileSize/2; }
   window.dispatchEvent(new CustomEvent('gvp4:requestPlace'));
 
   scene.start();
+
+  // --- Map Decor/Building/Torch renderer (reads JSON exported by map-editor) ---
+  // Minimal loaders copied from editor, adapted for viewer-only (no interactions)
+  const TREE_BASE = "/elearn/models/ts-fp/Decorations/Trees/";
+  const TREE_SHEETS = {1: TREE_BASE+"Tree1.png", 2: TREE_BASE+"Tree2.png", 3: TREE_BASE+"Tree3.png", 4: TREE_BASE+"Tree4.png"};
+  const TREE_JSON = TREE_BASE + "Trees.json";
+  const SHEEP_BASE = "/elearn/models/ts-fp/Decorations/Sheep/";
+  const SHEEP_SHEETS = { idle: SHEEP_BASE+"Sheep_Idle.png", grass: SHEEP_BASE+"Sheep_Grass.png", move: SHEEP_BASE+"Sheep_Move.png" };
+  const SHEEP_JSON = SHEEP_BASE + "Sheep.json";
+  const TORCH_BASE = "/elearn/models/ts-up/Factions/Goblins/Troops/Torch/Purple/";
+  const TORCH_SHEET = TORCH_BASE + "Torch_Purple.png";
+  const TORCH_JSON = TORCH_BASE + "Torch_Purple.json";
+
+  const treeImgCache = new Map();
+  const treeFramesCache = new Map();
+  const sheepImgCache = new Map();
+  const sheepFramesCache = new Map();
+  let torchImg = null; const torchFramesCache = new Map();
+
+  function loadImg2(src){ return new Promise((res,rej)=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=()=>rej(new Error('img:'+src)); im.src=src; }); }
+  async function loadTreeImg(idx){ if(!treeImgCache.has(idx)) treeImgCache.set(idx, await loadImg2(TREE_SHEETS[idx])); return treeImgCache.get(idx); }
+  async function loadTreeFrames(idx){
+    if(treeFramesCache.has(idx)) return treeFramesCache.get(idx);
+    let doc=null; try{ const r=await fetch(TREE_JSON, {cache:'no-cache'}); if(r.ok) doc=await r.json(); }catch(_){ }
+    let frames=[]; if(doc){ const framesArray = Object.values(doc.frames||{}); const tag=(doc.meta?.frameTags||[]).find(t=> (t.name||'').toLowerCase()===('tree '+idx)); if(tag){ const baseX=framesArray[tag.from].frame.x; for(let i=tag.from;i<=tag.to;i++){ const f=framesArray[i]; frames.push({sx:f.frame.x-baseX, sy:f.frame.y, w:f.frame.w, h:f.frame.h, dur:f.duration}); } } }
+    if(frames.length===0){ const w=192,h=256; for(let i=0;i<8;i++) frames.push({sx:i*w, sy:0, w, h, dur:100}); }
+    treeFramesCache.set(idx, frames); return frames;
+  }
+  async function loadSheepImg(anim){ const key=(anim||'idle').toLowerCase(); if(!sheepImgCache.has(key)) sheepImgCache.set(key, await loadImg2(SHEEP_SHEETS[key])); return sheepImgCache.get(key); }
+  async function loadSheepFrames(anim){
+    const key=(anim||'idle').toLowerCase(); if(sheepFramesCache.has(key)) return sheepFramesCache.get(key);
+    let doc=null; try{ const r=await fetch(SHEEP_JSON, {cache:'no-cache'}); if(r.ok) doc=await r.json(); }catch(_){ }
+    let frames=[]; if(doc && doc.frames){ const framesArray=Object.values(doc.frames); const tag=(doc.meta?.frameTags||[]).find(t=> (t.name||'').toLowerCase()===key); if(tag){ const baseX=framesArray[tag.from].frame.x; for(let i=tag.from;i<=tag.to;i++){ const f=framesArray[i]; frames.push({ sx:f.frame.x-baseX, sy:f.frame.y, w:f.frame.w, h:f.frame.h, dur:f.duration }); } } }
+    if(frames.length===0){ for(let i=0;i<8;i++) frames.push({ sx:i*128, sy:0, w:128, h:128, dur:100 }); }
+    sheepFramesCache.set(key, frames); return frames;
+  }
+  async function loadTorchImg(){ if(!torchImg) torchImg = await loadImg2(TORCH_SHEET); return torchImg; }
+  async function loadTorchFrames(anim){
+    const key=(anim||'idle').toLowerCase(); if(torchFramesCache.has(key)) return torchFramesCache.get(key);
+    let doc=null; try{ const r=await fetch(TORCH_JSON, {cache:'no-cache'}); if(r.ok) doc=await r.json(); }catch(_){ }
+    let rawFrames=[]; if(doc && doc.frames){ const framesArray=Object.values(doc.frames); const tag=(doc.meta?.frameTags||[]).find(t => (t.name||'').toLowerCase()===key); if(tag){ for(let i=tag.from;i<=tag.to;i++){ const f=framesArray[i]; if(f?.frame?.w>0 && f?.frame?.h>0){ rawFrames.push({ sx:f.frame.x, sy:f.frame.y, w:f.frame.w, h:f.frame.h, dur:f.duration||100 }); } } } }
+    if(rawFrames.length===0){ const w=192,h=192; const guess=[]; for(let i=0;i<3;i++) guess.push({sx:i*w, sy:0, w, h, dur:100}); torchFramesCache.set(key, guess); return guess; }
+    await loadTorchImg();
+    const off=document.createElement('canvas'); off.width=Math.max(...rawFrames.map(f=>f.w))||1; off.height=Math.max(...rawFrames.map(f=>f.h))||1; const octx=off.getContext('2d',{willReadFrequently:true});
+    const filtered=[]; for(const f of rawFrames){ octx.clearRect(0,0,off.width,off.height); octx.drawImage(torchImg, f.sx, f.sy, f.w, f.h, 0, 0, f.w, f.h); const imgd=octx.getImageData(0,0,f.w,f.h); let alphaSum=0; const data=imgd.data; for(let i=3;i<data.length;i+=4) alphaSum += data[i]; if(alphaSum>0) filtered.push(f); }
+    const frames=filtered.length>0?filtered:rawFrames; torchFramesCache.set(key, frames); return frames;
+  }
+
+  function knightBuildingPath(type, color, state){
+    const base = '/elearn/models/ts-up/Factions/Knights/Buildings/';
+    if(type==='castle'){
+      if(state==='construction') return base+'Castle/Castle_Construction.png';
+      if(state==='destroyed')    return base+'Castle/Castle_Destroyed.png';
+      const col=(color||'blue'); return base+`Castle/Castle_${col[0].toUpperCase()+col.slice(1)}.png`;
+    }
+    if(type==='tower'){
+      if(state==='construction') return base+'Tower/Tower_Construction.png';
+      if(state==='destroyed')    return base+'Tower/Tower_Destroyed.png';
+      const col=(color||'blue'); return base+`Tower/Tower_${col[0].toUpperCase()+col.slice(1)}.png`;
+    }
+    const colMap = {house1:'blue', house2:'red', house3:'yellow'};
+    const houseCol = colMap[type] || 'blue';
+    if(state==='construction') return base+'House/House_Construction.png';
+    if(state==='destroyed')    return base+'House/House_Destroyed.png';
+    return base+`House/House_${houseCol[0].toUpperCase()+houseCol.slice(1)}.png`;
+  }
+  function goblinBuildingPath(type, color, state){
+    const base = '/elearn/models/ts-up/Factions/Goblins/Buildings/';
+    if(type==='wood_tower'){
+      if(state==='construction') return base+'Wood_Tower/Wood_Tower_InConstruction.png';
+      if(state==='destroyed')    return base+'Wood_Tower/Wood_Tower_Destroyed.png';
+      const col=(color||'purple'); const cap=col[0].toUpperCase()+col.slice(1);
+      return base+`Wood_Tower/Wood_Tower_${cap}.png`;
+    }
+    if(type==='wood_house'){
+      if(state==='destroyed') return base+'Wood_House/Goblin_House_Destroyed.png';
+      return base+'Wood_House/Goblin_House.png';
+    }
+    return null;
+  }
+
+  const decorRuntime = {
+    trees:[], sheeps:[], torches:[], buildings:[],
+    async fromMap(doc){
+      this.trees.length=0; this.sheeps.length=0; this.torches.length=0; this.buildings.length=0;
+      for(const t of (doc.decorTrees||[])){ const idx=t.type||1; await loadTreeImg(idx); await loadTreeFrames(idx); this.trees.push({ idx, x:t.x||0, y:t.y||0, scale:t.scale||1, fi:0, acc:0, fps:10 }); }
+      for(const s of (doc.decorSheep||[])){ const anim=(s.anim||'idle').toLowerCase(); await loadSheepImg(anim); await loadSheepFrames(anim); this.sheeps.push({ anim, x:s.x||0, y:s.y||0, scale:s.scale||1, fi:0, acc:0, fps:10 }); }
+      for(const tt of (doc.goblinTorches||doc.decorTorches||[])){ const anim=(tt.anim||'idle').toLowerCase(); await loadTorchImg(); await loadTorchFrames(anim); this.torches.push({ anim, x:tt.x||0, y:tt.y||0, scale:tt.scale||1, fi:0, acc:0, fps:10 }); }
+      for(const b of (doc.buildings||[])){
+        const spec={ faction:b.faction||'knight', type:b.type||'castle', color:b.color||'blue', state:b.state||'normal' };
+        const src = spec.faction==='knight' ? knightBuildingPath(spec.type, spec.color, spec.state) : goblinBuildingPath(spec.type, spec.color, spec.state);
+        if(src){ try{ const img = await loadImg2(src); this.buildings.push({ ...spec, x:b.x||0, y:b.y||0, scale:b.scale||1, img }); }catch(_){} }
+      }
+    },
+    update(dt){
+      const adv=(arr)=>{ for(const it of arr){ it.acc += dt; const frameMs=1000/(it.fps||10); while(it.acc>=frameMs){ it.acc-=frameMs; it.fi=(it.fi+1)%8; } } };
+      adv(this.trees); adv(this.sheeps); adv(this.torches);
+    },
+    draw(ctx){
+      const list=[];
+      for(const t of this.trees){ const fr=(treeFramesCache.get(t.idx)||[])[t.fi]||(treeFramesCache.get(t.idx)||[])[0]; const img=treeImgCache.get(t.idx); if(!fr||!img) continue; const dw=fr.w*t.scale, dh=fr.h*t.scale; const dx=Math.round(t.x-0.5*dw), dy=Math.round(t.y-dh); list.push({y:t.y, draw:()=>ctx.drawImage(img, fr.sx, fr.sy, fr.w, fr.h, dx, dy, dw, dh)}); }
+      for(const s of this.sheeps){ const fr=(sheepFramesCache.get((s.anim||'idle'))||[])[s.fi]||(sheepFramesCache.get((s.anim||'idle'))||[])[0]; const img=sheepImgCache.get((s.anim||'idle')); if(!fr||!img) continue; const dw=fr.w*s.scale, dh=fr.h*s.scale; const dx=Math.round(s.x-0.5*dw), dy=Math.round(s.y-dh); list.push({y:s.y, draw:()=>ctx.drawImage(img, fr.sx, fr.sy, fr.w, fr.h, dx, dy, dw, dh)}); }
+      for(const t of this.torches){ const fr=(torchFramesCache.get((t.anim||'idle'))||[])[t.fi]||(torchFramesCache.get((t.anim||'idle'))||[])[0]; if(!fr||!torchImg) continue; const dw=fr.w*t.scale, dh=fr.h*t.scale; const dx=Math.round(t.x-0.5*dw), dy=Math.round(t.y-dh); list.push({y:t.y, draw:()=>ctx.drawImage(torchImg, fr.sx, fr.sy, fr.w, fr.h, dx, dy, dw, dh)}); }
+      for(const b of this.buildings){ const img=b.img; if(!img) continue; const dw=img.width*(b.scale||1), dh=img.height*(b.scale||1); const dx=Math.round(b.x-0.5*dw), dy=Math.round(b.y-dh); list.push({y:b.y, draw:()=>ctx.drawImage(img, dx, dy, dw, dh)}); }
+      list.sort((a,b)=>a.y-b.y); for(const it of list) it.draw();
+    }
+  };
+
+  const overlayCtx = scene.ctx; // alias
+  // Create a scene object to render decor each frame
+  const decorObj = { 
+    update:(dt)=>{ warrior.update(dt); decorRuntime.update(dt); },
+    draw:(ctx)=>{
+      try{
+        // unified y-sorted draw: decor + warrior
+        const list=[];
+        for(const t of decorRuntime.trees){ const fr=(treeFramesCache.get(t.idx)||[])[t.fi]||(treeFramesCache.get(t.idx)||[])[0]; const img=treeImgCache.get(t.idx); if(!fr||!img) continue; const dw=fr.w*t.scale, dh=fr.h*t.scale; const dx=Math.round(t.x-0.5*dw), dy=Math.round(t.y-dh); list.push({y:t.y, draw:()=>ctx.drawImage(img, fr.sx, fr.sy, fr.w, fr.h, dx, dy, dw, dh)}); }
+        for(const s of decorRuntime.sheeps){ const fr=(sheepFramesCache.get((s.anim||'idle'))||[])[s.fi]||(sheepFramesCache.get((s.anim||'idle'))||[])[0]; const img=sheepImgCache.get((s.anim||'idle')); if(!fr||!img) continue; const dw=fr.w*s.scale, dh=fr.h*s.scale; const dx=Math.round(s.x-0.5*dw), dy=Math.round(s.y-dh); list.push({y:s.y, draw:()=>ctx.drawImage(img, fr.sx, fr.sy, fr.w, fr.h, dx, dy, dw, dh)}); }
+        for(const t of decorRuntime.torches){ const fr=(torchFramesCache.get((t.anim||'idle'))||[])[t.fi]||(torchFramesCache.get((t.anim||'idle'))||[])[0]; if(!fr||!torchImg) continue; const dw=fr.w*t.scale, dh=fr.h*t.scale; const dx=Math.round(t.x-0.5*dw), dy=Math.round(t.y-dh); list.push({y:t.y, draw:()=>ctx.drawImage(torchImg, fr.sx, fr.sy, fr.w, fr.h, dx, dy, dw, dh)}); }
+        for(const b of decorRuntime.buildings){ const img=b.img; if(!img) continue; const dw=img.width*(b.scale||1), dh=img.height*(b.scale||1); const dx=Math.round(b.x-0.5*dw), dy=Math.round(b.y-dh); list.push({y:b.y, draw:()=>ctx.drawImage(img, dx, dy, dw, dh)}); }
+        // Insert warrior
+        list.push({ y: warrior.y, draw:()=> warrior.draw(ctx) });
+        list.sort((a,b)=> a.y - b.y);
+        for(const it of list) it.draw();
+      }catch(_){
+        // graceful fallback: draw warrior only so overlay tetap terlihat
+        warrior.draw(ctx);
+      }
+    }
+  };
+  scene.add(decorObj);
+
+  // Load from map if already available, else wait for event
+  if(window.__gvp4_map){ try{ await decorRuntime.fromMap(window.__gvp4_map); }catch(_){ } }
+  window.addEventListener('gvp4:mapLoaded', async (e)=>{ try{ await decorRuntime.fromMap((e.detail||{}).map||window.__gvp4_map||{}); }catch(_){ } });
 
   // Quick switch tileset variants with keys 1/2/3
   window.addEventListener('keydown', async (e)=>{

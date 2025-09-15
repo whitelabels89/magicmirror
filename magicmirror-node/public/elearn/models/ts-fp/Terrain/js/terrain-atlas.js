@@ -22,7 +22,8 @@
   const _state = {
     atlas: null,                // parsed JSON
     variantKey: null,           // e.g., 'color1'
-    image: null,                // HTMLImageElement
+    image: null,                // HTMLImageElement (current/default)
+    images: new Map(),          // variantKey -> { image, cols, rows }
     cfg: { tileSize: 64, spacing: 0, margin: 0 },
     layout: { cols: 0, rows: 0 },
     cache: new Map(),           // key: `${variantKey}:${index}` -> Offscreen canvas
@@ -70,7 +71,6 @@
     _ensure(v && v.url, `Variant not found: ${variantKey}`);
 
     const img = await _img(v.url);
-    _state.image = img;
 
     // auto-detect cols/rows if not set in atlas
     const t = _state.cfg.tileSize;
@@ -83,7 +83,14 @@
 
     _ensure(cols > 0 && rows > 0, `Invalid grid size from image ${img.width}x${img.height}, tileSize=${t}`);
 
-    _state.layout = { cols, rows };
+    // Save in images map for multi-variant rendering
+    _state.images.set(variantKey, { image: img, cols, rows });
+
+    // Also set as current/default if matches active variant
+    if (variantKey === _state.variantKey) {
+      _state.image = img;
+      _state.layout = { cols, rows };
+    }
   }
 
   async function setVariant(variantKey) {
@@ -93,6 +100,14 @@
     _state.cache.clear();
     await _loadVariantImage(variantKey);
     _state.ready = true;
+  }
+
+  // Ensure an image for the given variant is loaded (no-op if already loaded)
+  async function ensureVariant(variantKey){
+    _ensure(_state.atlas, 'Atlas not loaded. Call load() first.');
+    if(!_state.images.has(variantKey)){
+      await _loadVariantImage(variantKey);
+    }
   }
 
   function getVariant() {
@@ -117,8 +132,14 @@
     }
   }
 
-  function _rectFromIndex(index) {
-    const { cols } = _state.layout;
+  function _rectFromIndex(index, variantKey = null) {
+    // Layout is identical across variants by contract; still pick per-variant if available
+    let layout = _state.layout;
+    if (variantKey && _state.images.has(variantKey)) {
+      const info = _state.images.get(variantKey);
+      layout = { cols: info.cols, rows: info.rows };
+    }
+    const { cols } = layout;
     const col = index % cols;
     const row = Math.floor(index / cols);
     return _rectFromGrid(col, row);
@@ -131,11 +152,17 @@
     return { sx, sy, sw: t, sh: t };
   }
 
-  function _getCacheCanvas(index) {
-    const key = `${_state.variantKey}:${index}`;
+  function _getCacheCanvasVariant(index, variantKey) {
+    const vk = variantKey || _state.variantKey;
+    const key = `${vk}:${index}`;
     if (_state.cache.has(key)) return _state.cache.get(key);
 
-    const { sx, sy, sw, sh } = _rectFromIndex(index);
+    // pick image for this variant
+    const info = _state.images.get(vk);
+    _ensure(info && info.image, `Variant image not loaded: ${vk}`);
+    const img = info.image;
+
+    const { sx, sy, sw, sh } = _rectFromIndex(index, vk);
     const off = document.createElement('canvas');
     off.width = sw;
     off.height = sh;
@@ -143,7 +170,7 @@
     offctx.imageSmoothingEnabled = false;
 
     offctx.clearRect(0, 0, sw, sh);
-    offctx.drawImage(_state.image, sx, sy, sw, sh, 0, 0, sw, sh);
+    offctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
 
     _state.cache.set(key, off);
     return off;
@@ -157,7 +184,16 @@
     _ensure(_state.ready, 'Variant not ready. Call setVariant().');
     const index = _toIndex(input);
     _ensure(index >= 0 && index < _state.layout.cols * _state.layout.rows, `Index out of range: ${index}`);
-    return _getCacheCanvas(index);
+    return _getCacheCanvasVariant(index, _state.variantKey);
+  }
+
+  function getTileVariant(input, variantKey) {
+    _ensure(_state.atlas, 'Atlas not loaded. Call load() first.');
+    const vk = variantKey || _state.variantKey;
+    // If variant image is not yet loaded, fallback to current variant
+    const useVk = _state.images.has(vk) ? vk : _state.variantKey;
+    const index = _toIndex(input);
+    return _getCacheCanvasVariant(index, useVk);
   }
 
   /**
@@ -166,6 +202,15 @@
    */
   function drawTile(ctx, input, dx, dy, scale = 1) {
     const tile = getTile(input);
+    const w = tile.width * scale;
+    const h = tile.height * scale;
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(tile, 0, 0, tile.width, tile.height, dx, dy, w, h);
+  }
+
+  function drawTileVariant(ctx, input, dx, dy, scale = 1, variantKey = null) {
+    const vk = variantKey || _state.variantKey;
+    const tile = getTileVariant(input, vk);
     const w = tile.width * scale;
     const h = tile.height * scale;
     ctx.imageSmoothingEnabled = false;
@@ -192,10 +237,13 @@
   const API = {
     load,
     setVariant,
+    ensureVariant,
     getVariant,
     getConfig,
     getTile,
+    getTileVariant,
     drawTile,
+    drawTileVariant,
     indexOf,
     coordsOf
   };

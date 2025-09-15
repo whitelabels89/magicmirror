@@ -30,7 +30,18 @@
     ready: false,
     overrides: new Map(), // layerId -> { coordsPatch?: {skirt,skirt_end}, options?: { skirtToBottom, skirtDepth } }
     waterTex: null,       // HTMLImageElement for background water
-    waterPattern: null    // CanvasPattern for background fill
+    waterPattern: null,   // CanvasPattern for background fill
+    // Water waves overlay (animated)
+    waves: {
+      enabled: false,
+      fps: 12,
+      opacity: 0.6,
+      frame: 0,
+      lastTs: 0,
+      rafId: 0,
+      elevImgs: [], // [level1..level4] horizontal strips (12 frames)
+      flatImgs: []  // optional flat-ground variants (4 variants)
+    }
   };
 
   function _ensure(cond, msg) {
@@ -63,7 +74,13 @@
     for (const L of layers) _state.layerMap.set(L.id, L);
 
     // 3) Set variant tileset
-    await TerrainAtlas.setVariant(variant || atlasJson.defaultVariant || 'color1');
+    const defVar = variant || atlasJson.defaultVariant || 'color1';
+    await TerrainAtlas.setVariant(defVar);
+    // Preload all known palette variants so we can draw mixed colors per tile synchronously
+    try {
+      const keys = Object.keys(atlasJson.variants || {});
+      for (const k of keys) { await TerrainAtlas.ensureVariant(k); }
+    } catch (_) { /* optional */ }
 
     // 4) Create empty grids if missing
     const { tileSize } = TerrainAtlas.getConfig();
@@ -117,6 +134,33 @@
     L.visible = !!visible;
   }
 
+  // --- Water waves overlay ---
+  function _cancelWaveLoop(){ if(_state.waves.rafId){ cancelAnimationFrame(_state.waves.rafId); _state.waves.rafId = 0; } }
+  function _waveTick(ts){
+    const wv = _state.waves; if(!wv.enabled) return;
+    if(!wv.lastTs) wv.lastTs = ts;
+    const step = 1000/Math.max(1, wv.fps|0);
+    if(ts - wv.lastTs >= step){ wv.frame = (wv.frame + 1) % 12; wv.lastTs = ts; render(); }
+    _state.waves.rafId = requestAnimationFrame(_waveTick);
+  }
+  async function enableWaterWaves(opts = {}){
+    const base = '/elearn/models/ts-fp/Terrain/';
+    const elevPaths = [1,2,3,4].map(n => `${base}Water_Elevation_#${n}_(12frames).png`);
+    const flatPaths = [1,2,3,4].map(n => `${base}Water_FlatGround_#${n}_(12frames).png`);
+    const esc = (s)=> (s||'').replace(/#/g, '%23');
+    const loadImage = (src)=> new Promise((res,rej)=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=()=>rej(new Error('img:'+src)); im.src=esc(src); });
+    const wv = _state.waves;
+    wv.fps = Number.isFinite(opts.fps)?opts.fps:12;
+    wv.opacity = Number.isFinite(opts.opacity)?opts.opacity:0.6;
+    const elevList = (opts.elevationUrls || elevPaths).map(esc);
+    const flatList = (opts.flatUrls || flatPaths).map(esc);
+    wv.elevImgs = await Promise.all(elevList.map(p=>loadImage(p).catch(()=>null)));
+    wv.flatImgs = await Promise.all(flatList.map(p=>loadImage(p).catch(()=>null)));
+    wv.enabled = true; wv.frame = 0; wv.lastTs = 0;
+    _cancelWaveLoop(); _state.waves.rafId = requestAnimationFrame(_waveTick);
+  }
+  function disableWaterWaves(){ _state.waves.enabled=false; _cancelWaveLoop(); }
+
   // Debug/runtime: override layer options/coords without editing atlas JSON.
   // opts = { coordsPatch?: { skirt:[c,r], skirt_end:[c,r] }, options?: { skirtToBottom?:bool, skirtDepth?:number } }
   function overrideLayer(layerId, opts = {}) {
@@ -149,7 +193,8 @@
     if (!_inBounds(grid, x, y)) return false;
 
     // apply to target layer
-    grid[y][x] = val ? 1 : 0;
+    // Allow per-cell palette code: 0=empty, 1..3 = color1..color3
+    grid[y][x] = val ? (Number.isFinite(val) ? val : 1) : 0;
     _state.grids.set(layerId, grid);
 
     if (!useAuto) return true;
@@ -317,29 +362,47 @@
 
     for (let y = 0; y < h; y++) {
       for (let x = 0; x < w; x++) {
-        if (!grid[y][x]) continue; // kosong → skip
+        const cellVal = grid[y][x];
+        if (!cellVal) continue; // kosong → skip
+
+        // Determine variant override for this cell (supports 1..3 → color1..color3)
+        const vk = (cellVal>=1 && cellVal<=9) ? ('color' + cellVal) : null;
 
         let tileCR;
         let chosenMeta = null;
 
         // Custom handling for slopes: choose left/right stairs depending on adjacent cliffs
         if (L.set === 'slopes') {
-          const cliffLand = _state.grids.get('cliff_land');
+          const cliffLand  = _state.grids.get('cliff_land');
+          const cliffLand2 = _state.grids.get('cliff_land2');
           const cliffWater = _state.grids.get('cliff_water');
           const isCliff = (gg, xx, yy) => _inBounds(gg, xx, yy) && !!gg[yy][xx];
-          const hasRight = (isCliff(cliffLand, x+1, y) || isCliff(cliffWater, x+1, y) || isCliff(cliffLand, x+1, y-1) || isCliff(cliffLand, x+1, y+1) || isCliff(cliffWater, x+1, y-1) || isCliff(cliffWater, x+1, y+1));
-          const hasLeft  = (isCliff(cliffLand, x-1, y) || isCliff(cliffWater, x-1, y) || isCliff(cliffLand, x-1, y-1) || isCliff(cliffLand, x-1, y+1) || isCliff(cliffWater, x-1, y-1) || isCliff(cliffWater, x-1, y+1));
+          const isAnyCliff = (xx,yy)=> (
+            isCliff(cliffLand,xx,yy) || isCliff(cliffLand2,xx,yy) || isCliff(cliffWater,xx,yy)
+          );
+          // Prefer same-row adjacency for clean attachment; diagonals as fallback
+          const rightSame = isAnyCliff(x+1, y);
+          const leftSame  = isAnyCliff(x-1, y);
+          // Count nearby cliffs for tie-breakers
+          const rightCount = (rightSame?2:0) + (isAnyCliff(x+1, y-1)?1:0) + (isAnyCliff(x+1, y+1)?1:0);
+          const leftCount  = (leftSame?2:0)  + (isAnyCliff(x-1, y-1)?1:0) + (isAnyCliff(x-1, y+1)?1:0);
+          const faceRight = rightSame || (rightCount>leftCount);
+          const faceLeft  = leftSame  || (leftCount>=rightCount);
           const stairs = setCfg?.stairs || {};
+          // Determine piece position within vertical stack: upper if slope exists below; lower if above
+          const hasBelow = (y+1<h) && !!grid[y+1][x];
+          const hasAbove = (y-1>=0) && !!grid[y-1][x];
+          const isUpperPiece = hasBelow && !hasAbove;
+          const isLowerPiece = hasAbove && !hasBelow;
           let use = null;
-          if (hasRight && !hasLeft) use = stairs.right || [16,1];
-          else if (hasLeft && !hasRight) use = stairs.left || [18,1];
-          else {
-            // fallback: prefer facing the nearest cliff column (right by default)
-            use = ((x % 2) === 0 ? (stairs.right || [16,1]) : (stairs.left || [18,1]));
+          if (faceRight && !faceLeft) {
+            use = (isLowerPiece && stairs.right2) ? stairs.right2 : (stairs.right || [16,1]);
+          } else if (faceLeft && !faceRight) {
+            use = (isLowerPiece && stairs.left2) ? stairs.left2 : (stairs.left || [18,1]);
+          } else {
+            // fallback: lean right; still respect piece role
+            use = (isLowerPiece && stairs.right2) ? stairs.right2 : (stairs.right || [16,1]);
           }
-          // optional alternation for visual variety by row parity
-          if (Array.isArray(use) && stairs.right2 && (y % 2 === 1) && use === stairs.right) use = stairs.right2;
-          if (Array.isArray(use) && stairs.left2  && (y % 2 === 1) && use === stairs.left)  use = stairs.left2;
           tileCR = { col: use[0], row: use[1] };
         }
 
@@ -405,16 +468,111 @@
           tileCR = { col: center[0], row: center[1] };
         }
 
+        // If this is a cliff set, and there is a slope immediately on left/right,
+        // prefer a corner tile (NW/NE/SW/SE) when the slope continues up or down,
+        // otherwise use side edge (W/E) so the cliff lip hugs the stairs.
+        if (tileCR && (L.set === 'cliff_land' || L.set === 'cliff_water') && setCfg && setCfg.coords) {
+          const slopes = _state.grids.get('slopes');
+          const sl = (xx,yy)=> !!(slopes && yy>=0 && yy<h && xx>=0 && xx<w && slopes[yy] && slopes[yy][xx]);
+          const left   = sl(x-1,y), right  = sl(x+1,y);
+          const leftUp = sl(x-1,y-1), leftDn  = sl(x-1,y+1);
+          const rgtUp  = sl(x+1,y-1), rgtDn   = sl(x+1,y+1);
+          const co = setCfg.coords.cornersOut || {};
+          const ed = setCfg.coords.edges || {};
+          if (left && !right) {
+            if (leftUp && !leftDn && Array.isArray(co.NW))      tileCR = { col: co.NW[0], row: co.NW[1] };
+            else if (leftDn && !leftUp && Array.isArray(co.SW)) tileCR = { col: co.SW[0], row: co.SW[1] };
+            else if (Array.isArray(ed.W))                       tileCR = { col: ed.W[0], row: ed.W[1] };
+          } else if (right && !left) {
+            if (rgtUp && !rgtDn && Array.isArray(co.NE))        tileCR = { col: co.NE[0], row: co.NE[1] };
+            else if (rgtDn && !rgtUp && Array.isArray(co.SE))   tileCR = { col: co.SE[0], row: co.SE[1] };
+            else if (Array.isArray(ed.E))                       tileCR = { col: ed.E[0], row: ed.E[1] };
+          }
+          // Explicit design rule: Only for the UPPER piece (16,1) of a slope
+          // that connects to the cliff horizontally, change the cliff tile to
+          // grass top (12,2). Upper piece is the slope cell that has another
+          // slope cell RIGHT BELOW it (stack of 2).
+          if (L.set === 'cliff_land') {
+            const upperJoin = (left && leftDn) || (right && rgtDn);
+            if (upperJoin) {
+              // If this cliff cell is the very top of the cliff (no cliff directly north),
+              // use grass cap tile 12,1. Otherwise, use grass center 12,2.
+              const isTopOfCliff = (y - 1 < 0) || !grid[y-1][x];
+              tileCR = { col: 12, row: isTopOfCliff ? 1 : 2 };
+            }
+          }
+        }
+
         if (!tileCR || typeof tileCR.col !== 'number' || typeof tileCR.row !== 'number') {
           continue;
         }
-        TerrainAtlas.drawTile(ctx, tileCR, x * t, y * t, 1);
+        TerrainAtlas.drawTileVariant(ctx, tileCR, x * t, y * t, 1, vk);
 
         // No extra overlay for horizontal ridge; tile art already includes cap on top of rock.
       }
     }
     // reset blend
     ctx.globalCompositeOperation = 'source-over';
+  }
+
+  function _drawWaterWaves(){
+    const wv = _state.waves; if(!wv.enabled) return;
+    const elevImgs = _state.waves.elevImgs; // [#1,#2,#3,#4]
+    const flatImgs = _state.waves.flatImgs; // [#1,#2,#3,#4]
+    if(!elevImgs || elevImgs.length===0) return;
+
+    const ctx = _state.ctx; const cfg = TerrainAtlas.getConfig(); const t = cfg.tileSize;
+    const g   = _state.grids.get('ground');
+    const clw = _state.grids.get('cliff_water');
+    const cl1 = _state.grids.get('cliff_land');
+    const cl2 = _state.grids.get('cliff_land2');
+    const h = g?.length || 0; const w = (g && g[0])? g[0].length : 0;
+
+    const southOpen = (grid, x, y)=>{
+      if(!grid || !grid[y] || !grid[y][x]) return false;
+      const yy = y + 1; if(yy >= h) return true; // canvas bottom → open
+      return !grid[yy][x];
+    };
+    const hasEdgeHere = (grid, x, y)=> southOpen(grid,x,y);
+    const leftEdge  = (grid, x, y)=> hasEdgeHere(grid, x-1, y);
+    const rightEdge = (grid, x, y)=> hasEdgeHere(grid, x+1, y);
+
+    const drawStrip = (img, dx, dy)=>{
+      if(!img) return;
+      const frames = 12; const fw = Math.floor(img.width / frames) || 1; const fh = img.height;
+      const sx = Math.min(frames-1, Math.max(0, wv.frame)) * fw;
+      ctx.globalAlpha = wv.opacity;
+      // Align the TOP of the strip exactly at the bottom of the current tile
+      // so the foam appears BELOW the land/cliff, not inside it
+      ctx.drawImage(img, sx, 0, fw, fh, dx, dy, fw, fh);
+      ctx.globalAlpha = 1;
+    };
+
+    for(let y=0;y<h;y++){
+      for(let x=0;x<w;x++){
+        // Decide category: only draw waves for cliff_water (elevation) and ground (flat).
+        // Do NOT draw waves under cliff_land or cliff_land2 per requirement.
+        let category = null; // 'elev' | 'flat'
+        let gridRef = null;
+        if (clw && hasEdgeHere(clw,x,y)) { category = 'elev'; gridRef = clw; }
+        else if (g && hasEdgeHere(g,x,y)) { category = 'flat'; gridRef = g; }
+        if(!category) continue;
+
+        // Choose variant 1..4 based on horizontal run membership
+        const L = leftEdge(gridRef,x,y);
+        const R = rightEdge(gridRef,x,y);
+        let idx = 1; // 1..4
+        if(!L && R) idx = 1;                 // left cap
+        else if(L && R) idx = ((x + y) % 2 === 0) ? 2 : 3; // alternating middles for variety
+        else if(L && !R) idx = 4;            // right cap
+        else /* single */ idx = 2;           // single → use middle A
+
+        const img = (category==='elev' ? elevImgs : flatImgs)[idx-1] || null;
+        if(!img) continue;
+        const dx = x * t; const dy = (y+1) * t; // base line
+        drawStrip(img, dx, dy);
+      }
+    }
   }
 
   // Second pass: draw vertical skirts for cliff-like sets after all layers,
@@ -451,12 +609,12 @@
       return Number.isFinite(c) && Number.isFinite(r) && c >= 0 && r >= 0 && c < maxCols && r < maxRows;
     }
 
-    function drawTileSafe(cr, dx, dy) {
+    function drawTileSafe(cr, dx, dy, variantKey) {
       if (!cr) return;
       const c = cr.col, r = cr.row;
       if (!inRangeColRow(c, r)) return; // ignore invalid override coords instead of throwing
       try {
-        TerrainAtlas.drawTile(ctx, { col: c, row: r }, dx, dy, 1);
+        TerrainAtlas.drawTileVariant(ctx, { col: c, row: r }, dx, dy, 1, variantKey);
       } catch (_) {
         // ignore
       }
@@ -516,9 +674,27 @@
           }
         }
 
+        // If a slope is adjacent at this row, skip drawing skirt to let stairs visually merge with cliff.
+        const slopes = _state.grids.get('slopes');
+        const hasSlopeHere   = !!(slopes && slopes[y] && slopes[y][x]);
+        const hasSlopeLeft   = !!(slopes && slopes[y] && slopes[y][x-1]);
+        const hasSlopeRight  = !!(slopes && slopes[y] && slopes[y][x+1]);
+        const slopeNear = hasSlopeHere || hasSlopeLeft || hasSlopeRight;
+        if (slopeNear) {
+          // Robust join: jika ada slope di kiri/kanan pada baris ini dan ini adalah
+          // tepi bawah cliff (southOpen), tarik tile 12,4 sebagai skirt sambungan.
+          if ((L.set === 'cliff_land') && southOpen && (hasSlopeLeft || hasSlopeRight)) {
+            drawTileSafe({ col: 12, row: 4 }, x * t, (y + 1) * t);
+          }
+          // Selalu lewati skirt default ketika ada slope bersebelahan agar tidak tabrakan.
+          continue;
+        }
+
         // Draw only a single-step skirt immediately below, regardless of what lies beneath (empty/water/ground).
         // No repetition to bottom and no end-caps.
-        drawTileSafe(skirtCR || { col: coords.skirt[0], row: coords.skirt[1] }, x * t, (y + 1) * t);
+        const cellVal = grid[y][x];
+        const vk = (cellVal>=1 && cellVal<=9) ? ('color' + cellVal) : null;
+        drawTileSafe(skirtCR || { col: coords.skirt[0], row: coords.skirt[1] }, x * t, (y + 1) * t, vk);
         continue;
       }
     }
@@ -540,7 +716,9 @@
       ctx.clearRect(0, 0, width, height);
     }
 
+    // PASS 1: draw all base layers EXCEPT slopes
     for (const L of _state.layers) {
+      if (L.set === 'slopes') continue;
       _drawLayer(L);
       // Draw ground skirts immediately after ground base so higher layers can cover them.
       const setCfg = _state.atlas?.sets?.[L.set];
@@ -549,7 +727,8 @@
       }
     }
 
-    // Overlay skirts for non-ground layers after base tiles to guarantee visibility for cliffs/decor
+    // PASS 2: overlay skirts for non-ground layers after base tiles (but before slopes),
+    // so slopes can appear on top of cliff skirts as desired.
     for (const L of _state.layers) {
       const setCfg = _state.atlas?.sets?.[L.set];
       if (!setCfg) continue;
@@ -557,6 +736,16 @@
         _drawSkirts(L);
       }
     }
+
+    // PASS 3: draw slopes on top
+    for (const L of _state.layers) {
+      if (L.set === 'slopes') {
+        _drawLayer(L);
+      }
+    }
+
+    // Animated water waves at the base of land/cliffs
+    _drawWaterWaves();
   }
 
   // Expose API
@@ -569,7 +758,9 @@
     render,
     createGrid,
     paintCell,
-    setWaterTexture
+    setWaterTexture,
+    enableWaterWaves,
+    disableWaterWaves
   };
 
 })(typeof window !== 'undefined' ? window : globalThis);

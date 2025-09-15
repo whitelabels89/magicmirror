@@ -492,3 +492,65 @@
     dlog('delegated click handler bound (capture)');
   };
 })();
+
+// Conditionally load Pause Menu for Calistung maps
+;(function loadPauseMenuIfCalistung(){
+  try{
+    const p = (location && location.pathname) || '';
+    const match = /\/elearn\/worlds\/calistung\/(alphabet|number|shape|math-game)\//.test(p);
+    if (!match) return;
+    if (window.__hasPauseMenu) return;
+    const s = document.createElement('script');
+    s.src = '/elearn/worlds/ui/pause-menu.js';
+    s.async = true;
+    document.head.appendChild(s);
+    window.__hasPauseMenu = true;
+    // Fallback: if script fails or slow, inject minimal toggle after delay
+    setTimeout(() => {
+      try{
+        if (document.getElementById('pmToggle')) return;
+        // Minimal inline UI
+        const btn = document.createElement('button');
+        btn.id = 'pmToggle';
+        Object.assign(btn.style, {
+          position:'fixed', left:'12px', top:'12px', zIndex: 10050,
+          background:'#111827', color:'#fff', border:'1px solid #243249',
+          borderRadius:'12px', padding:'8px 12px', cursor:'pointer', fontWeight:'800',
+          boxShadow:'0 6px 18px rgba(0,0,0,.25)'
+        });
+        btn.textContent = '⏸ Menu';
+        document.body.appendChild(btn);
+        const ov = document.createElement('div');
+        ov.id = 'pmOverlay';
+        Object.assign(ov.style, {
+          position:'fixed', inset:'0', background:'rgba(0,0,0,.5)',
+          display:'none', alignItems:'center', justifyContent:'center', zIndex: 10040
+        });
+        const panel = document.createElement('div');
+        Object.assign(panel.style, {
+          minWidth:'260px', maxWidth:'min(92vw,520px)', background:'#0f172a', color:'#fff',
+          border:'1px solid #1f2937', borderRadius:'16px', boxShadow:'0 10px 30px rgba(0,0,0,.35)'
+        });
+        const head = document.createElement('div'); head.textContent='Paused';
+        Object.assign(head.style,{padding:'14px 16px', borderBottom:'1px solid #1f2937', fontWeight:'900'});
+        const body = document.createElement('div'); Object.assign(body.style,{padding:'16px'});
+        const row = document.createElement('div'); Object.assign(row.style,{display:'flex', gap:'10px', justifyContent:'flex-end'});
+        const resume = document.createElement('button'); resume.textContent='Lanjut';
+        Object.assign(resume.style,{padding:'10px 14px', borderRadius:'12px', border:'none', background:'#e2e8f0', color:'#0b2942', fontWeight:'800'});
+        const back = document.createElement('a'); back.textContent='⬅ Kembali ke Menu'; back.href='https://queensacademy.id/elearn/worlds/calistung/index.html';
+        Object.assign(back.style,{padding:'10px 14px', borderRadius:'12px', background:'#22c55e', color:'#0b1220', fontWeight:'800', textDecoration:'none'});
+        row.appendChild(resume); row.appendChild(back);
+        body.appendChild(document.createTextNode('Permainan dijeda. Pilih aksi berikut:'));
+        body.appendChild(document.createElement('div')).style.height='10px';
+        body.appendChild(row);
+        panel.appendChild(head); panel.appendChild(body);
+        ov.appendChild(panel);
+        document.body.appendChild(ov);
+        const open = ()=>{ ov.style.display='flex'; };
+        const close = ()=>{ ov.style.display='none'; };
+        btn.onclick = open; resume.onclick = close; ov.addEventListener('click', (e)=>{ if (e.target===ov) close(); });
+        document.addEventListener('keydown', (e)=>{ if (e.key==='Escape') close(); if (e.key && e.key.toLowerCase()==='p') open(); });
+      }catch(_){ /* noop */ }
+    }, 600);
+  }catch(e){ /* noop */ }
+})();

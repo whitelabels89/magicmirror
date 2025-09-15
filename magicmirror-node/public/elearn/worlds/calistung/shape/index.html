@@ -28,6 +28,10 @@
 
   <div id="worldRoot"></div>
 
+  <script>
+    // Hide HUD by default for this world
+    try { localStorage.setItem('hud:hidden:calistung-shape','1'); } catch(_){ }
+  </script>
   <script type="module">
     import { initWorld } from '/elearn/worlds/map.js';
     import { initHud } from '/elearn/worlds/ui/hud.js';
@@ -40,6 +44,12 @@
       rootSelector: '#worldRoot',
       configPath: '/elearn/worlds/calistung/shape/config.json'
     });
+  </script>
+  <script>
+    // Ensure HUD panel is closed on load (avoid auto-open flash)
+    setTimeout(() => {
+      try { const p = document.getElementById('hudPanel'); if (p) p.classList.remove('open'); } catch(_){ }
+    }, 0);
   </script>
 </body>
 </html>
