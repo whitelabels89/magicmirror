@@ -309,8 +309,8 @@
    { "name": "Build", "from": 13, "to": 18, "direction": "forward", "color": "#d186dfff" },
    { "name": "Chop", "from": 19, "to": 24, "direction": "forward", "color": "#d186dfff" },
    { "name": "Carry", "from": 25, "to": 36, "direction": "forward", "color": "#fe5b59ff" },
-   { "name": "Idle", "from": 25, "to": 30, "direction": "forward", "color": "#fe5b59ff" },
-   { "name": "Run", "from": 31, "to": 36, "direction": "forward", "color": "#fe5b59ff" }
+   { "name": "Carry Idle", "from": 25, "to": 30, "direction": "forward", "color": "#fe5b59ff" },
+   { "name": "Carry Run", "from": 31, "to": 36, "direction": "forward", "color": "#fe5b59ff" }
   ],
   "layers": [
    { "name": "Shadow", "opacity": 255, "blendMode": "normal" },

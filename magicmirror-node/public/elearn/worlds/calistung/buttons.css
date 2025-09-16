@@ -1,0 +1,206 @@
+:root {
+  --calistung-btn-radius: 999px;
+  --calistung-btn-font-weight: 800;
+  --calistung-btn-primary-bg: #ff7a18;
+  --calistung-btn-primary-shadow: #e25f00;
+  --calistung-btn-secondary-bg: #111827;
+  --calistung-btn-secondary-shadow: #000000;
+  --calistung-btn-ghost-bg: #e5e7eb;
+  --calistung-btn-ghost-color: #111827;
+}
+
+button:is(
+    [id*="check" i][id],
+    [id*="cek" i][id],
+    [id*="periksa" i][id],
+    [id*="reset" i][id],
+    [id*="shuffle" i][id],
+    [id*="acak" i][id],
+    [id*="random" i][id],
+    [id="btnNew"],
+    [id="btnClear"],
+    [class*="clay-button" i][class],
+    [class*="btn-check" i][class],
+    [class*="btn-reset" i][class],
+    [class*="btn-acak" i][class],
+    [class*="btnCheck" i][class],
+    [class*="btnReset" i][class],
+    [class*="btnShuffle" i][class],
+    [class*="b-primary" i][class],
+    [class*="b-warn" i][class],
+    [class*="b-ghost" i][class],
+    [onclick*="cek" i][onclick],
+    [onclick*="periksa" i][onclick],
+    [onclick*="check" i][onclick],
+    [onclick*="reset" i][onclick],
+    [onclick*="acak" i][onclick],
+    [onclick*="shuffle" i][onclick],
+    [onclick*="random" i][onclick],
+    [onclick*="generateRandom" i][onclick],
+    [onclick*="generateQuestions" i][onclick],
+    [title*="Periksa" i],
+    [title*="Reset" i],
+    [title*="Acak" i]
+  ) {
+  --calistung-btn-bg: var(--calistung-btn-primary-bg);
+  --calistung-btn-color: #fff;
+  --calistung-btn-shadow: 0 6px 0 var(--calistung-btn-primary-shadow);
+  appearance: none !important;
+  border: none !important;
+  border-radius: var(--calistung-btn-radius) !important;
+  padding: 12px 18px !important;
+  font-weight: var(--calistung-btn-font-weight) !important;
+  font-family: inherit !important;
+  font-size: 1rem !important;
+  line-height: 1.1 !important;
+  background: var(--calistung-btn-bg) !important;
+  color: var(--calistung-btn-color) !important;
+  box-shadow: var(--calistung-btn-shadow) !important;
+  cursor: pointer !important;
+  transition: transform .06s ease, opacity .2s ease, filter .2s ease !important;
+  text-decoration: none !important;
+}
+
+button:is(
+    [id*="check" i][id],
+    [id*="cek" i][id],
+    [id*="periksa" i][id],
+    [id*="reset" i][id],
+    [id*="shuffle" i][id],
+    [id*="acak" i][id],
+    [id*="random" i][id],
+    [id="btnNew"],
+    [id="btnClear"],
+    [class*="clay-button" i][class],
+    [class*="btn-check" i][class],
+    [class*="btn-reset" i][class],
+    [class*="btn-acak" i][class],
+    [class*="btnCheck" i][class],
+    [class*="btnReset" i][class],
+    [class*="btnShuffle" i][class],
+    [class*="b-primary" i][class],
+    [class*="b-warn" i][class],
+    [class*="b-ghost" i][class],
+    [onclick*="cek" i][onclick],
+    [onclick*="periksa" i][onclick],
+    [onclick*="check" i][onclick],
+    [onclick*="reset" i][onclick],
+    [onclick*="acak" i][onclick],
+    [onclick*="shuffle" i][onclick],
+    [onclick*="random" i][onclick],
+    [onclick*="generateRandom" i][onclick],
+    [onclick*="generateQuestions" i][onclick],
+    [title*="Periksa" i],
+    [title*="Reset" i],
+    [title*="Acak" i]
+  ):hover:not(:disabled) {
+  transform: translateY(-1px) !important;
+}
+
+button:is(
+    [id*="check" i][id],
+    [id*="cek" i][id],
+    [id*="periksa" i][id],
+    [id*="reset" i][id],
+    [id*="shuffle" i][id],
+    [id*="acak" i][id],
+    [id*="random" i][id],
+    [id="btnNew"],
+    [id="btnClear"],
+    [class*="clay-button" i][class],
+    [class*="btn-check" i][class],
+    [class*="btn-reset" i][class],
+    [class*="btn-acak" i][class],
+    [class*="btnCheck" i][class],
+    [class*="btnReset" i][class],
+    [class*="btnShuffle" i][class],
+    [class*="b-primary" i][class],
+    [class*="b-warn" i][class],
+    [class*="b-ghost" i][class],
+    [onclick*="cek" i][onclick],
+    [onclick*="periksa" i][onclick],
+    [onclick*="check" i][onclick],
+    [onclick*="reset" i][onclick],
+    [onclick*="acak" i][onclick],
+    [onclick*="shuffle" i][onclick],
+    [onclick*="random" i][onclick],
+    [onclick*="generateRandom" i][onclick],
+    [onclick*="generateQuestions" i][onclick],
+    [title*="Periksa" i],
+    [title*="Reset" i],
+    [title*="Acak" i]
+  ):active:not(:disabled) {
+  transform: translateY(2px) !important;
+}
+
+button:is(
+    [id*="check" i][id],
+    [id*="cek" i][id],
+    [id*="periksa" i][id],
+    [id*="reset" i][id],
+    [id*="shuffle" i][id],
+    [id*="acak" i][id],
+    [id*="random" i][id],
+    [id="btnNew"],
+    [id="btnClear"],
+    [class*="clay-button" i][class],
+    [class*="btn-check" i][class],
+    [class*="btn-reset" i][class],
+    [class*="btn-acak" i][class],
+    [class*="btnCheck" i][class],
+    [class*="btnReset" i][class],
+    [class*="btnShuffle" i][class],
+    [class*="b-primary" i][class],
+    [class*="b-warn" i][class],
+    [class*="b-ghost" i][class],
+    [onclick*="cek" i][onclick],
+    [onclick*="periksa" i][onclick],
+    [onclick*="check" i][onclick],
+    [onclick*="reset" i][onclick],
+    [onclick*="acak" i][onclick],
+    [onclick*="shuffle" i][onclick],
+    [onclick*="random" i][onclick],
+    [onclick*="generateRandom" i][onclick],
+    [onclick*="generateQuestions" i][onclick],
+    [title*="Periksa" i],
+    [title*="Reset" i],
+    [title*="Acak" i]
+  ):disabled {
+  opacity: .6 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+button:is(
+    [id*="reset" i][id],
+    [class*="reset" i][class],
+    [class*="btn-reset" i][class],
+    [class*="btnReset" i][class],
+    [onclick*="reset" i][onclick],
+    [title*="Reset" i],
+    #btnClear
+  ) {
+  --calistung-btn-bg: var(--calistung-btn-ghost-bg);
+  --calistung-btn-color: var(--calistung-btn-ghost-color);
+  --calistung-btn-shadow: none;
+}
+
+button:is(
+    [id*="shuffle" i][id],
+    [id*="acak" i][id],
+    [id*="random" i][id],
+    [id="btnNew"],
+    [class*="shuffle" i][class],
+    [class*="acak" i][class],
+    [onclick*="shuffle" i][onclick],
+    [onclick*="acak" i][onclick],
+    [onclick*="random" i][onclick],
+    [onclick*="generateRandom" i][onclick],
+    [onclick*="generateQuestions" i][onclick],
+    [title*="Acak" i]
+  ) {
+  --calistung-btn-bg: var(--calistung-btn-secondary-bg);
+  --calistung-btn-color: #fff;
+  --calistung-btn-shadow: 0 6px 0 var(--calistung-btn-secondary-shadow);
+}

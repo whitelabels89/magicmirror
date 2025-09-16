@@ -9,21 +9,24 @@
 //   });
 
 export async function initUnitPreview(opts){
-  const cfg = Object.assign({ anchor:{x:0.5,y:1.0}, defaultTag:null }, opts||{});
+  const cfg = Object.assign({ anchor:{x:0.5,y:1.0}, defaultTag:null, quickTags:null }, opts||{});
   const root = document.getElementById('app');
   root.innerHTML = `
     <div class="wrap">
       <header>
-        <h1>${escapeHtml(cfg.title||'Preview')}</h1>
-        <div class="ctrls">
-          <label>Anim
-            <select id="tag"></select>
-          </label>
-          <label>Scale <input type="range" id="scale" min="0.25" max="3" step="0.05" value="1"></label>
-          <label>Speed <input type="range" id="speed" min="0.25" max="2" step="0.05" value="1"></label>
-          <button id="btnPlay">Pause</button>
-          <span id="info"></span>
+        <div class="top">
+          <h1>${escapeHtml(cfg.title||'Preview')}</h1>
+          <div class="ctrls">
+            <label>Anim
+              <select id="tag"></select>
+            </label>
+            <label>Scale <input type="range" id="scale" min="0.25" max="3" step="0.05" value="1"></label>
+            <label>Speed <input type="range" id="speed" min="0.25" max="2" step="0.05" value="1"></label>
+            <button id="btnPlay">Pause</button>
+            <span id="info"></span>
+          </div>
         </div>
+        <div class="quickbar" id="quick"></div>
       </header>
       <main>
         <canvas id="stage" width="720" height="480"></canvas>
@@ -33,12 +36,18 @@ export async function initUnitPreview(opts){
       :root{ --bg:#0b1220; --panel:#0e1525; --ink:#eaf1fb; --muted:#9aa4b2; --acc:#22c55e }
       html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:500 14px system-ui}
       .wrap{display:grid;grid-template-rows:auto 1fr;height:100%}
-      header{display:flex;align-items:center;gap:12px;padding:10px 12px;background:#0e1525;border-bottom:1px solid #1f2937}
+      header{display:flex;flex-direction:column;gap:10px;padding:10px 12px;background:#0e1525;border-bottom:1px solid #1f2937}
+      .top{display:flex;align-items:center;gap:12px}
       h1{margin:0;font-size:16px}
-      .ctrls{display:flex;align-items:center;gap:12px;margin-left:auto}
+      .ctrls{display:flex;align-items:center;gap:12px;margin-left:auto;flex-wrap:wrap;justify-content:flex-end}
       label{display:flex;align-items:center;gap:6px;color:var(--muted)}
       select,input[type=range]{accent-color:var(--acc)}
       button{background:var(--acc);color:#042014;border:0;border-radius:8px;padding:6px 10px;font-weight:800;cursor:pointer}
+      .quickbar{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-start}
+      .quickbar:empty{display:none}
+      .quickbar button{background:#0b1220;border:1px solid #243249;border-radius:8px;color:#fff;cursor:pointer;padding:4px 8px;font-weight:600}
+      .quickbar button.active{background:var(--acc);color:#042014;border-color:var(--acc)}
+      .quickbar button:disabled{opacity:0.45;cursor:not-allowed}
       main{display:grid;place-items:center;padding:10px}
       canvas{image-rendering: pixelated; background:linear-gradient(180deg,#071018,#0b1220)}
     </style>
@@ -46,10 +55,42 @@ export async function initUnitPreview(opts){
 
   function el(id){ return root.querySelector('#'+id); }
   const cvs = el('stage'); const ctx = cvs.getContext('2d'); ctx.imageSmoothingEnabled=false;
+  const quickBar = el('quick');
   const ui = { tag: el('tag'), scale: el('scale'), speed: el('speed'), btn: el('btnPlay'), info: el('info') };
+  const normalizeTagName = (name)=> String(name||'').trim().toLowerCase().replace(/\s+/g,' ');
 
   const img = await loadImage(cfg.png);
   const doc = await fetchJson(cfg.json);
+  const inspector = document.createElement('canvas');
+  inspector.width = inspector.height = 0;
+  const inspectCtx = inspector.getContext('2d');
+  if(inspectCtx && typeof inspectCtx.imageSmoothingEnabled === 'boolean'){ inspectCtx.imageSmoothingEnabled = false; }
+  const blankFrameCache = new Map();
+  function frameIsEmpty(idx, frameData){
+    if(!inspectCtx) return false;
+    if(blankFrameCache.has(idx)) return blankFrameCache.get(idx);
+    const rect = frameData?.frame || {};
+    const w = rect.w|0; const h = rect.h|0;
+    if(!(w>0 && h>0)){
+      blankFrameCache.set(idx, true);
+      return true;
+    }
+    inspector.width = w;
+    inspector.height = h;
+    if(typeof inspectCtx.imageSmoothingEnabled === 'boolean'){ inspectCtx.imageSmoothingEnabled = false; }
+    try{
+      inspectCtx.clearRect(0,0,w,h);
+      inspectCtx.drawImage(img, rect.x||0, rect.y||0, w, h, 0, 0, w, h);
+      const data = inspectCtx.getImageData(0,0,w,h).data;
+      let blank = true;
+      for(let i=3;i<data.length;i+=4){ if(data[i] !== 0){ blank=false; break; } }
+      blankFrameCache.set(idx, blank);
+      return blank;
+    }catch(err){
+      blankFrameCache.set(idx, false);
+      return false;
+    }
+  }
   // Build a stable, sorted frames array using the numeric suffix in the key
   const framesObj = doc.frames || {};
   const frameEntries = Object.entries(framesObj).map(([k,v])=>{
@@ -59,24 +100,31 @@ export async function initUnitPreview(opts){
   });
   frameEntries.sort((a,b)=> a.idx - b.idx);
   const frames = frameEntries.map(e=> e.data);
-  const tags = (doc.meta?.frameTags||[]).map(t=>({ name: String(t.name||'').trim(), from:t.from|0, to:t.to|0 }));
-  // Build per-tag frame arrays
+  const rawTags = Array.isArray(doc.meta?.frameTags) ? doc.meta.frameTags : [];
+  const tags = [];
+  const seen = new Set();
   const map = new Map();
   const mapLower = new Map();
-  const nameIndex = new Map(); // normalized -> original
-  for(const t of tags){
+  const nameIndex = new Map(); // normalized -> original casing
+  for(const raw of rawTags){
+    const name = String(raw?.name ?? '').trim();
+    if(!name) continue;
+    const norm = normalizeTagName(name);
     let list = [];
-    for(let i=t.from;i<=t.to;i++){
+    const from = raw.from|0; const to = raw.to|0;
+    for(let i=from;i<=to;i++){
       const f = frames[i]; if(!f) continue;
-      const fr = f.frame||{}; list.push({ sx: fr.x, sy: fr.y, w: fr.w, h: fr.h, dur: f.duration||100 });
+      if(frameIsEmpty(i, f)) continue;
+      const fr = f.frame||{};
+      const w = fr.w|0; const h = fr.h|0; const dur = f.duration||0;
+      if(!(w>0 && h>0 && dur>0)) continue;
+      list.push({ sx: fr.x, sy: fr.y, w, h, dur });
     }
-    // Filter frames that are clearly empty (zero area or zero duration)
-    const filtered = list.filter(fr => (fr && fr.w > 0 && fr.h > 0 && (fr.dur||0) > 0));
-    if (filtered.length > 0) list = filtered;
-    map.set(t.name, list);
-    const norm = String(t.name).trim().toLowerCase().replace(/\s+/g,' ');
-    mapLower.set(norm, list);
-    nameIndex.set(norm, t.name);
+    if(list.length === 0) continue;
+    if(!map.has(name)) map.set(name, list);
+    if(!mapLower.has(norm)) mapLower.set(norm, list);
+    if(!nameIndex.has(norm)) nameIndex.set(norm, name);
+    if(!seen.has(norm)){ tags.push({ name }); seen.add(norm); }
   }
   // Populate UI (show all tag names as-is)
   ui.tag.innerHTML = '';
@@ -85,32 +133,49 @@ export async function initUnitPreview(opts){
   if(def) ui.tag.value = def;
 
   const actor = { x:cvs.width/2, y:cvs.height-20, fi:0, acc:0, running:true };
+  function updateQuickSelection(){
+    if(!quickBar) return;
+    const current = normalizeTagName(ui.tag.value);
+    quickBar.querySelectorAll('button[data-tag]').forEach(btn=>{
+      btn.classList.toggle('active', btn.dataset.tag === current);
+    });
+  }
   ui.btn.onclick = ()=>{ actor.running = !actor.running; ui.btn.textContent = actor.running ? 'Pause' : 'Play'; };
-  ui.tag.onchange = ()=>{ actor.fi = 0; actor.acc = 0; };
+  ui.tag.onchange = ()=>{ actor.fi = 0; actor.acc = 0; updateQuickSelection(); };
 
   function currentFrames(){
     const name = ui.tag.value;
     // Normalize lookup
     let arr = map.get(name);
     if(!arr && typeof name === 'string') arr = map.get(name.trim());
-    if(!arr && typeof name === 'string') arr = mapLower.get(name.trim().toLowerCase().replace(/\s+/g,' '));
+    if(!arr && typeof name === 'string') arr = mapLower.get(normalizeTagName(name));
     return arr || [];
   }
   // Quick tag buttons for commonly used anims
-  const quickNames = ['Idle','Run','Shoot Up','Shoot Front','Shoot Down','Shoot Diagonal Up','Shoot Diagona Down','Arrow_1','Arrow_2'];
-  const quickBar = document.createElement('div');
-  quickBar.style.display='flex'; quickBar.style.gap='6px'; quickBar.style.marginLeft='8px';
-  for(const q of quickNames){
-    const norm = q.trim().toLowerCase().replace(/\s+/g,' ');
-    const orig = nameIndex.get(norm);
-    if (!orig) continue;
-    const b = document.createElement('button');
-    b.textContent = q; b.style.padding='4px 8px'; b.style.border='1px solid #243249'; b.style.background='#0b1220'; b.style.color='#fff'; b.style.borderRadius='8px'; b.style.cursor='pointer';
-    b.onclick = ()=>{ const name = nameIndex.get(norm) || q; ui.tag.value = name; ui.tag.onchange(); };
-    quickBar.appendChild(b);
+  const quickNames = Array.isArray(cfg.quickTags) && cfg.quickTags.length ? cfg.quickTags : [
+    'Original','Idle','Run','Build','Chop','Carry','Carry Idle','Carry Run',
+    'Shoot Up','Shoot Front','Shoot Down','Shoot Diagonal Up','Shoot Diagonal Down',
+    'Arrow_1','Arrow_2'
+  ];
+  if(quickBar){
+    quickBar.innerHTML = '';
+    for(const q of quickNames){
+      const norm = normalizeTagName(q);
+      const orig = nameIndex.get(norm);
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = q;
+      if(orig){
+        const tagNorm = normalizeTagName(orig);
+        b.dataset.tag = tagNorm;
+        b.onclick = ()=>{ ui.tag.value = orig; ui.tag.onchange(); };
+      }else{
+        b.disabled = true;
+      }
+      quickBar.appendChild(b);
+    }
   }
-  // Insert quickBar next to button
-  ui.btn.parentElement && ui.btn.parentElement.appendChild(quickBar);
+  updateQuickSelection();
   function draw(ts){
     const scale = parseFloat(ui.scale.value)||1; const speed = parseFloat(ui.speed.value)||1;
     const arr = currentFrames(); if(arr.length===0){ requestAnimationFrame(draw); return; }
