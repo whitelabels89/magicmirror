@@ -110,16 +110,19 @@ export async function initUnitPreview(opts){
     const name = String(raw?.name ?? '').trim();
     if(!name) continue;
     const norm = normalizeTagName(name);
-    let list = [];
     const from = raw.from|0; const to = raw.to|0;
+    const rawList = [];
+    const filtered = [];
     for(let i=from;i<=to;i++){
       const f = frames[i]; if(!f) continue;
-      if(frameIsEmpty(i, f)) continue;
       const fr = f.frame||{};
       const w = fr.w|0; const h = fr.h|0; const dur = f.duration||0;
       if(!(w>0 && h>0 && dur>0)) continue;
-      list.push({ sx: fr.x, sy: fr.y, w, h, dur });
+      const entry = { sx: fr.x, sy: fr.y, w, h, dur };
+      rawList.push(entry);
+      if(!frameIsEmpty(i, f)) filtered.push(entry);
     }
+    const list = filtered.length ? filtered : rawList;
     if(list.length === 0) continue;
     if(!map.has(name)) map.set(name, list);
     if(!mapLower.has(norm)) mapLower.set(norm, list);
