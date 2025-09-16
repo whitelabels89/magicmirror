@@ -79,6 +79,11 @@
     return null;
   }
 
+  };
+  const SKIP_TAGS = new Set(['SCRIPT', 'STYLE']);
+  const SKIP_CLASSNAMES = ['finish-bar', 'toast', 'alphabet-hud'];
+  const SKIP_IDS = new Set(['pause-menu', 'globalToast']);
+
   function refreshHudOffset() {
     if (typeof hudState.updateHudOffset === 'function') {
       hudState.updateHudOffset();
@@ -416,6 +421,7 @@
   }
 
   function wrapContent(body) {
+
     var originals = [];
     for (var i = 0; i < body.children.length; i += 1) {
       originals.push(body.children[i]);
@@ -518,6 +524,24 @@
 
   function applyHudOffset(hud) {
     var body = document.body;
+      },
+      setCoins(value) {
+        if (!hudState.refs) return;
+        const coins = Math.max(0, Number(value) || 0);
+        hudState.coins = coins;
+        hudState.refs.coinsValue.textContent = coins.toString();
+      },
+      addCoins(delta) {
+        const next = (hudState.coins || 0) + (Number(delta) || 0);
+        this.setCoins(next);
+      },
+      setProgress(percent, label) {
+        if (!hudState.refs) return;
+        const safe = Math.max(0, Math.min(100, Number(percent) || 0));
+        hudState.refs.progressValue.style.width = `${safe}%`;
+        if (label) {
+          hudState.refs.progressLabel.textContent = label;
+        }
     if (!body || !hud) {
       return;
     }
@@ -591,6 +615,14 @@
     initHud(info, refs);
     hudState.refs = refs;
     applyHudOffset(hud);
+  }
+
+  function mountHud(info) {
+    const body = document.body;
+    const { hud, refs } = createHud(info);
+    body.insertBefore(hud, body.firstChild);
+    initHud(info, refs);
+    hudState.refs = refs;
     exposeApi();
   }
 
