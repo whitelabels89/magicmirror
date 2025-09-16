@@ -5,6 +5,7 @@ initUnitPreview({
   png: '/elearn/models/ts-up/Factions/Goblins/Troops/Barrel/Red/Barrel_Red.png',
   json: '/elearn/models/ts-up/Factions/Goblins/Troops/Barrel/Red/Barrel_Red.json',
   anchor: { x: 0.5, y: 1.0 },
-  defaultTag: 'Idle_Out'
+  defaultTag: 'Idle_Out',
+  quickTags: ['Original', 'Idle In', 'Out', 'Idle Out', 'In', 'Run', 'Fired']
 });
 

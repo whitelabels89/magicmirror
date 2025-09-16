@@ -29,6 +29,9 @@ const ui = {
   sheepScale: document.getElementById('sheepScale'),
   btnAddSheep: document.getElementById('btnAddSheep'),
   btnClearSheep: document.getElementById('btnClearSheep'),
+  decoScale: document.getElementById('decoScale'),
+  btnAddDeco: document.getElementById('btnAddDeco'),
+  btnClearDeco: document.getElementById('btnClearDeco'),
   torchAnim: document.getElementById('torchAnim'),
   torchScale: document.getElementById('torchScale'),
   btnAddTorch: document.getElementById('btnAddTorch'),
@@ -92,6 +95,7 @@ function pushHistory(patch){
 function getObjectArray(target){
   if(target==='tree') return trees;
   if(target==='sheep') return sheeps;
+  if(target==='deco') return decoItems;
   if(target==='torch') return torches;
   if(target==='building') return buildings;
   return null;
@@ -274,6 +278,8 @@ const SHEEP_JSON = SHEEP_BASE + "Sheep.json";
 const TORCH_BASE = "/elearn/models/ts-up/Factions/Goblins/Troops/Torch/Purple/";
 const TORCH_SHEET = TORCH_BASE + "Torch_Purple.png";
 const TORCH_JSON = TORCH_BASE + "Torch_Purple.json";
+const DECO_BASE = "/elearn/models/ts-up/Deco/";
+const DECO_VARIANTS = Array.from({length:18}, (_,i)=> String(i+1).padStart(2,'0'));
 const treeImgCache = new Map();
 const treeFramesCache = new Map(); // key: idx -> frames
 const trees = []; // {idx,x,y,scale,fps,fi,acc}
@@ -283,6 +289,8 @@ const sheeps = []; // {anim,x,y,scale,fps,fi,acc}
 let torchImg = null;
 const torchFramesCache = new Map(); // key: anim -> frames
 const torches = []; // {anim,x,y,scale,fps,fi,acc}
+const decoImgCache = new Map(); // key: variant -> Image
+const decoItems = []; // {variant,x,y,scale}
 
 // --- Selection helpers for Goblin torches ---
 function clearTorchSelection(){ for(const t of torches) t.selected = false; }
@@ -385,6 +393,24 @@ async function loadTreeFrames(idx){
 async function ensureTreeResources(idx){ await loadTreeImg(idx); await loadTreeFrames(idx); }
 async function ensureSheepResources(anim){ await loadSheepImg(anim); await loadSheepFrames(anim); }
 async function ensureTorchResources(anim){ await loadTorchImg(); await loadTorchFrames(anim); }
+function normalizeDecoVariant(v){
+  const str = String(v ?? '').trim();
+  if(!str) return null;
+  const num = parseInt(str, 10);
+  if(!Number.isFinite(num)) return null;
+  if(num < 1 || num > DECO_VARIANTS.length) return null;
+  return String(num).padStart(2,'0');
+}
+async function ensureDecoImage(variant){
+  const key = normalizeDecoVariant(variant);
+  if(!key) return null;
+  if(!decoImgCache.has(key)){
+    const src = `${DECO_BASE}${key}.png`;
+    const img = await loadImage(src).catch(()=>null);
+    if(img) decoImgCache.set(key, img);
+  }
+  return decoImgCache.get(key) || null;
+}
 
 // --- Sheep loading helpers ---
 async function loadSheepImg(anim){
@@ -469,6 +495,7 @@ function drawDecor(ts){
   const list = [];
   for(const t of trees){ list.push({ y:t.y, draw:()=>{ t.acc += dt; const frames=treeFramesCache.get(t.idx); if(!frames) return; const img=treeImgCache.get(t.idx); let ms=frames[t.fi]?.dur || (1000/Math.max(1,t.fps||10)); while(t.acc>=ms){ t.acc-=ms; t.fi=(t.fi+1)%frames.length; ms=frames[t.fi]?.dur || (1000/Math.max(1,t.fps||10)); } const f=frames[t.fi]; const dw=f.w*t.scale, dh=f.h*t.scale; const dx=Math.round(t.x-0.5*dw), dy=Math.round(t.y-dh+20); dctx.drawImage(img,f.sx,f.sy,f.w,f.h,dx,dy,dw,dh); }}); }
   for(const s of sheeps){ list.push({ y:s.y, draw:()=>{ s.acc += dt; const frames=sheepFramesCache.get(s.anim); if(!frames) return; const img=sheepImgCache.get(s.anim); let ms=frames[s.fi]?.dur || (1000/Math.max(1,s.fps||10)); while(s.acc>=ms){ s.acc-=ms; s.fi=(s.fi+1)%frames.length; ms=frames[s.fi]?.dur || (1000/Math.max(1,s.fps||10)); } const f=frames[s.fi]; const dw=f.w*s.scale, dh=f.h*s.scale; const dx=Math.round(s.x-0.5*dw), dy=Math.round(s.y-dh+50); dctx.drawImage(img,f.sx,f.sy,f.w,f.h,dx,dy,dw,dh); }}); }
+  for(const d of decoItems){ list.push({ y:d.y, draw:()=>{ const img=decoImgCache.get(d.variant); if(!img) return; const sc=d.scale||1; const dw=img.width*sc, dh=img.height*sc; const dx=Math.round(d.x-0.5*dw), dy=Math.round(d.y-dh); dctx.drawImage(img, dx, dy, dw, dh); }}); }
   for(const t of torches){ list.push({ y:t.y, draw:()=>{ t.acc += dt; const frames=torchFramesCache.get(t.anim); if(!frames || !torchImg) return; let ms=frames[t.fi]?.dur || (1000/Math.max(1,t.fps||10)); while(t.acc>=ms){ t.acc-=ms; t.fi=(t.fi+1)%frames.length; ms=frames[t.fi]?.dur || (1000/Math.max(1,t.fps||10)); } const f=frames[t.fi]; const dw=f.w*t.scale, dh=f.h*t.scale; const dx=Math.round(t.x-0.5*dw), dy=Math.round(t.y-dh); dctx.drawImage(torchImg,f.sx,f.sy,f.w,f.h,dx,dy,dw,dh); if(t.selected){ dctx.save(); dctx.strokeStyle = '#facc15'; dctx.lineWidth = 2; dctx.setLineDash([4,3]); dctx.strokeRect(dx, dy, dw, dh); dctx.restore(); } }}); }
   for(const b of buildings){ list.push({ y:b.y, draw:()=>{ const spec={ faction:b.faction, type:b.type, color:b.color, state:b.state }; const key=JSON.stringify(spec); const img = buildingImgCache.get(key); if(!img) return; const dw = img.width*(b.scale||1), dh = img.height*(b.scale||1); const dx=Math.round(b.x-0.5*dw), dy=Math.round(b.y-dh); dctx.drawImage(img, dx, dy, dw, dh); }}); }
   list.sort((a,b)=>a.y-b.y); for(const it of list) it.draw();
@@ -534,6 +561,7 @@ function bindUI(){
   let draggingTorch = null; let dragStartTorch = null; let dragOffTX=0, dragOffTY=0; let dragTorchIndex=-1;
   let draggingTree = null; let dragStartTree = null; let dragOffTrX=0, dragOffTrY=0; let dragTreeIndex=-1;
   let draggingSheep = null; let dragStartSheep = null; let dragOffShX=0, dragOffShY=0; let dragSheepIndex=-1;
+  let draggingDeco = null; let dragStartDeco = null; let dragOffDeX=0, dragOffDeY=0; let dragDecoIndex=-1;
   cvs.addEventListener('mousedown', async (e)=>{
     e.preventDefault();
     // Marker placement/removal
@@ -568,6 +596,12 @@ function bindUI(){
           const dw = f.w * s.scale, dh = f.h * s.scale; const dx = s.x - 0.5*dw, dy = s.y - dh;
           if(px>=dx && px<=dx+dw && py>=dy && py<=dy+dh) return { kind:'sheep', obj:s, index:i };
         }
+        for(let i=decoItems.length-1;i>=0;i--){
+          const d = decoItems[i]; const img = decoImgCache.get(d.variant); if(!img) continue;
+          const sc = d.scale||1; const dw = img.width * sc, dh = img.height * sc;
+          const dx = d.x - 0.5*dw, dy = d.y - dh;
+          if(px>=dx && px<=dx+dw && py>=dy && py<=dy+dh) return { kind:'deco', obj:d, index:i };
+        }
         for(let i=trees.length-1;i>=0;i--){
           const t = trees[i]; const frames = treeFramesCache.get(t.idx); const f = (frames && (frames[t.fi]||frames[0]))||null; if(!f) continue;
           const dw = f.w * t.scale, dh = f.h * t.scale; const dx = t.x - 0.5*dw, dy = t.y - dh;
@@ -578,15 +612,23 @@ function bindUI(){
       const hit = hitDecor(p.x, p.y);
       // Erase if eraser ON or right-click
       if(hit && (eraser || e.button===2)){
-        const arr = hit.kind==='tree' ? trees : sheeps;
-        const removed = arr.splice(hit.index,1)[0];
-        pushHistory({ kind:'object', target: hit.kind, ops:[{ type:'remove', index: hit.index, item: { ...removed } }] });
+        let arr = null; let target = hit.kind;
+        if(hit.kind==='tree'){ arr = trees; target='tree'; }
+        else if(hit.kind==='sheep'){ arr = sheeps; target='sheep'; }
+        else if(hit.kind==='deco'){ arr = decoItems; target='deco'; }
+        if(arr){
+          const removed = arr.splice(hit.index,1)[0];
+          if(removed){
+            pushHistory({ kind:'object', target, ops:[{ type:'remove', index: hit.index, item: { ...removed } }] });
+          }
+        }
         return;
       }
       // Start dragging if clicked existing decor
       if(hit){
         if(hit.kind==='tree'){ draggingTree = hit.obj; dragTreeIndex = hit.index; dragStartTree = { x:hit.obj.x, y:hit.obj.y }; dragOffTrX = p.x - hit.obj.x; dragOffTrY = p.y - hit.obj.y; }
-        else { draggingSheep = hit.obj; dragSheepIndex = hit.index; dragStartSheep = { x:hit.obj.x, y:hit.obj.y }; dragOffShX = p.x - hit.obj.x; dragOffShY = p.y - hit.obj.y; }
+        else if(hit.kind==='sheep'){ draggingSheep = hit.obj; dragSheepIndex = hit.index; dragStartSheep = { x:hit.obj.x, y:hit.obj.y }; dragOffShX = p.x - hit.obj.x; dragOffShY = p.y - hit.obj.y; }
+        else if(hit.kind==='deco'){ draggingDeco = hit.obj; dragDecoIndex = hit.index; dragStartDeco = { x:hit.obj.x, y:hit.obj.y }; dragOffDeX = p.x - hit.obj.x; dragOffDeY = p.y - hit.obj.y; }
         return;
       }
       // Place new decor
@@ -601,6 +643,15 @@ function bindUI(){
         const item = { anim, x:p.x, y:p.y, scale:sc, fps:10, fi:0, acc:0 };
         sheeps.push(item);
         pushHistory({ kind:'object', target:'sheep', ops:[{ type:'add', index: sheeps.length-1, item: { ...item } }] });
+      }else if(type && type.startsWith('deco-')){
+        const variant = normalizeDecoVariant(type.slice(5));
+        const img = await ensureDecoImage(variant);
+        if(img && variant){
+          const sc = parseFloat(ui.decoScale?.value)||1;
+          const item = { variant, x:p.x, y:p.y, scale:sc };
+          decoItems.push(item);
+          pushHistory({ kind:'object', target:'deco', ops:[{ type:'add', index: decoItems.length-1, item: { ...item } }] });
+        }
       }
       return;
     }else if(activeLayer===GOBLIN_LAYER){
@@ -676,6 +727,8 @@ function bindUI(){
     if(draggingTree){ const p = getCanvasXY(e); draggingTree.x = p.x - dragOffTrX; draggingTree.y = p.y - dragOffTrY; return; }
     // Drag sheep if any
     if(draggingSheep){ const p = getCanvasXY(e); draggingSheep.x = p.x - dragOffShX; draggingSheep.y = p.y - dragOffShY; return; }
+    // Drag deco png if any
+    if(draggingDeco){ const p = getCanvasXY(e); draggingDeco.x = p.x - dragOffDeX; draggingDeco.y = p.y - dragOffDeY; return; }
     if(!painting) return; const cell = cellFromEvent(e); if(!cell) return;
     if(e.shiftKey && lastCell){ paintLine(lastCell, cell, paintValue); lastCell=cell; }
     else { drawCell(cell.x, cell.y, paintValue); lastCell = cell; }
@@ -691,12 +744,14 @@ function bindUI(){
     draggingTree=null; dragStartTree=null; dragTreeIndex=-1;
     if(draggingSheep && dragStartSheep){ const idx = dragSheepIndex; if(idx>=0){ pushHistory({ kind:'object', target:'sheep', ops:[{ type:'move', index: idx, prev: { ...dragStartSheep }, next: { x:draggingSheep.x, y:draggingSheep.y } }] }); } }
     draggingSheep=null; dragStartSheep=null; dragSheepIndex=-1;
-    painting=false; lastCell=null; pushHistory(currentPatch); currentPatch=null; 
+    if(draggingDeco && dragStartDeco){ const idx = dragDecoIndex; if(idx>=0){ pushHistory({ kind:'object', target:'deco', ops:[{ type:'move', index: idx, prev: { ...dragStartDeco }, next: { x:draggingDeco.x, y:draggingDeco.y } }] }); } }
+    draggingDeco=null; dragStartDeco=null; dragDecoIndex=-1;
+    painting=false; lastCell=null; pushHistory(currentPatch); currentPatch=null;
   });
-  cvs.addEventListener('mouseleave', ()=>{ 
+  cvs.addEventListener('mouseleave', ()=>{
     // cancel drags without recording move
-    draggingB=null; dragStartB=null; draggingTorch=null; dragStartTorch=null; dragTorchIndex=-1; draggingTree=null; dragStartTree=null; dragTreeIndex=-1; draggingSheep=null; dragStartSheep=null; dragSheepIndex=-1;
-    if(painting){ pushHistory(currentPatch); } painting=false; lastCell=null; currentPatch=null; 
+    draggingB=null; dragStartB=null; draggingTorch=null; dragStartTorch=null; dragTorchIndex=-1; draggingTree=null; dragStartTree=null; dragTreeIndex=-1; draggingSheep=null; dragStartSheep=null; dragSheepIndex=-1; draggingDeco=null; dragStartDeco=null; dragDecoIndex=-1;
+    if(painting){ pushHistory(currentPatch); } painting=false; lastCell=null; currentPatch=null;
   });
   cvs.addEventListener('contextmenu', (e)=> e.preventDefault());
 
@@ -714,6 +769,16 @@ function bindUI(){
   ui.btnClearTrees.onclick = ()=>{ trees.length=0; };
   ui.btnAddSheep.onclick = async ()=>{ const anim=(ui.sheepAnim?.value)||'idle'; const sc=parseFloat(ui.sheepScale?.value)||1; await ensureSheepResources(anim); sheeps.push({ anim, x:cvs.width/2, y:cvs.height-32, scale:sc, fps:10, fi:0, acc:0 }); };
   ui.btnClearSheep.onclick = ()=>{ sheeps.length=0; };
+  if(ui.btnAddDeco){
+    ui.btnAddDeco.onclick = async ()=>{
+      const type = (ui.decorType?.value)||'deco-01';
+      const selected = (type && type.startsWith('deco-')) ? type.slice(5) : '01';
+      const variant = normalizeDecoVariant(selected) || '01';
+      const img = await ensureDecoImage(variant);
+      if(img){ const sc=parseFloat(ui.decoScale?.value)||1; decoItems.push({ variant, x:cvs.width/2, y:cvs.height-32, scale:sc }); }
+    };
+  }
+  if(ui.btnClearDeco){ ui.btnClearDeco.onclick = ()=>{ decoItems.length=0; }; }
   ui.btnAddTorch.onclick = async ()=>{ const anim=(ui.torchAnim?.value)||'idle'; const sc=parseFloat(ui.torchScale?.value)||1; await ensureTorchResources(anim); torches.push({ anim:anim.toLowerCase(), x:cvs.width/2, y:cvs.height-32, scale:sc, fps:10, fi:0, acc:0 }); };
   ui.btnClearTorch.onclick = ()=>{ torches.length=0; };
   ui.btnAddBuilding.onclick = async ()=>{ const faction=(ui.buildingFaction?.value)||'knight'; let type=(ui.buildingType?.value)||'castle'; const color=(ui.buildingColor?.value)||'blue'; const state=(ui.buildingState?.value)||'normal'; if(faction==='goblin') type=(type==='tower')?'wood_tower':'wood_house'; const spec={faction,type,color,state}; const img=await loadBuildingImage(spec); if(img){ const sc=parseFloat(ui.buildingScale?.value)||1; buildings.push({ ...spec, x:cvs.width/2, y:cvs.height-32, scale:sc }); } };
@@ -817,6 +882,7 @@ function toJson(){
     },
     decorTrees: trees.map(t=>({type:t.idx, x:Math.round(t.x), y:Math.round(t.y), scale:t.scale})),
     decorSheep: sheeps.map(s=>({anim:s.anim, x:Math.round(s.x), y:Math.round(s.y), scale:s.scale})),
+    decorPngs: decoItems.map(d=>({variant:d.variant, x:Math.round(d.x), y:Math.round(d.y), scale:d.scale})),
     goblinTorches: torches.map(t=>({anim:t.anim, x:Math.round(t.x), y:Math.round(t.y), scale:t.scale})),
     buildings: buildings.map(b=>({faction:b.faction,type:b.type,color:b.color,state:b.state,x:Math.round(b.x),y:Math.round(b.y),scale:b.scale})),
     start: startRC ? { r:startRC.r, c:startRC.c } : undefined,
@@ -860,8 +926,10 @@ function fromJson(doc){
   grids.cliff_land2 = doc.colors?.cliff_land2 ? readColors(doc.colors.cliff_land2) : readMask(doc.layers?.cliff_land2);
   grids.cliff_water = doc.colors?.cliff_water ? readColors(doc.colors.cliff_water) : readMask(doc.layers?.cliff_water);
   grids.slopes      = doc.colors?.slopes      ? readColors(doc.colors.slopes)      : readMask(doc.layers?.slopes);
+  trees.length=0; sheeps.length=0; decoItems.length=0; torches.length=0; buildings.length=0;
   (doc.decorTrees||[]).forEach(async it=>{ const idx=it.type||1; await ensureTreeResources(idx); trees.push({ idx, x:it.x||0, y:it.y||0, scale:it.scale||1, fps:10, fi:0, acc:0 }); });
   (doc.decorSheep||[]).forEach(async it=>{ const anim=(it.anim||'idle'); await ensureSheepResources(anim); sheeps.push({ anim, x:it.x||0, y:it.y||0, scale:it.scale||1, fps:10, fi:0, acc:0 }); });
+  (doc.decorPngs||[]).forEach(async it=>{ const variant=normalizeDecoVariant(it.variant||it.id||it.type); const img=await ensureDecoImage(variant); if(img && variant){ decoItems.push({ variant, x:it.x||0, y:it.y||0, scale:it.scale||1 }); } });
   (doc.goblinTorches||doc.decorTorches||[]).forEach(async it=>{ const anim=(it.anim||'idle'); await ensureTorchResources(anim); torches.push({ anim:anim.toLowerCase(), x:it.x||0, y:it.y||0, scale:it.scale||1, fps:10, fi:0, acc:0 }); });
   (doc.buildings||[]).forEach(async it=>{ const spec={ faction:it.faction||'knight', type:it.type||'castle', color:it.color||'blue', state:it.state||'normal' }; await loadBuildingImage(spec); buildings.push({ ...spec, x:it.x||0, y:it.y||0, scale:it.scale||1 }); });
   // markers

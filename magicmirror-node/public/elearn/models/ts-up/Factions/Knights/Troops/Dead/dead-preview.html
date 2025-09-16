@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Knights Troop &mdash; Dead Animation Preview</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 20px;
+      background: radial-gradient(120% 120% at 50% 0%, #2a3551 0%, #090c13 70%);
+      color: #eef2ff;
+    }
+    .panel {
+      width: min(540px, 100%);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      padding: 28px;
+      border-radius: 22px;
+      background: rgba(11, 15, 24, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      box-shadow: 0 28px 60px rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(14px);
+    }
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 1.35rem;
+      letter-spacing: 0.01em;
+    }
+    header p {
+      margin: 0;
+      color: rgba(226, 236, 255, 0.72);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    .canvas-wrap {
+      background: linear-gradient(135deg, rgba(37, 49, 73, 0.82), rgba(17, 21, 33, 0.9));
+      border-radius: 18px;
+      padding: 24px;
+      display: grid;
+      place-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+      image-rendering: pixelated;
+    }
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      font-size: 0.85rem;
+    }
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 16px;
+      align-items: center;
+    }
+    .field {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(6px);
+    }
+    .field span.label {
+      text-transform: uppercase;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      color: rgba(226, 236, 255, 0.75);
+      font-weight: 600;
+    }
+    .field select,
+    .field input[type="range"] {
+      background: transparent;
+      border: none;
+      color: #f4f6ff;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    .field select {
+      padding: 2px 4px;
+      appearance: none;
+    }
+    .field input[type="range"] {
+      width: 140px;
+      accent-color: #7f8bff;
+    }
+    .value {
+      font-variant-numeric: tabular-nums;
+      font-size: 0.8rem;
+      color: rgba(226, 236, 255, 0.75);
+    }
+    .buttons {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+    }
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 8px 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      color: #fdfdff;
+    }
+    #playPauseBtn {
+      background: linear-gradient(135deg, #5872ff, #8d5aff);
+      box-shadow: 0 12px 26px rgba(94, 111, 255, 0.35);
+    }
+    #playPauseBtn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 32px rgba(94, 111, 255, 0.45);
+    }
+    #playPauseBtn:active {
+      transform: translateY(1px);
+    }
+    .buttons button {
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: none;
+      padding: 8px 12px;
+    }
+    .buttons button:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+    .buttons button:active {
+      transform: translateY(1px);
+    }
+    .info {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-family: "JetBrains Mono", "Fira Code", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 0.78rem;
+      letter-spacing: 0.04em;
+      color: rgba(226, 236, 255, 0.78);
+    }
+    @media (max-width: 540px) {
+      .panel {
+        padding: 22px;
+      }
+      .field input[type="range"] {
+        width: 120px;
+      }
+      .buttons {
+        margin-left: 0;
+        width: 100%;
+        justify-content: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <header>
+      <h1>Knights Troop &mdash; Dead Animation Preview</h1>
+      <p>Pantau sekuens <strong>Dead</strong> dan <strong>Buried</strong> langsung dari sprite-sheet Aseprite. Gunakan kontrol di bawah untuk mengubah animasi, kecepatan, dan skala.</p>
+    </header>
+    <div class="canvas-wrap">
+      <canvas id="deadCanvas" width="256" height="256"></canvas>
+    </div>
+    <div class="controls">
+      <div class="row">
+        <label class="field">
+          <span class="label">Animation</span>
+          <select id="tagSelect"></select>
+        </label>
+        <label class="field">
+          <span class="label">Speed</span>
+          <input id="speedSlider" type="range" min="0.25" max="3" step="0.05" value="1" />
+          <span class="value" id="speedValue">1.00×</span>
+        </label>
+      </div>
+      <div class="row">
+        <label class="field">
+          <span class="label">Scale</span>
+          <input id="scaleSlider" type="range" min="0.5" max="4" step="0.1" value="2.5" />
+          <span class="value" id="scaleValue">2.5×</span>
+        </label>
+        <div class="buttons">
+          <button id="playPauseBtn" type="button">Pause</button>
+          <button id="prevFrameBtn" type="button" title="Frame sebelumnya">◀</button>
+          <button id="nextFrameBtn" type="button" title="Frame berikutnya">▶</button>
+        </div>
+      </div>
+      <div class="info" id="frameInfo">Memuat...</div>
+    </div>
+  </div>
+
+  <script src="./dead-preview.js"></script>
+  <script>
+    (async function () {
+      const canvas = document.getElementById('deadCanvas');
+      const preview = new SpriteSheetPreviewer({
+        canvas,
+        atlasUrl: './Dead.json',
+        imageUrl: './Dead.png',
+        scale: 2.5,
+        padding: 32,
+        background: '#0f131a',
+        speed: 1,
+      });
+
+      const tagSelect = document.getElementById('tagSelect');
+      const speedSlider = document.getElementById('speedSlider');
+      const scaleSlider = document.getElementById('scaleSlider');
+      const speedValue = document.getElementById('speedValue');
+      const scaleValue = document.getElementById('scaleValue');
+      const playPauseBtn = document.getElementById('playPauseBtn');
+      const prevFrameBtn = document.getElementById('prevFrameBtn');
+      const nextFrameBtn = document.getElementById('nextFrameBtn');
+      const frameInfo = document.getElementById('frameInfo');
+
+      await preview.init();
+
+      const tags = preview.getTagNames();
+      tags.forEach((tag) => {
+        const option = document.createElement('option');
+        option.value = tag;
+        option.textContent = tag;
+        tagSelect.appendChild(option);
+      });
+      tagSelect.value = preview.getActiveTag();
+      tagSelect.addEventListener('change', () => {
+        preview.setTag(tagSelect.value);
+      });
+
+      function updateSpeedLabel() {
+        speedValue.textContent = `${parseFloat(speedSlider.value).toFixed(2)}×`;
+      }
+      function updateScaleLabel() {
+        scaleValue.textContent = `${parseFloat(scaleSlider.value).toFixed(1)}×`;
+      }
+
+      function renderFrameInfo(info) {
+        if (!info) {
+          frameInfo.textContent = 'Frame tidak tersedia';
+          return;
+        }
+        frameInfo.textContent = `${info.tag || 'All Frames'} · Frame ${info.frameIndex + 1} / ${info.frameCount} (${info.duration} ms)`;
+      }
+
+      speedSlider.addEventListener('input', () => {
+        const value = parseFloat(speedSlider.value);
+        preview.setSpeed(value);
+        updateSpeedLabel();
+      });
+      scaleSlider.addEventListener('input', () => {
+        const value = parseFloat(scaleSlider.value);
+        preview.setScale(value);
+        updateScaleLabel();
+      });
+      updateSpeedLabel();
+      updateScaleLabel();
+
+      playPauseBtn.addEventListener('click', () => {
+        const playing = preview.togglePlaying();
+        playPauseBtn.textContent = playing ? 'Pause' : 'Play';
+      });
+
+      prevFrameBtn.addEventListener('click', () => {
+        preview.setPlaying(false);
+        playPauseBtn.textContent = 'Play';
+        preview.step(-1);
+      });
+
+      nextFrameBtn.addEventListener('click', () => {
+        preview.setPlaying(false);
+        playPauseBtn.textContent = 'Play';
+        preview.step(1);
+      });
+
+      renderFrameInfo(preview.getCurrentFrameInfo());
+
+      preview.onFrameChange((info) => {
+        renderFrameInfo(info);
+      });
+
+      preview.onTagChange((info) => {
+        if (info) {
+          frameInfo.textContent = `${info.tag} · Frame 1 / ${info.length}`;
+        }
+      });
+    })().catch((err) => {
+      const frameInfo = document.getElementById('frameInfo');
+      if (frameInfo) {
+        frameInfo.textContent = 'Gagal memuat preview animasi.';
+      }
+      console.error(err);
+    });
+  </script>
+</body>
+</html>

@@ -57,7 +57,10 @@ export async function initUnitPreview(opts){
   const cvs = el('stage'); const ctx = cvs.getContext('2d'); ctx.imageSmoothingEnabled=false;
   const quickBar = el('quick');
   const ui = { tag: el('tag'), scale: el('scale'), speed: el('speed'), btn: el('btnPlay'), info: el('info') };
-  const normalizeTagName = (name)=> String(name||'').trim().toLowerCase().replace(/\s+/g,' ');
+  const normalizeTagName = (name)=> String(name||'')
+    .replace(/[\s_-]+/g,' ')
+    .trim()
+    .toLowerCase();
 
   const img = await loadImage(cfg.png);
   const doc = await fetchJson(cfg.json);
@@ -66,15 +69,17 @@ export async function initUnitPreview(opts){
   const inspectCtx = inspector.getContext('2d');
   if(inspectCtx && typeof inspectCtx.imageSmoothingEnabled === 'boolean'){ inspectCtx.imageSmoothingEnabled = false; }
   const blankFrameCache = new Map();
-  function frameIsEmpty(idx, frameData){
+  function frameIsEmpty(frameData){
     if(!inspectCtx) return false;
-    if(blankFrameCache.has(idx)) return blankFrameCache.get(idx);
     const rect = frameData?.frame || {};
     const w = rect.w|0; const h = rect.h|0;
     if(!(w>0 && h>0)){
-      blankFrameCache.set(idx, true);
+      const key = `${rect.x|0},${rect.y|0},${w},${h}`;
+      blankFrameCache.set(key, true);
       return true;
     }
+    const key = `${rect.x|0},${rect.y|0},${w},${h}`;
+    if(blankFrameCache.has(key)) return blankFrameCache.get(key);
     inspector.width = w;
     inspector.height = h;
     if(typeof inspectCtx.imageSmoothingEnabled === 'boolean'){ inspectCtx.imageSmoothingEnabled = false; }
@@ -84,12 +89,47 @@ export async function initUnitPreview(opts){
       const data = inspectCtx.getImageData(0,0,w,h).data;
       let blank = true;
       for(let i=3;i<data.length;i+=4){ if(data[i] !== 0){ blank=false; break; } }
-      blankFrameCache.set(idx, blank);
+      blankFrameCache.set(key, blank);
       return blank;
     }catch(err){
-      blankFrameCache.set(idx, false);
+      blankFrameCache.set(key, false);
       return false;
     }
+  }
+  function createTileResolver(tileW, tileH){
+    if(!(tileW>0 && tileH>0)) return null;
+    const cols = Math.max(1, Math.ceil(img.width / tileW));
+    const rows = Math.max(1, Math.ceil(img.height / tileH));
+    const tiles = [];
+    const byKey = new Map();
+    for(let row=0; row<rows; row++){
+      for(let col=0; col<cols; col++){
+        const tx = Math.min(Math.max(0, img.width - tileW), col * tileW);
+        const ty = Math.min(Math.max(0, img.height - tileH), row * tileH);
+        const key = `${tx},${ty}`;
+        if(byKey.has(key)) continue;
+        const isBlank = frameIsEmpty({ frame: { x:tx, y:ty, w:tileW, h:tileH } });
+        if(!isBlank){
+          const tile = { sx:tx, sy:ty, used:false };
+          tiles.push(tile);
+          byKey.set(key, tile);
+        }
+      }
+    }
+    tiles.sort((a,b)=> (a.sy - b.sy) || (a.sx - b.sx));
+    let cursor = 0;
+    function claim(x,y){
+      const tile = byKey.get(`${x},${y}`);
+      if(tile && !tile.used){ tile.used = true; }
+    }
+    function next(){
+      while(cursor < tiles.length){
+        const tile = tiles[cursor++];
+        if(!tile.used){ tile.used = true; return tile; }
+      }
+      return null;
+    }
+    return { claim, next };
   }
   // Build a stable, sorted frames array using the numeric suffix in the key
   const framesObj = doc.frames || {};
@@ -100,6 +140,84 @@ export async function initUnitPreview(opts){
   });
   frameEntries.sort((a,b)=> a.idx - b.idx);
   const frames = frameEntries.map(e=> e.data);
+  const sampleFrame = frameEntries.find(e=> (e?.data?.frame?.w|0) > 0 && (e?.data?.frame?.h|0) > 0);
+  const tileResolver = sampleFrame ? createTileResolver(sampleFrame.data.frame.w|0, sampleFrame.data.frame.h|0) : null;
+  const resolvedFrames = frameEntries.map(()=> null);
+  if(tileResolver){
+    for(let i=0;i<frameEntries.length;i++){
+      const entryMeta = frameEntries[i];
+      const f = entryMeta?.data; if(!f) continue;
+      const fr = f.frame||{};
+      const w = fr.w|0; const h = fr.h|0; const dur = f.duration||0;
+      if(!(w>0 && h>0 && dur>0)) continue;
+      let sx = fr.x|0; let sy = fr.y|0;
+      if(sx < 0 || sy < 0 || sx + w > img.width || sy + h > img.height){
+        const cols = w > 0 ? Math.max(1, Math.floor(img.width / w)) : 0;
+        const rows = h > 0 ? Math.max(1, Math.floor(img.height / h)) : 0;
+        if(cols && rows){
+          const total = cols * rows;
+          const fallbackIndex = Number.isFinite(entryMeta?.idx) ? entryMeta.idx : i;
+          const normalized = total > 0 ? ((fallbackIndex % total) + total) % total : 0;
+          const col = normalized % cols;
+          const row = Math.floor(normalized / cols);
+          const maxX = Math.max(0, img.width - w);
+          const maxY = Math.max(0, img.height - h);
+          sx = Math.min(maxX, col * w);
+          sy = Math.min(maxY, row * h);
+        }else{
+          const maxX = Math.max(0, img.width - w);
+          const maxY = Math.max(0, img.height - h);
+          sx = Math.min(maxX, Math.max(0, sx));
+          sy = Math.min(maxY, Math.max(0, sy));
+        }
+      }
+      let resolvedX = sx;
+      let resolvedY = sy;
+      let blank = frameIsEmpty({ frame: { x:resolvedX, y:resolvedY, w, h } });
+      if(blank && tileResolver){
+        const tile = tileResolver.next();
+        if(tile){
+          resolvedX = tile.sx;
+          resolvedY = tile.sy;
+          blank = frameIsEmpty({ frame: { x:resolvedX, y:resolvedY, w, h } });
+        }
+      }else if(tileResolver){
+        tileResolver.claim(resolvedX, resolvedY);
+      }
+      resolvedFrames[i] = { sx:resolvedX, sy:resolvedY, w, h, dur, blank };
+    }
+  }else{
+    for(let i=0;i<frameEntries.length;i++){
+      const entryMeta = frameEntries[i];
+      const f = entryMeta?.data; if(!f) continue;
+      const fr = f.frame||{};
+      const w = fr.w|0; const h = fr.h|0; const dur = f.duration||0;
+      if(!(w>0 && h>0 && dur>0)) continue;
+      let sx = fr.x|0; let sy = fr.y|0;
+      if(sx < 0 || sy < 0 || sx + w > img.width || sy + h > img.height){
+        const cols = w > 0 ? Math.max(1, Math.floor(img.width / w)) : 0;
+        const rows = h > 0 ? Math.max(1, Math.floor(img.height / h)) : 0;
+        if(cols && rows){
+          const total = cols * rows;
+          const fallbackIndex = Number.isFinite(entryMeta?.idx) ? entryMeta.idx : i;
+          const normalized = total > 0 ? ((fallbackIndex % total) + total) % total : 0;
+          const col = normalized % cols;
+          const row = Math.floor(normalized / cols);
+          const maxX = Math.max(0, img.width - w);
+          const maxY = Math.max(0, img.height - h);
+          sx = Math.min(maxX, col * w);
+          sy = Math.min(maxY, row * h);
+        }else{
+          const maxX = Math.max(0, img.width - w);
+          const maxY = Math.max(0, img.height - h);
+          sx = Math.min(maxX, Math.max(0, sx));
+          sy = Math.min(maxY, Math.max(0, sy));
+        }
+      }
+      const blank = frameIsEmpty({ frame: { x:sx, y:sy, w, h } });
+      resolvedFrames[i] = { sx, sy, w, h, dur, blank };
+    }
+  }
   const rawTags = Array.isArray(doc.meta?.frameTags) ? doc.meta.frameTags : [];
   const tags = [];
   const seen = new Set();
@@ -114,13 +232,12 @@ export async function initUnitPreview(opts){
     const rawList = [];
     const filtered = [];
     for(let i=from;i<=to;i++){
-      const f = frames[i]; if(!f) continue;
-      const fr = f.frame||{};
-      const w = fr.w|0; const h = fr.h|0; const dur = f.duration||0;
-      if(!(w>0 && h>0 && dur>0)) continue;
-      const entry = { sx: fr.x, sy: fr.y, w, h, dur };
+      const resolved = resolvedFrames[i];
+      if(!resolved) continue;
+      const { sx, sy, w, h, dur, blank } = resolved;
+      const entry = { sx, sy, w, h, dur };
       rawList.push(entry);
-      if(!frameIsEmpty(i, f)) filtered.push(entry);
+      if(!blank) filtered.push(entry);
     }
     const list = filtered.length ? filtered : rawList;
     if(list.length === 0) continue;

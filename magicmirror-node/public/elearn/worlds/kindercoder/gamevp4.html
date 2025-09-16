@@ -1043,12 +1043,15 @@
   const TORCH_BASE = "/elearn/models/ts-up/Factions/Goblins/Troops/Torch/Purple/";
   const TORCH_SHEET = TORCH_BASE + "Torch_Purple.png";
   const TORCH_JSON = TORCH_BASE + "Torch_Purple.json";
+  const DECO_BASE = "/elearn/models/ts-up/Deco/";
+  const DECO_VARIANTS = Array.from({length:18}, (_,i)=> String(i+1).padStart(2,'0'));
 
   const treeImgCache = new Map();
   const treeFramesCache = new Map();
   const sheepImgCache = new Map();
   const sheepFramesCache = new Map();
   let torchImg = null; const torchFramesCache = new Map();
+  const decoImgCache = new Map();
 
   function loadImg2(src){ return new Promise((res,rej)=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=()=>rej(new Error('img:'+src)); im.src=src; }); }
   async function loadTreeImg(idx){ if(!treeImgCache.has(idx)) treeImgCache.set(idx, await loadImg2(TREE_SHEETS[idx])); return treeImgCache.get(idx); }
@@ -1077,6 +1080,27 @@
     const off=document.createElement('canvas'); off.width=Math.max(...rawFrames.map(f=>f.w))||1; off.height=Math.max(...rawFrames.map(f=>f.h))||1; const octx=off.getContext('2d',{willReadFrequently:true});
     const filtered=[]; for(const f of rawFrames){ octx.clearRect(0,0,off.width,off.height); octx.drawImage(torchImg, f.sx, f.sy, f.w, f.h, 0, 0, f.w, f.h); const imgd=octx.getImageData(0,0,f.w,f.h); let alphaSum=0; const data=imgd.data; for(let i=3;i<data.length;i+=4) alphaSum += data[i]; if(alphaSum>0) filtered.push(f); }
     const frames=filtered.length>0?filtered:rawFrames; torchFramesCache.set(key, frames); return frames;
+  }
+  function normalizeDecoVariant(v){
+    const str = String(v ?? '').trim();
+    if(!str) return null;
+    const num = parseInt(str, 10);
+    if(!Number.isFinite(num)) return null;
+    if(num < 1 || num > DECO_VARIANTS.length) return null;
+    return String(num).padStart(2,'0');
+  }
+  async function loadDecoImg(variant){
+    const key = normalizeDecoVariant(variant);
+    if(!key) return null;
+    if(!decoImgCache.has(key)){
+      try{
+        const img = await loadImg2(`${DECO_BASE}${key}.png`);
+        decoImgCache.set(key, img);
+      }catch(_){
+        decoImgCache.set(key, null);
+      }
+    }
+    return decoImgCache.get(key);
   }
 
   function knightBuildingPath(type, color, state){
@@ -1113,11 +1137,12 @@
   }
 
   const decorRuntime = {
-    trees:[], sheeps:[], torches:[], buildings:[],
+    trees:[], sheeps:[], torches:[], pngs:[], buildings:[],
     async fromMap(doc){
-      this.trees.length=0; this.sheeps.length=0; this.torches.length=0; this.buildings.length=0;
+      this.trees.length=0; this.sheeps.length=0; this.torches.length=0; this.pngs.length=0; this.buildings.length=0;
       for(const t of (doc.decorTrees||[])){ const idx=t.type||1; await loadTreeImg(idx); await loadTreeFrames(idx); this.trees.push({ idx, x:t.x||0, y:t.y||0, scale:t.scale||1, fi:0, acc:0, fps:10 }); }
       for(const s of (doc.decorSheep||[])){ const anim=(s.anim||'idle').toLowerCase(); await loadSheepImg(anim); await loadSheepFrames(anim); this.sheeps.push({ anim, x:s.x||0, y:s.y||0, scale:s.scale||1, fi:0, acc:0, fps:10 }); }
+      for(const d of (doc.decorPngs||[])){ const variant=normalizeDecoVariant(d.variant||d.id||d.type); const img=await loadDecoImg(variant); if(img && variant){ this.pngs.push({ variant, x:d.x||0, y:d.y||0, scale:d.scale||1 }); } }
       for(const tt of (doc.goblinTorches||doc.decorTorches||[])){ const anim=(tt.anim||'idle').toLowerCase(); await loadTorchImg(); await loadTorchFrames(anim); this.torches.push({ anim, x:tt.x||0, y:tt.y||0, scale:tt.scale||1, fi:0, acc:0, fps:10 }); }
       for(const b of (doc.buildings||[])){
         const spec={ faction:b.faction||'knight', type:b.type||'castle', color:b.color||'blue', state:b.state||'normal' };
@@ -1133,6 +1158,7 @@
       const list=[];
       for(const t of this.trees){ const fr=(treeFramesCache.get(t.idx)||[])[t.fi]||(treeFramesCache.get(t.idx)||[])[0]; const img=treeImgCache.get(t.idx); if(!fr||!img) continue; const dw=fr.w*t.scale, dh=fr.h*t.scale; const dx=Math.round(t.x-0.5*dw), dy=Math.round(t.y-dh); list.push({y:t.y, draw:()=>ctx.drawImage(img, fr.sx, fr.sy, fr.w, fr.h, dx, dy, dw, dh)}); }
       for(const s of this.sheeps){ const fr=(sheepFramesCache.get((s.anim||'idle'))||[])[s.fi]||(sheepFramesCache.get((s.anim||'idle'))||[])[0]; const img=sheepImgCache.get((s.anim||'idle')); if(!fr||!img) continue; const dw=fr.w*s.scale, dh=fr.h*s.scale; const dx=Math.round(s.x-0.5*dw), dy=Math.round(s.y-dh); list.push({y:s.y, draw:()=>ctx.drawImage(img, fr.sx, fr.sy, fr.w, fr.h, dx, dy, dw, dh)}); }
+      for(const d of this.pngs){ const img=decoImgCache.get(d.variant); if(!img) continue; const sc=d.scale||1; const dw=img.width*sc, dh=img.height*sc; const dx=Math.round(d.x-0.5*dw), dy=Math.round(d.y-dh); list.push({y:d.y, draw:()=>ctx.drawImage(img, dx, dy, dw, dh)}); }
       for(const t of this.torches){ const fr=(torchFramesCache.get((t.anim||'idle'))||[])[t.fi]||(torchFramesCache.get((t.anim||'idle'))||[])[0]; if(!fr||!torchImg) continue; const dw=fr.w*t.scale, dh=fr.h*t.scale; const dx=Math.round(t.x-0.5*dw), dy=Math.round(t.y-dh); list.push({y:t.y, draw:()=>ctx.drawImage(torchImg, fr.sx, fr.sy, fr.w, fr.h, dx, dy, dw, dh)}); }
       for(const b of this.buildings){ const img=b.img; if(!img) continue; const dw=img.width*(b.scale||1), dh=img.height*(b.scale||1); const dx=Math.round(b.x-0.5*dw), dy=Math.round(b.y-dh); list.push({y:b.y, draw:()=>ctx.drawImage(img, dx, dy, dw, dh)}); }
       list.sort((a,b)=>a.y-b.y); for(const it of list) it.draw();
@@ -1153,6 +1179,7 @@
         const list=[];
         for(const t of decorRuntime.trees){ const fr=(treeFramesCache.get(t.idx)||[])[t.fi]||(treeFramesCache.get(t.idx)||[])[0]; const img=treeImgCache.get(t.idx); if(!fr||!img) continue; const dw=fr.w*t.scale, dh=fr.h*t.scale; const dx=Math.round(t.x-0.5*dw), dy=Math.round(t.y-dh); list.push({y:t.y, draw:()=>ctx.drawImage(img, fr.sx, fr.sy, fr.w, fr.h, dx, dy, dw, dh)}); }
         for(const s of decorRuntime.sheeps){ const fr=(sheepFramesCache.get((s.anim||'idle'))||[])[s.fi]||(sheepFramesCache.get((s.anim||'idle'))||[])[0]; const img=sheepImgCache.get((s.anim||'idle')); if(!fr||!img) continue; const dw=fr.w*s.scale, dh=fr.h*s.scale; const dx=Math.round(s.x-0.5*dw), dy=Math.round(s.y-dh); list.push({y:s.y, draw:()=>ctx.drawImage(img, fr.sx, fr.sy, fr.w, fr.h, dx, dy, dw, dh)}); }
+        for(const d of decorRuntime.pngs){ const img=decoImgCache.get(d.variant); if(!img) continue; const sc=d.scale||1; const dw=img.width*sc, dh=img.height*sc; const dx=Math.round(d.x-0.5*dw), dy=Math.round(d.y-dh); list.push({y:d.y, draw:()=>ctx.drawImage(img, dx, dy, dw, dh)}); }
         for(const t of decorRuntime.torches){ const fr=(torchFramesCache.get((t.anim||'idle'))||[])[t.fi]||(torchFramesCache.get((t.anim||'idle'))||[])[0]; if(!fr||!torchImg) continue; const dw=fr.w*t.scale, dh=fr.h*t.scale; const dx=Math.round(t.x-0.5*dw), dy=Math.round(t.y-dh); list.push({y:t.y, draw:()=>ctx.drawImage(torchImg, fr.sx, fr.sy, fr.w, fr.h, dx, dy, dw, dh)}); }
         for(const b of decorRuntime.buildings){ const img=b.img; if(!img) continue; const dw=img.width*(b.scale||1), dh=img.height*(b.scale||1); const dx=Math.round(b.x-0.5*dw), dy=Math.round(b.y-dh); list.push({y:b.y, draw:()=>ctx.drawImage(img, dx, dy, dw, dh)}); }
         // Insert warrior
