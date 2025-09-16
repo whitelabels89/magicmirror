@@ -1,0 +1,382 @@
+/* Kids-friendly gaming theme for Alphabet world levels */
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Fredoka:wght@500;600&family=Poppins:wght@500;600;700&display=swap');
+
+:root {
+  --alphabet-primary: #7ae0ff;
+  --alphabet-secondary: #ff9ec4;
+  --alphabet-deep: #5738b0;
+  --alphabet-sun: #ffce47;
+  --alphabet-ink: #2f285a;
+  --alphabet-surface: rgba(255, 255, 255, 0.95);
+  --alphabet-shadow: 0 24px 48px rgba(87, 56, 176, 0.2);
+}
+
+body.alphabet-game {
+  margin: 0;
+  min-height: 100vh;
+  width: 100%;
+  font-family: 'Baloo 2', 'Poppins', 'Fredoka', 'Nunito', 'Comic Neue', sans-serif;
+  color: var(--alphabet-ink);
+  background: linear-gradient(135deg, #ffe8a3 0%, #ffd1dc 100%);
+  background-attachment: fixed;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  --alphabet-hud-gap: clamp(16px, 4vw, 32px);
+  --alphabet-hud-outer: clamp(140px, 22vw, 220px);
+  padding-top: calc(var(--alphabet-hud-gap) + var(--alphabet-hud-outer));
+  padding-bottom: clamp(72px, 8vw, 120px);
+  padding-left: 0;
+  padding-right: 0;
+  scroll-padding-top: calc(var(--alphabet-hud-gap) + var(--alphabet-hud-outer));
+}
+
+body.alphabet-game::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 12% 20%, rgba(255, 206, 71, 0.35), transparent 38%),
+    radial-gradient(circle at 88% 12%, rgba(122, 224, 255, 0.35), transparent 40%),
+    radial-gradient(circle at 22% 84%, rgba(255, 158, 196, 0.32), transparent 46%),
+    radial-gradient(circle at 82% 78%, rgba(122, 224, 255, 0.25), transparent 52%);
+  z-index: -2;
+  opacity: 0.85;
+}
+
+body.alphabet-game::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: linear-gradient(115deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0) 60%);
+  z-index: -1;
+}
+
+body.alphabet-game a {
+  color: var(--alphabet-deep);
+}
+
+body.alphabet-game * {
+  font-family: inherit;
+}
+
+body.alphabet-game .alphabet-card {
+  position: relative;
+  margin: clamp(20px, 4vw, 44px) auto;
+  padding: clamp(22px, 4vw, 38px);
+  width: min(1200px, calc(100% - 32px));
+  border-radius: 30px;
+  border: 4px solid var(--alphabet-secondary);
+  background: var(--alphabet-surface);
+  box-shadow: var(--alphabet-shadow);
+  overflow: visible;
+  isolation: isolate;
+}
+
+body.alphabet-game .alphabet-card::before,
+body.alphabet-game .alphabet-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+body.alphabet-game .alphabet-card::before {
+  background: radial-gradient(circle at top right, rgba(122, 224, 255, 0.35), transparent 58%),
+              radial-gradient(circle at bottom left, rgba(255, 206, 71, 0.28), transparent 60%);
+  z-index: 0;
+}
+
+body.alphabet-game .alphabet-card::after {
+  background-image: linear-gradient(140deg, rgba(255, 158, 196, 0.18), rgba(87, 56, 176, 0.14));
+  mix-blend-mode: screen;
+  opacity: 0.65;
+  z-index: 0;
+}
+
+body.alphabet-game .alphabet-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+body.alphabet-game .alphabet-card:hover::before {
+  transform: scale(1.01);
+}
+
+body.alphabet-game .alphabet-card--hud {
+  margin: 0;
+  position: fixed;
+  top: clamp(12px, 3vw, 32px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(1200px, calc(100% - 32px));
+  z-index: 120;
+  backdrop-filter: blur(6px) saturate(1.05);
+}
+
+body.alphabet-game .alphabet-card--hud::after {
+  opacity: 0.45;
+}
+
+body.alphabet-game .alphabet-card--content {
+  margin-top: clamp(18px, 4vw, 42px);
+}
+
+body.alphabet-game .alphabet-hud {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 240px) auto;
+  align-items: center;
+  gap: clamp(14px, 3vw, 28px);
+}
+
+body.alphabet-game .alphabet-hud__meta {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 2.4vw, 20px);
+  min-width: 0;
+}
+
+body.alphabet-game .alphabet-badge {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff9ec4 100%);
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  padding: 0.35rem 1.1rem;
+  border-radius: 999px;
+  box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+  text-transform: uppercase;
+  font-size: 0.9rem;
+}
+
+body.alphabet-game .alphabet-hud__title h1 {
+  margin: 0;
+  font-size: clamp(1.45rem, 2.8vw, 1.95rem);
+  letter-spacing: 0.4px;
+}
+
+body.alphabet-game .alphabet-hud__subtitle {
+  margin: 4px 0 0;
+  font-size: 0.95rem;
+  color: var(--alphabet-deep);
+  opacity: 0.85;
+  font-weight: 600;
+}
+
+body.alphabet-game .alphabet-hud__progress {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+body.alphabet-game .alphabet-progress {
+  width: min(220px, 100%);
+  height: 14px;
+  border-radius: 999px;
+  border: 2px solid var(--alphabet-deep);
+  background: rgba(255, 255, 255, 0.55);
+  overflow: hidden;
+}
+
+body.alphabet-game .alphabet-progress__value {
+  display: block;
+  height: 100%;
+  width: 0%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--alphabet-primary) 0%, var(--alphabet-deep) 100%);
+  box-shadow: 0 0 16px rgba(122, 224, 255, 0.65);
+  transition: width 0.35s ease-in-out;
+}
+
+body.alphabet-game .alphabet-progress__label {
+  font-weight: 700;
+  color: var(--alphabet-deep);
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+body.alphabet-game .alphabet-hud__maskot {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+body.alphabet-game .alphabet-letter-bubble {
+  width: clamp(76px, 9vw, 110px);
+  height: clamp(76px, 9vw, 110px);
+  border-radius: 50%;
+  background: linear-gradient(145deg, var(--alphabet-primary) 0%, #baf1ff 100%);
+  border: 4px solid #ffffff;
+  display: grid;
+  place-items: center;
+  color: #ff6b6b;
+  font-weight: 800;
+  font-size: clamp(2.5rem, 5.8vw, 3.4rem);
+  text-shadow: 0 3px 0 #fff, 0 5px 0 var(--alphabet-deep);
+  box-shadow: 0 18px 30px rgba(122, 224, 255, 0.55);
+  animation: alphabet-bubble 4s ease-in-out infinite;
+}
+
+@keyframes alphabet-bubble {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+body.alphabet-game .alphabet-hud__stats {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 2.8vw, 26px);
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+body.alphabet-game .alphabet-stars {
+  display: flex;
+  gap: 8px;
+}
+
+body.alphabet-game .alphabet-star {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.45);
+  border: 2px dashed rgba(87, 56, 176, 0.45);
+  box-shadow: inset 0 0 0 2px rgba(122, 224, 255, 0.18);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+body.alphabet-game .alphabet-star::before {
+  content: '★';
+  font-size: 1.4rem;
+  color: transparent;
+  -webkit-text-stroke: 2px var(--alphabet-deep);
+  text-shadow: 0 0 10px rgba(87, 56, 176, 0.25);
+  transition: color 0.3s ease, -webkit-text-stroke 0.3s ease, text-shadow 0.3s ease;
+}
+
+body.alphabet-game .alphabet-star.is-filled {
+  box-shadow: inset 0 0 0 2px rgba(255, 206, 71, 0.45), 0 6px 14px rgba(255, 206, 71, 0.45);
+  transform: translateY(-2px) scale(1.04);
+}
+
+body.alphabet-game .alphabet-star.is-filled::before {
+  color: var(--alphabet-sun);
+  -webkit-text-stroke: 2px #d48a0c;
+  text-shadow: 0 0 16px rgba(255, 206, 71, 0.8);
+}
+
+body.alphabet-game .alphabet-coins {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-weight: 800;
+  color: var(--alphabet-deep);
+  background: rgba(255, 158, 196, 0.25);
+  box-shadow: inset 0 0 0 2px rgba(87, 56, 176, 0.15);
+}
+
+body.alphabet-game .alphabet-coins::before {
+  content: '🪙';
+  font-size: 1.35rem;
+}
+
+body.alphabet-game .alphabet-coins__value {
+  font-variant-numeric: tabular-nums;
+  font-size: 1.05rem;
+}
+
+body.alphabet-game .alphabet-card .btn,
+body.alphabet-game .alphabet-card button {
+  font-family: inherit;
+  font-weight: 700;
+  border-radius: 14px;
+}
+
+@media (max-width: 960px) {
+  body.alphabet-game .alphabet-card {
+    width: min(100%, calc(100% - 24px));
+    padding: clamp(18px, 5vw, 30px);
+  }
+
+  body.alphabet-game .alphabet-card--hud {
+    width: min(100%, calc(100% - 24px));
+  }
+
+  body.alphabet-game .alphabet-card--hud {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  body.alphabet-game .alphabet-hud {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  body.alphabet-game .alphabet-hud__meta {
+    flex-direction: column;
+  }
+
+  body.alphabet-game .alphabet-hud__progress {
+    width: 100%;
+    align-items: center;
+  }
+
+  body.alphabet-game .alphabet-progress {
+    width: min(420px, 100%);
+  }
+
+  body.alphabet-game .alphabet-hud__stats {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 600px) {
+  body.alphabet-game .alphabet-card {
+    margin: clamp(14px, 6vw, 24px) auto;
+    padding: clamp(16px, 6vw, 26px);
+  }
+
+  body.alphabet-game .alphabet-card--hud {
+    width: min(100%, calc(100% - 18px));
+  }
+
+  body.alphabet-game .alphabet-badge {
+    font-size: 0.85rem;
+  }
+
+  body.alphabet-game .alphabet-hud__title h1 {
+    font-size: clamp(1.35rem, 6vw, 1.65rem);
+  }
+
+  body.alphabet-game .alphabet-hud__subtitle {
+    font-size: 0.9rem;
+  }
+
+  body.alphabet-game .alphabet-letter-bubble {
+    width: clamp(64px, 12vw, 86px);
+    height: clamp(64px, 12vw, 86px);
+    font-size: clamp(2.1rem, 8vw, 2.8rem);
+  }
+
+  body.alphabet-game .alphabet-stars {
+    gap: 6px;
+  }
+
+  body.alphabet-game .alphabet-star {
+    width: 28px;
+    height: 28px;
+  }
+
+  body.alphabet-game .alphabet-star::before {
+    font-size: 1.2rem;
+  }
+}
