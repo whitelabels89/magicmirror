@@ -59,18 +59,24 @@ export async function initUnitPreview(opts){
   });
   frameEntries.sort((a,b)=> a.idx - b.idx);
   const frames = frameEntries.map(e=> e.data);
-  const tags = (doc.meta?.frameTags||[]).map(t=>({ name: t.name, from:t.from|0, to:t.to|0 }));
+  const tags = (doc.meta?.frameTags||[]).map(t=>({ name: String(t.name||'').trim(), from:t.from|0, to:t.to|0 }));
   // Build per-tag frame arrays
   const map = new Map();
   const mapLower = new Map();
+  const nameIndex = new Map(); // normalized -> original
   for(const t of tags){
-    const list = [];
+    let list = [];
     for(let i=t.from;i<=t.to;i++){
       const f = frames[i]; if(!f) continue;
       const fr = f.frame||{}; list.push({ sx: fr.x, sy: fr.y, w: fr.w, h: fr.h, dur: f.duration||100 });
     }
+    // Filter frames that are clearly empty (zero area or zero duration)
+    const filtered = list.filter(fr => (fr && fr.w > 0 && fr.h > 0 && (fr.dur||0) > 0));
+    if (filtered.length > 0) list = filtered;
     map.set(t.name, list);
-    mapLower.set(String(t.name).trim().toLowerCase(), list);
+    const norm = String(t.name).trim().toLowerCase().replace(/\s+/g,' ');
+    mapLower.set(norm, list);
+    nameIndex.set(norm, t.name);
   }
   // Populate UI (show all tag names as-is)
   ui.tag.innerHTML = '';
@@ -84,12 +90,27 @@ export async function initUnitPreview(opts){
 
   function currentFrames(){
     const name = ui.tag.value;
-    // Some tag names in JSON may contain trailing spaces; try exact first then trimmed
+    // Normalize lookup
     let arr = map.get(name);
     if(!arr && typeof name === 'string') arr = map.get(name.trim());
-    if(!arr && typeof name === 'string') arr = mapLower.get(name.trim().toLowerCase());
+    if(!arr && typeof name === 'string') arr = mapLower.get(name.trim().toLowerCase().replace(/\s+/g,' '));
     return arr || [];
   }
+  // Quick tag buttons for commonly used anims
+  const quickNames = ['Idle','Run','Shoot Up','Shoot Front','Shoot Down','Shoot Diagonal Up','Shoot Diagona Down','Arrow_1','Arrow_2'];
+  const quickBar = document.createElement('div');
+  quickBar.style.display='flex'; quickBar.style.gap='6px'; quickBar.style.marginLeft='8px';
+  for(const q of quickNames){
+    const norm = q.trim().toLowerCase().replace(/\s+/g,' ');
+    const orig = nameIndex.get(norm);
+    if (!orig) continue;
+    const b = document.createElement('button');
+    b.textContent = q; b.style.padding='4px 8px'; b.style.border='1px solid #243249'; b.style.background='#0b1220'; b.style.color='#fff'; b.style.borderRadius='8px'; b.style.cursor='pointer';
+    b.onclick = ()=>{ const name = nameIndex.get(norm) || q; ui.tag.value = name; ui.tag.onchange(); };
+    quickBar.appendChild(b);
+  }
+  // Insert quickBar next to button
+  ui.btn.parentElement && ui.btn.parentElement.appendChild(quickBar);
   function draw(ts){
     const scale = parseFloat(ui.scale.value)||1; const speed = parseFloat(ui.speed.value)||1;
     const arr = currentFrames(); if(arr.length===0){ requestAnimationFrame(draw); return; }

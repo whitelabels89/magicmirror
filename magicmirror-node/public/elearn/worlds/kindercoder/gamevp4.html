@@ -14,8 +14,11 @@
     :root{
       --bg:#131822; --panel:#0f1520; --panel-2:#111827; --text:#e6edf3; --muted:#9aa4b2;
       --accent:#22c55e; --accent-2:#f97316; --warn:#ef4444; --tile:#cf6f3b; --tile-2:#e19a60;
+      /* Cursor hotspot (px from top-left of image). Tweak here. */
+      --cursor-x: 22;
+      --cursor-y: 18;
     }
-    html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font:500 16px/1.4 system-ui,Segoe UI,Roboto,Helvetica,Arial}
+    html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font:500 16px/1.4 system-ui,Segoe UI,Roboto,Helvetica,Arial;cursor:url('/elearn/models/ts-up/UI/Pointers/01.png') var(--cursor-x) var(--cursor-y), auto}
     .wrap{display:grid;grid-template-columns: 360px 1fr;gap:16px;height:100vh;padding:16px;box-sizing:border-box}
     /* Left – blocks */
     .left{background:linear-gradient(180deg,#0f172a 0%, #0b1220 100%);border-radius:16px;overflow:auto;display:flex;flex-direction:column;min-height:0}
@@ -55,6 +58,7 @@
 
     /* Right – board */
     .right{position:relative;background:#1e3a8a;border-radius:16px;overflow:hidden;display:grid;grid-template-rows: 1fr auto}
+    .right, .board, canvas { cursor:url('/elearn/models/ts-up/UI/Pointers/01.png') var(--cursor-x) var(--cursor-y), auto }
 
     .right .water-bg{
       position:absolute; inset:0;
@@ -280,7 +284,7 @@
         const cfg = TerrainAtlas.getConfig();
         const t = cfg.tileSize || 64;
         // Expose tile size globally so placement and overlay can stay in sync
-        tileSize = t;
+        tileSize = t; window.tileSize = t;
 
         // Try external map json for no-code island layout
         const qs = new URLSearchParams(location.search);
@@ -363,6 +367,11 @@
         });
 
         tileSize = t;
+        // Expose meta for overlay module (goal pointer etc.)
+        try {
+          window.__gvp4_meta = { tileSize: t, cols: COLS, rows: ROWS, goal: { ...goal } };
+          window.dispatchEvent(new CustomEvent('gvp4:meta', { detail: window.__gvp4_meta }));
+        } catch(_){ }
 
         // Optional: tiled water background texture
         try{ await TerrainEngine.setWaterTexture('/elearn/models/ts-fp/Terrain/Water%20Background%20color.png'); }catch(_){ }
@@ -419,6 +428,7 @@
           if(cl2)TerrainEngine.setGrid('cliff_land2', cl2);
           if(cw) TerrainEngine.setGrid('cliff_water', cw);
           if(sl) TerrainEngine.setGrid('slopes', sl);
+          try{ TerrainEngine.render(); }catch(_){}
           // Expose map to module overlay and fire event for decor/buildings rendering
           try{ window.__gvp4_map = map; window.dispatchEvent(new CustomEvent('gvp4:mapLoaded', { detail:{ map } })); }catch(_){ }
         } else {
@@ -472,6 +482,7 @@
           if(cl2)TerrainEngine.setGrid('cliff_land2', cl2);
           if(cw) TerrainEngine.setGrid('cliff_water', cw);
           if(sl) TerrainEngine.setGrid('slopes', sl);
+          try{ TerrainEngine.render(); }catch(_){}
         }
 
         // Render + posisikan robot
@@ -1016,8 +1027,7 @@
 
   // Robot SVG removed; warrior overlay is the only character
 
-  // Ask for initial placement once listeners are ready, with safe fallback
-  if(typeof tileSize === 'number' && start){ warrior.x = start.c*tileSize + tileSize/2; warrior.y = start.r*tileSize + tileSize/2; }
+  // Ask for initial placement once listeners are ready
   window.dispatchEvent(new CustomEvent('gvp4:requestPlace'));
 
   scene.start();
@@ -1131,8 +1141,12 @@
 
   const overlayCtx = scene.ctx; // alias
   // Create a scene object to render decor each frame
+  let goalMeta = window.__gvp4_meta || null;
+  let goalImg = null; let goalPulse = 0; (async()=>{ try{ goalImg = await loadImg2('/elearn/models/ts-up/UI/Pointers/02.png'); }catch(_){} })();
+  window.addEventListener('gvp4:meta', (e)=>{ goalMeta = (e && e.detail) || window.__gvp4_meta || null; });
+
   const decorObj = { 
-    update:(dt)=>{ warrior.update(dt); decorRuntime.update(dt); },
+    update:(dt)=>{ warrior.update(dt); decorRuntime.update(dt); goalPulse += dt; },
     draw:(ctx)=>{
       try{
         // unified y-sorted draw: decor + warrior
@@ -1143,6 +1157,18 @@
         for(const b of decorRuntime.buildings){ const img=b.img; if(!img) continue; const dw=img.width*(b.scale||1), dh=img.height*(b.scale||1); const dx=Math.round(b.x-0.5*dw), dy=Math.round(b.y-dh); list.push({y:b.y, draw:()=>ctx.drawImage(img, dx, dy, dw, dh)}); }
         // Insert warrior
         list.push({ y: warrior.y, draw:()=> warrior.draw(ctx) });
+        // Draw goal pointer (pulsating)
+        if(goalMeta && goalImg && window.tileSize){
+          const ts = window.tileSize || goalMeta.tileSize || 64;
+          const x = goalMeta.goal && Number.isFinite(goalMeta.goal.c) ? (goalMeta.goal.c * ts + ts/2) : null;
+          const y = goalMeta.goal && Number.isFinite(goalMeta.goal.r) ? (goalMeta.goal.r * ts + ts/2) : null;
+          if(x!=null && y!=null){
+            const s = 0.9 + 0.1*Math.sin((goalPulse||0)/400);
+            const dw = goalImg.width * s * 0.6; const dh = goalImg.height * s * 0.6;
+            const dx = Math.round(x - dw/2); const dy = Math.round(y - dh/2);
+            list.push({ y, draw:()=> ctx.drawImage(goalImg, dx, dy, dw, dh) });
+          }
+        }
         list.sort((a,b)=> a.y - b.y);
         for(const it of list) it.draw();
       }catch(_){
