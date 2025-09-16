@@ -1,340 +1,535 @@
 (function () {
-  const CONFIG_URL = 'config.json';
-  const hudState = {
+  var CONFIG_URL = 'config.json';
+  var hudState = {
     stars: 0,
     coins: 0,
-<<<<<<< ours
-<<<<<<< ours
-<<<<<<< ours
-<<<<<<< ours
-    refs: null
-=======
     refs: null,
     hud: null,
     updateHudOffset: null
->>>>>>> theirs
-=======
-    refs: null,
-    hud: null,
-    updateHudOffset: null
->>>>>>> theirs
-=======
-    refs: null,
-    hud: null,
-    updateHudOffset: null
->>>>>>> theirs
-=======
-    refs: null,
-    hud: null,
-    updateHudOffset: null
->>>>>>> theirs
+  };
+  var SKIP_TAGS = { SCRIPT: true, STYLE: true };
+  var SKIP_CLASSNAMES = ['finish-bar', 'toast', 'alphabet-hud'];
+  var SKIP_IDS = { 'pause-menu': true, globalToast: true };
+
+  function hasClass(node, className) {
+    if (!node || !className) {
+      return false;
+    }
+    if (node.classList && node.classList.contains) {
+      return node.classList.contains(className);
+    }
+    var classAttr = node.className;
+    if (typeof classAttr !== 'string') {
+      return false;
+    }
+    var parts = classAttr.split(/\s+/);
+    for (var i = 0; i < parts.length; i += 1) {
+      if (parts[i] === className) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function addClass(node, className) {
+    if (!node || !className) {
+      return;
+    }
+    if (node.classList && node.classList.add) {
+      node.classList.add(className);
+      return;
+    }
+    if (!hasClass(node, className)) {
+      node.className = node.className ? node.className + ' ' + className : className;
+    }
+  }
+
+  function removeClass(node, className) {
+    if (!node || !className) {
+      return;
+    }
+    if (node.classList && node.classList.remove) {
+      node.classList.remove(className);
+      return;
+    }
+    var classAttr = node.className;
+    if (typeof classAttr !== 'string' || !classAttr) {
+      return;
+    }
+    var next = [];
+    var parts = classAttr.split(/\s+/);
+    for (var i = 0; i < parts.length; i += 1) {
+      if (parts[i] && parts[i] !== className) {
+        next.push(parts[i]);
+      }
+    }
+    node.className = next.join(' ');
+  }
+
+  function getData(node, key) {
+    if (!node || !key) {
+      return null;
+    }
+    if (node.dataset && node.dataset[key] != null) {
+      return node.dataset[key];
+    }
+    if (node.getAttribute) {
+      return node.getAttribute('data-' + key);
+    }
+    return null;
+  }
+
   };
   const SKIP_TAGS = new Set(['SCRIPT', 'STYLE']);
   const SKIP_CLASSNAMES = ['finish-bar', 'toast', 'alphabet-hud'];
   const SKIP_IDS = new Set(['pause-menu', 'globalToast']);
 
-<<<<<<< ours
-<<<<<<< ours
-<<<<<<< ours
-<<<<<<< ours
-=======
-=======
->>>>>>> theirs
-=======
->>>>>>> theirs
-=======
->>>>>>> theirs
   function refreshHudOffset() {
     if (typeof hudState.updateHudOffset === 'function') {
       hudState.updateHudOffset();
     }
   }
 
-<<<<<<< ours
-<<<<<<< ours
-<<<<<<< ours
->>>>>>> theirs
-=======
->>>>>>> theirs
-=======
->>>>>>> theirs
-=======
->>>>>>> theirs
-  function fetchConfig() {
-    return fetch(CONFIG_URL, { cache: 'no-store' })
-      .then((res) => (res.ok ? res.json() : null))
-      .catch(() => null);
+  function fetchConfig(onSuccess, onError) {
+    var success = typeof onSuccess === 'function' ? onSuccess : function () {};
+    var failure = typeof onError === 'function' ? onError : function () {};
+
+    if (typeof window.fetch === 'function') {
+      try {
+        window.fetch(CONFIG_URL, { cache: 'no-store' })
+          .then(function (response) {
+            if (response && response.ok) {
+              return response.json();
+            }
+            return null;
+          })
+          .then(function (data) {
+            success(data || null);
+          })
+          .catch(function () {
+            failure();
+          });
+        return;
+      } catch (err) {
+        failure();
+        return;
+      }
+    }
+
+    var request;
+    try {
+      request = new XMLHttpRequest();
+    } catch (err) {
+      failure();
+      return;
+    }
+
+    try {
+      request.open('GET', CONFIG_URL, true);
+    } catch (errOpen) {
+      failure();
+      return;
+    }
+
+    try {
+      request.responseType = 'json';
+    } catch (errType) {
+      /* ignore unsupported responseType */
+    }
+
+    request.onreadystatechange = function () {
+      if (request.readyState !== 4) {
+        return;
+      }
+      if (request.status >= 200 && request.status < 300) {
+        var response = request.response;
+        if (!response && request.responseText) {
+          try {
+            response = JSON.parse(request.responseText);
+          } catch (errParse) {
+            response = null;
+          }
+        }
+        success(response || null);
+      } else {
+        failure();
+      }
+    };
+
+    request.onerror = function () {
+      failure();
+    };
+
+    try {
+      request.send();
+    } catch (errSend) {
+      failure();
+    }
   }
 
   function getLevelInfo(config) {
-    const nodes = (config && config.map && Array.isArray(config.map.nodes)) ? config.map.nodes : [];
-    const path = (window.location.pathname || '').replace(/\\+/g, '/');
-    const current = nodes.find((item) => typeof item.entry === 'string' && path.endsWith(item.entry));
-    const index = current ? nodes.indexOf(current) : -1;
-    let fallbackNumber = null;
-    const match = path.match(/alpha-L(\d+)/i);
-    if (match) {
-      fallbackNumber = Number.parseInt(match[1], 10);
+    var nodes = [];
+    if (config && config.map && config.map.nodes && typeof config.map.nodes.length === 'number') {
+      nodes = config.map.nodes;
     }
 
+    var path = '';
+    if (window.location && typeof window.location.pathname === 'string') {
+      path = window.location.pathname.replace(/\+/g, '/');
+    }
+
+    var current = null;
+    var index = -1;
+    for (var i = 0; i < nodes.length; i += 1) {
+      var item = nodes[i];
+      if (!item || typeof item.entry !== 'string') {
+        continue;
+      }
+      var entry = item.entry;
+      if (entry && path && path.length >= entry.length && path.slice(-entry.length) === entry) {
+        current = item;
+        index = i;
+        break;
+      }
+    }
+
+    var fallbackNumber = null;
+    var match = path.match(/alpha-L(\d+)/i);
+    if (match && match[1]) {
+      fallbackNumber = parseInt(match[1], 10);
+    }
+
+    var letter = '';
+    if (current) {
+      if (current.label != null) {
+        letter = String(current.label);
+      } else if (current.id != null) {
+        letter = String(current.id);
+      }
+    }
+
+    var title = document && typeof document.title === 'string' && document.title
+      ? document.title
+      : 'Alphabet Adventure';
+
     return {
-      index,
+      index: index,
       total: nodes.length || 0,
-      letter: current && (current.label || current.id) ? String(current.label || current.id) : '',
-      title: document.title || 'Alphabet Adventure',
-      fallbackNumber
+      letter: letter,
+      title: title,
+      fallbackNumber: fallbackNumber
     };
   }
 
-  function createHud(info) {
-    const hud = document.createElement('section');
+  function createHud() {
+    var hud = document.createElement('section');
     hud.className = 'alphabet-hud alphabet-card alphabet-card--hud';
 
-    const meta = document.createElement('div');
+    var meta = document.createElement('div');
     meta.className = 'alphabet-hud__meta';
+    hud.appendChild(meta);
 
-    const badge = document.createElement('span');
+    var badge = document.createElement('span');
     badge.className = 'alphabet-badge';
     meta.appendChild(badge);
 
-    const titleBox = document.createElement('div');
+    var titleBox = document.createElement('div');
     titleBox.className = 'alphabet-hud__title';
+    meta.appendChild(titleBox);
 
-    const mainTitle = document.createElement('h1');
+    var mainTitle = document.createElement('h1');
     titleBox.appendChild(mainTitle);
 
-    const subtitle = document.createElement('p');
+    var subtitle = document.createElement('p');
     subtitle.className = 'alphabet-hud__subtitle';
     titleBox.appendChild(subtitle);
 
-    meta.appendChild(titleBox);
-    hud.appendChild(meta);
+    var progressWrap = document.createElement('div');
+    progressWrap.className = 'alphabet-hud__progress';
+    hud.appendChild(progressWrap);
 
-    const progress = document.createElement('div');
-    progress.className = 'alphabet-hud__progress';
-    const progressBar = document.createElement('div');
+    var progressBar = document.createElement('div');
     progressBar.className = 'alphabet-progress';
-    const progressValue = document.createElement('span');
+    progressWrap.appendChild(progressBar);
+
+    var progressValue = document.createElement('span');
     progressValue.className = 'alphabet-progress__value';
     progressBar.appendChild(progressValue);
-    progress.appendChild(progressBar);
-    const progressLabel = document.createElement('div');
-    progressLabel.className = 'alphabet-progress__label';
-    progress.appendChild(progressLabel);
-    hud.appendChild(progress);
 
-    const maskotWrap = document.createElement('div');
+    var progressLabel = document.createElement('div');
+    progressLabel.className = 'alphabet-progress__label';
+    progressWrap.appendChild(progressLabel);
+
+    var maskotWrap = document.createElement('div');
     maskotWrap.className = 'alphabet-hud__maskot';
-    const bubble = document.createElement('div');
-    bubble.className = 'alphabet-letter-bubble';
-    maskotWrap.appendChild(bubble);
     hud.appendChild(maskotWrap);
 
-    const stats = document.createElement('div');
+    var bubble = document.createElement('div');
+    bubble.className = 'alphabet-letter-bubble';
+    maskotWrap.appendChild(bubble);
+
+    var stats = document.createElement('div');
     stats.className = 'alphabet-hud__stats';
-    const stars = document.createElement('div');
+    hud.appendChild(stats);
+
+    var stars = document.createElement('div');
     stars.className = 'alphabet-stars';
-    const starElements = [];
-    for (let i = 0; i < 3; i += 1) {
-      const star = document.createElement('span');
+    stats.appendChild(stars);
+
+    var starElements = [];
+    for (var i = 0; i < 3; i += 1) {
+      var star = document.createElement('span');
       star.className = 'alphabet-star';
       star.setAttribute('aria-hidden', 'true');
-      star.dataset.star = String(i + 1);
+      star.setAttribute('data-star', String(i + 1));
       starElements.push(star);
       stars.appendChild(star);
     }
-    stats.appendChild(stars);
 
-    const coins = document.createElement('div');
+    var coins = document.createElement('div');
     coins.className = 'alphabet-coins';
-    const coinsValue = document.createElement('span');
+    stats.appendChild(coins);
+
+    var coinsValue = document.createElement('span');
     coinsValue.className = 'alphabet-coins__value';
     coinsValue.textContent = '0';
     coins.appendChild(coinsValue);
-    stats.appendChild(coins);
-
-    hud.appendChild(stats);
 
     return {
-      hud,
+      hud: hud,
       refs: {
-        badge,
-        mainTitle,
-        subtitle,
-        progressValue,
-        progressLabel,
-        starElements,
-        coinsValue,
-        bubble
+        badge: badge,
+        mainTitle: mainTitle,
+        subtitle: subtitle,
+        progressValue: progressValue,
+        progressLabel: progressLabel,
+        starElements: starElements,
+        coinsValue: coinsValue,
+        bubble: bubble
       }
     };
   }
 
   function initHud(info, refs) {
-    const total = info.total || 0;
-    const hasIndex = typeof info.index === 'number' && info.index >= 0;
-    const levelNumber = hasIndex ? info.index + 1 : (info.fallbackNumber || 0);
-    const safeLevel = levelNumber > 0 && total > 0 ? Math.min(levelNumber, total) : levelNumber;
-    const percent = total > 0 && levelNumber > 0 ? (levelNumber / total) * 100 : 0;
-    const safePercent = Math.max(0, Math.min(100, percent));
-
-    refs.progressValue.style.width = `${levelNumber > 0 ? Math.max(4, safePercent) : safePercent}%`;
-    refs.progressLabel.textContent = (total > 0 && safeLevel > 0)
-      ? `${safeLevel} / ${total}`
-      : 'Belajar';
-<<<<<<< ours
-<<<<<<< ours
-<<<<<<< ours
-<<<<<<< ours
-    refs.badge.textContent = safeLevel > 0 ? `Level ${safeLevel}` : 'Level';
-
-    if (info.letter) {
-      refs.mainTitle.textContent = `Huruf ${info.letter.toUpperCase()}`;
-      refs.subtitle.textContent = info.title || 'Ayo belajar sambil bermain!';
-      refs.bubble.textContent = info.letter.toUpperCase();
-    } else {
-      refs.mainTitle.textContent = info.title || 'Alphabet Adventure';
-      refs.subtitle.textContent = 'Ayo belajar sambil bermain!';
-=======
-=======
->>>>>>> theirs
-=======
->>>>>>> theirs
-=======
->>>>>>> theirs
-
-    const levelLabel = safeLevel > 0 ? `Level ${safeLevel}` : 'Level';
-    refs.badge.textContent = levelLabel;
-
-    const lessonTitle = (info.title && info.title.trim())
-      ? info.title.trim()
-      : 'Ayo belajar sambil bermain!';
-
-    if (safeLevel > 0) {
-      refs.mainTitle.textContent = levelLabel;
-      refs.subtitle.textContent = lessonTitle;
-    } else {
-      refs.mainTitle.textContent = lessonTitle;
-      refs.subtitle.textContent = 'Ayo belajar sambil bermain!';
+    var total = info.total || 0;
+    var hasIndex = typeof info.index === 'number' && info.index >= 0;
+    var fallbackNumber = typeof info.fallbackNumber === 'number' ? info.fallbackNumber : 0;
+    var levelNumber = hasIndex ? info.index + 1 : fallbackNumber;
+    if (!levelNumber) {
+      levelNumber = 0;
+    }
+    var safeLevel = levelNumber;
+    if (levelNumber > 0 && total > 0) {
+      safeLevel = Math.min(levelNumber, total);
     }
 
-    if (info.letter) {
-      refs.bubble.textContent = info.letter.toUpperCase();
-      refs.bubble.style.fontSize = '';
-    } else {
-<<<<<<< ours
-<<<<<<< ours
-<<<<<<< ours
->>>>>>> theirs
-=======
->>>>>>> theirs
-=======
->>>>>>> theirs
-=======
->>>>>>> theirs
-      refs.bubble.textContent = 'ABC';
-      refs.bubble.style.fontSize = '1.4rem';
+    var percent = 0;
+    if (total > 0 && levelNumber > 0) {
+      percent = (levelNumber / total) * 100;
+    }
+    var safePercent = Math.max(0, Math.min(100, percent));
+    var widthValue = safePercent;
+    if (levelNumber > 0) {
+      widthValue = Math.max(4, safePercent);
+    }
+    if (refs.progressValue && refs.progressValue.style) {
+      refs.progressValue.style.width = widthValue + '%';
+    }
+
+    if (refs.progressLabel) {
+      if (total > 0 && safeLevel > 0) {
+        refs.progressLabel.textContent = safeLevel + ' / ' + total;
+      } else if (safeLevel > 0) {
+        refs.progressLabel.textContent = 'Level ' + safeLevel;
+      } else {
+        refs.progressLabel.textContent = 'Belajar';
+      }
+    }
+
+    var levelLabel = safeLevel > 0 ? 'Level ' + safeLevel : 'Level';
+    if (refs.badge) {
+      refs.badge.textContent = levelLabel;
+    }
+
+    var lessonTitle = info.title && ('' + info.title).replace(/\s+/g, ' ').trim();
+    if (!lessonTitle) {
+      lessonTitle = 'Ayo belajar sambil bermain!';
+    }
+
+    if (refs.mainTitle) {
+      if (safeLevel > 0) {
+        refs.mainTitle.textContent = levelLabel;
+      } else {
+        refs.mainTitle.textContent = lessonTitle;
+      }
+    }
+
+    if (refs.subtitle) {
+      if (safeLevel > 0) {
+        refs.subtitle.textContent = lessonTitle;
+      } else {
+        refs.subtitle.textContent = 'Ayo belajar sambil bermain!';
+      }
+    }
+
+    if (refs.bubble) {
+      if (info.letter) {
+        refs.bubble.textContent = String(info.letter).toUpperCase();
+        refs.bubble.style.fontSize = '';
+      } else {
+        refs.bubble.textContent = 'ABC';
+        refs.bubble.style.fontSize = '1.4rem';
+      }
     }
   }
 
   function shouldSkipNode(node) {
-    if (!(node instanceof HTMLElement)) {
+    if (!node || node.nodeType !== 1) {
       return true;
     }
-    if (SKIP_TAGS.has(node.tagName) || node.classList.contains('alphabet-card')) {
+    if (SKIP_TAGS[node.tagName]) {
       return true;
     }
-    if (node.dataset && node.dataset.shell === 'skip') {
+    if (hasClass(node, 'alphabet-card')) {
       return true;
     }
-    if (node.id && SKIP_IDS.has(node.id)) {
+    if (hasClass(node, 'alphabet-hud')) {
       return true;
     }
-    for (let i = 0; i < SKIP_CLASSNAMES.length; i += 1) {
-      if (node.classList.contains(SKIP_CLASSNAMES[i])) {
+    var shellMode = getData(node, 'shell');
+    if (shellMode === 'skip') {
+      return true;
+    }
+    var nodeId = node.id || (node.getAttribute ? node.getAttribute('id') : '');
+    if (nodeId && SKIP_IDS[nodeId]) {
+      return true;
+    }
+    for (var i = 0; i < SKIP_CLASSNAMES.length; i += 1) {
+      if (hasClass(node, SKIP_CLASSNAMES[i])) {
         return true;
       }
     }
     try {
-      const computed = window.getComputedStyle(node);
-      if (computed.position === 'fixed') {
+      var computed = window.getComputedStyle ? window.getComputedStyle(node) : null;
+      if (computed && computed.position === 'fixed') {
         return true;
       }
     } catch (err) {
-      /* ignore computed style errors */
+      /* ignore errors */
     }
     return false;
   }
 
   function wrapContent(body) {
-    const originals = Array.from(body.children);
-    originals.forEach((node) => {
+
+    var originals = [];
+    for (var i = 0; i < body.children.length; i += 1) {
+      originals.push(body.children[i]);
+    }
+    for (var j = 0; j < originals.length; j += 1) {
+      var node = originals[j];
       if (shouldSkipNode(node)) {
-        return;
+        continue;
       }
-      const wrapper = document.createElement('div');
+      var wrapper = document.createElement('div');
       wrapper.className = 'alphabet-card alphabet-card--content';
-      const shellMode = node.dataset ? node.dataset.shell : '';
+      var shellMode = getData(node, 'shell');
       if (shellMode && shellMode !== 'skip') {
-        wrapper.classList.add(`alphabet-card--${shellMode}`);
+        addClass(wrapper, 'alphabet-card--' + shellMode);
       }
-      node.parentNode.insertBefore(wrapper, node);
-      wrapper.appendChild(node);
-    });
+      if (node.parentNode) {
+        node.parentNode.insertBefore(wrapper, node);
+        wrapper.appendChild(node);
+      }
+    }
   }
 
   function exposeApi() {
-    if (window.AlphabetHUD && window.AlphabetHUD.__isThemeReady) {
+    var api = window.AlphabetHUD || {};
+    if (api.__isThemeReady) {
+      window.AlphabetHUD = api;
       return;
     }
 
-    window.AlphabetHUD = {
-      __isThemeReady: true,
-      setStars(value) {
-        if (!hudState.refs) return;
-        const amount = Math.max(0, Math.min(hudState.refs.starElements.length, Number(value) || 0));
-        hudState.stars = amount;
-        hudState.refs.starElements.forEach((star, index) => {
-          star.classList.toggle('is-filled', index < amount);
-        });
-<<<<<<< ours
-<<<<<<< ours
-<<<<<<< ours
-<<<<<<< ours
-=======
-        refreshHudOffset();
->>>>>>> theirs
-=======
-        refreshHudOffset();
->>>>>>> theirs
-=======
-        refreshHudOffset();
->>>>>>> theirs
-=======
-        refreshHudOffset();
->>>>>>> theirs
+    api.__isThemeReady = true;
+
+    api.setStars = function (value) {
+      if (!hudState.refs || !hudState.refs.starElements) {
+        return;
+      }
+      var amount = parseInt(value, 10);
+      if (isNaN(amount) || amount < 0) {
+        amount = 0;
+      }
+      var max = hudState.refs.starElements.length;
+      if (amount > max) {
+        amount = max;
+      }
+      hudState.stars = amount;
+      for (var i = 0; i < max; i += 1) {
+        var star = hudState.refs.starElements[i];
+        if (!star) {
+          continue;
+        }
+        if (i < amount) {
+          addClass(star, 'is-filled');
+        } else {
+          removeClass(star, 'is-filled');
+        }
+      }
+      refreshHudOffset();
+    };
+
+    api.setCoins = function (value) {
+      if (!hudState.refs || !hudState.refs.coinsValue) {
+        return;
+      }
+      var coins = parseInt(value, 10);
+      if (isNaN(coins) || coins < 0) {
+        coins = 0;
+      }
+      hudState.coins = coins;
+      hudState.refs.coinsValue.textContent = String(coins);
+      refreshHudOffset();
+    };
+
+    api.addCoins = function (delta) {
+      var deltaValue = parseInt(delta, 10);
+      if (isNaN(deltaValue)) {
+        deltaValue = 0;
+      }
+      var next = (hudState.coins || 0) + deltaValue;
+      api.setCoins(next);
+    };
+
+    api.setProgress = function (percent, label) {
+      if (!hudState.refs || !hudState.refs.progressValue) {
+        return;
+      }
+      var safe = parseFloat(percent);
+      if (isNaN(safe) || safe < 0) {
+        safe = 0;
+      } else if (safe > 100) {
+        safe = 100;
+      }
+      hudState.refs.progressValue.style.width = safe + '%';
+      if (label && hudState.refs.progressLabel) {
+        hudState.refs.progressLabel.textContent = label;
+      }
+      refreshHudOffset();
+    };
+
+    window.AlphabetHUD = api;
+  }
+
+  function applyHudOffset(hud) {
+    var body = document.body;
       },
       setCoins(value) {
         if (!hudState.refs) return;
         const coins = Math.max(0, Number(value) || 0);
         hudState.coins = coins;
         hudState.refs.coinsValue.textContent = coins.toString();
-<<<<<<< ours
-<<<<<<< ours
-<<<<<<< ours
-<<<<<<< ours
-=======
-        refreshHudOffset();
->>>>>>> theirs
-=======
-        refreshHudOffset();
->>>>>>> theirs
-=======
-        refreshHudOffset();
->>>>>>> theirs
-=======
-        refreshHudOffset();
->>>>>>> theirs
       },
       addCoins(delta) {
         const next = (hudState.coins || 0) + (Number(delta) || 0);
@@ -347,41 +542,35 @@
         if (label) {
           hudState.refs.progressLabel.textContent = label;
         }
-<<<<<<< ours
-<<<<<<< ours
-<<<<<<< ours
-<<<<<<< ours
-      }
-    };
-=======
-=======
->>>>>>> theirs
-=======
->>>>>>> theirs
-=======
->>>>>>> theirs
-        refreshHudOffset();
-      }
-    };
-  }
-
-  function applyHudOffset(hud) {
-    const body = document.body;
     if (!body || !hud) {
       return;
     }
 
-    const update = () => {
-      const rect = hud.getBoundingClientRect();
-      let top = 0;
-      try {
-        const computed = window.getComputedStyle(hud);
-        top = Number.parseFloat(computed.top) || 0;
-      } catch (err) {
-        /* ignore */
+    var update = function () {
+      if (!hud || !hud.getBoundingClientRect) {
+        return;
       }
-      const outer = Math.max(0, Math.ceil(rect.height + top));
-      body.style.setProperty('--alphabet-hud-outer', `${outer}px`);
+      var rect = hud.getBoundingClientRect();
+      var top = 0;
+      try {
+        if (window.getComputedStyle) {
+          var computed = window.getComputedStyle(hud);
+          if (computed && computed.top) {
+            var parsed = parseFloat(computed.top);
+            if (!isNaN(parsed)) {
+              top = parsed;
+            }
+          }
+        }
+      } catch (err) {
+        top = 0;
+      }
+      var outer = rect ? Math.max(0, Math.ceil(rect.height + top)) : 0;
+      if (body.style && body.style.setProperty) {
+        body.style.setProperty('--alphabet-hud-outer', outer + 'px');
+      } else {
+        body.style.paddingTop = outer + 'px';
+      }
     };
 
     hudState.updateHudOffset = update;
@@ -389,27 +578,43 @@
 
     update();
 
-    if ('ResizeObserver' in window) {
-      const observer = new ResizeObserver(() => update());
-      observer.observe(hud);
-      hud.__alphabetResizeObserver = observer;
+    if (typeof window.ResizeObserver === 'function') {
+      try {
+        var observer = new window.ResizeObserver(function () {
+          update();
+        });
+        observer.observe(hud);
+        hud.__alphabetResizeObserver = observer;
+      } catch (err) {
+        /* ignore observer errors */
+      }
     }
 
     try {
-      window.addEventListener('resize', update, { passive: true });
-    } catch (err) {
       window.addEventListener('resize', update);
+    } catch (err) {
+      /* ignore missing addEventListener */
     }
-<<<<<<< ours
-<<<<<<< ours
-<<<<<<< ours
->>>>>>> theirs
-=======
->>>>>>> theirs
-=======
->>>>>>> theirs
-=======
->>>>>>> theirs
+  }
+
+  function mountHud(info) {
+    var body = document.body;
+    if (!body) {
+      return;
+    }
+    var created = createHud(info);
+    var hud = created.hud;
+    var refs = created.refs;
+
+    if (body.firstChild) {
+      body.insertBefore(hud, body.firstChild);
+    } else {
+      body.appendChild(hud);
+    }
+
+    initHud(info, refs);
+    hudState.refs = refs;
+    applyHudOffset(hud);
   }
 
   function mountHud(info) {
@@ -418,48 +623,57 @@
     body.insertBefore(hud, body.firstChild);
     initHud(info, refs);
     hudState.refs = refs;
-<<<<<<< ours
-<<<<<<< ours
-<<<<<<< ours
-<<<<<<< ours
-=======
-    applyHudOffset(hud);
->>>>>>> theirs
-=======
-    applyHudOffset(hud);
->>>>>>> theirs
-=======
-    applyHudOffset(hud);
->>>>>>> theirs
-=======
-    applyHudOffset(hud);
->>>>>>> theirs
     exposeApi();
   }
 
   function init() {
-    const body = document.body;
-    if (!body || body.dataset.alphabetTheme === 'ready') {
+    var body = document.body;
+    if (!body) {
       return;
     }
-
-    body.dataset.alphabetTheme = 'ready';
-    body.classList.add('alphabet-game');
+    if ((body.dataset && body.dataset.alphabetTheme === 'ready') ||
+        (body.getAttribute && body.getAttribute('data-alphabet-theme') === 'ready')) {
+      return;
+    }
+    if (body.dataset) {
+      body.dataset.alphabetTheme = 'ready';
+    }
+    if (body.setAttribute) {
+      body.setAttribute('data-alphabet-theme', 'ready');
+    }
+    if (body.classList && body.classList.contains) {
+      if (!body.classList.contains('alphabet-game')) {
+        body.classList.add('alphabet-game');
+      }
+    } else if (!(body.className && /\balphabet-game\b/.test(body.className))) {
+      body.className = body.className ? body.className + ' alphabet-game' : 'alphabet-game';
+    }
 
     wrapContent(body);
 
-    fetchConfig()
-      .then((config) => {
-        const info = getLevelInfo(config);
-        mountHud(info);
-      })
-      .catch(() => {
-        mountHud({ index: -1, total: 0, letter: '', title: document.title || 'Alphabet Adventure' });
-      });
+    var mounted = false;
+    function mountWithConfig(config) {
+      if (mounted) {
+        return;
+      }
+      mounted = true;
+      var info = getLevelInfo(config);
+      mountHud(info);
+    }
+
+    fetchConfig(function (config) {
+      mountWithConfig(config);
+    }, function () {
+      mountWithConfig(null);
+    });
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init, { once: true });
+    var onReady = function () {
+      document.removeEventListener('DOMContentLoaded', onReady);
+      init();
+    };
+    document.addEventListener('DOMContentLoaded', onReady);
   } else {
     init();
   }
