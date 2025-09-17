@@ -79,6 +79,43 @@
     return null;
   }
 
+  function getHudMode(body) {
+    if (!body) {
+      return '';
+    }
+    if (body.dataset && typeof body.dataset.hudMode === 'string') {
+      return body.dataset.hudMode;
+    }
+    if (body.getAttribute) {
+      var attr = body.getAttribute('data-hud-mode');
+      return attr || '';
+    }
+    return '';
+  }
+
+  function setHudMode(body, mode) {
+    if (!body) {
+      return;
+    }
+    if (body.dataset) {
+      if (mode) {
+        body.dataset.hudMode = mode;
+      } else {
+        try {
+          delete body.dataset.hudMode;
+        } catch (err) {
+          body.dataset.hudMode = '';
+        }
+      }
+    } else if (body.setAttribute) {
+      if (mode) {
+        body.setAttribute('data-hud-mode', mode);
+      } else if (body.removeAttribute) {
+        body.removeAttribute('data-hud-mode');
+      }
+    }
+  }
+
 
   function refreshHudOffset() {
     if (typeof hudState.updateHudOffset === 'function') {
@@ -518,6 +555,85 @@
     window.AlphabetHUD = api;
   }
 
+  function needsStickyFallback(hud) {
+    if (!hud || !hud.getBoundingClientRect) {
+      return false;
+    }
+    var scrollEl = document.scrollingElement || document.documentElement || document.body;
+    if (!scrollEl) {
+      return false;
+    }
+    var maxScroll = 0;
+    try {
+      maxScroll = scrollEl.scrollHeight - scrollEl.clientHeight;
+    } catch (err) {
+      maxScroll = 0;
+    }
+    if (!(maxScroll > 1)) {
+      return false;
+    }
+    var originalTop;
+    try {
+      originalTop = hud.getBoundingClientRect().top;
+    } catch (errTop) {
+      return false;
+    }
+    var originalScroll = scrollEl.scrollTop;
+    var testScroll = originalScroll + 2;
+    if (testScroll > maxScroll) {
+      testScroll = maxScroll;
+    }
+    if (testScroll === originalScroll) {
+      return false;
+    }
+    var moved = false;
+    try {
+      scrollEl.scrollTop = testScroll;
+      var newTop = hud.getBoundingClientRect().top;
+      if (Math.abs(newTop - originalTop) > 0.5) {
+        moved = true;
+      }
+    } catch (errScroll) {
+      moved = false;
+    } finally {
+      try {
+        scrollEl.scrollTop = originalScroll;
+      } catch (errRestore) {
+        /* ignore restore errors */
+      }
+    }
+    return moved;
+  }
+
+  function ensureHudStickyFallback(hud) {
+    var body = document.body;
+    if (!body || !hud) {
+      return;
+    }
+    var attempts = 0;
+    var maxAttempts = 3;
+
+    function attempt() {
+      if (!hud || !hud.getBoundingClientRect) {
+        return;
+      }
+      if (getHudMode(body) === 'sticky') {
+        return;
+      }
+      if (needsStickyFallback(hud)) {
+        setHudMode(body, 'sticky');
+        refreshHudOffset();
+        return;
+      }
+      attempts += 1;
+      if (attempts < maxAttempts) {
+        setTimeout(attempt, 220);
+      }
+    }
+
+    setTimeout(attempt, 80);
+  }
+
   function applyHudOffset(hud) {
     var body = document.body;
     if (!body || !hud) {
@@ -526,6 +642,15 @@
 
     var update = function () {
       if (!hud || !hud.getBoundingClientRect) {
+        return;
+      }
+      var mode = getHudMode(body);
+      if (mode === 'sticky') {
+        if (body.style && body.style.setProperty) {
+          body.style.setProperty('--alphabet-hud-outer', '0px');
+        } else if (body.style) {
+          body.style.paddingTop = '';
+        }
         return;
       }
       var rect = hud.getBoundingClientRect();
@@ -593,6 +718,7 @@
     initHud(info, refs);
     hudState.refs = refs;
     applyHudOffset(hud);
+    ensureHudStickyFallback(hud);
     exposeApi();
   }
 
