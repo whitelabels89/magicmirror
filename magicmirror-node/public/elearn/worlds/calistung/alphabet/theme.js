@@ -555,149 +555,20 @@
     window.AlphabetHUD = api;
   }
 
-  function needsStickyFallback(hud) {
-    if (!hud || !hud.getBoundingClientRect) {
-      return false;
-    }
-    var scrollEl = document.scrollingElement || document.documentElement || document.body;
-    if (!scrollEl) {
-      return false;
-    }
-    var maxScroll = 0;
-    try {
-      maxScroll = scrollEl.scrollHeight - scrollEl.clientHeight;
-    } catch (err) {
-      maxScroll = 0;
-    }
-    if (!(maxScroll > 1)) {
-      return false;
-    }
-    var originalTop;
-    try {
-      originalTop = hud.getBoundingClientRect().top;
-    } catch (errTop) {
-      return false;
-    }
-    var originalScroll = scrollEl.scrollTop;
-    var testScroll = originalScroll + 2;
-    if (testScroll > maxScroll) {
-      testScroll = maxScroll;
-    }
-    if (testScroll === originalScroll) {
-      return false;
-    }
-    var moved = false;
-    try {
-      scrollEl.scrollTop = testScroll;
-      var newTop = hud.getBoundingClientRect().top;
-      if (Math.abs(newTop - originalTop) > 0.5) {
-        moved = true;
-      }
-    } catch (errScroll) {
-      moved = false;
-    } finally {
-      try {
-        scrollEl.scrollTop = originalScroll;
-      } catch (errRestore) {
-        /* ignore restore errors */
-      }
-    }
-    return moved;
+  function needsStickyFallback() {
+    return false;
   }
 
-  function ensureHudStickyFallback(hud) {
-    var body = document.body;
-    if (!body || !hud) {
-      return;
-    }
-    var attempts = 0;
-    var maxAttempts = 3;
-
-    function attempt() {
-      if (!hud || !hud.getBoundingClientRect) {
-        return;
-      }
-      if (getHudMode(body) === 'sticky') {
-        return;
-      }
-      if (needsStickyFallback(hud)) {
-        setHudMode(body, 'sticky');
-        refreshHudOffset();
-        return;
-      }
-      attempts += 1;
-      if (attempts < maxAttempts) {
-        setTimeout(attempt, 220);
-      }
-    }
-
-    setTimeout(attempt, 80);
+  function ensureHudStickyFallback() {
+    /* no-op: HUD remains in normal document flow */
   }
 
   function applyHudOffset(hud) {
-    var body = document.body;
-    if (!body || !hud) {
+    if (!hud) {
       return;
     }
-
-    var update = function () {
-      if (!hud || !hud.getBoundingClientRect) {
-        return;
-      }
-      var mode = getHudMode(body);
-      if (mode === 'sticky') {
-        if (body.style && body.style.setProperty) {
-          body.style.setProperty('--alphabet-hud-outer', '0px');
-        } else if (body.style) {
-          body.style.paddingTop = '';
-        }
-        return;
-      }
-      var rect = hud.getBoundingClientRect();
-      var top = 0;
-      try {
-        if (window.getComputedStyle) {
-          var computed = window.getComputedStyle(hud);
-          if (computed && computed.top) {
-            var parsed = parseFloat(computed.top);
-            if (!isNaN(parsed)) {
-              top = parsed;
-            }
-          }
-        }
-      } catch (err) {
-        top = 0;
-      }
-      var outer = rect ? Math.max(0, Math.ceil(rect.height + top)) : 0;
-      if (body.style && body.style.setProperty) {
-        body.style.setProperty('--alphabet-hud-outer', outer + 'px');
-      } else {
-        body.style.paddingTop = outer + 'px';
-      }
-    };
-
-    hudState.updateHudOffset = update;
+    hudState.updateHudOffset = function () {};
     hudState.hud = hud;
-
-    update();
-
-    if (typeof window.ResizeObserver === 'function') {
-      try {
-        var observer = new window.ResizeObserver(function () {
-          update();
-        });
-        observer.observe(hud);
-        hud.__alphabetResizeObserver = observer;
-      } catch (err) {
-        /* ignore observer errors */
-      }
-    }
-
-    try {
-      window.addEventListener('resize', update);
-    } catch (err) {
-      /* ignore missing addEventListener */
-    }
   }
 
   function mountHud(info) {

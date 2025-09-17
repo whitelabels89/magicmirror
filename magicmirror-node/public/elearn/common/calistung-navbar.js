@@ -14,23 +14,11 @@
     const style = document.createElement("style");
     style.id = NAV_STYLE_ID;
     style.textContent = `
-      :root {
-        --calistung-navbar-height: 0px;
-      }
       body.calistung-navbar-body {
         position: relative;
-        --calistung-navbar-base-padding: 0px;
-        --calistung-navbar-offset: 0px;
-      }
-      body.calistung-navbar-body:not(.alphabet-game) {
-        padding-top: calc(var(--calistung-navbar-base-padding) + var(--calistung-navbar-offset));
-        scroll-padding-top: calc(var(--calistung-navbar-base-padding) + var(--calistung-navbar-offset));
       }
       .calistung-navbar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
+        position: relative;
         z-index: 3000;
         display: flex;
         align-items: center;
@@ -39,9 +27,9 @@
         width: 100%;
         box-sizing: border-box;
         padding: 12px 18px;
+        margin: 0 auto clamp(16px, 4vw, 28px);
         background: rgba(255, 255, 255, 0.95);
-        border-bottom-left-radius: 18px;
-        border-bottom-right-radius: 18px;
+        border-radius: 18px;
         box-shadow: 0 8px 24px rgba(18, 38, 77, 0.18);
         backdrop-filter: blur(8px);
       }
@@ -108,33 +96,7 @@
         max-width: 100%;
       }
       .calistung-navbar--alphabet {
-        position: relative;
-        top: 0;
-        left: auto;
-        right: auto;
-        width: 100%;
-      }
-      .alphabet-fixed-shell {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 2950;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 12px;
-        pointer-events: none;
-        padding: 12px 0 0;
-      }
-      .alphabet-fixed-shell > * {
-        pointer-events: auto;
-      }
-      .alphabet-fixed-shell .alphabet-card--hud {
-        position: relative !important;
-        top: 0 !important;
-        width: min(1200px, calc(100% - 32px));
-        margin: 0;
+        margin-bottom: clamp(18px, 4vw, 32px);
       }
       @media (max-width: 640px) {
         .calistung-navbar {
@@ -149,9 +111,6 @@
         .calistung-navbar__title {
           font-size: 0.95rem;
         }
-        .alphabet-fixed-shell .alphabet-card--hud {
-          width: min(100%, calc(100% - 20px));
-        }
       }
     `;
     document.head.appendChild(style);
@@ -165,8 +124,8 @@
     const badgeLabel = document.body.dataset.navBadge || 'Calistung';
 
     nav.innerHTML = `
-      <button type="button" class="calistung-navbar__btn calistung-navbar__btn--back" aria-label="Kembali">
-        ⬅️ <span>Kembali</span>
+      <button type="button" class="calistung-navbar__btn calistung-navbar__btn--back" aria-label="BACK">
+        ⬅️ <span>BACK</span>
       </button>
       <div class="calistung-navbar__info">
         <span class="calistung-navbar__badge">${badgeLabel}</span>
@@ -205,104 +164,52 @@
     return nav;
   };
 
-  const observeFonts = (fn) => {
-    if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(fn).catch(() => {});
+  const notifyLayout = (nav, offset) => {
+    if (!nav || !window || !window.dispatchEvent) {
+      return;
+    }
+    let height = 0;
+    try {
+      const rect = nav.getBoundingClientRect ? nav.getBoundingClientRect() : null;
+      height = rect ? rect.height : 0;
+    } catch (err) {
+      height = 0;
+    }
+    try {
+      window.dispatchEvent(new CustomEvent('calistung-navbar:offset', {
+        detail: { height, offset: offset || 0 }
+      }));
+    } catch (err) {
+      /* ignore dispatch errors */
     }
   };
 
   const mountDefault = (nav) => {
     document.body.classList.add('calistung-navbar-body');
-    document.body.prepend(nav);
-
-    const getBasePadding = () => {
-      const styles = window.getComputedStyle(document.body);
-      return parseFloat(styles.paddingTop) || 0;
-    };
-
-    const basePadding = getBasePadding();
-    document.body.style.setProperty('--calistung-navbar-base-padding', `${basePadding}px`);
-
-   const update = () => {
-     const navHeight = nav.getBoundingClientRect().height;
-     const offset = navHeight + 12;
-     const total = basePadding + offset;
-     document.body.style.setProperty('--calistung-navbar-offset', `${offset}px`);
-     document.documentElement.style.setProperty('--calistung-navbar-height', `${navHeight}px`);
-     document.body.style.paddingTop = `${total}px`;
-     document.body.style.scrollPaddingTop = `${total}px`;
-      window.dispatchEvent(new CustomEvent('calistung-navbar:offset', {
-        detail: { height: navHeight, offset }
-      }));
-   };
-
-    update();
-
-    const resizeObserver = (typeof ResizeObserver === 'function') ? new ResizeObserver(update) : null;
-    resizeObserver && resizeObserver.observe(nav);
-    window.addEventListener('resize', update, { passive: true });
-    window.addEventListener('orientationchange', update, { passive: true });
-    observeFonts(update);
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) update();
-    }, { passive: true });
+    document.body.insertBefore(nav, document.body.firstChild || null);
+    notifyLayout(nav, 0);
   };
 
   const mountAlphabet = (nav) => {
     document.body.classList.add('calistung-navbar-body');
-
-    const ensureShell = () => {
-      let shell = document.getElementById('alphabet-fixed-shell');
-      if (!shell) {
-        shell = document.createElement('div');
-        shell.id = 'alphabet-fixed-shell';
-        shell.className = 'alphabet-fixed-shell';
-        document.body.appendChild(shell);
-      }
-      return shell;
-    };
-
+    let attached = false;
     const attachWhenReady = () => {
       const hud = document.querySelector('.alphabet-card--hud');
       if (!hud) {
+        if (!nav.isConnected) {
+          document.body.insertBefore(nav, document.body.firstChild || null);
+        }
         requestAnimationFrame(attachWhenReady);
         return;
       }
-
-      const shell = ensureShell();
+      if (attached) {
+        return;
+      }
+      const parent = hud.parentNode || document.body;
       nav.classList.add('calistung-navbar--alphabet');
-      shell.appendChild(nav);
-      shell.appendChild(hud);
-      document.body.style.setProperty('--calistung-navbar-base-padding', '0px');
-
-     const update = () => {
-       const navHeight = nav.getBoundingClientRect().height;
-       const hudHeight = hud.getBoundingClientRect().height;
-       const stack = navHeight + hudHeight + 24;
-       document.documentElement.style.setProperty('--calistung-navbar-height', `${navHeight}px`);
-       document.body.style.setProperty('--calistung-navbar-offset', `${navHeight + 12}px`);
-       document.body.style.setProperty('--alphabet-stack-offset', `${stack}px`);
-       document.body.style.paddingTop = `16px`;
-       document.body.style.scrollPaddingTop = `${stack + 16}px`;
-        window.dispatchEvent(new CustomEvent('calistung-navbar:offset', {
-          detail: { height: navHeight, offset: navHeight + 12 }
-        }));
-      };
-
-      update();
-
-     const roSupported = typeof ResizeObserver === 'function';
-     if (roSupported) {
-       const ro = new ResizeObserver(update);
-       ro.observe(nav);
-       ro.observe(hud);
-     }
-     window.addEventListener('resize', update, { passive: true });
-     window.addEventListener('orientationchange', update, { passive: true });
-     observeFonts(update);
-      document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) update();
-      }, { passive: true });
+      parent.insertBefore(nav, hud);
+      attached = true;
+      notifyLayout(nav, 0);
     };
 
     attachWhenReady();
