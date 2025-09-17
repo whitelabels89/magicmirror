@@ -6,26 +6,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Level A3</title>
   <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/elearn/worlds/calistung/number/theme.css" />
   <style>
-    body {
-      font-family: 'Comic Neue', cursive;
-      background-color: #fefae0;
-      text-align: center;
-      padding: 20px;
+    .number-level--coloring {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
     }
 
-    h2 {
-      color: #333;
-      font-size: 28px;
-      margin-bottom: 10px;
-    }
-
-    p {
-      font-size: 18px;
-      margin-bottom: 20px;
-    }
-
-    #colorPalette {
+    .number-level--coloring #colorPalette {
       margin: 10px auto;
     }
 
@@ -77,19 +67,36 @@
 </style>
 
   <link rel="stylesheet" href="/elearn/worlds/calistung/buttons.css" />
+  <script defer src="/elearn/worlds/calistung/number/theme.js"></script>
 </head>
-<body>
-  <h2>Mengenal dan Mewarnai Angka</h2>
-  <p>Warnai angka dalam lingkaran sesuai dengan contoh di bawah ini!</p>
-  <div id="colorPalette">
-    <button class="color-btn" data-color="red" data-number="1" style="background-color:red;">1</button>
-    <button class="color-btn" data-color="gold" data-number="2" style="background-color:gold;">2</button>
-    <button class="color-btn" data-color="green" data-number="3" style="background-color:green;">3</button>
-    <button class="color-btn" data-color="blue" data-number="4" style="background-color:blue;">4</button>
-  </div>
+<body class="number-game">
+  <main class="number-game__container">
+    <section class="number-card number-card--challenge">
+      <div class="number-layout">
+        <aside class="number-layout__sidebar">
+          <h2>Mengenal dan Mewarnai Angka</h2>
+          <p>Warnai angka dalam lingkaran sesuai dengan contoh di bawah ini! Pilih warna berdasarkan angka petunjuk lalu sentuh lingkaran yang sesuai.</p>
+        </aside>
+        <div class="number-layout__playarea">
+          <div class="number-level number-level--coloring">
+            <div id="colorPalette">
+              <button class="color-btn" data-color="red" data-number="1" style="background-color:red;">1</button>
+              <button class="color-btn" data-color="gold" data-number="2" style="background-color:gold;">2</button>
+              <button class="color-btn" data-color="green" data-number="3" style="background-color:green;">3</button>
+              <button class="color-btn" data-color="blue" data-number="4" style="background-color:blue;">4</button>
+            </div>
 
-  <div class="circle-grid" id="circleGrid"></div>
-  <button id="cekJawabanBtn" class="clay-button">Periksa Jawaban</button>
+            <div class="circle-grid" id="circleGrid"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <footer class="number-actions">
+      <div class="number-actions__buttons">
+        <button id="cekJawabanBtn" class="clay-button">Periksa Jawaban</button>
+      </div>
+    </footer>
+  </main>
 
   <script>
     let selectedColor = null;

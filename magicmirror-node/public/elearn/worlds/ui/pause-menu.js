@@ -29,18 +29,25 @@
   }
 
   function buildUI(){
-    // Toggle button
+    const body = document.body || {};
+    const dataset = body.dataset || {};
+    const disableToggle = dataset.pauseToggle === 'disabled' || dataset.navBackBehavior === 'pause-menu';
+
     let tgl = document.getElementById('pmToggle');
-    if (!tgl){
+    if (disableToggle) {
+      if (tgl && tgl.parentNode) {
+        tgl.parentNode.removeChild(tgl);
+      }
+      tgl = null;
+    } else if (!tgl) {
       tgl = document.createElement('button');
       tgl.id = 'pmToggle';
       tgl.className = 'pm-toggle';
       tgl.type = 'button';
-      tgl.textContent = '⏸ Menu';
+      tgl.textContent = '⏸ Pause';
       document.body.appendChild(tgl);
     }
 
-    // Overlay + Panel
     let ov = document.getElementById('pmOverlay');
     if (!ov){
       ov = document.createElement('div');
@@ -60,18 +67,61 @@
       document.body.appendChild(ov);
     }
 
-    // Events
     const resumeBtn = document.getElementById('pmResume');
     const backBtn = document.getElementById('pmBack');
 
-    function open(){ ov.classList.add('open'); }
-    function close(){ ov.classList.remove('open'); }
-    tgl.onclick = open;
-    resumeBtn && (resumeBtn.onclick = close);
-    ov.addEventListener('click', (e)=>{ if (e.target === ov) close(); });
+    const api = window.PauseMenu || {};
+
+    function open(){
+      if (ov) {
+        ov.classList.add('open');
+      }
+    }
+
+    function close(){
+      if (ov) {
+        ov.classList.remove('open');
+      }
+    }
+
+    function toggle(){
+      if (!ov) {
+        return;
+      }
+      if (ov.classList.contains('open')) {
+        close();
+      } else {
+        open();
+      }
+    }
+
+    api.open = open;
+    api.close = close;
+    api.toggle = toggle;
+    api.isOpen = function () {
+      return !!(ov && ov.classList.contains('open'));
+    };
+    window.PauseMenu = api;
+
+    if (tgl) {
+      tgl.onclick = open;
+    }
+    if (resumeBtn) {
+      resumeBtn.onclick = close;
+    }
+    if (backBtn) {
+      backBtn.addEventListener('click', close);
+    }
+    if (ov) {
+      ov.addEventListener('click', (e)=>{ if (e.target === ov) close(); });
+    }
     document.addEventListener('keydown', (e)=>{
-      if (e.key === 'Escape') close();
-      if (e.key.toLowerCase() === 'p') open();
+      if (e.key === 'Escape') {
+        close();
+      } else if (e.key && e.key.toLowerCase() === 'p') {
+        e.preventDefault();
+        toggle();
+      }
     });
   }
 

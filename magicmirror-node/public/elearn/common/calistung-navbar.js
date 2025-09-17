@@ -24,14 +24,19 @@
         align-items: center;
         justify-content: space-between;
         gap: 12px;
-        width: 100%;
+        width: min(1180px, calc(100% - 32px));
+        max-width: 1180px;
         box-sizing: border-box;
         padding: 12px 18px;
-        margin: 0 auto clamp(16px, 4vw, 28px);
+        margin: clamp(18px, 4vw, 32px) auto;
         background: rgba(255, 255, 255, 0.95);
         border-radius: 18px;
         box-shadow: 0 8px 24px rgba(18, 38, 77, 0.18);
         backdrop-filter: blur(8px);
+      }
+      body.number-game .calistung-navbar__btn--back {
+        min-width: 110px;
+        justify-content: center;
       }
       .calistung-navbar__btn {
         display: inline-flex;
@@ -152,16 +157,75 @@
     }
 
     const backBtn = nav.querySelector('.calistung-navbar__btn--back');
-    backBtn.addEventListener('click', () => {
+    const backBehavior = (document.body.dataset.navBackBehavior || '').toLowerCase();
+
+    const runDefaultBack = () => {
       const fallbackUrl = document.body.dataset.navBackUrl || mapUrl;
       if (window.history.length > 1) {
         window.history.back();
       } else {
         window.location.href = fallbackUrl;
       }
-    });
+    };
+
+    const dispatchBackEvent = (event) => {
+      try {
+        document.dispatchEvent(new CustomEvent('calistung-navbar:back-click', {
+          detail: { button: backBtn, event }
+        }));
+      } catch (err) {
+        /* ignore */
+      }
+    };
+
+    const tryPauseMenuBack = (event) => {
+      let handled = false;
+      try {
+        const pauseApi = window.PauseMenu || window.__pauseMenu;
+        if (pauseApi && typeof pauseApi.open === 'function') {
+          pauseApi.open();
+          handled = true;
+        }
+      } catch (err) {
+        handled = false;
+      }
+      if (!handled) {
+        const toggle = document.getElementById('pmToggle');
+        if (toggle && typeof toggle.click === 'function') {
+          try {
+            toggle.click();
+            handled = true;
+          } catch (err) {
+            handled = false;
+          }
+        }
+      }
+      dispatchBackEvent(event);
+      return handled;
+    };
+
+    if (backBehavior === 'pause-menu') {
+      backBtn.addEventListener('click', (event) => {
+        event.preventDefault();
+        if (!tryPauseMenuBack(event)) {
+          runDefaultBack();
+        }
+      });
+    } else {
+      backBtn.addEventListener('click', runDefaultBack);
+    }
 
     return nav;
+  };
+
+  const announceReady = (nav) => {
+    try {
+      document.dispatchEvent(new CustomEvent('calistung-navbar:ready', {
+        detail: { nav }
+      }));
+    } catch (err) {
+      /* ignore announce errors */
+    }
   };
 
   const notifyLayout = (nav, offset) => {
@@ -188,6 +252,7 @@
     document.body.classList.add('calistung-navbar-body');
     document.body.insertBefore(nav, document.body.firstChild || null);
     notifyLayout(nav, 0);
+    announceReady(nav);
   };
 
   const mountAlphabet = (nav) => {
@@ -210,6 +275,7 @@
       parent.insertBefore(nav, hud);
       attached = true;
       notifyLayout(nav, 0);
+      announceReady(nav);
     };
 
     attachWhenReady();
@@ -234,5 +300,47 @@
     document.addEventListener('DOMContentLoaded', buildNavbar, { once: true });
   } else {
     buildNavbar();
+  }
+
+  if (!window.__calistungNavbarPauseBridge) {
+    window.__calistungNavbarPauseBridge = true;
+    document.addEventListener('calistung-navbar:back-click', function (event) {
+      if (!event || !event.detail) {
+        return;
+      }
+      var behavior = (document.body.dataset.navBackBehavior || '').toLowerCase();
+      if (behavior !== 'pause-menu') {
+        return;
+      }
+      var handled = false;
+      try {
+        var bridge = window.PauseMenu || window.__pauseMenu;
+        if (bridge && typeof bridge.open === 'function') {
+          bridge.open();
+          handled = true;
+        }
+      } catch (err) {
+        handled = false;
+      }
+      if (!handled) {
+        var toggle = document.getElementById('pmToggle');
+        if (toggle && typeof toggle.click === 'function') {
+          try {
+            toggle.click();
+            handled = true;
+          } catch (err) {
+            handled = false;
+          }
+        }
+      }
+      if (!handled) {
+        var fallback = document.body.dataset.navBackUrl || document.body.dataset.navHomeUrl || DEFAULT_HOME_URL;
+        if (window.history.length > 1) {
+          window.history.back();
+        } else if (fallback) {
+          window.location.href = fallback;
+        }
+      }
+    });
   }
 })();

@@ -10,6 +10,7 @@
   var SKIP_TAGS = { SCRIPT: true, STYLE: true };
   var SKIP_CLASSNAMES = ['finish-bar', 'toast', 'alphabet-hud'];
   var SKIP_IDS = { 'pause-menu': true, globalToast: true };
+  var NAV_SCRIPT_SRC = '/elearn/common/calistung-navbar.js';
 
   function hasClass(node, className) {
     if (!node || !className) {
@@ -477,6 +478,49 @@
     }
   }
 
+  function ensureCalistungNavbar(info) {
+    var body = document.body;
+    if (!body) {
+      return;
+    }
+
+    if (body.dataset) {
+      body.dataset.navBadge = body.dataset.navBadge || 'Calistung Alphabet';
+      body.dataset.navBackBehavior = 'pause-menu';
+      body.dataset.pauseToggle = 'disabled';
+      if (info && info.title) {
+        body.dataset.levelTitle = info.title;
+      }
+    }
+
+    var nav = document.querySelector('.calistung-navbar');
+    if (nav) {
+      var titleEl = nav.querySelector('.calistung-navbar__title');
+      if (titleEl && info && info.title) {
+        titleEl.textContent = info.title;
+      }
+      var badgeEl = nav.querySelector('.calistung-navbar__badge');
+      if (badgeEl && body.dataset && body.dataset.navBadge) {
+        badgeEl.textContent = body.dataset.navBadge;
+      }
+    }
+
+    if (!document.querySelector('script[data-pause-menu]') &&
+        !document.querySelector('script[src*="/elearn/worlds/ui/pause-menu.js"]')) {
+      var pauseScript = document.createElement('script');
+      pauseScript.src = '/elearn/worlds/ui/pause-menu.js';
+      pauseScript.setAttribute('data-pause-menu', 'true');
+      document.body.appendChild(pauseScript);
+    }
+
+    if (!document.querySelector('script[data-alphabet-navbar]')) {
+      var script = document.createElement('script');
+      script.src = NAV_SCRIPT_SRC;
+      script.setAttribute('data-alphabet-navbar', 'true');
+      document.body.appendChild(script);
+    }
+  }
+
   function exposeApi() {
     var api = window.AlphabetHUD || {};
     if (api.__isThemeReady) {
@@ -616,6 +660,7 @@
       body.className = body.className ? body.className + ' alphabet-game' : 'alphabet-game';
     }
 
+    ensureCalistungNavbar(null);
     wrapContent(body);
 
     var mounted = false;
@@ -625,6 +670,7 @@
       }
       mounted = true;
       var info = getLevelInfo(config);
+      ensureCalistungNavbar(info);
       mountHud(info);
     }
 

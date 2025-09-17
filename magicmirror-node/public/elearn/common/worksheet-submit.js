@@ -500,6 +500,16 @@
     const match = /\/elearn\/worlds\/calistung\/(alphabet|number|shape|math-game)\//.test(p);
     if (!match) return;
     if (window.__hasPauseMenu) return;
+    const shouldDisableToggle = () => {
+      try {
+        const body = document.body;
+        if (!body || !body.dataset) return false;
+        const ds = body.dataset;
+        return ds.pauseToggle === 'disabled' || ds.navBackBehavior === 'pause-menu';
+      } catch (err) {
+        return false;
+      }
+    };
     const s = document.createElement('script');
     s.src = '/elearn/worlds/ui/pause-menu.js';
     s.async = true;
@@ -508,7 +518,7 @@
     // Fallback: if script fails or slow, inject minimal toggle after delay
     setTimeout(() => {
       try{
-        if (document.getElementById('pmToggle')) return;
+        if (document.getElementById('pmToggle') || shouldDisableToggle()) return;
         // Minimal inline UI
         const btn = document.createElement('button');
         btn.id = 'pmToggle';
