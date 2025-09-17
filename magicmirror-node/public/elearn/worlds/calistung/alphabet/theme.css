@@ -24,12 +24,13 @@ body.alphabet-game {
   flex-direction: column;
   align-items: center;
   --alphabet-hud-gap: clamp(16px, 4vw, 32px);
+  --alphabet-hud-top: calc(env(safe-area-inset-top, 0px) + var(--alphabet-hud-gap));
   --alphabet-hud-outer: clamp(140px, 22vw, 220px);
-  padding-top: calc(var(--alphabet-hud-gap) + var(--alphabet-hud-outer));
+  padding-top: calc(var(--alphabet-hud-top) + var(--alphabet-hud-outer));
   padding-bottom: clamp(72px, 8vw, 120px);
   padding-left: 0;
   padding-right: 0;
-  scroll-padding-top: calc(var(--alphabet-hud-gap) + var(--alphabet-hud-outer));
+  scroll-padding-top: calc(var(--alphabet-hud-top) + var(--alphabet-hud-outer));
 }
 
 body.alphabet-game::before {
@@ -111,12 +112,27 @@ body.alphabet-game .alphabet-card:hover::before {
 body.alphabet-game .alphabet-card--hud {
   margin: 0;
   position: fixed;
-  top: clamp(12px, 3vw, 32px);
+  top: var(--alphabet-hud-top);
   left: 50%;
   transform: translateX(-50%);
   width: min(1200px, calc(100% - 32px));
   z-index: 120;
   backdrop-filter: blur(6px) saturate(1.05);
+}
+
+body.alphabet-game[data-hud-mode='sticky'] {
+  --alphabet-hud-outer: 0px;
+  padding-top: var(--alphabet-hud-top);
+  scroll-padding-top: var(--alphabet-hud-top);
+}
+
+body.alphabet-game[data-hud-mode='sticky'] .alphabet-card--hud {
+  position: sticky;
+  top: var(--alphabet-hud-top);
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  transform: none;
 }
 
 body.alphabet-game .alphabet-card--hud::after {
