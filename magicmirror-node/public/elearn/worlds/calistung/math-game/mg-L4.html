@@ -4,114 +4,74 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Game Coding Matematika</title>
+  <link rel="stylesheet" href="/elearn/worlds/calistung/math-game/mathgame-shell.css" />
   <style>
-    body {
-      font-family: sans-serif;
-      background-color: #fffaf0;
-      padding: 20px;
-    }
-    .card {
-      background-color: #ffffff;
-      border-radius: 20px;
-      padding: 30px;
-      max-width: 600px;
-      margin: 0 auto;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-    .title {
-      text-align: center;
-      font-size: 28px;
-      font-weight: bold;
-      margin-bottom: 0;
-      color: #f4a300;
-    }
-    .subtitle {
-      text-align: center;
-      font-size: 16px;
-      margin-bottom: 20px;
-    }
-    table {
-      border: 1px solid #ccc;
-      border-collapse: collapse;
-      margin: 0 auto 20px auto;
-      text-align: center;
-    }
-    table td {
-      border: 1px solid #ccc;
-      padding: 10px;
-      font-size: 45px;
-    }
-    .grid-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 10px;
-    }
-    .soal-box {
-      background-color: white;
-      border: 2px solid #ffa500;
-      border-radius: 20px;
-      padding: 20px;
-      margin: 10px;
-      width: 260px;
-      display: inline-block;
-      vertical-align: top;
-      box-sizing: border-box;
-      text-align: center;
-    }
-    .angka-input {
-      width: 40px;
-      font-size: 18px;
-      text-align: center;
-      margin: 0 5px;
-    }
-    .button {
-      display: flex;
-      justify-content: center;
-      margin-top: 20px;
-    }
-    button {
-      padding: 12px 24px;
-      font-size: 18px;
-      background-color: #4caf50;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-    }
-    /* Membesarkan emoji/gambar pada baris pertama di dalam .soal-box */
-    .soal-box div:first-child {
-      font-size: 55px;
-      margin-bottom: 10px;
-      padding-right: 79px;
-    }
-    .salah {
-      border: 2px solid red;
-      background-color: #ffe6e6;
-    }
+    .coding-stage{display:flex;flex-direction:column;gap:20px;align-items:center}
+    .coding-stage table{border:1px solid rgba(15,23,42,.1);border-collapse:collapse;text-align:center;background:rgba(255,255,255,0.96);box-shadow:0 10px 18px rgba(249,115,22,.12)}
+    .coding-stage td{border:1px solid rgba(15,23,42,.08);padding:10px;font-size:32px}
+    .coding-stage td:nth-child(odd){background:rgba(255,237,213,.4)}
+    .grid-container{display:flex;flex-wrap:wrap;justify-content:center;gap:16px;width:100%}
+    .soal-box{background-color:rgba(255,255,255,0.96);border:2px solid rgba(249,115,22,.45);border-radius:20px;padding:20px;width:260px;box-shadow:0 12px 24px rgba(249,115,22,.16);text-align:center;transition:transform .15s ease, box-shadow .15s ease}
+    .soal-box:hover{transform:translateY(-4px);box-shadow:0 16px 30px rgba(249,115,22,.2)}
+    .soal-box div:first-child{font-size:56px;margin-bottom:12px}
+    .angka-input{width:46px;font-size:18px;text-align:center;margin:0 5px;padding:6px 4px;border-radius:12px;border:2px solid rgba(249,115,22,.4)}
+    .angka-input:focus{outline:none;border-color:#f97316;box-shadow:0 0 0 4px rgba(249,115,22,.2)}
+    .soal-box.salah{border-color:#f87171;background:#fee2e2}
+    .result-note{font-weight:700;font-size:18px;color:#ea580c;text-align:center}
   </style>
-
   <link rel="stylesheet" href="/elearn/worlds/calistung/buttons.css" />
 </head>
-<body>
-  <div class="card">
-    <div class="title">CODING MATEMATIKA</div>
-    <p class="subtitle">Petunjuk: isilah pertanyaan sesuai dengan kode pada tabel.</p>
-    <table>
-      <tr>
-        <td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td>
-      </tr>
-      <tr>
-        <td>🍎</td><td>🍌</td><td>🍇</td><td>🍓</td><td>🍍</td><td>🥝</td><td>🍉</td><td>🍒</td><td>🥥</td>
-      </tr>
-    </table>
-    <div class="grid-container" id="grid-container"></div>
-    <div class="button">
-      <button onclick="cekJawaban()">Periksa Jawaban</button>
-      <button onclick="generateRandomSoal()" style="margin-left: 10px; background-color: #2196f3;">Acak Soal</button>
-    </div>
+<body class="mathgame-shell theme-sunset" data-nav-badge="Calistung Math" data-nav-home-url="/elearn/worlds/calistung/index.html">
+  <div class="shell-wrapper">
+    <header class="shell-header">
+      <div class="shell-header__title">
+        <span class="shell-badge">Level 4</span>
+        <h1 class="shell-title">Coding Matematika</h1>
+        <p class="shell-subtitle">Gunakan tabel kode buah untuk mengisi angka dan menemukan hasil penjumlahan.</p>
+      </div>
+      <div class="shell-hud">
+        <div class="shell-pill">
+          <span class="shell-pill-label">Jawaban Benar</span>
+          <span class="shell-pill-value" data-hud-value="score">0 / 6</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="mission-card">
+      <h2>🎯 Misimu</h2>
+      <p data-mission-text>Cocokkan setiap pasangan emoji dengan kode angkanya, lalu isi operasi penjumlahan hingga hasilnya benar.</p>
+    </section>
+
+    <main class="mathgame-stage">
+      <section class="stage-card stage-card--contrast coding-stage">
+        <h2 class="stage-section-title">Kode Buah</h2>
+        <table>
+          <tr>
+            <td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td>
+          </tr>
+          <tr>
+            <td>🍎</td><td>🍌</td><td>🍇</td><td>🍓</td><td>🍍</td><td>🥝</td><td>🍉</td><td>🍒</td><td>🥥</td>
+          </tr>
+        </table>
+        <p class="stage-note">Isi kotak angka sesuai kode. Lalu jumlahkan kedua angka buah untuk mengisi hasilnya.</p>
+        <div class="grid-container" id="grid-container"></div>
+        <p class="result-note" id="resultMessage">Siap decode? Isi angka di setiap kotak ya!</p>
+      </section>
+    </main>
+
+    <section class="shell-action-bar" aria-label="Kontrol aksi">
+      <button id="btnCheck" class="shell-button secondary" type="button">Periksa Jawaban</button>
+      <button id="btnShuffle" class="shell-button" type="button">Acak Soal</button>
+      <button id="btnSelesai" class="shell-button ghost" type="button">Selesai</button>
+    </section>
+
+    <aside class="buddy-widget" aria-label="Teman penyemangat">
+      <div class="buddy-avatar" data-buddy-emoji aria-hidden="true">🧩</div>
+      <div class="buddy-dialog" data-buddy-dialog>Lihat tabel kode buahnya, lalu isikan angka yang cocok. Kamu bisa!</div>
+    </aside>
   </div>
 
+  <script src="/elearn/worlds/calistung/math-game/mathgame-shell.js"></script>
   <script>
     const emojiMap = {
       '🍎': 1,
@@ -126,6 +86,33 @@
     };
 
     const allEmojis = Object.keys(emojiMap);
+    const gridContainer = document.getElementById('grid-container');
+    const resultMessage = document.getElementById('resultMessage');
+    const btnCheck = document.getElementById('btnCheck');
+    const btnShuffle = document.getElementById('btnShuffle');
+    const buddyEmojiEl = document.querySelector('[data-buddy-emoji]');
+    const buddyDialogEl = document.querySelector('[data-buddy-dialog]');
+    const hudScoreEl = document.querySelector('[data-hud-value="score"]');
+
+    let lastScore = 0;
+    const totalSoal = 6;
+
+    function setBuddy(emoji, text){
+      if(buddyEmojiEl && emoji){ buddyEmojiEl.textContent = emoji; }
+      if(buddyDialogEl && text){ buddyDialogEl.textContent = text; }
+      if(window.mathgameShell && typeof window.mathgameShell.setBuddyMood === 'function'){
+        window.mathgameShell.setBuddyMood(emoji, text);
+      }
+    }
+
+    function syncHud(){
+      const label = `${lastScore} / ${totalSoal}`;
+      if(hudScoreEl) hudScoreEl.textContent = label;
+      if(window.mathgameShell && typeof window.mathgameShell.updateHud === 'function'){
+        window.mathgameShell.updateHud({ score: label });
+      }
+    }
+
     function getRandomPair() {
       let a = allEmojis[Math.floor(Math.random() * allEmojis.length)];
       let b;
@@ -136,84 +123,90 @@
     }
 
     function generateRandomSoal() {
-      const container = document.getElementById('grid-container');
-      container.innerHTML = '';
-      for (let i = 0; i < 6; i++) {
+      gridContainer.innerHTML = '';
+      for (let i = 0; i < totalSoal; i++) {
         const [emoji1, emoji2] = getRandomPair();
         const box = document.createElement('div');
         box.className = 'soal-box';
         box.innerHTML = `
           <div>${emoji1} ${emoji2}</div>
           <div>
-            <input class="angka-input" type="number" /> + 
-            <input class="angka-input" type="number" /> = 
-            <input class="angka-input" type="number" />
+            <input class="angka-input" type="number" aria-label="Angka pertama" /> +
+            <input class="angka-input" type="number" aria-label="Angka kedua" /> =
+            <input class="angka-input" type="number" aria-label="Hasil jumlah" />
           </div>
         `;
-        container.appendChild(box);
+        gridContainer.appendChild(box);
       }
+      lastScore = 0;
+      resultMessage.textContent = 'Isi angka sesuai kode buah, lalu jumlahkan hasilnya.';
+      setBuddy('🧩', 'Isi kotak angka dengan kode yang tepat, lalu hitung jumlahnya.');
+      syncHud();
     }
-
-    window.onload = generateRandomSoal;
 
     function cekJawaban() {
       const soalBoxes = document.querySelectorAll('.soal-box');
       let benar = 0;
 
       soalBoxes.forEach(box => {
-        // Reset salah class setiap pengecekan
         box.classList.remove('salah');
-
         const emojiText = box.querySelector('div:first-child').innerText.trim().split(' ');
         const inputs = box.querySelectorAll('.angka-input');
 
         if (emojiText.length !== 2 || inputs.length !== 3) return;
 
-        const val1 = parseInt(inputs[0].value);
-        const val2 = parseInt(inputs[1].value);
-        const hasil = parseInt(inputs[2].value);
+        const val1 = parseInt(inputs[0].value, 10);
+        const val2 = parseInt(inputs[1].value, 10);
+        const hasil = parseInt(inputs[2].value, 10);
         const angka1 = emojiMap[emojiText[0]];
         const angka2 = emojiMap[emojiText[1]];
 
-        if (box.innerHTML.includes('+')) {
+        if (Number.isInteger(val1) && Number.isInteger(val2) && Number.isInteger(hasil)) {
           if (val1 === angka1 && val2 === angka2 && hasil === angka1 + angka2) {
             benar++;
-            box.classList.remove('salah');
           } else {
             box.classList.add('salah');
           }
+        } else {
+          box.classList.add('salah');
         }
       });
 
-      alert(`Jawaban benar: ${benar} dari ${soalBoxes.length}`);
+      lastScore = benar;
+      if (benar === soalBoxes.length) {
+        resultMessage.textContent = `Hebat! Semua jawaban benar (${benar}/${soalBoxes.length}).`;
+        setBuddy('🏆', 'Kode buahmu tepat semua! Siap lanjut level berikutnya.');
+      } else if (benar > 0) {
+        resultMessage.textContent = `Bagus! ${benar} dari ${soalBoxes.length} jawaban benar. Periksa kotak yang berwarna merah ya.`;
+        setBuddy('✨', 'Sudah banyak yang benar. Tinggal koreksi kotak merahnya.');
+      } else {
+        resultMessage.textContent = 'Belum ada yang tepat. Cocokkan lagi angka dengan kode buahnya.';
+        setBuddy('🤔', 'Coba isi ulang angka sesuai kode buah. Kamu pasti bisa.');
+      }
+      syncHud();
     }
+
+    btnCheck.addEventListener('click', cekJawaban);
+    btnShuffle.addEventListener('click', generateRandomSoal);
+
+    generateRandomSoal();
   </script>
 
-<style>
-  .finish-bar { position: fixed; right: 16px; bottom: 16px; z-index: 1000; }
-  #btnSelesai { background: #22c55e; color: #fff; border: none; cursor: pointer; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4); }
-  #btnSelesai:hover { filter: brightness(1.05); }
-  #btnSelesai:active { transform: translateY(1px); }
-  @media (max-width: 480px) {
-    #btnSelesai { padding: 10px 14px; font-size: 15px; }
-  }
-</style>
-
-<div class="finish-bar"><button id="btnSelesai" type="button">Selesai</button></div>
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="/elearn/manifest-lessons.js"></script>
-<script src="/elearn/userInfo.js"></script>
-<script src="/elearn/common/worksheet-submit.js"></script>
-<script>
-  window.WORKSHEET_DEBUG = true;
-  window.WORKSHEET_META = { course_id: "mathgame-basic" };
-  const info = (typeof getUserInfo === "function") ? getUserInfo() : {};
-  initWorksheetSubmit({
-    muridUid: info.uid || "",
-    cid: info.cid || "",
-    namaAnak: info.nama || "",
-    role: (info.role || "").toLowerCase()
-  });
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="/elearn/manifest-lessons.js"></script>
+  <script src="/elearn/userInfo.js"></script>
+  <script src="/elearn/common/worksheet-submit.js"></script>
+  <script>
+    window.WORKSHEET_DEBUG = true;
+    window.WORKSHEET_META = { course_id: "mathgame-basic" };
+    const info = (typeof getUserInfo === "function") ? getUserInfo() : {};
+    initWorksheetSubmit({
+      muridUid: info.uid || "",
+      cid: info.cid || "",
+      namaAnak: info.nama || "",
+      role: (info.role || "").toLowerCase()
+    });
+  </script>
+  <script src="/elearn/common/calistung-navbar.js"></script>
 </body>
 </html>

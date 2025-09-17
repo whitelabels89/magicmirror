@@ -4,154 +4,246 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MG-L7 — Mewarnai Hasil Penjumlahan</title>
+  <link rel="stylesheet" href="/elearn/worlds/calistung/math-game/mathgame-shell.css" />
   <style>
-    :root{
-      --c9:#e74c3c; /* merah */
-      --c8:#2ecc71; /* hijau */
-      --c7:#3498db; /* biru */
-      --c6:#f1c40f; /* kuning */
+    :root {
+      --c9:#e74c3c;
+      --c8:#2ecc71;
+      --c7:#3498db;
+      --c6:#f1c40f;
       --ink:#222;
-      --bg:#fff;
-      --muted:#555;
     }
-    *{box-sizing:border-box} html,body{height:100%}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Noto Sans',sans-serif;background:var(--bg);color:var(--ink);}
-    header{padding:16px 20px;border-bottom:1px solid #eee;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
-    header h1{font-size:18px;margin:0;font-weight:800}
-    header .legend{display:flex;gap:12px;align-items:center;margin-left:auto}
-    .dot{
-      position:relative;
-      width:56px;height:56px;border-radius:16px;display:inline-grid;place-items:center;
-      border:none; font-weight:900; font-size:18px; color:#111; user-select:none; cursor:pointer;
-      box-shadow:0 6px 0 #111, 0 12px 16px rgba(0,0,0,.18);
-      transition:transform .08s ease, box-shadow .15s ease, filter .15s ease;
-      outline:none;
+
+    .color-match-stage {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
     }
-    .dot:hover{filter:brightness(1.05)}
-    .dot:active{transform:translateY(2px); box-shadow:0 4px 0 #111, 0 8px 12px rgba(0,0,0,.22)}
-    .dot[aria-selected="true"]{transform:translateY(2px); box-shadow:0 4px 0 #111, 0 8px 12px rgba(0,0,0,.22); outline:3px dashed #111; outline-offset:3px}
 
-    /* Gradien khusus per nilai agar terlihat seperti tombol game */
-    .dot[data-val="9"]{background:linear-gradient(180deg,#ff7b6b,#e74c3c);}   /* merah */
-    .dot[data-val="8"]{background:linear-gradient(180deg,#6ee7a0,#2ecc71);}   /* hijau */
-    .dot[data-val="7"]{background:linear-gradient(180deg,#79c6ff,#3498db);}   /* biru */
-    .dot[data-val="6"]{background:linear-gradient(180deg,#ffe470,#f1c40f);}   /* kuning */
-
-    /* highlight kilau kecil */
-    .dot::before{content:""; position:absolute; left:10px; top:8px; width:36px; height:18px; background:rgba(255,255,255,.45); border-radius:999px; filter:blur(6px)}
-    .controls{padding:12px 20px;display:flex;gap:10px;flex-wrap:wrap;border-bottom:1px solid #eee}
-
-    /* --- Game Buttons --- */
-    .btn{position:relative; display:inline-block; border:none; outline:none; cursor:pointer; font-weight:800; letter-spacing:.2px; padding:10px 16px; border-radius:14px; transition:transform .08s ease, box-shadow .2s ease; box-shadow:0 6px 0 #111, 0 10px 16px rgba(0,0,0,.12); color:#111}
-    .btn:active{transform:translateY(2px); box-shadow:0 4px 0 #111, 0 6px 10px rgba(0,0,0,.18)}
-    .btn:focus-visible{outline:3px dashed #111; outline-offset:3px}
-
-    .btn-primary{background:linear-gradient(180deg,#ffd75a,#ffb300);}
-    .btn-primary:hover{filter:brightness(1.05)}
-
-    .btn-check{background:linear-gradient(180deg,#6ee7b7,#34d399);} 
-    .btn-check:hover{filter:brightness(1.05)}
-
-    .btn-reset{background:linear-gradient(180deg,#d1d5db,#9ca3af);} 
-    .btn-reset:hover{filter:brightness(1.05)}
-
-    /* small shine */
-    .btn:before{content:""; position:absolute; left:10px; top:6px; width:40%; height:35%; background:rgba(255,255,255,.45); border-radius:999px; filter:blur(6px)}
-
-    /*
-    button{appearance:none;border:2px solid #111;background:#fff;padding:8px 12px;border-radius:10px;font-weight:700;cursor:pointer}
-    button:active{transform:translateY(1px)}
-    */
-    #wrap{display:grid;place-items:center;padding:20px}
-    svg{max-width:100%;height:auto}
-    .seg{fill:#fff;stroke:#111;stroke-width:6;cursor:pointer;transition:filter .15s}
-    .seg:hover{filter:brightness(0.98)}
-    .sum{
-      font-size:32px;
-      font-weight:900;
-      fill:#222;
-      text-anchor:middle;
-      dominant-baseline:middle;
-      pointer-events:none;      /* klik tetap ke ellipsenya */
+    .color-match-stage .legend {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
     }
-    .foot{fill:#111}
-    .msg{padding:10px 16px;margin:10px 20px;border-radius:10px;background:#f6f7f9;color:#333}
-    .ok{background:#e9f8ef}
-    .bad{background:#fff3f3}
-    .pill{display:inline-block;padding:4px 8px;border-radius:999px;border:2px solid #111;background:#fff;font-weight:700}
+
+    .dot {
+      position: relative;
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      display: inline-grid;
+      place-items: center;
+      border: none;
+      font-weight: 900;
+      font-size: 18px;
+      color: #111;
+      user-select: none;
+      cursor: pointer;
+      box-shadow: 0 6px 0 #111, 0 12px 16px rgba(0, 0, 0, .18);
+      transition: transform .08s ease, box-shadow .15s ease, filter .15s ease;
+      outline: none;
+    }
+
+    .dot:hover {
+      filter: brightness(1.05);
+    }
+
+    .dot:active,
+    .dot[aria-selected="true"] {
+      transform: translateY(2px);
+      box-shadow: 0 4px 0 #111, 0 8px 12px rgba(0, 0, 0, .22);
+    }
+
+    .dot[aria-selected="true"] {
+      outline: 3px dashed #111;
+      outline-offset: 3px;
+    }
+
+    .dot[data-val="9"] { background: linear-gradient(180deg,#ff7b6b,#e74c3c); }
+    .dot[data-val="8"] { background: linear-gradient(180deg,#6ee7a0,#2ecc71); }
+    .dot[data-val="7"] { background: linear-gradient(180deg,#79c6ff,#3498db); }
+    .dot[data-val="6"] { background: linear-gradient(180deg,#ffe470,#f1c40f); }
+
+    .dot::before {
+      content: "";
+      position: absolute;
+      left: 10px;
+      top: 8px;
+      width: 36px;
+      height: 18px;
+      background: rgba(255, 255, 255, .45);
+      border-radius: 999px;
+      filter: blur(6px);
+    }
+
+    .color-match-stage__status {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .pill {
+      display: inline-flex;
+      gap: 6px;
+      align-items: baseline;
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 2px solid rgba(17, 17, 17, .65);
+      background: rgba(255, 255, 255, .92);
+      font-weight: 700;
+      color: var(--ink);
+      box-shadow: 0 6px 12px rgba(17, 17, 17, .12);
+    }
+
+    .msg {
+      padding: 10px 16px;
+      border-radius: 14px;
+      background: rgba(246, 247, 249, .92);
+      color: rgba(51, 65, 85, .92);
+      font-weight: 600;
+      text-align: center;
+      max-width: 520px;
+    }
+
+    .msg.ok { background: #e9f8ef; color: #047857; }
+    .msg.bad { background: #fff3f3; color: #b91c1c; }
+
+    .color-match-stage__canvas {
+      display: grid;
+      place-items: center;
+    }
+
+    svg {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .seg {
+      fill: #fff;
+      stroke: #111;
+      stroke-width: 6;
+      cursor: pointer;
+      transition: filter .15s;
+    }
+
+    .seg:hover { filter: brightness(0.98); }
+
+    .sum {
+      font-size: 32px;
+      font-weight: 900;
+      fill: #222;
+      text-anchor: middle;
+      dominant-baseline: middle;
+      pointer-events: none;
+    }
+
+    .foot { fill: #111; }
+
+    @media (max-width: 520px) {
+      .dot {
+        width: 50px;
+        height: 50px;
+      }
+      .sum { font-size: 26px; }
+    }
   </style>
-
   <link rel="stylesheet" href="/elearn/worlds/calistung/buttons.css" />
 </head>
-<body>
-  <header>
-    <h1>Mewarnai Hasil Penjumlahan</h1>
-    <div class="legend" id="palette" aria-label="Pilih warna untuk angka hasil">
-      <div class="dot" data-val="9" style="background:var(--c9)" role="button" title="9">9</div>
-      <div class="dot" data-val="8" style="background:var(--c8)" role="button" title="8">8</div>
-      <div class="dot" data-val="7" style="background:var(--c7)" role="button" title="7">7</div>
-      <div class="dot" data-val="6" style="background:var(--c6)" role="button" title="6">6</div>
-    </div>
-  </header>
+<body class="mathgame-shell theme-mint" data-nav-badge="Calistung Math" data-nav-home-url="/elearn/worlds/calistung/index.html">
+  <div class="shell-wrapper">
+    <header class="shell-header">
+      <div class="shell-header__title">
+        <span class="shell-badge">Level 7</span>
+        <h1 class="shell-title">Mewarnai Hasil Penjumlahan</h1>
+        <p class="shell-subtitle">Pilih warna 6–9 pada palet, lalu warnai segmen ulat sesuai hasil penjumlahan yang tertera.</p>
+      </div>
+      <div class="shell-hud">
+        <div class="shell-pill">
+          <span class="shell-pill-label">Segmen Benar</span>
+          <span class="shell-pill-value" data-hud-value="score">0 / 5</span>
+        </div>
+        <div class="shell-pill">
+          <span class="shell-pill-label">Percobaan</span>
+          <span class="shell-pill-value" data-hud-value="attempts">0</span>
+        </div>
+      </div>
+    </header>
 
-  <div class="controls">
-    <button id="btnShuffle" class="btn btn-primary" title="Acak soal">Acak Soal</button>
-    <button id="btnCheck" class="btn btn-check" title="Periksa jawaban">Periksa Jawaban</button>
-    <button id="btnReset" class="btn btn-reset" title="Reset warna">Reset Warna</button>
-    <span class="pill">Pilihan warna aktif: <b id="activeColor">—</b></span>
+    <section class="mission-card">
+      <h2>🎯 Misimu</h2>
+      <p data-mission-text>Pilih warna angka dari palet lalu klik segmen tubuh ulat yang jumlahnya sama. Lengkapi semua segmen ya!</p>
+    </section>
+
+    <main class="mathgame-stage">
+      <section class="stage-card stage-card--contrast color-match-stage">
+        <div class="legend" id="palette" aria-label="Pilih warna untuk angka hasil">
+          <div class="dot" data-val="9" role="button" title="9">9</div>
+          <div class="dot" data-val="8" role="button" title="8">8</div>
+          <div class="dot" data-val="7" role="button" title="7">7</div>
+          <div class="dot" data-val="6" role="button" title="6">6</div>
+        </div>
+
+        <div class="color-match-stage__status">
+          <div class="pill">Pilihan warna aktif: <b id="activeColor">—</b></div>
+          <p class="msg" id="status">Pilih warna (6–9) lalu klik segmen tubuh ulat sesuai hasil penjumlahan.</p>
+        </div>
+
+        <div class="color-match-stage__canvas" id="wrap">
+          <svg id="game" viewBox="-140 0 1240 420" preserveAspectRatio="xMidYMid meet">
+            <ellipse cx="680" cy="160" rx="120" ry="100" fill="#fff" stroke="#111" stroke-width="6"></ellipse>
+            <path d="M645 78 q-20 -18 0 -36" fill="none" stroke="#111" stroke-width="10" stroke-linecap="round"/>
+            <circle cx="639" cy="42" r="16" fill="#111"/>
+            <path d="M715 78 q20 -18 0 -36" fill="none" stroke="#111" stroke-width="10" stroke-linecap="round"/>
+            <circle cx="721" cy="42" r="16" fill="#111"/>
+            <path d="M625 118 Q 645 100 665 118" fill="none" stroke="#111" stroke-width="6" stroke-linecap="round"/>
+            <path d="M695 118 Q 715 100 735 118" fill="none" stroke="#111" stroke-width="6" stroke-linecap="round"/>
+            <ellipse cx="645" cy="150" rx="18" ry="24" fill="#fff" stroke="#111" stroke-width="6"/>
+            <ellipse cx="715" cy="150" rx="18" ry="24" fill="#fff" stroke="#111" stroke-width="6"/>
+            <ellipse cx="639" cy="146" rx="8" ry="12" fill="#111"/>
+            <ellipse cx="709" cy="146" rx="8" ry="12" fill="#111"/>
+            <path d="M640 190 q40 30 90 0" fill="none" stroke="#111" stroke-width="6" stroke-linecap="round"/>
+
+            <ellipse class="seg" id="seg1" cx="560" cy="260" rx="95" ry="80" data-ans="" />
+            <ellipse class="seg" id="seg2" cx="440" cy="290" rx="110" ry="90" data-ans="" />
+            <ellipse class="seg" id="seg3" cx="300" cy="300" rx="120" ry="95" data-ans="" />
+            <ellipse class="seg" id="seg4" cx="160" cy="320" rx="125" ry="95" data-ans="" />
+            <ellipse class="seg" id="seg5" cx="60"  cy="340" rx="90"  ry="70" data-ans="" />
+
+            <ellipse class="foot" cx="520" cy="355" rx="20" ry="12" />
+            <ellipse class="foot" cx="410" cy="375" rx="22" ry="13" />
+            <ellipse class="foot" cx="270" cy="385" rx="22" ry="13" />
+            <ellipse class="foot" cx="130" cy="395" rx="22" ry="13" />
+
+            <text class="sum" id="t1" x="570" y="260" dx="20"></text>
+            <text class="sum" id="t2" x="450" y="290" dx="20"></text>
+            <text class="sum" id="t3" x="310" y="300" dx="20"></text>
+            <text class="sum" id="t4" x="170" y="320" dx="20"></text>
+            <text class="sum" id="t5" x="40"  y="340" dx="20"></text>
+          </svg>
+        </div>
+      </section>
+    </main>
+
+    <section class="shell-action-bar" aria-label="Kontrol aksi">
+      <button id="btnShuffle" class="shell-button secondary" type="button">🔄 Acak Soal</button>
+      <button id="btnCheck" class="shell-button" type="button">✅ Periksa Jawaban</button>
+      <button id="btnReset" class="shell-button ghost" type="button">↺ Reset Warna</button>
+      <button id="btnSelesai" class="shell-button ghost" type="button">Selesai</button>
+    </section>
+
+    <aside class="buddy-widget" aria-label="Teman penyemangat">
+      <div class="buddy-avatar" data-buddy-emoji aria-hidden="true">🐛</div>
+      <div class="buddy-dialog" data-buddy-dialog>Pilih warna favoritmu lalu isi segmen ulat sesuai angka hasilnya.</div>
+    </aside>
   </div>
 
-  <div id="wrap">
-    <!-- SVG ulat sederhana (kepala + 5 segmen tubuh) -->
-    <svg id="game" viewBox="-140 0 1240 420" preserveAspectRatio="xMidYMid meet">
-      <!-- kepala -->
-      <ellipse cx="680" cy="160" rx="120" ry="100" fill="#fff" stroke="#111" stroke-width="6"></ellipse>
-      <!-- antena dengan ujung bulat -->
-      <path d="M645 78 q-20 -18 0 -36" fill="none" stroke="#111" stroke-width="10" stroke-linecap="round"/>
-      <circle cx="639" cy="42" r="16" fill="#111"/>
-      <path d="M715 78 q20 -18 0 -36" fill="none" stroke="#111" stroke-width="10" stroke-linecap="round"/>
-      <circle cx="721" cy="42" r="16" fill="#111"/>
-      <!-- alis (diposisikan tepat di atas masing-masing mata) -->
-      <path d="M625 118 Q 645 100 665 118" fill="none" stroke="#111" stroke-width="6" stroke-linecap="round"/>
-      <path d="M695 118 Q 715 100 735 118" fill="none" stroke="#111" stroke-width="6" stroke-linecap="round"/>
-      <!-- mata (oval) yang lebih renggang -->
-      <ellipse cx="645" cy="150" rx="18" ry="24" fill="#fff" stroke="#111" stroke-width="6"/>
-      <ellipse cx="715" cy="150" rx="18" ry="24" fill="#fff" stroke="#111" stroke-width="6"/>
-      <!-- pupil -->
-      <ellipse cx="639" cy="146" rx="8" ry="12" fill="#111"/>
-      <ellipse cx="709" cy="146" rx="8" ry="12" fill="#111"/>
-      <!-- senyum -->
-      <path d="M640 190 q40 30 90 0" fill="none" stroke="#111" stroke-width="6" stroke-linecap="round"/>
-
-      <!-- segmen tubuh (5 buah) -->
-      <ellipse class="seg" id="seg1" cx="560" cy="260" rx="95" ry="80" data-ans="" />
-      <ellipse class="seg" id="seg2" cx="440" cy="290" rx="110" ry="90" data-ans="" />
-      <ellipse class="seg" id="seg3" cx="300" cy="300" rx="120" ry="95" data-ans="" />
-      <ellipse class="seg" id="seg4" cx="160" cy="320" rx="125" ry="95" data-ans="" />
-      <ellipse class="seg" id="seg5" cx="60"  cy="340" rx="90"  ry="70" data-ans="" />
-
-      <!-- kaki -->
-      <ellipse class="foot" cx="520" cy="355" rx="20" ry="12" />
-      <ellipse class="foot" cx="410" cy="375" rx="22" ry="13" />
-      <ellipse class="foot" cx="270" cy="385" rx="22" ry="13" />
-      <ellipse class="foot" cx="130" cy="395" rx="22" ry="13" />
-
-      <!-- label penjumlahan -->
-      <text class="sum" id="t1" x="570" y="260" dx="20"></text>
-      <text class="sum" id="t2" x="450" y="290" dx="20"></text>
-      <text class="sum" id="t3" x="310" y="300" dx="20"></text>
-      <text class="sum" id="t4" x="170" y="320" dx="20"></text>
-      <text class="sum" id="t5" x="40"  y="340" dx="20"></text>
-    </svg>
-  </div>
-
-  <div class="msg" id="status">Pilih warna (6,7,8,9) lalu klik segmen tubuh ulat sesuai hasil penjumlahan.</div>
-
+  <script src="/elearn/worlds/calistung/math-game/mathgame-shell.js"></script>
   <script>
-    // ===== Util warna =====
     const colorMap = {6:'var(--c6)',7:'var(--c7)',8:'var(--c8)',9:'var(--c9)'};
 
-    // ===== Bank soal (hasil 6..9) =====
     const BANK = {
       6: ['4+2','2+4','1+5','5+1','3+3'],
       7: ['2+5','5+2','3+4','4+3','1+6','6+1'],
@@ -162,7 +254,17 @@
     const segIds = ['seg1','seg2','seg3','seg4','seg5'];
     const textIds = ['t1','t2','t3','t4','t5'];
 
-    let active = null; // angka 6/7/8/9 yang dipilih
+    const hudScoreEl = document.querySelector('[data-hud-value="score"]');
+    const hudAttemptsEl = document.querySelector('[data-hud-value="attempts"]');
+    const buddyEmojiEl = document.querySelector('[data-buddy-emoji]');
+    const buddyDialogEl = document.querySelector('[data-buddy-dialog]');
+
+    let active = null;
+    let attempts = 0;
+    let score = 0;
+
+    const totalSeg = segIds.length;
+    const defaultBuddyText = 'Pilih warna 6–9 dari palet lalu klik segmen ulat yang jumlahnya sama.';
 
     function pick(arr,n){
       const a=[...arr];
@@ -174,11 +276,26 @@
       const [a,b]=str.split('+').map(Number);return a+b;
     }
 
+    function setBuddy(emoji, text){
+      if(buddyEmojiEl && emoji){ buddyEmojiEl.textContent = emoji; }
+      if(buddyDialogEl && text){ buddyDialogEl.textContent = text; }
+      if(window.mathgameShell && typeof window.mathgameShell.setBuddyMood === 'function'){
+        window.mathgameShell.setBuddyMood(emoji, text);
+      }
+    }
+
+    function syncHud(){
+      const scoreLabel = `${score} / ${totalSeg}`;
+      if(hudScoreEl) hudScoreEl.textContent = scoreLabel;
+      if(hudAttemptsEl) hudAttemptsEl.textContent = attempts;
+      if(window.mathgameShell && typeof window.mathgameShell.updateHud === 'function'){
+        window.mathgameShell.updateHud({ score: scoreLabel, attempts });
+      }
+    }
+
     function assignProblems(){
-      // kita ingin campuran hasil 6..9 secara acak ke 5 segmen
       const results = [6,7,8,9,6,7,8,9];
       results.sort(()=>Math.random()-0.5);
-      // pakai 5 pertama
       const chosen = results.slice(0,5);
 
       chosen.forEach((res,idx)=>{
@@ -188,8 +305,19 @@
         const t   = document.getElementById(textIds[idx]);
         seg.dataset.ans = res;
         seg.style.fill = '#fff';
+        seg.removeAttribute('data-user');
         t.textContent = eq;
       });
+
+      score = 0;
+      attempts = 0;
+      const statusEl = document.getElementById('status');
+      statusEl.className = 'msg';
+      statusEl.textContent = 'Pilih warna (6–9) lalu klik segmen tubuh ulat sesuai hasil penjumlahan.';
+      document.getElementById('activeColor').textContent = '—';
+      setBuddy('🐛', defaultBuddyText);
+      syncHud();
+      selectColor(null);
     }
 
     function selectColor(val){
@@ -207,73 +335,73 @@
 
     function resetPaint(){
       document.querySelectorAll('.seg').forEach(s=>{s.style.fill='#fff'; s.removeAttribute('data-user');});
-      document.getElementById('status').className='msg';
-      document.getElementById('status').textContent='Warna direset. Pilih warna lalu isi kembali.';
+      const statusEl = document.getElementById('status');
+      statusEl.className='msg';
+      statusEl.textContent='Warna direset. Pilih warna lalu isi lagi ya!';
+      score = 0;
+      attempts = 0;
+      setBuddy('🎮', 'Mulai lagi yuk! Pilih warna baru dan warnai semua segmen.');
+      syncHud();
+      selectColor(null);
     }
 
     function check(){
-      let ok=0, total=segIds.length;
+      let ok=0;
       document.querySelectorAll('.seg').forEach(s=>{
         if(String(s.dataset.user)===String(s.dataset.ans)) ok++;
       });
-      const st = document.getElementById('status');
+      score = ok;
+      attempts += 1;
+      const total=segIds.length;
+      const statusEl = document.getElementById('status');
       if(ok===total){
-        st.className='msg ok';
-        st.textContent = 'Mantap! Semua benar 🎉';
+        statusEl.className='msg ok';
+        statusEl.textContent = 'Mantap! Semua segmen sudah benar 🎉';
+        setBuddy('🏆', 'Hebat! Ulatnya sudah berwarna sempurna.');
       }else{
-        st.className='msg bad';
-        st.textContent = `Masih ada yang salah: ${ok}/${total} benar. Cek lagi ya!`;
+        statusEl.className='msg bad';
+        statusEl.textContent = `Masih ada yang salah: ${ok}/${total} benar. Cek lagi ya!`;
+        setBuddy('🤔', 'Periksa lagi segmen yang belum cocok dengan angkanya.');
       }
+      syncHud();
     }
 
-    // events palette
     document.getElementById('palette').addEventListener('click', (e)=>{
       const dot=e.target.closest('.dot');
       if(!dot) return; selectColor(dot.dataset.val);
     });
 
-    // events segmen
     document.getElementById('game').addEventListener('click', paintSegment);
 
     document.getElementById('btnReset').addEventListener('click', resetPaint);
     document.getElementById('btnCheck').addEventListener('click', check);
     document.getElementById('btnShuffle').addEventListener('click', ()=>{
       assignProblems();
-      document.getElementById('status').className='msg';
-      document.getElementById('status').textContent='Soal diacak 🎲. Warna tetap tersetel ulang untuk segmen yang berganti.';
-      resetPaint();
+      const statusEl = document.getElementById('status');
+      statusEl.className='msg';
+      statusEl.textContent='Soal diacak 🎲. Warna disetel ulang, ayo mulai lagi!';
+      setBuddy('🎲', 'Soalnya baru! Pilih warna lagi dan cocokkan hasilnya.');
+      syncHud();
     });
 
-    // init
     assignProblems();
-    selectColor(null); // belum pilih
   </script>
 
-<style>
-  .finish-bar { position: fixed; right: 16px; bottom: 16px; z-index: 1000; }
-  #btnSelesai { background: #22c55e; color: #fff; border: none; cursor: pointer; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4); }
-  #btnSelesai:hover { filter: brightness(1.05); }
-  #btnSelesai:active { transform: translateY(1px); }
-  @media (max-width: 480px) {
-    #btnSelesai { padding: 10px 14px; font-size: 15px; }
-  }
-</style>
-
-<div class="finish-bar"><button id="btnSelesai" type="button">Selesai</button></div>
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="/elearn/manifest-lessons.js"></script>
-<script src="/elearn/userInfo.js"></script>
-<script src="/elearn/common/worksheet-submit.js"></script>
-<script>
-  window.WORKSHEET_DEBUG = true;
-  window.WORKSHEET_META = { course_id: "mathgame-basic" };
-  const info = (typeof getUserInfo === "function") ? getUserInfo() : {};
-  initWorksheetSubmit({
-    muridUid: info.uid || "",
-    cid: info.cid || "",
-    namaAnak: info.nama || "",
-    role: (info.role || "").toLowerCase()
-  });
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="/elearn/manifest-lessons.js"></script>
+  <script src="/elearn/userInfo.js"></script>
+  <script src="/elearn/common/worksheet-submit.js"></script>
+  <script>
+    window.WORKSHEET_DEBUG = true;
+    window.WORKSHEET_META = { course_id: "mathgame-basic" };
+    const info = (typeof getUserInfo === "function") ? getUserInfo() : {};
+    initWorksheetSubmit({
+      muridUid: info.uid || "",
+      cid: info.cid || "",
+      namaAnak: info.nama || "",
+      role: (info.role || "").toLowerCase()
+    });
+  </script>
+  <script src="/elearn/common/calistung-navbar.js"></script>
 </body>
 </html>

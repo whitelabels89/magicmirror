@@ -4,87 +4,79 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Shape L6 – Triangle Paint</title>
+  <link rel="stylesheet" href="./shape-shell.css" />
   <style>
     :root{
       --bg:#f6f8ff;--card:#ffffff;--ink:#0f172a;--muted:#64748b;--accent:#2563eb;
       --ok:#16a34a;--bad:#ef4444;--outline:#1f2937;
     }
     *{box-sizing:border-box}
-    body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg);}    
-    .wrap{max-width:1080px;margin:0 auto;padding:18px;}
-    header{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:12px}
-    .logo{width:36px;height:36px;display:grid;place-items:center;background:#e2e8f0;border-radius:10px}
-    h1{font-size:22px;margin:0}
-    .subtitle{font-size:14px;color:var(--muted)}
 
-    .board{background:var(--card);border-radius:16px;padding:16px;box-shadow:0 10px 30px rgba(2,6,23,.05)}
+    .shape-shell__subtitle{max-width:760px}
 
-    .legend{display:grid;grid-template-columns:repeat(5,160px);justify-content:center;gap:8px;align-items:center;margin-bottom:12px}
-    .legend .item{display:flex;align-items:center;justify-content:center;background:#f8fafc;border:1px dashed #cbd5e1;padding:6px;border-radius:10px;font-size:12px;width:160px;height:160px;margin:0}
-    .swatch{width:18px;height:18px;border-radius:4px;border:1px solid #00000022}
-    .mini{display:grid;place-items:center;width:135px;height:135px}
-    .mini svg{width:135px;height:135px}
-    .miniTri{stroke:#111827;stroke-width:1.6}
-
-    .item small{color:var(--muted)}
-
-    .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:12px 0 8px}
-    .btn{border:none;padding:10px 14px;border-radius:12px;font-weight:700;cursor:pointer;transition:.15s;box-shadow:0 6px 16px rgba(2,6,23,.08)}
-    .btn:hover{transform:translateY(-1px)}
-    .btn:active{transform:translateY(0)}
-    .btn.primary{background:var(--accent);color:#fff}
-    .btn.ghost{background:#e5e7eb}
-    .btn.success{background:var(--ok);color:#fff}
-
-    .palette{display:flex;gap:10px;flex-wrap:nowrap;align-items:center;overflow-x:auto;padding-bottom:4px}
-    .chip{width:170px;height:160px;border-radius:14px;border:2px solid #e5e7eb;cursor:pointer;box-shadow:0 2px 8px rgba(2,6,23,.06);background:#fff;display:grid;place-items:center}
-    .chip.active{box-shadow:inset 0 0 0 3px #111827,0 2px 8px rgba(2,6,23,.06)}
+    .triangle-toolbar{display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:16px}
+    .palette{display:flex;gap:14px;flex-wrap:wrap;align-items:center;overflow-x:auto;padding-bottom:6px}
+    .chip{width:170px;height:160px;border-radius:16px;border:2px solid #e5e7eb;cursor:pointer;box-shadow:0 4px 16px rgba(2,6,23,.08);background:#fff;display:grid;place-items:center;transition:transform .15s ease, box-shadow .15s ease}
+    .chip.active{box-shadow:inset 0 0 0 3px #111827,0 6px 18px rgba(2,6,23,.08);transform:translateY(-2px)}
     .chipInner{width:160px;height:150px;display:grid;place-items:center}
 
-    .canvasWrap{background:linear-gradient(180deg,#ffffff 0%,#f8fafc 100%);border:1px solid #e5e7eb;border-radius:16px;padding:8px;position:relative}
-    svg{width:100%;height:min(72vh,720px);display:block;border-radius:12px;background:#fff}
+    .triangle-actions{display:flex;gap:12px;flex-wrap:wrap}
 
-    .hint{font-size:13px;color:var(--muted);margin-top:8px}
+    .canvasWrap{background:linear-gradient(180deg,#ffffff 0%,#f8fafc 100%);border:1px solid #e5e7eb;border-radius:20px;padding:12px;position:relative}
+    svg{width:100%;height:min(72vh,720px);display:block;border-radius:16px;background:#fff}
 
-    /* triangle states */
+    .hud{position:absolute;left:16px;top:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .hud .shape-button{box-shadow:none;border:1px solid rgba(15,23,42,.15);background:rgba(255,255,255,.92);color:var(--ink)}
+    .hud .shape-button.success{background:#22c55e;color:#052e16;border-color:transparent}
+
+    .hint{font-size:14px;color:var(--muted);margin-top:12px}
+
     .tri{stroke:var(--outline);stroke-width:2;fill:#fff;transition:.2s}
     .tri.locked{stroke:var(--ok)}
     .tri.wrong{animation:shake 0.2s 2;stroke:var(--bad)!important}
     @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}
+
+    .finish-bar { position: fixed; right: 16px; bottom: 24px; z-index: 1000; }
+    @media (max-width: 520px) {
+      .finish-bar { right: 12px; bottom: 18px; }
+    }
   </style>
 
   <link rel="stylesheet" href="/elearn/worlds/calistung/buttons.css" />
 </head>
-<body>
-  <div class="wrap">
-    <header>
-      <div class="logo">▲</div>
-      <div>
-        <h1>Triangle Paint</h1>
-        <div class="subtitle">Warna sesuai contoh: setiap <b>ukuran</b> segitiga punya warna yang benar. Klik warna → klik segitiga.</div>
-      </div>
+<body class="shape-shell" style="--shape-accent:#2563eb; --shape-accent-dark:#1d4ed8; --shape-secondary-bg:#0f172a; --shape-badge-bg:linear-gradient(135deg,#60a5fa,#2563eb); --shape-badge-shadow:#1d4ed8; --shape-bg-radial-1:rgba(37,99,235,0.26); --shape-bg-radial-2:rgba(99,102,241,0.22); --shape-bg-base:#f6f8ff; --shape-bg-base-bottom:#e0e7ff;" data-nav-badge="Calistung Shape" data-nav-home-url="/elearn/worlds/calistung/shape/index.html">
+  <div class="shape-game">
+    <header class="shape-card shape-card--frost shape-shell__header">
+      <span class="shape-shell__badge">Shape • Level 6</span>
+      <h1 class="shape-shell__title">Triangle Paint</h1>
+      <p class="shape-shell__subtitle">Warna sesuai contoh: setiap <b>ukuran</b> segitiga punya warna yang benar. Pilih warna, lalu klik segitiga untuk mewarnai.</p>
     </header>
 
-    <section class="board" aria-label="triangle-paint">
-      <!-- <div class="legend" id="legend"></div> -->
-
-      <div class="toolbar">
+    <section class="shape-card shape-card--frost shape-game__content">
+      <div class="triangle-toolbar">
         <div class="palette" id="palette"></div>
-        <button class="btn ghost" id="btnShuffle" type="button">Acak Tata Letak</button>
-        <button class="btn primary" id="btnCheck" type="button">Periksa Jawaban</button>
-        <button class="btn" id="btnReset" type="button">Reset</button>
+        <div class="triangle-actions">
+          <button class="shape-button secondary" id="btnShuffle" type="button">Acak Tata Letak</button>
+          <button class="shape-button primary" id="btnCheck" type="button">Periksa Jawaban</button>
+          <button class="shape-button ghost" id="btnReset" type="button">Reset</button>
+        </div>
       </div>
 
       <div class="canvasWrap">
         <svg id="stage" viewBox="0 0 1000 650" role="img" aria-label="Bidang segitiga"></svg>
+        <div class="hud">
+          <button id="btnUndo" class="shape-button ghost small">Undo</button>
+          <button id="btnEraser" class="shape-button ghost small">Eraser</button>
+          <button id="btnPen" class="shape-button ghost small success">Pen</button>
+        </div>
       </div>
       <div class="hint" id="status">Pilih warna di palet, lalu klik segitiga untuk mewarnai.</div>
+      <div id="legend" class="legend" hidden></div>
     </section>
   </div>
 
 <script>
 (() => {
-  // Mapping ukuran ➜ warna benar
   const RULES = [
     { key:'XS', size:20, color:'#ef4444', label:'Kecil sekali = Merah'},
     { key:'S',  size:34, color:'#22c55e', label:'Kecil = Hijau'},
@@ -94,21 +86,20 @@
   ];
   const MAX_SIDE = Math.max(...RULES.map(r=>r.size));
 
-  // --- mini triangle for legend & palette (with padded viewBox so apex isn't clipped)
   function makeMiniTriangle(side, color){
-    const w=160, h=150;       // bigger box so no clipping for XL
-    const pad = 8;            // padding for stroke/apex
+    const w=160, h=150;
+    const pad = 8;
     const cx = w/2, cy = h/2 + 2;
-    const s = side;           // EXACT same side length as canvas
+    const s = side;
     const triH = Math.sqrt(3)/2 * s;
-    const topY  = cy - triH/1.2;  // SAME multipliers as canvas triPoints
+    const topY  = cy - triH/1.2;
     const baseY = cy + triH/1.8;
     const p1 = `${cx},${topY}`;
     const p2 = `${cx - s/2},${baseY}`;
     const p3 = `${cx + s/2},${baseY}`;
 
     const wrap = document.createElement('div');
-    wrap.className='mini';
+    wrap.className='chipInner';
     wrap.innerHTML = `
       <svg viewBox="-${pad} -${pad} ${w + pad*2} ${h + pad*2}" aria-hidden="true">
         <polygon class="miniTri" points="${p1} ${p2} ${p3}" fill="${color}" />
@@ -125,7 +116,7 @@
   const btnReset = document.getElementById('btnReset');
 
   let activeColor = RULES[0].color;
-  const triangles = []; // {node, rule}
+  const triangles = [];
 
   function buildLegend(){
     legend.innerHTML = '';
@@ -143,7 +134,6 @@
       const chip = document.createElement('button');
       chip.type='button';
       chip.className='chip'+(i===0?' active':'');
-      // insert proportional triangle SVG inside fixed box
       const box = document.createElement('div');
       box.className='chipInner';
       const mini = makeMiniTriangle(r.size, r.color);
@@ -160,10 +150,9 @@
     });
   }
 
-  // Utility create triangle points centered at (cx,cy) with side ~ size
   function triPoints(cx, cy, side){
     const h = Math.sqrt(3)/2 * side;
-    const x1 = cx,     y1 = cy - h/1.2;  // top
+    const x1 = cx,     y1 = cy - h/1.2;
     const x2 = cx - side/2, y2 = cy + h/1.8;
     const x3 = cx + side/2, y3 = cy + h/1.8;
     return `${x1},${y1} ${x2},${y2} ${x3},${y3}`;
@@ -175,17 +164,16 @@
     stage.innerHTML = '';
     triangles.length = 0;
 
-    // create 28 triangles (variasi ukuran)
     const cols = 7, rows = 4;
-    const padding = 120; // bigger margin so triangles never touch/crop frame
+    const padding = 120;
     const w = 1000, h = 650;
 
     for(let r=0; r<rows; r++){
       for(let c=0; c<cols; c++){
         const rule = randomFrom(RULES);
         const cx = padding + c*((w-2*padding)/(cols-1)) + (Math.random()*18-9);
-        const cy = padding + r*((h-2*padding)/(rows-1)); // align rows exactly (no vertical jitter)
-        const side = rule.size; // exact size per rule (no jitter)
+        const cy = padding + r*((h-2*padding)/(rows-1));
+        const side = rule.size;
 
         const g = document.createElementNS('http://www.w3.org/2000/svg','g');
         const p = document.createElementNS('http://www.w3.org/2000/svg','polygon');
@@ -205,7 +193,6 @@
 
   function paintTriangle(p){
     p.style.fill = activeColor;
-    // check immediate correctness
     if(p.dataset.correct === activeColor){
       p.classList.add('locked');
       p.classList.remove('wrong');
@@ -217,10 +204,9 @@
   }
 
   function shuffle(){
-    // random translate for each group, but keep rows vertically aligned
     [...stage.querySelectorAll('g')].forEach(g=>{
       const dx = (Math.random()*16-8);
-      const dy = 0; // keep rows aligned; no vertical shift on shuffle
+      const dy = 0;
       g.setAttribute('transform',`translate(${dx},${dy})`);
     });
     setStatus('Tata letak diacak.');
@@ -255,15 +241,8 @@
   btnReset.addEventListener('click', resetAll);
 })();
 </script>
-<style>
-  .finish-bar { position: fixed; right: 16px; bottom: 16px; z-index: 1000; }
-  #btnSelesai { background: #22c55e; color: #fff; border: none; cursor: pointer; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4); }
-  #btnSelesai:hover { filter: brightness(1.05); }
-  #btnSelesai:active { transform: translateY(1px); }
-  @media (max-width: 480px) { #btnSelesai { padding: 10px 14px; font-size: 15px; } }
-</style>
 
-<div class="finish-bar"><button id="btnSelesai" type="button">Selesai</button></div>
+<div class="finish-bar"><button id="btnSelesai" class="shape-button success" type="button">Selesai</button></div>
 
 <!-- Tambah html2canvas hanya jika belum ada di halaman -->
 <script>if(!window.html2canvas){document.write('<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"><\/script>')}</script>
@@ -278,12 +257,10 @@
 <script>
   window.WORKSHEET_DEBUG = true;
 
-  // Cari elemen target screenshot (prioritas canvas bila ada)
   ;(function ensureScreenshotRoot(){
     if (!document.getElementById('gameRoot') &&
         !document.getElementById('shapeBoard') &&
         !document.getElementById('canvasRoot')) {
-      // Bungkus seluruh isi body KECUALI finish-bar ke dalam #gameRoot
       const wrap = document.createElement('div'); wrap.id = 'gameRoot';
       const bar = document.querySelector('.finish-bar');
       const bodyKids = Array.from(document.body.children).filter(n => n !== bar);
@@ -292,7 +269,6 @@
     }
   })();
 
-  // Init submitter
   ;(function initSubmit(){
     const info = (typeof getUserInfo === "function") ? getUserInfo() : {};
     if (typeof initWorksheetSubmit === "function") {
@@ -301,9 +277,6 @@
         cid: info.cid || "",
         namaAnak: info.nama || "",
         role: (info.role || "").toLowerCase(),
-
-        // Opsi opsional khusus Shape:
-        // prioritas canvas screenshot jika ada:
         screenshotSelectorPriority: ['#shapeCanvas', '#gameCanvas', '#canvasRoot', '#shapeBoard', '#gameRoot']
       });
     } else {
@@ -312,5 +285,7 @@
   })();
 </script>
 
+
+<script src="/elearn/common/calistung-navbar.js"></script>
 </body>
 </html>

@@ -4,133 +4,150 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MG-L3 • Mewarnai Penjumlahan (6–10)</title>
+  <link rel="stylesheet" href="/elearn/worlds/calistung/math-game/mathgame-shell.css" />
   <style>
     :root{
-      --c10:#e4573d; /* merah */
-      --c9:#54b3c8;  /* biru muda */
-      --c8:#49a364; /* hijau */
-      --c7:#f0cc33; /* kuning */
-      --c6:#4b57b7; /* biru tua */
+      --c10:#e4573d;
+      --c9:#54b3c8;
+      --c8:#49a364;
+      --c7:#f0cc33;
+      --c6:#4b57b7;
       --ink:#1b1f23;
       --muted:#7a7f87;
       --bg:#fff;
     }
     *{box-sizing:border-box}
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;margin:0;background:var(--bg);color:var(--ink)}
-    header{padding:18px 16px 6px}
-    h1{margin:0 0 4px;font-size:20px}
-    p.sub{margin:0;color:var(--muted);font-size:14px}
-
-    .board{display:grid;gap:10px;justify-content:center;padding:18px}
-    /* 5 baris, dengan offset kiri agar terlihat seperti sarang lebah */
-    .row{display:flex;gap:10px;}
+    .honey-stage{display:flex;flex-direction:column;gap:20px}
+    .board{display:grid;gap:12px;justify-content:center}
+    .row{display:flex;gap:12px;justify-content:center}
     .row.r1{margin-left:110px}
     .row.r2{margin-left:55px}
     .row.r3{margin-left:0}
     .row.r4{margin-left:55px}
     .row.r5{margin-left:110px}
-
-    .hex{
-      width:110px;height:95px;position:relative;cursor:pointer;
-      clip-path:polygon(25% 6%,75% 6%,100% 50%,75% 94%,25% 94%,0 50%);
-      background:#f6f7f9;border:2px solid #d5dae1;border-radius:8px;transition:transform .05s ease-in-out, box-shadow .2s;
-      display:flex;align-items:center;justify-content:center;
+    @media(max-width:680px){
+      .row.r1,.row.r2,.row.r3,.row.r4,.row.r5{margin-left:0}
+      .board{justify-content:center}
+      .row{flex-wrap:wrap;justify-content:center}
     }
-    .hex:hover{box-shadow:0 4px 14px rgba(0,0,0,.08)}
-    .hex.correct{outline:3px solid #27ae60}
-    .hex.wrong{outline:3px solid #e74c3c}
 
-    .expr{font-weight:700;font-size:22px;letter-spacing:.5px}
+    .hex{width:110px;height:95px;position:relative;cursor:pointer;clip-path:polygon(25% 6%,75% 6%,100% 50%,75% 94%,25% 94%,0 50%);background:#f6f7f9;border:2px solid #d5dae1;border-radius:12px;transition:transform .08s ease-in-out, box-shadow .2s;display:flex;align-items:center;justify-content:center}
+    .hex:hover{box-shadow:0 8px 18px rgba(0,0,0,.1)}
+    .hex.correct{outline:4px solid #27ae60}
+    .hex.wrong{outline:4px solid #e74c3c}
+    .expr{font-weight:700;font-size:22px;letter-spacing:.5px;color:var(--ink)}
 
-    .tools{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;padding:10px 16px 24px}
-    .swatch{
-      width:78px;height:68px;clip-path:polygon(25% 6%,75% 6%,100% 50%,75% 94%,25% 94%,0 50%);
-      border-radius:8px;border:2px solid rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center;cursor:pointer;
-      transition:transform .05s ease-in-out;user-select:none;
-      color:#111;font-weight:800;font-size:22px
-    }
-    .swatch:active{transform:scale(.98)}
+    .tools{display:flex;justify-content:center;gap:14px;flex-wrap:wrap}
+    .swatch{width:78px;height:68px;clip-path:polygon(25% 6%,75% 6%,100% 50%,75% 94%,25% 94%,0 50%);border-radius:12px;border:2px solid rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .05s ease-in-out;user-select:none;color:#111;font-weight:800;font-size:22px;box-shadow:0 6px 16px rgba(15,59,113,.12)}
     .swatch[data-val="10"]{background:var(--c10)}
     .swatch[data-val="9"]{background:var(--c9)}
     .swatch[data-val="8"]{background:var(--c8)}
     .swatch[data-val="7"]{background:var(--c7)}
     .swatch[data-val="6"]{background:var(--c6);color:#fff}
+    .swatch.active{outline:3px solid rgba(139,92,246,.45);transform:translateY(-4px)}
+    .swatch:active{transform:scale(.98)}
 
-    .panel{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;padding:0 16px 24px}
-    .btn{padding:10px 14px;border:0;border-radius:10px;font-weight:700;background:#111;color:#fff;cursor:pointer}
-    .btn.secondary{background:#e8eaee;color:#111}
-    .badge{padding:8px 10px;border-radius:999px;background:#f3f4f7;color:#333;font-size:12px}
-    .active{outline:4px solid #111}
+    .status-bar{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;align-items:center}
+    .badge{padding:8px 12px;border-radius:999px;background:#f3f4f7;color:#333;font-size:14px;box-shadow:0 6px 14px rgba(139,92,246,.18)}
 
-    footer{padding:0 16px 28px;text-align:center;color:var(--muted);font-size:12px}
+    .stage-note{font-size:13px;color:var(--muted);text-align:center}
   </style>
-
   <link rel="stylesheet" href="/elearn/worlds/calistung/buttons.css" />
 </head>
-<body>
-  <header>
-    <h1>Mewarnai Penjumlahan</h1>
-    <p class="sub">Warnai sarang lebah sesuai <b>jumlah</b>nya. Pilih warna (angka 6–10), lalu klik heksagon.</p>
-  </header>
+<body class="mathgame-shell theme-lilac" data-nav-badge="Calistung Math" data-nav-home-url="/elearn/worlds/calistung/index.html">
+  <div class="shell-wrapper">
+    <header class="shell-header">
+      <div class="shell-header__title">
+        <span class="shell-badge">Level 3</span>
+        <h1 class="shell-title">Sarang Lebah Penjumlahan 6–10</h1>
+        <p class="shell-subtitle">Tentukan warna untuk setiap hasil penjumlahan di sarang lebah ajaib ini.</p>
+      </div>
+      <div class="shell-hud">
+        <div class="shell-pill">
+          <span class="shell-pill-label">Heksagon Benar</span>
+          <span class="shell-pill-value" data-hud-value="score">0 / 14</span>
+        </div>
+        <div class="shell-pill">
+          <span class="shell-pill-label">Warna Aktif</span>
+          <span class="shell-pill-value" data-hud-value="palette">—</span>
+        </div>
+      </div>
+    </header>
 
-  <!-- BOARD -->
-  <section class="board" id="board">
-    <div class="row r1">
-      <!-- 2 -->
-      <div class="hex" data-sum="10"><span class="expr">7+3</span></div>
-      <div class="hex" data-sum="9"><span class="expr">2+7</span></div>
-    </div>
-    <div class="row r2">
-      <!-- 3 -->
-      <div class="hex" data-sum="7"><span class="expr">4+3</span></div>
-      <div class="hex" data-sum="6"><span class="expr">3+3</span></div>
-      <div class="hex" data-sum="8"><span class="expr">5+3</span></div>
-    </div>
-    <div class="row r3">
-      <!-- 4 -->
-      <div class="hex" data-sum="10"><span class="expr">2+8</span></div>
-      <div class="hex" data-sum="7"><span class="expr">5+2</span></div>
-      <div class="hex" data-sum="8"><span class="expr">4+4</span></div>
-      <div class="hex" data-sum="6"><span class="expr">5+1</span></div>
-    </div>
-    <div class="row r4">
-      <!-- 3 -->
-      <div class="hex" data-sum="6"><span class="expr">4+2</span></div>
-      <div class="hex" data-sum="8"><span class="expr">6+2</span></div>
-      <div class="hex" data-sum="9"><span class="expr">4+5</span></div>
-    </div>
-    <div class="row r5">
-      <!-- 2 -->
-      <div class="hex" data-sum="9"><span class="expr">3+6</span></div>
-      <div class="hex" data-sum="10"><span class="expr">5+5</span></div>
-    </div>
-  </section>
+    <section class="mission-card">
+      <h2>🎯 Misimu</h2>
+      <p data-mission-text>Pilih warna angka 6–10, klik heksagon yang memiliki jumlah sama, dan warnai seluruh sarang lebah.</p>
+    </section>
 
-  <!-- COLOR PALETTE -->
-  <section class="tools" id="palette" aria-label="Palet Warna (6–10)">
-    <div class="swatch" data-val="10" title="10">10</div>
-    <div class="swatch" data-val="9" title="9">9</div>
-    <div class="swatch" data-val="8" title="8">8</div>
-    <div class="swatch" data-val="7" title="7">7</div>
-    <div class="swatch" data-val="6" title="6">6</div>
-  </section>
+    <main class="mathgame-stage">
+      <section class="stage-card stage-card--contrast honey-stage">
+        <h2 class="stage-section-title">Palet &amp; Sarang Lebah</h2>
+        <section class="tools" id="palette" aria-label="Palet Warna (6–10)">
+          <div class="swatch" data-val="10" title="10">10</div>
+          <div class="swatch" data-val="9" title="9">9</div>
+          <div class="swatch" data-val="8" title="8">8</div>
+          <div class="swatch" data-val="7" title="7">7</div>
+          <div class="swatch" data-val="6" title="6">6</div>
+        </section>
 
-  <section class="panel">
-    <button class="btn" id="btnCheck">Periksa Jawaban</button>
-    <button class="btn secondary" id="btnShuffle">Acak Soal</button>
-    <span class="badge" id="status">Pilih warna dulu ➜ klik heksagon</span>
-  </section>
+        <div class="status-bar">
+          <span class="badge" id="status">Pilih warna dulu ➜ klik heksagon</span>
+        </div>
 
-  <footer>
-    Tip: warna benar tidak harus penuh rapi—yang penting <b>angka</b> cocok 😉
-  </footer>
+        <section class="board" id="board" aria-label="Papan sarang lebah">
+          <div class="row r1">
+            <div class="hex" data-sum="10"><span class="expr">7+3</span></div>
+            <div class="hex" data-sum="9"><span class="expr">2+7</span></div>
+          </div>
+          <div class="row r2">
+            <div class="hex" data-sum="7"><span class="expr">4+3</span></div>
+            <div class="hex" data-sum="6"><span class="expr">3+3</span></div>
+            <div class="hex" data-sum="8"><span class="expr">5+3</span></div>
+          </div>
+          <div class="row r3">
+            <div class="hex" data-sum="10"><span class="expr">2+8</span></div>
+            <div class="hex" data-sum="7"><span class="expr">5+2</span></div>
+            <div class="hex" data-sum="8"><span class="expr">4+4</span></div>
+            <div class="hex" data-sum="6"><span class="expr">5+1</span></div>
+          </div>
+          <div class="row r4">
+            <div class="hex" data-sum="6"><span class="expr">4+2</span></div>
+            <div class="hex" data-sum="8"><span class="expr">6+2</span></div>
+            <div class="hex" data-sum="9"><span class="expr">4+5</span></div>
+          </div>
+          <div class="row r5">
+            <div class="hex" data-sum="9"><span class="expr">3+6</span></div>
+            <div class="hex" data-sum="10"><span class="expr">5+5</span></div>
+          </div>
+        </section>
 
+        <p class="stage-note">Tip: tidak apa-apa jika warnanya keluar garis. Yang penting jumlahnya tepat!</p>
+      </section>
+    </main>
+
+    <section class="shell-action-bar" aria-label="Kontrol aksi">
+      <button class="shell-button secondary" id="btnCheck" type="button">Periksa Jawaban</button>
+      <button class="shell-button" id="btnShuffle" type="button">Acak Soal</button>
+      <button class="shell-button ghost" id="btnSelesai" type="button">Selesai</button>
+    </section>
+
+    <aside class="buddy-widget" aria-label="Teman penyemangat">
+      <div class="buddy-avatar" data-buddy-emoji aria-hidden="true">🐝</div>
+      <div class="buddy-dialog" data-buddy-dialog>Warnai sarang lebahnya pakai angka 6–10. Coba pilih warna dulu ya!</div>
+    </aside>
+  </div>
+
+  <script src="/elearn/worlds/calistung/math-game/mathgame-shell.js"></script>
   <script>
     const palette = document.getElementById('palette');
     const board   = document.getElementById('board');
     const status  = document.getElementById('status');
     const btnCheck = document.getElementById('btnCheck');
     const btnShuffle = document.getElementById('btnShuffle');
+    const buddyEmojiEl = document.querySelector('[data-buddy-emoji]');
+    const buddyDialogEl = document.querySelector('[data-buddy-dialog]');
+    const hudScoreEl = document.querySelector('[data-hud-value="score"]');
+    const hudPaletteEl = document.querySelector('[data-hud-value="palette"]');
 
     const colorMap = {
       10: getComputedStyle(document.documentElement).getPropertyValue('--c10').trim(),
@@ -140,9 +157,28 @@
        6: getComputedStyle(document.documentElement).getPropertyValue('--c6').trim(),
     };
 
-    let current = null; // 6..10
+    const totalCells = board.querySelectorAll('.hex').length;
+    let current = null;
+    let lastScore = 0;
 
-    // Select swatch
+    const defaultBuddyText = 'Pilih warna yang tepat, lalu klik heksagon yang punya jumlah sama.';
+
+    function setBuddy(emoji, text){
+      if(buddyEmojiEl && emoji){ buddyEmojiEl.textContent = emoji; }
+      if(buddyDialogEl && text){ buddyDialogEl.textContent = text; }
+      if(window.mathgameShell && typeof window.mathgameShell.setBuddyMood === 'function'){
+        window.mathgameShell.setBuddyMood(emoji, text);
+      }
+    }
+
+    function syncHud(){
+      if(hudScoreEl) hudScoreEl.textContent = `${lastScore} / ${totalCells}`;
+      if(hudPaletteEl) hudPaletteEl.textContent = current ? current : '—';
+      if(window.mathgameShell && typeof window.mathgameShell.updateHud === 'function'){
+        window.mathgameShell.updateHud({ score: `${lastScore} / ${totalCells}`, palette: current || '—' });
+      }
+    }
+
     palette.addEventListener('click', (e)=>{
       const el = e.target.closest('.swatch');
       if(!el) return;
@@ -150,14 +186,16 @@
       [...palette.children].forEach(s=>s.classList.remove('active'));
       el.classList.add('active');
       status.textContent = `Warna aktif: ${current}. Klik heksagon untuk mewarnai.`;
+      setBuddy('🎨', 'Bagus! Sekarang sentuh heksagon yang punya jumlah sama.');
+      syncHud();
     });
 
-    // Paint a hex
     board.addEventListener('click', (e)=>{
       const hex = e.target.closest('.hex');
       if(!hex) return;
       if(!current){
         status.textContent = 'Pilih warna dulu ya!';
+        setBuddy('🤔', 'Ambil warna dari palet dulu sebelum mengecat.');
         return;
       }
       hex.style.background = colorMap[current];
@@ -165,67 +203,69 @@
       hex.classList.remove('correct','wrong');
     });
 
-    // Check answers
     btnCheck.addEventListener('click', ()=>{
       const cells = [...document.querySelectorAll('.hex')];
-      let ok=0;
+      let ok = 0;
       cells.forEach(h=>{
         const need = Number(h.dataset.sum);
         const paint = Number(h.dataset.paint||0);
         h.classList.remove('correct','wrong');
-        if(!paint){return}
+        if(!paint){ return; }
         if(paint===need){ h.classList.add('correct'); ok++; }
         else{ h.classList.add('wrong'); }
       });
+      lastScore = ok;
       status.textContent = `Benar: ${ok}/${cells.length}. Heksagon hijau sudah tepat!`;
+      if(ok === cells.length){
+        setBuddy('🏅', 'Wow! Semua sarang sudah berwarna pas. Hebat!');
+      } else if(ok > 0){
+        setBuddy('✨', 'Sudah banyak yang benar. Coba cek lagi sisanya.');
+      } else {
+        setBuddy('🧐', 'Belum ada yang pas. Coba cocokan lagi warnanya ya.');
+      }
+      syncHud();
     });
 
-    // Shuffle problems (tetap di rentang 6–10)
-  btnShuffle.addEventListener('click', ()=>{
+    btnShuffle.addEventListener('click', ()=>{
       const rng = (a,b)=> Math.floor(Math.random()*(b-a+1))+a;
       const cells = [...document.querySelectorAll('.hex')];
       cells.forEach(h=>{
         const target = rng(6,10);
-        // cari pasangan a+b=target (a,b 1..9)
         const a = rng(1,target-1);
         const b = target - a;
         h.dataset.sum = target;
         h.querySelector('.expr').textContent = `${a}+${b}`;
-        // reset tampilan
         h.style.background = '#f6f7f9';
         h.classList.remove('correct','wrong');
         delete h.dataset.paint;
       });
-      // auto-clear selection feedback
+      current = null;
+      lastScore = 0;
+      [...palette.children].forEach(s=>s.classList.remove('active'));
       status.textContent = 'Soal diacak! Pilih warna lagi dan lanjutkan.';
+      setBuddy('🐝', defaultBuddyText);
+      syncHud();
     });
+
+    setBuddy('🐝', defaultBuddyText);
+    syncHud();
   </script>
 
-<style>
-  .finish-bar { position: fixed; right: 16px; bottom: 16px; z-index: 1000; }
-  #btnSelesai { background: #22c55e; color: #fff; border: none; cursor: pointer; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4); }
-  #btnSelesai:hover { filter: brightness(1.05); }
-  #btnSelesai:active { transform: translateY(1px); }
-  @media (max-width: 480px) {
-    #btnSelesai { padding: 10px 14px; font-size: 15px; }
-  }
-</style>
-
-<div class="finish-bar"><button id="btnSelesai" type="button">Selesai</button></div>
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="/elearn/manifest-lessons.js"></script>
-<script src="/elearn/userInfo.js"></script>
-<script src="/elearn/common/worksheet-submit.js"></script>
-<script>
-  window.WORKSHEET_DEBUG = true;
-  window.WORKSHEET_META = { course_id: "mathgame-basic" };
-  const info = (typeof getUserInfo === "function") ? getUserInfo() : {};
-  initWorksheetSubmit({
-    muridUid: info.uid || "",
-    cid: info.cid || "",
-    namaAnak: info.nama || "",
-    role: (info.role || "").toLowerCase()
-  });
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="/elearn/manifest-lessons.js"></script>
+  <script src="/elearn/userInfo.js"></script>
+  <script src="/elearn/common/worksheet-submit.js"></script>
+  <script>
+    window.WORKSHEET_DEBUG = true;
+    window.WORKSHEET_META = { course_id: "mathgame-basic" };
+    const info = (typeof getUserInfo === "function") ? getUserInfo() : {};
+    initWorksheetSubmit({
+      muridUid: info.uid || "",
+      cid: info.cid || "",
+      namaAnak: info.nama || "",
+      role: (info.role || "").toLowerCase()
+    });
+  </script>
+  <script src="/elearn/common/calistung-navbar.js"></script>
 </body>
 </html>

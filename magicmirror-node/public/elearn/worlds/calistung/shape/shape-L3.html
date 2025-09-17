@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Trace the Shape – L3</title>
+  <link rel="stylesheet" href="./shape-shell.css" />
   <style>
     :root{
       --bg1:#0f172a; /* slate-900 */
@@ -17,74 +18,125 @@
       --gold:#f59e0b; /* amber-500 */
     }
     *{box-sizing:border-box}
-    body{
-      margin:0;min-height:100vh;
-      background: radial-gradient(1200px 800px at 20% -10%, #1f2937 0%, transparent 60%),
-                  radial-gradient(1200px 800px at 110% 10%, #0ea5e9 0%, transparent 55%),
-                  linear-gradient(180deg, var(--bg1), var(--bg2));
-      color:var(--text);
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-      display:flex;flex-direction:column;gap:12px;
-    }
-    header{
-      display:flex;align-items:center;justify-content:space-between;gap:12px;
-      padding:14px 16px;
-    }
-    .brand{font-weight:800;letter-spacing:.3px}
-    .toolbar{
-      display:flex;gap:8px;flex-wrap:wrap
-    }
-    button{
-      background:#141c2c;color:var(--text);
-      border:1px solid rgba(255,255,255,.08);
-      padding:10px 14px;border-radius:12px;font-weight:700;cursor:pointer;
-      box-shadow:0 6px 18px rgba(2,6,23,.25);
-      transition:transform .05s ease, filter .15s ease;
-    }
-    button:hover{filter:brightness(1.1)}
-    button:active{transform:translateY(1px)}
-    .primary{background:linear-gradient(90deg,var(--accent-2),#60a5fa);color:#071018;border:0}
-    .success{background:linear-gradient(90deg,#16a34a,#86efac);color:#04100b;border:0}
-    .danger{background:linear-gradient(90deg,#ef4444,#f59e0b);color:#100704;border:0}
 
-    .shell{display:grid;grid-template-columns: 320px 1fr;gap:16px;padding:0 16px 16px;}
-    @media (max-width: 980px){ .shell{grid-template-columns:1fr} }
+    .shape-shell__header--split{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+    .shape-header__meta{display:flex;flex-direction:column;gap:8px;max-width:420px;flex:1 1 320px}
+    .shape-header__toolbar{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;flex:0 0 auto}
+    .shape-header__toolbar .shape-button{
+      flex:0 0 auto;
+      min-width:auto;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:10px 16px;
+      white-space:nowrap;
+    }
 
-    .card{
-      background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:16px; padding:14px; 
-      box-shadow:0 20px 60px rgba(2,6,23,.45), inset 0 0 0 1px rgba(255,255,255,.02);
+    /* Ensure header buttons are always clickable */
+    .shape-shell__header{position:relative;z-index:20;pointer-events:auto}
+    .shape-header__toolbar{position:relative;z-index:21;pointer-events:auto}
+    .shape-header__toolbar .shape-button{pointer-events:auto}
+
+    /* Global safety for button clickability */
+    button, .shape-button{pointer-events:auto}
+
+    .shape-tracer__grid{display:grid;grid-template-columns:340px minmax(0,1fr);gap:20px;align-items:start}
+    .shape-tracer__panel{display:flex;flex-direction:column;gap:16px;padding:clamp(18px,3vw,26px)}
+    .shape-tracer__panel--sidebar{max-width:360px;width:100%}
+    .shape-tracer__panel--sidebar .shape-section-title{margin-bottom:10px}
+    .shape-tracer__panel--sidebar .shape-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .shape-tracer__panel--sidebar .chip{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:12px 0;
+      font-size:16px;
+      font-weight:700;
+      color:rgba(226,232,240,0.92);
+      background:rgba(15,23,42,0.78);
+      border:1px solid rgba(148,163,184,0.42);
+      letter-spacing:.02em;
+    }
+    .shape-tracer__panel--sidebar .chip:hover{background:rgba(30,41,59,0.9)}
+    .shape-tracer__panel--sidebar .chip[data-active="true"]{transform:translateY(-1px)}
+
+    @media (max-width:1080px){.shape-tracer__grid{grid-template-columns:minmax(0,1fr)}}
+    @media (max-width:980px){
+      .shape-shell__header--split{flex-direction:column;align-items:stretch}
+      .shape-header__toolbar{justify-content:flex-start}
+      .shape-tracer__panel--sidebar{max-width:none}
+      .shape-tracer__panel--sidebar .shape-list{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
     }
 
     .shape-list{display:flex;gap:8px;flex-wrap:wrap}
     .chip{
-      padding:8px 12px;border-radius:999px;font-weight:700;border:1px solid rgba(255,255,255,.08);
-      background:#0f1a2a;cursor:pointer;user-select:none
+      padding:8px 12px;border-radius:999px;font-weight:700;
+      border:1px solid rgba(148,163,184,.25);
+      background:rgba(15,23,42,.6);cursor:pointer;user-select:none;
+      transition:background .2s ease, transform .2s ease;
     }
-    .chip[data-active="true"]{background:linear-gradient(90deg,#22c55e,#60a5fa);color:#081018}
+    .chip[data-active="true"]{background:linear-gradient(135deg,#22c55e,#38bdf8);color:#051b2a;transform:translateY(-1px);border-color:transparent}
 
-    .progress{height:10px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;margin-top:10px}
+    .progress{height:10px;background:rgba(148,163,184,.32);border-radius:999px;overflow:hidden;margin-top:10px}
     .bar{height:100%;width:0;background:linear-gradient(90deg,#22c55e,#a7f3d0)}
 
-    .canvas-wrap{position:relative;aspect-ratio:4/3; width:100%; background:radial-gradient(400px 200px at 30% 20%, rgba(56,189,248,.12), transparent 60%),
-                  radial-gradient(400px 200px at 80% 30%, rgba(34,197,94,.12), transparent 60%),
-                  #0b1020;
-      border-radius:16px;border:1px solid rgba(255,255,255,.08);
-      overflow:hidden
+    .canvas-wrap{
+      position:relative;aspect-ratio:4/3;width:100%;
+      background:
+        radial-gradient(400px 200px at 30% 20%, rgba(56,189,248,.18), transparent 65%),
+        radial-gradient(400px 200px at 80% 30%, rgba(34,197,94,.18), transparent 60%),
+        #070c16;
+      border-radius:20px;border:1px solid rgba(148,163,184,.28);
+      overflow:hidden;
+      pointer-events:auto
     }
-    canvas{display:block;width:100%;height:100%}
+    canvas{display:block;width:100%;height:100%;position:relative;z-index:0}
 
-    .hud{
-      position:absolute;left:12px;top:12px;display:flex;gap:8px;flex-wrap:wrap
+    .hud{position:absolute;left:12px;top:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;z-index:30;pointer-events:auto}
+    .hud-button{
+      appearance:none;
+      border-radius:12px;
+      border:1px solid rgba(148,163,184,0.32);
+      background:rgba(15,23,42,0.82);
+      color:#e2e8f0;
+      font-weight:700;
+      padding:8px 18px;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      cursor:pointer;
+      transition:background .18s ease, transform .12s ease, border-color .18s ease;
+      box-shadow:none;
+      font-size:0.95rem;
+      letter-spacing:0.01em;
+      line-height:1.1;
+      white-space:nowrap;
     }
-    .ghost{position:absolute;inset:0;pointer-events:none}
+    .hud-button:hover{background:rgba(30,41,59,0.92)}
+    .hud-button:active{transform:translateY(1px)}
+    .hud-button.is-active{
+      background:linear-gradient(135deg,#22c55e,#16a34a);
+      color:#022c22;
+      border-color:rgba(34,197,94,0.6);
+      box-shadow:0 10px 22px rgba(34,197,94,0.25);
+    }
+
+    @media (max-width:520px){
+      .hud{flex-direction:column;align-items:stretch}
+      .hud-button{width:160px;justify-content:center}
+    }
+
+    .ghost{position:absolute;inset:0;pointer-events:none;z-index:10}
+    .ghost-hidden{opacity:0}
     .toast{
       position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
       padding:14px 18px;border-radius:12px;font-weight:900;font-size:28px;
-      background:rgba(15,23,42,.8);backdrop-filter: blur(6px);
-      border:1px solid rgba(148,163,184,.35);display:none
+      background:rgba(2,6,23,.88);backdrop-filter: blur(6px);
+      border:1px solid rgba(148,163,184,.35);display:none;color:#f8fafc;
+      z-index:40;
     }
+    /* Text rendering guard */
+    .hud-button{font-synthesis-weight:none;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
     .toast.show{display:block;animation: pop .3s ease}
     @keyframes pop{from{transform:translate(-50%,-50%) scale(.9);opacity:0}to{transform:translate(-50%,-50%) scale(1);opacity:1}}
 
@@ -95,43 +147,54 @@
     .dot.hit{background:var(--accent)}
     .dot.path{background:#334155}
 
-    .footnote{opacity:.75;font-size:12px;margin-top:8px}
+    .footnote{opacity:.75;font-size:12px;margin-top:8px;color:#cbd5e1}
+
+    .finish-bar { position: fixed; right: 16px; bottom: 24px; z-index: 1000; }
+    @media (max-width: 520px) {
+      .finish-bar { right: 12px; bottom: 18px; }
+    }
   </style>
 
   <link rel="stylesheet" href="/elearn/worlds/calistung/buttons.css" />
 </head>
-<body>
-  <header>
-    <div class="brand">🔷 Shape Tracer L3</div>
-    <div class="toolbar">
-      <button id="btnReset" class="danger">Reset</button>
-      <button id="btnHint" title="Tampilkan/ sembunyikan garis bantu">Hint</button>
-      <button id="btnRandom">Acak</button>
-      <button id="btnNext" class="primary">Next ▶</button>
-    </div>
-  </header>
-
-  <div class="shell">
-    <aside class="card">
-      <h3 style="margin:6px 0 10px">Pilih Bentuk</h3>
-      <div id="shapeList" class="shape-list"></div>
-      <div class="progress"><div id="bar" class="bar"></div></div>
-      <div id="status" class="legend" style="margin-top:10px"></div>
-      <div class="footnote">Tip: Gambar mengikuti garis putus-putus. Selesaikan ≥ 88% untuk menang!</div>
-    </aside>
-
-    <main class="card">
-      <div class="canvas-wrap">
-        <canvas id="board"></canvas>
-        <div class="hud">
-          <button id="btnUndo">Undo</button>
-          <button id="btnEraser">Eraser</button>
-          <button id="btnPen" class="success">Pen</button>
-        </div>
-        <div id="toast" class="toast">🎉 Hebat! Bentuk selesai!</div>
-        <canvas id="ghost" class="ghost"></canvas>
+<body class="shape-shell" data-theme="midnight" style="--shape-accent:#38bdf8; --shape-accent-dark:#1d4ed8; --shape-secondary-bg:#1f2937; --shape-surface:rgba(11,18,32,0.92); --shape-surface-border:rgba(148,163,184,0.28); --shape-card-shadow:0 40px 100px rgba(2,6,23,0.65); --shape-muted:rgba(226,232,240,0.8); --shape-badge-bg:linear-gradient(135deg,#22d3ee,#38bdf8); --shape-badge-shadow:#0ea5e9; --shape-bg-radial-1:rgba(56,189,248,0.28); --shape-bg-radial-2:rgba(34,197,94,0.22); --shape-bg-base:#020617; --shape-bg-base-bottom:#0b1120;" data-nav-badge="Calistung Shape" data-nav-home-url="/elearn/worlds/calistung/shape/index.html">
+  <div class="shape-game">
+    <header class="shape-card shape-card--glass shape-shell__header shape-shell__header--split">
+      <div class="shape-header__meta">
+        <span class="shape-shell__badge">Shape • Level 3</span>
+        <h1 class="shape-shell__title">Trace the Shape</h1>
+        <p class="shape-shell__subtitle">Gambar mengikuti garis putus-putus. Selesaikan minimal 88% jalur untuk menang!</p>
       </div>
-    </main>
+      <div class="shape-header__toolbar">
+        <button id="btnReset" class="shape-button danger" type="button">Reset</button>
+        <button id="btnHint" class="shape-button ghost" type="button" title="Tampilkan/ sembunyikan garis bantu">Hint</button>
+        <button id="btnRandom" class="shape-button secondary" type="button">Acak</button>
+        <button id="btnNext" class="shape-button primary" type="button">Next ▶</button>
+      </div>
+    </header>
+
+    <div class="shape-tracer__grid">
+      <aside class="shape-card shape-card--glass shape-tracer__panel shape-tracer__panel--sidebar">
+        <h3 class="shape-section-title" style="margin-bottom:6px">Pilih Bentuk</h3>
+        <div id="shapeList" class="shape-list"></div>
+        <div class="progress"><div id="bar" class="bar"></div></div>
+        <div id="status" class="legend" style="margin-top:10px"></div>
+        <div class="footnote">Tip: Gambar mengikuti garis putus-putus. Selesaikan ≥ 88% untuk menang!</div>
+      </aside>
+
+      <main class="shape-card shape-card--glass shape-tracer__panel shape-tracer__panel--canvas">
+        <div class="canvas-wrap">
+          <canvas id="board"></canvas>
+          <div class="hud">
+            <button id="btnUndo" class="hud-button" type="button">Undo</button>
+            <button id="btnEraser" class="hud-button" type="button">Eraser</button>
+            <button id="btnPen" class="hud-button" type="button">Pen</button>
+          </div>
+          <div id="toast" class="toast">🎉 Hebat! Bentuk selesai!</div>
+          <canvas id="ghost" class="ghost"></canvas>
+        </div>
+      </main>
+    </div>
   </div>
 
   <script>
@@ -163,6 +226,10 @@
     const btnUndo = document.getElementById('btnUndo');
     const btnEraser = document.getElementById('btnEraser');
     const btnPen = document.getElementById('btnPen');
+    const btnHint = document.getElementById('btnHint');
+    const btnReset = document.getElementById('btnReset');
+    const btnRandom = document.getElementById('btnRandom');
+    const btnNext = document.getElementById('btnNext');
 
     const ctx = canvas.getContext('2d');
     const gtx = ghost.getContext('2d');
@@ -177,6 +244,15 @@
       ctx.setTransform(dpr,0,0,dpr,0,0);
       gtx.setTransform(dpr,0,0,dpr,0,0);
       redraw();
+      redrawGhost();
+      if(shapes[activeIdx]){
+        const ratio = samplePath(true);
+        if(ratio >= MIN_HIT_RATIO){
+          setStatus('🎉 Hebat! Bentuk selesai!');
+        }else if(ratio > 0){
+          setStatus(`Kemajuan: ${(ratio*100).toFixed(0)}%`);
+        }
+      }
     }
     window.addEventListener('resize', fitCanvas);
 
@@ -187,343 +263,413 @@
     let mode = 'pen';       // 'pen' | 'eraser'
 
     function updateToolButtons(){
-      btnPen.classList.toggle('success', mode === 'pen');
-      btnEraser.classList.toggle('success', mode === 'eraser');
-      // ensure neutral styles on the non-active one
-      if(mode === 'pen') btnEraser.classList.remove('success');
-      if(mode === 'eraser') btnPen.classList.remove('success');
-      btnPen.setAttribute('aria-pressed', String(mode==='pen'));
-      btnEraser.setAttribute('aria-pressed', String(mode==='eraser'));
+      const isPen = mode === 'pen';
+      btnPen.classList.toggle('is-active', isPen);
+      btnEraser.classList.toggle('is-active', !isPen);
+      btnPen.setAttribute('aria-pressed', String(isPen));
+      btnEraser.setAttribute('aria-pressed', String(!isPen));
+      btnPen.textContent = 'Pen';
+      btnEraser.textContent = 'Eraser';
     }
 
     const strokes = [];     // list of stroke {pts:[{x,y}], color, w}
     let currentStroke = null;
 
-    // --- UI Build ---
-    function buildList(){
+    const COLORS = { pen: '#38bdf8' };
+
+    function setStatus(msg){ statusEl.textContent = msg; }
+
+    function computeRatio(){
+      const ratio = sampling.length ? sampling.filter(pt=>pt.hit).length / sampling.length : 0;
+      bar.style.width = Math.min(100, Math.round(ratio*100)) + '%';
+      return ratio;
+    }
+
+    function reset(){
+      strokes.length = 0;
+      currentStroke = null;
+      drawing = false;
+      {
+        const dpr = Math.max(1, window.devicePixelRatio || 1);
+        ctx.clearRect(0,0,canvas.width/dpr,canvas.height/dpr);
+      }
+      redrawGhost();
+      toast.classList.remove('show');
+      setStatus('Pilih bentuk lain atau mulai menggambar.');
+      computeRatio();
+    }
+
+    function redraw(){
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.clearRect(0,0,canvas.width/dpr,canvas.height/dpr);
+      strokes.forEach(stroke=>{
+        ctx.lineWidth = stroke.w;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        if(stroke.tool === 'eraser'){
+          ctx.globalCompositeOperation = 'destination-out';
+          ctx.strokeStyle = 'rgba(0,0,0,1)';
+        }else{
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.strokeStyle = stroke.color;
+        }
+        ctx.beginPath();
+        stroke.pts.forEach((p,i)=>{
+          if(i===0){ ctx.moveTo(p.x,p.y); }
+          else{ ctx.lineTo(p.x,p.y); }
+        });
+        ctx.stroke();
+      });
+      // reset
+      ctx.globalCompositeOperation = 'source-over';
+    }
+
+    function redrawGhost(){
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      const w = ghost.width/dpr, h = ghost.height/dpr;
+      gtx.save();
+      gtx.setTransform(dpr,0,0,dpr,0,0);
+      gtx.clearRect(0,0,w,h);
+      gtx.globalAlpha = 0.6;
+      gtx.lineWidth = 4;
+      gtx.setLineDash([12,14]);
+      gtx.strokeStyle = 'rgba(148,163,184,0.8)';
+      const path = buildPath(shapes[activeIdx].key, w, h);
+      if(path){
+        gtx.stroke(path);
+      }
+      gtx.restore();
+    }
+
+    function buildPath(key, w, h){
+      const path = new Path2D();
+      const cx = w/2, cy = h/2;
+      const size = Math.min(w,h) * 0.36;
+      switch(key){
+        case 'circle':{
+          path.arc(cx, cy, size, 0, Math.PI*2);
+          break;
+        }
+        case 'square':{
+          path.rect(cx-size, cy-size, size*2, size*2);
+          break;
+        }
+        case 'triangle':{
+          const hTri = Math.sqrt(3) * size;
+          path.moveTo(cx, cy-hTri/2);
+          path.lineTo(cx-size, cy+hTri/2);
+          path.lineTo(cx+size, cy+hTri/2);
+          path.closePath();
+          break;
+        }
+        case 'heart':{
+          const raw = [];
+          let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+          for(let i=0;i<=SAMPLE_POINTS;i++){
+            const t = (i / SAMPLE_POINTS) * Math.PI * 2;
+            const x = 16 * Math.sin(t) ** 3;
+            const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+            raw.push({x,y});
+            if(x<minX) minX = x;
+            if(x>maxX) maxX = x;
+            if(y<minY) minY = y;
+            if(y>maxY) maxY = y;
+          }
+          const rawWidth = maxX - minX || 1;
+          const rawHeight = maxY - minY || 1;
+          const target = size * 2;
+          const scale = Math.min(target / rawWidth, target / rawHeight);
+          const centerRawX = (minX + maxX) / 2;
+          const centerRawY = (minY + maxY) / 2;
+          raw.forEach(({x,y}, idx)=>{
+            const px = cx + (x - centerRawX) * scale;
+            const py = cy - (y - centerRawY) * scale;
+            if(idx===0){ path.moveTo(px, py); }
+            else{ path.lineTo(px, py); }
+          });
+          path.closePath();
+          break;
+        }
+        case 'star':{
+          const spikes = 5;
+          const outer = size;
+          const inner = size * 0.45;
+          let rot = Math.PI / 2 * 3;
+          let x = cx;
+          let y = cy - outer;
+          path.moveTo(cx, y);
+          for(let i=0;i<spikes;i++){
+            x = cx + Math.cos(rot) * outer;
+            y = cy + Math.sin(rot) * outer;
+            path.lineTo(x,y);
+            rot += Math.PI / spikes;
+            x = cx + Math.cos(rot) * inner;
+            y = cy + Math.sin(rot) * inner;
+            path.lineTo(x,y);
+            rot += Math.PI / spikes;
+          }
+          path.closePath();
+          break;
+        }
+        case 'oval':{
+          path.ellipse(cx, cy, size * 1.2, size * 0.8, 0, 0, Math.PI*2);
+          break;
+        }
+        case 'rect':{
+          path.rect(cx - size*1.3, cy - size*0.8, size*2.6, size*1.6);
+          break;
+        }
+        case 'diamond':{
+          path.moveTo(cx, cy - size);
+          path.lineTo(cx + size, cy);
+          path.lineTo(cx, cy + size);
+          path.lineTo(cx - size, cy);
+          path.closePath();
+          break;
+        }
+        case 'hex':{
+          const angle = Math.PI/3;
+          path.moveTo(cx + size, cy);
+          for(let i=1;i<6;i++){
+            path.lineTo(cx + size*Math.cos(angle*i), cy + size*Math.sin(angle*i));
+          }
+          path.closePath();
+          break;
+        }
+        case 'penta':{
+          const angle = Math.PI*2/5;
+          path.moveTo(cx, cy - size);
+          for(let i=1;i<5;i++){
+            const a = -Math.PI/2 + angle*i;
+            path.lineTo(cx + size*Math.cos(a), cy + size*Math.sin(a));
+          }
+          path.closePath();
+          break;
+        }
+        default:
+          return null;
+      }
+      return path;
+    }
+
+    function samplePath(rehydrateHits = false){
+      sampling = [];
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      const w = ghost.width/dpr, h = ghost.height/dpr;
+      const path = buildPath(shapes[activeIdx].key, w, h);
+      if(!path){ return 0; }
+      const tmp = document.createElement('canvas');
+      tmp.width = w; tmp.height = h;
+      const tmpCtx = tmp.getContext('2d');
+      tmpCtx.lineWidth = 6;
+      tmpCtx.strokeStyle = '#fff';
+      tmpCtx.stroke(path);
+      const data = tmpCtx.getImageData(0,0,w,h).data;
+      for(let y=0;y<h;y++){
+        for(let x=0;x<w;x++){
+          const idx = (y*w+x)*4 + 3;
+          if(data[idx] > 0){ sampling.push({x,y,hit:false}); }
+        }
+      }
+      if(rehydrateHits){
+        return recomputeHits();
+      }
+      return computeRatio();
+    }
+
+    function recomputeHits(){
+      if(!sampling.length){ return 0; }
+      sampling.forEach(pt=>{ pt.hit = false; });
+      strokes.forEach(stroke=>{
+        if(stroke.tool !== 'pen'){ return; }
+        stroke.pts.forEach(({x,y})=>{
+          sampling.forEach(pt=>{
+            if(pt.hit) return;
+            const dx = pt.x - x;
+            const dy = pt.y - y;
+            if(Math.sqrt(dx*dx + dy*dy) <= HIT_RADIUS){ pt.hit = true; }
+          });
+        });
+      });
+      return computeRatio();
+    }
+
+    function buildShapeList(){
       list.innerHTML = '';
-      shapes.forEach((s, i)=>{
+      shapes.forEach((shape, idx)=>{
         const chip = document.createElement('div');
         chip.className = 'chip';
-        chip.textContent = s.label;
-        chip.dataset.index = i;
-        if(i===activeIdx) chip.setAttribute('data-active','true');
-        chip.addEventListener('click',()=>{activeIdx=i; prepareShape();});
+        chip.textContent = shape.label;
+        chip.dataset.active = String(idx===activeIdx);
+        chip.addEventListener('click', ()=> pickShape(idx));
         list.appendChild(chip);
       });
     }
 
-    function markActive(){
-      [...list.children].forEach((el, i)=>{
-        if(i===activeIdx) el.setAttribute('data-active','true');
-        else el.removeAttribute('data-active');
-      })
+    function pickShape(idx){
+      activeIdx = idx;
+      buildShapeList();
+      samplePath();
+      reset();
     }
 
-    // --- Shape Generators ---
-    function centerBox(){
-      const W = canvas.clientWidth, H = canvas.clientHeight;
-      const pad = Math.min(W,H)*0.12;
-      return {x:pad, y:pad, w:W-pad*2, h:H-pad*2};
+    buildShapeList();
+    pickShape(activeIdx);
+
+    function pointerDown(evt){
+      drawing = true;
+      const {x,y} = getPos(evt);
+      currentStroke = {
+        pts:[{x,y}],
+        color: mode==='pen'?COLORS.pen:'#000000',
+        w: mode==='pen'?6:28,
+        tool: mode
+      };
+      strokes.push(currentStroke);
+      canvas.setPointerCapture(evt.pointerId);
     }
 
-    function sampleParam(fn, count){
-      const pts=[];
-      for(let i=0;i<count;i++){
-        const t=i/(count-1);
-        pts.push(fn(t));
-      }
-      return pts;
-    }
-
-    function regularPolygon(n, rot=0){
-      const box=centerBox(); const cx=box.x+box.w/2, cy=box.y+box.h/2;
-      const r=Math.min(box.w,box.h)*0.38;
-      const verts=[];
-      for(let i=0;i<n;i++){
-        const a=rot + i*2*Math.PI/n;
-        verts.push({x:cx + r*Math.cos(a), y:cy + r*Math.sin(a)});
-      }
-      return outlineFromVertices(verts, true);
-    }
-
-    function outlineFromVertices(verts, closed){
-      // Resample uniformly along edges
-      const segs=[]; let L=0;
-      for(let i=0;i<verts.length;i++){
-        const a=verts[i]; const b=verts[(i+1)%verts.length];
-        if(!closed && i===verts.length-1) break;
-        const dx=b.x-a.x, dy=b.y-a.y; const len=Math.hypot(dx,dy);
-        segs.push({a,b,len}); L+=len;
-      }
-      const pts=[]; let acc=0; const step=L/(SAMPLE_POINTS-1);
-      let si=0, sleft=segs[0]?segs[0].len:0, px=segs[0]?.a.x, py=segs[0]?.a.y;
-      pts.push({x:px,y:py});
-      for(let i=1;i<SAMPLE_POINTS;i++){
-        acc+=step;
-        while(acc>sleft && si<segs.length-1){acc-=sleft; si++; sleft=segs[si].len; px=segs[si].a.x; py=segs[si].a.y;}
-        const t=sleft?acc/sleft:0; const s=segs[si];
-        const x=s.a.x + (s.b.x - s.a.x)*t; const y=s.a.y + (s.b.y - s.a.y)*t;
-        pts.push({x,y});
-      }
-      return pts;
-    }
-
-    function genShape(key){
-      switch(key){
-        case 'circle':{
-          const box=centerBox(); const cx=box.x+box.w/2, cy=box.y+box.h/2; const rx=Math.min(box.w,box.h)*0.40;
-          return sampleParam(u=>({x:cx+rx*Math.cos(u*2*Math.PI), y:cy+rx*Math.sin(u*2*Math.PI)}), SAMPLE_POINTS);
+    function pointerMove(evt){
+      if(!drawing) return;
+      const {x,y} = getPos(evt);
+      currentStroke.pts.push({x,y});
+      if(mode==='pen'){
+        sampling.forEach(pt=>{
+          if(pt.hit) return;
+          const dx = pt.x - x;
+          const dy = pt.y - y;
+          if(Math.sqrt(dx*dx + dy*dy) <= HIT_RADIUS){ pt.hit = true; }
+        });
+        const ratio = computeRatio();
+        setStatus(`Kemajuan: ${(ratio*100).toFixed(0)}%`);
+        if(ratio >= MIN_HIT_RATIO){
+          toast.classList.add('show');
+          setTimeout(()=>toast.classList.remove('show'), 1200);
+          setStatus('🎉 Hebat! Bentuk selesai!');
         }
-        case 'oval':{
-          const box=centerBox(); const cx=box.x+box.w/2, cy=box.y+box.h/2;
-          const rx=Math.min(box.w,box.h)*0.46, ry=rx*0.65;
-          return sampleParam(u=>({x:cx+rx*Math.cos(u*2*Math.PI), y:cy+ry*Math.sin(u*2*Math.PI)}), SAMPLE_POINTS);
-        }
-        case 'square':{
-          const box=centerBox(); const s=Math.min(box.w,box.h)*0.72; const cx=box.x+box.w/2, cy=box.y+box.h/2;
-          const h=s/2;
-          return outlineFromVertices([
-            {x:cx-h,y:cy-h},{x:cx+h,y:cy-h},{x:cx+h,y:cy+h},{x:cx-h,y:cy+h}
-          ], true);
-        }
-        case 'rect':{
-          const box=centerBox(); const w=Math.min(box.w*0.85, box.h*0.65*1.4); const h=w*0.65; const cx=box.x+box.w/2, cy=box.y+box.h/2;
-          const hh=h/2, hw=w/2;
-          return outlineFromVertices([
-            {x:cx-hw,y:cy-hh},{x:cx+hw,y:cy-hh},{x:cx+hw,y:cy+hh},{x:cx-hw,y:cy+hh}
-          ], true);
-        }
-        case 'triangle':{
-          const box=centerBox(); const r=Math.min(box.w,box.h)*0.44; const cx=box.x+box.w/2, cy=box.y+box.h/2 + r*0.1;
-          return regularPolygon(3, -Math.PI/2).map(p=>({x:p.x, y:p.y + r*0.1}));
-        }
-        case 'diamond':{
-          const box=centerBox(); const s=Math.min(box.w,box.h)*0.72; const cx=box.x+box.w/2, cy=box.y+box.h/2;
-          const h=s/2;
-          return outlineFromVertices([
-            {x:cx,y:cy-h},{x:cx+h,y:cy},{x:cx,y:cy+h},{x:cx-h,y:cy}
-          ], true);
-        }
-        case 'hex': return regularPolygon(6, Math.PI/6);
-        case 'penta': return regularPolygon(5, -Math.PI/2);
-        case 'star':{
-          const box=centerBox(); const cx=box.x+box.w/2, cy=box.y+box.h/2; const R=Math.min(box.w,box.h)*0.42, r=R*0.5;
-          const verts=[];
-          for(let i=0;i<10;i++){
-            const a=-Math.PI/2 + i*Math.PI/5;
-            const rad=(i%2===0)?R:r;
-            verts.push({x:cx+rad*Math.cos(a), y:cy+rad*Math.sin(a)});
-          }
-          return outlineFromVertices(verts, true);
-        }
-        case 'heart':{
-          const box=centerBox(); const cx=box.x+box.w/2, cy=box.y+box.h/2 + Math.min(box.w,box.h)*0.06; 
-          const scale = Math.min(box.w,box.h)*0.028;
-          return sampleParam(u=>{
-            const t = u*2*Math.PI;
-            const x = 16*Math.sin(t)**3;
-            const y = 13*Math.cos(t) - 5*Math.cos(2*t) - 2*Math.cos(3*t) - Math.cos(4*t);
-            return {x: cx + x*scale, y: cy - y*scale};
-          }, SAMPLE_POINTS);
-        }
-        default: return [];
       }
+      redraw();
     }
 
-    // --- Drawing & Hit-testing ---
-    function prepareShape(){
-      markActive();
-      sampling = genShape(shapes[activeIdx].key).map(p=>({x:p.x, y:p.y, hit:false}));
-      strokes.length = 0; currentStroke=null; hideToast();
-      redraw(); updateProgress();
+    function pointerUp(evt){
+      drawing = false;
+      currentStroke = null;
+      canvas.releasePointerCapture(evt.pointerId);
     }
 
-    function redraw(){
-      const W=canvas.clientWidth, H=canvas.clientHeight;
-      ctx.clearRect(0,0,W,H);
-
-      // guide path (dashed)
-      ctx.save();
-      ctx.lineWidth=3; ctx.setLineDash([10,12]); ctx.strokeStyle='rgba(148,163,184,.75)';
-      ctx.beginPath();
-      for(let i=0;i<sampling.length;i++){
-        const p=sampling[i]; if(i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y);
-      }
-      ctx.closePath(); ctx.stroke();
-      ctx.restore();
-
-      // progress dots
-      ctx.save();
-      for(const p of sampling){
-        ctx.fillStyle = p.hit? 'rgba(34,197,94,.95)' : 'rgba(100,116,139,.35)';
-        ctx.beginPath(); ctx.arc(p.x,p.y,2.2,0,Math.PI*2); ctx.fill();
-      }
-      ctx.restore();
-
-      // strokes
-      for(const s of strokes){
-        ctx.save();
-        ctx.lineWidth=s.w; ctx.lineJoin='round'; ctx.lineCap='round'; ctx.strokeStyle=s.color;
-        ctx.beginPath();
-        s.pts.forEach((pt,j)=>{ if(j===0) ctx.moveTo(pt.x,pt.y); else ctx.lineTo(pt.x,pt.y); });
-        ctx.stroke(); ctx.restore();
-      }
-
-      // HUD legend
-      const hitCount = sampling.filter(p=>p.hit).length;
-      statusEl.innerHTML = `<span><span class="dot path"></span>Path</span><span><span class="dot hit"></span>Hit: ${hitCount}</span><span><span class="dot hint"></span>Hint</span>`;
+    function getPos(evt){
+      const rect = canvas.getBoundingClientRect();
+      const x = (evt.clientX - rect.left);
+      const y = (evt.clientY - rect.top);
+      return {x, y};
     }
 
-    function updateProgress(){
-      const hit = sampling.filter(p=>p.hit).length;
-      const ratio = hit / Math.max(1, sampling.length);
-      bar.style.width = (ratio*100).toFixed(1)+"%";
-      if(ratio >= MIN_HIT_RATIO){
-        celebrate();
-      }
-    }
+    canvas.addEventListener('pointerdown', pointerDown);
+    canvas.addEventListener('pointermove', pointerMove);
+    canvas.addEventListener('pointerup', pointerUp);
+    canvas.addEventListener('pointerleave', pointerUp);
 
-    function celebrate(){
-      showToast('🎉 Hebat! Bentuk selesai!');
-      burst();
-    }
+    btnUndo.addEventListener('click', ()=>{
+      strokes.pop();
+      recomputeHits();
+      const ratio = computeRatio();
+      if(ratio > 0){ setStatus(`Kemajuan: ${(ratio*100).toFixed(0)}%`); }
+      else{ setStatus('Pilih bentuk lain atau mulai menggambar.'); }
+      redraw();
+    });
 
-    function showToast(msg){ toast.textContent=msg; toast.classList.add('show'); }
-    function hideToast(){ toast.classList.remove('show'); }
-
-    function dist2(a,b){ const dx=a.x-b.x, dy=a.y-b.y; return dx*dx+dy*dy; }
-
-    function applyHits(pt){
-      const r2 = HIT_RADIUS*HIT_RADIUS;
-      for(let i=0;i<sampling.length;i++){
-        const p=sampling[i]; if(!p.hit && dist2(p, pt) <= r2){ p.hit = true; }
-      }
-    }
-
-    function pointerPos(ev){
-      const rect=canvas.getBoundingClientRect();
-      const x=(ev.touches? ev.touches[0].clientX : ev.clientX) - rect.left;
-      const y=(ev.touches? ev.touches[0].clientY : ev.clientY) - rect.top;
-      return {x,y};
-    }
-
-    function startDraw(ev){ ev.preventDefault(); drawing=true; hideToast();
-      const p=pointerPos(ev); currentStroke = {pts:[p], color: mode==='pen'? '#a7f3d0':'#0b1020', w: mode==='pen'?6:26};
-      strokes.push(currentStroke); applyHits(p); redraw(); updateProgress();
-    }
-    function moveDraw(ev){ if(!drawing) return; ev.preventDefault();
-      const p=pointerPos(ev); currentStroke.pts.push(p); applyHits(p); redraw(); updateProgress();
-    }
-    function endDraw(){ drawing=false; currentStroke=null; }
-
-    // ghost layer for hint animation
-    let hintOn=false, hintId=0;
-    function toggleHint(){ hintOn=!hintOn; if(hintOn) animateHint(); else gtx.clearRect(0,0,ghost.clientWidth,ghost.clientHeight); }
-    function animateHint(){
-      const W=ghost.clientWidth, H=ghost.clientHeight; const id=++hintId;
-      let t=0; (function loop(){ if(id!==hintId) return; t+=0.008; gtx.clearRect(0,0,W,H);
-        gtx.save(); gtx.lineWidth=5; gtx.lineJoin='round'; gtx.lineCap='round';
-        for(let i=1;i<sampling.length;i++){
-          const a=sampling[i-1], b=sampling[i];
-          const alpha = 0.15 + 0.4*Math.max(0, Math.cos(t*6 + i*0.12));
-          gtx.strokeStyle = `rgba(56,189,248,${alpha})`;
-          gtx.beginPath(); gtx.moveTo(a.x,a.y); gtx.lineTo(b.x,b.y); gtx.stroke();
+    // Defensive: ensure HUD can receive clicks even if a parent mistakenly sets pointer-events:none
+    (()=>{
+      const hud=document.querySelector('.hud');
+      if(hud){
+        let n=hud.parentElement;
+        while(n && n!==document.body){
+          const pe=getComputedStyle(n).pointerEvents;
+          if(pe==='none'){ n.style.pointerEvents='auto'; }
+          n=n.parentElement;
         }
-        gtx.restore(); requestAnimationFrame(loop); })();
-    }
+      }
+    })();
 
-    // Confetti burst
-    function burst(){
-      const W=ghost.clientWidth, H=ghost.clientHeight; const cx=W/2, cy=H/2; const parts=[];
-      for(let i=0;i<120;i++) parts.push({x:cx,y:cy, vx:(Math.random()*2-1)*6, vy:(Math.random()*2-1)*6, r:2+Math.random()*3, life:60+Math.random()*40});
-      const id=++hintId; (function loop(){ if(id!==hintId) return; gtx.clearRect(0,0,W,H);
-        parts.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.vy+=0.08; p.life--; });
-        parts.forEach(p=>{ gtx.fillStyle=`hsl(${(p.life*6)%360} 90% 60% / .9)`; gtx.beginPath(); gtx.arc(p.x,p.y,p.r,0,Math.PI*2); gtx.fill(); });
-        if(parts.some(p=>p.life>0)) requestAnimationFrame(loop); else gtx.clearRect(0,0,W,H);
-      })();
-    }
+    btnEraser.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); mode='eraser'; updateToolButtons(); }, {capture:true});
+    btnPen.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); mode='pen'; updateToolButtons(); }, {capture:true});
 
-    // --- Controls ---
-    document.getElementById('btnReset').addEventListener('click', ()=>prepareShape());
-    document.getElementById('btnHint').addEventListener('click', toggleHint);
-    document.getElementById('btnRandom').addEventListener('click', ()=>{ activeIdx=Math.floor(Math.random()*shapes.length); prepareShape(); });
-    document.getElementById('btnNext').addEventListener('click', ()=>{ activeIdx=(activeIdx+1)%shapes.length; prepareShape(); });
+    btnReset.addEventListener('click', ()=>{
+      pickShape(activeIdx);
+    });
+    btnHint.addEventListener('click', ()=>{
+      ghost.classList.toggle('ghost-hidden');
+      const hidden = ghost.classList.contains('ghost-hidden');
+      ghost.style.opacity = hidden ? '0' : '1';
+      btnHint.setAttribute('aria-pressed', String(!hidden));
+      btnHint.classList.toggle('active', !hidden);
+    });
+    btnRandom.addEventListener('click', (e)=>{
+      e.preventDefault(); e.stopPropagation();
+      if(!shapes.length){ return; }
+      pickShape(Math.floor(Math.random()*shapes.length));
+    }, {capture:true});
 
-    btnUndo.addEventListener('click', ()=>{ strokes.pop(); redraw(); updateProgress(); });
-    btnEraser.addEventListener('click', ()=>{ mode='eraser'; updateToolButtons(); });
-    btnPen.addEventListener('click', ()=>{ mode='pen'; updateToolButtons(); });
+    btnNext.addEventListener('click', (e)=>{
+      e.preventDefault(); e.stopPropagation();
+      if(!shapes.length){ return; }
+      pickShape((activeIdx+1) % shapes.length);
+    }, {capture:true});
 
-    // Pointer listeners
-    canvas.addEventListener('pointerdown', startDraw, {passive:false});
-    canvas.addEventListener('pointermove', moveDraw, {passive:false});
-    window.addEventListener('pointerup', endDraw, {passive:false});
-
-    canvas.addEventListener('touchstart', startDraw, {passive:false});
-    canvas.addEventListener('touchmove', moveDraw, {passive:false});
-    window.addEventListener('touchend', endDraw, {passive:false});
-
-    // Init
-    buildList(); fitCanvas(); prepareShape();
+    fitCanvas();
     updateToolButtons();
+    btnHint.setAttribute('aria-pressed','true');
+    setStatus('Pilih bentuk lain atau mulai menggambar.');
   })();
   </script>
-<style>
-  .finish-bar { position: fixed; right: 16px; bottom: 16px; z-index: 1000; }
-  #btnSelesai { background: #22c55e; color: #fff; border: none; cursor: pointer; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4); }
-  #btnSelesai:hover { filter: brightness(1.05); }
-  #btnSelesai:active { transform: translateY(1px); }
-  @media (max-width: 480px) { #btnSelesai { padding: 10px 14px; font-size: 15px; } }
-</style>
 
-<div class="finish-bar"><button id="btnSelesai" type="button">Selesai</button></div>
+  <div class="finish-bar"><button id="btnSelesai" class="shape-button success" type="button">Selesai</button></div>
 
-<!-- Tambah html2canvas hanya jika belum ada di halaman -->
-<script>if(!window.html2canvas){document.write('<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"><\/script>')}</script>
+  <!-- Tambah html2canvas hanya jika belum ada di halaman -->
+  <script>if(!window.html2canvas){document.write('<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"><\/script>')}</script>
 
-<!-- Tambah manifest & user info hanya jika belum ada -->
-<script>window.__hasManifestLessons||(document.write('<script src="/elearn/manifest-lessons.js"><\/script>'),window.__hasManifestLessons=true);</script>
-<script>window.__hasUserInfo||(document.write('<script src="/elearn/userInfo.js"><\/script>'),window.__hasUserInfo=true);</script>
+  <!-- Tambah manifest & user info hanya jika belum ada -->
+  <script>window.__hasManifestLessons||(document.write('<script src="/elearn/manifest-lessons.js"><\/script>'),window.__hasManifestLessons=true);</script>
+  <script>window.__hasUserInfo||(document.write('<script src="/elearn/userInfo.js"><\/script>'),window.__hasUserInfo=true);</script>
 
-<!-- Tambah worksheet-submit hanya jika belum ada -->
-<script>window.__hasWorksheetSubmit||(document.write('<script src="/elearn/common/worksheet-submit.js"><\/script>'),window.__hasWorksheetSubmit=true);</script>
+  <!-- Tambah worksheet-submit hanya jika belum ada -->
+  <script>window.__hasWorksheetSubmit||(document.write('<script src="/elearn/common/worksheet-submit.js"><\/script>'),window.__hasWorksheetSubmit=true);</script>
 
-<script>
-  window.WORKSHEET_DEBUG = true;
+  <script>
+    window.WORKSHEET_DEBUG = true;
 
-  // Cari elemen target screenshot (prioritas canvas bila ada)
-  ;(function ensureScreenshotRoot(){
-    if (!document.getElementById('gameRoot') &&
-        !document.getElementById('shapeBoard') &&
-        !document.getElementById('canvasRoot')) {
-      // Bungkus seluruh isi body KECUALI finish-bar ke dalam #gameRoot
-      const wrap = document.createElement('div'); wrap.id = 'gameRoot';
-      const bar = document.querySelector('.finish-bar');
-      const bodyKids = Array.from(document.body.children).filter(n => n !== bar);
-      bodyKids.forEach(n => wrap.appendChild(n));
-      document.body.insertBefore(wrap, bar || null);
-    }
-  })();
+    // Cari elemen target screenshot (prioritas canvas bila ada)
+    ;(function ensureScreenshotRoot(){
+      if (!document.getElementById('gameRoot') &&
+          !document.getElementById('shapeBoard') &&
+          !document.getElementById('canvasRoot')) {
+        const wrap = document.createElement('div'); wrap.id = 'gameRoot';
+        const bar = document.querySelector('.finish-bar');
+        const bodyKids = Array.from(document.body.children).filter(n => n !== bar);
+        bodyKids.forEach(n => wrap.appendChild(n));
+        document.body.insertBefore(wrap, bar || null);
+      }
+    })();
 
-  // Init submitter
-  ;(function initSubmit(){
-    const info = (typeof getUserInfo === "function") ? getUserInfo() : {};
-    if (typeof initWorksheetSubmit === "function") {
-      initWorksheetSubmit({
-        muridUid: info.uid || "",
-        cid: info.cid || "",
-        namaAnak: info.nama || "",
-        role: (info.role || "").toLowerCase(),
+    ;(function initSubmit(){
+      const info = (typeof getUserInfo === "function") ? getUserInfo() : {};
+      if (typeof initWorksheetSubmit === "function") {
+        initWorksheetSubmit({
+          muridUid: info.uid || "",
+          cid: info.cid || "",
+          namaAnak: info.nama || "",
+          role: (info.role || "").toLowerCase(),
+          screenshotSelectorPriority: ['#shapeCanvas', '#gameCanvas', '#canvasRoot', '#shapeBoard', '#gameRoot']
+        });
+      } else {
+        console.warn("initWorksheetSubmit tidak ditemukan. Pastikan /elearn/common/worksheet-submit.js termuat.");
+      }
+    })();
+  </script>
 
-        // Opsi opsional khusus Shape:
-        // prioritas canvas screenshot jika ada:
-        screenshotSelectorPriority: ['#shapeCanvas', '#gameCanvas', '#canvasRoot', '#shapeBoard', '#gameRoot']
-      });
-    } else {
-      console.warn("initWorksheetSubmit tidak ditemukan. Pastikan /elearn/common/worksheet-submit.js termuat.");
-    }
-  })();
-</script>
 
+<script src="/elearn/common/calistung-navbar.js"></script>
 </body>
 </html>

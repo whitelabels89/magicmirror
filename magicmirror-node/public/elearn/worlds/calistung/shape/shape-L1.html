@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Shape-L1 – Warnai Sesuai Petunjuk</title>
+  <link rel="stylesheet" href="./shape-shell.css" />
   <style>
     :root{
       --bg:#f3f7fb; --teal:#0f8b94; --card:#ffffff; --ink:#0f172a;
@@ -11,25 +12,12 @@
       --lane:#127b86;
     }
     *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
-      background: radial-gradient(1200px 800px at 80% -10%, #eaf5ff 0%, transparent 60%) , var(--bg);
-      color:var(--ink);
-      display:flex; flex-direction:column; gap:16px;
-    }
-    header{
-      text-align:center; padding:16px 12px 0;
-    }
-    .title{
-      display:inline-block; padding:10px 16px; border-radius:14px; font-weight:800; letter-spacing:.5px;
-      background:#2ea6b4; color:#fff; box-shadow:0 6px 0 #0e6e76;
-    }
-    .sub{margin-top:8px; opacity:.8}
 
     .board{
-      width:min(1000px, 96vw); margin:8px auto 20px; display:grid; gap:16px;
-      grid-template-columns:repeat(4,1fr);
+      margin:0;
+      display:grid;
+      gap:16px;
+      grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
     }
 
     .lane{
@@ -51,35 +39,35 @@
     svg{ width:40px; height:40px; cursor:pointer; filter:drop-shadow(0 1px 0 rgba(0,0,0,.08)); }
     .ghost{ fill:#fff; opacity:.94; }
 
-    .hud{ width:min(1000px, 96vw); margin:0 auto 24px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
-    button{
-      appearance:none; border:none; padding:10px 14px; border-radius:12px; font-weight:800; cursor:pointer;
-      background:#0fb3c2; color:#fff; box-shadow:0 6px 16px rgba(15,179,194,.35);
-    }
-    button.secondary{ background:#e2e8f0; color:#0b2942 }
-    .pill{ padding:8px 12px; border-radius:999px; font-weight:800; background:#eaf9fb; color:#0a6470}
-    .ok{ background:#dcfce7; color:#166534 }
-    .bad{ background:#fee2e2; color:#b91c1c }
-
     @media (max-width:720px){
       .board{ grid-template-columns:repeat(2,1fr); }
+    }
+
+    .finish-bar { position: fixed; right: 16px; bottom: 24px; z-index: 1000; }
+    @media (max-width: 520px) {
+      .finish-bar { right: 12px; bottom: 18px; }
     }
   </style>
 
   <link rel="stylesheet" href="/elearn/worlds/calistung/buttons.css" />
 </head>
-<body>
-  <header>
-    <div class="title">WARNAI SESUAI PETUNJUK</div>
-    <div class="sub">Klik bentuk untuk mewarnai. Isi jumlah yang diminta di bagian atas tiap kolom, lalu tekan <b>Periksa</b>.</div>
-  </header>
+<body class="shape-shell" style="--shape-accent:#0fb3c2; --shape-accent-dark:#0e6e76; --shape-secondary-bg:#0b2942; --shape-badge-bg:linear-gradient(135deg, #2ea6b4, #14b8a6); --shape-badge-shadow:#0e6e76; --shape-bg-radial-1:rgba(20,184,166,0.26); --shape-bg-radial-2:rgba(59,130,246,0.16); --shape-bg-base:var(--bg); --shape-bg-base-bottom:#dbeafe;" data-nav-badge="Calistung Shape" data-nav-home-url="/elearn/worlds/calistung/shape/index.html">
+  <div class="shape-game">
+    <header class="shape-card shape-card--frost shape-shell__header center">
+      <span class="shape-shell__badge">Shape • Level 1</span>
+      <h1 class="shape-shell__title">Warnai Sesuai Petunjuk</h1>
+      <p class="shape-shell__subtitle">Klik bentuk untuk mewarnai. Isi jumlah yang diminta di bagian atas tiap kolom, lalu tekan <strong>Periksa</strong>.</p>
+    </header>
 
-  <main class="board" id="board"></main>
+    <section class="shape-card shape-card--frost shape-game__content">
+      <main class="board" id="board"></main>
+    </section>
 
-  <div class="hud">
-    <span id="status" class="pill">Siap mewarnai ✨</span>
-    <button id="check">Periksa</button>
-    <button id="reset" class="secondary">Reset</button>
+    <section class="shape-card shape-card--compact shape-shell__hud hud">
+      <span id="status" class="pill">Siap mewarnai ✨</span>
+      <button id="check" class="shape-button primary">Periksa</button>
+      <button id="reset" class="shape-button ghost">Reset</button>
+    </section>
   </div>
 
 <script>
@@ -247,14 +235,10 @@
 })();
 </script>
 <style>
-  .finish-bar { position: fixed; right: 16px; bottom: 16px; z-index: 1000; }
-  #btnSelesai { background: #22c55e; color: #fff; border: none; cursor: pointer; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4); }
-  #btnSelesai:hover { filter: brightness(1.05); }
-  #btnSelesai:active { transform: translateY(1px); }
-  @media (max-width: 480px) { #btnSelesai { padding: 10px 14px; font-size: 15px; } }
+  .finish-bar button { border: none; }
 </style>
 
-<div class="finish-bar"><button id="btnSelesai" type="button">Selesai</button></div>
+<div class="finish-bar"><button id="btnSelesai" class="shape-button success" type="button">Selesai</button></div>
 
 <!-- Tambah html2canvas hanya jika belum ada di halaman -->
 <script>if(!window.html2canvas){document.write('<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"><\/script>')}</script>
@@ -303,5 +287,7 @@
   })();
 </script>
 
+
+<script src="/elearn/common/calistung-navbar.js"></script>
 </body>
 </html>

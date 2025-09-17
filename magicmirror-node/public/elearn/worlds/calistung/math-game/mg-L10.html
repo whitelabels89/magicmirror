@@ -4,73 +4,170 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MG-L10 • Jumlahkan Sesuai Petunjuk</title>
+  <link rel="stylesheet" href="/elearn/worlds/calistung/math-game/mathgame-shell.css" />
   <style>
-    :root{
-      --bg:#f4f7ff;--card:#ffffff;--ink:#1f2a44;--muted:#6b7a90;--brand:#3b82f6;--ok:#16a34a;--no:#ef4444;--ring:#bfd3ff;
+    .animal-grid-stage {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
     }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Inter,Arial,sans-serif;background:var(--bg);color:var(--ink)}
-    .wrap{max-width:980px;margin:24px auto;padding:16px}
 
-    .board{background:var(--card);border-radius:20px;box-shadow:0 10px 30px rgba(31,42,68,.08);padding:20px}
-    .title{display:flex;align-items:center;justify-content:center;gap:10px;margin:6px 0 16px}
-    .badge{background:#e7f0ff;color:#0b63f6;font-weight:700;padding:8px 14px;border-radius:10px;letter-spacing:.5px}
+    .animal-grid-stage .title-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 16px;
+      border-radius: 16px;
+      background: #e7f0ff;
+      color: #0b63f6;
+      font-weight: 800;
+      letter-spacing: .5px;
+    }
 
-    .legend{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:8px 0 16px}
-    .legend .cell{display:flex;flex-direction:column;align-items:center;gap:8px;background:#f8fbff;border:2px solid #e9f2ff;border-radius:14px;padding:10px}
-    .animal{font-size:42px;line-height:1}
-    .num-tag{width:48px;height:36px;border:2px dashed #cbdafc;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#0b63f6;background:#fff}
+    .animal-grid-stage .legend {
+      display: grid;
+      grid-template-columns: repeat(auto-fit,minmax(120px,1fr));
+      gap: 12px;
+    }
 
-    .grid{display:grid;grid-template-columns:1fr 140px 1fr 140px 1fr;gap:10px}
-    .pill{background:#f8fbff;border:2px solid #e9f2ff;border-radius:16px;padding:12px;display:flex;align-items:center;justify-content:center;min-height:64px}
-    .op{font-weight:800;color:var(--brand)}
+    .animal-grid-stage .cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      background: #f8fbff;
+      border: 2px solid #e9f2ff;
+      border-radius: 16px;
+      padding: 12px;
+      box-shadow: 0 10px 22px rgba(59, 130, 246, 0.12);
+    }
 
-    input.answer{width:100%;max-width:120px;height:44px;border:2px solid #d8e7ff;border-radius:12px;font-size:20px;text-align:center;color:var(--ink);background:#fff}
-    input.answer:focus{outline:none;box-shadow:0 0 0 4px var(--ring)}
-    .answer.ok{border-color:var(--ok)}
-    .answer.no{border-color:var(--no)}
+    .animal-grid-stage .animal {
+      font-size: 44px;
+      line-height: 1;
+    }
 
-    .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;margin:18px 0 6px}
-    .btn{border:0;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
-    .btn.primary{background:var(--brand);color:#fff}
-    .btn.ghost{background:#e7f0ff;color:#0b63f6}
-    .btn.warn{background:#fee2e2;color:#991b1b}
+    .animal-grid-stage .num-tag {
+      width: 52px;
+      height: 38px;
+      border: 2px dashed #cbdafc;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: #0b63f6;
+      background: #fff;
+    }
 
-    .score{margin:8px 0 4px;text-align:center;color:var(--muted);font-weight:700}
+    .animal-grid-stage .grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(60px,1fr));
+      gap: 12px;
+      align-items: center;
+    }
 
-    .tiny{font-size:12px;color:var(--muted);text-align:center}
-    @media (max-width:720px){
-      .grid{grid-template-columns:1fr 64px 1fr 64px 1fr}
-      .animal{font-size:36px}
+    .animal-grid-stage .pill {
+      background: #f8fbff;
+      border: 2px solid #e9f2ff;
+      border-radius: 16px;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 64px;
+      font-weight: 700;
+    }
+
+    .animal-grid-stage .op { color: #3b82f6; font-size: 24px; }
+
+    .animal-grid-stage input.answer {
+      width: 100%;
+      max-width: 120px;
+      height: 48px;
+      border: 2px solid #d8e7ff;
+      border-radius: 14px;
+      font-size: 20px;
+      text-align: center;
+      color: #1f2a44;
+      background: #fff;
+      transition: border-color .18s ease, box-shadow .18s ease;
+    }
+
+    .animal-grid-stage input.answer:focus {
+      outline: none;
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.18);
+      border-color: #3b82f6;
+    }
+
+    .animal-grid-stage .status-text {
+      text-align: center;
+      font-weight: 700;
+      color: rgba(51, 65, 85, 0.85);
+    }
+
+    .animal-grid-stage .hint {
+      font-size: 13px;
+      color: rgba(100, 116, 139, 0.9);
+      text-align: center;
+    }
+
+    @media (max-width: 720px){
+      .animal-grid-stage .grid { grid-template-columns: repeat(5, minmax(54px,1fr)); }
+      .animal-grid-stage .animal { font-size: 36px; }
     }
   </style>
-
   <link rel="stylesheet" href="/elearn/worlds/calistung/buttons.css" />
 </head>
-<body>
-  <div class="wrap">
-    <div class="board">
-      <div class="title">
-        <div class="badge">JUMLAHKAN SESUAI PETUNJUK</div>
+<body class="mathgame-shell" data-nav-badge="Calistung Math" data-nav-home-url="/elearn/worlds/calistung/index.html">
+  <div class="shell-wrapper">
+    <header class="shell-header">
+      <div class="shell-header__title">
+        <span class="shell-badge">Level 10</span>
+        <h1 class="shell-title">Jumlahkan Sesuai Petunjuk</h1>
+        <p class="shell-subtitle">Gunakan nilai hewan di legenda, kalikan sesuai petunjuk, dan isi semua jawabannya.</p>
       </div>
-
-      <!-- Legenda angka untuk tiap hewan (sesuai gambar referensi) -->
-      <div class="legend" id="legend"></div>
-
-      <div class="toolbar">
-        <button class="btn ghost" id="shuffleBtn">Acak Soal</button>
-        <button class="btn primary" id="checkBtn">Periksa Jawaban</button>
-        <button class="btn warn" id="resetBtn">Reset</button>
+      <div class="shell-hud">
+        <div class="shell-pill">
+          <span class="shell-pill-label">Jawaban Benar</span>
+          <span class="shell-pill-value" data-hud-value="score">0 / 8</span>
+        </div>
+        <div class="shell-pill">
+          <span class="shell-pill-label">Percobaan</span>
+          <span class="shell-pill-value" data-hud-value="attempts">0</span>
+        </div>
       </div>
-      <div class="score" id="score">Isi semua kotak, lalu klik Periksa.</div>
+    </header>
 
-      <div class="grid" id="quizGrid"></div>
-      <div class="tiny">Tip: Di sini pakai perkalian (×). Hewan = angka 1–5 seperti di legenda atas.</div>
-    </div>
+    <section class="mission-card">
+      <h2>🎯 Misimu</h2>
+      <p data-mission-text>Perhatikan nilai setiap hewan, isi hasil perkalian di grid, lalu cek jawabanmu sampai semua benar.</p>
+    </section>
+
+    <main class="mathgame-stage">
+      <section class="stage-card stage-card--contrast animal-grid-stage">
+        <div class="title-badge">Legenda Hewan</div>
+        <div class="legend" id="legend"></div>
+        <p class="status-text" id="statusText">Isi semua kotak, lalu klik Periksa.</p>
+        <div class="grid" id="quizGrid"></div>
+        <p class="hint">Tip: Perkalian menggunakan nilai 1–5 dari legenda di atas.</p>
+      </section>
+    </main>
+
+    <section class="shell-action-bar" aria-label="Kontrol aksi">
+      <button id="shuffleBtn" class="shell-button secondary" type="button">🔄 Acak Soal</button>
+      <button id="checkBtn" class="shell-button" type="button">✅ Periksa Jawaban</button>
+      <button id="resetBtn" class="shell-button ghost" type="button">↺ Reset</button>
+      <button id="btnSelesai" class="shell-button ghost" type="button">Selesai</button>
+    </section>
+
+    <aside class="buddy-widget" aria-label="Teman penyemangat">
+      <div class="buddy-avatar" data-buddy-emoji aria-hidden="true">🦁</div>
+      <div class="buddy-dialog" data-buddy-dialog>Kalikan nilai hewannya dan lengkapi semua kotak. Kalau bingung, lihat legenda di atas.</div>
+    </aside>
   </div>
-
+  <script src="/elearn/worlds/calistung/math-game/mathgame-shell.js"></script>
   <script>
-    // Mapping hewan → angka (mengikuti urutan pada worksheet foto)
     const ANIMALS = [
       { key: 'tiger',   label: 'Harimau',  emoji: '🐯', value: 1 },
       { key: 'koala',   label: 'Koala',    emoji: '🐨', value: 2 },
@@ -79,25 +176,56 @@
       { key: 'squirrel',label: 'Tupai',    emoji: '🐿️', value: 5 },
     ];
 
-    // Soal (mengikuti pola pada gambar)
     const BASE_EQUATIONS = [
-      ['panda','tiger'],     // 🐼 × 🐯
-      ['squirrel','koala'],  // 🐿️ × 🐨
-      ['koala','panda'],     // 🐨 × 🐼
-      ['squirrel','tiger'],  // 🐿️ × 🐯
-      ['panda','rabbit'],    // 🐼 × 🐰
-      ['rabbit','squirrel'], // 🐰 × 🐿️
-      ['tiger','tiger'],     // 🐯 × 🐯
-      ['koala','koala'],     // 🐨 × 🐨
+      ['panda','tiger'],
+      ['squirrel','koala'],
+      ['koala','panda'],
+      ['squirrel','tiger'],
+      ['panda','rabbit'],
+      ['rabbit','squirrel'],
+      ['tiger','tiger'],
+      ['koala','koala'],
     ];
 
     const legend = document.getElementById('legend');
     const grid   = document.getElementById('quizGrid');
-    const score  = document.getElementById('score');
+    const statusEl  = document.getElementById('statusText');
+
+    const shuffleBtn = document.getElementById('shuffleBtn');
+    const resetBtn   = document.getElementById('resetBtn');
+    const checkBtn   = document.getElementById('checkBtn');
+
+    const hudScoreEl = document.querySelector('[data-hud-value="score"]');
+    const hudAttemptsEl = document.querySelector('[data-hud-value="attempts"]');
+    const buddyEmojiEl = document.querySelector('[data-buddy-emoji]');
+    const buddyDialogEl = document.querySelector('[data-buddy-dialog]');
+
+    let equations = [...BASE_EQUATIONS];
+    let attempts = 0;
+    let correctCount = 0;
+
+    function setBuddy(emoji, text){
+      if(buddyEmojiEl && emoji){ buddyEmojiEl.textContent = emoji; }
+      if(buddyDialogEl && text){ buddyDialogEl.textContent = text; }
+      if(window.mathgameShell && typeof window.mathgameShell.setBuddyMood === 'function'){
+        window.mathgameShell.setBuddyMood(emoji, text);
+      }
+    }
+
+    function syncHud(){
+      const label = `${correctCount} / ${equations.length}`;
+      if(hudScoreEl) hudScoreEl.textContent = label;
+      if(hudAttemptsEl) hudAttemptsEl.textContent = attempts;
+      if(window.mathgameShell && typeof window.mathgameShell.updateHud === 'function'){
+        window.mathgameShell.updateHud({ score: label, attempts });
+      }
+    }
+
+    function animalByKey(k){ return ANIMALS.find(a=>a.key===k); }
 
     function renderLegend(){
       legend.innerHTML = '';
-      ANIMALS.forEach((a,i)=>{
+      ANIMALS.forEach(a=>{
         const cell = document.createElement('div');
         cell.className='cell';
         cell.innerHTML = `
@@ -108,8 +236,6 @@
       });
     }
 
-    function animalByKey(k){ return ANIMALS.find(a=>a.key===k); }
-
     function createRow(a1,a2,index){
       const left  = document.createElement('div'); left.className='pill'; left.innerHTML = `<span class="animal" title="${animalByKey(a1).label}">${animalByKey(a1).emoji}</span>`;
       const op1   = document.createElement('div'); op1.className='pill op'; op1.textContent = '×';
@@ -119,6 +245,7 @@
       const input = document.createElement('input');
       input.type='number'; input.className='answer'; input.min='0'; input.placeholder='?';
       input.dataset.idx = index;
+      input.setAttribute('aria-label', `Jawaban untuk ${animalByKey(a1).label} × ${animalByKey(a2).label}`);
       right.appendChild(input);
       grid.append(left,op1,mid,op2,right);
     }
@@ -126,8 +253,6 @@
     function expectedValue(a1,a2){
       return animalByKey(a1).value * animalByKey(a2).value;
     }
-
-    let equations = [...BASE_EQUATIONS];
 
     function renderGrid(){
       grid.innerHTML='';
@@ -140,14 +265,22 @@
         [equations[i],equations[j]] = [equations[j],equations[i]];
       }
       renderGrid();
-      score.textContent = 'Diacak! Isi lagi dan klik Periksa.';
+      correctCount = 0;
+      attempts = 0;
+      statusEl.textContent = 'Diacak! Isi lagi dan klik Periksa.';
+      setBuddy('🎲', 'Soalnya diganti. Isi lagi hasil perkalianmu!');
+      syncHud();
     }
 
     function resetAll(){
       document.querySelectorAll('input.answer').forEach(i=>{
-        i.value=''; i.classList.remove('ok','no');
+        i.value=''; i.classList.remove('ok','no'); i.style.borderColor = '#d8e7ff'; i.style.background='white';
       });
-      score.textContent='Isi semua kotak, lalu klik Periksa.';
+      correctCount = 0;
+      attempts = 0;
+      statusEl.textContent='Isi semua kotak, lalu klik Periksa.';
+      setBuddy('📝', 'Kosongkan lagi dan mulai dari awal. Kamu pasti bisa!');
+      syncHud();
     }
 
     function check(){
@@ -157,55 +290,60 @@
         const need = expectedValue(a1,a2);
         const val = Number(input.value);
         input.classList.remove('ok','no');
-        if(input.value===''){empty++; return;}
+        if(input.value===''){
+          input.style.background = '#fef3c7';
+          empty++;
+          return;
+        }
         if(val===need){
-          input.classList.add('ok'); correct++;
+          input.classList.add('ok');
+          input.style.background = '#d1fae5';
+          correct++;
         }else{
           input.classList.add('no');
+          input.style.background = '#fee2e2';
         }
       });
+      correctCount = correct;
+      attempts += 1;
       if(empty>0){
-        score.textContent = `Masih ada ${empty} yang kosong. Coba isi semuanya dulu ya!`;
+        statusEl.textContent = `Masih ada ${empty} yang kosong. Isi semuanya dulu ya!`;
+        setBuddy('🤓', 'Coba isi semua kotak dulu sebelum cek jawabannya.');
+      }else if(correct === total){
+        statusEl.textContent = `Skor: ${correct}/${total} benar. Perfect!`;
+        setBuddy('🏆', 'Woohoo! Semua benar. Hebat!');
       }else{
-        score.textContent = `Skor: ${correct}/${total} benar.`;
+        statusEl.textContent = `Skor: ${correct}/${total} benar. Perbaiki yang masih salah ya!`;
+        setBuddy('🧐', 'Coba cek lagi kotak yang masih salah. Kamu hampir berhasil!');
       }
+      syncHud();
     }
 
-    // Init
     renderLegend();
     renderGrid();
+    syncHud();
 
-    // Events
-    document.getElementById('shuffleBtn').addEventListener('click', shuffle);
-    document.getElementById('resetBtn').addEventListener('click', resetAll);
-    document.getElementById('checkBtn').addEventListener('click', check);
+    shuffleBtn.addEventListener('click', shuffle);
+    resetBtn.addEventListener('click', resetAll);
+    checkBtn.addEventListener('click', check);
+    setBuddy('🦁', 'Kalikan hewan sesuai nilainya, lalu isi semua hasilnya.');
   </script>
 
-<style>
-  .finish-bar { position: fixed; right: 16px; bottom: 16px; z-index: 1000; }
-  #btnSelesai { background: #22c55e; color: #fff; border: none; cursor: pointer; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4); }
-  #btnSelesai:hover { filter: brightness(1.05); }
-  #btnSelesai:active { transform: translateY(1px); }
-  @media (max-width: 480px) {
-    #btnSelesai { padding: 10px 14px; font-size: 15px; }
-  }
-</style>
-
-<div class="finish-bar"><button id="btnSelesai" type="button">Selesai</button></div>
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="/elearn/manifest-lessons.js"></script>
-<script src="/elearn/userInfo.js"></script>
-<script src="/elearn/common/worksheet-submit.js"></script>
-<script>
-  window.WORKSHEET_DEBUG = true;
-  window.WORKSHEET_META = { course_id: "mathgame-basic" };
-  const info = (typeof getUserInfo === "function") ? getUserInfo() : {};
-  initWorksheetSubmit({
-    muridUid: info.uid || "",
-    cid: info.cid || "",
-    namaAnak: info.nama || "",
-    role: (info.role || "").toLowerCase()
-  });
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="/elearn/manifest-lessons.js"></script>
+  <script src="/elearn/userInfo.js"></script>
+  <script src="/elearn/common/worksheet-submit.js"></script>
+  <script>
+    window.WORKSHEET_DEBUG = true;
+    window.WORKSHEET_META = { course_id: "mathgame-basic" };
+    const info = (typeof getUserInfo === "function") ? getUserInfo() : {};
+    initWorksheetSubmit({
+      muridUid: info.uid || "",
+      cid: info.cid || "",
+      namaAnak: info.nama || "",
+      role: (info.role || "").toLowerCase()
+    });
+  </script>
+  <script src="/elearn/common/calistung-navbar.js"></script>
 </body>
 </html>

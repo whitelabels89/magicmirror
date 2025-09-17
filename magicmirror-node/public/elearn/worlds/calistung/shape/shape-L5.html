@@ -4,62 +4,62 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Shape L5 – Warnai Sesuai Jumlah Ikan</title>
+  <link rel="stylesheet" href="./shape-shell.css" />
   <style>
     :root{--bg:#0ea5e9;--panel:#ffffff;--ink:#0f172a;--good:#22c55e;--bad:#ef4444}
     *{box-sizing:border-box}
-    body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;background:#eaf7ff;color:var(--ink)}
-    .wrap{max-width:980px;margin:24px auto;padding:16px}
-    header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
-    header .badge{background:#0284c7;color:#fff;padding:8px 14px;border-radius:12px;font-weight:800;letter-spacing:.3px}
-    header h1{font-size:20px;margin:0;line-height:1.2}
 
-    .aquarium{background:linear-gradient(180deg,#c7e8ff,#a5ddff);border:4px solid #94d2ff;border-radius:16px;padding:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:12px;box-shadow:0 8px 24px rgba(2,132,199,.15)}
+    .shape-shell__subtitle{max-width:760px}
+
+    .aquarium{background:linear-gradient(180deg,#c7e8ff,#a5ddff);border:4px solid #94d2ff;border-radius:20px;padding:18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:16px;box-shadow:0 16px 40px rgba(2,132,199,.18)}
     .fish{width:64px;height:40px}
 
-    .board{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:18px}
-    @media (max-width:720px){.board{grid-template-columns:1fr}}
+    .board{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;margin-top:20px}
+    .card{display:grid;grid-template-columns:64px 1fr;align-items:center;border:2px dashed #cbd5e1;border-radius:16px;background:var(--panel);padding:14px;gap:12px;transition:box-shadow .2s,border-color .2s}
+    .card.active{box-shadow:0 10px 30px rgba(2,132,199,.18);border-color:#60a5fa}
+    .num{font-weight:900;font-size:28px;display:flex;align-items:center;justify-content:center;background:#f1f5f9;border-radius:14px;height:64px}
+    .fish-slot{display:flex;align-items:center;justify-content:center;height:64px}
+    .fish-slot svg{height:58px}
 
-    .card{display:grid;grid-template-columns:56px 1fr;align-items:center;border:2px dashed #cbd5e1;border-radius:14px;background:var(--panel);padding:12px 12px;gap:10px;transition:box-shadow .2s,border-color .2s}
-    .card.active{box-shadow:0 8px 24px rgba(2,132,199,.15);border-color:#60a5fa}
-    .num{font-weight:900;font-size:26px;display:flex;align-items:center;justify-content:center;background:#f1f5f9;border-radius:10px;height:56px}
-    .fish-slot{display:flex;align-items:center;justify-content:center;height:56px}
-    .fish-slot svg{height:52px}
+    .palette{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:20px 0 12px}
+    .swatch{width:44px;height:44px;border-radius:12px;border:2px solid rgba(0,0,0,.12);cursor:pointer;outline:none;transition:transform .15s ease, box-shadow .15s ease}
+    .swatch:hover{transform:translateY(-2px);box-shadow:0 10px 20px rgba(15,23,42,.16)}
+    .swatch.selected{outline:4px solid #0ea5e9}
 
-    .tools{display:flex;align-items:center;gap:10px;margin-top:18px;flex-wrap:wrap}
-    .swatch{width:36px;height:36px;border-radius:10px;border:2px solid rgba(0,0,0,.15);cursor:pointer;outline:none}
-    .swatch.selected{outline:3px solid #0ea5e9}
-    .btn{border:none;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
-    .primary{background:#0ea5e9;color:#fff}
-    .ghost{background:#eef6ff;color:#0b4a6f}
-    .danger{background:#fee2e2;color:#991b1b}
+    .tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .toast{margin-top:12px;font-weight:700;color:var(--ink)}
+    .toast.ok{color:var(--good)}
+    .toast.nope{color:var(--bad)}
 
-    .toast{margin-top:12px;font-weight:700}
-    .ok{color:var(--good)}
-    .nope{color:var(--bad)}
+    .finish-bar { position: fixed; right: 16px; bottom: 24px; z-index: 1000; }
+    @media (max-width: 520px) {
+      .finish-bar { right: 12px; bottom: 18px; }
+    }
   </style>
 
   <link rel="stylesheet" href="/elearn/worlds/calistung/buttons.css" />
 </head>
-<body>
-  <div class="wrap">
-    <header>
-      <div class="badge">SHAPE – L5</div>
-      <h1>Warnai Sesuai <b>Jumlah Ikan</b> (1–5)</h1>
+<body class="shape-shell" style="--shape-accent:#0ea5e9; --shape-accent-dark:#0369a1; --shape-secondary-bg:#0f172a; --shape-badge-bg:linear-gradient(135deg,#38bdf8,#0ea5e9); --shape-badge-shadow:#0369a1; --shape-bg-radial-1:rgba(14,165,233,0.3); --shape-bg-radial-2:rgba(34,197,94,0.22); --shape-bg-base:#eaf7ff; --shape-bg-base-bottom:#dbeafe;" data-nav-badge="Calistung Shape" data-nav-home-url="/elearn/worlds/calistung/shape/index.html">
+  <div class="shape-game">
+    <header class="shape-card shape-card--frost shape-shell__header">
+      <span class="shape-shell__badge">Shape • Level 5</span>
+      <h1 class="shape-shell__title">Warnai Sesuai <b>Jumlah Ikan</b> (1–5)</h1>
+      <p class="shape-shell__subtitle">Di akuarium ada ikan berwarna-warni. Tugasmu: warnai ikan di kartu angka sesuai warna yang jumlahnya sama dengan angka tersebut.</p>
     </header>
 
-    <p><b>Aturan main:</b> Di akuarium ada ikan berwarna-warni. Setiap warna muncul sebanyak 1, 2, 3, 4, atau 5 ekor. Tugasmu: <u>warnai ikan di kartu angka</u> sesuai warna yang jumlahnya sama dengan angka pada kartu. Contoh: kartu <b>3</b> harus diwarnai dengan <i>warnanya ikan yang berjumlah 3 ekor</i>.</p>
+    <section class="shape-card shape-card--frost shape-game__content">
+      <section class="aquarium" id="aquarium" aria-label="Akuarium ikan"></section>
 
-    <section class="aquarium" id="aquarium" aria-label="Akuarium ikan"></section>
+      <section class="board" id="board" aria-label="Kartu angka 1-5"></section>
 
-    <section class="board" id="board" aria-label="Kartu angka 1-5"></section>
-
-    <div class="tools" id="palette"></div>
-    <div class="tools">
-      <button class="btn primary" id="checkBtn">Periksa Jawaban</button>
-      <button class="btn ghost" id="shuffleBtn">Acak Soal</button>
-      <button class="btn danger" id="resetBtn">Reset Warna</button>
-    </div>
-    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      <div class="palette" id="palette"></div>
+      <div class="tools">
+        <button class="shape-button primary" id="checkBtn">Periksa Jawaban</button>
+        <button class="shape-button secondary" id="shuffleBtn">Acak Soal</button>
+        <button class="shape-button ghost" id="resetBtn">Reset Warna</button>
+      </div>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </section>
   </div>
 
   <template id="tpl-fish">
@@ -82,11 +82,11 @@
 
   <script>
     const COLORS = [
-      '#0ea5e9', // biru
-      '#f59e0b', // kuning-oranye
-      '#10b981', // hijau
-      '#ef4444', // merah
-      '#a855f7'  // ungu
+      '#0ea5e9',
+      '#f59e0b',
+      '#10b981',
+      '#ef4444',
+      '#a855f7'
     ];
 
     const aquariumEl = document.getElementById('aquarium');
@@ -94,8 +94,8 @@
     const paletteEl = document.getElementById('palette');
     const toastEl = document.getElementById('toast');
 
-    let colorMap = new Map(); // color => count (1..5)
-    let answers = {}; // key: n (1..5), value: color string
+    let colorMap = new Map();
+    let answers = {};
     let selectedColor = null;
 
     function shuffle(arr){
@@ -120,30 +120,48 @@
     function buildAquarium(){
       aquariumEl.innerHTML = '';
       colorMap.clear();
-      // assign counts 1..5 to colors (shuffled)
       const counts = shuffle([1,2,3,4,5].slice());
       const colorOrder = shuffle(COLORS.slice());
       for(let i=0;i<5;i++){
         colorMap.set(colorOrder[i], counts[i]);
       }
-      // Render fishes
       const items = [];
       colorMap.forEach((count,color)=>{
         for(let i=0;i<count;i++) items.push(color);
       });
-      // add a little shuffle for layout variety
       shuffle(items).forEach(c=>{
         const f = makeFish(c);
         aquariumEl.appendChild(f);
       });
-      // Build palette from these five colors
       buildPalette(Array.from(colorMap.keys()));
+    }
+
+    function buildPalette(colors){
+      paletteEl.innerHTML = '';
+      colors.forEach((color, idx)=>{
+        const sw = document.createElement('button');
+        sw.type='button';
+        sw.className = 'swatch'+(idx===0?' selected':'');
+        sw.style.background=color;
+        sw.setAttribute('aria-label',`Pilih warna ${idx+1}`);
+        sw.addEventListener('click',()=>{
+          [...paletteEl.children].forEach(c=>c.classList.remove('selected'));
+          sw.classList.add('selected');
+          selectedColor = color;
+          toastEl.textContent = 'Warna dipilih. Klik kartu angka ya!';
+          toastEl.className = 'toast';
+        });
+        if(idx===0) selectedColor = color;
+        paletteEl.appendChild(sw);
+      });
     }
 
     function buildBoard(){
       boardEl.innerHTML = '';
+      answers = {};
       for(let n=1;n<=5;n++){
-        const card = document.createElement('div');
+        const card = document.createElement('button');
+        card.type='button';
         card.className = 'card';
         card.dataset.n = String(n);
         const left = document.createElement('div');
@@ -152,177 +170,106 @@
         const right = document.createElement('div');
         right.className = 'fish-slot';
         right.appendChild(makeOutline());
-        card.appendChild(left);
-        card.appendChild(right);
+        card.append(left,right);
         card.addEventListener('click',()=>{
           document.querySelectorAll('.card').forEach(c=>c.classList.remove('active'));
           card.classList.add('active');
-          // apply selected color if any
-          if(selectedColor){
-            paintCard(card, selectedColor);
-          }
+          if(!selectedColor){ toastEl.textContent = 'Pilih warna dulu ya!'; toastEl.className = 'toast nope'; return; }
+          answers[n] = selectedColor;
+          right.innerHTML = '';
+          right.appendChild(makeFish(selectedColor));
+          toastEl.textContent = `Kartu ${n} sudah diwarnai.`;
+          toastEl.className = 'toast ok';
         });
         boardEl.appendChild(card);
       }
-      answers = {};
     }
 
-    function buildPalette(colors){
-      paletteEl.innerHTML = '';
-      const label = document.createElement('span');
-      label.textContent = 'Pilih warna lalu klik kartu angkanya:';
-      paletteEl.appendChild(label);
-      colors.forEach(c=>{
-        const b = document.createElement('button');
-        b.className = 'swatch';
-        b.style.background = c;
-        b.title = 'Pilih warna ini';
-        b.addEventListener('click',()=>{
-          document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('selected'));
-          b.classList.add('selected');
-          selectedColor = c;
-        });
-        paletteEl.appendChild(b);
-      });
-      // eraser
-      const er = document.createElement('button');
-      er.className = 'btn ghost';
-      er.textContent = 'Penghapus';
-      er.addEventListener('click',()=>{selectedColor=null;document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('selected'))});
-      paletteEl.appendChild(er);
-    }
-
-    function paintCard(card,color){
-      const n = Number(card.dataset.n);
-      answers[n] = color;
-      const slot = card.querySelector('.fish-slot');
-      slot.innerHTML = '';
-      const svg = makeOutline();
-      // Fill the big body path (first path in g)
-      const path = svg.querySelector('path');
-      path.setAttribute('fill', color);
-      path.setAttribute('stroke', '#0f172a');
-      slot.appendChild(svg);
-    }
-
-    function check(){
-      let correct = 0; let total = 5;
-      for(let n=1;n<=5;n++){
-        const needColor = Array.from(colorMap.entries()).find(([color,count])=>count===n)?.[0];
-        const got = answers[n];
-        if(got && needColor && got===needColor){
-          correct++;
+    function validate(){
+      if(Object.keys(answers).length < 5){
+        toastEl.textContent = 'Lengkapi semua kartu angka dulu yuk!';
+        toastEl.className = 'toast nope';
+        return;
+      }
+      let allCorrect = true;
+      Object.entries(answers).forEach(([num,color])=>{
+        const count = colorMap.get(color);
+        if(count !== Number(num)){
+          allCorrect = false;
         }
-      }
-      if(correct===total){
-        toast('Mantap! Semua benar. 🐟✨', true);
-        confetti();
+      });
+      if(allCorrect){
+        toastEl.textContent = 'Hebat! Semua warna sesuai jumlah ikan 🎉';
+        toastEl.className = 'toast ok';
       }else{
-        toast(`Masih ada yang keliru. Benar ${correct}/${total}. Coba cek lagi ya.`, false);
+        toastEl.textContent = 'Masih ada yang salah nih. Coba cek lagi!';
+        toastEl.className = 'toast nope';
       }
     }
 
-    function toast(msg,ok){
-      toastEl.textContent = msg;
-      toastEl.className = 'toast '+(ok? 'ok':'nope');
+    function resetBoard(){
+      buildBoard();
+      toastEl.textContent = 'Warna direset. Mulai lagi!';
+      toastEl.className = 'toast';
     }
 
-    function resetPaint(){
-      document.querySelectorAll('.card .fish-slot').forEach(s=>{s.innerHTML=''; s.appendChild(makeOutline());});
-      answers = {};
-      toastEl.textContent = '';
-    }
-
-    function shuffleAll(){
-      resetPaint();
+    document.getElementById('checkBtn').addEventListener('click', validate);
+    document.getElementById('shuffleBtn').addEventListener('click',()=>{
       buildAquarium();
-    }
+      resetBoard();
+      toastEl.textContent = 'Akuarium diacak ulang!';
+      toastEl.className = 'toast';
+    });
+    document.getElementById('resetBtn').addEventListener('click', resetBoard);
 
-    // Simple confetti (CSS-free) – just a few falling squares for celebration
-    function confetti(){
-      const n=40; const body=document.body; const rect = body.getBoundingClientRect();
-      for(let i=0;i<n;i++){
-        const d=document.createElement('div');
-        d.style.position='fixed';
-        d.style.left = Math.random()*rect.width+'px';
-        d.style.top = '-12px';
-        d.style.width = '8px'; d.style.height='8px';
-        d.style.background = COLORS[i%COLORS.length];
-        d.style.transform = `rotate(${Math.random()*360}deg)`;
-        d.style.opacity = '0.9';
-        d.style.zIndex = 9999;
-        d.style.borderRadius = '2px';
-        body.appendChild(d);
-        const dur = 1000 + Math.random()*1200;
-        d.animate([{transform:d.style.transform, top:'-12px'},{transform:'rotate(720deg)', top:(rect.height+20)+'px'}],{duration:dur, easing:'linear'}).finished.then(()=>d.remove());
-      }
-    }
-
-    // Buttons
-    document.getElementById('checkBtn').addEventListener('click', check);
-    document.getElementById('shuffleBtn').addEventListener('click', shuffleAll);
-    document.getElementById('resetBtn').addEventListener('click', resetPaint);
-
-    // Init
     buildAquarium();
     buildBoard();
   </script>
-<style>
-  .finish-bar { position: fixed; right: 16px; bottom: 16px; z-index: 1000; }
-  #btnSelesai { background: #22c55e; color: #fff; border: none; cursor: pointer; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4); }
-  #btnSelesai:hover { filter: brightness(1.05); }
-  #btnSelesai:active { transform: translateY(1px); }
-  @media (max-width: 480px) { #btnSelesai { padding: 10px 14px; font-size: 15px; } }
-</style>
 
-<div class="finish-bar"><button id="btnSelesai" type="button">Selesai</button></div>
+  <div class="finish-bar"><button id="btnSelesai" class="shape-button success" type="button">Selesai</button></div>
 
-<!-- Tambah html2canvas hanya jika belum ada di halaman -->
-<script>if(!window.html2canvas){document.write('<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"><\/script>')}</script>
+  <!-- Tambah html2canvas hanya jika belum ada di halaman -->
+  <script>if(!window.html2canvas){document.write('<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"><\/script>')}</script>
 
-<!-- Tambah manifest & user info hanya jika belum ada -->
-<script>window.__hasManifestLessons||(document.write('<script src="/elearn/manifest-lessons.js"><\/script>'),window.__hasManifestLessons=true);</script>
-<script>window.__hasUserInfo||(document.write('<script src="/elearn/userInfo.js"><\/script>'),window.__hasUserInfo=true);</script>
+  <!-- Tambah manifest & user info hanya jika belum ada -->
+  <script>window.__hasManifestLessons||(document.write('<script src="/elearn/manifest-lessons.js"><\/script>'),window.__hasManifestLessons=true);</script>
+  <script>window.__hasUserInfo||(document.write('<script src="/elearn/userInfo.js"><\/script>'),window.__hasUserInfo=true);</script>
 
-<!-- Tambah worksheet-submit hanya jika belum ada -->
-<script>window.__hasWorksheetSubmit||(document.write('<script src="/elearn/common/worksheet-submit.js"><\/script>'),window.__hasWorksheetSubmit=true);</script>
+  <!-- Tambah worksheet-submit hanya jika belum ada -->
+  <script>window.__hasWorksheetSubmit||(document.write('<script src="/elearn/common/worksheet-submit.js"><\/script>'),window.__hasWorksheetSubmit=true);</script>
 
-<script>
-  window.WORKSHEET_DEBUG = true;
+  <script>
+    window.WORKSHEET_DEBUG = true;
 
-  // Cari elemen target screenshot (prioritas canvas bila ada)
-  ;(function ensureScreenshotRoot(){
-    if (!document.getElementById('gameRoot') &&
-        !document.getElementById('shapeBoard') &&
-        !document.getElementById('canvasRoot')) {
-      // Bungkus seluruh isi body KECUALI finish-bar ke dalam #gameRoot
-      const wrap = document.createElement('div'); wrap.id = 'gameRoot';
-      const bar = document.querySelector('.finish-bar');
-      const bodyKids = Array.from(document.body.children).filter(n => n !== bar);
-      bodyKids.forEach(n => wrap.appendChild(n));
-      document.body.insertBefore(wrap, bar || null);
-    }
-  })();
+    ;(function ensureScreenshotRoot(){
+      if (!document.getElementById('gameRoot') &&
+          !document.getElementById('shapeBoard') &&
+          !document.getElementById('canvasRoot')) {
+        const wrap = document.createElement('div'); wrap.id = 'gameRoot';
+        const bar = document.querySelector('.finish-bar');
+        const bodyKids = Array.from(document.body.children).filter(n => n !== bar);
+        bodyKids.forEach(n => wrap.appendChild(n));
+        document.body.insertBefore(wrap, bar || null);
+      }
+    })();
 
-  // Init submitter
-  ;(function initSubmit(){
-    const info = (typeof getUserInfo === "function") ? getUserInfo() : {};
-    if (typeof initWorksheetSubmit === "function") {
-      initWorksheetSubmit({
-        muridUid: info.uid || "",
-        cid: info.cid || "",
-        namaAnak: info.nama || "",
-        role: (info.role || "").toLowerCase(),
+    ;(function initSubmit(){
+      const info = (typeof getUserInfo === "function") ? getUserInfo() : {};
+      if (typeof initWorksheetSubmit === "function") {
+        initWorksheetSubmit({
+          muridUid: info.uid || "",
+          cid: info.cid || "",
+          namaAnak: info.nama || "",
+          role: (info.role || "").toLowerCase(),
+          screenshotSelectorPriority: ['#shapeCanvas', '#gameCanvas', '#canvasRoot', '#shapeBoard', '#gameRoot']
+        });
+      } else {
+        console.warn("initWorksheetSubmit tidak ditemukan. Pastikan /elearn/common/worksheet-submit.js termuat.");
+      }
+    })();
+  </script>
 
-        // Opsi opsional khusus Shape:
-        // prioritas canvas screenshot jika ada:
-        screenshotSelectorPriority: ['#shapeCanvas', '#gameCanvas', '#canvasRoot', '#shapeBoard', '#gameRoot']
-      });
-    } else {
-      console.warn("initWorksheetSubmit tidak ditemukan. Pastikan /elearn/common/worksheet-submit.js termuat.");
-    }
-  })();
-</script>
 
+<script src="/elearn/common/calistung-navbar.js"></script>
 </body>
 </html>

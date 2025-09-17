@@ -1,409 +1,592 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Math Shooter</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    text-align: center;
-    background: #e0f7fa;
-    margin: 0;
-    padding: 0;
-  }
-  h1 {
-    margin-top: 20px;
-    color: #00796b;
-  }
-  #score {
-    font-size: 24px;
-    margin: 10px 0;
-    color: #004d40;
-  }
-  #question {
-    font-size: 22px;
-    margin: 6px 0 10px;
-    color: #00695c;
-  }
-  #gameCanvas {
-    background: #0b1320;
-    display: block;
-    margin: 0 auto;
-    border-radius: 10px;
-    border: 2px solid #004d40;
-  }
-  #restartBtn {
-    margin: 15px;
-    font-size: 18px;
-    padding: 8px 20px;
-    background-color: #00796b;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-  #restartBtn:hover {
-    background-color: #004d40;
-  }
-  #gameOverMessage {
-    font-size: 28px;
-    color: #d32f2f;
-    margin-top: 20px;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Math Shooter</title>
+  <link rel="stylesheet" href="/elearn/worlds/calistung/math-game/mathgame-shell.css" />
+  <style>
+    .shooter-stage {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      align-items: center;
+      text-align: center;
+      background: linear-gradient(180deg, rgba(11,19,32,0.92), rgba(9,18,30,0.88));
+      border: 1px solid rgba(94,234,212,0.25);
+    }
 
+    .shooter-info {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      color: #a5f3fc;
+    }
+
+    .shooter-info h2 {
+      margin: 0;
+      font-family: "Baloo 2", "Nunito", sans-serif;
+      font-size: 26px;
+      color: #5eead4;
+      text-shadow: 0 0 12px rgba(94,234,212,0.35);
+    }
+
+    .shooter-info p {
+      margin: 0;
+      color: rgba(179, 246, 255, 0.88);
+    }
+
+    .question-display {
+      font-size: 20px;
+      font-weight: 700;
+      color: #38bdf8;
+    }
+
+    canvas {
+      background: #0b1320;
+      border-radius: 14px;
+      border: 2px solid rgba(56, 189, 248, 0.35);
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45);
+      width: min(92vw, 540px);
+      height: min(100vw, 600px);
+      max-height: 600px;
+      touch-action: none;
+    }
+
+    .game-over {
+      font-size: 20px;
+      font-weight: 700;
+      color: #f87171;
+      min-height: 24px;
+    }
+  </style>
   <link rel="stylesheet" href="/elearn/worlds/calistung/buttons.css" />
 </head>
-<body>
-  <h1>Math Shooter</h1>
-  <div id="score">Score: 0</div>
-  <div id="question">Question: —</div>
-  <canvas id="gameCanvas" width="480" height="600"></canvas>
-  <br />
-  <button id="restartBtn">Restart Game</button>
-  <div id="gameOverMessage"></div>
+<body class="mathgame-shell theme-neon" data-nav-badge="Calistung Math" data-nav-home-url="/elearn/worlds/calistung/index.html">
+  <div class="shell-wrapper">
+    <header class="shell-header">
+      <div class="shell-header__title">
+        <span class="shell-badge">Level 12</span>
+        <h1 class="shell-title">Math Shooter</h1>
+        <p class="shell-subtitle">Tembak gelembung angka yang cocok dengan hasil soal. Hindari jawaban salah dan kejar skor tertinggi!</p>
+      </div>
+      <div class="shell-hud">
+        <div class="shell-pill">
+          <span class="shell-pill-label">Skor</span>
+          <span class="shell-pill-value" data-hud-value="score">0</span>
+        </div>
+        <div class="shell-pill">
+          <span class="shell-pill-label">Pertanyaan</span>
+          <span class="shell-pill-value" data-hud-value="question">—</span>
+        </div>
+        <div class="shell-pill">
+          <span class="shell-pill-label">Status</span>
+          <span class="shell-pill-value" data-hud-value="status">Ready</span>
+        </div>
+      </div>
+    </header>
 
-<script>
-(() => {
-  const canvas = document.getElementById('gameCanvas');
-  const ctx = canvas.getContext('2d');
-  const scoreEl = document.getElementById('score');
-  const questionEl = document.getElementById('question');
-  const restartBtn = document.getElementById('restartBtn');
-  const gameOverMessage = document.getElementById('gameOverMessage');
+    <section class="mission-card">
+      <h2>🎯 Misimu</h2>
+      <p data-mission-text>Selesaikan soal yang muncul, gerakkan kapal ke bawah angka yang benar, dan tembak balon jawabannya.</p>
+    </section>
 
-  const width = canvas.width;
-  const height = canvas.height;
+    <main class="mathgame-stage">
+      <section class="stage-card stage-card--contrast shooter-stage">
+        <div class="shooter-info">
+          <h2>Siap Menembak?</h2>
+          <p class="question-display" id="question">Soal: —</p>
+        </div>
+        <canvas id="gameCanvas" width="480" height="600"></canvas>
+        <div class="game-over" id="gameOverMessage"></div>
+      </section>
+    </main>
 
-  let startTime = performance.now();
+    <section class="shell-action-bar" aria-label="Kontrol aksi">
+      <button id="restartBtn" class="shell-button" type="button">🔄 Mulai Ulang</button>
+      <button id="btnSelesai" class="shell-button ghost" type="button">Selesai</button>
+    </section>
 
-  function drawHoloGrid(ctx, w, h, t) {
-    // Base dark fill (safety even if CSS bg missing)
-    const bg = ctx.createLinearGradient(0, 0, 0, h);
-    bg.addColorStop(0, '#0b1320');
-    bg.addColorStop(1, '#0f1c2e');
-    ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, w, h);
+    <aside class="buddy-widget" aria-label="Teman penyemangat">
+      <div class="buddy-avatar" data-buddy-emoji aria-hidden="true">🚀</div>
+      <div class="buddy-dialog" data-buddy-dialog>Gerakkan kapal ke bawah angka yang benar lalu tekan untuk menembak balon jawabannya.</div>
+    </aside>
+  </div>
+  <script src="/elearn/worlds/calistung/math-game/mathgame-shell.js"></script>
+  <script>
+  (() => {
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const questionEl = document.getElementById('question');
+    const restartBtn = document.getElementById('restartBtn');
+    const gameOverMessage = document.getElementById('gameOverMessage');
 
-    // Grid parameters
-    const spacing = 40; // px
-    const speed = 20;   // px/sec scroll for parallax
-    const offset = (t * speed) % spacing;
+    const hudScoreEl = document.querySelector('[data-hud-value="score"]');
+    const hudQuestionEl = document.querySelector('[data-hud-value="question"]');
+    const hudStatusEl = document.querySelector('[data-hud-value="status"]');
+    const buddyEmojiEl = document.querySelector('[data-buddy-emoji]');
+    const buddyDialogEl = document.querySelector('[data-buddy-dialog]');
 
-    // Grid glow style
-    ctx.save();
-    ctx.strokeStyle = 'rgba(0, 255, 255, 0.15)';
-    ctx.lineWidth = 1;
-    ctx.shadowColor = 'rgba(0, 255, 255, 0.35)';
-    ctx.shadowBlur = 6;
+    const width = canvas.width || 480;
+    const height = canvas.height || 600;
 
-    // Vertical lines
-    for (let x = -spacing + (spacing - offset); x < w + spacing; x += spacing) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, h);
-      ctx.stroke();
+    function ensureCanvasSize(){
+      const dpr = window.devicePixelRatio || 1;
+      const logicalW = canvas.width || Math.floor((canvas.clientWidth || 480) * dpr);
+      const logicalH = canvas.height || Math.floor((canvas.clientHeight || 600) * dpr);
+      if(!canvas.width || !canvas.height){
+        canvas.width = logicalW;
+        canvas.height = logicalH;
+      }
+      if(!canvas.clientWidth || !canvas.clientHeight){
+        canvas.style.width = '480px';
+        canvas.style.height = '600px';
+      }
     }
 
-    // Horizontal lines (slight perspective skew)
-    for (let y = -spacing + (spacing - offset); y < h + spacing; y += spacing) {
-      ctx.beginPath();
-      // skew factor to fake perspective
-      const skew = (y / h - 0.5) * 20; // -10..+10 px
-      ctx.moveTo(0 - skew, y);
-      ctx.lineTo(w + skew, y);
-      ctx.stroke();
+    function drawRoundedRectPath(ctx, x, y, w, h, r) {
+      if (typeof ctx.roundRect === 'function') {
+        ctx.roundRect(x, y, w, h, r);
+        return;
+      }
+      const radius = Math.max(0, Array.isArray(r) ? r[0] : r);
+      const right = x + w;
+      const bottom = y + h;
+
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(right - radius, y);
+      ctx.quadraticCurveTo(right, y, right, y + radius);
+      ctx.lineTo(right, bottom - radius);
+      ctx.quadraticCurveTo(right, bottom, right - radius, bottom);
+      ctx.lineTo(x + radius, bottom);
+      ctx.quadraticCurveTo(x, bottom, x, bottom - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
     }
 
-    // Central vignette glow
-    const rg = ctx.createRadialGradient(w * 0.5, h * 0.35, 10, w * 0.5, h * 0.35, Math.max(w, h) * 0.7);
-    rg.addColorStop(0, 'rgba(0, 255, 255, 0.10)');
-    rg.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    ctx.fillStyle = rg;
-    ctx.fillRect(0, 0, w, h);
+    let startTime = performance.now();
 
-    ctx.restore();
-  }
-
-  let balloons = [];
-  let currentQuestion = null;
-  let score = 0;
-  let gameOver = false;
-  let animationId;
-
-  function randomInt(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-  }
-
-  function generateQuestion() {
-    const a = randomInt(1, 20);
-    const b = randomInt(1, 20);
-    const add = Math.random() < 0.5;
-    let questionStr;
-    let answer;
-    if (add) {
-      questionStr = `${a} + ${b}`;
-      answer = a + b;
-    } else {
-      // ensure no negative answers
-      const max = Math.max(a, b);
-      const min = Math.min(a, b);
-      questionStr = `${max} - ${min}`;
-      answer = max - min;
-    }
-    // update UI text
-    questionEl.textContent = `Question: ${questionStr}`;
-    return { questionStr, answer };
-  }
-
-  function pickPalette() {
-    // neon/high-tech palettes (avoid using green to prevent hinting correctness)
-    const palettes = [
-      { base: '#7C4DFF', glow: '#B388FF', rim: '#311B92' }, // purple
-      { base: '#2979FF', glow: '#82B1FF', rim: '#0D47A1' }, // blue
-      { base: '#E040FB', glow: '#EA80FC', rim: '#6A1B9A' }, // magenta
-      { base: '#FF4081', glow: '#FF80AB', rim: '#AD1457' }  // pink
-    ];
-    return palettes[Math.floor(Math.random() * palettes.length)];
-  }
-
-  function drawOrb(ctx, x, y, r, palette) {
-    // radial glow
-    const g = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, r * 0.2, x, y, r);
-    g.addColorStop(0, palette.glow);
-    g.addColorStop(0.6, palette.base);
-    g.addColorStop(1, palette.rim);
-
-    // outer soft glow
-    ctx.save();
-    ctx.shadowColor = palette.glow;
-    ctx.shadowBlur = 12;
-
-    // main orb
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.fillStyle = g;
-    ctx.fill();
-
-    // ring
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
-    ctx.stroke();
-
-    // glossy highlight
-    ctx.beginPath();
-    ctx.ellipse(x - r * 0.25, y - r * 0.35, r * 0.35, r * 0.2, -0.4, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255,255,255,0.45)';
-    ctx.fill();
-
-    // small HUD tick marks (high-tech vibe)
-    ctx.beginPath();
-    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
-    ctx.lineWidth = 1;
-    for (let i = 0; i < 4; i++) {
-      const ang = (Math.PI / 2) * i;
-      const ix = x + Math.cos(ang) * (r * 0.7);
-      const iy = y + Math.sin(ang) * (r * 0.7);
-      const ox = x + Math.cos(ang) * (r * 0.9);
-      const oy = y + Math.sin(ang) * (r * 0.9);
-      ctx.moveTo(ix, iy);
-      ctx.lineTo(ox, oy);
-    }
-    ctx.stroke();
-
-    // string
-    ctx.beginPath();
-    ctx.moveTo(x, y + r);
-    ctx.quadraticCurveTo(x + r * 0.2, y + r * 1.5, x, y + r * 2);
-    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    ctx.restore();
-  }
-
-  class Balloon {
-    constructor(x, y, answer, isCorrect) {
-      this.x = x;
-      this.y = y;
-      this.radius = 34; // slightly bigger for readability
-      this.answer = answer;
-      this.isCorrect = isCorrect;
-      this.speed = randomInt(1, 3);
-      this.palette = pickPalette(); // do NOT hint correctness by color
-      this.popped = false;
-      this.x = x;
-      this.y = y;
+    function setBuddy(emoji, text){
+      if(buddyEmojiEl && emoji){ buddyEmojiEl.textContent = emoji; }
+      if(buddyDialogEl && text){ buddyDialogEl.textContent = text; }
+      if(window.mathgameShell && typeof window.mathgameShell.setBuddyMood === 'function'){
+        window.mathgameShell.setBuddyMood(emoji, text);
+      }
     }
 
-    draw(ctx) {
-      if (this.popped) return;
-      // high-tech neon orb
-      drawOrb(ctx, this.x, this.y, this.radius, this.palette);
-      // answer text with outline for contrast
+    function syncHud(status='Playing'){
+      const questionLabel = currentQuestion ? currentQuestion.questionStr : '—';
+      if(hudScoreEl) hudScoreEl.textContent = score;
+      if(hudQuestionEl) hudQuestionEl.textContent = questionLabel;
+      if(hudStatusEl) hudStatusEl.textContent = status;
+      if(window.mathgameShell && typeof window.mathgameShell.updateHud === 'function'){
+        window.mathgameShell.updateHud({ score, question: questionLabel, status });
+      }
+    }
+
+    function drawHoloGrid(ctx, w, h, t) {
+      const bg = ctx.createLinearGradient(0, 0, 0, h);
+      bg.addColorStop(0, '#0b1320');
+      bg.addColorStop(1, '#0f1c2e');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, w, h);
+
+      const spacing = 40;
+      const speed = 20;
+      const offset = (t * speed) % spacing;
+
       ctx.save();
-      ctx.font = 'bold 22px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = 'rgba(0,0,0,0.45)';
-      ctx.strokeText(this.answer, this.x, this.y);
-      ctx.fillStyle = '#ffffff';
-      ctx.fillText(this.answer, this.x, this.y);
+      ctx.strokeStyle = 'rgba(0, 255, 255, 0.15)';
+      ctx.lineWidth = 1;
+      ctx.shadowColor = 'rgba(0, 255, 255, 0.35)';
+      ctx.shadowBlur = 6;
+
+      for (let x = -spacing + (spacing - offset); x < w + spacing; x += spacing) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
+        ctx.stroke();
+      }
+
+      for (let y = -spacing + (spacing - offset); y < h + spacing; y += spacing) {
+        ctx.beginPath();
+        const skew = (y / h - 0.5) * 20;
+        ctx.moveTo(0 - skew, y);
+        ctx.lineTo(w + skew, y);
+        ctx.stroke();
+      }
+
+      const rg = ctx.createRadialGradient(w * 0.5, h * 0.35, 10, w * 0.5, h * 0.35, Math.max(w, h) * 0.7);
+      rg.addColorStop(0, 'rgba(0, 255, 255, 0.10)');
+      rg.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = rg;
+      ctx.fillRect(0, 0, w, h);
+
       ctx.restore();
     }
 
-    update() {
-      if (!this.popped) {
-        this.y += this.speed;
+    let balloons = [];
+    let currentQuestion = null;
+    let score = 0;
+    let gameOver = false;
+    let animationId;
+
+    function randomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function generateQuestion() {
+      const a = randomInt(1, 20);
+      const b = randomInt(1, 20);
+      const add = Math.random() < 0.5;
+      let questionStr;
+      let answer;
+      if (add) {
+        questionStr = `${a} + ${b}`;
+        answer = a + b;
+      } else {
+        const max = Math.max(a, b);
+        const min = Math.min(a, b);
+        questionStr = `${max} - ${min}`;
+        answer = max - min;
       }
+      questionEl.textContent = `Soal: ${questionStr}`;
+      currentQuestion = { questionStr, answer };
+      syncHud(gameOver ? 'Game Over' : 'Playing');
+      return currentQuestion;
     }
 
-    isClicked(mx, my) {
-      if (this.popped) return false;
-      const dx = mx - this.x;
-      const dy = my - this.y;
-      return dx * dx + dy * dy <= this.radius * this.radius;
-    }
-  }
-
-  function spawnBalloons() {
-    // Clear balloons array
-    balloons = [];
-
-    // One balloon with correct answer
-    const correctX = randomInt(50, width - 50);
-    balloons.push(new Balloon(correctX, -40, currentQuestion.answer, true));
-
-    // 3-4 balloons with wrong answers
-    const wrongAnswers = new Set();
-    while (wrongAnswers.size < 3) {
-      let wrongAnswer = randomInt(1, 40);
-      if (wrongAnswer !== currentQuestion.answer) wrongAnswers.add(wrongAnswer);
-    }
-    let positions = [];
-    while (positions.length < 3) {
-      let x = randomInt(50, width - 50);
-      if (Math.abs(x - correctX) > 60 && !positions.some(px => Math.abs(px - x) < 60)) {
-        positions.push(x);
-      }
-    }
-    let i = 0;
-    wrongAnswers.forEach(wrongAnswer => {
-      balloons.push(new Balloon(positions[i], -40, wrongAnswer, false));
-      i++;
-    });
-  }
-
-  function update(ts) {
-    if (gameOver) return;
-    const t = ((ts ?? performance.now()) - startTime) / 1000;
-
-    // Draw background hologram grid
-    drawHoloGrid(ctx, width, height, t);
-
-    for (let i = balloons.length - 1; i >= 0; i--) {
-      const balloon = balloons[i];
-      balloon.update();
-      balloon.draw(ctx);
-      // remove wrong balloons that move off-screen
-      if (!balloon.isCorrect && (balloon.y - balloon.radius > height)) {
-        balloons.splice(i, 1);
-      }
+    function pickPalette() {
+      const palettes = [
+        { base: '#7C4DFF', glow: '#B388FF', rim: '#311B92' },
+        { base: '#2979FF', glow: '#82B1FF', rim: '#0D47A1' },
+        { base: '#E040FB', glow: '#EA80FC', rim: '#6A1B9A' },
+        { base: '#FF4081', glow: '#FF80AB', rim: '#AD1457' }
+      ];
+      return palettes[Math.floor(Math.random() * palettes.length)];
     }
 
-    // Check if any correct balloon reached bottom (game over)
-    for (let balloon of balloons) {
-      if (!balloon.popped && balloon.isCorrect && balloon.y - balloon.radius > height) {
-        endGame();
+    function drawOrb(ctx, x, y, r, palette) {
+      if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(r)) {
         return;
       }
+      const g = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, r * 0.2, x, y, r);
+      g.addColorStop(0, palette.glow);
+      g.addColorStop(0.6, palette.base);
+      g.addColorStop(1, palette.rim);
+
+      ctx.save();
+      ctx.shadowColor = palette.glow;
+      ctx.shadowBlur = 12;
+
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fillStyle = g;
+      ctx.fill();
+
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.ellipse(x - r * 0.25, y - r * 0.35, r * 0.35, r * 0.2, -0.4, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,0.45)';
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.setLineDash([4, 8]);
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+      ctx.beginPath();
+      ctx.arc(x, y, r + 6, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.restore();
     }
 
-    animationId = requestAnimationFrame(update);
-  }
-
-  function endGame() {
-    gameOver = true;
-    gameOverMessage.textContent = `Game Over! Final Score: ${score}`;
-    cancelAnimationFrame(animationId);
-  }
-
-  function restartGame() {
-    score = 0;
-    gameOver = false;
-    gameOverMessage.textContent = '';
-    scoreEl.textContent = `Score: ${score}`;
-    nextQuestion();
-    update();
-  }
-
-  function nextQuestion() {
-    currentQuestion = generateQuestion();
-    spawnBalloons();
-  }
-
-  canvas.addEventListener('click', e => {
-    if (gameOver) return;
-    const rect = canvas.getBoundingClientRect();
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
-
-    for (let balloon of balloons) {
-      if (balloon.isClicked(mx, my)) {
-        if (balloon.isCorrect) {
-          score++;
-          balloon.popped = true;
-          scoreEl.textContent = `Score: ${score}`;
-          // spawn next wave
-          nextQuestion();
+    function createBalloons(correctAnswer) {
+      balloons = [];
+      const total = 5;
+      const correctIdx = randomInt(0, total - 1);
+      const used = new Set([correctAnswer]);
+      const rect = canvas.getBoundingClientRect();
+      const baseWidth = width || rect.width || 1;
+      const baseHeight = height || rect.height || 0;
+      for (let i = 0; i < total; i++) {
+        let value;
+        if (i === correctIdx) {
+          value = correctAnswer;
         } else {
-          score--;
-          if (score < 0) score = 0;
-          scoreEl.textContent = `Score: ${score}`;
-          balloon.popped = true;
+          do {
+            value = randomInt(1, 40);
+          } while (used.has(value));
+          used.add(value);
         }
-        break;
+        balloons.push({
+          x: (i + 1) * (baseWidth / (total + 1)),
+          y: -randomInt(80, 180),
+          radius: 32,
+          value,
+          speed: randomInt(60, 110) / 60,
+          palette: pickPalette(),
+          isCorrect: i === correctIdx,
+        });
       }
     }
-  });
 
-  restartBtn.addEventListener('click', () => {
-    cancelAnimationFrame(animationId);
+    const player = {
+      x: width / 2,
+      y: height - 80,
+      width: 100,
+      height: 18,
+      beamWidth: 120,
+      beamHeight: 220,
+      color: '#66e0ff',
+      speed: 240 / 60,
+      moveLeft: false,
+      moveRight: false,
+      beamActive: false
+    };
+
+    let projectiles = [];
+
+    function restartGame() {
+      ensureCanvasSize();
+      score = 0;
+      gameOver = false;
+      gameOverMessage.textContent = '';
+      player.x = width / 2;
+      projectiles = [];
+      setBuddy('🚀', 'Arahkan kapal ke bawah angka yang benar dan tembak balonnya.');
+      currentQuestion = generateQuestion();
+      createBalloons(currentQuestion.answer);
+      syncHud('Playing');
+      startTime = performance.now();
+      cancelAnimationFrame(animationId);
+      animationLoop();
+    }
+
+    function endGame(statusText) {
+      gameOver = true;
+      cancelAnimationFrame(animationId);
+      gameOverMessage.textContent = statusText;
+      setBuddy('😅', 'Game selesai. Coba tekan Mulai Ulang untuk latihan lagi!');
+      syncHud('Game Over');
+    }
+
+    function updatePlayer(dt) {
+      if (player.moveLeft) {
+        player.x -= player.speed * dt;
+      }
+      if (player.moveRight) {
+        player.x += player.speed * dt;
+      }
+      const halfWidth = player.width / 2;
+      player.x = Math.max(halfWidth, Math.min(width - halfWidth, player.x));
+    }
+
+    function drawPlayer(ctx) {
+      const x = player.x - player.width / 2;
+      const y = player.y - player.height / 2;
+      const w = player.width;
+      const h = player.height;
+      const radius = 8;
+
+      ctx.save();
+      ctx.fillStyle = '#0af';
+      ctx.shadowColor = '#0ff';
+      ctx.shadowBlur = 16;
+      ctx.beginPath();
+      drawRoundedRectPath(ctx, x, y, w, h, radius);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+
+      if (player.beamActive) {
+        const gradient = ctx.createLinearGradient(player.x, player.y, player.x, player.y - player.beamHeight);
+        gradient.addColorStop(0, 'rgba(102, 224, 255, 0.55)');
+        gradient.addColorStop(1, 'rgba(102, 224, 255, 0.02)');
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.moveTo(player.x - player.beamWidth / 2, player.y);
+        ctx.lineTo(player.x + player.beamWidth / 2, player.y);
+        ctx.lineTo(player.x, player.y - player.beamHeight);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+
+    function updateProjectiles(dt) {
+      projectiles = projectiles.filter(p => !p.remove);
+      projectiles.forEach(p => {
+        p.y -= p.speed * dt;
+        if (p.y < -10) p.remove = true;
+      });
+    }
+
+    function drawProjectiles(ctx) {
+      ctx.fillStyle = '#5eead4';
+      projectiles.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    function updateBalloons(dt) {
+      let missedCorrect = false;
+      const remaining = [];
+      balloons.forEach(b => {
+        b.y += b.speed * dt;
+        if (b.y - b.radius >= height + 40) {
+          if (b.isCorrect) {
+            missedCorrect = true;
+          }
+        } else if (!b.remove) {
+          remaining.push(b);
+        }
+      });
+      balloons = remaining;
+      if (!gameOver && missedCorrect) {
+        endGame('Aduh! Balon jawaban lolos.');
+      }
+    }
+
+    function drawBalloons(ctx) {
+      balloons.forEach(b => {
+        drawOrb(ctx, b.x, b.y, b.radius, b.palette);
+        ctx.fillStyle = '#fff';
+        ctx.font = '20px Nunito';
+        ctx.textAlign = 'center';
+        ctx.fillText(b.value, b.x, b.y + 6);
+      });
+    }
+
+    function checkCollisions() {
+      projectiles.forEach(p => {
+        balloons.forEach(b => {
+          const dx = p.x - b.x;
+          const dy = p.y - b.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < b.radius) {
+            p.remove = true;
+            b.remove = true;
+            if (b.value === currentQuestion.answer) {
+              score += 10;
+              setBuddy('🎯', 'Tepat sasaran! Lanjut ke soal berikutnya.');
+              projectiles = projectiles.filter(pr => !pr.remove);
+              balloons = balloons.filter(bl => !bl.remove);
+              currentQuestion = generateQuestion();
+              createBalloons(currentQuestion.answer);
+              syncHud('Playing');
+            } else {
+              endGame('Oops! Kamu menembak angka yang salah.');
+            }
+          }
+        });
+      });
+      balloons = balloons.filter(b => !b.remove);
+      projectiles = projectiles.filter(p => !p.remove);
+    }
+
+    function shoot() {
+      if (gameOver) return;
+      setBuddy('💥', 'Boom! Pastikan balon yang kamu tembak jawabannya benar.');
+      projectiles.push({ x: player.x, y: player.y - player.height / 2, speed: 420 / 60, remove: false });
+      player.beamActive = true;
+      setTimeout(() => { player.beamActive = false; }, 120);
+    }
+
+    function animationLoop(timestamp) {
+      const dt = (timestamp - startTime) / (1000 / 60);
+      startTime = timestamp;
+
+      drawHoloGrid(ctx, width, height, timestamp / 1000);
+      updatePlayer(dt);
+      updateProjectiles(dt);
+      updateBalloons(dt);
+      checkCollisions();
+
+      drawBalloons(ctx);
+      drawProjectiles(ctx);
+      drawPlayer(ctx);
+
+      if (!gameOver) {
+        animationId = requestAnimationFrame(animationLoop);
+      }
+    }
+
+    function onKeyDown(e) {
+      if (['ArrowLeft','ArrowRight',' ' , 'Spacebar'].includes(e.key)) e.preventDefault();
+      if (e.key === 'ArrowLeft') player.moveLeft = true;
+      if (e.key === 'ArrowRight') player.moveRight = true;
+      if (e.key === ' ' || e.key === 'Spacebar') shoot();
+    }
+
+    function onKeyUp(e) {
+      if (['ArrowLeft','ArrowRight',' ' , 'Spacebar'].includes(e.key)) e.preventDefault();
+      if (e.key === 'ArrowLeft') player.moveLeft = false;
+      if (e.key === 'ArrowRight') player.moveRight = false;
+    }
+
+    function setupTouchControls() {
+      canvas.addEventListener('pointerdown', onPointerDown);
+      canvas.addEventListener('pointermove', onPointerMove);
+      canvas.addEventListener('pointerup', onPointerUp);
+      canvas.addEventListener('pointercancel', onPointerUp);
+    }
+
+    function onPointerDown(e) {
+      const rect = canvas.getBoundingClientRect();
+      const x = (e.clientX - rect.left) * (width / rect.width);
+      const y = (e.clientY - rect.top) * (height / rect.height);
+      if (y > height * 0.6) {
+        shoot();
+      } else {
+        player.x = x;
+      }
+    }
+
+    function onPointerMove(e) {
+      if (e.buttons === 1) {
+        const rect = canvas.getBoundingClientRect();
+        const x = (e.clientX - rect.left) * (width / rect.width);
+        player.x = x;
+      }
+    }
+
+    function onPointerUp() {
+      player.moveLeft = false;
+      player.moveRight = false;
+    }
+
+    function gameLoopStart() {
+      window.addEventListener('keydown', onKeyDown);
+      window.addEventListener('keyup', onKeyUp);
+      setupTouchControls();
+      restartBtn.addEventListener('click', restartGame);
+      ensureCanvasSize();
     restartGame();
-  });
+    }
 
-  // Start game on load
-  restartGame();
-})();
-</script>
+    gameLoopStart();
+  })();
+  </script>
 
-<style>
-  .finish-bar { position: fixed; right: 16px; bottom: 16px; z-index: 1000; }
-  #btnSelesai { background: #22c55e; color: #fff; border: none; cursor: pointer; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4); }
-  #btnSelesai:hover { filter: brightness(1.05); }
-  #btnSelesai:active { transform: translateY(1px); }
-  @media (max-width: 480px) {
-    #btnSelesai { padding: 10px 14px; font-size: 15px; }
-  }
-</style>
-
-<div class="finish-bar"><button id="btnSelesai" type="button">Selesai</button></div>
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="/elearn/manifest-lessons.js"></script>
-<script src="/elearn/userInfo.js"></script>
-<script src="/elearn/common/worksheet-submit.js"></script>
-<script>
-  window.WORKSHEET_DEBUG = true;
-  window.WORKSHEET_META = { course_id: "mathgame-basic" };
-  const info = (typeof getUserInfo === "function") ? getUserInfo() : {};
-  initWorksheetSubmit({
-    muridUid: info.uid || "",
-    cid: info.cid || "",
-    namaAnak: info.nama || "",
-    role: (info.role || "").toLowerCase()
-  });
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="/elearn/manifest-lessons.js"></script>
+  <script src="/elearn/userInfo.js"></script>
+  <script src="/elearn/common/worksheet-submit.js"></script>
+  <script>
+    window.WORKSHEET_DEBUG = true;
+    window.WORKSHEET_META = { course_id: "mathgame-basic" };
+    const info = (typeof getUserInfo === "function") ? getUserInfo() : {};
+    initWorksheetSubmit({
+      muridUid: info.uid || "",
+      cid: info.cid || "",
+      namaAnak: info.nama || "",
+      role: (info.role || "").toLowerCase()
+    });
+  </script>
 </body>
 </html>

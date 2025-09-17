@@ -4,29 +4,27 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Shape L4 – Lengkapi Kotak Kosong</title>
+  <link rel="stylesheet" href="./shape-shell.css" />
   <style>
     :root { --ok:#22c55e; --warn:#f59e0b; --err:#ef4444; --ink:#0f172a; --muted:#64748b; --panel:#ffffff; --bg:#f6f8fc; }
     * { box-sizing: border-box; }
-    html,body { margin:0; height:100%; font-family: ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, Cantarell, Noto Sans, Ubuntu, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji"; color:var(--ink); background: radial-gradient(1200px 600px at 60% -10%, #eaf2ff 0%, #f6f8fc 60%, #f6f8fc 100%); }
 
-    .app { max-width: 980px; margin: 24px auto 80px; padding: 16px; }
-    .header { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
-    .title { font-weight:900; letter-spacing:.2px; }
-    .pill { padding:6px 10px; border-radius:999px; background:#eef2ff; color:#3730a3; font-weight:700; font-size:12px; }
+    .shape-card--panel{padding: clamp(18px, 4vw, 26px); background:linear-gradient(180deg, rgba(255,255,255,0.96), rgba(255,255,255,0.9)); }
+    .shape-shell__subtitle{max-width:620px}
 
     .board { display:grid; gap:16px; }
-    .row { background:var(--panel); border-radius:16px; padding:14px; box-shadow: 0 6px 24px rgba(15,23,42,.06); border:1px solid #eef2f7; }
-    .row-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
-    .row-title { font-weight:800; font-size:14px; color:var(--muted); }
+    .row { background:var(--panel); border-radius:20px; padding:18px; box-shadow: 0 12px 32px rgba(15,23,42,.08); border:1px solid #eef2f7; display:flex; flex-direction:column; gap:14px; }
+    .row-head { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+    .row-title { font-weight:800; font-size:15px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
 
-    .seq { display:grid; grid-template-columns: repeat(5, minmax(52px,1fr)); gap:10px; align-items:center; }
-    .cell { aspect-ratio: 1/1; background:#fff; border:2px dashed #dbe3f0; border-radius:12px; display:flex; align-items:center; justify-content:center; position:relative; }
+    .seq { display:grid; grid-template-columns: repeat(5, minmax(52px,1fr)); gap:12px; align-items:center; }
+    .cell { aspect-ratio: 1/1; background:#fff; border:2px dashed #dbe3f0; border-radius:16px; display:flex; align-items:center; justify-content:center; position:relative; }
     .cell.blank { background: repeating-linear-gradient(45deg,#fafcff,#fafcff 8px,#f0f4ff 8px,#f0f4ff 16px); border:2px dashed #9aa8c7; }
-    .qmark { font-weight:900; color:#94a3b8; font-size:22px; }
+    .qmark { font-weight:900; color:#94a3b8; font-size:24px; }
 
-    .choices { margin-top:12px; display:flex; gap:10px; flex-wrap:wrap; }
-    .choice { flex:0 0 auto; width:70px; height:70px; border-radius:14px; border:2px solid #e5eaf3; background:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:.15s transform ease, .15s box-shadow ease; }
-    .choice:hover { transform: translateY(-2px); box-shadow:0 8px 22px rgba(15,23,42,.10); }
+    .choices { display:flex; gap:10px; flex-wrap:wrap; }
+    .choice { flex:0 0 auto; width:70px; height:70px; border-radius:16px; border:2px solid #e5eaf3; background:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:.15s transform ease, .15s box-shadow ease; box-shadow:0 4px 16px rgba(15,23,42,.08); }
+    .choice:hover { transform: translateY(-2px); box-shadow:0 12px 24px rgba(15,23,42,.12); }
     .choice[aria-selected="true"] { outline: 3px solid #a5b4fc; }
     .choice.correct { outline:3px solid var(--ok); animation: pop .22s ease; }
     .choice.wrong { outline:3px solid var(--err); animation: shake .25s ease; }
@@ -34,37 +32,40 @@
     @keyframes pop { 0%{ transform:scale(.94);} 100%{ transform:scale(1);} }
     @keyframes shake { 0%{ transform:translateX(0);} 25%{ transform:translateX(-3px);} 50%{ transform:translateX(3px);} 75%{ transform:translateX(-2px);} 100%{ transform:translateX(0);} }
 
-    .toolbar { position:sticky; top:0; background:transparent; display:flex; gap:10px; justify-content:flex-end; margin-bottom:12px; }
-    .btn { border:0; border-radius:12px; padding:10px 14px; font-weight:800; cursor:pointer; background:#111827; color:#fff; }
-    .btn.ghost { background:#e9eefc; color:#111827; }
-    .score { margin-left:auto; padding:10px 0; font-weight:800; color:#475569; }
+    @media (max-width:720px){
+      .seq{grid-template-columns:repeat(3,minmax(0,1fr));}
+    }
 
-    .check-bar { position: fixed; right: 16px; bottom: 80px; z-index: 1000; }
-    #btnCheck { background: var(--ok); color:#fff; border: none; cursor: pointer; padding: 12px 16px; border-radius: 12px; font-weight: 800; font-size: 16px; box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35); }
-    #btnCheck[disabled] { opacity:.5; cursor:not-allowed; }
-
-    /* SVGs scale nicely */
     svg { width:70%; height:70%; }
+
+    .finish-bar { position: fixed; right: 16px; bottom: 24px; z-index: 1000; }
+    @media (max-width: 520px) {
+      .finish-bar { right: 12px; bottom: 18px; }
+    }
   </style>
 
   <link rel="stylesheet" href="/elearn/worlds/calistung/buttons.css" />
 </head>
-<body>
-  <div class="app">
-    <div class="header">
-      <span class="pill">Level • L4</span>
-      <h1 class="title">Silakan Lengkapi Kotak yang Kosong</h1>
-      <div class="score" id="score">0/6 benar</div>
-    </div>
+<body class="shape-shell" style="--shape-accent:#6366f1; --shape-accent-dark:#4338ca; --shape-secondary-bg:#0f172a; --shape-badge-bg:linear-gradient(135deg,#818cf8,#6366f1); --shape-badge-shadow:#4338ca; --shape-bg-radial-1:rgba(99,102,241,0.24); --shape-bg-radial-2:rgba(244,114,182,0.18); --shape-bg-base:var(--bg); --shape-bg-base-bottom:#dbeafe;" data-nav-badge="Calistung Shape" data-nav-home-url="/elearn/worlds/calistung/shape/index.html">
+  <div class="shape-game">
+    <header class="shape-card shape-card--frost shape-shell__header">
+      <span class="shape-shell__badge">Shape • Level 4</span>
+      <h1 class="shape-shell__title">Lengkapi Kotak yang Kosong</h1>
+      <p class="shape-shell__subtitle">Perhatikan pola pada setiap baris. Pilih ikon yang tepat untuk mengisi kotak bergaris agar urutannya kembali benar.</p>
+    </header>
 
-    <div class="toolbar">
-      <button class="btn ghost" id="btnShuffle" type="button">Acak Soal</button>
-    </div>
+    <section class="shape-card shape-card--panel shape-game__content">
+      <div class="shape-shell__hud" style="justify-content:space-between; gap:16px; flex-wrap:wrap;">
+        <div id="score" class="shape-chip">0/6 benar</div>
+        <div class="shape-shell__actions" style="display:flex; gap:12px; flex-wrap:wrap;">
+          <button class="shape-button secondary" id="btnShuffle" type="button">Acak Soal</button>
+          <button class="shape-button primary" id="btnCheck" type="button" disabled>Periksa Jawaban</button>
+        </div>
+      </div>
 
-    <div id="board" class="board" aria-live="polite"></div>
+      <div id="board" class="board" aria-live="polite"></div>
+    </section>
   </div>
-
-  <div class="check-bar"><button id="btnCheck" type="button" disabled>Periksa Jawaban</button></div>
 
   <script>
   // ===== Simple cute SVG icons (no emoji) =====
@@ -84,7 +85,7 @@
       <rect x="46" y="30" width="20" height="10" fill="#93c5fd"/>
       <rect x="53" y="24" width="6" height="8" fill="#3b82f6"/>
       <rect x="59" y="24" width="6" height="8" fill="#ef4444"/>
-      ${wheels()} 
+      ${wheels()}
     `),
 
     planeGreen: () => svg(`
@@ -141,7 +142,6 @@
   function wheel(x){ return `<circle cx="${x}" cy="66" r="6" fill="#111827"/>`; }
 
   // ===== Game Data =====
-  // Each row is a repeating pattern where one position is blank.
   const ROWS_BASE = [
     { name: 'Mobil',    pattern:['carRed','carPolice'],            choices:['carRed','carPolice','planeGreen'] },
     { name: 'Pesawat',  pattern:['planeGreen','planeYellow','planeGreen'], choices:['planeYellow','planeGreen','carRed'] },
@@ -167,23 +167,19 @@
       const wrap = el('div','row');
       wrap.dataset.index = idx;
 
-      // title
       const head = el('div','row-head');
       head.append(el('div','row-title',`Pola: ${row.name}`));
       wrap.append(head);
 
-      // sequence 5 cells
       const seq = el('div','seq');
       for(let i=0;i<5;i++){
         const cell = el('div','cell');
-        // Determine which icon should appear for non-blank cells
         if(i===row.missingIndex){ cell.classList.add('blank'); cell.innerHTML = `<span class="qmark">?</span>`; }
         else { const iconName = expectedIcon(row, i); cell.innerHTML = Icons[iconName](); }
         seq.append(cell);
       }
       wrap.append(seq);
 
-      // choices
       const choices = el('div','choices');
       row.choices.forEach(name=>{
         const ch = el('button','choice');
@@ -202,7 +198,6 @@
   }
 
   function expectedIcon(row, position){
-    // pattern repeats across positions 0..4
     const pat = row.pattern;
     return pat[position % pat.length];
   }
@@ -211,23 +206,19 @@
     const row = rows[rowIndex];
     if(row.solved) return;
 
-    // mark selection highlight
     const parent = btn.parentElement;
     [...parent.querySelectorAll('.choice')].forEach(x=>x.setAttribute('aria-selected','false'));
     btn.setAttribute('aria-selected','true');
 
     const correctName = expectedIcon(row, row.missingIndex);
     if(name === correctName){
-      // correct
       btn.classList.remove('wrong');
       btn.classList.add('correct');
       row.solved = true;
-      // fill blank cell
       const cell = btn.closest('.row').querySelector('.cell.blank');
       if(cell){ cell.classList.remove('blank'); cell.innerHTML = Icons[name](); cell.style.borderColor = 'var(--ok)'; }
       updateScore();
     } else {
-      // wrong
       btn.classList.remove('correct');
       btn.classList.add('wrong');
     }
@@ -248,7 +239,6 @@
   function el(tag, cls, text){ const n = document.createElement(tag); if(cls) n.className = cls; if(text) n.textContent = text; return n; }
   function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
 
-  // Init
   buildRows();
   renderBoard();
   document.getElementById('btnShuffle').addEventListener('click', shuffle);
@@ -256,62 +246,51 @@
     alert('Mantap! Semua pola sudah benar.');
   });
   </script>
-<style>
-  .finish-bar { position: fixed; right: 16px; bottom: 16px; z-index: 1000; }
-  #btnSelesai { background: #22c55e; color: #fff; border: none; cursor: pointer; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4); }
-  #btnSelesai:hover { filter: brightness(1.05); }
-  #btnSelesai:active { transform: translateY(1px); }
-  @media (max-width: 480px) { #btnSelesai { padding: 10px 14px; font-size: 15px; } }
-</style>
 
-<div class="finish-bar"><button id="btnSelesai" type="button">Selesai</button></div>
+  <div class="finish-bar"><button id="btnSelesai" class="shape-button success" type="button">Selesai</button></div>
 
-<!-- Tambah html2canvas hanya jika belum ada di halaman -->
-<script>if(!window.html2canvas){document.write('<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"><\/script>')}</script>
+  <!-- Tambah html2canvas hanya jika belum ada di halaman -->
+  <script>if(!window.html2canvas){document.write('<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"><\/script>')}</script>
 
-<!-- Tambah manifest & user info hanya jika belum ada -->
-<script>window.__hasManifestLessons||(document.write('<script src="/elearn/manifest-lessons.js"><\/script>'),window.__hasManifestLessons=true);</script>
-<script>window.__hasUserInfo||(document.write('<script src="/elearn/userInfo.js"><\/script>'),window.__hasUserInfo=true);</script>
+  <!-- Tambah manifest & user info hanya jika belum ada -->
+  <script>window.__hasManifestLessons||(document.write('<script src="/elearn/manifest-lessons.js"><\/script>'),window.__hasManifestLessons=true);</script>
+  <script>window.__hasUserInfo||(document.write('<script src="/elearn/userInfo.js"><\/script>'),window.__hasUserInfo=true);</script>
 
-<!-- Tambah worksheet-submit hanya jika belum ada -->
-<script>window.__hasWorksheetSubmit||(document.write('<script src="/elearn/common/worksheet-submit.js"><\/script>'),window.__hasWorksheetSubmit=true);</script>
+  <!-- Tambah worksheet-submit hanya jika belum ada -->
+  <script>window.__hasWorksheetSubmit||(document.write('<script src="/elearn/common/worksheet-submit.js"><\/script>'),window.__hasWorksheetSubmit=true);</script>
 
-<script>
-  window.WORKSHEET_DEBUG = true;
+  <script>
+    window.WORKSHEET_DEBUG = true;
 
-  // Cari elemen target screenshot (prioritas canvas bila ada)
-  ;(function ensureScreenshotRoot(){
-    if (!document.getElementById('gameRoot') &&
-        !document.getElementById('shapeBoard') &&
-        !document.getElementById('canvasRoot')) {
-      // Bungkus seluruh isi body KECUALI finish-bar ke dalam #gameRoot
-      const wrap = document.createElement('div'); wrap.id = 'gameRoot';
-      const bar = document.querySelector('.finish-bar');
-      const bodyKids = Array.from(document.body.children).filter(n => n !== bar);
-      bodyKids.forEach(n => wrap.appendChild(n));
-      document.body.insertBefore(wrap, bar || null);
-    }
-  })();
+    ;(function ensureScreenshotRoot(){
+      if (!document.getElementById('gameRoot') &&
+          !document.getElementById('shapeBoard') &&
+          !document.getElementById('canvasRoot')) {
+        const wrap = document.createElement('div'); wrap.id = 'gameRoot';
+        const bar = document.querySelector('.finish-bar');
+        const bodyKids = Array.from(document.body.children).filter(n => n !== bar);
+        bodyKids.forEach(n => wrap.appendChild(n));
+        document.body.insertBefore(wrap, bar || null);
+      }
+    })();
 
-  // Init submitter
-  ;(function initSubmit(){
-    const info = (typeof getUserInfo === "function") ? getUserInfo() : {};
-    if (typeof initWorksheetSubmit === "function") {
-      initWorksheetSubmit({
-        muridUid: info.uid || "",
-        cid: info.cid || "",
-        namaAnak: info.nama || "",
-        role: (info.role || "").toLowerCase(),
+    ;(function initSubmit(){
+      const info = (typeof getUserInfo === "function") ? getUserInfo() : {};
+      if (typeof initWorksheetSubmit === "function") {
+        initWorksheetSubmit({
+          muridUid: info.uid || "",
+          cid: info.cid || "",
+          namaAnak: info.nama || "",
+          role: (info.role || "").toLowerCase(),
+          screenshotSelectorPriority: ['#shapeCanvas', '#gameCanvas', '#canvasRoot', '#shapeBoard', '#gameRoot']
+        });
+      } else {
+        console.warn("initWorksheetSubmit tidak ditemukan. Pastikan /elearn/common/worksheet-submit.js termuat.");
+      }
+    })();
+  </script>
 
-        // Opsi opsional khusus Shape:
-        // prioritas canvas screenshot jika ada:
-        screenshotSelectorPriority: ['#shapeCanvas', '#gameCanvas', '#canvasRoot', '#shapeBoard', '#gameRoot']
-      });
-    } else {
-      console.warn("initWorksheetSubmit tidak ditemukan. Pastikan /elearn/common/worksheet-submit.js termuat.");
-    }
-  })();
-</script>
 
+<script src="/elearn/common/calistung-navbar.js"></script>
 </body>
 </html>

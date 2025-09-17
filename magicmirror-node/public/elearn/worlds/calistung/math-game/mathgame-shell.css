@@ -1,0 +1,496 @@
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Nunito:wght@600;700&display=swap');
+
+:root {
+  --shell-font-display: "Baloo 2", "Nunito", "Fredoka", "Poppins", sans-serif;
+  --shell-font-body: "Nunito", "Poppins", "Baloo 2", "Inter", "Avenir", sans-serif;
+  --shell-bg: radial-gradient(120% 120% at 50% 0%, #e0f2ff 0%, #b0d3ff 50%, #7c9fff 100%);
+  --shell-surface: rgba(255, 255, 255, 0.95);
+  --shell-surface-alt: rgba(255, 255, 255, 0.86);
+  --shell-border: rgba(84, 132, 255, 0.26);
+  --shell-ink: #1d2f4d;
+  --shell-accent: #3b82f6;
+  --shell-accent-soft: #bfdbfe;
+  --shell-accent-ink: #1d4ed8;
+  --shell-shadow: 0 28px 60px rgba(29, 78, 216, 0.28);
+  --shell-radius: 24px;
+}
+
+body.mathgame-shell {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--shell-bg);
+  font-family: var(--shell-font-body);
+  color: var(--shell-ink);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: clamp(16px, 3vw, 48px);
+  position: relative;
+  overflow-x: hidden;
+  gap: clamp(12px, 2vw, 20px);
+}
+
+body.mathgame-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.36) 0, rgba(255, 255, 255, 0) 42%),
+    radial-gradient(circle at 82% 14%, rgba(255, 255, 255, 0.46) 0, rgba(255, 255, 255, 0) 40%),
+    radial-gradient(circle at 50% 90%, rgba(255, 255, 255, 0.34) 0, rgba(255, 255, 255, 0) 45%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.shell-wrapper {
+  position: relative;
+  z-index: 1;
+  width: min(1100px, 100%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0.9) 100%);
+  border-radius: var(--shell-radius);
+  box-shadow: var(--shell-shadow);
+  border: 3px solid rgba(255, 255, 255, 0.55);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  backdrop-filter: blur(6px);
+}
+
+.shell-header {
+  padding: clamp(18px, 3vw, 32px);
+  background: linear-gradient(135deg, var(--shell-accent-soft) 0%, rgba(255, 255, 255, 0.9) 100%);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: clamp(12px, 2vw, 24px);
+}
+
+.shell-header__title {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 520px;
+}
+
+.shell-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--shell-accent-ink);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6), 0 6px 16px rgba(59, 130, 246, 0.26);
+  font-size: clamp(12px, 1.6vw, 14px);
+}
+
+.shell-title {
+  margin: 0;
+  font-family: var(--shell-font-display);
+  font-size: clamp(22px, 4vw, 34px);
+  color: var(--shell-accent-ink);
+  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.6);
+}
+
+.shell-subtitle {
+  margin: 0;
+  font-size: clamp(14px, 2.3vw, 18px);
+  color: rgba(29, 47, 77, 0.75);
+  line-height: 1.5;
+}
+
+.shell-hud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.shell-pill {
+  background: rgba(255, 255, 255, 0.94);
+  border-radius: 18px;
+  padding: 10px 16px;
+  box-shadow: 0 12px 20px rgba(15, 59, 113, 0.18);
+  border: 2px solid rgba(255, 255, 255, 0.75);
+  min-width: 116px;
+}
+
+.shell-pill-label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  font-weight: 700;
+  color: rgba(29, 47, 77, 0.65);
+}
+
+.shell-pill-value {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--shell-font-display);
+  font-size: clamp(18px, 3.2vw, 28px);
+  color: var(--shell-accent-ink);
+}
+
+.mission-card {
+  margin: 0 clamp(18px, 3vw, 32px);
+  transform: translateY(-14px);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.82));
+  border-radius: 22px;
+  padding: clamp(18px, 2.6vw, 26px);
+  box-shadow: 0 18px 40px rgba(15, 59, 113, 0.12);
+  border: 2px dashed rgba(59, 130, 246, 0.22);
+}
+
+.mission-card h2 {
+  margin: 0 0 10px;
+  font-family: var(--shell-font-display);
+  font-size: clamp(18px, 3vw, 26px);
+  color: var(--shell-accent-ink);
+}
+
+.mission-card p {
+  margin: 0;
+  line-height: 1.55;
+  font-size: clamp(14px, 2.4vw, 17px);
+}
+
+.mathgame-stage {
+  padding: clamp(16px, 3vw, 32px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(20px, 3.2vw, 32px);
+}
+
+.stage-card {
+  background: var(--shell-surface);
+  border-radius: 24px;
+  padding: clamp(18px, 3vw, 32px);
+  box-shadow: 0 20px 36px rgba(15, 59, 113, 0.16);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+}
+
+.stage-card h2 {
+  margin-top: 0;
+  font-family: var(--shell-font-display);
+  font-size: clamp(18px, 3vw, 24px);
+  color: var(--shell-accent-ink);
+}
+
+.stage-card + .stage-card {
+  margin-top: clamp(12px, 2vw, 18px);
+}
+
+.stage-card--center {
+  text-align: center;
+}
+
+.stage-card--frost {
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid rgba(255, 255, 255, 0.7);
+}
+
+.stage-stack {
+  display: grid;
+  gap: clamp(14px, 2vw, 22px);
+}
+
+.stage-grid {
+  display: grid;
+  gap: clamp(12px, 2vw, 20px);
+}
+
+.shell-action-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  padding: clamp(14px, 2.4vw, 22px);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.75));
+  border-top: 2px solid rgba(255, 255, 255, 0.7);
+}
+
+.shell-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 16px;
+  font-family: var(--shell-font-display);
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  padding: 12px 20px;
+  font-size: 16px;
+  border: none;
+  background: var(--shell-accent);
+  color: #fff;
+  box-shadow: 0 10px 20px rgba(59, 130, 246, 0.32);
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+
+.shell-button.secondary {
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--shell-accent-ink);
+  box-shadow: 0 10px 18px rgba(15, 59, 113, 0.18);
+}
+
+.shell-button.ghost {
+  background: transparent;
+  color: var(--shell-accent-ink);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  box-shadow: none;
+}
+
+.shell-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 28px rgba(59, 130, 246, 0.35);
+}
+
+.shell-button:active {
+  transform: translateY(0);
+  box-shadow: 0 8px 16px rgba(59, 130, 246, 0.28);
+}
+
+.buddy-widget {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 0 clamp(18px, 3vw, 30px) clamp(20px, 3vw, 34px);
+}
+
+.buddy-avatar {
+  width: 70px;
+  height: 70px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, var(--shell-accent), var(--shell-accent-soft));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 34px;
+  box-shadow: 0 14px 24px rgba(59, 130, 246, 0.28);
+}
+
+.buddy-dialog {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: 16px 20px;
+  box-shadow: 0 16px 28px rgba(15, 59, 113, 0.12);
+  font-size: clamp(14px, 2.3vw, 17px);
+  line-height: 1.6;
+}
+
+.fx-correct {
+  animation: fxPop 0.4s ease;
+  box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.2);
+}
+
+.fx-oops {
+  animation: fxShake 0.45s ease;
+}
+
+.fx-celebrate {
+  animation: fxCelebrate 0.8s ease;
+}
+
+@keyframes fxPop {
+  0% { transform: scale(0.85); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes fxShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+@keyframes fxCelebrate {
+  0% { filter: brightness(1); }
+  40% { filter: brightness(1.2); }
+  100% { filter: brightness(1); }
+}
+
+.mathgame-shell.theme-sunset {
+  --shell-bg: radial-gradient(120% 120% at 50% 0%, #ffe4f0 0%, #ffc9a7 45%, #ff9f8c 100%);
+  --shell-accent: #fb7185;
+  --shell-accent-soft: #fecdd3;
+  --shell-accent-ink: #be123c;
+  --shell-shadow: 0 28px 60px rgba(251, 113, 133, 0.32);
+  --shell-border: rgba(251, 113, 133, 0.26);
+}
+
+.mathgame-shell.theme-mint {
+  --shell-bg: radial-gradient(120% 120% at 50% 0%, #d8fff2 0%, #a8f0de 45%, #6cd1d6 100%);
+  --shell-accent: #22c55e;
+  --shell-accent-soft: #bbf7d0;
+  --shell-accent-ink: #15803d;
+  --shell-shadow: 0 28px 60px rgba(34, 197, 94, 0.28);
+  --shell-border: rgba(34, 197, 94, 0.2);
+}
+
+.mathgame-shell.theme-lilac {
+  --shell-bg: radial-gradient(120% 120% at 50% 0%, #f4e8ff 0%, #d7c6ff 45%, #a9a1ff 100%);
+  --shell-accent: #8b5cf6;
+  --shell-accent-soft: #ddd6fe;
+  --shell-accent-ink: #5b21b6;
+  --shell-shadow: 0 28px 60px rgba(139, 92, 246, 0.32);
+  --shell-border: rgba(139, 92, 246, 0.26);
+}
+
+.mathgame-shell.theme-neon {
+  --shell-bg: radial-gradient(140% 140% at 50% 0%, #0c1322 0%, #101a32 45%, #091629 100%);
+  --shell-surface: rgba(10, 20, 36, 0.92);
+  --shell-surface-alt: rgba(13, 27, 47, 0.86);
+  --shell-ink: #e0f6ff;
+  --shell-accent: #06b6d4;
+  --shell-accent-soft: rgba(13, 148, 136, 0.35);
+  --shell-accent-ink: #5eead4;
+  --shell-shadow: 0 28px 70px rgba(6, 182, 212, 0.28);
+  --shell-border: rgba(14, 165, 233, 0.35);
+  color: var(--shell-ink);
+}
+
+.mathgame-shell.theme-neon .shell-header,
+.mathgame-shell.theme-neon .mission-card,
+.mathgame-shell.theme-neon .stage-card,
+.mathgame-shell.theme-neon .shell-action-bar,
+.mathgame-shell.theme-neon .buddy-dialog {
+  background: rgba(10, 25, 38, 0.92);
+  border-color: rgba(94, 234, 212, 0.35);
+  color: var(--shell-ink);
+}
+
+.mathgame-shell.theme-neon .shell-badge,
+.mathgame-shell.theme-neon .shell-pill,
+.mathgame-shell.theme-neon .buddy-avatar {
+  background: rgba(9, 22, 41, 0.96);
+  color: var(--shell-ink);
+  box-shadow: 0 16px 24px rgba(6, 182, 212, 0.28);
+}
+
+.mathgame-shell.theme-neon .shell-button {
+  background: linear-gradient(135deg, #22d3ee, #38bdf8);
+  color: #0b1222;
+}
+
+.mathgame-shell.theme-neon .shell-button.secondary {
+  background: rgba(8, 25, 39, 0.9);
+  color: #5eead4;
+}
+
+@media (max-width: 820px) {
+  body.mathgame-shell {
+    padding: clamp(10px, 3vw, 24px);
+  }
+
+  .shell-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .shell-hud {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .mission-card {
+    margin: 0 clamp(12px, 4vw, 20px);
+    transform: none;
+  }
+
+  .buddy-widget {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .buddy-avatar {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+@media (max-width: 520px) {
+  .shell-action-bar {
+    justify-content: flex-start;
+  }
+
+  .shell-button {
+    width: 100%;
+  }
+}
+
+[data-hud-value] {
+  min-width: 32px;
+  text-align: right;
+}
+
+.stage-note {
+  font-size: 14px;
+  color: rgba(29, 47, 77, 0.68);
+  line-height: 1.5;
+}
+
+.stage-inline-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: clamp(12px, 2vw, 18px);
+}
+
+.stage-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 14px;
+  color: var(--shell-accent-ink);
+  box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.22);
+}
+
+.stage-card--contrast {
+  background: var(--shell-surface-alt);
+}
+
+.stage-section-title {
+  font-family: var(--shell-font-display);
+  margin: 0 0 12px;
+  font-size: clamp(17px, 2.6vw, 22px);
+}
+
+.stage-scrollable {
+  max-height: clamp(320px, 60vh, 500px);
+  overflow: auto;
+  padding-right: clamp(6px, 1vw, 12px);
+}
+
+.stage-scrollable::-webkit-scrollbar {
+  width: 10px;
+}
+
+.stage-scrollable::-webkit-scrollbar-track {
+  background: rgba(59, 130, 246, 0.08);
+  border-radius: 999px;
+}
+
+.stage-scrollable::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.32);
+  border-radius: 999px;
+}
+
+.shell-divider {
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(59, 130, 246, 0.24) 50%, rgba(255, 255, 255, 0) 100%);
+  margin: clamp(10px, 2vw, 18px) 0;
+}

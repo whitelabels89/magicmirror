@@ -4,9 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MG-L8a — Koding Pengurangan (Honeycomb)</title>
+  <link rel="stylesheet" href="/elearn/worlds/calistung/math-game/mathgame-shell.css" />
   <style>
-    :root{
-      --bg:#0f1226; /* dark indigo */
+    :root {
+      --bg:#0f1226;
       --panel:#171a33;
       --accent:#57b0ff;
       --accent-2:#78d0ff;
@@ -16,118 +17,255 @@
       --muted:#9fb1d6;
       --drop:#20254a;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; font-family: ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, Poppins, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+
+    .honey-stage {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .honey-stage__board {
       background: radial-gradient(1200px 700px at 20% 0%, #1b2148, #0f1226 60%);
-      color:var(--ink);
-    }
-    header{padding:20px 16px 0; text-align:center}
-    h1{margin:0; letter-spacing:0.5px; font-size:clamp(20px, 2.6vw, 30px)}
-    .subtitle{color:var(--muted); margin-top:6px; font-size:clamp(12px, 1.6vw, 14px)}
-
-    .game-wrap{
-      max-width:1100px; margin:18px auto; padding:16px; 
+      color: var(--ink);
+      border-radius: 20px;
+      padding: 18px;
+      display: grid;
+      gap: 18px;
     }
 
-    .hud{display:flex; gap:10px; justify-content:center; margin-bottom:12px}
-    .btn{
-      border:none; padding:12px 16px; border-radius:12px; cursor:pointer; font-weight:700;
-      background:linear-gradient(180deg, #2a3a77, #1a2356);
-      color:#fff; box-shadow:0 6px 0 #0a133d, inset 0 1px 0 rgba(255,255,255,0.15);
-      transition:transform .05s ease, box-shadow .05s ease; letter-spacing:.2px
-    }
-    .btn:active{transform:translateY(2px); box-shadow:0 4px 0 #0a133d}
-    .btn.secondary{background:linear-gradient(180deg, #31406e, #222c54)}
-
-    .board{
-      display:grid; 
-      grid-template-columns: 1fr clamp(12px,2vw,18px) 1fr; 
-      gap:18px; align-items:start;
+    .honey-hud {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
     }
 
-    /* Left column: problems */
-    .problems{display:flex; flex-direction:column; gap:14px}
-    .problem{
-      background:var(--panel); border-radius:16px; padding:12px 12px; 
-      display:grid; grid-template-columns:auto 24px auto 42px; align-items:center; gap:8px;
-      outline:1px solid #252a52; position:relative; min-height:96px
+    .btn {
+      border: none;
+      padding: 12px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 700;
+      background: linear-gradient(180deg, #2a3a77, #1a2356);
+      color: #fff;
+      box-shadow: 0 6px 0 #0a133d, inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      transition: transform .05s ease, box-shadow .05s ease, filter .05s ease;
     }
-    .sym{font-weight:900; color:var(--muted); text-align:center}
-    .dropzone{
-      width:42px; height:42px; border-radius:10px; background:var(--drop);
-      outline:2px dashed #4250a3; outline-offset:-6px; display:flex; align-items:center; justify-content:center; color:#7e8fd6; font-size:12px;
+
+    .btn:active { transform: translateY(2px); box-shadow: 0 4px 0 #0a133d; }
+    .btn.secondary { background: linear-gradient(180deg, #31406e, #222c54); }
+
+    .board {
+      display: grid;
+      grid-template-columns: 1fr clamp(12px,2vw,18px) 1fr;
+      gap: 18px;
+      align-items: start;
     }
-    .problem.ok{outline:2px solid var(--good)}
-    .problem.nope{outline:2px solid var(--bad)}
 
-    /* Right column: answers */
-    .answers{display:flex; flex-direction:column; gap:14px}
-    .card{
-      background:var(--panel); border-radius:16px; padding:10px; display:flex; align-items:center; justify-content:center;
-      min-height:96px; outline:1px solid #252a52; cursor:grab; user-select:none
+    .problems {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
     }
-    .card:active{cursor:grabbing}
-    .card.attached{opacity:.85; cursor:not-allowed}
 
-    /* Utility */
-    .note{color:var(--muted); font-size:12px; text-align:center; margin-top:8px}
+    .problem {
+      background: var(--panel);
+      border-radius: 16px;
+      padding: 12px 12px;
+      display: grid;
+      grid-template-columns: auto 24px auto 42px;
+      align-items: center;
+      gap: 8px;
+      outline: 1px solid #252a52;
+      position: relative;
+      min-height: 96px;
+    }
 
-    /* SVG sizing containers */
-    .cluster{width:160px; height:90px; display:flex; align-items:center; justify-content:center}
+    .sym {
+      font-weight: 900;
+      color: var(--muted);
+      text-align: center;
+    }
 
-    /* Toast */
-    .toast{ position:fixed; left:50%; transform:translateX(-50%); bottom:18px; background:#11162f; color:#dfe6ff; padding:10px 14px; border-radius:12px; box-shadow: 0 8px 30px rgba(0,0,0,.35); display:none }
-    .toast.show{ display:inline-block }
+    .dropzone {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: var(--drop);
+      outline: 2px dashed #4250a3;
+      outline-offset: -6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #7e8fd6;
+      font-size: 12px;
+    }
 
-    @media (max-width: 860px){
-      .board{ grid-template-columns: 1fr; }
-      .answers{ order:2 }
-      .problems{ order:1 }
+    .problem.ok { outline: 2px solid var(--good); }
+    .problem.nope { outline: 2px solid var(--bad); }
+
+    .answers {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--panel);
+      border-radius: 16px;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 96px;
+      outline: 1px solid #252a52;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .card:active { cursor: grabbing; }
+    .card.attached { opacity: .85; cursor: not-allowed; }
+
+    .cluster {
+      width: 160px;
+      height: 90px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .honey-note {
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 18px;
+      background: #11162f;
+      color: #dfe6ff;
+      padding: 10px 14px;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, .35);
+      display: none;
+      z-index: 10;
+    }
+
+    .toast.show { display: inline-block; }
+
+    @media (max-width: 860px) {
+      .board { grid-template-columns: 1fr; }
+      .answers { order: 2; }
+      .problems { order: 1; }
     }
   </style>
-
   <link rel="stylesheet" href="/elearn/worlds/calistung/buttons.css" />
 </head>
-<body>
-  <header>
-    <h1>KODING PENGURANGAN</h1>
-    <div class="subtitle">Hitung pengurangan bangun datar (honeycomb) lalu pasangkan dengan jawabannya yang tepat.</div>
-  </header>
+<body class="mathgame-shell theme-neon" data-nav-badge="Calistung Math" data-nav-home-url="/elearn/worlds/calistung/index.html">
+  <div class="shell-wrapper">
+    <header class="shell-header">
+      <div class="shell-header__title">
+        <span class="shell-badge">Level 8</span>
+        <h1 class="shell-title">Koding Pengurangan Honeycomb</h1>
+        <p class="shell-subtitle">Hitung sel honeycomb yang tersisa, lalu pasangkan kartu jawaban yang tepat ke setiap kotak drop.</p>
+      </div>
+      <div class="shell-hud">
+        <div class="shell-pill">
+          <span class="shell-pill-label">Jawaban Benar</span>
+          <span class="shell-pill-value" data-hud-value="score">0 / 5</span>
+        </div>
+        <div class="shell-pill">
+          <span class="shell-pill-label">Percobaan</span>
+          <span class="shell-pill-value" data-hud-value="attempts">0</span>
+        </div>
+      </div>
+    </header>
 
-  <div class="game-wrap">
-    <div class="hud">
-      <button id="btnCheck" class="btn">Periksa Jawaban</button>
-      <button id="btnShuffle" class="btn secondary">Acak Soal</button>
-    </div>
+    <section class="mission-card">
+      <h2>🎯 Misimu</h2>
+      <p data-mission-text>Tarik kartu jawaban atau tap untuk memilihnya, lalu isi setiap kotak pengurangan dengan hasil yang benar.</p>
+    </section>
 
-    <div class="board">
-      <div class="problems" id="problems"></div>
-      <div></div>
-      <div class="answers" id="answers"></div>
-    </div>
-    <div class="note">Tarik kartu jawaban ke kotak di tiap baris. Di HP: tap kartu lalu tap kotak tujuan.</div>
+    <main class="mathgame-stage">
+      <section class="stage-card stage-card--contrast honey-stage">
+        <div class="honey-stage__board">
+          <div class="board">
+            <div class="problems" id="problems"></div>
+            <div></div>
+            <div class="answers" id="answers"></div>
+          </div>
+          <p class="honey-note">Tarik kartu jawaban ke kotak di tiap baris. Di HP: tap kartu lalu tap kotak tujuan.</p>
+        </div>
+      </section>
+    </main>
+
+    <section class="shell-action-bar" aria-label="Kontrol aksi">
+      <button id="btnShuffle" class="shell-button secondary" type="button">🔄 Acak Soal</button>
+      <button id="btnCheck" class="shell-button" type="button">✅ Periksa Jawaban</button>
+      <button id="btnSelesai" class="shell-button ghost" type="button">Selesai</button>
+    </section>
+
+    <aside class="buddy-widget" aria-label="Teman penyemangat">
+      <div class="buddy-avatar" data-buddy-emoji aria-hidden="true">🐝</div>
+      <div class="buddy-dialog" data-buddy-dialog>Geser kartu jawaban ke sarang lebah yang pas. Hitung dulu ya sel yang tersisa.</div>
+    </aside>
   </div>
 
   <div class="toast" id="toast"></div>
 
+  <script src="/elearn/worlds/calistung/math-game/mathgame-shell.js"></script>
   <script>
-    // ========= Utility =========
     const $ = (sel, el=document)=>el.querySelector(sel);
     const $$ = (sel, el=document)=>Array.from(el.querySelectorAll(sel));
     const rand = (min,max)=>Math.floor(Math.random()*(max-min+1))+min;
 
+    const STATE = {
+      problems: [],
+      mapping: new Map(),
+      answers: []
+    };
+
+    const PROBLEM_COUNT = 5;
+
+    const hudScoreEl = document.querySelector('[data-hud-value="score"]');
+    const hudAttemptsEl = document.querySelector('[data-hud-value="attempts"]');
+    const buddyEmojiEl = document.querySelector('[data-buddy-emoji]');
+    const buddyDialogEl = document.querySelector('[data-buddy-dialog]');
+    const toastEl = document.getElementById('toast');
+
+    let attempts = 0;
+    let score = 0;
+    const defaultBuddyText = 'Pasangkan setiap hasil pengurangan dengan kartu sarang lebah yang benar.';
+
     function showToast(msg, ms=1600){
-      const t = $('#toast');
-      t.textContent = msg; t.classList.add('show');
+      toastEl.textContent = msg;
+      toastEl.classList.add('show');
       clearTimeout(showToast._id);
-      showToast._id = setTimeout(()=>t.classList.remove('show'), ms);
+      showToast._id = setTimeout(()=>toastEl.classList.remove('show'), ms);
     }
 
-    // ========= SVG Honeycomb =========
+    function setBuddy(emoji, text){
+      if(buddyEmojiEl && emoji){ buddyEmojiEl.textContent = emoji; }
+      if(buddyDialogEl && text){ buddyDialogEl.textContent = text; }
+      if(window.mathgameShell && typeof window.mathgameShell.setBuddyMood === 'function'){
+        window.mathgameShell.setBuddyMood(emoji, text);
+      }
+    }
+
+    function syncHud(){
+      const label = `${score} / ${PROBLEM_COUNT}`;
+      if(hudScoreEl) hudScoreEl.textContent = label;
+      if(hudAttemptsEl) hudAttemptsEl.textContent = attempts;
+      if(window.mathgameShell && typeof window.mathgameShell.updateHud === 'function'){
+        window.mathgameShell.updateHud({ score: label, attempts });
+      }
+    }
+
     function hexPoints(cx, cy, size){
-      // pointy-top hex
       const pts = [];
       for(let i=0;i<6;i++){
         const ang = Math.PI/180 * (60*i - 30);
@@ -139,7 +277,6 @@
     }
 
     function axialToPixel(q, r, size){
-      // pointy orientation
       const x = size * Math.sqrt(3) * (q + r/2);
       const y = size * 1.5 * r;
       return {x, y};
@@ -152,7 +289,6 @@
       svg.setAttribute('height','84');
 
       const order = [ {q:0,r:0}, {q:1,r:0}, {q:1,r:-1}, {q:0,r:-1}, {q:-1,r:0}, {q:-1,r:1}, {q:0,r:1} ];
-      // background subtle
       const bg = document.createElementNS(svg.namespaceURI,'rect');
       bg.setAttribute('x','-60'); bg.setAttribute('y','-52'); bg.setAttribute('width','120'); bg.setAttribute('height','104');
       bg.setAttribute('rx','14'); bg.setAttribute('fill','transparent');
@@ -162,7 +298,7 @@
         const {x, y} = axialToPixel(ax.q, ax.r, size);
         const poly = document.createElementNS(svg.namespaceURI,'polygon');
         poly.setAttribute('points', hexPoints(x, y, size));
-        const on = idx < coloredCount; // first N are blue
+        const on = idx < coloredCount;
         poly.setAttribute('fill', on ? '#64b2ff' : '#f0f4ff');
         poly.setAttribute('stroke', stroke);
         poly.setAttribute('stroke-width', '2');
@@ -171,35 +307,28 @@
       return svg;
     }
 
-    // ========= Game State =========
-    const STATE = {
-      problems: [], // {id, a, b, result}
-      mapping: new Map(), // problemId -> answerId
-      answers: [] // {id, value}
-    };
-
-    const PROBLEM_COUNT = 5;
+    function shuffle(arr){
+      for(let i=arr.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [arr[i],arr[j]] = [arr[j],arr[i]];
+      }
+      return arr;
+    }
 
     function genProblems(){
       STATE.problems = [];
       for(let i=0;i<PROBLEM_COUNT;i++){
-        const a = rand(2,7); // 2..7
-        const b = rand(0,a-1); // ensure non-negative
+        const a = rand(2,7);
+        const b = rand(0,a-1);
         STATE.problems.push({ id: `p${i+1}`, a, b, result: a-b });
       }
-      // generate answers from results then shuffle
       STATE.answers = STATE.problems.map((p,i)=>({ id:`a${i+1}`, value:p.result }));
-      // small chance of duplicates is OK — still match by value
       shuffle(STATE.answers);
       STATE.mapping.clear();
-    }
-
-    function shuffle(arr){
-      for(let i=arr.length-1;i>0;i--){
-        const j = Math.floor(Math.random()*(i+1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-      return arr;
+      attempts = 0;
+      score = 0;
+      syncHud();
+      setBuddy('🐝', defaultBuddyText);
     }
 
     function render(){
@@ -207,7 +336,6 @@
       const A = $('#answers');
       P.innerHTML = ''; A.innerHTML = '';
 
-      // Render problems
       STATE.problems.forEach(p=>{
         const row = document.createElement('div');
         row.className = 'problem'; row.dataset.pid = p.id;
@@ -225,7 +353,6 @@
         P.appendChild(row);
       });
 
-      // Render answers
       STATE.answers.forEach(ans=>{
         const card = document.createElement('div');
         card.className = 'card'; card.draggable = true; card.dataset.aid = ans.id; card.dataset.value = ans.value;
@@ -237,8 +364,7 @@
       });
     }
 
-    // ========= Drag & Drop =========
-    let selectedAid = null; // for tap-selection fallback
+    let selectedAid = null;
 
     function setupDraggable(el){
       el.addEventListener('dragstart', e=>{
@@ -249,10 +375,12 @@
         el.classList.remove('dragging');
       });
 
-      // Tap-to-select fallback for mobile
       el.addEventListener('click', ()=>{
-        // toggle selection
-        if(selectedAid === el.dataset.aid){ selectedAid=null; el.style.outline='1px solid #252a52'; return; }
+        if(selectedAid === el.dataset.aid){
+          selectedAid=null;
+          el.style.outline='1px solid #252a52';
+          return;
+        }
         $$('.card').forEach(c=>c.style.outline='1px solid #252a52');
         selectedAid = el.dataset.aid;
         el.style.outline='2px solid var(--accent)';
@@ -279,18 +407,15 @@
       const dz = $(`.dropzone[data-pid="${pid}"]`);
       if(!dz) return;
 
-      // if this dropzone already has a child, release it first
       const previous = dz.querySelector('.card');
       if(previous){ previous.classList.remove('attached'); $('#answers').appendChild(previous); }
 
-      // attach
       card.classList.add('attached');
       dz.textContent='';
       dz.appendChild(card);
       STATE.mapping.set(pid, aid);
     }
 
-    // ========= Check =========
     function check(){
       let correct=0;
       STATE.problems.forEach(p=>{
@@ -301,49 +426,50 @@
         const value = parseInt($(`.card[data-aid="${aid}"]`).dataset.value,10);
         if(value === p.result){ row.classList.add('ok'); correct++; } else { row.classList.add('nope'); }
       });
-      if(correct===STATE.problems.length){ showToast('Perfect! Semua benar! 🎉'); confettiLite(); }
-      else showToast(`${correct}/${STATE.problems.length} benar. Coba lagi!`);
+      score = correct;
+      attempts += 1;
+      if(correct===STATE.problems.length){
+        showToast('Perfect! Semua benar! 🎉');
+        setBuddy('🏆', 'Semua hasil pengurangannya pas! Kamu jago banget.');
+      } else {
+        showToast(`${correct}/${STATE.problems.length} benar. Coba lagi!`);
+        setBuddy('🤔', 'Masih ada yang belum cocok. Coba tukar kartunya lagi, ya!');
+      }
+      syncHud();
     }
 
-    function confettiLite(){
-      // ultra light confetti: just flash borders
-      document.body.animate([{filter:'brightness(1)'},{filter:'brightness(1.3)'},{filter:'brightness(1)'}],{duration:480});
+    function shuffleAll(){
+      genProblems();
+      render();
+      showToast('Soal diacak ✅');
+      setBuddy('🎲', 'Sarang lebahnya berubah! Cocokkan lagi hasilnya.');
+      syncHud();
     }
 
-    // ========= Shuffle =========
-    function shuffleAll(){ genProblems(); render(); showToast('Soal diacak ✅'); }
-
-    // ========= Boot =========
     $('#btnCheck').addEventListener('click', check);
     $('#btnShuffle').addEventListener('click', shuffleAll);
-    genProblems(); render();
+
+    genProblems();
+    render();
+    syncHud();
+    setBuddy('🐝', defaultBuddyText);
   </script>
 
-<style>
-  .finish-bar { position: fixed; right: 16px; bottom: 16px; z-index: 1000; }
-  #btnSelesai { background: #22c55e; color: #fff; border: none; cursor: pointer; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4); }
-  #btnSelesai:hover { filter: brightness(1.05); }
-  #btnSelesai:active { transform: translateY(1px); }
-  @media (max-width: 480px) {
-    #btnSelesai { padding: 10px 14px; font-size: 15px; }
-  }
-</style>
-
-<div class="finish-bar"><button id="btnSelesai" type="button">Selesai</button></div>
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="/elearn/manifest-lessons.js"></script>
-<script src="/elearn/userInfo.js"></script>
-<script src="/elearn/common/worksheet-submit.js"></script>
-<script>
-  window.WORKSHEET_DEBUG = true;
-  window.WORKSHEET_META = { course_id: "mathgame-basic" };
-  const info = (typeof getUserInfo === "function") ? getUserInfo() : {};
-  initWorksheetSubmit({
-    muridUid: info.uid || "",
-    cid: info.cid || "",
-    namaAnak: info.nama || "",
-    role: (info.role || "").toLowerCase()
-  });
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="/elearn/manifest-lessons.js"></script>
+  <script src="/elearn/userInfo.js"></script>
+  <script src="/elearn/common/worksheet-submit.js"></script>
+  <script>
+    window.WORKSHEET_DEBUG = true;
+    window.WORKSHEET_META = { course_id: "mathgame-basic" };
+    const info = (typeof getUserInfo === "function") ? getUserInfo() : {};
+    initWorksheetSubmit({
+      muridUid: info.uid || "",
+      cid: info.cid || "",
+      namaAnak: info.nama || "",
+      role: (info.role || "").toLowerCase()
+    });
+  </script>
+  <script src="/elearn/common/calistung-navbar.js"></script>
 </body>
 </html>

@@ -3,74 +3,147 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Game Perkalian Hewan</title>
+  <title>MG-L9 — Perkalian Hewan</title>
+  <link rel="stylesheet" href="/elearn/worlds/calistung/math-game/mathgame-shell.css" />
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f0f8ff;
-      margin: 0;
-      padding: 0;
+    .animal-stage {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .animal-legend {
       display: flex;
       justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-    }
-    .container {
-      background: #fff;
-      border-radius: 10px;
-      padding: 20px;
-      width: 95%;
-      max-width: 500px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      text-align: center;
-    }
-    .row {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin: 10px 0;
       flex-wrap: wrap;
+      gap: 14px;
     }
-    .emoji {
+
+    .legend-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 14px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 10px 20px rgba(59, 130, 246, 0.12);
+      border: 2px solid rgba(148, 163, 184, 0.28);
+      min-width: 90px;
+    }
+
+    .legend-card span {
       font-size: 40px;
-      margin: 0 5px;
+      line-height: 1;
     }
-    input[type="number"] {
-      width: 60px;
-      font-size: 18px;
-      margin: 0 8px;
+
+    .legend-card small {
+      font-weight: 700;
+      color: rgba(15, 23, 42, 0.75);
+    }
+
+    .animal-questions {
+      display: grid;
+      gap: 14px;
+    }
+
+    .animal-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: 22px;
+      font-weight: 700;
+      color: rgba(15, 23, 42, 0.9);
+    }
+
+    .animal-row .emoji {
+      font-size: 44px;
+    }
+
+    .animal-row input[type="number"] {
+      width: 80px;
+      font-size: 22px;
       text-align: center;
-      padding: 5px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      border: 2px solid rgba(59, 130, 246, 0.35);
+      box-shadow: 0 10px 18px rgba(59, 130, 246, 0.15);
+      transition: border-color .18s ease, box-shadow .18s ease;
     }
-    button {
-      margin-top: 15px;
-      padding: 10px 20px;
-      font-size: 16px;
-      background-color: #4caf50;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
+
+    .animal-row input[type="number"]:focus {
+      outline: none;
+      border-color: var(--shell-accent);
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
     }
-    .result {
-      margin-top: 10px;
-      font-weight: bold;
+
+    .animal-result {
+      text-align: center;
+      font-weight: 700;
+      color: rgba(15, 23, 42, 0.8);
+      font-size: 18px;
+      min-height: 28px;
+    }
+
+    @media (max-width: 520px) {
+      .animal-row {
+        font-size: 20px;
+      }
+      .animal-row .emoji {
+        font-size: 36px;
+      }
     }
   </style>
-
   <link rel="stylesheet" href="/elearn/worlds/calistung/buttons.css" />
 </head>
-<body>
-  <div class="container">
-    <h2>Perkalian Hewan Sesuai Petunjuk</h2>
-    <div class="row" id="legend"></div>
-    <hr>
-    <div id="questions"></div>
-    <button onclick="generateQuestions()">Acak Soal</button>
-    <button onclick="checkAnswers()">Cek Jawaban</button>
-    <div class="result" id="resultBox"></div>
-  </div>
+<body class="mathgame-shell theme-lilac" data-nav-badge="Calistung Math" data-nav-home-url="/elearn/worlds/calistung/index.html">
+  <div class="shell-wrapper">
+    <header class="shell-header">
+      <div class="shell-header__title">
+        <span class="shell-badge">Level 9</span>
+        <h1 class="shell-title">Perkalian Hewan Sesuai Petunjuk</h1>
+        <p class="shell-subtitle">Gunakan legenda nilai hewan, lalu isi hasil perkalian setiap pasangan di kotak jawaban.</p>
+      </div>
+      <div class="shell-hud">
+        <div class="shell-pill">
+          <span class="shell-pill-label">Jawaban Benar</span>
+          <span class="shell-pill-value" data-hud-value="score">0 / 6</span>
+        </div>
+        <div class="shell-pill">
+          <span class="shell-pill-label">Percobaan</span>
+          <span class="shell-pill-value" data-hud-value="attempts">0</span>
+        </div>
+      </div>
+    </header>
 
+    <section class="mission-card">
+      <h2>🎯 Misimu</h2>
+      <p data-mission-text>Baca legenda nilai hewan, kalikan setiap pasangan hewan, lalu tuliskan hasilnya di semua kotak.</p>
+    </section>
+
+    <main class="mathgame-stage">
+      <section class="stage-card stage-card--contrast animal-stage">
+        <div class="animal-legend" id="legend" aria-label="Legenda nilai hewan"></div>
+        <div class="shell-divider" aria-hidden="true"></div>
+        <div class="animal-questions" id="questions" aria-live="polite"></div>
+        <p class="animal-result" id="resultBox">Tulis hasil perkalian di setiap kotak.</p>
+      </section>
+    </main>
+
+    <section class="shell-action-bar" aria-label="Kontrol aksi">
+      <button id="btnShuffle" class="shell-button secondary" type="button">🔄 Acak Soal</button>
+      <button id="btnCheck" class="shell-button" type="button">✅ Cek Jawaban</button>
+      <button id="btnSelesai" class="shell-button ghost" type="button">Selesai</button>
+    </section>
+
+    <aside class="buddy-widget" aria-label="Teman penyemangat">
+      <div class="buddy-avatar" data-buddy-emoji aria-hidden="true">🦊</div>
+      <div class="buddy-dialog" data-buddy-dialog>Kalikan pasangan hewan sesuai nilainya. Isi semua jawabannya, ya!</div>
+    </aside>
+  </div>
+  <script src="/elearn/worlds/calistung/math-game/mathgame-shell.js"></script>
   <script>
     const animalMap = [
       { emoji: "🐯", value: 1 },
@@ -82,6 +155,40 @@
 
     const questionCount = 6;
 
+    const legendEl = document.getElementById('legend');
+    const questionsEl = document.getElementById('questions');
+    const resultBox = document.getElementById('resultBox');
+    const btnShuffle = document.getElementById('btnShuffle');
+    const btnCheck = document.getElementById('btnCheck');
+
+    const hudScoreEl = document.querySelector('[data-hud-value="score"]');
+    const hudAttemptsEl = document.querySelector('[data-hud-value="attempts"]');
+    const buddyEmojiEl = document.querySelector('[data-buddy-emoji]');
+    const buddyDialogEl = document.querySelector('[data-buddy-dialog]');
+
+    let questions = [];
+    let score = 0;
+    let attempts = 0;
+
+    const defaultBuddyText = 'Kalikan nilai dua hewan. Isi semua hasilnya di kotak agar buddy memberi tepuk tangan!';
+
+    function setBuddy(emoji, text){
+      if(buddyEmojiEl && emoji){ buddyEmojiEl.textContent = emoji; }
+      if(buddyDialogEl && text){ buddyDialogEl.textContent = text; }
+      if(window.mathgameShell && typeof window.mathgameShell.setBuddyMood === 'function'){
+        window.mathgameShell.setBuddyMood(emoji, text);
+      }
+    }
+
+    function syncHud(){
+      const label = `${score} / ${questionCount}`;
+      if(hudScoreEl) hudScoreEl.textContent = label;
+      if(hudAttemptsEl) hudAttemptsEl.textContent = attempts;
+      if(window.mathgameShell && typeof window.mathgameShell.updateHud === 'function'){
+        window.mathgameShell.updateHud({ score: label, attempts });
+      }
+    }
+
     function getRandomPair() {
       const a = animalMap[Math.floor(Math.random() * animalMap.length)];
       let b;
@@ -91,34 +198,51 @@
       return [a.emoji, b.emoji];
     }
 
-    let questions = [];
-
     function generateLegend() {
-      const legend = document.getElementById("legend");
+      legendEl.innerHTML = '';
       animalMap.forEach(a => {
-        const span = document.createElement("span");
-        span.className = "emoji";
-        span.textContent = `${a.emoji} = ${a.value}`;
-        legend.appendChild(span);
+        const card = document.createElement('div');
+        card.className = 'legend-card';
+        const emoji = document.createElement('span');
+        emoji.textContent = a.emoji;
+        const value = document.createElement('small');
+        value.textContent = `= ${a.value}`;
+        card.append(emoji, value);
+        legendEl.appendChild(card);
       });
     }
 
+    function buildQuestionRow(a1, a2) {
+      const row = document.createElement('div');
+      row.className = 'animal-row';
+      row.innerHTML = `
+        <span class="emoji" aria-hidden="true">${a1}</span>
+        <span>×</span>
+        <span class="emoji" aria-hidden="true">${a2}</span>
+        <span>=</span>
+      `;
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.className = 'answer';
+      input.setAttribute('aria-label', `Jawaban untuk ${a1} dikali ${a2}`);
+      row.appendChild(input);
+      return row;
+    }
+
     function generateQuestions() {
-      const qDiv = document.getElementById("questions");
-      qDiv.innerHTML = "";
       questions = [];
+      questionsEl.innerHTML = '';
       for (let i = 0; i < questionCount; i++) {
         const [a1, a2] = getRandomPair();
         questions.push([a1, a2]);
-
-        const row = document.createElement("div");
-        row.className = "row";
-        row.innerHTML = `
-          <span class="emoji">${a1}</span> × <span class="emoji">${a2}</span> =
-          <input type="number" class="answer" />
-        `;
-        qDiv.appendChild(row);
+        questionsEl.appendChild(buildQuestionRow(a1, a2));
       }
+      resultBox.textContent = 'Tulis hasil perkalian di setiap kotak.';
+      resultBox.classList.remove('fx-celebrate');
+      score = 0;
+      attempts = 0;
+      setBuddy('🦊', defaultBuddyText);
+      syncHud();
     }
 
     function getValue(emoji) {
@@ -126,51 +250,68 @@
     }
 
     function checkAnswers() {
-      const inputs = document.querySelectorAll(".answer");
-      let correct = 0;
+      const inputs = document.querySelectorAll('.answer');
+      score = 0;
+      attempts += 1;
+
       inputs.forEach((input, idx) => {
         const [a1, a2] = questions[idx];
         const expected = getValue(a1) * getValue(a2);
-        const user = parseInt(input.value);
+        const user = parseInt(input.value, 10);
         if (user === expected) {
-          correct++;
-          input.style.backgroundColor = "#c8f7c5";
+          score++;
+          input.style.backgroundColor = '#d1fae5';
         } else {
-          input.style.backgroundColor = "#f7c5c5";
+          input.style.backgroundColor = '#fee2e2';
         }
       });
-      document.getElementById("resultBox").innerText = `Jawaban benar: ${correct} dari ${questions.length}`;
+
+      if (score === questions.length) {
+        resultBox.textContent = `Hebat! Semua benar (${score}/${questions.length}).`;
+        resultBox.classList.add('fx-celebrate');
+        setBuddy('🏆', 'Kamu sudah mahir mengalikan hewan-hewan lucu ini!');
+      } else if (score >= Math.ceil(questions.length / 2)) {
+        resultBox.textContent = `Bagus! ${score} dari ${questions.length} benar. Tinggal sedikit lagi!`;
+        resultBox.classList.remove('fx-celebrate');
+        setBuddy('✨', 'Tinggal sedikit lagi sempurna, semangat!');
+      } else {
+        resultBox.textContent = `Baru ${score} yang benar. Yuk cek lagi perkaliannya.`;
+        resultBox.classList.remove('fx-celebrate');
+        setBuddy('🤔', 'Coba bandingkan lagi nilainya di legenda, pasti bisa!');
+      }
+
+      syncHud();
     }
+
+    btnShuffle.addEventListener('click', () => {
+      generateQuestions();
+      resultBox.textContent = 'Soal diacak 🎲. Tulis lagi hasilnya yuk!';
+      resultBox.classList.remove('fx-celebrate');
+      setBuddy('🎲', 'Pasangan hewannya baru! Isi lagi hasil perkaliannya.');
+      syncHud();
+    });
+
+    btnCheck.addEventListener('click', checkAnswers);
 
     generateLegend();
     generateQuestions();
   </script>
 
-<style>
-  .finish-bar { position: fixed; right: 16px; bottom: 16px; z-index: 1000; }
-  #btnSelesai { background: #22c55e; color: #fff; border: none; cursor: pointer; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4); }
-  #btnSelesai:hover { filter: brightness(1.05); }
-  #btnSelesai:active { transform: translateY(1px); }
-  @media (max-width: 480px) {
-    #btnSelesai { padding: 10px 14px; font-size: 15px; }
-  }
-</style>
-
-<div class="finish-bar"><button id="btnSelesai" type="button">Selesai</button></div>
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="/elearn/manifest-lessons.js"></script>
-<script src="/elearn/userInfo.js"></script>
-<script src="/elearn/common/worksheet-submit.js"></script>
-<script>
-  window.WORKSHEET_DEBUG = true;
-  window.WORKSHEET_META = { course_id: "mathgame-basic" };
-  const info = (typeof getUserInfo === "function") ? getUserInfo() : {};
-  initWorksheetSubmit({
-    muridUid: info.uid || "",
-    cid: info.cid || "",
-    namaAnak: info.nama || "",
-    role: (info.role || "").toLowerCase()
-  });
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="/elearn/manifest-lessons.js"></script>
+  <script src="/elearn/userInfo.js"></script>
+  <script src="/elearn/common/worksheet-submit.js"></script>
+  <script>
+    window.WORKSHEET_DEBUG = true;
+    window.WORKSHEET_META = { course_id: "mathgame-basic" };
+    const info = (typeof getUserInfo === "function") ? getUserInfo() : {};
+    initWorksheetSubmit({
+      muridUid: info.uid || "",
+      cid: info.cid || "",
+      namaAnak: info.nama || "",
+      role: (info.role || "").toLowerCase()
+    });
+  </script>
+  <script src="/elearn/common/calistung-navbar.js"></script>
 </body>
 </html>

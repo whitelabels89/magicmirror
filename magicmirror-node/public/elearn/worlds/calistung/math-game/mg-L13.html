@@ -1,121 +1,179 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
   <meta charset="UTF-8" />
   <title>Math Game L13 – Neon Catch</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/elearn/worlds/calistung/math-game/mathgame-shell.css" />
   <style>
-    :root{
-      --neon:#00ffe0;
-      --accent:#9eff00;
-      --danger:#ff4d6d;
-      --bg:#0b0f14;
+    .neon-stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      text-align: center;
     }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family: Inter, Arial, sans-serif;
-      background: radial-gradient(1200px 600px at 50% 0%, #0f1a22 0%, var(--bg) 60%);
-      color:#eaf7ff;
-      text-align:center;
-      min-height:100vh;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-    }
-    header{
-      width:100%;
-      max-width:900px;
-      padding:14px 16px 0;
-    }
-    h1{
-      margin:6px 0 2px;
-      font-size: clamp(20px, 3vw, 28px);
-      letter-spacing: .5px;
-      color:#cfefff;
-      text-shadow: 0 0 10px rgba(0,255,224,.35);
-    }
-    #question{
-      font-size: clamp(18px, 2.5vw, 24px);
-      margin:6px 0 10px;
-      color:#b7fffb;
-    }
-    .hud{
-      display:flex;justify-content:space-between;align-items:center;
-      gap:8px;margin:6px auto 8px;max-width:900px;padding:0 16px;
-      font-size:14px;color:#a9c8d6;
-    }
-    .hud .pill{
-      border:1px solid rgba(0,255,224,.35);
-      border-radius:999px;padding:6px 10px;display:inline-flex;
-      align-items:center;gap:8px;box-shadow: inset 0 0 12px rgba(0,255,224,.12);
-      background: rgba(0, 20, 25, .5);
-    }
-    .hearts{letter-spacing:4px;color:var(--danger)}
-    .btn{
-      appearance:none;border:1px solid rgba(0,255,224,.45);
-      background: linear-gradient(180deg, rgba(0,255,224,.18), rgba(0,40,45,.3));
-      box-shadow: 0 0 12px rgba(0,255,224,.15), inset 0 0 12px rgba(0,255,224,.12);
-      color:#dff; padding:8px 14px;border-radius:10px;cursor:pointer;
-      font-weight:600; letter-spacing:.2px; transition:.15s;
-    }
-    .btn:hover{transform:translateY(-1px); box-shadow:0 6px 18px rgba(0,255,224,.22)}
-    .controls{
-      display:flex;gap:10px;justify-content:center;align-items:center;margin:6px 0 10px;
-      flex-wrap:wrap;
-    }
-    canvas{
-      width:min(92vw, 900px);
-      height: min(60vh, 540px);
-      aspect-ratio: 16/10;
-      border:2px solid rgba(0,255,224,.35);
-      border-radius:14px;
-      background:#081016;
-      box-shadow: 0 0 30px rgba(0,255,224,.15), inset 0 0 40px rgba(0,255,224,.12);
-      touch-action: none;
-    }
-    .touchpad{
-      display:grid;grid-template-columns:repeat(3, min(120px, 28vw));gap:8px;
-      justify-content:center;margin:8px 0 16px;
-    }
-    .pad{
-      border:1px solid rgba(158,255,0,.4);
-      background: linear-gradient(180deg, rgba(158,255,0,.18), rgba(40,55,0,.25));
-      color:#e9ffd6;padding:10px;border-radius:12px;font-weight:700;cursor:pointer;
-      user-select:none;
-      touch-action: none;
-    }
-    footer{margin:10px 0 20px;color:#83a6b3;font-size:12px}
-  </style>
 
+    .neon-stage h2 {
+      margin: 0;
+      font-family: "Baloo 2", "Nunito", sans-serif;
+      font-size: 26px;
+      letter-spacing: .5px;
+      color: rgba(15, 23, 42, 0.86);
+    }
+
+    .neon-stage__question {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: clamp(22px, 3.6vw, 34px);
+      font-weight: 800;
+      letter-spacing: .35px;
+      color: #6ef7ff;
+      text-shadow: 0 0 18px rgba(0, 255, 224, 0.45);
+      min-height: 46px;
+    }
+
+    .neon-stage__question strong {
+      font: inherit;
+    }
+
+    .neon-stage__stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 4px;
+    }
+
+    .neon-stage__stats .shell-pill {
+      background: rgba(12, 18, 35, 0.9);
+      color: #cfefff;
+      border: 1px solid rgba(122, 124, 251, 0.38);
+      box-shadow: 0 6px 16px rgba(12, 18, 45, 0.18);
+      padding: 5px 12px;
+      font-size: 0.85rem;
+    }
+
+    .neon-stage__stats .shell-pill strong,
+    .neon-stage__stats .shell-pill span {
+      color: inherit;
+      font-size: 0.9rem;
+    }
+
+    .neon-stage__start {
+      display: flex;
+      justify-content: center;
+      margin-top: 8px;
+    }
+
+    .neon-stage__start .shell-button {
+      min-width: 160px;
+    }
+
+    canvas {
+      width: min(96vw, 960px);
+      height: clamp(420px, 62vh, 640px);
+      aspect-ratio: 16/10;
+      border: 2px solid rgba(122,124,251,0.35);
+      border-radius: 18px;
+      background: #081016;
+      box-shadow: 0 22px 46px rgba(9, 10, 20, 0.32);
+      touch-action: none;
+    }
+
+    .touchpad {
+      display: grid;
+      grid-template-columns: repeat(3, min(120px, 28vw));
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 6px;
+    }
+
+    .pad {
+      border: 1px solid rgba(158,255,0,.4);
+      background: linear-gradient(180deg, rgba(158,255,0,.18), rgba(40,55,0,.25));
+      color: #e9ffd6;
+      padding: 10px;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+      touch-action: none;
+    }
+
+    .footer-note {
+      margin: 6px 0 12px;
+      color: #83a6b3;
+      font-size: 12px;
+    }
+  </style>
   <link rel="stylesheet" href="/elearn/worlds/calistung/buttons.css" />
 </head>
-<body>
-  <header>
-    <h1>Neon Catch — Level 13</h1>
-    <div id="question">Siap?</div>
-    <div class="hud">
-      <div class="pill">Skor: <span id="score">0</span></div>
-      <div class="pill">Level: <span id="level">1</span></div>
-      <div class="pill">Nyawa: <span class="hearts" id="lives">❤❤❤</span></div>
-    </div>
-    <div class="controls">
-      <button id="btnNew" class="btn">Acak Soal</button>
-      <button id="btnPause" class="btn">Pause</button>
-      <button id="btnReset" class="btn">Reset</button>
-    </div>
-  </header>
+<body class="mathgame-shell theme-neon" data-nav-badge="Calistung Math" data-nav-home-url="/elearn/worlds/calistung/index.html">
+  <div class="shell-wrapper">
+    <header class="shell-header">
+      <div class="shell-header__title">
+        <span class="shell-badge">Level 13</span>
+        <h1 class="shell-title">Neon Catch</h1>
+        <p class="shell-subtitle">Gerakkan hovercraft, tangkap chip angka yang benar, dan naik level tanpa kehilangan nyawa.</p>
+      </div>
+      <div class="shell-hud">
+        <div class="shell-pill">
+          <span class="shell-pill-label">Skor</span>
+          <span class="shell-pill-value" data-hud-value="score">0</span>
+        </div>
+        <div class="shell-pill">
+          <span class="shell-pill-label">Level</span>
+          <span class="shell-pill-value" data-hud-value="level">1</span>
+        </div>
+        <div class="shell-pill">
+          <span class="shell-pill-label">Nyawa</span>
+          <span class="shell-pill-value" data-hud-value="lives">❤❤❤</span>
+        </div>
+      </div>
+    </header>
 
-  <canvas id="game" width="900" height="560" aria-label="Neon Catch Math Game"></canvas>
+    <section class="mission-card">
+      <h2>🎯 Misimu</h2>
+      <p data-mission-text>Arahkan hovercraft ke chip angka yang hasilnya benar. Tangkap semua jawaban tepat untuk naik level!</p>
+    </section>
 
-  <div class="touchpad" aria-hidden="false">
-    <div class="pad" id="left">◀︎</div>
-    <div class="pad" id="drop">▼</div>
-    <div class="pad" id="right">▶︎</div>
+    <main class="mathgame-stage">
+      <section class="stage-card stage-card--contrast neon-stage">
+        <h2>Neon Catch Arena</h2>
+        <div class="neon-stage__question" aria-live="polite"><strong id="question">Siap?</strong></div>
+        <div class="neon-stage__stats" aria-live="polite">
+          <div class="shell-pill">Skor: <strong id="score">0</strong></div>
+          <div class="shell-pill">Level: <strong id="level">1</strong></div>
+          <div class="shell-pill">Nyawa: <strong id="lives">❤❤❤</strong></div>
+        </div>
+        <div class="neon-stage__start" id="startControls">
+          <button id="btnStartGame" class="shell-button" type="button">Mulai</button>
+        </div>
+        <canvas id="game" width="900" height="560" aria-label="Neon Catch Math Game"></canvas>
+        <div class="touchpad" aria-hidden="false">
+          <div class="pad" id="left">◀︎</div>
+          <div class="pad" id="drop">▼</div>
+          <div class="pad" id="right">▶︎</div>
+        </div>
+        <p class="footer-note">Gerakkan hovercraft dengan ◀︎ ▶︎ atau sentuh. Arahkan tepat di bawah chip angka yang benar.</p>
+      </section>
+    </main>
+
+    <section class="shell-action-bar" aria-label="Kontrol aksi">
+      <button id="btnNew" class="shell-button" type="button">🔄 Acak Soal</button>
+      <button id="btnPause" class="shell-button secondary" type="button">⏸️ Pause</button>
+      <button id="btnReset" class="shell-button ghost" type="button">↺ Reset</button>
+      <button id="btnSelesai" class="shell-button ghost" type="button">Selesai</button>
+    </section>
+
+    <aside class="buddy-widget" aria-label="Teman penyemangat">
+      <div class="buddy-avatar" data-buddy-emoji aria-hidden="true">🛸</div>
+      <div class="buddy-dialog" data-buddy-dialog>Gerakkan hovercraft, tangkap chip yang tepat, dan hindari jawaban salah!</div>
+    </aside>
   </div>
-
-  <footer>Gerakkan hovercraft dengan ◀︎ ▶︎ (atau sentuh). <strong>Rangka U neon di atas hovercraft = PENANGKAP</strong>. Arahkan tepat di bawah chip angka yang benar.</footer>
-
+  <script src="/elearn/worlds/calistung/math-game/mathgame-shell.js"></script>
   <script>
     const canvas = document.getElementById('game');
     const ctx = canvas.getContext('2d');
@@ -126,18 +184,48 @@
     const btnNew = document.getElementById('btnNew');
     const btnPause = document.getElementById('btnPause');
     const btnReset = document.getElementById('btnReset');
+    const btnStartGame = document.getElementById('btnStartGame');
     const leftBtn = document.getElementById('left');
     const rightBtn = document.getElementById('right');
+    const dropBtn = document.getElementById('drop');
 
-    // Game state
-    let running = true;
+    const hudScoreEl = document.querySelector('[data-hud-value="score"]');
+    const hudLevelEl = document.querySelector('[data-hud-value="level"]');
+    const hudLivesEl = document.querySelector('[data-hud-value="lives"]');
+    const buddyEmojiEl = document.querySelector('[data-buddy-emoji]');
+    const buddyDialogEl = document.querySelector('[data-buddy-dialog]');
+
+    const maxLives = 3;
+
+    let running = false;
     let score = 0;
     let level = 1;
-    let lives = 3;
+    let lives = maxLives;
+    let animationId = null;
 
-    // Logical canvas size in CSS pixels (used for all game math)
     const CW = () => canvas.clientWidth;
     const CH = () => canvas.clientHeight;
+
+    function setBuddy(emoji, text){
+      if(buddyEmojiEl && emoji){ buddyEmojiEl.textContent = emoji; }
+      if(buddyDialogEl && text){ buddyDialogEl.textContent = text; }
+      if(window.mathgameShell && typeof window.mathgameShell.setBuddyMood === 'function'){
+        window.mathgameShell.setBuddyMood(emoji, text);
+      }
+    }
+
+    function livesString(){
+      return '❤'.repeat(lives) + '♡'.repeat(maxLives - lives);
+    }
+
+    function syncHud(status = running ? 'Playing' : 'Paused'){
+      if(hudScoreEl) hudScoreEl.textContent = score;
+      if(hudLevelEl) hudLevelEl.textContent = level;
+      if(hudLivesEl) hudLivesEl.textContent = livesString();
+      if(window.mathgameShell && typeof window.mathgameShell.updateHud === 'function'){
+        window.mathgameShell.updateHud({ score, level, lives: livesString(), status });
+      }
+    }
 
     const player = {
       x: CW() / 2,
@@ -153,83 +241,78 @@
     let currentQ = null;
 
     function neonGridBackground() {
-      // hologram grid
-      const spacing = 40;
+      const w = CW();
+      const h = CH();
+      const spacing = Math.max(36, Math.min(80, w / 12));
       ctx.save();
       ctx.fillStyle = '#081016';
-      ctx.fillRect(0,0,CW(),CH());
+      ctx.fillRect(0,0,w,h);
       ctx.strokeStyle = 'rgba(0,255,224,0.12)';
       ctx.lineWidth = 1;
-
-      // perspective vertical lines
-      for(let x=-200; x<=CW()+200; x+=spacing){
+      ctx.shadowColor = 'rgba(0,255,224,0.15)';
+      ctx.shadowBlur = 4;
+      for(let x = 0; x <= w; x += spacing){
         ctx.beginPath();
-        ctx.moveTo(x, CH()*0.35);
-        ctx.lineTo((x+CW())/2, CH());
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
         ctx.stroke();
       }
-      // horizontal lines
-      for(let y=CH()*0.35; y<=CH(); y+=spacing){
+      for(let y = 0; y <= h; y += spacing){
         ctx.beginPath();
-        ctx.moveTo(0,y);
-        ctx.lineTo(CW(),y);
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
         ctx.stroke();
       }
-
-      // top glow
-      const g = ctx.createLinearGradient(0,0,0,120);
-      g.addColorStop(0,'rgba(0,255,224,.22)');
-      g.addColorStop(1,'rgba(0,255,224,0)');
-      ctx.fillStyle = g;
-      ctx.fillRect(0,0,CW(),120);
+      ctx.shadowBlur = 0;
+      const grad = ctx.createLinearGradient(0, 0, 0, Math.min(220, h));
+      grad.addColorStop(0, 'rgba(0, 255, 224, 0.24)');
+      grad.addColorStop(1, 'rgba(0, 255, 224, 0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, Math.min(220, h));
       ctx.restore();
     }
 
     function randomInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
 
     function newQuestion() {
-      // Mix of + and − for kids, with occasional × at higher level
       const ops = level >= 3 ? ['+','-','×'] : ['+','-'];
       const op = ops[randomInt(0, ops.length-1)];
       let a = randomInt(1, 10);
       let b = randomInt(1, 10);
-      if(op === '-' && b > a){ [a,b] = [b,a]; } // avoid negative
+      if(op === '-' && b > a){ [a,b] = [b,a]; }
       if(op === '×'){ a = randomInt(2, 9); b = randomInt(2, 9); }
-
-      let ans = (op === '+') ? a+b : (op === '-') ? a-b : a*b;
-
-      // generate 2 wrong options near the answer
+      const ans = (op === '+') ? a+b : (op === '-') ? a-b : a*b;
+      const display = `${a} ${op} ${b}`;
       const wrong1 = ans + randomInt(1,3);
       const wrong2 = Math.max(0, ans - randomInt(1,3));
-
       const opts = [ans, wrong1, wrong2].sort(()=>Math.random()-0.5);
-      currentQ = { text: `${a} ${op} ${b} = ?`, answer: ans, options: opts };
-      qEl.textContent = `Tangkap jawaban yang benar: ${currentQ.text}`;
-
-      // spawn new chips
+      currentQ = { text: display, answer: ans, options: opts };
+      qEl.textContent = display;
       drops.length = 0;
       const lanes = [CW()*0.2, CW()*0.5, CW()*0.8];
       for(let i=0;i<opts.length;i++){
-        const drop = {
-          x: lanes[i] + randomInt(-30,30),
-          y: -randomInt(40,160),
-          r: 26,
-          v: 2.4 + level*0.3 + Math.random()*0.8,
-          value: opts[i],
-          caught:false
-        };
-        // keep entirely within canvas
+      const drop = {
+        x: lanes[i] + randomInt(-30,30),
+        y: -randomInt(40,160),
+        r: 26,
+        v: 1.6 + level*0.25 + Math.random()*0.55,
+        value: opts[i],
+        caught:false
+      };
         drop.x = Math.max(drop.r + 6, Math.min(CW() - drop.r - 6, drop.x));
         drops.push(drop);
+      }
+      if(running){
+        setBuddy('🛸', 'Tangkap chip dengan jawaban yang benar!');
+        syncHud('Playing');
+      } else {
+        syncHud('Ready');
       }
     }
 
     function drawPlayer() {
-      // super-visible neon hovercraft + catcher frame
       ctx.save();
       ctx.translate(player.x, player.y);
-
-      // UNDERGLOW
       ctx.save();
       ctx.globalAlpha = 0.55;
       const glow = ctx.createRadialGradient(0, 12, 6, 0, 12, 70);
@@ -240,24 +323,18 @@
       ctx.ellipse(0, 18, player.w*0.55, 14, 0, 0, Math.PI*2);
       ctx.fill();
       ctx.restore();
-
-      // BODY
       const bodyGrad = ctx.createLinearGradient(0,-14,0,24);
       bodyGrad.addColorStop(0, 'rgba(0,255,224,.95)');
       bodyGrad.addColorStop(1, 'rgba(0,100,90,.65)');
       ctx.fillStyle = bodyGrad;
       roundedRect(-player.w/2, -player.h/2, player.w, player.h, 14);
       ctx.fill();
-
-      // OUTLINE GLOW
       ctx.shadowColor = 'rgba(0,255,224,.9)';
       ctx.shadowBlur = 22;
       ctx.lineWidth = 3;
       ctx.strokeStyle = 'rgba(0,255,224,.95)';
       roundedRect(-player.w/2, -player.h/2, player.w, player.h, 14);
       ctx.stroke();
-
-      // COCKPIT
       ctx.shadowBlur = 0;
       const cockpit = ctx.createRadialGradient(0,-4,2,0,-4,16);
       cockpit.addColorStop(0,'rgba(185,255,245,.95)');
@@ -266,49 +343,38 @@
       ctx.beginPath();
       ctx.ellipse(0, -4, player.w*0.18, 12, 0, 0, Math.PI*2);
       ctx.fill();
-
-      // FINS
       ctx.fillStyle = 'rgba(158,255,0,.8)';
-      ctx.beginPath(); // left fin
+      ctx.beginPath();
       ctx.moveTo(-player.w/2+10, -8);
       ctx.lineTo(-player.w/2-20, 0);
       ctx.lineTo(-player.w/2+10, 8);
       ctx.closePath();
       ctx.fill();
-      ctx.beginPath(); // right fin
+      ctx.beginPath();
       ctx.moveTo(player.w/2-10, -8);
       ctx.lineTo(player.w/2+20, 0);
       ctx.lineTo(player.w/2-10, 8);
       ctx.closePath();
       ctx.fill();
-
-      // CATCHER FRAME (U-shape) — VERY VISIBLE
       ctx.lineWidth = 5;
       ctx.strokeStyle = 'rgba(158,255,0,1)';
       ctx.shadowColor = 'rgba(158,255,0,.8)';
       ctx.shadowBlur = 18;
       ctx.beginPath();
       const armX = player.w*0.35;
-      const topY = -player.h/2 - 64;  // naik 30px
-      const downY = -player.h/2 - 4;  // sedikit turun agar tebal
-      // left arm
+      const topY = -player.h/2 - 64;
+      const downY = -player.h/2 - 4;
       ctx.moveTo(-armX, topY);
       ctx.lineTo(-armX, downY);
-      // top bar
       ctx.lineTo(armX, downY);
-      // right arm
       ctx.lineTo(armX, topY);
       ctx.stroke();
-
-      // target arc guide
       ctx.shadowBlur = 0;
       ctx.strokeStyle = 'rgba(158,255,0,.5)';
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.arc(0, downY-4, armX-6, Math.PI, 0);
       ctx.stroke();
-
-      // GUIDE TRIANGLE pointing to catcher
       ctx.fillStyle = 'rgba(158,255,0,1)';
       ctx.beginPath();
       ctx.moveTo(0, topY-18);
@@ -316,7 +382,6 @@
       ctx.lineTo(10, topY-2);
       ctx.closePath();
       ctx.fill();
-
       ctx.restore();
     }
 
@@ -333,7 +398,6 @@
     function drawDrop(d){
       ctx.save();
       ctx.translate(d.x, d.y);
-      // chip
       const g = ctx.createRadialGradient(0,0,8,0,0,d.r);
       g.addColorStop(0,'rgba(158,255,0,.95)');
       g.addColorStop(1,'rgba(60,120,0,.55)');
@@ -344,15 +408,11 @@
       ctx.lineWidth = 2;
       ctx.strokeStyle = 'rgba(158,255,0,.85)';
       ctx.stroke();
-
-      // number
       ctx.fillStyle = '#041106';
       ctx.font = 'bold 20px Arial';
       const text = String(d.value);
       const tw = ctx.measureText(text).width;
       ctx.fillText(text, -tw/2, 7);
-
-      // halo
       ctx.shadowColor = 'rgba(158,255,0,.4)';
       ctx.shadowBlur = 12;
       ctx.beginPath();
@@ -364,19 +424,15 @@
 
     function update() {
       if(!running) return;
-
-      // physics
       player.x += player.vx;
       player.y += player.vy;
       const pad = 12;
       player.x = Math.max(pad + player.w/2, Math.min(CW() - pad - player.w/2, player.x));
-      const minY = CH() - 160; // allow moving a bit up so catcher visible
-      const maxY = CH() - 40;  // keep above canvas bottom
+      const minY = CH() - 160;
+      const maxY = CH() - 40;
       player.y = Math.max(minY, Math.min(maxY, player.y));
-
       for(const d of drops){
         d.y += d.v;
-        // catch check (AABB with circle)
         const halfW = player.w/2, halfH = player.h/2;
         const closestX = Math.max(player.x-halfW, Math.min(d.x, player.x+halfW));
         const closestY = Math.max(player.y-halfH, Math.min(d.y, player.y+halfH));
@@ -389,59 +445,68 @@
             scoreEl.textContent = score;
             level = 1 + Math.floor(score / 40);
             levelEl.textContent = level;
+            setBuddy('🎯', 'Mantap! Chip yang kamu tangkap benar.');
           } else {
             lives = Math.max(0, lives - 1);
-            livesEl.textContent = '❤'.repeat(lives) + '♡'.repeat(3-lives);
+            const hearts = livesString();
+            livesEl.textContent = hearts;
+            setBuddy('⚠️', 'Oops, itu bukan jawabannya. Hati-hati ya!');
           }
+          syncHud();
         }
       }
-
-      // remove off-screen and caught
       for(let i=drops.length-1;i>=0;i--){
         const d = drops[i];
         if(d.caught){
           drops.splice(i,1);
         } else if(d.y - d.r > CH()){
-          // missed chip: if the missed one was the correct answer, lose a life
           if(d.value === currentQ.answer){
             lives = Math.max(0, lives - 1);
-            livesEl.textContent = '❤'.repeat(lives) + '♡'.repeat(3-lives);
+            const hearts = livesString();
+            livesEl.textContent = hearts;
+            setBuddy('💥', 'Chip jawaban lolos! Nyawamu berkurang.');
           }
           drops.splice(i,1);
+          syncHud();
         }
       }
-
-      // next wave or game over
       if(lives <= 0){
-        running = false;
-        qEl.textContent = `Game Over • Skor: ${score}. Tekan Reset untuk mulai lagi.`;
+        handleGameOver();
         return;
       }
-      if(drops.length === 0){
+      if(running && drops.length === 0){
         newQuestion();
       }
     }
 
     function draw() {
       neonGridBackground();
-      // HUD faint line
       ctx.strokeStyle = 'rgba(0,255,224,.18)';
       ctx.beginPath();
       ctx.moveTo(0, CH() - 70);
       ctx.lineTo(CW(), CH() - 70);
       ctx.stroke();
-
       for(const d of drops) drawDrop(d);
       drawPlayer();
     }
 
-    function loop(){
-      update();
+    function frame(){
+      if(running){
+        update();
+      }
       draw();
-      requestAnimationFrame(loop);
+      animationId = requestAnimationFrame(frame);
     }
 
-    // Controls
+    function ensureAnimation(){
+      if(animationId === null){
+        animationId = requestAnimationFrame(frame);
+      }
+    }
+
+    resetGame({ start: false });
+    ensureAnimation();
+
     const keys = {ArrowLeft:false, ArrowRight:false, ArrowUp:false, ArrowDown:false};
     window.addEventListener('keydown', (e)=>{
       if(e.key === 'ArrowLeft'){ keys.ArrowLeft = true; }
@@ -467,36 +532,81 @@
     leftBtn.addEventListener('touchend', ()=>{ keys.ArrowLeft=false; updateVelocity(); }, {passive:false});
     rightBtn.addEventListener('touchstart', ()=>{ keys.ArrowRight=true; updateVelocity(); }, {passive:false});
     rightBtn.addEventListener('touchend', ()=>{ keys.ArrowRight=false; updateVelocity(); }, {passive:false});
-    const dropBtn = document.getElementById('drop');
     dropBtn.addEventListener('touchstart', ()=>{ keys.ArrowDown=true; updateVelocity(); }, {passive:false});
     dropBtn.addEventListener('touchend', ()=>{ keys.ArrowDown=false; updateVelocity(); }, {passive:false});
     dropBtn.addEventListener('mousedown', ()=>{ keys.ArrowDown=true; updateVelocity(); });
     window.addEventListener('mouseup', ()=>{ keys.ArrowDown=false; updateVelocity(); });
 
-    // Buttons
-    btnNew.addEventListener('click', ()=>{ newQuestion(); });
-    btnPause.addEventListener('click', ()=>{
-      running = !running;
-      btnPause.textContent = running ? 'Pause' : 'Resume';
-      if(running) loop();
-    });
-    btnReset.addEventListener('click', resetGame);
-
-    function resetGame(){
-      score = 0; level = 1; lives = 3;
-      scoreEl.textContent = score;
-      levelEl.textContent = level;
-      livesEl.textContent = '❤❤❤';
-      running = true;
-      drops.length = 0;
+    btnNew.addEventListener('click', ()=>{
       newQuestion();
+      if(!running){
+        setBuddy('🛸', 'Tekan Mulai untuk mulai bermain.');
+      }
+    });
+
+    btnPause.addEventListener('click', ()=>{
+      if(btnPause.disabled) return;
+      running = !running;
+      btnPause.textContent = running ? '⏸️ Pause' : '▶️ Resume';
+      setBuddy(running ? '🛸' : '⏸️', running ? 'Lanjut! Tangkap jawaban yang benar.' : 'Permainan dijeda. Tekan Resume untuk lanjut.');
+      syncHud(running ? 'Playing' : 'Paused');
+    });
+
+    btnReset.addEventListener('click', ()=>{
+      resetGame({ start: false });
+    });
+
+    btnStartGame.addEventListener('click', ()=>{
+      resetGame({ start: true });
+    });
+
+    function showStartButton(label = 'Mulai') {
+      btnStartGame.textContent = label;
+      btnStartGame.style.display = 'inline-flex';
+      btnStartGame.disabled = false;
     }
 
-    // Start
-    resetGame();
-    loop();
+    function hideStartButton() {
+      btnStartGame.style.display = 'none';
+    }
 
-    // Resize handling to keep crisp drawing on high‑DPI
+    function handleGameOver(){
+      running = false;
+      drops.length = 0;
+      showStartButton('Mulai Lagi');
+      btnPause.disabled = true;
+      btnPause.textContent = '⏸️ Pause';
+      qEl.textContent = 'Game Over';
+      setBuddy('💤', 'Game over! Tekan Mulai Lagi untuk mencoba kembali.');
+      syncHud('Game Over');
+    }
+
+    function resetGame({ start = false } = {}){
+      score = 0;
+      level = 1;
+      lives = maxLives;
+      scoreEl.textContent = score;
+      levelEl.textContent = level;
+      livesEl.textContent = livesString();
+      drops.length = 0;
+      running = start;
+      newQuestion();
+      if(start){
+        hideStartButton();
+        btnPause.disabled = false;
+        btnPause.textContent = '⏸️ Pause';
+        setBuddy('🛸', 'Hovercraft siap! Tangkap chip jawaban yang benar.');
+        syncHud('Playing');
+      } else {
+        running = false;
+        showStartButton('Mulai');
+        btnPause.disabled = true;
+        btnPause.textContent = '⏸️ Pause';
+        setBuddy('🛸', 'Tekan Mulai untuk mulai bermain.');
+        syncHud('Ready');
+      }
+    }
+
     function resizeCanvasForHiDPI(){
       const dpr = window.devicePixelRatio || 1;
       const cssW = canvas.clientWidth;
@@ -514,31 +624,21 @@
     resizeCanvasForHiDPI();
   </script>
 
-<style>
-  .finish-bar { position: fixed; right: 16px; bottom: 16px; z-index: 1000; }
-  #btnSelesai { background: #22c55e; color: #fff; border: none; cursor: pointer; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4); }
-  #btnSelesai:hover { filter: brightness(1.05); }
-  #btnSelesai:active { transform: translateY(1px); }
-  @media (max-width: 480px) {
-    #btnSelesai { padding: 10px 14px; font-size: 15px; }
-  }
-</style>
-
-<div class="finish-bar"><button id="btnSelesai" type="button">Selesai</button></div>
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="/elearn/manifest-lessons.js"></script>
-<script src="/elearn/userInfo.js"></script>
-<script src="/elearn/common/worksheet-submit.js"></script>
-<script>
-  window.WORKSHEET_DEBUG = true;
-  window.WORKSHEET_META = { course_id: "mathgame-basic" };
-  const info = (typeof getUserInfo === "function") ? getUserInfo() : {};
-  initWorksheetSubmit({
-    muridUid: info.uid || "",
-    cid: info.cid || "",
-    namaAnak: info.nama || "",
-    role: (info.role || "").toLowerCase()
-  });
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="/elearn/manifest-lessons.js"></script>
+  <script src="/elearn/userInfo.js"></script>
+  <script src="/elearn/common/worksheet-submit.js"></script>
+  <script>
+    window.WORKSHEET_DEBUG = true;
+    window.WORKSHEET_META = { course_id: "mathgame-basic" };
+    const info = (typeof getUserInfo === "function") ? getUserInfo() : {};
+    initWorksheetSubmit({
+      muridUid: info.uid || "",
+      cid: info.cid || "",
+      namaAnak: info.nama || "",
+      role: (info.role || "").toLowerCase()
+    });
+  </script>
+  <script src="/elearn/common/calistung-navbar.js"></script>
 </body>
 </html>
