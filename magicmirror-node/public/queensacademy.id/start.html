@@ -740,7 +740,6 @@
       class="bg-video"
       autoplay
       muted
-      loop
       playsinline
       preload="auto"
       onerror="console.warn('[start.html] &lt;video&gt; element error: ', this.error)"
@@ -868,6 +867,14 @@
         let awaitingLandscapeBeforePlayback = false;
         let introHasStartedPlaying = false;
         let orientationLockInEffect = false;
+        const BG_VIDEO_REVERSE_INTERVAL = 30;
+        const BG_VIDEO_REVERSE_STEP = 0.04;
+        const BG_VIDEO_REVERSE_THRESHOLD = 0.05;
+        let shouldReverseBgVideoOnFirstEnd = true;
+        let isBgVideoReversing = false;
+        let bgVideoReverseTimerId = null;
+        let bgVideoReverseRafId = null;
+        let bgVideoLastReverseTime = null;
 
         const isLandscapeOrientation = () =>
           window.matchMedia('(orientation: landscape)').matches ||
@@ -993,7 +1000,7 @@
         };
 
         const ensureBgVideoPlaying = () => {
-          if (!bgVideo) {
+          if (!bgVideo || isBgVideoReversing) {
             return;
           }
           bgVideo.defaultMuted = true;
@@ -1010,7 +1017,120 @@
           }
         };
 
+        const clearBgVideoReverseTimers = () => {
+          if (bgVideoReverseTimerId !== null) {
+            window.clearInterval(bgVideoReverseTimerId);
+            bgVideoReverseTimerId = null;
+          }
+          if (bgVideoReverseRafId !== null) {
+            window.cancelAnimationFrame(bgVideoReverseRafId);
+            bgVideoReverseRafId = null;
+          }
+        };
+
+        const endBgVideoReverse = () => {
+          clearBgVideoReverseTimers();
+          shouldReverseBgVideoOnFirstEnd = false;
+          isBgVideoReversing = false;
+          bgVideoLastReverseTime = null;
+          if (!bgVideo) {
+            return;
+          }
+          bgVideo.pause();
+          try {
+            bgVideo.currentTime = 0;
+          } catch (error) {
+            console.warn('Unable to reset background video time after reverse', error);
+          }
+          bgVideo.playbackRate = 1;
+          bgVideo.loop = true;
+          ensureBgVideoPlaying();
+        };
+
+        const startBgVideoReverseFallback = () => {
+          if (!bgVideo) {
+            return;
+          }
+          clearBgVideoReverseTimers();
+          isBgVideoReversing = true;
+          bgVideo.pause();
+          bgVideo.playbackRate = 1;
+          bgVideoLastReverseTime = null;
+          bgVideoReverseTimerId = window.setInterval(() => {
+            if (!bgVideo) {
+              clearBgVideoReverseTimers();
+              return;
+            }
+            if (bgVideo.currentTime <= BG_VIDEO_REVERSE_THRESHOLD) {
+              endBgVideoReverse();
+              return;
+            }
+            const nextTime = Math.max(0, bgVideo.currentTime - BG_VIDEO_REVERSE_STEP);
+            try {
+              bgVideo.currentTime = nextTime;
+            } catch (error) {
+              console.warn('Unable to step background video during manual reverse', error);
+              endBgVideoReverse();
+            }
+          }, BG_VIDEO_REVERSE_INTERVAL);
+        };
+
+        const monitorBgVideoReverseProgress = () => {
+          if (!bgVideo || !isBgVideoReversing) {
+            return;
+          }
+          if (bgVideo.currentTime <= BG_VIDEO_REVERSE_THRESHOLD) {
+            endBgVideoReverse();
+            return;
+          }
+          if (bgVideoLastReverseTime !== null && bgVideo.currentTime >= bgVideoLastReverseTime) {
+            console.warn('Background video reverse playback not progressing, falling back to manual rewind.');
+            bgVideo.pause();
+            bgVideo.playbackRate = 1;
+            startBgVideoReverseFallback();
+            return;
+          }
+          bgVideoLastReverseTime = bgVideo.currentTime;
+          bgVideoReverseRafId = window.requestAnimationFrame(monitorBgVideoReverseProgress);
+        };
+
+        const startBgVideoReverse = () => {
+          if (!bgVideo || isBgVideoReversing) {
+            return;
+          }
+          shouldReverseBgVideoOnFirstEnd = false;
+          isBgVideoReversing = true;
+          clearBgVideoReverseTimers();
+          try {
+            const magnitude = Math.max(1, Math.abs(bgVideo.playbackRate) || 1);
+            bgVideo.playbackRate = -magnitude;
+            const reversePromise = bgVideo.play();
+            if (reversePromise && typeof reversePromise.then === 'function') {
+              reversePromise
+                .then(() => {
+                  bgVideoLastReverseTime = bgVideo.currentTime;
+                  monitorBgVideoReverseProgress();
+                })
+                .catch((error) => {
+                  console.warn('Unable to reverse background video playback via playbackRate', error);
+                  bgVideo.pause();
+                  bgVideo.playbackRate = 1;
+                  startBgVideoReverseFallback();
+                });
+            } else {
+              bgVideoLastReverseTime = bgVideo.currentTime;
+              monitorBgVideoReverseProgress();
+            }
+          } catch (error) {
+            console.warn('Unable to reverse background video playback', error);
+            bgVideo.pause();
+            bgVideo.playbackRate = 1;
+            startBgVideoReverseFallback();
+          }
+        };
+
         if (bgVideo) {
+          bgVideo.loop = false;
           bgVideo.addEventListener('loadeddata', ensureBgVideoPlaying);
           bgVideo.addEventListener('canplay', () => {
             ensureBgVideoPlaying();
@@ -1021,6 +1141,21 @@
           });
           bgVideo.addEventListener('stalled', ensureBgVideoPlaying);
           bgVideo.addEventListener('suspend', ensureBgVideoPlaying);
+          bgVideo.addEventListener('ended', () => {
+            if (isBgVideoReversing) {
+              return;
+            }
+            if (shouldReverseBgVideoOnFirstEnd) {
+              startBgVideoReverse();
+              return;
+            }
+            try {
+              bgVideo.currentTime = 0;
+            } catch (error) {
+              console.warn('Unable to reset background video time after loop', error);
+            }
+            ensureBgVideoPlaying();
+          });
           bgVideo.addEventListener('error', () => {
             console.warn('Background video failed to load', bgVideo.error);
             if (backdropEl) {
