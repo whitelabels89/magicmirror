@@ -47,7 +47,8 @@
         transform: translate(-50%, -50%);
         object-fit: cover;
         filter: saturate(1.2) contrast(1.05) brightness(0.95);
-        z-index: -2;
+        z-index: 0;
+        pointer-events: none;
       }
 
       .backdrop {
@@ -55,13 +56,34 @@
         inset: 0;
         background: linear-gradient(
             120deg,
-            rgba(6, 6, 30, 0.85) 0%,
-            rgba(20, 9, 40, 0.55) 45%,
-            rgba(2, 11, 28, 0.75) 100%
+            rgba(6, 6, 30, 0.45) 0%,
+            rgba(20, 9, 40, 0.30) 45%,
+            rgba(2, 11, 28, 0.40) 100%
           ),
-          radial-gradient(circle at 20% 20%, rgba(52, 8, 135, 0.35), transparent 55%),
-          radial-gradient(circle at 80% 70%, rgba(14, 112, 158, 0.35), transparent 50%);
-        z-index: -1;
+          radial-gradient(circle at 20% 20%, rgba(52, 8, 135, 0.22), transparent 55%),
+          radial-gradient(circle at 80% 70%, rgba(14, 112, 158, 0.22), transparent 50%);
+        z-index: 1;
+        transition: background 280ms ease, opacity 280ms ease;
+        pointer-events: none;
+      }
+      .backdrop.video-ready {
+        background: linear-gradient(
+            120deg,
+            rgba(6, 6, 30, 0.28) 0%,
+            rgba(20, 9, 40, 0.18) 45%,
+            rgba(2, 11, 28, 0.22) 100%
+          ),
+          radial-gradient(circle at 20% 20%, rgba(52, 8, 135, 0.15), transparent 55%),
+          radial-gradient(circle at 80% 70%, rgba(14, 112, 158, 0.15), transparent 50%);
+      }
+      .backdrop.video-error {
+        /* If video fails, keep darker overlay so text stays readable */
+        background: linear-gradient(
+            120deg,
+            rgba(6, 6, 30, 0.70) 0%,
+            rgba(20, 9, 40, 0.50) 45%,
+            rgba(2, 11, 28, 0.65) 100%
+          );
       }
 
       .content {
@@ -75,6 +97,9 @@
         padding: 3rem 1.5rem;
         text-align: center;
       }
+      .content { z-index: 2; }
+      .settings-wrapper { z-index: 3; }
+      .audio-prompt { z-index: 3; }
 
       .branding {
         display: flex;
@@ -344,20 +369,36 @@
         .branding h1 {
           letter-spacing: 0.08em;
         }
+
+        /* Compact primary/secondary buttons on small screens */
+        .actions { gap: 0.75rem; }
+        .cta-button {
+          padding: 0.7rem 1.2rem;
+          font-size: 0.9rem;
+          letter-spacing: 0.08em;
+        }
+        .cta-button svg { width: 0.95rem; height: 0.95rem; }
+
+        /* Compact settings toggle and links */
+        .settings-toggle { padding: 0.6rem 0.9rem; font-size: 0.75rem; }
+        .settings-link { padding: 0.55rem 0.75rem; font-size: 0.85rem; }
       }
     </style>
   </head>
   <body>
     <video
+      id="bgVideo"
       class="bg-video"
-      src="../elearn/worlds/kindercoder/thumbs/start-bg-loop.mp4"
       autoplay
       muted
       loop
       playsinline
-      webkit-playsinline
       preload="auto"
+      onerror="console.warn('[start.html] &lt;video&gt; element error: ', this.error)"
     >
+      <!-- Prefer absolute paths to avoid relative-path issues -->
+      <source src="/elearn/worlds/kindercoder/thumbs/start-bg-loop.mp4" type="video/mp4" />
+      <source src="/elearn/worlds/kindercoder/thumbs/start-bg-loop.webm" type="video/webm" />
       Your browser does not support the background video.
     </video>
     <div class="backdrop" aria-hidden="true"></div>
@@ -447,6 +488,7 @@
         const audioIcon = document.querySelector('[data-sound-icon]');
         const audioPrompt = document.getElementById('audioPrompt');
         const bgVideo = document.querySelector('.bg-video');
+        const backdropEl = document.querySelector('.backdrop');
         let settingsOpen = false;
 
         const ensureBgVideoPlaying = () => {
@@ -469,11 +511,21 @@
 
         if (bgVideo) {
           bgVideo.addEventListener('loadeddata', ensureBgVideoPlaying);
-          bgVideo.addEventListener('canplay', ensureBgVideoPlaying);
+          bgVideo.addEventListener('canplay', () => {
+            ensureBgVideoPlaying();
+            if (backdropEl) {
+              backdropEl.classList.add('video-ready');
+              backdropEl.classList.remove('video-error');
+            }
+          });
           bgVideo.addEventListener('stalled', ensureBgVideoPlaying);
           bgVideo.addEventListener('suspend', ensureBgVideoPlaying);
           bgVideo.addEventListener('error', () => {
             console.warn('Background video failed to load', bgVideo.error);
+            if (backdropEl) {
+              backdropEl.classList.add('video-error');
+              backdropEl.classList.remove('video-ready');
+            }
           });
           ensureBgVideoPlaying();
         }
@@ -587,6 +639,10 @@
 
         tryPlayAudio();
         ensureBgVideoPlaying();
+        if (bgVideo) {
+          const currentSrc = bgVideo.currentSrc || (bgVideo.querySelector('source')?.src) || 'no-src';
+          console.log('[start.html] Using video source:', currentSrc);
+        }
         updateAudioUI();
       })();
     </script>
