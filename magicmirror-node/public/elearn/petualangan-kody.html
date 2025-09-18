@@ -24,11 +24,40 @@
   #grid { width:250px; height:250px; border:1px solid #333; margin:20px auto; position:relative; background-size:50px 50px; background-image:linear-gradient(#ccc 1px, transparent 1px), linear-gradient(90deg,#ccc 1px,transparent 1px); }
   #robot { width:48px; height:48px; background:url('img/KODY.png') center/contain no-repeat; position:absolute; transition:0.3s; }
   .controls button { margin:5px; padding:10px 15px; font-size:1em; }
-  #musicToggle { position:fixed; top:10px; right:10px; }
+  .audio-toggle {
+    position:fixed;
+    top:10px;
+    right:10px;
+    width:52px;
+    height:52px;
+    border-radius:50%;
+    border:none;
+    background:#ffcc00;
+    color:#333;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:24px;
+    cursor:pointer;
+    box-shadow:0 4px 8px rgba(0,0,0,0.2);
+    transition:transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  }
+  .audio-toggle:hover {
+    transform:scale(1.1);
+    box-shadow:0 6px 12px rgba(0,0,0,0.3);
+  }
+  .audio-toggle:focus-visible {
+    outline:3px solid #0057ff;
+    outline-offset:3px;
+  }
+  .audio-toggle.muted {
+    background:#e0e0e0;
+    color:#555;
+  }
 </style>
 </head>
 <body>
-<button id="musicToggle" class="nav-btn" style="position:fixed;top:10px;right:10px;">Nyalakan Musik</button>
+<button id="musicToggle" class="audio-toggle" aria-label="Nyalakan musik latar" aria-pressed="false" title="Nyalakan musik">🔇</button>
 <audio id="bgMusic" loop>
   <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_848c0efd9f.mp3?filename=soft-breeze-121974.mp3" type="audio/mpeg">
 </audio>
@@ -147,13 +176,34 @@ function downloadCert(){
   link.download='sertifikat.png';
   link.click();
 }
-function toggleMusic(){
-  const audio=document.getElementById('bgMusic');
-  const btn=document.getElementById('musicToggle');
-  if(audio.paused){ audio.play(); btn.textContent='Matikan Musik'; }
-  else{ audio.pause(); btn.textContent='Nyalakan Musik'; }
+const bgMusic=document.getElementById('bgMusic');
+const musicToggleBtn=document.getElementById('musicToggle');
+bgMusic.volume=0.6;
+bgMusic.muted=true;
+function updateMusicToggle(){
+  const isMuted=bgMusic.muted||bgMusic.paused;
+  musicToggleBtn.textContent=isMuted?'🔇':'🔊';
+  musicToggleBtn.classList.toggle('muted',isMuted);
+  musicToggleBtn.setAttribute('aria-label',isMuted?'Nyalakan musik latar':'Matikan musik latar');
+  musicToggleBtn.setAttribute('aria-pressed',String(!isMuted));
+  musicToggleBtn.title=isMuted?'Nyalakan musik':'Matikan musik';
 }
-document.getElementById('musicToggle').onclick=toggleMusic;
+function toggleMusic(){
+  const shouldUnmute=bgMusic.muted||bgMusic.paused;
+  if(shouldUnmute){
+    bgMusic.muted=false;
+    const playPromise=bgMusic.play();
+    if(playPromise&&playPromise.catch){ playPromise.catch(()=>{}); }
+  }else{
+    bgMusic.muted=true;
+  }
+  updateMusicToggle();
+}
+musicToggleBtn.addEventListener('click',toggleMusic);
+bgMusic.addEventListener('play',updateMusicToggle);
+bgMusic.addEventListener('pause',updateMusicToggle);
+bgMusic.addEventListener('volumechange',updateMusicToggle);
+updateMusicToggle();
 </script>
 </body>
 </html>
