@@ -109,6 +109,9 @@ export async function initWorld({ rootSelector = '#worldRoot', configPath }) {
 
     el.addEventListener('click', () => {
       const url = routes[n.label] || n.entry;
+      if (window.CalistungMusic && typeof window.CalistungMusic.prepareNextTrack === 'function') {
+        window.CalistungMusic.prepareNextTrack('level');
+      }
       if (url) window.location = url;
       else alert('Level belum tersedia.');
     });

@@ -647,6 +647,12 @@ if(document.getElementById('colorSVGBox')) {
   document.getElementById('colorSVGBox').innerHTML = `<div class="coloring-hint">Klik gambar untuk mulai mewarnai!</div>`;
 }
 </script>
+  <script src="/elearn/worlds/calistung/music.js"></script>
+  <script>
+    if (window.CalistungMusic && typeof window.CalistungMusic.ensureLevel === 'function') {
+      window.CalistungMusic.ensureLevel();
+    }
+  </script>
 </body>
   <!-- AI Assistant Chat Widget -->
   <div id="ai-assistant">

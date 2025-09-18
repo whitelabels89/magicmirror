@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="/elearn/worlds/styles.css">
 
   <link rel="stylesheet" href="/elearn/worlds/calistung/buttons.css" />
+  <script src="/elearn/worlds/calistung/music.js"></script>
 </head>
 <body class="world-root" data-world-id="calistung-alphabet" data-pause-toggle="disabled">
   <div class="hud-bar">
@@ -42,6 +43,10 @@
       rootSelector: '#worldRoot',
       configPath: '/elearn/worlds/calistung/alphabet/config.json'
     });
+
+    if (window.CalistungMusic && typeof window.CalistungMusic.ensureTheme === 'function') {
+      window.CalistungMusic.ensureTheme();
+    }
   </script>
 </body>
 </html>

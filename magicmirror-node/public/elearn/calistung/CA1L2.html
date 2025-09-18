@@ -981,6 +981,12 @@
       });
     }
   </script>
+  <script src="/elearn/worlds/calistung/music.js"></script>
+  <script>
+    if (window.CalistungMusic && typeof window.CalistungMusic.ensureLevel === 'function') {
+      window.CalistungMusic.ensureLevel();
+    }
+  </script>
 </body>
 </html>
 

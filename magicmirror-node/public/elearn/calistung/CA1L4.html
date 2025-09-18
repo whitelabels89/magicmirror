@@ -107,5 +107,11 @@
     document.getElementById('check-story').addEventListener('click',()=>alert('Kalimat: '+out.textContent));
     document.querySelectorAll('.colorable').forEach(i=>i.addEventListener('click',()=>i.classList.toggle('colored')));
   </script>
+  <script src="/elearn/worlds/calistung/music.js"></script>
+  <script>
+    if (window.CalistungMusic && typeof window.CalistungMusic.ensureLevel === 'function') {
+      window.CalistungMusic.ensureLevel();
+    }
+  </script>
 </body>
 </html>
