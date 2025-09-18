@@ -262,7 +262,7 @@
         outline: none;
       }
 
-      .settings-menu a {
+      .settings-link {
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -279,11 +279,21 @@
         transition: transform 160ms ease, box-shadow 160ms ease;
       }
 
-      .settings-menu a:hover,
-      .settings-menu a:focus-visible {
+      .settings-link:hover,
+      .settings-link:focus-visible {
         transform: translateY(-1px);
         box-shadow: 0 0 26px rgba(255, 64, 246, 0.7);
         outline: none;
+      }
+
+      .settings-link.signup-link {
+        background: linear-gradient(135deg, rgba(24, 241, 255, 0.85), rgba(76, 106, 255, 0.85));
+        box-shadow: 0 0 20px rgba(24, 241, 255, 0.45);
+      }
+
+      .settings-link.signup-link:hover,
+      .settings-link.signup-link:focus-visible {
+        box-shadow: 0 0 26px rgba(24, 241, 255, 0.65);
       }
 
       .audio-prompt {
@@ -345,7 +355,11 @@
       muted
       loop
       playsinline
-    ></video>
+      webkit-playsinline
+      preload="auto"
+    >
+      Your browser does not support the background video.
+    </video>
     <div class="backdrop" aria-hidden="true"></div>
 
     <div class="settings-wrapper">
@@ -366,13 +380,22 @@
             <span data-sound-label>Sound Off</span>
           </button>
         </div>
-        <a href="../login.html">
+        <a class="settings-link login-link" href="../elearn/login.html">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path
               d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 2c-2.67 0-8 1.34-8 4v1.5c0 .28.22.5.5.5h15c.28 0 .5-.22.5-.5V18c0-2.66-5.33-4-8-4Z"
             ></path>
           </svg>
-          Login / Signup
+          Login
+        </a>
+        <a class="settings-link signup-link" href="../elearn/daftar.html">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path
+              d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 2c-2.67 0-8 1.34-8 4v1.5c0 .28.22.5.5.5h7.5V17a1 1 0 0 1 1-1H21a1 1 0 0 1 0 2h-6.5v2h7c.28 0 .5-.22.5-.5V18c0-2.66-5.33-4-8-4Z"
+            ></path>
+            <path d="M19 8h-2V6a1 1 0 1 0-2 0v2h-2a1 1 0 1 0 0 2h2v2a1 1 0 1 0 2 0v-2h2a1 1 0 1 0 0-2Z"></path>
+          </svg>
+          Sign Up
         </a>
       </div>
     </div>
@@ -423,7 +446,37 @@
         const audioLabel = document.querySelector('[data-sound-label]');
         const audioIcon = document.querySelector('[data-sound-icon]');
         const audioPrompt = document.getElementById('audioPrompt');
+        const bgVideo = document.querySelector('.bg-video');
         let settingsOpen = false;
+
+        const ensureBgVideoPlaying = () => {
+          if (!bgVideo) {
+            return;
+          }
+          bgVideo.defaultMuted = true;
+          bgVideo.muted = true;
+          if (bgVideo.readyState === 0 && !bgVideo.dataset.loadRequested) {
+            bgVideo.dataset.loadRequested = 'true';
+            bgVideo.load();
+          }
+          if (bgVideo.paused) {
+            const playPromise = bgVideo.play();
+            if (playPromise && typeof playPromise.then === 'function') {
+              playPromise.catch(() => {});
+            }
+          }
+        };
+
+        if (bgVideo) {
+          bgVideo.addEventListener('loadeddata', ensureBgVideoPlaying);
+          bgVideo.addEventListener('canplay', ensureBgVideoPlaying);
+          bgVideo.addEventListener('stalled', ensureBgVideoPlaying);
+          bgVideo.addEventListener('suspend', ensureBgVideoPlaying);
+          bgVideo.addEventListener('error', () => {
+            console.warn('Background video failed to load', bgVideo.error);
+          });
+          ensureBgVideoPlaying();
+        }
 
         const openSettings = (open) => {
           settingsOpen = open;
@@ -498,6 +551,7 @@
         document.addEventListener(
           'pointerdown',
           () => {
+            ensureBgVideoPlaying();
             if (audioEl.paused) {
               tryPlayAudio();
             } else if (audioEl.muted) {
@@ -519,16 +573,20 @@
         );
 
         document.addEventListener('visibilitychange', () => {
-          if (document.visibilityState === 'visible' && !audioEl.paused && audioEl.muted) {
-            audioEl.muted = false;
-            audioEl.play().catch(() => {
-              audioEl.muted = true;
-            });
-            updateAudioUI();
+          if (document.visibilityState === 'visible') {
+            ensureBgVideoPlaying();
+            if (!audioEl.paused && audioEl.muted) {
+              audioEl.muted = false;
+              audioEl.play().catch(() => {
+                audioEl.muted = true;
+              });
+              updateAudioUI();
+            }
           }
         });
 
         tryPlayAudio();
+        ensureBgVideoPlaying();
         updateAudioUI();
       })();
     </script>
