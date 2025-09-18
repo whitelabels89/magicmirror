@@ -115,6 +115,7 @@
       doc.removeEventListener('pointerdown', resume);
       doc.removeEventListener('touchstart', resume);
       doc.removeEventListener('keydown', resume);
+      resumeListenerBound = false;
     };
     doc.addEventListener('pointerdown', resume, { once: true, passive: true });
     doc.addEventListener('touchstart', resume, { once: true, passive: true });
@@ -159,6 +160,10 @@
 
   win.addEventListener('pagehide', saveState);
   win.addEventListener('beforeunload', saveState);
+  win.addEventListener('pageshow', () => {
+    appendAudio();
+    applyAuto();
+  });
   doc.addEventListener('visibilitychange', () => {
     if (doc.hidden) saveState();
   });
