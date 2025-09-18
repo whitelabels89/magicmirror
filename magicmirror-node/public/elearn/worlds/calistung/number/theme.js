@@ -7,6 +7,33 @@
     nav: null
   };
   var SIDEBAR_HINT_SELECTOR = '[data-number-role="sidebar"], .number-sidebar, .instructions, .instruction-panel, .petunjuk, .guideline';
+  var MUSIC_SCRIPT_SRC = '/elearn/worlds/calistung/music.js';
+
+  function ensureBackgroundMusic() {
+    if (typeof document === 'undefined') {
+      return;
+    }
+    var run = function () {
+      if (window.CalistungMusic && typeof window.CalistungMusic.ensureLevel === 'function') {
+        window.CalistungMusic.ensureLevel();
+      }
+    };
+    if (window.CalistungMusic && typeof window.CalistungMusic.ensureLevel === 'function') {
+      run();
+      return;
+    }
+    var existing = document.querySelector('script[src="' + MUSIC_SCRIPT_SRC + '"]');
+    if (existing) {
+      existing.addEventListener('load', run, { once: true });
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = MUSIC_SCRIPT_SRC;
+    script.addEventListener('load', run, { once: true });
+    (document.head || document.documentElement || document.body).appendChild(script);
+  }
+
+  ensureBackgroundMusic();
 
   function isWhitespace(node) {
     return node && node.nodeType === 3 && !/\S/.test(node.textContent || '');

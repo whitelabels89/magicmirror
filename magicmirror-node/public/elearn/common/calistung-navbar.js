@@ -7,6 +7,31 @@
   const DEFAULT_HOME_URL = "/elearn/map.html";
   const NAV_STYLE_ID = "calistung-navbar-style";
   const PAUSE_MENU_SCRIPT_SRC = "/elearn/worlds/ui/pause-menu.js";
+  const MUSIC_SCRIPT_SRC = "/elearn/worlds/calistung/music.js";
+
+  const ensureMusicScript = () => {
+    if (!document) {
+      return;
+    }
+    if (window.CalistungMusic && typeof window.CalistungMusic.applyAuto === 'function') {
+      window.CalistungMusic.applyAuto();
+      return;
+    }
+    const existing = document.querySelector(`script[src="${MUSIC_SCRIPT_SRC}"]`);
+    const onReady = () => {
+      if (window.CalistungMusic && typeof window.CalistungMusic.applyAuto === 'function') {
+        window.CalistungMusic.applyAuto();
+      }
+    };
+    if (existing) {
+      existing.addEventListener('load', onReady, { once: true });
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = MUSIC_SCRIPT_SRC;
+    script.addEventListener('load', onReady, { once: true });
+    (document.head || document.documentElement || document.body).appendChild(script);
+  };
 
   const ensureStyles = () => {
     if (document.getElementById(NAV_STYLE_ID)) {
@@ -224,12 +249,21 @@
     }
 
     ensurePauseMenuScript();
+    if (!dataset.calistungBgm) {
+      dataset.calistungBgm = 'level';
+    }
     return true;
   };
 
   const earlyPrepared = applyPageDefaults();
   if (!earlyPrepared) {
     document.addEventListener('DOMContentLoaded', applyPageDefaults, { once: true });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', ensureMusicScript, { once: true });
+  } else {
+    ensureMusicScript();
   }
 
   const createNav = () => {
@@ -252,6 +286,12 @@
       </a>
     `;
 
+    const prepareThemeTrack = () => {
+      if (window.CalistungMusic && typeof window.CalistungMusic.prepareNextTrack === 'function') {
+        window.CalistungMusic.prepareNextTrack('theme');
+      }
+    };
+
     const titleEl = nav.querySelector('.calistung-navbar__title');
     const explicitTitle = document.body.dataset.levelTitle;
     if (explicitTitle) {
@@ -271,6 +311,7 @@
     const backBehavior = (document.body.dataset.navBackBehavior || '').toLowerCase();
 
     const runDefaultBack = () => {
+      prepareThemeTrack();
       const fallbackUrl = document.body.dataset.navBackUrl || mapUrl;
       if (window.history.length > 1) {
         window.history.back();
@@ -324,6 +365,11 @@
       });
     } else {
       backBtn.addEventListener('click', runDefaultBack);
+    }
+
+    const mapBtn = nav.querySelector('.calistung-navbar__btn[href]');
+    if (mapBtn) {
+      mapBtn.addEventListener('click', prepareThemeTrack);
     }
 
     return nav;
