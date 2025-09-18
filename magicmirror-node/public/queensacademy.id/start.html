@@ -221,6 +221,52 @@
         opacity: 0.85;
       }
 
+      .orientation-warning__action {
+        margin-top: 0.35rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+        padding: 0.6rem 1.35rem;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        background: rgba(18, 18, 48, 0.85);
+        color: var(--text-light);
+        font-family: "Orbitron", sans-serif;
+        font-size: clamp(0.75rem, 3vw, 0.92rem);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+      }
+
+      .orientation-warning__action:hover,
+      .orientation-warning__action:focus-visible {
+        transform: translateY(-2px);
+        box-shadow: 0 0 18px rgba(24, 241, 255, 0.45);
+        border-color: rgba(24, 241, 255, 0.4);
+        outline: none;
+      }
+
+      .orientation-warning__action:active {
+        transform: translateY(0);
+      }
+
+      .orientation-warning__action[disabled] {
+        opacity: 0.65;
+        cursor: default;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .orientation-warning__action-icon {
+        font-size: clamp(1rem, 3vw, 1.25rem);
+        filter: drop-shadow(0 6px 12px rgba(24, 241, 255, 0.55));
+      }
+
+      .orientation-warning__action-label {
+        display: inline-block;
+      }
+
       .intro-overlay.is-playing .orientation-warning {
         opacity: 0;
         transform: translateY(-24px) scale(0.96);
@@ -639,6 +685,12 @@
           padding: 0.4rem 0.75rem;
           letter-spacing: 0.06em;
         }
+
+        .orientation-warning__action {
+          padding: 0.55rem 1.05rem;
+          font-size: 0.76rem;
+          letter-spacing: 0.08em;
+        }
       }
     </style>
   </head>
@@ -662,6 +714,10 @@
         <div class="orientation-warning__emoji" aria-hidden="true">📱↻</div>
         <p class="orientation-warning__title">Rotate your phone or tablet to landscape</p>
         <p class="orientation-warning__subtitle">Our trailer plays best in widescreen. Sit back &amp; enjoy!</p>
+        <button class="orientation-warning__action" type="button" data-orientation-action>
+          <span class="orientation-warning__action-icon" aria-hidden="true">🔁</span>
+          <span class="orientation-warning__action-label" data-orientation-action-label>Rotate &amp; Play</span>
+        </button>
       </div>
       <div class="intro-overlay__interaction" id="introInteractionNotice" role="alert" aria-hidden="true">
         <span class="intro-overlay__interaction-icon" aria-hidden="true">🔊</span>
@@ -792,15 +848,149 @@
         const introInteractionNotice = document.getElementById('introInteractionNotice');
         const skipIntroButton = document.querySelector('[data-skip-intro]');
         const skipIntroLabel = skipIntroButton?.querySelector('.skip-toggle__label') || null;
+        const orientationActionButton = document.querySelector('[data-orientation-action]');
+        const orientationActionLabel =
+          orientationActionButton?.querySelector('[data-orientation-action-label]') || null;
         const rewatchIntroButton = document.querySelector('[data-rewatch-intro]');
         const bodyEl = document.body;
         const INTRO_STORAGE_KEY = 'qaStartIntroSeen';
+        const orientationDefaultLabel = orientationActionLabel?.textContent?.trim() || 'Rotate & Play';
+        const isMobileDevice =
+          /Android|webOS|iP(ad|hone|od)|BlackBerry|IEMobile|Opera Mini/i.test(
+            navigator.userAgent || ''
+          );
         let settingsOpen = false;
         let hasMainExperienceStarted = false;
         let introActive = false;
         let introCountdownId = null;
         let introAwaitingUserAudio = false;
         let shouldResumeThemeAfterIntro = false;
+        let awaitingLandscapeBeforePlayback = false;
+        let introHasStartedPlaying = false;
+        let orientationLockInEffect = false;
+
+        const isLandscapeOrientation = () =>
+          window.matchMedia('(orientation: landscape)').matches ||
+          window.innerWidth > window.innerHeight;
+
+        const setOrientationActionState = (state) => {
+          if (!orientationActionButton || !orientationActionLabel) {
+            return;
+          }
+          orientationActionButton.dataset.state = state;
+          if (state === 'working') {
+            orientationActionLabel.textContent = 'Preparing...';
+          } else if (state === 'done') {
+            orientationActionLabel.textContent = 'Enjoy the trailer';
+          } else {
+            orientationActionLabel.textContent = orientationDefaultLabel;
+          }
+        };
+
+        const requestIntroFullscreen = async ({ fromGesture = false } = {}) => {
+          if (!introVideo) {
+            return false;
+          }
+          if (document.fullscreenElement) {
+            return true;
+          }
+          if (typeof introVideo.requestFullscreen === 'function') {
+            try {
+              await introVideo.requestFullscreen();
+              return true;
+            } catch (error) {
+              if (fromGesture) {
+                console.warn('Unable to open intro fullscreen', error);
+              }
+            }
+          }
+          const webkitFullscreen =
+            introVideo.webkitEnterFullscreen ||
+            introVideo.webkitRequestFullscreen ||
+            introVideo.requestFullScreen;
+          if (typeof webkitFullscreen === 'function') {
+            try {
+              webkitFullscreen.call(introVideo);
+              return true;
+            } catch (error) {
+              if (fromGesture) {
+                console.warn('Unable to open intro webkit fullscreen', error);
+              }
+            }
+          }
+          return false;
+        };
+
+        const lockOrientationLandscape = async ({ fromGesture = false } = {}) => {
+          const screenObj = window.screen;
+          if (!screenObj) {
+            return false;
+          }
+          const orientation = screenObj.orientation;
+          if (orientation && typeof orientation.lock === 'function') {
+            try {
+              await orientation.lock('landscape');
+              orientationLockInEffect = true;
+              return true;
+            } catch (error) {
+              if (fromGesture) {
+                console.warn('Unable to lock orientation', error);
+              }
+            }
+          }
+          const legacyLock =
+            screenObj.lockOrientation || screenObj.mozLockOrientation || screenObj.msLockOrientation;
+          if (typeof legacyLock === 'function') {
+            try {
+              const legacyResult = legacyLock.call(screenObj, 'landscape');
+              if (legacyResult && typeof legacyResult.then === 'function') {
+                await legacyResult;
+              }
+              orientationLockInEffect = true;
+              return true;
+            } catch (error) {
+              if (fromGesture) {
+                console.warn('Unable to lock orientation (legacy)', error);
+              }
+            }
+          }
+          return false;
+        };
+
+        const unlockOrientation = () => {
+          if (!orientationLockInEffect) {
+            return;
+          }
+          const orientation = window.screen?.orientation;
+          if (orientation && typeof orientation.unlock === 'function') {
+            try {
+              orientation.unlock();
+            } catch (error) {
+              console.warn('Unable to unlock orientation', error);
+            }
+          }
+          orientationLockInEffect = false;
+        };
+
+        const exitIntroPresentation = () => {
+          unlockOrientation();
+          if (document.fullscreenElement && typeof document.exitFullscreen === 'function') {
+            document.exitFullscreen().catch(() => {});
+          }
+          if (
+            introVideo &&
+            typeof introVideo.webkitSupportsFullscreen !== 'undefined' &&
+            introVideo.webkitSupportsFullscreen &&
+            introVideo.webkitDisplayingFullscreen &&
+            typeof introVideo.webkitExitFullscreen === 'function'
+          ) {
+            try {
+              introVideo.webkitExitFullscreen();
+            } catch (error) {
+              console.warn('Unable to exit intro webkit fullscreen', error);
+            }
+          }
+        };
 
         const ensureBgVideoPlaying = () => {
           if (!bgVideo) {
@@ -841,6 +1031,12 @@
           ensureBgVideoPlaying();
         }
 
+        document.addEventListener('fullscreenchange', () => {
+          if (!document.fullscreenElement) {
+            unlockOrientation();
+          }
+        });
+
         const openSettings = (open) => {
           settingsOpen = open;
           if (settingsOpen) {
@@ -869,6 +1065,46 @@
           rewatchIntroButton.addEventListener('click', () => {
             openSettings(false);
             showIntroOverlay();
+          });
+        }
+
+        if (orientationActionButton) {
+          orientationActionButton.addEventListener('click', async (event) => {
+            event.preventDefault();
+            cancelIntroCountdown();
+            setOrientationActionState('working');
+            orientationActionButton.disabled = true;
+            await requestIntroFullscreen({ fromGesture: true });
+            await lockOrientationLandscape({ fromGesture: true });
+
+            if (!introHasStartedPlaying) {
+              awaitingLandscapeBeforePlayback = false;
+              const playbackPromise = startIntroPlayback();
+              if (playbackPromise && typeof playbackPromise.then === 'function') {
+                playbackPromise.catch(() => {});
+              }
+              return;
+            }
+
+            introVideo.muted = false;
+            const resumePromise = introVideo.play();
+            if (resumePromise && typeof resumePromise.then === 'function') {
+              resumePromise
+                .then(() => {
+                  clearIntroAudioPrompt();
+                  setOrientationActionState('done');
+                  orientationActionButton.disabled = true;
+                })
+                .catch((error) => {
+                  console.warn('Unable to resume intro audio from rotate control', error);
+                  orientationActionButton.disabled = false;
+                  setOrientationActionState('ready');
+                  requestIntroAudioGesture();
+                });
+            } else {
+              clearIntroAudioPrompt();
+              setOrientationActionState('done');
+            }
           });
         }
 
@@ -976,6 +1212,13 @@
             introOverlay.setAttribute('aria-hidden', 'true');
             orientationWarning?.setAttribute('aria-hidden', 'true');
           }
+          exitIntroPresentation();
+          awaitingLandscapeBeforePlayback = false;
+          introHasStartedPlaying = false;
+          if (orientationActionButton) {
+            orientationActionButton.disabled = false;
+            setOrientationActionState('ready');
+          }
           bodyEl.classList.remove('intro-active');
           markIntroAsSeen();
           if (!hasMainExperienceStarted) {
@@ -1009,23 +1252,41 @@
         const startIntroPlayback = () => {
           if (!introOverlay || !introVideo) {
             startMainExperience();
-            return;
+            return null;
           }
+          if (introHasStartedPlaying) {
+            return introVideo.paused ? introVideo.play() : null;
+          }
+          introHasStartedPlaying = true;
           introCountdownId = null;
+          awaitingLandscapeBeforePlayback = false;
           introOverlay.classList.add('is-playing');
           orientationWarning?.setAttribute('aria-hidden', 'true');
+          if (orientationActionButton) {
+            orientationActionButton.disabled = true;
+          }
           introVideo.currentTime = 0;
           introVideo.muted = false;
           clearIntroAudioPrompt();
+          requestIntroFullscreen({ fromGesture: false }).catch(() => {});
+          lockOrientationLandscape({ fromGesture: false }).catch(() => {});
           const playPromise = introVideo.play();
           if (playPromise && typeof playPromise.then === 'function') {
             playPromise
               .then(() => {
                 clearIntroAudioPrompt();
+                setOrientationActionState('done');
+                if (orientationActionButton) {
+                  orientationActionButton.disabled = true;
+                }
               })
               .catch((error) => {
                 console.warn('Intro video autoplay with sound failed', error);
                 introVideo.muted = true;
+                if (orientationActionButton) {
+                  orientationActionButton.disabled = false;
+                  setOrientationActionState('ready');
+                }
                 requestIntroAudioGesture();
                 const mutedAttempt = introVideo.play();
                 if (mutedAttempt && typeof mutedAttempt.then === 'function') {
@@ -1035,15 +1296,20 @@
                   });
                 }
               });
+            return playPromise;
           }
+          setOrientationActionState('done');
+          return null;
         };
 
-        const showIntroOverlay = () => {
+        const showIntroOverlay = async () => {
           if (!introOverlay || !introVideo) {
             startMainExperience();
             return;
           }
           introActive = true;
+          introHasStartedPlaying = false;
+          awaitingLandscapeBeforePlayback = false;
           cancelIntroCountdown();
           shouldResumeThemeAfterIntro = !audioEl.paused && !audioEl.muted;
           if (!audioEl.paused) {
@@ -1063,13 +1329,64 @@
             skipIntroButton.classList.remove('skip-toggle--active');
             skipIntroButton.disabled = false;
           }
+          if (orientationActionButton) {
+            orientationActionButton.disabled = false;
+            setOrientationActionState('ready');
+          }
           introVideo.pause();
           introVideo.currentTime = 0;
           introVideo.muted = false;
-          introCountdownId = window.setTimeout(() => {
-            startIntroPlayback();
-          }, 2200);
+
+          const schedulePlayback = (delay = 800) => {
+            cancelIntroCountdown();
+            introCountdownId = window.setTimeout(() => {
+              setOrientationActionState('working');
+              const playbackPromise = startIntroPlayback();
+              if (playbackPromise && typeof playbackPromise.then === 'function') {
+                playbackPromise.catch(() => {});
+              }
+            }, delay);
+          };
+
+          const landscapeNow = isLandscapeOrientation();
+          if (!isMobileDevice || landscapeNow) {
+            schedulePlayback(1200);
+          } else {
+            awaitingLandscapeBeforePlayback = true;
+          }
+
+          await requestIntroFullscreen({ fromGesture: false });
+          const locked = await lockOrientationLandscape({ fromGesture: false });
+          if ((locked || isLandscapeOrientation()) && awaitingLandscapeBeforePlayback) {
+            awaitingLandscapeBeforePlayback = false;
+            schedulePlayback(600);
+          } else if (awaitingLandscapeBeforePlayback) {
+            setOrientationActionState('ready');
+          }
         };
+
+        const handleOrientationUpdate = () => {
+          if (!introActive) {
+            return;
+          }
+
+          if (isLandscapeOrientation()) {
+            if (awaitingLandscapeBeforePlayback && !introHasStartedPlaying) {
+              awaitingLandscapeBeforePlayback = false;
+              setOrientationActionState('working');
+              const playbackPromise = startIntroPlayback();
+              if (playbackPromise && typeof playbackPromise.then === 'function') {
+                playbackPromise.catch(() => {});
+              }
+            }
+          } else if (!introHasStartedPlaying && orientationActionButton) {
+            orientationActionButton.disabled = false;
+            setOrientationActionState('ready');
+          }
+        };
+
+        window.addEventListener('orientationchange', handleOrientationUpdate);
+        window.addEventListener('resize', handleOrientationUpdate);
 
         audioToggle.addEventListener('click', (event) => {
           event.preventDefault();
@@ -1106,6 +1423,11 @@
         });
 
         document.addEventListener('pointerdown', () => {
+          if (introActive) {
+            requestIntroFullscreen({ fromGesture: true });
+            lockOrientationLandscape({ fromGesture: true });
+          }
+
           if (introActive && introAwaitingUserAudio && introVideo) {
             introVideo.muted = false;
             const resumeIntro = introVideo.play();
@@ -1113,16 +1435,28 @@
               resumeIntro
                 .then(() => {
                   clearIntroAudioPrompt();
+                  setOrientationActionState('done');
+                  if (orientationActionButton) {
+                    orientationActionButton.disabled = true;
+                  }
                 })
                 .catch((error) => {
                   console.warn('Unable to resume intro audio from gesture', error);
+                  if (orientationActionButton) {
+                    orientationActionButton.disabled = false;
+                    setOrientationActionState('ready');
+                  }
                 });
             } else {
               clearIntroAudioPrompt();
+              setOrientationActionState('done');
+              if (orientationActionButton) {
+                orientationActionButton.disabled = true;
+              }
             }
           }
 
-          if (!hasMainExperienceStarted) {
+          if (!hasMainExperienceStarted || introActive) {
             return;
           }
           ensureBgVideoPlaying();
@@ -1177,6 +1511,13 @@
           introVideo.addEventListener('error', () => {
             console.warn('Intro video failed to play', introVideo.error);
             finishIntro();
+          });
+          introVideo.addEventListener('webkitendfullscreen', () => {
+            if (introActive) {
+              finishIntro();
+            } else {
+              exitIntroPresentation();
+            }
           });
         }
 
