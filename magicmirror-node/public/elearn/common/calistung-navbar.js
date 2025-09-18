@@ -6,6 +6,7 @@
 
   const DEFAULT_HOME_URL = "/elearn/map.html";
   const NAV_STYLE_ID = "calistung-navbar-style";
+  const PAUSE_MENU_SCRIPT_SRC = "/elearn/worlds/ui/pause-menu.js";
 
   const ensureStyles = () => {
     if (document.getElementById(NAV_STYLE_ID)) {
@@ -120,6 +121,116 @@
     `;
     document.head.appendChild(style);
   };
+
+  const hasPauseMenuScript = () => {
+    if (typeof window !== 'undefined' && window.__hasPauseMenu) {
+      return true;
+    }
+    if (document.querySelector("script[data-pause-menu]")) {
+      return true;
+    }
+    if (document.querySelector("script[src*=\"" + PAUSE_MENU_SCRIPT_SRC + "\"]")) {
+      return true;
+    }
+    return false;
+  };
+
+  const ensurePauseMenuScript = () => {
+    if (!document || !document.body || !document.body.dataset) {
+      return;
+    }
+    const behavior = (document.body.dataset.navBackBehavior || '').toLowerCase();
+    if (behavior !== 'pause-menu') {
+      return;
+    }
+    if (hasPauseMenuScript()) {
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = PAUSE_MENU_SCRIPT_SRC;
+    script.setAttribute('data-pause-menu', 'true');
+    script.onload = function () {
+      try {
+        window.__hasPauseMenu = true;
+      } catch (err) {
+        /* ignore flag assignment errors */
+      }
+    };
+    try {
+      (document.body || document.head || document.documentElement).appendChild(script);
+    } catch (err) {
+      /* ignore append errors */
+    }
+  };
+
+  const applyPageDefaults = () => {
+    if (!document || !document.body || !document.body.dataset) {
+      return false;
+    }
+    const body = document.body;
+    const dataset = body.dataset;
+    const classList = body.classList;
+
+    const badgeValue = (dataset.navBadge || '').toLowerCase();
+    let isShapeWorld = false;
+    let isMathWorld = false;
+
+    if (classList && typeof classList.contains === 'function') {
+      if (classList.contains('shape-shell')) {
+        isShapeWorld = true;
+      } else if (classList.contains('mathgame-shell')) {
+        isMathWorld = true;
+      }
+    }
+
+    if (!isShapeWorld && !isMathWorld) {
+      if (badgeValue.indexOf('calistung') !== -1) {
+        if (badgeValue.indexOf('shape') !== -1) {
+          isShapeWorld = true;
+        } else if (badgeValue.indexOf('math') !== -1 || badgeValue.indexOf('angka') !== -1) {
+          isMathWorld = true;
+        }
+      }
+    }
+
+    if (isShapeWorld) {
+      if (!dataset.navBadge) {
+        dataset.navBadge = 'Calistung Shape';
+      }
+      if (!dataset.navHomeUrl) {
+        dataset.navHomeUrl = '/elearn/worlds/calistung/shape/index.html';
+      }
+      if (!dataset.navBackBehavior) {
+        dataset.navBackBehavior = 'pause-menu';
+      }
+      if (!dataset.pauseToggle) {
+        dataset.pauseToggle = 'disabled';
+      }
+    }
+
+    if (isMathWorld) {
+      if (!dataset.navBadge) {
+        dataset.navBadge = 'Calistung Math';
+      }
+      if (!dataset.navHomeUrl) {
+        dataset.navHomeUrl = '/elearn/worlds/calistung/math-game/index.html';
+      }
+      if (!dataset.navBackBehavior) {
+        dataset.navBackBehavior = 'pause-menu';
+      }
+      if (!dataset.pauseToggle) {
+        dataset.pauseToggle = 'disabled';
+      }
+    }
+
+    ensurePauseMenuScript();
+    return true;
+  };
+
+  const earlyPrepared = applyPageDefaults();
+  if (!earlyPrepared) {
+    document.addEventListener('DOMContentLoaded', applyPageDefaults, { once: true });
+  }
 
   const createNav = () => {
     const nav = document.createElement('nav');
@@ -286,6 +397,8 @@
     if (!document.body) {
       return;
     }
+
+    applyPageDefaults();
 
     const nav = createNav();
 

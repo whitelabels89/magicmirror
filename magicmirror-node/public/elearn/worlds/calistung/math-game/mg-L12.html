@@ -363,7 +363,7 @@
       syncHud('Playing');
       startTime = performance.now();
       cancelAnimationFrame(animationId);
-      animationLoop();
+      animationId = requestAnimationFrame(animationLoop);
     }
 
     function endGame(statusText) {

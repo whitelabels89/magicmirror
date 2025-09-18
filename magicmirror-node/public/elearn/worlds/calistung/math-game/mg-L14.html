@@ -40,6 +40,17 @@
       letter-spacing: 1px;
     }
 
+    .target-label {
+      font-size: 18px;
+      font-weight: 600;
+      color: rgba(15, 23, 42, 0.72);
+    }
+
+    .target-label strong {
+      font-weight: 900;
+      color: rgba(15, 23, 42, 0.92);
+    }
+
     .progress {
       height: 10px;
       background: rgba(226, 232, 240, 0.6);
@@ -158,8 +169,8 @@
         <div class="target-layout">
           <section class="target-card">
             <div>
-              <div class="target-label">Jumlahkan angka menjadi</div>
-              <div class="target-number" id="target">—</div>
+              <div class="target-label" aria-live="polite">Jumlahkan angka menjadi <strong id="targetLabelValue">—</strong></div>
+              <div class="target-number" id="target" aria-hidden="true">—</div>
             </div>
             <div class="progress"><i id="progressBar"></i></div>
             <div class="target-card__stats" aria-live="polite">
@@ -188,11 +199,16 @@
       <div class="buddy-dialog" data-buddy-dialog>Pilih 2 atau 3 angka yang kalau dijumlahkan sama dengan target. Cek jawabanmu untuk dapat skor!</div>
     </aside>
   </div>
+
+  <audio id="sfx-ok" preload="auto"><source src="data:audio/mp3;base64,//uQZAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAACcQCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" type="audio/mp3"></audio>
+  <audio id="sfx-bad" preload="auto"><source src="data:audio/mp3;base64,//uQZAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAACcQCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" type="audio/mp3"></audio>
+
   <script src="/elearn/worlds/calistung/math-game/mathgame-shell.js"></script>
   <script>
   (function(){
     const grid = document.getElementById('grid');
     const targetEl = document.getElementById('target');
+    const targetLabelValueEl = document.getElementById('targetLabelValue');
     const scoreEl = document.getElementById('score');
     const roundEl = document.getElementById('round');
     const timeEl = document.getElementById('time');
@@ -231,6 +247,14 @@
     }
 
     function fmt(n){return n<10?`0${n}`:`${n}`}
+
+    function updateTargetDisplay(value){
+      const displayValue = (value ?? '—');
+      targetEl.textContent = displayValue;
+      if(targetLabelValueEl){
+        targetLabelValueEl.textContent = displayValue;
+      }
+    }
 
     function syncHud(){
       const seconds = Math.floor((Date.now() - state.startTime)/1000);
@@ -297,7 +321,7 @@
         btn.addEventListener('click',()=>toggleSelect(idx, btn));
         grid.appendChild(btn);
       });
-      targetEl.textContent = state.target;
+      updateTargetDisplay(state.target);
       bar.style.width = `${Math.min(100, (state.score % 100))}%`;
       syncHud();
     }
@@ -351,13 +375,18 @@
       setBuddy('🚀', `Ronde ${state.round}. Cari kombinasi baru yang nilainya ${state.target}!`);
     }
 
+    function playSfx(audioEl){
+      if(!audioEl) return;
+      audioEl.currentTime = 0;
+      audioEl.play().catch(()=>{});
+    }
+
     function handleCorrect(auto=false){
       if(isTransitioning) return;
       isTransitioning = true;
       state.score += 10;
       scoreEl.textContent = state.score;
-      ok.currentTime = 0;
-      ok.play().catch(()=>{});
+      playSfx(ok);
       bar.style.width = `${Math.min(100, (state.score % 100))}%`;
       const successMsg = auto
         ? 'Mantap! Kombinasinya pas, soal baru siap.'
@@ -375,7 +404,7 @@
       isTransitioning = true;
       state.score = Math.max(0, state.score - 2);
       scoreEl.textContent = state.score;
-      bad.currentTime=0; bad.play().catch(()=>{});
+      playSfx(bad);
       bar.style.width = `${Math.min(100, (state.score % 100))}%`;
       flashResult(false, () => {
         isTransitioning = false;
@@ -411,7 +440,7 @@
       const len=Math.random()<0.65?2:3;
       let t=0; for(let i=0;i<len;i++){t+=pick[i];}
       state.target=t;
-      targetEl.textContent=t;
+      updateTargetDisplay(t);
       setBuddy('🎲', 'Angkanya diacak. Temukan kombinasi baru!');
       isTransitioning = false;
       syncHud();
