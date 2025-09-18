@@ -36,6 +36,190 @@
         overflow: hidden;
       }
 
+      body.intro-active {
+        overflow: hidden;
+      }
+
+      .intro-overlay {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+        padding: clamp(1.5rem, 4vw, 3rem);
+        background: radial-gradient(circle at 20% 20%, rgba(24, 241, 255, 0.18), transparent 65%),
+          radial-gradient(circle at 80% 80%, rgba(255, 64, 246, 0.18), transparent 60%),
+          rgba(4, 4, 16, 0.96);
+        z-index: 20;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 320ms ease, visibility 320ms ease;
+      }
+
+      .intro-overlay.is-active {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+      }
+
+      .intro-overlay.is-finished {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+
+      .intro-overlay__skip {
+        position: absolute;
+        top: clamp(0.75rem, 3vw, 1.75rem);
+        right: clamp(0.75rem, 3vw, 1.75rem);
+        z-index: 2;
+      }
+
+      .skip-toggle {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+        padding: 0.45rem 0.85rem 0.45rem 0.65rem;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        background: rgba(12, 12, 36, 0.72);
+        color: var(--text-light);
+        font-family: "Orbitron", sans-serif;
+        font-size: clamp(0.68rem, 2vw, 0.8rem);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        cursor: pointer;
+        box-shadow: 0 12px 28px rgba(3, 6, 28, 0.55);
+        transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+        --toggle-track-width: clamp(44px, 12vw, 52px);
+        --toggle-thumb-size: clamp(18px, 5vw, 22px);
+        --toggle-track-offset: clamp(2px, 1vw, 4px);
+      }
+
+      .skip-toggle:hover,
+      .skip-toggle:focus-visible {
+        transform: translateY(-2px) scale(1.01);
+        box-shadow: 0 18px 36px rgba(24, 241, 255, 0.4);
+        border-color: rgba(24, 241, 255, 0.45);
+        outline: none;
+      }
+
+      .skip-toggle:disabled {
+        opacity: 0.85;
+        cursor: default;
+        transform: none;
+        box-shadow: 0 12px 28px rgba(3, 6, 28, 0.45);
+      }
+
+      .skip-toggle__track {
+        position: relative;
+        width: var(--toggle-track-width);
+        height: calc(var(--toggle-thumb-size) + var(--toggle-track-offset));
+        border-radius: 999px;
+        background: linear-gradient(135deg, rgba(24, 241, 255, 0.35), rgba(255, 64, 246, 0.35));
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+      }
+
+      .skip-toggle__thumb {
+        position: absolute;
+        top: 50%;
+        left: var(--toggle-track-offset);
+        width: var(--toggle-thumb-size);
+        height: var(--toggle-thumb-size);
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--secondary), var(--primary));
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+        display: grid;
+        place-items: center;
+        font-size: clamp(0.75rem, 4vw, 0.95rem);
+        transform: translate(0, -50%);
+        transition: transform 220ms ease;
+      }
+
+      .skip-toggle__label {
+        font-size: clamp(0.62rem, 2vw, 0.75rem);
+        letter-spacing: 0.18em;
+      }
+
+      .skip-toggle--active .skip-toggle__thumb {
+        transform: translate(
+            calc(var(--toggle-track-width) - var(--toggle-thumb-size) - var(--toggle-track-offset) * 2),
+            -50%
+          )
+          rotate(12deg);
+      }
+
+      .orientation-warning {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 0.85rem;
+        padding: clamp(1.5rem, 4vw, 2.5rem);
+        border-radius: 28px;
+        background: rgba(8, 8, 28, 0.88);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        box-shadow: 0 30px 55px rgba(3, 6, 28, 0.55);
+        transition: opacity 320ms ease, transform 320ms ease;
+      }
+
+      .orientation-warning__emoji {
+        font-size: clamp(2.5rem, 8vw, 3.5rem);
+        filter: drop-shadow(0 6px 12px rgba(24, 241, 255, 0.55));
+      }
+
+      .orientation-warning__title {
+        margin: 0;
+        font-family: "Orbitron", sans-serif;
+        font-size: clamp(1.15rem, 4vw, 1.6rem);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .orientation-warning__subtitle {
+        margin: 0;
+        font-size: clamp(0.9rem, 3.5vw, 1.05rem);
+        opacity: 0.85;
+      }
+
+      .intro-overlay.is-playing .orientation-warning {
+        opacity: 0;
+        transform: translateY(-24px) scale(0.96);
+        pointer-events: none;
+      }
+
+      .intro-overlay__video {
+        position: absolute;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        object-fit: cover;
+        border: none;
+        background: #000;
+        opacity: 0;
+        transition: opacity 360ms ease;
+      }
+
+      .intro-overlay.is-playing .intro-overlay__video {
+        opacity: 1;
+      }
+
+      @media (max-width: 620px) {
+        .orientation-warning {
+          border-radius: 22px;
+          padding: 1.35rem 1.65rem;
+        }
+        .skip-toggle__label {
+          letter-spacing: 0.12em;
+        }
+      }
+
       video.bg-video {
         position: fixed;
         top: 50%;
@@ -386,6 +570,38 @@
     </style>
   </head>
   <body>
+    <div
+      class="intro-overlay"
+      id="introOverlay"
+      role="dialog"
+      aria-modal="true"
+      aria-hidden="true"
+    >
+      <div class="intro-overlay__skip">
+        <button class="skip-toggle" type="button" data-skip-intro>
+          <span class="skip-toggle__track">
+            <span class="skip-toggle__thumb" aria-hidden="true">🚀</span>
+          </span>
+          <span class="skip-toggle__label">Skip Intro</span>
+        </button>
+      </div>
+      <div class="orientation-warning" id="orientationWarning" role="status">
+        <div class="orientation-warning__emoji" aria-hidden="true">📱↻</div>
+        <p class="orientation-warning__title">Rotate your phone or tablet to landscape</p>
+        <p class="orientation-warning__subtitle">Our trailer plays best in widescreen. Sit back &amp; enjoy!</p>
+      </div>
+      <video
+        id="introVideo"
+        class="intro-overlay__video"
+        preload="auto"
+        playsinline
+        webkit-playsinline
+        crossorigin="anonymous"
+      >
+        <source src="/elearn/worlds/kindercoder/thumbs/trailer.mp4" type="video/mp4" />
+        Your browser does not support the intro video.
+      </video>
+    </div>
     <video
       id="bgVideo"
       class="bg-video"
@@ -489,7 +705,17 @@
         const audioPrompt = document.getElementById('audioPrompt');
         const bgVideo = document.querySelector('.bg-video');
         const backdropEl = document.querySelector('.backdrop');
+        const introOverlay = document.getElementById('introOverlay');
+        const introVideo = document.getElementById('introVideo');
+        const orientationWarning = document.getElementById('orientationWarning');
+        const skipIntroButton = document.querySelector('[data-skip-intro]');
+        const skipIntroLabel = skipIntroButton?.querySelector('.skip-toggle__label') || null;
+        const bodyEl = document.body;
+        const INTRO_STORAGE_KEY = 'qaStartIntroSeen';
         let settingsOpen = false;
+        let hasMainExperienceStarted = false;
+        let introActive = false;
+        let introCountdownId = null;
 
         const ensureBgVideoPlaying = () => {
           if (!bgVideo) {
@@ -585,6 +811,120 @@
           }
         };
 
+        const startMainExperience = () => {
+          if (hasMainExperienceStarted) {
+            return;
+          }
+          hasMainExperienceStarted = true;
+          bodyEl.classList.remove('intro-active');
+          tryPlayAudio();
+          ensureBgVideoPlaying();
+          if (bgVideo) {
+            const currentSrc = bgVideo.currentSrc || (bgVideo.querySelector('source')?.src) || 'no-src';
+            console.log('[start.html] Using video source:', currentSrc);
+          }
+          updateAudioUI();
+        };
+
+        const cancelIntroCountdown = () => {
+          if (introCountdownId !== null) {
+            clearTimeout(introCountdownId);
+            introCountdownId = null;
+          }
+        };
+
+        const markIntroAsSeen = () => {
+          try {
+            sessionStorage.setItem(INTRO_STORAGE_KEY, 'true');
+          } catch (error) {
+            console.warn('Unable to persist intro trailer state', error);
+          }
+        };
+
+        const finishIntro = () => {
+          if (hasMainExperienceStarted) {
+            return;
+          }
+          cancelIntroCountdown();
+          introActive = false;
+          if (skipIntroButton) {
+            skipIntroButton.disabled = true;
+          }
+          if (skipIntroLabel) {
+            skipIntroLabel.textContent = 'Enjoy the game!';
+          }
+          if (introVideo) {
+            introVideo.pause();
+            introVideo.currentTime = 0;
+          }
+          if (introOverlay) {
+            introOverlay.classList.add('is-finished');
+            introOverlay.classList.remove('is-playing');
+            introOverlay.setAttribute('aria-hidden', 'true');
+            orientationWarning?.setAttribute('aria-hidden', 'true');
+            setTimeout(() => {
+              if (introOverlay.parentElement) {
+                introOverlay.remove();
+              }
+            }, 420);
+          }
+          bodyEl.classList.remove('intro-active');
+          markIntroAsSeen();
+          startMainExperience();
+        };
+
+        const startIntroPlayback = () => {
+          if (!introOverlay || !introVideo) {
+            startMainExperience();
+            return;
+          }
+          introCountdownId = null;
+          introOverlay.classList.add('is-playing');
+          orientationWarning?.setAttribute('aria-hidden', 'true');
+          introVideo.currentTime = 0;
+          introVideo.muted = false;
+          const playPromise = introVideo.play();
+          if (playPromise && typeof playPromise.then === 'function') {
+            playPromise.catch(() => {
+              introVideo.muted = true;
+              const mutedAttempt = introVideo.play();
+              if (mutedAttempt && typeof mutedAttempt.then === 'function') {
+                mutedAttempt.catch(() => {
+                  finishIntro();
+                });
+              }
+            });
+          }
+        };
+
+        const showIntroOverlay = () => {
+          if (!introOverlay || !introVideo) {
+            startMainExperience();
+            return;
+          }
+          introActive = true;
+          cancelIntroCountdown();
+          introOverlay.classList.remove('is-finished');
+          introOverlay.classList.remove('is-playing');
+          introOverlay.classList.add('is-active');
+          introOverlay.setAttribute('aria-hidden', 'false');
+          bodyEl.classList.add('intro-active');
+          orientationWarning?.setAttribute('aria-hidden', 'false');
+          if (skipIntroLabel) {
+            skipIntroLabel.textContent = 'Skip Intro';
+          }
+          if (skipIntroButton) {
+            skipIntroButton.classList.remove('skip-toggle--active');
+            skipIntroButton.disabled = false;
+          }
+          introVideo.pause();
+          introVideo.currentTime = 0;
+          introVideo.muted = false;
+          introCountdownId = window.setTimeout(() => {
+            startIntroPlayback();
+          }, 2200);
+        };
+
         audioToggle.addEventListener('click', () => {
           if (audioEl.paused) {
             tryPlayAudio();
@@ -600,31 +940,33 @@
           updateAudioUI();
         });
 
-        document.addEventListener(
-          'pointerdown',
-          () => {
-            ensureBgVideoPlaying();
-            if (audioEl.paused) {
-              tryPlayAudio();
-            } else if (audioEl.muted) {
-              audioEl.muted = false;
-              audioEl
-                .play()
-                .then(() => {
-                  audioPrompt.classList.remove('active');
-                  updateAudioUI();
-                })
-                .catch(() => {
-                  audioEl.muted = true;
-                  audioPrompt.classList.add('active');
-                  updateAudioUI();
-                });
-            }
-          },
-          { once: true }
-        );
+        document.addEventListener('pointerdown', () => {
+          if (!hasMainExperienceStarted) {
+            return;
+          }
+          ensureBgVideoPlaying();
+          if (audioEl.paused) {
+            tryPlayAudio();
+          } else if (audioEl.muted) {
+            audioEl.muted = false;
+            audioEl
+              .play()
+              .then(() => {
+                audioPrompt.classList.remove('active');
+                updateAudioUI();
+              })
+              .catch(() => {
+                audioEl.muted = true;
+                audioPrompt.classList.add('active');
+                updateAudioUI();
+              });
+          }
+        });
 
         document.addEventListener('visibilitychange', () => {
+          if (!hasMainExperienceStarted) {
+            return;
+          }
           if (document.visibilityState === 'visible') {
             ensureBgVideoPlaying();
             if (!audioEl.paused && audioEl.muted) {
@@ -637,13 +979,44 @@
           }
         });
 
-        tryPlayAudio();
-        ensureBgVideoPlaying();
-        if (bgVideo) {
-          const currentSrc = bgVideo.currentSrc || (bgVideo.querySelector('source')?.src) || 'no-src';
-          console.log('[start.html] Using video source:', currentSrc);
+        if (skipIntroButton) {
+          skipIntroButton.addEventListener('click', () => {
+            if (skipIntroLabel) {
+              skipIntroLabel.textContent = 'Skipping...';
+            }
+            skipIntroButton.classList.add('skip-toggle--active');
+            finishIntro();
+          });
         }
-        updateAudioUI();
+
+        if (introVideo) {
+          introVideo.addEventListener('ended', () => {
+            finishIntro();
+          });
+          introVideo.addEventListener('error', () => {
+            console.warn('Intro video failed to play', introVideo.error);
+            finishIntro();
+          });
+        }
+
+        const hasSeenIntro = (() => {
+          try {
+            return sessionStorage.getItem(INTRO_STORAGE_KEY) === 'true';
+          } catch (error) {
+            console.warn('Unable to read intro trailer state', error);
+            return false;
+          }
+        })();
+
+        if (introOverlay && introVideo && !hasSeenIntro) {
+          showIntroOverlay();
+        } else {
+          if (introOverlay && introOverlay.parentElement) {
+            introOverlay.setAttribute('aria-hidden', 'true');
+            introOverlay.remove();
+          }
+          startMainExperience();
+        }
       })();
     </script>
   </body>
