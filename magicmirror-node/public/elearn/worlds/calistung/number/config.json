@@ -5,27 +5,26 @@
     "background": "/elearn/img/map/worldmap3.webp"
   },
   "routes": {
-    "Level 1":  "/elearn/worlds/calistung/number/number-L1.html",
-    "Level 2":  "/elearn/worlds/calistung/number/number-L2.html",
-    "Level 3":  "/elearn/worlds/calistung/number/number-L3.html",
-    "Level 4":  "/elearn/worlds/calistung/number/number-L4.html",
-    "Level 5":  "/elearn/worlds/calistung/number/number-L5.html",
-    "Level 6":  "/elearn/worlds/calistung/number/number-L6.html",
-    "Level 7":  "/elearn/worlds/calistung/number/number-L7.html",
-    "Level 8":  "/elearn/worlds/calistung/number/number-L8.html",
-    "Level 9":  "/elearn/worlds/calistung/number/number-L9.html",
-    "Level 10": "/elearn/worlds/calistung/number/number-L10.html",
-    "Level 11": "/elearn/worlds/calistung/number/number-L11.html",
-    "Level 12": "/elearn/worlds/calistung/number/number-L12.html",
-    "Level 13": "/elearn/worlds/calistung/number/number-L13.html",
-    "Level 14": "/elearn/worlds/calistung/number/number-L14.html",
-    "Level 15": "/elearn/worlds/calistung/number/number-L15.html",
-    "Level 16": "/elearn/worlds/calistung/number/number-L16.html",
-    "Level 17": "/elearn/worlds/calistung/number/number-L17.html",
-    "Level 18": "/elearn/worlds/calistung/number/number-L18.html",
-    "Level 19": "/elearn/worlds/calistung/number/number-L19.html",
-    "Level 20": "/elearn/worlds/calistung/number/number-L20.html",
-    "Level 21": "/elearn/worlds/calistung/number/number-L21.html"
+    "Level 1":  "/elearn/worlds/calistung/number/number-L2.html",
+    "Level 2":  "/elearn/worlds/calistung/number/number-L3.html",
+    "Level 3":  "/elearn/worlds/calistung/number/number-L4.html",
+    "Level 4":  "/elearn/worlds/calistung/number/number-L5.html",
+    "Level 5":  "/elearn/worlds/calistung/number/number-L6.html",
+    "Level 6":  "/elearn/worlds/calistung/number/number-L7.html",
+    "Level 7":  "/elearn/worlds/calistung/number/number-L8.html",
+    "Level 8":  "/elearn/worlds/calistung/number/number-L9.html",
+    "Level 9":  "/elearn/worlds/calistung/number/number-L10.html",
+    "Level 10": "/elearn/worlds/calistung/number/number-L11.html",
+    "Level 11": "/elearn/worlds/calistung/number/number-L12.html",
+    "Level 12": "/elearn/worlds/calistung/number/number-L13.html",
+    "Level 13": "/elearn/worlds/calistung/number/number-L14.html",
+    "Level 14": "/elearn/worlds/calistung/number/number-L15.html",
+    "Level 15": "/elearn/worlds/calistung/number/number-L16.html",
+    "Level 16": "/elearn/worlds/calistung/number/number-L17.html",
+    "Level 17": "/elearn/worlds/calistung/number/number-L18.html",
+    "Level 18": "/elearn/worlds/calistung/number/number-L19.html",
+    "Level 19": "/elearn/worlds/calistung/number/number-L20.html",
+    "Level 20": "/elearn/worlds/calistung/number/number-L21.html"
   },
   "nodes": [
     { "label":"Level 1",  "x":"27%", "y":"15%" },
@@ -46,9 +45,8 @@
     { "label":"Level 16", "x":"30%", "y":"65%" },
     { "label":"Level 17", "x":"65%", "y":"65%" },
     { "label":"Level 18", "x":"53%", "y":"55%" },
-    { "label":"Level 19", "x":"43%", "y":"43%" },
-    { "label":"Level 20", "x":"56.6%", "y":"36%", "type":"boss" },
-    { "label":"Level 21", "x":"57%", "y":"30%",  "type":"finish" }
+    { "label":"Level 19", "x":"43%", "y":"43%", "type":"boss" },
+    { "label":"Level 20", "x":"56.6%", "y":"36%", "type":"finish" }
   ],
   "unlockRules": [
     { "target":"Level 2",  "requires":["Level 1"] },
@@ -69,8 +67,7 @@
     { "target":"Level 17", "requires":["Level 16"] },
     { "target":"Level 18", "requires":["Level 17"] },
     { "target":"Level 19", "requires":["Level 18"] },
-    { "target":"Level 20", "requires":["Level 19"] },
-    { "target":"Level 21", "requires":["Level 20"] }
+    { "target":"Level 20", "requires":["Level 19"] }
   ],
   "rewards": {
     "Level 5":  { "coins": 10, "badge": "reader-bronze" },
