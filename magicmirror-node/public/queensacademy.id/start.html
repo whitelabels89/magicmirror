@@ -1557,7 +1557,16 @@
           }
         });
 
-        document.addEventListener('pointerdown', () => {
+        document.addEventListener('pointerdown', (event) => {
+          const pointerTarget = event?.target || null;
+          if (
+            pointerTarget &&
+            typeof pointerTarget.closest === 'function' &&
+            pointerTarget.closest('[data-skip-intro]')
+          ) {
+            return;
+          }
+
           if (introActive) {
             requestIntroFullscreen({ fromGesture: true });
             lockOrientationLandscape({ fromGesture: true });
