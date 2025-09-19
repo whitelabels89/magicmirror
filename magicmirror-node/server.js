@@ -158,31 +158,130 @@ app.post('/api/assign-murid-ke-kelas', async (req, res) => {
   }
 });
 
+function loadServiceAccountFromEnv() {
+  const directJsonCandidates = [
+    ['GOOGLE_SERVICE_ACCOUNT_KEY', process.env.GOOGLE_SERVICE_ACCOUNT_KEY],
+    ['GOOGLE_SERVICE_ACCOUNT_JSON', process.env.GOOGLE_SERVICE_ACCOUNT_JSON],
+    ['SERVICE_ACCOUNT_KEY', process.env.SERVICE_ACCOUNT_KEY],
+    ['SERVICE_ACCOUNT_JSON', process.env.SERVICE_ACCOUNT_JSON],
+    ['FIREBASE_SERVICE_ACCOUNT_KEY', process.env.FIREBASE_SERVICE_ACCOUNT_KEY],
+    ['FIREBASE_SERVICE_ACCOUNT_JSON', process.env.FIREBASE_SERVICE_ACCOUNT_JSON],
+    ['FIREBASE_SERVICE_ACCOUNT', process.env.FIREBASE_SERVICE_ACCOUNT]
+  ].filter(([, value]) => typeof value === 'string' && value.trim());
+
+  const base64Candidates = [
+    ['GOOGLE_SERVICE_ACCOUNT_KEY_BASE64', process.env.GOOGLE_SERVICE_ACCOUNT_KEY_BASE64],
+    ['SERVICE_ACCOUNT_KEY_BASE64', process.env.SERVICE_ACCOUNT_KEY_BASE64],
+    ['FIREBASE_SERVICE_ACCOUNT_BASE64', process.env.FIREBASE_SERVICE_ACCOUNT_BASE64]
+  ].filter(([, value]) => typeof value === 'string' && value.trim());
+
+  const fileCandidates = [
+    ['GOOGLE_APPLICATION_CREDENTIALS', process.env.GOOGLE_APPLICATION_CREDENTIALS],
+    ['FIREBASE_SERVICE_ACCOUNT_FILE', process.env.FIREBASE_SERVICE_ACCOUNT_FILE],
+    ['GOOGLE_SERVICE_ACCOUNT_KEY_PATH', process.env.GOOGLE_SERVICE_ACCOUNT_KEY_PATH]
+  ].filter(([, value]) => typeof value === 'string' && value.trim());
+
+  const attemptedSources = new Set();
+
+  const tryParseJson = (value) => {
+    if (!value) return null;
+    try {
+      return JSON.parse(value);
+    } catch (_) {
+      return null;
+    }
+  };
+
+  const tryParseBase64Json = (value) => {
+    if (!value) return null;
+    try {
+      const decoded = Buffer.from(value, 'base64').toString('utf8');
+      return tryParseJson(decoded.trim());
+    } catch (_) {
+      return null;
+    }
+  };
+
+  const normalize = (obj) => {
+    if (!obj || typeof obj !== 'object') return null;
+    const normalized = { ...obj };
+    if (typeof normalized.private_key === 'string') {
+      normalized.private_key = normalized.private_key
+        .replace(/\\n/g, '\n')
+        .replace(/\r\n/g, '\n');
+    }
+    return normalized;
+  };
+
+  for (const [name, raw] of directJsonCandidates) {
+    const trimmed = raw.trim();
+    if (!trimmed) continue;
+    attemptedSources.add(name);
+    let parsed = tryParseJson(trimmed);
+    if (!parsed) parsed = tryParseBase64Json(trimmed);
+    if (parsed) return normalize(parsed);
+  }
+
+  for (const [name, raw] of base64Candidates) {
+    const trimmed = raw.trim();
+    if (!trimmed) continue;
+    attemptedSources.add(name);
+    const parsed = tryParseBase64Json(trimmed);
+    if (parsed) return normalize(parsed);
+  }
+
+  for (const [name, raw] of fileCandidates) {
+    const trimmed = raw.trim();
+    if (!trimmed) continue;
+    attemptedSources.add(name);
+    try {
+      if (!fs.existsSync(trimmed)) {
+        console.warn(`[admin-init] Service account file path not found for ${name}: ${trimmed}`);
+        continue;
+      }
+      const content = fs.readFileSync(trimmed, 'utf8');
+      const parsed = tryParseJson(content);
+      if (parsed) return normalize(parsed);
+      console.warn(`[admin-init] Service account file from ${name} is not valid JSON`);
+    } catch (err) {
+      console.error(`[admin-init] Failed reading service account file from ${name}:`, err.message);
+    }
+  }
+
+  if (attemptedSources.size) {
+    console.warn('[admin-init] Service account credentials detected but parsing failed. Checked env:', [...attemptedSources].join(', '));
+  }
+
+  return null;
+}
+
 // Init Firebase Admin (support GOOGLE_SERVICE_ACCOUNT_KEY_BASE64 or SERVICE_ACCOUNT_KEY_BASE64)
 if (!admin.apps.length) {
   try {
-    const saBase64 =
-      process.env.GOOGLE_SERVICE_ACCOUNT_KEY_BASE64 ||
-      process.env.SERVICE_ACCOUNT_KEY_BASE64;
-    if (saBase64) {
-      const serviceAccount = JSON.parse(Buffer.from(saBase64, 'base64').toString('utf8'));
-      const storageBucket = process.env.FIREBASE_STORAGE_BUCKET || `${serviceAccount.project_id}.appspot.com`;
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-        projectId: serviceAccount.project_id,
-        storageBucket
-      });
-      console.log('[admin-init] OK project_id=', serviceAccount.project_id, ' bucket=', storageBucket || '(none)');
+    const serviceAccount = loadServiceAccountFromEnv();
+    if (serviceAccount) {
+      const projectId = process.env.FIREBASE_PROJECT_ID || serviceAccount.project_id;
+      const storageBucket = process.env.FIREBASE_STORAGE_BUCKET || (projectId ? `${projectId}.appspot.com` : undefined);
+      const initOptions = {
+        credential: admin.credential.cert(serviceAccount)
+      };
+      if (projectId) initOptions.projectId = projectId;
+      if (storageBucket) initOptions.storageBucket = storageBucket;
+
+      admin.initializeApp(initOptions);
+      console.log('[admin-init] OK project_id=', projectId || '(none)', ' bucket=', storageBucket || '(none)');
       // Quick verify that the bucket exists to avoid "The specified bucket does not exist"
-      setImmediate(async () => {
-        try {
-          const b = admin.storage().bucket();
-          const [meta] = await b.getMetadata();
-          console.log('[storage] bucket verified:', meta.id || meta.name || storageBucket);
-        } catch (e) {
-          console.error('[storage] verify failed. Check FIREBASE_STORAGE_BUCKET. Expected:', storageBucket, 'Error:', e.message);
-        }
-      });
+      if (storageBucket) {
+        setImmediate(async () => {
+          try {
+            const b = admin.storage().bucket();
+            const [meta] = await b.getMetadata();
+            console.log('[storage] bucket verified:', meta.id || meta.name || storageBucket);
+          } catch (e) {
+            console.error('[storage] verify failed. Check FIREBASE_STORAGE_BUCKET. Expected:', storageBucket, 'Error:', e.message);
+          }
+        });
+      }
     } else {
       console.warn('[admin-init] No SA key provided; initializing with default credentials');
       admin.initializeApp();
