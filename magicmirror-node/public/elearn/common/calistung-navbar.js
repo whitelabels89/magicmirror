@@ -8,6 +8,302 @@
   const NAV_STYLE_ID = "calistung-navbar-style";
   const PAUSE_MENU_SCRIPT_SRC = "/elearn/worlds/ui/pause-menu.js";
   const MUSIC_SCRIPT_SRC = "/elearn/worlds/calistung/music.js";
+  const BUTTON_SFX_FALLBACK_SRC = 'data:audio/wav;base64,' +
+    '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';
+
+  const initButtonSfx = () => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      return;
+    }
+    if (window.__calistungButtonSfxInitialized) {
+      return;
+    }
+    window.__calistungButtonSfxInitialized = true;
+
+    const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+    let buttonBuffer = null;
+    let fallbackAudio = null;
+    let lastPlayAt = 0;
+
+    const ensureContext = () => {
+      if (!AudioContextCtor) {
+        return null;
+      }
+      if (!audioCtx) {
+        try {
+          audioCtx = new AudioContextCtor();
+        } catch (err) {
+          audioCtx = null;
+        }
+      }
+      return audioCtx;
+    };
+
+    const createButtonBuffer = (context) => {
+      if (!context || !context.createBuffer) {
+        return null;
+      }
+      try {
+        const duration = 0.28;
+        const sampleRate = context.sampleRate || 44100;
+        const frameCount = Math.max(1, Math.floor(sampleRate * duration));
+        const buffer = context.createBuffer(1, frameCount, sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < frameCount; i += 1) {
+          const t = i / sampleRate;
+          const decay = Math.pow(1 - (i / frameCount), 1.8);
+          const freq = 420 + (820 * Math.pow(decay, 0.3));
+          const tone = Math.sin(2 * Math.PI * freq * t);
+          const noise = (Math.random() * 2 - 1) * 0.12;
+          data[i] = (tone * 0.9 + noise * 0.4) * decay;
+        }
+        return buffer;
+      } catch (err) {
+        return null;
+      }
+    };
+
+    const ensureButtonBuffer = (context) => {
+      if (!context) {
+        return null;
+      }
+      if (!buttonBuffer) {
+        buttonBuffer = createButtonBuffer(context);
+      }
+      return buttonBuffer;
+    };
+
+    const playWithContext = (context) => {
+      const buffer = ensureButtonBuffer(context);
+      if (!buffer || !context.createBufferSource) {
+        return false;
+      }
+      try {
+        const now = context.currentTime || 0;
+        const source = context.createBufferSource();
+        source.buffer = buffer;
+        const gain = context.createGain ? context.createGain() : null;
+        if (gain && gain.gain) {
+          const start = now;
+          const peak = start + 0.012;
+          const end = start + 0.28;
+          gain.gain.setValueAtTime(0.001, start);
+          gain.gain.exponentialRampToValueAtTime(0.5, peak);
+          gain.gain.exponentialRampToValueAtTime(0.001, end);
+          source.connect(gain).connect(context.destination);
+        } else {
+          source.connect(context.destination);
+        }
+        source.start(now);
+        return true;
+      } catch (err) {
+        return false;
+      }
+    };
+
+    const ensureFallbackAudio = () => {
+      if (!fallbackAudio && typeof Audio !== 'undefined') {
+        try {
+          fallbackAudio = new Audio(BUTTON_SFX_FALLBACK_SRC);
+          fallbackAudio.preload = 'auto';
+          fallbackAudio.volume = 0.6;
+        } catch (err) {
+          fallbackAudio = null;
+        }
+      }
+      return fallbackAudio;
+    };
+
+    const playFallback = () => {
+      const audioEl = ensureFallbackAudio();
+      if (!audioEl) {
+        return;
+      }
+      try {
+        audioEl.currentTime = 0;
+      } catch (err) {
+        /* ignore */
+      }
+      audioEl.play().catch(() => {});
+    };
+
+    const resumeContext = () => {
+      const context = ensureContext();
+      if (context && context.state === 'suspended' && typeof context.resume === 'function') {
+        context.resume().catch(() => {});
+      }
+    };
+
+    const shouldSkip = (element) => {
+      if (!element) {
+        return true;
+      }
+      if (typeof element.closest === 'function' && element.closest('[data-sfx-ignore], [data-no-sfx], [data-disable-sfx]')) {
+        return true;
+      }
+      if (element.disabled) {
+        return true;
+      }
+      if (typeof element.getAttribute === 'function') {
+        const ariaDisabled = element.getAttribute('aria-disabled');
+        if (ariaDisabled && ariaDisabled !== 'false') {
+          return true;
+        }
+      }
+      if (element.classList && element.classList.contains && element.classList.contains('disabled')) {
+        return true;
+      }
+      return false;
+    };
+
+    const BUTTON_CLASS_RE = /(\bbtn\b|\bbutton\b|shape-button|mathgame|calistung-navbar__btn|finish|check|reset|submit|shuffle|control|action|option|choice|answer|play|pause|undo|redo|next|prev)/i;
+
+    const qualifiesAsButton = (node) => {
+      if (!node || shouldSkip(node)) {
+        return false;
+      }
+      const tag = (node.tagName || '').toLowerCase();
+      if (tag === 'button') {
+        return true;
+      }
+      if (tag === 'input') {
+        const type = (node.type || '').toLowerCase();
+        if (type === 'button' || type === 'submit' || type === 'reset' || type === 'checkbox' || type === 'radio') {
+          return !node.readOnly;
+        }
+      }
+      const role = (typeof node.getAttribute === 'function' && node.getAttribute('role')) || '';
+      if (role.toLowerCase() === 'button') {
+        return true;
+      }
+      if (node.dataset) {
+        if (node.dataset.button || node.dataset.action === 'button' || node.dataset.sfxButton === 'true') {
+          return true;
+        }
+      }
+      const className = typeof node.className === 'string' ? node.className : '';
+      if (BUTTON_CLASS_RE.test(className)) {
+        return true;
+      }
+      if (tag === 'a') {
+        if (role && role.toLowerCase() === 'button') {
+          return true;
+        }
+        if (className && BUTTON_CLASS_RE.test(className)) {
+          return true;
+        }
+      }
+      if (node.tabIndex != null && node.tabIndex >= 0 && BUTTON_CLASS_RE.test(className)) {
+        return true;
+      }
+      return false;
+    };
+
+    const findInteractive = (target) => {
+      let el = target;
+      while (el && el !== document && el !== window) {
+        if (qualifiesAsButton(el)) {
+          return el;
+        }
+        el = el.parentElement;
+      }
+      return null;
+    };
+
+    const playSfx = () => {
+      const now = Date.now();
+      if (now - lastPlayAt < 40) {
+        return;
+      }
+      lastPlayAt = now;
+      const context = ensureContext();
+      if (context && playWithContext(context)) {
+        return;
+      }
+      playFallback();
+    };
+
+    const prepareContext = (event) => {
+      if (!event || event.defaultPrevented || !event.isTrusted) {
+        return;
+      }
+      const candidate = findInteractive(event.target);
+      if (!candidate) {
+        return;
+      }
+      resumeContext();
+    };
+
+    const handleClick = (event) => {
+      if (!event || event.defaultPrevented || !event.isTrusted) {
+        return;
+      }
+      const candidate = findInteractive(event.target);
+      if (!candidate) {
+        return;
+      }
+      resumeContext();
+      playSfx();
+    };
+
+    const handleKey = (event) => {
+      if (!event || event.defaultPrevented || !event.isTrusted) {
+        return;
+      }
+      const key = event.key;
+      if (key !== 'Enter' && key !== ' ' && key !== 'Spacebar') {
+        return;
+      }
+      const target = document.activeElement || event.target;
+      const candidate = findInteractive(target);
+      if (!candidate) {
+        return;
+      }
+      resumeContext();
+      setTimeout(playSfx, 0);
+    };
+
+    document.addEventListener('pointerdown', prepareContext, true);
+    document.addEventListener('touchstart', prepareContext, true);
+    document.addEventListener('keydown', handleKey, true);
+    document.addEventListener('click', handleClick, true);
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initButtonSfx, { once: true });
+  } else {
+    initButtonSfx();
+  }
 
   const ensureMusicScript = () => {
     if (!document) {
