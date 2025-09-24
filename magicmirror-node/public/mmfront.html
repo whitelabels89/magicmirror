@@ -114,6 +114,32 @@
       color:#eafbf6; display:grid; place-items:center; cursor:pointer;
       box-shadow:0 8px 22px rgba(0,0,0,.35);
     }
+    .blackout-exit{
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 44px;
+      height: 44px;
+      border-radius: 999px;
+      border: 1px solid rgba(233,196,106,.45);
+      background: linear-gradient(135deg, rgba(255,255,255,.18), rgba(255,255,255,.04));
+      color:#fdf8e6;
+      display:grid;
+      place-items:center;
+      font-size:1.05rem;
+      cursor:pointer;
+      box-shadow:0 10px 26px rgba(0,0,0,.45);
+      opacity:0;
+      pointer-events:none;
+      transition: opacity .25s ease, transform .25s ease;
+      z-index:10000;
+    }
+    .blackout-exit:hover{ transform: translateY(-2px); }
+    .blackout-exit:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
+    body.manual-blackout .blackout-exit{
+      opacity:1;
+      pointer-events:auto;
+    }
     .controls.hidden{ opacity:0; pointer-events:none; transform: translate(-50%, 12px); }
     .controls{ transition: opacity .22s ease, transform .22s ease; }
     body.idle-blackout .controls-toggle{ opacity:0; pointer-events:none; }
@@ -881,10 +907,12 @@ h1{
           <button id="capture-button" class="btn">Analyze Style</button>
           <button id="flip-mirror" class="btn secondary" title="Flip preview horizontally">Flip Mirror</button>
           <button id="fullscreen" class="btn secondary" title="Fullscreen mode">Fullscreen</button>
+          <button id="blackout-button" class="btn danger" type="button" title="Gelapkan seluruh layar">Gelapkan Layar</button>
         </div>
         <button id="controls-toggle" class="controls-toggle" aria-pressed="true" title="Hide controls">▾</button>
         <button id="vc-toggle" class="vc-toggle" aria-pressed="false" title="Enable voice command">🎙️</button>
     <div id="vc-toast" class="vc-toast" style="display:none;">Say: “Hey Mirror…”</div>
+    <button id="blackout-exit" class="blackout-exit" type="button" title="Kembalikan tampilan" aria-label="Kembalikan tampilan" aria-hidden="true" tabindex="-1">☀️</button>
     <script>
 // === Voice Command: Hey Mirror → (camera on) → commands (mulai analisa/analyze) ===
 (function(){
@@ -1847,6 +1875,58 @@ function renderAnalysis(analysis){
           (el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen).call(el);
         } else {
           (document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen).call(document);
+        }
+      });
+    })();
+    // Manual blackout toggle
+    (function(){
+      const blackoutBtn = document.getElementById('blackout-button');
+      const exitBtn = document.getElementById('blackout-exit');
+      if(!blackoutBtn || !exitBtn) return;
+      const body = document.body;
+      let restoreIdle = false;
+      function enter(){
+        if(body.classList.contains('manual-blackout')) return;
+        restoreIdle = !body.classList.contains('idle-blackout');
+        body.classList.add('manual-blackout');
+        body.classList.add('idle-blackout');
+        exitBtn.setAttribute('aria-hidden', 'false');
+        exitBtn.setAttribute('tabindex', '0');
+        requestAnimationFrame(()=>{
+          try{ exitBtn.focus({ preventScroll: true }); }
+          catch(_){ try{ exitBtn.focus(); }catch(__){} }
+        });
+      }
+      function exit(){
+        if(!body.classList.contains('manual-blackout')) return;
+        body.classList.remove('manual-blackout');
+        if(restoreIdle){
+          body.classList.remove('idle-blackout');
+        }
+        restoreIdle = false;
+        exitBtn.setAttribute('aria-hidden', 'true');
+        exitBtn.setAttribute('tabindex', '-1');
+      }
+      blackoutBtn.addEventListener('click', ()=>{
+        if(body.classList.contains('manual-blackout')){
+          exit();
+        } else {
+          enter();
+        }
+      });
+      exitBtn.addEventListener('click', (e)=>{
+        e.preventDefault();
+        exit();
+      });
+      exitBtn.addEventListener('keydown', (e)=>{
+        if((e.key === 'Enter' || e.key === ' ') && body.classList.contains('manual-blackout')){
+          e.preventDefault();
+          exit();
+        }
+      });
+      document.addEventListener('keydown', (e)=>{
+        if(e.key === 'Escape'){
+          exit();
         }
       });
     })();
