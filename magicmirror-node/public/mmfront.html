@@ -136,9 +136,16 @@
     }
     .blackout-exit:hover{ transform: translateY(-2px); }
     .blackout-exit:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
+    .blackout-exit.is-visible{
+      opacity:1;
+      pointer-events:auto;
+    }
     body.manual-blackout .blackout-exit{
       opacity:1;
       pointer-events:auto;
+    }
+    .manual-blackout-hidden{
+      display:none !important;
     }
     .controls.hidden{ opacity:0; pointer-events:none; transform: translate(-50%, 12px); }
     .controls{ transition: opacity .22s ease, transform .22s ease; }
@@ -625,6 +632,10 @@ body.idle-blackout .caption{ opacity: 0 !important; }
   }
   body.manual-blackout #ai-avatar {
     display: none !important;
+  }
+  body.manual-blackout #holo-embed {
+    opacity: 0 !important;
+    pointer-events: none !important;
   }
   body.manual-blackout .mm-ui,
   body.manual-blackout .hud,
@@ -1907,12 +1918,46 @@ function renderAnalysis(analysis){
       const exitBtn = document.getElementById('blackout-exit');
       if(!blackoutBtn || !exitBtn) return;
       const body = document.body;
+      if(exitBtn.parentElement !== body){
+        try{ body.appendChild(exitBtn); }catch(_){ /* ignore append issues */ }
+      }
       let restoreIdle = false;
+      let previousFocus = null;
+
+      function toggleManualHidden(on){
+        const targets = ['ai-avatar', 'holo-embed'].map((id)=>{
+          const el = document.getElementById(id);
+          return el ? el : null;
+        }).filter(Boolean);
+        targets.forEach((el)=>{
+          if(on){
+            if(!el.dataset.manualBlackoutAria){
+              el.dataset.manualBlackoutAria = el.getAttribute('aria-hidden') ?? '';
+            }
+          }
+          el.classList.toggle('manual-blackout-hidden', on);
+          const prev = el.dataset.manualBlackoutAria;
+          if(on){
+            el.setAttribute('aria-hidden', 'true');
+          } else if(prev !== undefined){
+            if(prev === ''){
+              el.removeAttribute('aria-hidden');
+            } else {
+              el.setAttribute('aria-hidden', prev);
+            }
+            delete el.dataset.manualBlackoutAria;
+          }
+        });
+      }
+
       function enter(){
         if(body.classList.contains('manual-blackout')) return;
         restoreIdle = !body.classList.contains('idle-blackout');
         body.classList.add('manual-blackout');
         body.classList.add('idle-blackout');
+        previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        toggleManualHidden(true);
+        exitBtn.classList.add('is-visible');
         exitBtn.setAttribute('aria-hidden', 'false');
         exitBtn.setAttribute('tabindex', '0');
         requestAnimationFrame(()=>{
@@ -1927,8 +1972,15 @@ function renderAnalysis(analysis){
           body.classList.remove('idle-blackout');
         }
         restoreIdle = false;
+        toggleManualHidden(false);
+        exitBtn.classList.remove('is-visible');
         exitBtn.setAttribute('aria-hidden', 'true');
         exitBtn.setAttribute('tabindex', '-1');
+        if(previousFocus && previousFocus.isConnected && previousFocus !== document.body){
+          try{ previousFocus.focus({ preventScroll: true }); }
+          catch(_){ try{ previousFocus.focus(); }catch(__){} }
+        }
+        previousFocus = null;
       }
       blackoutBtn.addEventListener('click', ()=>{
         if(body.classList.contains('manual-blackout')){
