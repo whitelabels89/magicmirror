@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Konsep Spinwheel MagicMirror — Queen's Salon</title>
+  <style>
+    :root {
+      color-scheme: only light;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Poppins", "Segoe UI", sans-serif;
+      background: radial-gradient(circle at 20% 20%, #3e1b7a 0%, #1a0a33 45%, #080212 100%);
+      color: #f7eaff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    header {
+      text-align: center;
+      padding: 48px 24px 24px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: clamp(2.2rem, 4vw, 3rem);
+      letter-spacing: 0.02em;
+      text-shadow: 0 12px 30px rgba(198, 134, 255, 0.35);
+    }
+
+    header p {
+      margin: 16px auto 0;
+      max-width: 720px;
+      font-size: 1.05rem;
+      color: rgba(247, 234, 255, 0.85);
+      line-height: 1.6;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(320px, 1.15fr) minmax(320px, 1fr);
+      gap: 32px;
+      padding: 0 48px 72px;
+      align-items: start;
+    }
+
+    @media (max-width: 1024px) {
+      main {
+        grid-template-columns: 1fr;
+        padding: 0 24px 64px;
+      }
+    }
+
+    .mirror-preview {
+      position: relative;
+      display: flex;
+      justify-content: center;
+    }
+
+    .mirror-frame {
+      position: relative;
+      width: min(100%, 520px);
+      aspect-ratio: 9 / 16;
+      background: radial-gradient(circle at 50% 20%, rgba(88, 55, 164, 0.65), rgba(17, 6, 33, 0.9));
+      border-radius: 40px;
+      padding: 36px 32px 44px;
+      box-shadow:
+        inset 0 0 60px rgba(204, 173, 255, 0.25),
+        inset 0 0 25px rgba(255, 255, 255, 0.2),
+        0 24px 60px rgba(15, 2, 36, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(4px);
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    .mirror-header {
+      font-size: 1.8rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #ffe8ff;
+      text-shadow: 0 10px 26px rgba(255, 92, 219, 0.4);
+    }
+
+    .wheel-area {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      position: relative;
+    }
+
+    .wheel-wrapper {
+      position: relative;
+      width: min(360px, 78%);
+      aspect-ratio: 1 / 1;
+      filter: drop-shadow(0 16px 40px rgba(61, 9, 107, 0.7));
+    }
+
+    .wheel {
+      --rotation: 0deg;
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 14px solid rgba(255, 255, 255, 0.18);
+      box-shadow:
+        inset 0 0 32px rgba(255, 255, 255, 0.35),
+        0 0 40px rgba(243, 164, 255, 0.55);
+      transform: rotate(var(--rotation));
+      transition: transform 4.6s cubic-bezier(0.17, 0.89, 0.32, 1.28);
+      overflow: hidden;
+    }
+
+    .wheel::after {
+      content: "";
+      position: absolute;
+      inset: 26%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.85), rgba(245, 210, 255, 0.45));
+      box-shadow: 0 0 45px rgba(255, 208, 255, 0.55);
+    }
+
+    .wheel-logo {
+      position: absolute;
+      inset: 38%;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 1.05rem;
+      letter-spacing: 0.08em;
+      color: #6b2186;
+      background: rgba(255, 255, 255, 0.85);
+      box-shadow: 0 12px 24px rgba(73, 0, 86, 0.35);
+      text-transform: uppercase;
+    }
+
+    .wheel-pointer {
+      position: absolute;
+      top: -22px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 18px solid transparent;
+      border-right: 18px solid transparent;
+      border-bottom: 34px solid #fdf4ff;
+      filter: drop-shadow(0 10px 18px rgba(255, 148, 255, 0.65));
+    }
+
+    .wheel-slice {
+      position: absolute;
+      inset: 0;
+      transform-origin: 50% 50%;
+    }
+
+    .wheel-slice span {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 42%;
+      font-size: 0.94rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.95);
+      text-shadow: 0 2px 6px rgba(37, 0, 50, 0.7);
+      transform-origin: 0 0;
+      text-align: center;
+      line-height: 1.25;
+    }
+
+    .wheel-slice span em {
+      font-style: normal;
+      display: block;
+      font-size: 0.74rem;
+      opacity: 0.75;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      margin-top: 3px;
+    }
+
+    .start-button {
+      border: none;
+      background: linear-gradient(135deg, #ff86ff, #ffb347);
+      color: #170322;
+      font-size: 1.2rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 16px 48px;
+      border-radius: 999px;
+      cursor: pointer;
+      box-shadow: 0 18px 34px rgba(255, 132, 255, 0.35);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .start-button:hover {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 24px 44px rgba(255, 160, 255, 0.45);
+    }
+
+    .start-button:active {
+      transform: translateY(1px) scale(0.98);
+    }
+
+    .voice-hint {
+      font-size: 0.95rem;
+      color: rgba(247, 234, 255, 0.75);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .voice-wave {
+      position: relative;
+      width: 54px;
+      height: 16px;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 4px;
+    }
+
+    .voice-wave span {
+      display: block;
+      width: 100%;
+      border-radius: 6px;
+      background: linear-gradient(180deg, rgba(255, 178, 255, 0.9), rgba(255, 82, 184, 0.7));
+      animation: wave 1.2s infinite ease-in-out;
+    }
+
+    .voice-wave span:nth-child(odd) {
+      animation-delay: -0.3s;
+    }
+
+    @keyframes wave {
+      0%, 100% { height: 4px; opacity: 0.4; }
+      50% { height: 16px; opacity: 1; }
+    }
+
+    .voice-command {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 18px;
+      padding: 12px 18px;
+      font-size: 0.95rem;
+      color: rgba(255, 244, 255, 0.85);
+      text-align: center;
+      max-width: 90%;
+    }
+
+    .voice-command strong {
+      color: #ffe36f;
+      text-shadow: 0 6px 20px rgba(255, 210, 70, 0.45);
+    }
+
+    .result-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(8px);
+      background: rgba(11, 0, 27, 0.74);
+      border-radius: inherit;
+      padding: 24px;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.4s ease;
+    }
+
+    .result-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .result-card {
+      background: linear-gradient(145deg, rgba(255, 239, 255, 0.95), rgba(255, 208, 255, 0.88));
+      color: #3a0a41;
+      border-radius: 28px;
+      padding: 32px 44px;
+      text-align: center;
+      max-width: 360px;
+      box-shadow: 0 24px 60px rgba(255, 190, 255, 0.5);
+    }
+
+    .result-card h3 {
+      margin: 0;
+      font-size: 1.8rem;
+    }
+
+    .result-card p {
+      margin: 16px 0 22px;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    .close-result {
+      border: none;
+      border-radius: 999px;
+      padding: 12px 26px;
+      font-weight: 600;
+      background: linear-gradient(120deg, #ff6fe2, #ffbf5f);
+      color: #20002d;
+      cursor: pointer;
+      box-shadow: 0 12px 24px rgba(255, 111, 210, 0.45);
+    }
+
+    .confetti-piece {
+      position: fixed;
+      width: 10px;
+      height: 16px;
+      border-radius: 4px;
+      pointer-events: none;
+      opacity: 0;
+      animation: confettiFall 2.8s ease-out forwards;
+      z-index: 1000;
+    }
+
+    @keyframes confettiFall {
+      0% {
+        transform: translateY(-20vh) rotateZ(0deg);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(90vh) rotateZ(340deg);
+        opacity: 0;
+      }
+    }
+
+    .info-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .info-card {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      padding: 22px 26px;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 18px 36px rgba(7, 2, 22, 0.45);
+    }
+
+    .info-card h2 {
+      margin: 0 0 12px;
+      font-size: 1.35rem;
+      color: #ffe8ff;
+      text-shadow: 0 8px 24px rgba(158, 100, 255, 0.35);
+    }
+
+    .info-card p,
+    .info-card li {
+      color: rgba(247, 234, 255, 0.8);
+      line-height: 1.6;
+    }
+
+    .info-card ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .flow-steps {
+      display: grid;
+      gap: 16px;
+      counter-reset: step;
+      margin-top: 12px;
+    }
+
+    .flow-steps li {
+      position: relative;
+      padding-left: 56px;
+      list-style: none;
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 16px;
+      padding: 18px 22px 18px 60px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .flow-steps li::before {
+      counter-increment: step;
+      content: counter(step);
+      position: absolute;
+      left: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(120deg, #ff8aff, #ffc46b);
+      color: #2a0040;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+    }
+
+    .highlight-list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .highlight-list li {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 16px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .highlight-list strong {
+      color: #ffe36f;
+    }
+
+    footer {
+      text-align: center;
+      color: rgba(247, 234, 255, 0.4);
+      font-size: 0.85rem;
+      padding-bottom: 38px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Konsep Spinwheel MagicMirror untuk Salon Queen's</h1>
+    <p>
+      Halaman konsep ini merangkum bagaimana pengalaman <em>Spin &amp; Win</em> hadir langsung di MagicMirror. Pelanggan bisa memulai dengan suara,
+      menikmati animasi neon-clay yang ceria, dan hadiah langsung tercatat otomatis di ekosistem salon.
+    </p>
+  </header>
+
+  <main>
+    <section class="mirror-preview" aria-label="Pratinjau antarmuka cermin">
+      <div class="mirror-frame">
+        <div class="mirror-header">Spin &amp; Win 🎉</div>
+        <div class="wheel-area">
+          <div class="wheel-wrapper">
+            <div class="wheel-pointer" aria-hidden="true"></div>
+            <div class="wheel" id="wheel">
+              <div class="wheel-logo">Queen's</div>
+            </div>
+          </div>
+          <button class="start-button" id="spinButton" type="button">Spin Now</button>
+          <div class="voice-hint">
+            <div class="voice-wave" aria-hidden="true">
+              <span></span><span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <span>atau bilang <strong>“Spin now!”</strong></span>
+          </div>
+          <div class="voice-command">
+            Trigger utama: <strong>“Hey Mirror, aku mau coba Spinwheel.”</strong>
+          </div>
+        </div>
+
+        <div class="result-overlay" id="resultOverlay" role="alertdialog" aria-modal="true">
+          <div class="result-card">
+            <h3 id="resultTitle">Congrats!</h3>
+            <p id="rewardText">Kamu dapat Free Hair Mask!</p>
+            <button class="close-result" id="closeOverlay" type="button">Simpan Hadiah</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="info-grid" aria-label="Detail konsep dan alur sistem">
+      <article class="info-card">
+        <h2>1. Trigger Aktivasi</h2>
+        <ul>
+          <li><strong>Voice Command:</strong> pelanggan ucapkan “Hey Mirror, aku mau coba Spinwheel.”</li>
+          <li><strong>Manual:</strong> staff dapat menyalakan mode Spinwheel saat promo tertentu dari dashboard kontrol.</li>
+        </ul>
+      </article>
+
+      <article class="info-card">
+        <h2>2. Desain UI Clay-style</h2>
+        <p>
+          Roda neon clay-style (2.5D) dengan 6–12 slot warna-warni. Di pusatnya logo <strong>Queen's</strong> sebagai identitas brand.
+          Pointer neon memudahkan pelanggan melihat hadiah yang terpilih.
+        </p>
+        <ul class="highlight-list">
+          <li>💇 <strong>Diskon 30% Haircut</strong> — potongan kilat untuk gaya baru.</li>
+          <li>🌸 <strong>Free Hair Mask</strong> — langsung bisa dipakai treatment berikutnya.</li>
+          <li>💅 <strong>Diskon 50% Nail Art</strong> — ajak pelanggan coba layanan lain.</li>
+          <li>☕ <strong>Free Coffee/Tea</strong> — hospitality experience di lounge.</li>
+          <li>🎁 <strong>Tambahan Poin Membership</strong> — langsung sinkron ke loyalty.</li>
+          <li>❌ <strong>“Coba lagi yaa”</strong> — bikin tegang dan seru!</li>
+        </ul>
+      </article>
+
+      <article class="info-card">
+        <h2>3. Animasi &amp; Audio</h2>
+        <ul>
+          <li>Roda berputar cepat dengan easing melambat di akhir.</li>
+          <li>Efek suara “ting-ting-ting…” mengikuti ritme roda hingga berhenti.</li>
+          <li>Confetti neon turun saat hadiah diumumkan untuk menambah euforia.</li>
+        </ul>
+      </article>
+
+      <article class="info-card">
+        <h2>4. Sinkronisasi Hadiah</h2>
+        <ul class="highlight-list">
+          <li>📊 <strong>Google Sheet / Firestore:</strong> poin membership bertambah otomatis tanpa input manual.</li>
+          <li>🎟️ <strong>Voucher Digital:</strong> mirror menampilkan QR Code. Setelah scan, voucher terkirim ke WhatsApp via Whacenter API.</li>
+          <li>🧾 <strong>Audit-ready:</strong> setiap spin tercatat (user ID, hadiah, waktu) untuk laporan promo.</li>
+        </ul>
+      </article>
+
+      <article class="info-card">
+        <h2>5. Flow Customer</h2>
+        <ol class="flow-steps">
+          <li>Customer selesai treatment, staff mengajak bermain Spinwheel di depan MagicMirror.</li>
+          <li>Customer ucapkan “Hey Mirror, spinwheel!” untuk memunculkan layar roda.</li>
+          <li>Tekan tombol <em>Spin Now</em> atau ulangi perintah suara “Spin now!” untuk memulai.</li>
+          <li>Roda berputar, konfeti &amp; suara ceria mengiringi saat hadiah berhenti di pointer.</li>
+          <li>Hadiah tampil dalam pop-up: QR voucher siap di-scan atau poin otomatis tersimpan.</li>
+        </ol>
+      </article>
+
+      <article class="info-card">
+        <h2>6. Pop-up Hadiah</h2>
+        <p>
+          Setelah spin berakhir, overlay menampilkan pesan seperti <strong>“Congrats, kamu dapat Free Hair Mask!”</strong> lengkap dengan CTA
+          untuk simpan voucher atau klaim poin. Pop-up tetap mengikuti gaya neon clay, memastikan pengalaman terasa premium.
+        </p>
+      </article>
+    </section>
+  </main>
+
+  <footer>
+    Konsep oleh Queen's Salon · Dibangun di atas ekosistem MagicMirror untuk pengalaman salon yang interaktif.
+  </footer>
+
+  <script>
+    const wheelElement = document.getElementById('wheel');
+    const spinButton = document.getElementById('spinButton');
+    const resultOverlay = document.getElementById('resultOverlay');
+    const closeOverlay = document.getElementById('closeOverlay');
+    const rewardText = document.getElementById('rewardText');
+    const resultTitle = document.getElementById('resultTitle');
+
+    const segments = [
+      {
+        label: '💇 Diskon 30% Haircut',
+        accent: 'Diskon 30%',
+        title: 'Congrats!',
+        message: 'Kamu dapat Diskon 30% Haircut!'
+      },
+      {
+        label: '🌸 Free Hair Mask',
+        accent: 'Hair Mask',
+        title: 'Congrats!',
+        message: 'Kamu dapat Free Hair Mask!'
+      },
+      {
+        label: '💅 Diskon 50% Nail Art',
+        accent: 'Diskon 50%',
+        title: 'Congrats!',
+        message: 'Kamu dapat Diskon 50% untuk Nail Art!'
+      },
+      {
+        label: '☕ Free Coffee/Tea',
+        accent: 'Coffee/Tea',
+        title: 'Congrats!',
+        message: 'Nikmati Free Coffee/Tea di lounge Queen\'s!'
+      },
+      {
+        label: '🎁 Tambahan Poin Membership',
+        accent: 'Poin+',
+        title: 'Congrats!',
+        message: 'Poin membership kamu bertambah otomatis!'
+      },
+      {
+        label: '❌ Coba lagi yaa',
+        accent: 'Try Again',
+        title: 'Coba Lagi!',
+        message: 'Belum beruntung, coba lagi yaa!'
+      }
+    ];
+
+    const neonPalette = ['#ff6bd9', '#ff9f6b', '#ffe36f', '#4ef7ff', '#8c6dff', '#ff5f8f'];
+    const sliceDeg = 360 / segments.length;
+
+    const gradient = segments.map((seg, index) => {
+      const start = index * sliceDeg;
+      const end = (index + 1) * sliceDeg;
+      const color = neonPalette[index % neonPalette.length];
+      return `${color} ${start}deg ${end}deg`;
+    }).join(', ');
+
+    wheelElement.style.background = `conic-gradient(${gradient})`;
+
+    segments.forEach((segment, index) => {
+      const slice = document.createElement('div');
+      slice.className = 'wheel-slice';
+      slice.style.setProperty('--start-angle', `${index * sliceDeg}deg`);
+      slice.style.setProperty('--slice-angle', `${sliceDeg}deg`);
+
+      const label = document.createElement('span');
+      label.textContent = segment.label;
+      label.style.transform = `rotate(${sliceDeg / 2}deg) translate(-50%, -125%)`;
+      label.style.background = 'transparent';
+
+      const accent = document.createElement('em');
+      accent.textContent = segment.accent;
+      label.appendChild(accent);
+
+      slice.appendChild(label);
+      slice.style.transform = `rotate(${index * sliceDeg}deg)`;
+      wheelElement.appendChild(slice);
+    });
+
+    const spinDuration = 4600;
+    let isSpinning = false;
+    let currentRotation = 0;
+
+    const makeConfetti = () => {
+      const confettiCount = 80;
+      for (let i = 0; i < confettiCount; i++) {
+        const piece = document.createElement('span');
+        piece.className = 'confetti-piece';
+        const hueColor = neonPalette[i % neonPalette.length];
+        piece.style.background = hueColor;
+        piece.style.left = `${Math.random() * 100}vw`;
+        piece.style.animationDelay = `${Math.random() * 0.6}s`;
+        piece.style.transform = `translateY(-20vh) rotateZ(${Math.random() * 120}deg)`;
+        document.body.appendChild(piece);
+        setTimeout(() => piece.remove(), 3200);
+      }
+    };
+
+    const showResult = (segmentIndex) => {
+      const segment = segments[segmentIndex];
+      resultTitle.textContent = segment.title;
+      rewardText.textContent = segment.message;
+      closeOverlay.textContent = segment.label.startsWith('❌') ? 'Spin Lagi' : 'Simpan Hadiah';
+      resultOverlay.classList.add('show');
+      if (!segment.label.startsWith('❌')) {
+        makeConfetti();
+      }
+    };
+
+    const spinWheel = () => {
+      if (isSpinning) return;
+      isSpinning = true;
+      const targetIndex = Math.floor(Math.random() * segments.length);
+      const extraSpins = 6 + Math.floor(Math.random() * 3); // 6-8 putaran
+      const targetAngle = 360 - (targetIndex * sliceDeg + sliceDeg / 2);
+      const newRotation = currentRotation + extraSpins * 360 + targetAngle;
+      wheelElement.style.setProperty('--rotation', `${newRotation}deg`);
+      wheelElement.style.transform = `rotate(${newRotation}deg)`;
+
+      setTimeout(() => {
+        currentRotation = newRotation % 360;
+        isSpinning = false;
+        showResult(targetIndex);
+      }, spinDuration);
+    };
+
+    spinButton.addEventListener('click', spinWheel);
+
+    closeOverlay.addEventListener('click', () => {
+      resultOverlay.classList.remove('show');
+    });
+
+    resultOverlay.addEventListener('click', (event) => {
+      if (event.target === resultOverlay) {
+        resultOverlay.classList.remove('show');
+      }
+    });
+  </script>
+</body>
+</html>
