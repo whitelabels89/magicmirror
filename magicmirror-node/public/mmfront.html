@@ -616,6 +616,29 @@ body.idle-blackout .caption{ opacity: 0 !important; }
     opacity: 0 !important;
     pointer-events: none !important;
   }
+  body.manual-blackout {
+    background: #000 !important;
+  }
+  body.manual-blackout::before,
+  body.manual-blackout::after {
+    opacity: 0 !important;
+  }
+  body.manual-blackout #ai-avatar {
+    display: none !important;
+  }
+  body.manual-blackout .mm-ui,
+  body.manual-blackout .hud,
+  body.manual-blackout #navbar,
+  body.manual-blackout #footer-placeholder,
+  body.manual-blackout #lightbox,
+  body.manual-blackout #vc-toast,
+  body.manual-blackout #ai-chat,
+  body.manual-blackout #lux-particles,
+  body.manual-blackout #controls-toggle,
+  body.manual-blackout #vc-toggle {
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
   /* Keep only orb visible and centered with gentle patrol */
   body.idle-blackout #ai-avatar {
     --tx: 0px; --ty: 0px; /* neutralize eye-follow while idle */
