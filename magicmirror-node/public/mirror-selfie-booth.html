@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mirror Selfie Booth</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: radial-gradient(circle at top, #201547, #0a051b 70%);
+      color: #f6f3ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .container {
+      width: min(90vw, 420px);
+      background: rgba(22, 14, 40, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+      padding: 32px 28px 40px;
+      position: relative;
+      overflow: hidden;
+    }
+    .container::before {
+      content: "";
+      position: absolute;
+      inset: -30% -40% auto auto;
+      width: 80%;
+      height: 80%;
+      background: radial-gradient(circle, rgba(125, 94, 255, 0.6), transparent 60%);
+      z-index: 0;
+      filter: blur(40px);
+    }
+    h1 {
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-size: 1.2rem;
+      margin-bottom: 16px;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+    .mirror {
+      position: relative;
+      background: rgba(10, 6, 30, 0.85);
+      border-radius: 18px;
+      overflow: hidden;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      aspect-ratio: 3 / 4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    video, img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .countdown {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 5rem;
+      font-weight: 600;
+      background: rgba(7, 2, 20, 0.55);
+      backdrop-filter: blur(3px);
+      z-index: 2;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .countdown.active {
+      opacity: 1;
+    }
+    .controls {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+      position: relative;
+      z-index: 1;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    button {
+      flex: 1 1 150px;
+      border: none;
+      border-radius: 999px;
+      padding: 14px 18px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      background: linear-gradient(135deg, #8a5cff, #ff4fd8);
+      color: #fff;
+      box-shadow: 0 12px 24px rgba(142, 90, 255, 0.25);
+    }
+    button.secondary {
+      background: rgba(255, 255, 255, 0.12);
+      box-shadow: none;
+    }
+    button:active {
+      transform: translateY(2px);
+    }
+    button:disabled {
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.4);
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .status {
+      margin-top: 16px;
+      font-size: 0.85rem;
+      text-align: center;
+      color: rgba(244, 239, 255, 0.7);
+      min-height: 1.2em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Mirror Selfie Booth</h1>
+    <div class="mirror">
+      <video id="video" autoplay playsinline></video>
+      <img id="snapshot" alt="Snapshot" style="display: none;" />
+      <div id="countdown" class="countdown"></div>
+      <canvas id="canvas" style="display: none;"></canvas>
+    </div>
+    <div class="controls">
+      <button id="capture">Ambil Selfie</button>
+      <button id="retake" class="secondary" style="display: none;">Retake</button>
+      <button id="send" style="display: none;">Kirim ke WhatsApp</button>
+    </div>
+    <div class="status" id="status"></div>
+  </div>
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const snapshot = document.getElementById('snapshot');
+    const countdownEl = document.getElementById('countdown');
+    const captureBtn = document.getElementById('capture');
+    const retakeBtn = document.getElementById('retake');
+    const sendBtn = document.getElementById('send');
+    const statusEl = document.getElementById('status');
+
+    let stream;
+    let capturedDataUrl = '';
+
+    async function initCamera() {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+        video.srcObject = stream;
+        statusEl.textContent = '';
+      } catch (error) {
+        statusEl.textContent = 'Tidak dapat mengakses kamera.';
+        console.error('Camera access error:', error);
+        captureBtn.disabled = true;
+      }
+    }
+
+    function stopCamera() {
+      if (!stream) return;
+      stream.getTracks().forEach(track => track.stop());
+      stream = null;
+    }
+
+    async function startCountdownAndCapture() {
+      captureBtn.disabled = true;
+      countdownEl.classList.add('active');
+      for (let i = 3; i > 0; i--) {
+        countdownEl.textContent = i;
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+      countdownEl.textContent = '📸';
+      await new Promise(resolve => setTimeout(resolve, 400));
+      countdownEl.classList.remove('active');
+      countdownEl.textContent = '';
+      captureSnapshot();
+    }
+
+    function captureSnapshot() {
+      const width = video.videoWidth;
+      const height = video.videoHeight;
+      if (!width || !height) {
+        statusEl.textContent = 'Kamera belum siap. Coba lagi.';
+        captureBtn.disabled = false;
+        return;
+      }
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, width, height);
+      capturedDataUrl = canvas.toDataURL('image/png');
+      snapshot.src = capturedDataUrl;
+      snapshot.style.display = 'block';
+      video.style.display = 'none';
+      retakeBtn.style.display = 'inline-flex';
+      sendBtn.style.display = 'inline-flex';
+      captureBtn.style.display = 'none';
+      statusEl.textContent = '';
+    }
+
+    function resetToLive() {
+      snapshot.style.display = 'none';
+      video.style.display = 'block';
+      captureBtn.style.display = 'inline-flex';
+      retakeBtn.style.display = 'none';
+      sendBtn.style.display = 'none';
+      capturedDataUrl = '';
+      captureBtn.disabled = false;
+      statusEl.textContent = '';
+    }
+
+    async function sendToWhatsApp() {
+      if (!capturedDataUrl) return;
+      sendBtn.disabled = true;
+      statusEl.textContent = 'Mengirim ke WhatsApp...';
+      try {
+        const base64Image = capturedDataUrl.split(',')[1];
+        const response = await fetch('/send-selfie', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ image: base64Image })
+        });
+        if (!response.ok) {
+          throw new Error('Gagal mengirim selfie.');
+        }
+        statusEl.textContent = 'Selfie berhasil dikirim!';
+      } catch (error) {
+        console.error(error);
+        statusEl.textContent = 'Terjadi kesalahan saat mengirim.';
+      } finally {
+        sendBtn.disabled = false;
+      }
+    }
+
+    captureBtn.addEventListener('click', startCountdownAndCapture);
+    retakeBtn.addEventListener('click', resetToLive);
+    sendBtn.addEventListener('click', sendToWhatsApp);
+
+    window.addEventListener('beforeunload', stopCamera);
+    initCamera();
+  </script>
+</body>
+</html>
