@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mirror Selfie Booth</title>
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: radial-gradient(circle at top, #201547, #0a051b 70%);
+      color: #f6f3ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 32px 12px;
+    }
+    .container {
+      width: min(92vw, 480px);
+      background: rgba(22, 14, 40, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 28px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+      padding: 32px 28px 40px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .container::before,
+    .container::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+      filter: blur(60px);
+      z-index: 0;
+    }
+    .container::before {
+      inset: -30% -40% auto auto;
+      width: 70%;
+      height: 70%;
+      background: radial-gradient(circle, rgba(125, 94, 255, 0.6), transparent 60%);
+    }
+    .container::after {
+      inset: auto auto -35% -50%;
+      width: 60%;
+      height: 60%;
+      background: radial-gradient(circle, rgba(255, 87, 173, 0.45), transparent 70%);
+    }
+    h1 {
+      text-transform: uppercase;
+      letter-spacing: 1.6px;
+      font-size: 1.4rem;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+      margin: 0;
+    }
+    .tagline {
+      font-size: 0.9rem;
+      text-align: center;
+      color: rgba(240, 233, 255, 0.7);
+      margin-top: -8px;
+      z-index: 1;
+    }
+    .mirror {
+      position: relative;
+      background: rgba(10, 6, 30, 0.88);
+      border-radius: 20px;
+      overflow: hidden;
+      border: 2px solid rgba(255, 255, 255, 0.12);
+      aspect-ratio: 3 / 4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
+      transition: box-shadow 0.3s ease;
+    }
+    .mirror::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 30%, rgba(112, 72, 255, 0.25), transparent 65%);
+      mix-blend-mode: screen;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      pointer-events: none;
+    }
+    .mirror[data-filter="glow"]::before {
+      opacity: 1;
+    }
+    video,
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .frame-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 3;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .frame-overlay.visible {
+      opacity: 1;
+    }
+    .frame-overlay.frame-glow {
+      background: linear-gradient(135deg, rgba(255, 185, 255, 0.32), rgba(123, 95, 255, 0.28));
+      mix-blend-mode: screen;
+    }
+    .frame-overlay.frame-colorpop {
+      border: 16px solid transparent;
+      border-image: linear-gradient(135deg, #ff9a9e, #fad0c4, #fad0c4, #fbc2eb) 1;
+    }
+    .frame-overlay.frame-crown {
+      background:
+        radial-gradient(circle at 50% 12%, rgba(255, 214, 98, 0.55), transparent 36%),
+        linear-gradient(180deg, rgba(255, 215, 141, 0.35), rgba(89, 49, 0, 0.25));
+      border: 14px solid rgba(255, 218, 133, 0.5);
+      box-shadow: 0 0 22px rgba(255, 209, 134, 0.4) inset;
+    }
+    .frame-overlay.frame-floral {
+      background:
+        radial-gradient(circle at 10% 10%, rgba(255, 145, 192, 0.55), transparent 30%),
+        radial-gradient(circle at 90% 18%, rgba(120, 208, 255, 0.5), transparent 32%),
+        radial-gradient(circle at 18% 84%, rgba(255, 197, 143, 0.5), transparent 28%),
+        radial-gradient(circle at 82% 82%, rgba(167, 255, 196, 0.55), transparent 30%);
+      border: 14px solid rgba(255, 255, 255, 0.18);
+    }
+    .countdown {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(3rem, 12vw, 6rem);
+      font-weight: 700;
+      background: rgba(7, 2, 20, 0.55);
+      backdrop-filter: blur(4px);
+      z-index: 4;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .countdown.active {
+      opacity: 1;
+      animation: pop 0.9s ease forwards;
+    }
+    @keyframes pop {
+      0% { transform: scale(0.6); }
+      30% { transform: scale(1.05); }
+      60% { transform: scale(0.95); }
+      100% { transform: scale(1); }
+    }
+    .controls {
+      display: flex;
+      gap: 12px;
+      margin-top: 6px;
+      position: relative;
+      z-index: 1;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    button.primary {
+      flex: 1 1 160px;
+    }
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 14px 18px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.3s ease;
+      background: linear-gradient(135deg, #8a5cff, #ff4fd8);
+      color: #fff;
+      box-shadow: 0 12px 24px rgba(142, 90, 255, 0.25);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    button.secondary {
+      background: rgba(255, 255, 255, 0.12);
+      box-shadow: none;
+    }
+    button.ghost {
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: none;
+    }
+    button:active {
+      transform: translateY(2px);
+    }
+    button:disabled {
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.45);
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .status {
+      font-size: 0.85rem;
+      text-align: center;
+      color: rgba(244, 239, 255, 0.7);
+      min-height: 1.3em;
+      position: relative;
+      z-index: 1;
+    }
+    .filter-panel {
+      z-index: 1;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 18px;
+      padding: 16px 18px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .filter-panel h2 {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 0;
+      color: rgba(245, 240, 255, 0.75);
+    }
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .chip {
+      background: rgba(255, 255, 255, 0.12);
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      color: #fdfcff;
+      transition: background 0.25s ease, transform 0.15s ease;
+    }
+    .chip:hover {
+      transform: translateY(-1px);
+    }
+    .chip.active {
+      background: linear-gradient(135deg, rgba(163, 119, 255, 0.85), rgba(255, 109, 203, 0.85));
+      box-shadow: 0 10px 20px rgba(151, 93, 255, 0.25);
+    }
+    .chip.surprise {
+      background: rgba(255, 183, 79, 0.16);
+      color: #ffd27d;
+    }
+    .voice-control,
+    .pose-coach {
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 18px;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 1;
+    }
+    .voice-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .voice-status {
+      font-size: 0.82rem;
+      color: rgba(222, 211, 255, 0.75);
+      flex: 1;
+    }
+    .voice-status.active {
+      color: #ffd27d;
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+    .pose-text {
+      font-size: 0.9rem;
+      color: rgba(240, 235, 255, 0.8);
+      line-height: 1.4;
+    }
+    .tips-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    @media (max-width: 520px) {
+      .container {
+        padding: 26px 20px 32px;
+      }
+      button.primary {
+        flex: 1 1 100%;
+      }
+    }
+    .mirror[data-filter="glow"] video,
+    .mirror[data-filter="glow"] img {
+      filter: brightness(1.12) saturate(1.1) contrast(1.05);
+    }
+    .mirror[data-filter="colorpop"] video,
+    .mirror[data-filter="colorpop"] img {
+      filter: contrast(1.25) saturate(1.45);
+    }
+    .mirror[data-filter="crown"] video,
+    .mirror[data-filter="crown"] img {
+      filter: brightness(1.05) saturate(1.15) contrast(1.1);
+    }
+    .mirror[data-filter="floral"] video,
+    .mirror[data-filter="floral"] img {
+      filter: saturate(1.25) hue-rotate(8deg);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Mirror Selfie Booth</h1>
+    <p class="tagline">Countdown, filter, dan kirim selfie ke WhatsApp dalam hitungan detik.</p>
+    <div class="mirror" id="mirror" data-filter="glow">
+      <video id="video" autoplay playsinline></video>
+      <img id="snapshot" alt="Snapshot" style="display: none;" />
+      <div id="countdown" class="countdown"></div>
+      <canvas id="canvas" style="display: none;"></canvas>
+      <div id="frameOverlay" class="frame-overlay frame-glow visible"></div>
+    </div>
+    <div class="filter-panel">
+      <h2>Filter &amp; Frames</h2>
+      <div class="chip-row">
+        <button class="chip" data-filter="none">🌙 Natural</button>
+        <button class="chip active" data-filter="glow">✨ Glow Skin</button>
+        <button class="chip" data-filter="colorpop">🎨 Color Pop</button>
+        <button class="chip" data-filter="crown">👑 Queen's Crown</button>
+        <button class="chip" data-filter="floral">🌸 Floral Aesthetic</button>
+      </div>
+      <button class="chip surprise" id="surpriseFilter">🎲 Filter Surprise</button>
+    </div>
+    <div class="pose-coach">
+      <div class="tips-row">
+        <strong>Panduan Pose</strong>
+        <button class="chip" id="nextPose">🎬 Pose Baru</button>
+      </div>
+      <p class="pose-text" id="poseText"></p>
+    </div>
+    <div class="voice-control">
+      <div class="tips-row">
+        <strong>Voice Command Mode</strong>
+        <button class="chip" id="voiceToggle">🎙️ Aktifkan</button>
+      </div>
+      <div class="voice-row">
+        <div class="voice-status" id="voiceStatus">Ucapkan “Hey Mirror, ambil selfie” untuk mulai.</div>
+      </div>
+    </div>
+    <div class="controls">
+      <button id="capture" class="primary">📸 Ambil Selfie</button>
+      <button id="retake" class="secondary" style="display: none;">🔄 Retake</button>
+      <button id="send" style="display: none;">✅ Kirim ke WhatsApp</button>
+    </div>
+    <div class="status" id="status"></div>
+  </div>
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const snapshot = document.getElementById('snapshot');
+    const countdownEl = document.getElementById('countdown');
+    const captureBtn = document.getElementById('capture');
+    const retakeBtn = document.getElementById('retake');
+    const sendBtn = document.getElementById('send');
+    const statusEl = document.getElementById('status');
+    const mirror = document.getElementById('mirror');
+    const frameOverlay = document.getElementById('frameOverlay');
+    const filterChips = Array.from(document.querySelectorAll('[data-filter]'));
+    const surpriseFilterBtn = document.getElementById('surpriseFilter');
+    const poseText = document.getElementById('poseText');
+    const nextPoseBtn = document.getElementById('nextPose');
+    const voiceToggleBtn = document.getElementById('voiceToggle');
+    const voiceStatus = document.getElementById('voiceStatus');
+
+    let stream;
+    let capturedDataUrl = '';
+    let currentFilter = 'glow';
+    let listening = false;
+
+    const filters = {
+      none: {
+        canvasFilter: 'none',
+        frame: 'none'
+      },
+      glow: {
+        canvasFilter: 'brightness(1.12) saturate(1.1) contrast(1.05)',
+        frame: 'glow'
+      },
+      colorpop: {
+        canvasFilter: 'contrast(1.25) saturate(1.45)',
+        frame: 'colorpop'
+      },
+      crown: {
+        canvasFilter: 'brightness(1.05) saturate(1.15) contrast(1.1)',
+        frame: 'crown'
+      },
+      floral: {
+        canvasFilter: 'saturate(1.25) hue-rotate(8deg)',
+        frame: 'floral'
+      }
+    };
+
+    const poses = [
+      'Angkat dagu sedikit, senyum lembut, dan tangan di dada ala royal pose.',
+      'Condongkan bahu kiri ke kamera, buat peace sign, dan tatap lensa dengan percaya diri.',
+      'Pegang rambut perlahan, miringkan kepala, dan senyum dengan mata untuk efek glam.',
+      'Tutup satu mata dengan tangan, senyum tipis, dan tarik bahu ke belakang untuk terlihat jenjang.',
+      'Buat bentuk hati dengan tangan di dekat dagu dan beri senyum paling manis!'
+    ];
+
+    function updatePoseSuggestion() {
+      const suggestion = poses[Math.floor(Math.random() * poses.length)];
+      poseText.textContent = suggestion;
+    }
+
+    function updateFrameOverlay(frameType) {
+      frameOverlay.className = 'frame-overlay';
+      if (frameType && frameType !== 'none') {
+        frameOverlay.classList.add('visible', `frame-${frameType}`);
+      } else {
+        frameOverlay.classList.remove('visible');
+      }
+    }
+
+    function applyFilter(filterKey) {
+      if (!filters[filterKey]) {
+        filterKey = 'none';
+      }
+      currentFilter = filterKey;
+      mirror.setAttribute('data-filter', filterKey);
+      updateFrameOverlay(filters[filterKey].frame);
+      filterChips.forEach(chip => {
+        chip.classList.toggle('active', chip.dataset.filter === filterKey);
+      });
+    }
+
+    filterChips.forEach(chip => {
+      chip.addEventListener('click', () => applyFilter(chip.dataset.filter));
+    });
+
+    surpriseFilterBtn.addEventListener('click', () => {
+      const keys = Object.keys(filters).filter(key => key !== currentFilter);
+      const randomKey = keys[Math.floor(Math.random() * keys.length)];
+      applyFilter(randomKey);
+    });
+
+    function drawFrame(ctx, width, height, frameType) {
+      if (frameType === 'crown') {
+        const gradient = ctx.createLinearGradient(0, 0, 0, height);
+        gradient.addColorStop(0, 'rgba(255, 225, 166, 0.45)');
+        gradient.addColorStop(1, 'rgba(80, 45, 0, 0.25)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, width, height);
+        ctx.lineWidth = Math.max(width, height) * 0.02;
+        ctx.strokeStyle = 'rgba(255, 220, 150, 0.85)';
+        ctx.strokeRect(ctx.lineWidth / 2, ctx.lineWidth / 2, width - ctx.lineWidth, height - ctx.lineWidth);
+        ctx.font = `${Math.floor(width * 0.12)}px "Segoe UI Emoji", "Apple Color Emoji", sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(255, 235, 180, 0.95)';
+        ctx.fillText('👑', width / 2, height * 0.16);
+        ctx.font = `${Math.floor(width * 0.055)}px "Poppins", sans-serif`;
+        ctx.fillText('Queen\'s Selfie', width / 2, height * 0.26);
+      } else if (frameType === 'floral') {
+        ctx.lineWidth = Math.max(width, height) * 0.018;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+        ctx.strokeRect(ctx.lineWidth / 2, ctx.lineWidth / 2, width - ctx.lineWidth, height - ctx.lineWidth);
+        ctx.font = `${Math.floor(width * 0.08)}px "Segoe UI Emoji", "Apple Color Emoji", sans-serif`;
+        ctx.textAlign = 'left';
+        ctx.globalAlpha = 0.9;
+        ctx.fillText('🌸', width * 0.08, height * 0.16);
+        ctx.fillText('💮', width * 0.78, height * 0.22);
+        ctx.fillText('🌺', width * 0.12, height * 0.9);
+        ctx.fillText('🌷', width * 0.8, height * 0.84);
+        ctx.globalAlpha = 1;
+      } else if (frameType === 'colorpop') {
+        const gradient = ctx.createLinearGradient(0, 0, width, height);
+        gradient.addColorStop(0, 'rgba(255, 154, 158, 0.5)');
+        gradient.addColorStop(0.5, 'rgba(250, 208, 196, 0.35)');
+        gradient.addColorStop(1, 'rgba(251, 194, 235, 0.45)');
+        ctx.lineWidth = Math.max(width, height) * 0.025;
+        ctx.strokeStyle = gradient;
+        ctx.strokeRect(ctx.lineWidth / 2, ctx.lineWidth / 2, width - ctx.lineWidth, height - ctx.lineWidth);
+      } else if (frameType === 'glow') {
+        const radial = ctx.createRadialGradient(width / 2, height * 0.3, width * 0.05, width / 2, height / 2, width * 0.75);
+        radial.addColorStop(0, 'rgba(255, 214, 255, 0.25)');
+        radial.addColorStop(0.6, 'rgba(120, 94, 255, 0.18)');
+        radial.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = radial;
+        ctx.fillRect(0, 0, width, height);
+      }
+    }
+
+    async function initCamera() {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+        video.srcObject = stream;
+        statusEl.textContent = '';
+      } catch (error) {
+        statusEl.textContent = 'Tidak dapat mengakses kamera.';
+        console.error('Camera access error:', error);
+        captureBtn.disabled = true;
+      }
+    }
+
+    function stopCamera() {
+      if (!stream) return;
+      stream.getTracks().forEach(track => track.stop());
+      stream = null;
+    }
+
+    async function startCountdownAndCapture() {
+      captureBtn.disabled = true;
+      countdownEl.classList.add('active');
+      for (let i = 3; i > 0; i--) {
+        countdownEl.textContent = i;
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+      countdownEl.textContent = '📸';
+      await new Promise(resolve => setTimeout(resolve, 400));
+      countdownEl.classList.remove('active');
+      countdownEl.textContent = '';
+      captureSnapshot();
+    }
+
+    function captureSnapshot() {
+      const width = video.videoWidth;
+      const height = video.videoHeight;
+      if (!width || !height) {
+        statusEl.textContent = 'Kamera belum siap. Coba lagi.';
+        captureBtn.disabled = false;
+        return;
+      }
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      const filterConfig = filters[currentFilter] || filters.none;
+      ctx.filter = filterConfig.canvasFilter || 'none';
+      ctx.drawImage(video, 0, 0, width, height);
+      ctx.filter = 'none';
+      drawFrame(ctx, width, height, filterConfig.frame);
+      capturedDataUrl = canvas.toDataURL('image/png');
+      snapshot.src = capturedDataUrl;
+      snapshot.style.display = 'block';
+      video.style.display = 'none';
+      retakeBtn.style.display = 'inline-flex';
+      sendBtn.style.display = 'inline-flex';
+      captureBtn.style.display = 'none';
+      statusEl.textContent = '';
+    }
+
+    function resetToLive() {
+      snapshot.style.display = 'none';
+      video.style.display = 'block';
+      captureBtn.style.display = 'inline-flex';
+      retakeBtn.style.display = 'none';
+      sendBtn.style.display = 'none';
+      capturedDataUrl = '';
+      captureBtn.disabled = false;
+      statusEl.textContent = '';
+    }
+
+    async function sendToWhatsApp() {
+      if (!capturedDataUrl) return;
+      sendBtn.disabled = true;
+      statusEl.textContent = 'Mengirim ke WhatsApp...';
+      try {
+        const base64Image = capturedDataUrl.split(',')[1];
+        const response = await fetch('/send-selfie', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ image: base64Image })
+        });
+        if (!response.ok) {
+          throw new Error('Gagal mengirim selfie.');
+        }
+        statusEl.textContent = 'Selfie berhasil dikirim!';
+      } catch (error) {
+        console.error(error);
+        statusEl.textContent = 'Terjadi kesalahan saat mengirim.';
+      } finally {
+        sendBtn.disabled = false;
+      }
+    }
+
+    captureBtn.addEventListener('click', startCountdownAndCapture);
+    retakeBtn.addEventListener('click', () => {
+      resetToLive();
+      updatePoseSuggestion();
+    });
+    sendBtn.addEventListener('click', sendToWhatsApp);
+    nextPoseBtn.addEventListener('click', updatePoseSuggestion);
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition;
+
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.lang = 'id-ID';
+      recognition.interimResults = false;
+
+      recognition.onresult = event => {
+        const transcript = Array.from(event.results)
+          .map(result => result[0].transcript)
+          .join(' ')
+          .toLowerCase();
+        if (!transcript) return;
+        if (transcript.includes('ambil selfie')) {
+          if (captureBtn.style.display !== 'none' && !captureBtn.disabled) {
+            startCountdownAndCapture();
+          }
+        }
+        if (transcript.includes('retake') || transcript.includes('ulang')) {
+          resetToLive();
+        }
+        if (transcript.includes('kirim ke whatsapp')) {
+          if (sendBtn.style.display !== 'none') {
+            sendToWhatsApp();
+          }
+        }
+        if (transcript.includes('filter surprise') || transcript.includes('filter kejutan')) {
+          surpriseFilterBtn.click();
+        }
+        if (transcript.includes('glow')) {
+          applyFilter('glow');
+        }
+        if (transcript.includes('color pop')) {
+          applyFilter('colorpop');
+        }
+        if (transcript.includes('queen')) {
+          applyFilter('crown');
+        }
+        if (transcript.includes('floral') || transcript.includes('flower')) {
+          applyFilter('floral');
+        }
+      };
+
+      recognition.onstart = () => {
+        listening = true;
+        voiceStatus.textContent = 'Voice command aktif. Ucapkan “Ambil selfie”, “Retake”, atau “Kirim ke WhatsApp”.';
+        voiceStatus.classList.add('active');
+        voiceToggleBtn.textContent = '🔇 Matikan';
+      };
+
+      recognition.onend = () => {
+        if (listening) {
+          recognition.start();
+        } else {
+          voiceStatus.textContent = 'Voice command non-aktif. Tekan tombol untuk mengaktifkan lagi.';
+          voiceStatus.classList.remove('active');
+          voiceToggleBtn.textContent = '🎙️ Aktifkan';
+        }
+      };
+
+      recognition.onerror = event => {
+        console.error('Speech recognition error:', event.error);
+        voiceStatus.textContent = 'Voice command bermasalah. Coba lagi.';
+        voiceStatus.classList.remove('active');
+      };
+
+      voiceToggleBtn.addEventListener('click', () => {
+        if (!listening) {
+          try {
+            recognition.start();
+            listening = true;
+          } catch (error) {
+            console.error('Speech recognition start error:', error);
+          }
+        } else {
+          listening = false;
+          recognition.stop();
+        }
+      });
+    } else {
+      voiceToggleBtn.disabled = true;
+      voiceToggleBtn.textContent = '🎙️ Tidak didukung';
+      voiceStatus.textContent = 'Browser ini belum mendukung voice command.';
+    }
+
+    window.addEventListener('beforeunload', () => {
+      listening = false;
+      if (recognition) {
+        recognition.onend = null;
+        recognition.stop();
+      }
+      stopCamera();
+    });
+
+    initCamera();
+    updatePoseSuggestion();
+    applyFilter('glow');
+  </script>
+</body>
+</html>
