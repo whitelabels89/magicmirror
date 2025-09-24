@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mirror Selfie Booth &bull; Queen's Academy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Rajdhani:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-gradient: radial-gradient(circle at 15% 20%, rgba(255, 111, 233, 0.32), transparent 55%),
+          radial-gradient(circle at 85% 15%, rgba(66, 225, 255, 0.35), transparent 52%),
+          radial-gradient(circle at 50% 100%, rgba(113, 73, 255, 0.28), transparent 60%),
+          #060714;
+        --card-bg: rgba(13, 16, 32, 0.78);
+        --card-border: rgba(255, 255, 255, 0.14);
+        --text-primary: #f7f9ff;
+        --text-muted: rgba(247, 249, 255, 0.68);
+        --accent-pink: #ff6fe9;
+        --accent-blue: #49e6ff;
+        --accent-purple: #7c6bff;
+        --shadow: 0 24px 48px rgba(4, 7, 36, 0.45);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Poppins", "Segoe UI", sans-serif;
+        color: var(--text-primary);
+        background: var(--bg-gradient);
+        overflow-x: hidden;
+      }
+
+      main {
+        padding: clamp(1.5rem, 4vw, 3.5rem) clamp(1rem, 5vw, 5rem) 6rem;
+        display: grid;
+        gap: clamp(1.5rem, 3vw, 3rem);
+      }
+
+      header.hero {
+        display: grid;
+        gap: 1.2rem;
+        text-align: center;
+        padding: clamp(2rem, 4vw, 3.75rem);
+        border-radius: 28px;
+        background: linear-gradient(135deg, rgba(76, 64, 255, 0.35), rgba(255, 111, 233, 0.35));
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        box-shadow: var(--shadow);
+        position: relative;
+        overflow: hidden;
+      }
+
+      header.hero::before,
+      header.hero::after {
+        content: "";
+        position: absolute;
+        inset: -35% auto auto -30%;
+        width: 420px;
+        height: 420px;
+        background: radial-gradient(circle, rgba(255, 111, 233, 0.35), transparent 65%);
+        filter: blur(0px);
+        transform: rotate(18deg);
+        z-index: 0;
+      }
+
+      header.hero::after {
+        inset: auto -38% -42% auto;
+        background: radial-gradient(circle, rgba(73, 230, 255, 0.32), transparent 65%);
+        transform: rotate(-8deg);
+      }
+
+      header.hero > * {
+        position: relative;
+        z-index: 1;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2.4rem, 6vw, 3.6rem);
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+
+      p.lead {
+        margin: 0 auto;
+        max-width: 720px;
+        font-size: clamp(1rem, 2.4vw, 1.2rem);
+        color: var(--text-muted);
+      }
+
+      .chip-group {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.75rem;
+        margin-top: 0.5rem;
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.55rem 1rem;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(9, 12, 36, 0.55);
+        font-size: 0.85rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+      }
+
+      section {
+        display: grid;
+        gap: 1.25rem;
+        padding: clamp(1.5rem, 3vw, 2.75rem);
+        border-radius: 24px;
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        box-shadow: var(--shadow);
+      }
+
+      section h2 {
+        margin: 0;
+        font-family: "Rajdhani", sans-serif;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-size: clamp(1.5rem, 3vw, 1.95rem);
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+      }
+
+      section h2 span.icon {
+        font-size: 1.4em;
+      }
+
+      .grid-two {
+        display: grid;
+        gap: 1.5rem;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        align-items: start;
+      }
+
+      .card-list {
+        display: grid;
+        gap: 1rem;
+      }
+
+      .card-item {
+        padding: 1rem 1.25rem;
+        border-radius: 18px;
+        background: rgba(16, 20, 42, 0.78);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        display: grid;
+        gap: 0.4rem;
+      }
+
+      .card-item strong {
+        font-weight: 600;
+      }
+
+      .card-item span {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+      }
+
+      .booth-preview {
+        position: relative;
+        border-radius: 26px;
+        background: linear-gradient(160deg, rgba(9, 12, 38, 0.65), rgba(15, 19, 54, 0.9));
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        padding: clamp(1.5rem, 3vw, 2.5rem);
+        display: grid;
+        gap: 1.25rem;
+        overflow: hidden;
+        min-height: 420px;
+      }
+
+      .booth-preview__screen {
+        position: relative;
+        border-radius: 22px;
+        background: linear-gradient(135deg, rgba(35, 38, 78, 0.92), rgba(11, 12, 28, 0.82));
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        min-height: 260px;
+        display: grid;
+        place-items: center;
+        color: var(--text-primary);
+        text-align: center;
+        padding: 1.5rem;
+        overflow: hidden;
+      }
+
+      .booth-preview__frame {
+        position: absolute;
+        inset: 1.2rem;
+        border-radius: 18px;
+        pointer-events: none;
+        border: 3px solid rgba(255, 111, 233, 0.55);
+        box-shadow: 0 0 24px rgba(255, 111, 233, 0.42);
+        transition: all 280ms ease;
+      }
+
+      .booth-preview__countdown {
+        font-family: "Rajdhani", sans-serif;
+        font-size: clamp(3.25rem, 10vw, 5.5rem);
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-shadow: 0 0 24px rgba(255, 111, 233, 0.68);
+        opacity: 0;
+        transform: translateY(24px);
+        transition: opacity 220ms ease, transform 220ms ease;
+      }
+
+      .booth-preview__countdown.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .booth-preview__status {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        margin-top: 0.35rem;
+      }
+
+      .booth-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: none;
+        border-radius: 999px;
+        padding: 0.75rem 1.35rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+        letter-spacing: 0.03em;
+        cursor: pointer;
+        transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+        background: linear-gradient(135deg, rgba(73, 230, 255, 0.9), rgba(124, 107, 255, 0.9));
+        color: #060714;
+        box-shadow: 0 16px 32px rgba(16, 33, 78, 0.45);
+      }
+
+      .btn.secondary {
+        background: rgba(12, 16, 36, 0.85);
+        color: var(--text-primary);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+      }
+
+      .filter-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+      }
+
+      .filter-chip {
+        padding: 0.55rem 1rem;
+        border-radius: 14px;
+        background: rgba(18, 22, 46, 0.78);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        cursor: pointer;
+        display: grid;
+        gap: 0.25rem;
+        min-width: 160px;
+        transition: border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+      }
+
+      .filter-chip__title {
+        font-weight: 600;
+        font-size: 0.95rem;
+      }
+
+      .filter-chip__desc {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+      }
+
+      .filter-chip.is-active {
+        border-color: rgba(73, 230, 255, 0.55);
+        box-shadow: 0 0 0 1px rgba(73, 230, 255, 0.35);
+        transform: translateY(-2px);
+      }
+
+      .flow-steps {
+        display: grid;
+        gap: 1rem;
+        counter-reset: flow;
+      }
+
+      .flow-step {
+        counter-increment: flow;
+        display: grid;
+        gap: 0.4rem;
+        padding: 1.2rem 1.35rem;
+        border-radius: 16px;
+        background: rgba(16, 20, 46, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .flow-step::before {
+        content: counter(flow);
+        font-family: "Rajdhani", sans-serif;
+        font-size: 1.55rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        color: rgba(73, 230, 255, 0.75);
+      }
+
+      .flow-step strong {
+        font-size: 1.05rem;
+      }
+
+      .flow-step span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      .whatsapp-flow {
+        display: grid;
+        gap: 1rem;
+      }
+
+      .whatsapp-flow__card {
+        display: grid;
+        gap: 0.55rem;
+        padding: 1rem 1.25rem;
+        border-radius: 18px;
+        background: rgba(12, 16, 34, 0.85);
+        border: 1px solid rgba(73, 230, 255, 0.28);
+      }
+
+      .whatsapp-flow__card code {
+        background: rgba(73, 230, 255, 0.16);
+        padding: 0.3rem 0.45rem;
+        border-radius: 8px;
+        font-size: 0.85rem;
+      }
+
+      .marketing-grid {
+        display: grid;
+        gap: 1rem;
+      }
+
+      .marketing-card {
+        padding: 1.1rem 1.25rem;
+        border-radius: 16px;
+        background: rgba(18, 21, 46, 0.82);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .marketing-card strong {
+        display: block;
+        margin-bottom: 0.35rem;
+        color: #fff;
+      }
+
+      .pose-grid {
+        display: grid;
+        gap: 0.85rem;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+
+      .pose-card {
+        padding: 0.85rem 1rem;
+        border-radius: 14px;
+        background: rgba(24, 25, 52, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        font-size: 0.88rem;
+        color: var(--text-muted);
+      }
+
+      .mirror-ascii {
+        font-family: "Courier New", monospace;
+        background: rgba(8, 10, 24, 0.88);
+        border-radius: 16px;
+        padding: 1.25rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: center;
+        color: var(--text-muted);
+      }
+
+      footer.page-footer {
+        text-align: center;
+        padding: 2.5rem 1rem 3.5rem;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      @media (max-width: 720px) {
+        .booth-actions {
+          justify-content: center;
+        }
+
+        .chip {
+          font-size: 0.75rem;
+        }
+
+        .filter-chip {
+          min-width: min(140px, 45vw);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header class="hero">
+        <h1>Mirror Selfie Booth &mdash; WhatsApp Share</h1>
+        <p class="lead">
+          Mode photobooth interaktif di Magic Mirror untuk Queen's Salon. Dirancang agar customer bisa selfie, memilih filter,
+          dan langsung share hasilnya ke WhatsApp dalam hitungan detik.
+        </p>
+        <div class="chip-group">
+          <span class="chip">🎤 "Hey Mirror, ambil selfie"</span>
+          <span class="chip">👆 Dashboard trigger</span>
+          <span class="chip">🤳 Realtime preview</span>
+          <span class="chip">📲 Share otomatis</span>
+        </div>
+      </header>
+
+      <section aria-labelledby="trigger-section">
+        <h2 id="trigger-section"><span class="icon">🚀</span>Trigger Cepat</h2>
+        <div class="grid-two">
+          <div class="card-list">
+            <div class="card-item">
+              <strong>Voice Command Customer</strong>
+              <span>"Hey Mirror, ambil selfie" → mode photobooth aktif dengan konfirmasi suara &amp; animasi neon.</span>
+            </div>
+            <div class="card-item">
+              <strong>Dashboard Stylist</strong>
+              <span>Staff bisa tekan tombol Photobooth di dashboard salon untuk memulai sekaligus memilih preset filter.</span>
+            </div>
+            <div class="card-item">
+              <strong>Auto Wake</strong>
+              <span>Sensor kedekatan opsional: mirror menyapa customer yang baru duduk dan menawarkan selfie.</span>
+            </div>
+          </div>
+          <div class="mirror-ascii" aria-hidden="true">
+            ┌───────────────────────────────┐<br />│ &nbsp;&nbsp;&nbsp;Hey Mirror, ambil selfie! &nbsp;&nbsp;&nbsp;│<br />│ &nbsp;&nbsp;✨ Voice wake detected ✨ &nbsp;&nbsp;│<br />│ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Mengaktifkan Photobooth... &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br />└───────────────────────────────┘
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="ui-section">
+        <h2 id="ui-section"><span class="icon">🪞</span>Tampilan UI di Cermin</h2>
+        <div class="grid-two">
+          <div class="booth-preview" role="presentation">
+            <div class="booth-preview__screen" id="boothScreen">
+              <div class="booth-preview__frame" id="boothFrame"></div>
+              <div class="booth-preview__countdown" id="boothCountdown">3</div>
+              <div>
+                <div style="font-size: 1.05rem; font-weight: 600">Preview Kamera</div>
+                <div class="booth-preview__status" id="boothStatus">Countdown siap dimulai</div>
+              </div>
+            </div>
+            <div class="booth-actions">
+              <button class="btn" id="startCountdownBtn">Mulai Countdown</button>
+              <button class="btn secondary" id="randomFilterBtn">Filter Surprise ✨</button>
+            </div>
+          </div>
+          <div class="card-list">
+            <div class="card-item">
+              <strong>Countdown Dinamis</strong>
+              <span>Animasi 3…2…1… di tengah layar dengan glow neon agar customer siap sebelum kamera mengambil foto.</span>
+            </div>
+            <div class="card-item">
+              <strong>Frame Branding</strong>
+              <span>Frame tematik: neon glam, floral spring, atau edisi Queen's Academy untuk acara spesial.</span>
+            </div>
+            <div class="card-item">
+              <strong>UI Gestur &amp; Voice</strong>
+              <span>Gesture kanan/kiri untuk ganti filter, voice command untuk repeat, share, atau retake.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="filter-section">
+        <h2 id="filter-section"><span class="icon">🎨</span>Filters &amp; Frames</h2>
+        <p class="lead" style="text-align: left; max-width: 680px">
+          Customer bisa memilih filter secara instan atau minta kejutan. Semua preset mendukung watermark otomatis Queen Care.
+        </p>
+        <div class="filter-list" id="filterList" role="list"></div>
+      </section>
+
+      <section aria-labelledby="result-section">
+        <h2 id="result-section"><span class="icon">📸</span>Hasil &amp; Interaksi</h2>
+        <div class="grid-two">
+          <div class="card-list">
+            <div class="card-item">
+              <strong>Layar Review</strong>
+              <span>Lihat foto sebelum dikirim, zoom detail, dan preview watermark.</span>
+            </div>
+            <div class="card-item">
+              <strong>Pilihan Cepat</strong>
+              <span>✅ Simpan &amp; Share ke WhatsApp &nbsp;|&nbsp; 🔄 Retake &nbsp;|&nbsp; 🎨 Ganti Filter.</span>
+            </div>
+            <div class="card-item">
+              <strong>Voice Intent</strong>
+              <span>Customer bilang "Kirim ke WhatsApp" → sistem otomatis memanggil Whacenter API dengan nomor terverifikasi.</span>
+            </div>
+          </div>
+          <div class="card-list">
+            <div class="card-item">
+              <strong>Ekstra Interaksi</strong>
+              <span>Berikan confetti virtual, efek suara shutter, dan pesan apresiasi personal.</span>
+            </div>
+            <div class="card-item">
+              <strong>After-care Tips</strong>
+              <span>Tambahkan rekomendasi produk atau promo upsell kecil di bawah hasil foto.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="whatsapp-section">
+        <h2 id="whatsapp-section"><span class="icon">📲</span>Pengiriman WhatsApp</h2>
+        <div class="grid-two">
+          <div class="whatsapp-flow">
+            <div class="whatsapp-flow__card">
+              <strong>1. Render &amp; Upload</strong>
+              <span>Generate gambar + watermark → upload ke mini PC storage atau Firebase Storage.</span>
+            </div>
+            <div class="whatsapp-flow__card">
+              <strong>2. Kirim Lewat Whacenter API</strong>
+              <span>Gunakan endpoint existing dengan payload nomor customer &amp; URL gambar.</span>
+              <code>{ device: WHACENTER_DEVICE, to: "+62xxxx", mediaUrl: "https://.../selfie.jpg" }</code>
+            </div>
+            <div class="whatsapp-flow__card">
+              <strong>3. Pesan Otomatis</strong>
+              <span>
+                "Hai [Nama Customer], ini hasil Mirror Selfie kamu di Queen's Salon 💖. Terima kasih sudah berkunjung!" + CTA promo.
+              </span>
+            </div>
+          </div>
+          <div class="card-list">
+            <div class="card-item">
+              <strong>Smart Contact</strong>
+              <span>Simpan nomor ke profil customer di Google Sheets → mirror tinggal memilih kontak saat share.</span>
+            </div>
+            <div class="card-item">
+              <strong>Security</strong>
+              <span>Berikan persetujuan di awal treatment: customer setuju menerima foto via WhatsApp.</span>
+            </div>
+            <div class="card-item">
+              <strong>Tracking</strong>
+              <span>Log waktu pengiriman dan status delivered/read untuk analitik kampanye.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="marketing-section">
+        <h2 id="marketing-section"><span class="icon">💖</span>Marketing Value</h2>
+        <div class="marketing-grid">
+          <div class="marketing-card">
+            <strong>Watermark Otomatis</strong>
+            Tambahkan logo Queen Care / Queen's Academy di pojok + hashtag #QueensMirror.
+          </div>
+          <div class="marketing-card">
+            <strong>Share-Ready</strong>
+            Format gambar square / portrait IG Story sehingga customer tinggal upload ulang.
+          </div>
+          <div class="marketing-card">
+            <strong>Campaign Tracker</strong>
+            Gunakan kode promo unik di tiap event (Valentine, Idul Fitri, Natal) untuk memonitor performa share.
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="extra-section">
+        <h2 id="extra-section"><span class="icon">✨</span>Fitur Tambahan &amp; Ide Interaktif</h2>
+        <div class="grid-two">
+          <div class="card-list">
+            <div class="card-item">
+              <strong>GIF / Boomerang</strong>
+              <span>Ambil 3 foto berurutan → gabungkan jadi GIF singkat dengan efek shimmer.</span>
+            </div>
+            <div class="card-item">
+              <strong>Event Theme</strong>
+              <span>Template khusus musim liburan. Mirror otomatis mengganti preset berdasarkan kalender.</span>
+            </div>
+            <div class="card-item">
+              <strong>Leaderboard Share</strong>
+              <span>Customer yang posting dengan hashtag #QueensMirror muncul di feed layar salon.</span>
+            </div>
+          </div>
+          <div class="card-list">
+            <div class="card-item">
+              <strong>Panduan Pose Interaktif</strong>
+              <span>Mirror menampilkan avatar stylist yang memberi contoh pose dalam bentuk animasi loop.</span>
+            </div>
+            <div class="card-item">
+              <strong>Voice Journal</strong>
+              <span>Setelah selfie, customer bisa rekam pesan singkat → mirror kirim teks + foto sebagai kenang-kenangan.</span>
+            </div>
+            <div class="card-item">
+              <strong>AR Accessory Drop</strong>
+              <span>Filter khusus yang menambahkan aksesori virtual (mahkota, kacamata glam) sesuai preferensi customer.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="flow-section">
+        <h2 id="flow-section"><span class="icon">🧭</span>Flow Customer</h2>
+        <div class="flow-steps">
+          <div class="flow-step">
+            <strong>Stylist menawarkan photobooth</strong>
+            <span>"Mau coba selfie di cermin, Mbak?"</span>
+          </div>
+          <div class="flow-step">
+            <strong>Aktifkan mode photobooth</strong>
+            <span>Voice command atau tombol dashboard → UI countdown dengan filter pilihan.</span>
+          </div>
+          <div class="flow-step">
+            <strong>Foto jadi &amp; review</strong>
+            <span>Customer cek hasil, pilih retake, ganti filter, atau simpan.</span>
+          </div>
+          <div class="flow-step">
+            <strong>Kirim ke WhatsApp</strong>
+            <span>"Kirim ke WhatsApp aku" → link / file terkirim otomatis.</span>
+          </div>
+          <div class="flow-step">
+            <strong>Share ke sosmed</strong>
+            <span>Customer upload ke IG Story / TikTok → brand exposure Queen's Salon.</span>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="poses-section">
+        <h2 id="poses-section"><span class="icon">🧘‍♀️</span>Pose Coach &amp; Tips</h2>
+        <p class="lead" style="text-align: left; max-width: 700px">
+          Untuk membuat sesi selfie makin fun, mirror bisa memberi inspirasi pose otomatis. Customer hanya tinggal mengikuti pose
+          yang muncul di layar.
+        </p>
+        <div class="pose-grid" id="poseGrid"></div>
+      </section>
+
+      <section aria-labelledby="ascii-section">
+        <h2 id="ascii-section"><span class="icon">🖥️</span>Contoh Tampilan di Mirror</h2>
+        <div class="mirror-ascii">
+          ┌───────────────────────────────┐<br />│ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Mirror Selfie Booth&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; │<br />│ &nbsp;&nbsp;😀 &nbsp;&nbsp;(kamera live view) &nbsp;&nbsp;│<br />│ &nbsp;&nbsp;✨ Glow Filter aktif &nbsp;&nbsp;│<br />│ &nbsp;&nbsp;&nbsp;&nbsp;📸 3…2…1… &nbsp;&nbsp;&nbsp;&nbsp;│<br />│ [✅ Kirim ke WhatsApp] [🔄 Retake] │<br />└───────────────────────────────┘
+        </div>
+      </section>
+    </main>
+
+    <footer class="page-footer">
+      Queen's Salon &bull; Magic Mirror Experience Lab — crafted for memorable customer journeys.
+    </footer>
+
+    <script>
+      const filters = [
+        {
+          id: "glow",
+          title: "✨ Glow Skin",
+          description: "Soft skin tone + highlight pipi, cocok untuk after facial.",
+          frame: {
+            color: "rgba(255, 111, 233, 0.65)",
+            shadow: "0 0 32px rgba(255, 111, 233, 0.55)"
+          },
+          status: "Glow Skin aktif — kulit tampak lebih radiant"
+        },
+        {
+          id: "colorpop",
+          title: "🎨 Color Pop",
+          description: "Saturasi meningkat, latar belakang dibuat dreamy.",
+          frame: {
+            color: "rgba(73, 230, 255, 0.7)",
+            shadow: "0 0 28px rgba(73, 230, 255, 0.55)"
+          },
+          status: "Color Pop aktif — warna outfit makin keluar"
+        },
+        {
+          id: "queen",
+          title: "👑 Queen's Crown Frame",
+          description: "Mahkota 3D + glitter animasi, sempurna untuk posting story.",
+          frame: {
+            color: "rgba(124, 107, 255, 0.7)",
+            shadow: "0 0 32px rgba(124, 107, 255, 0.6)"
+          },
+          status: "Queen's Crown aktif — tampil bak ratu"
+        },
+        {
+          id: "floral",
+          title: "🌸 Floral Aesthetic",
+          description: "Frame bunga pastel + tone lembut, cocok untuk spring vibes.",
+          frame: {
+            color: "rgba(255, 194, 229, 0.75)",
+            shadow: "0 0 26px rgba(255, 194, 229, 0.55)"
+          },
+          status: "Floral Aesthetic aktif — aura hangat &amp; feminin"
+        }
+      ];
+
+      const poses = [
+        "Tangan di dagu + tatapan ke kamera, cocok untuk highlight makeup.",
+        "Peace sign dekat wajah + senyum lebar ala K-Beauty.",
+        "Shoulder look back — tampilkan gaya rambut baru dari samping.",
+        "Pegang produk rekomendasi stylist untuk upsell halus.",
+        "Pose duo bareng sahabat + filter Boomerang.",
+        "Ekspresi candid: tutup mata sebentar lalu buka pas hitungan 1."
+      ];
+
+      const filterList = document.getElementById("filterList");
+      const poseGrid = document.getElementById("poseGrid");
+      const boothFrame = document.getElementById("boothFrame");
+      const boothStatus = document.getElementById("boothStatus");
+      const boothCountdown = document.getElementById("boothCountdown");
+      const startCountdownBtn = document.getElementById("startCountdownBtn");
+      const randomFilterBtn = document.getElementById("randomFilterBtn");
+
+      let activeFilterId = filters[0].id;
+
+      function renderFilters() {
+        filterList.innerHTML = "";
+        filters.forEach((filter) => {
+          const chip = document.createElement("button");
+          chip.type = "button";
+          chip.className = `filter-chip${filter.id === activeFilterId ? " is-active" : ""}`;
+          chip.innerHTML = `<span class="filter-chip__title">${filter.title}</span><span class="filter-chip__desc">${filter.description}</span>`;
+          chip.addEventListener("click", () => setActiveFilter(filter.id));
+          filterList.appendChild(chip);
+        });
+      }
+
+      function renderPoses() {
+        poseGrid.innerHTML = "";
+        poses.forEach((pose) => {
+          const card = document.createElement("div");
+          card.className = "pose-card";
+          card.textContent = pose;
+          poseGrid.appendChild(card);
+        });
+      }
+
+      function setActiveFilter(id) {
+        const filter = filters.find((item) => item.id === id);
+        if (!filter) return;
+        activeFilterId = id;
+        boothFrame.style.borderColor = filter.frame.color;
+        boothFrame.style.boxShadow = filter.frame.shadow;
+        boothStatus.textContent = filter.status;
+        renderFilters();
+      }
+
+      async function startCountdown() {
+        const sequence = ["3", "2", "1", "📸"];
+        for (const [index, value] of sequence.entries()) {
+          await new Promise((resolve) => setTimeout(resolve, index === 0 ? 0 : 700));
+          boothCountdown.textContent = value;
+          boothCountdown.classList.add("is-visible");
+          if (value === "📸") {
+            boothStatus.textContent = "Foto tersimpan! Siap kirim ke WhatsApp?";
+            startCountdownBtn.disabled = true;
+            startCountdownBtn.textContent = "Foto Diambil";
+            startCountdownBtn.classList.add("secondary");
+          } else {
+            boothStatus.textContent = `Countdown: ${value}`;
+          }
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          if (value !== "📸") {
+            boothCountdown.classList.remove("is-visible");
+          }
+        }
+      }
+
+      function randomFilter() {
+        const available = filters.filter((item) => item.id !== activeFilterId);
+        const surprise = available[Math.floor(Math.random() * available.length)];
+        setActiveFilter(surprise.id);
+      }
+
+      startCountdownBtn.addEventListener("click", startCountdown);
+      randomFilterBtn.addEventListener("click", randomFilter);
+
+      renderFilters();
+      renderPoses();
+      setActiveFilter(activeFilterId);
+    </script>
+  </body>
+</html>
