@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Salon Mystery Gift</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+    }
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: radial-gradient(circle at top, #ffe6f7 0%, #f6c0e2 45%, #f8a9d1 100%);
+      color: #3d1b2c;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .mirror-frame {
+      width: min(90vw, 420px);
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 28px;
+      box-shadow: 0 18px 45px rgba(61, 27, 44, 0.2);
+      border: 4px solid rgba(255, 255, 255, 0.6);
+      padding: 32px 28px 36px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .mirror-frame::before {
+      content: "";
+      position: absolute;
+      inset: -120px;
+      background: conic-gradient(from 120deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0));
+      pointer-events: none;
+      animation: shimmer 6s linear infinite;
+    }
+    @keyframes shimmer {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    h1 {
+      margin: 0 0 12px;
+      font-size: 28px;
+      letter-spacing: 0.5px;
+    }
+    p.lead {
+      margin: 0 0 20px;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    .card-wrapper {
+      position: relative;
+      margin: 0 auto 24px;
+      width: min(100%, 340px);
+      min-height: 240px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, #ffe2f1 0%, #fffcff 100%);
+      box-shadow: inset 0 8px 18px rgba(255, 255, 255, 0.6), inset 0 -8px 24px rgba(252, 95, 154, 0.25);
+      overflow: hidden;
+      padding: 28px 24px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .gift-message {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: #a0195b;
+      font-size: clamp(18px, 2.4vw, 20px);
+      font-weight: 600;
+      gap: 8px;
+      max-width: 100%;
+      z-index: 0;
+    }
+    .gift-message span.reward {
+      display: block;
+      font-size: clamp(22px, 4.4vw, 26px);
+      line-height: 1.2;
+      font-weight: 700;
+      word-break: break-word;
+    }
+    canvas#scratch-layer {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      touch-action: none;
+      cursor: crosshair;
+    }
+    .cta {
+      font-size: 16px;
+      font-weight: 600;
+      background: #ff4f8b;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 999px;
+      box-shadow: 0 8px 18px rgba(255, 79, 139, 0.35);
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(255, 79, 139, 0.45);
+    }
+    .confetti {
+      position: absolute;
+      width: 12px;
+      height: 18px;
+      background: var(--color, #ff8cab);
+      top: 0;
+      left: 50%;
+      opacity: 0;
+      border-radius: 4px;
+      animation: fall 1.4s ease-out forwards;
+    }
+    @keyframes fall {
+      0% {
+        transform: translate(-50%, -40px) rotate(0deg) scale(0.6);
+        opacity: 0;
+      }
+      20% {
+        opacity: 1;
+      }
+      100% {
+        transform: translate(calc(-50% + var(--x, 0px)), 220px) rotate(250deg) scale(1);
+        opacity: 0;
+      }
+    }
+    .celebrate {
+      font-size: 18px;
+      color: #b1125b;
+      margin-bottom: 16px;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: all 0.4s ease;
+    }
+    .celebrate.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="mirror-frame">
+    <h1>✨ Salon Mystery Gift ✨</h1>
+    <p class="lead">Gosok kartu berkilau ini untuk membuka hadiah spesialmu. Siapa tahu kamu beruntung mendapatkan perawatan impian!</p>
+    <div class="celebrate" id="celebrate-text">Selamat! Hadiahmu terbuka penuh 🎉</div>
+    <div class="card-wrapper" id="card">
+      <div class="gift-message">
+        <div id="gift-icon" style="font-size:48px;">🎁</div>
+        <div id="gift-title">Hadiah Misterius</div>
+        <span class="reward" id="gift-reward">Silakan gosok untuk melihat kejutan!</span>
+      </div>
+      <canvas id="scratch-layer"></canvas>
+    </div>
+    <button class="cta" id="reset-button">Coba Hadiah Lain</button>
+  </div>
+  <script>
+    const rewards = [
+      { icon: '💆‍♀️', title: 'Relaxing Head Massage', text: 'Gratis pijat kepala aromaterapi 15 menit.' },
+      { icon: '💅', title: 'Nail Art Mini', text: 'Bonus nail art cantik untuk 2 kuku pilihanmu.' },
+      { icon: '💇‍♀️', title: 'Hair Styling Upgrade', text: 'Upgrade styling premium setelah blow dry.' },
+      { icon: '🌸', title: 'Serum Glow', text: 'Hadiahkan kulitmu serum wajah travel size.' },
+      { icon: '☕', title: 'Signature Beauty Drink', text: 'Nikmati minuman kolagen spesial sambil perawatan.' },
+      { icon: '🎀', title: 'VIP Mirror Moment', text: 'Foto Polaroid eksklusif dengan styling terbaru.' }
+    ];
+
+    const canvas = document.getElementById('scratch-layer');
+    const ctx = canvas.getContext('2d');
+    const giftIcon = document.getElementById('gift-icon');
+    const giftTitle = document.getElementById('gift-title');
+    const giftReward = document.getElementById('gift-reward');
+    const celebrateText = document.getElementById('celebrate-text');
+    const resetButton = document.getElementById('reset-button');
+    const card = document.getElementById('card');
+
+    let scratching = false;
+    let revealed = false;
+
+    function resizeCanvas() {
+      const rect = card.getBoundingClientRect();
+      const ratio = window.devicePixelRatio || 1;
+      canvas.width = rect.width * ratio;
+      canvas.height = rect.height * ratio;
+      canvas.style.width = rect.width + 'px';
+      canvas.style.height = rect.height + 'px';
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      drawCover(rect.width, rect.height);
+    }
+
+    function drawCover(width, height) {
+      const gradient = ctx.createLinearGradient(0, 0, width, height);
+      gradient.addColorStop(0, '#d3d3d8');
+      gradient.addColorStop(0.5, '#f0f0f5');
+      gradient.addColorStop(1, '#c1c1c6');
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, width, height);
+      ctx.fillStyle = 'rgba(255,255,255,0.35)';
+      for (let i = 0; i < 60; i++) {
+        const x = Math.random() * width;
+        const y = Math.random() * height;
+        const w = Math.random() * 24 + 6;
+        const h = Math.random() * 2 + 1;
+        ctx.fillRect(x, y, w, h);
+      }
+      ctx.lineWidth = 40;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.globalCompositeOperation = 'destination-out';
+    }
+
+    function setReward() {
+      const prize = rewards[Math.floor(Math.random() * rewards.length)];
+      giftIcon.textContent = prize.icon;
+      giftTitle.textContent = prize.title;
+      giftReward.textContent = prize.text;
+      celebrateText.classList.remove('show');
+      revealed = false;
+    }
+
+    function scratch(x, y) {
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.arc(x, y, 28, 0, Math.PI * 2, true);
+      ctx.fill();
+    }
+
+    function pointerPos(evt) {
+      const rect = canvas.getBoundingClientRect();
+      const x = (evt.clientX || evt.touches?.[0]?.clientX) - rect.left;
+      const y = (evt.clientY || evt.touches?.[0]?.clientY) - rect.top;
+      return { x, y };
+    }
+
+    function calculateReveal() {
+      const { width, height } = canvas;
+      const imageData = ctx.getImageData(0, 0, width, height);
+      let transparent = 0;
+      for (let i = 3; i < imageData.data.length; i += 4) {
+        if (imageData.data[i] === 0) transparent++;
+      }
+      const percentage = transparent / (width * height);
+      if (percentage > 0.45 && !revealed) {
+        revealed = true;
+        celebrateText.classList.add('show');
+        launchConfetti();
+      }
+    }
+
+    function launchConfetti() {
+      for (let i = 0; i < 26; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.setProperty('--x', `${(Math.random() - 0.5) * 220}px`);
+        confetti.style.setProperty('--color', ['#ff8cab', '#ffd166', '#9c89ff', '#48bb78'][Math.floor(Math.random() * 4)]);
+        confetti.style.left = `${40 + Math.random() * 20}%`;
+        confetti.style.animationDelay = `${Math.random() * 0.2}s`;
+        card.appendChild(confetti);
+        setTimeout(() => confetti.remove(), 1600);
+      }
+    }
+
+    function handlePointerDown(evt) {
+      evt.preventDefault();
+      scratching = true;
+      const { x, y } = pointerPos(evt);
+      scratch(x, y);
+    }
+
+    function handlePointerMove(evt) {
+      if (!scratching) return;
+      evt.preventDefault();
+      const { x, y } = pointerPos(evt);
+      scratch(x, y);
+      calculateReveal();
+    }
+
+    function stopScratching(evt) {
+      if (!scratching) return;
+      evt.preventDefault();
+      scratching = false;
+      calculateReveal();
+    }
+
+    function resetGame() {
+      setReward();
+      requestAnimationFrame(() => {
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        resizeCanvas();
+      });
+    }
+
+    window.addEventListener('resize', () => {
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      resizeCanvas();
+    });
+
+    canvas.addEventListener('pointerdown', handlePointerDown);
+    canvas.addEventListener('pointermove', handlePointerMove);
+    canvas.addEventListener('pointerup', stopScratching);
+    canvas.addEventListener('pointerleave', stopScratching);
+    canvas.addEventListener('pointercancel', stopScratching);
+
+    resetButton.addEventListener('click', () => {
+      celebrateText.classList.remove('show');
+      resetGame();
+    });
+
+    setReward();
+    requestAnimationFrame(resizeCanvas);
+  </script>
+</body>
+</html>
