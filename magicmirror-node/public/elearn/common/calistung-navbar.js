@@ -4,6 +4,330 @@
   }
   window.__calistungNavbarInitialized = true;
 
+  const initPenTouchBridge = () => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      return;
+    }
+    if (!window.PointerEvent) {
+      return;
+    }
+    if (window.__calistungPenTouchBridgeInitialized) {
+      return;
+    }
+    window.__calistungPenTouchBridgeInitialized = true;
+
+    const POINTER_TO_TOUCH = {
+      pointerdown: 'touchstart',
+      pointermove: 'touchmove',
+      pointerup: 'touchend',
+      pointercancel: 'touchcancel'
+    };
+
+    const asTouchEntry = (evt) => ({
+      identifier: evt.pointerId || 0,
+      target: evt.target || document.body,
+      clientX: evt.clientX,
+      clientY: evt.clientY,
+      screenX: evt.screenX,
+      screenY: evt.screenY,
+      pageX: evt.pageX,
+      pageY: evt.pageY,
+      radiusX: evt.width ? evt.width / 2 : 0,
+      radiusY: evt.height ? evt.height / 2 : 0,
+      force: typeof evt.pressure === 'number' ? evt.pressure : 0.5
+    });
+
+    const define = (obj, prop, value) => {
+      try {
+        Object.defineProperty(obj, prop, {
+          configurable: true,
+          enumerable: true,
+          value
+        });
+      } catch (err) {
+        try {
+          obj[prop] = value;
+        } catch (_) {
+          /* ignore */
+        }
+      }
+    };
+
+    const dispatchSyntheticTouch = (pointerEvent, type) => {
+      const target = pointerEvent.target;
+      if (!target || typeof target.dispatchEvent !== 'function') {
+        return;
+      }
+
+      const touches = (type === 'touchend' || type === 'touchcancel')
+        ? []
+        : [asTouchEntry(pointerEvent)];
+      const changedTouches = [asTouchEntry(pointerEvent)];
+
+      const synthetic = new Event(type, { bubbles: true, cancelable: true });
+      define(synthetic, 'touches', touches);
+      define(synthetic, 'changedTouches', changedTouches);
+      define(synthetic, 'targetTouches', touches);
+      define(synthetic, 'pointerEvent', pointerEvent);
+      define(synthetic, 'clientX', pointerEvent.clientX);
+      define(synthetic, 'clientY', pointerEvent.clientY);
+      define(synthetic, 'pageX', pointerEvent.pageX);
+      define(synthetic, 'pageY', pointerEvent.pageY);
+      define(synthetic, 'screenX', pointerEvent.screenX);
+      define(synthetic, 'screenY', pointerEvent.screenY);
+
+      const defaultPrevent = synthetic.preventDefault.bind(synthetic);
+      let prevented = false;
+      synthetic.preventDefault = () => {
+        prevented = true;
+        return defaultPrevent();
+      };
+
+      const cancelled = !target.dispatchEvent(synthetic);
+      if (prevented || synthetic.defaultPrevented || cancelled) {
+        pointerEvent.preventDefault();
+      }
+    };
+
+    const shouldEmulate = (evt, type) => {
+      if (!evt || evt.isPrimary === false) {
+        return false;
+      }
+      if (evt.pointerType === 'pen') {
+        if (type === 'pointermove' && evt.buttons === 0 && (!evt.pressure || evt.pressure === 0)) {
+          return false;
+        }
+        return true;
+      }
+      if (evt.pointerType === 'touch' && !('ontouchstart' in window)) {
+        if (type === 'pointermove' && evt.buttons === 0 && (!evt.pressure || evt.pressure === 0)) {
+          return false;
+        }
+        return true;
+      }
+      return false;
+    };
+
+    Object.keys(POINTER_TO_TOUCH).forEach((pointerType) => {
+      document.addEventListener(pointerType, (evt) => {
+        if (!shouldEmulate(evt, pointerType)) {
+          return;
+        }
+        const mapped = POINTER_TO_TOUCH[pointerType];
+        dispatchSyntheticTouch(evt, mapped);
+      }, true);
+    });
+  };
+
+  const initWorksheetScrollGuard = () => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      return;
+    }
+    if (window.__calistungScrollGuardInitialized) {
+      return;
+    }
+
+    const boot = () => {
+      if (window.__calistungScrollGuardInitialized) {
+        return;
+      }
+      const body = document.body;
+      if (!body) {
+        return;
+      }
+      window.__calistungScrollGuardInitialized = true;
+
+      const activePointers = new Set();
+      const KEYWORD_RE = /(canvas|board|grid|trace|draw|drag|drop|worksheet|work|play|game|zone|pad|field|workspace|arena|touch|paint|scribble|math|shape|alphabet|number|sorting|matching|connect|line|write|warna|gambar|susun|urut|angk|huruf)/i;
+      const IGNORE_SELECTOR = '.calistung-navbar, .finish-bar, .hud-bar, .hud-panel, [data-allow-scroll], [data-scrollable]';
+
+      const style = document.createElement('style');
+      const scopedSelectors = IGNORE_SELECTOR
+        .split(',')
+        .map((sel) => `body.calistung-scroll-lock ${sel.trim()}`)
+        .join(', ');
+      style.textContent = `
+        body.calistung-scroll-lock {
+          touch-action: none !important;
+          overscroll-behavior: contain;
+        }
+        ${scopedSelectors} {
+          touch-action: auto !important;
+        }
+      `;
+      (document.head || document.documentElement || body).appendChild(style);
+
+      const asElement = (node) => {
+        if (!node) {
+          return null;
+        }
+        if (node.nodeType === 1) {
+          return node;
+        }
+        return node.parentElement || null;
+      };
+
+      const shouldSkip = (element) => {
+        if (!element || typeof element.closest !== 'function') {
+          return false;
+        }
+        return Boolean(element.closest(IGNORE_SELECTOR));
+      };
+
+      const hasKeyword = (element) => {
+        if (!element) {
+          return false;
+        }
+        const id = (element.id || '').toLowerCase();
+        if (KEYWORD_RE.test(id)) {
+          return true;
+        }
+        const className = typeof element.className === 'string' ? element.className.toLowerCase() : '';
+        if (KEYWORD_RE.test(className)) {
+          return true;
+        }
+        const role = (element.getAttribute && element.getAttribute('data-role')) || '';
+        if (KEYWORD_RE.test(role.toLowerCase())) {
+          return true;
+        }
+        return false;
+      };
+
+      const shouldLock = (target) => {
+        let element = asElement(target);
+        while (element && element !== body) {
+          if (shouldSkip(element)) {
+            return false;
+          }
+          if (element.hasAttribute('data-touch-lock') || element.hasAttribute('data-scroll-lock') || element.hasAttribute('data-touch-scroll-lock')) {
+            return true;
+          }
+          if (hasKeyword(element)) {
+            return true;
+          }
+          if (element.tagName === 'CANVAS' || element.tagName === 'SVG') {
+            return true;
+          }
+          if (element.tagName === 'PATH' || element.tagName === 'LINE' || element.tagName === 'CIRCLE' || element.tagName === 'RECT' || element.tagName === 'POLYGON') {
+            return true;
+          }
+          try {
+            const style = window.getComputedStyle ? window.getComputedStyle(element) : null;
+            if (style) {
+              const touchAction = (style.touchAction || '').trim();
+              if (touchAction && touchAction !== 'auto' && touchAction !== 'manipulation') {
+                return true;
+              }
+              if (!hasKeyword(element) && (touchAction === 'auto' || !touchAction)) {
+                const userSelect = (style.userSelect || style.webkitUserSelect || '').toLowerCase();
+                if (userSelect === 'none' && (style.cursor || '').includes('grab')) {
+                  return true;
+                }
+              }
+            }
+          } catch (err) {
+            /* ignore */
+          }
+          element = element.parentElement;
+        }
+        return false;
+      };
+
+      const lock = (id) => {
+        if (!id && id !== 0) {
+          id = 'default';
+        }
+        activePointers.add(id);
+        if (activePointers.size > 0) {
+          body.classList.add('calistung-scroll-lock');
+        }
+      };
+
+      const unlock = (id) => {
+        if (!id && id !== 0) {
+          id = 'default';
+        }
+        activePointers.delete(id);
+        if (activePointers.size === 0) {
+          body.classList.remove('calistung-scroll-lock');
+        }
+      };
+
+      const isTouchLikePointer = (evt) => evt && (evt.pointerType === 'touch' || evt.pointerType === 'pen');
+
+      document.addEventListener('pointerdown', (evt) => {
+        if (!isTouchLikePointer(evt)) {
+          return;
+        }
+        if (!shouldLock(evt.target)) {
+          return;
+        }
+        lock('p' + (evt.pointerId || 0));
+      }, true);
+
+      const pointerRelease = (evt) => {
+        if (!isTouchLikePointer(evt)) {
+          return;
+        }
+        unlock('p' + (evt.pointerId || 0));
+      };
+
+      document.addEventListener('pointerup', pointerRelease, true);
+      document.addEventListener('pointercancel', pointerRelease, true);
+      document.addEventListener('lostpointercapture', pointerRelease, true);
+
+      document.addEventListener('touchstart', (evt) => {
+        const touches = evt.changedTouches || [];
+        for (let i = 0; i < touches.length; i += 1) {
+          const touch = touches[i];
+          const target = touch.target || evt.target;
+          if (!shouldLock(target)) {
+            continue;
+          }
+          lock('t' + (touch.identifier || i));
+        }
+      }, { capture: true, passive: true });
+
+      const touchRelease = (evt) => {
+        const touches = evt.changedTouches || [];
+        for (let i = 0; i < touches.length; i += 1) {
+          const touch = touches[i];
+          unlock('t' + (touch.identifier || i));
+        }
+      };
+
+      document.addEventListener('touchend', touchRelease, true);
+      document.addEventListener('touchcancel', touchRelease, true);
+
+      document.addEventListener('touchmove', (evt) => {
+        if (activePointers.size > 0) {
+          evt.preventDefault();
+        }
+      }, { capture: true, passive: false });
+
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+          activePointers.clear();
+          body.classList.remove('calistung-scroll-lock');
+        }
+      });
+
+      window.addEventListener('blur', () => {
+        activePointers.clear();
+        body.classList.remove('calistung-scroll-lock');
+      });
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', boot, { once: true });
+    } else {
+      boot();
+    }
+  };
+
+  initPenTouchBridge();
+  initWorksheetScrollGuard();
+
   const DEFAULT_HOME_URL = "/elearn/map.html";
   const NAV_STYLE_ID = "calistung-navbar-style";
   const PAUSE_MENU_SCRIPT_SRC = "/elearn/worlds/ui/pause-menu.js";

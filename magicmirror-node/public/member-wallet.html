@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Member Salon - Dompet Digital</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0c1b1c;
+      --bg-soft: #132627;
+      --bg-card: rgba(15, 39, 41, 0.82);
+      --border: rgba(255, 255, 255, 0.08);
+      --accent: #4ef3c2;
+      --accent-strong: #39c6ff;
+      --text-primary: #f5fffa;
+      --text-secondary: rgba(229, 255, 247, 0.78);
+      --danger: #ff6b6b;
+      --warning: #ffc857;
+      font-size: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      background: radial-gradient(circle at 15% 20%, rgba(73, 227, 199, 0.14), transparent 50%),
+                  radial-gradient(circle at 85% 10%, rgba(57, 198, 255, 0.16), transparent 46%),
+                  radial-gradient(circle at 50% 90%, rgba(252, 214, 135, 0.12), transparent 60%),
+                  var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+
+    header {
+      padding: 36px clamp(20px, 6vw, 72px) 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-logo {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(78, 243, 194, 0.26), rgba(57, 198, 255, 0.26));
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 1.2rem;
+      letter-spacing: 1px;
+    }
+
+    .brand-title {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-title span:first-child {
+      font-weight: 600;
+      font-size: 1.12rem;
+      text-transform: uppercase;
+      letter-spacing: 1.8px;
+    }
+
+    .brand-title span:last-child {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+    }
+
+    .profile-chip {
+      padding: 12px 18px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    main {
+      padding: 0 clamp(20px, 6vw, 72px) 64px;
+      display: grid;
+      gap: 32px;
+    }
+
+    .grid-dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 24px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: -80px -50px auto auto;
+      width: 160px;
+      height: 160px;
+      background: radial-gradient(circle, rgba(78, 243, 194, 0.28), transparent 65%);
+      opacity: 0.7;
+      pointer-events: none;
+      filter: blur(2px);
+    }
+
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 1.3rem;
+      font-weight: 600;
+    }
+
+    .balance-amount {
+      font-size: clamp(2.4rem, 6vw, 3.2rem);
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin: 8px 0 16px;
+    }
+
+    .balance-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      color: var(--text-secondary);
+      font-size: 0.92rem;
+    }
+
+    .tag {
+      padding: 8px 14px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
+      font-size: 0.85rem;
+      letter-spacing: 0.3px;
+    }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.15), transparent);
+      margin: 22px 0;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    button, .action-link {
+      border: none;
+      border-radius: 14px;
+      padding: 12px 20px;
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      letter-spacing: 0.3px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+      color: #012221;
+      box-shadow: 0 16px 28px rgba(73, 227, 199, 0.25);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 34px rgba(73, 227, 199, 0.35);
+    }
+
+    .btn-outline {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-secondary);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .btn-outline:hover {
+      transform: translateY(-2px);
+      border-color: rgba(78, 243, 194, 0.6);
+      color: var(--text-primary);
+    }
+
+    .section-title {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      margin: 0 0 24px;
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+
+    .voucher-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+    }
+
+    .voucher-card {
+      background: rgba(12, 49, 52, 0.85);
+      border: 1px solid rgba(78, 243, 194, 0.25);
+      border-radius: 20px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.32);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .voucher-card::after {
+      content: "";
+      position: absolute;
+      inset: auto -40px -60px auto;
+      width: 120px;
+      height: 120px;
+      background: radial-gradient(circle, rgba(57, 198, 255, 0.3), transparent 70%);
+      opacity: 0.6;
+      pointer-events: none;
+      filter: blur(2px);
+    }
+
+    .voucher-points {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(78, 243, 194, 0.14);
+      color: var(--accent);
+      font-size: 0.88rem;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+    }
+
+    .voucher-card h3 {
+      margin: 0;
+      font-size: 1.18rem;
+      font-weight: 600;
+    }
+
+    .voucher-description {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .voucher-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: rgba(229, 255, 247, 0.7);
+    }
+
+    .voucher-meta span:last-child {
+      color: var(--warning);
+      font-weight: 600;
+    }
+
+    .voucher-card button {
+      align-self: flex-start;
+      margin-top: auto;
+    }
+
+    .history-list {
+      display: grid;
+      gap: 16px;
+    }
+
+    .history-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      padding: 18px 22px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(12, 32, 33, 0.82);
+    }
+
+    .history-item strong {
+      font-size: 1rem;
+    }
+
+    .history-item span {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .history-item .points {
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .history-item .points.negative {
+      color: var(--danger);
+    }
+
+    footer {
+      padding: 24px;
+      text-align: center;
+      color: rgba(229, 255, 247, 0.6);
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 768px) {
+      header {
+        padding: 28px 20px 18px;
+      }
+
+      main {
+        padding: 0 20px 48px;
+      }
+
+      .history-item {
+        grid-template-columns: 1fr;
+        justify-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-logo">QS</div>
+      <div class="brand-title">
+        <span>Queen Salon</span>
+        <span>Area Member &amp; Loyalty</span>
+      </div>
+    </div>
+    <div class="profile-chip">
+      <div class="dot" style="width:10px;height:10px;border-radius:50%;background:var(--accent);"></div>
+      Halo, <strong>Raisa A.</strong>
+    </div>
+  </header>
+
+  <main>
+    <section class="grid-dashboard">
+      <article class="card">
+        <h2>Saldo Dompet Digital</h2>
+        <p class="balance-amount">Rp 2.450.000</p>
+        <div class="balance-meta">
+          <span class="tag">Poin Aktif: 2.850</span>
+          <span class="tag">Tier: Diamond Glow</span>
+        </div>
+        <div class="divider"></div>
+        <div class="actions">
+          <button class="btn-primary">Top Up Saldo</button>
+          <button class="btn-outline">Riwayat Top Up</button>
+        </div>
+      </article>
+
+      <article class="card">
+        <h2>Statistik Bulan Ini</h2>
+        <div class="history-list">
+          <div>
+            <strong>Perawatan Favorit</strong>
+            <p class="subtitle" style="margin:6px 0 0;">Signature Hair Spa</p>
+          </div>
+          <div class="divider" style="margin:18px 0 16px;"></div>
+          <div class="history-item" style="grid-template-columns: repeat(2, 1fr); gap: 16px; background: rgba(12,32,33,0.6);">
+            <div>
+              <strong>Total Pengeluaran</strong>
+              <p class="subtitle" style="margin:6px 0 0;">Rp 1.250.000</p>
+            </div>
+            <div>
+              <strong>Poin Didapat</strong>
+              <p class="subtitle" style="margin:6px 0 0; color: var(--accent);">+420 poin</p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="card">
+        <h2>Tips Maksimalkan Poin</h2>
+        <ul style="margin:0;padding-left:18px;color:var(--text-secondary);line-height:1.6;font-size:0.9rem;">
+          <li>Reservasi layanan signature minimal 2x per bulan untuk bonus 15% poin.</li>
+          <li>Gunakan dompet digital saat pembayaran untuk cashback Rp50.000.</li>
+          <li>Ajak teman bergabung &amp; nikmati 200 poin referral.</li>
+        </ul>
+        <div class="divider"></div>
+        <a href="#voucher" class="action-link btn-outline" style="text-decoration:none;display:inline-flex;align-items:center;gap:10px;">
+          <span>Lihat Voucher Rekomendasi</span>
+          <span style="font-size:1.1rem;">→</span>
+        </a>
+      </article>
+    </section>
+
+    <section id="voucher">
+      <h2 class="section-title">Voucher Pilihan untuk Kamu</h2>
+      <p class="subtitle">Tukar poin dari saldo dompet digitalmu dengan voucher eksklusif berikut.</p>
+      <div class="voucher-list">
+        <article class="voucher-card">
+          <span class="voucher-points">1.200 poin</span>
+          <h3>Free Styling Class</h3>
+          <p class="voucher-description">Akses kelas styling privat selama 60 menit bersama senior stylist favoritmu.</p>
+          <div class="voucher-meta">
+            <span>Berlaku s/d 30 Juni 2024</span>
+            <span>Stok 12</span>
+          </div>
+          <button class="btn-primary">Tukar Sekarang</button>
+        </article>
+
+        <article class="voucher-card">
+          <span class="voucher-points">850 poin</span>
+          <h3>Diskon 40% Hair Coloring</h3>
+          <p class="voucher-description">Nikmati transformasi warna rambut dengan diskon spesial di semua cabang.</p>
+          <div class="voucher-meta">
+            <span>Berlaku s/d 15 Mei 2024</span>
+            <span>Sisa 28</span>
+          </div>
+          <button class="btn-primary">Tukar Sekarang</button>
+        </article>
+
+        <article class="voucher-card">
+          <span class="voucher-points">650 poin</span>
+          <h3>Manicure &amp; Pedicure Deluxe</h3>
+          <p class="voucher-description">Perawatan kuku lengkap dengan scrub aromatik dan pijat relaksasi.</p>
+          <div class="voucher-meta">
+            <span>Berlaku s/d 10 April 2024</span>
+            <span>Stok 33</span>
+          </div>
+          <button class="btn-primary">Tukar Sekarang</button>
+        </article>
+
+        <article class="voucher-card">
+          <span class="voucher-points">500 poin</span>
+          <h3>Cashback Rp100.000</h3>
+          <p class="voucher-description">Dapatkan cashback instan ke dompet digital saat transaksi perawatan minimal Rp500.000.</p>
+          <div class="voucher-meta">
+            <span>Berlaku s/d 5 Juli 2024</span>
+            <span>Sisa 50</span>
+          </div>
+          <button class="btn-primary">Tukar Sekarang</button>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section-title">Riwayat Aktivitas Saldo</h2>
+      <p class="subtitle">Pantau transaksi terbaru untuk dompet digital dan pergerakan poin kamu.</p>
+      <div class="history-list">
+        <div class="history-item">
+          <div>
+            <strong>Redeem: Diskon 40% Hair Coloring</strong>
+            <span>12 Maret 2024 • Salon Queen Plaza Indonesia</span>
+          </div>
+          <span class="points negative">-850 poin</span>
+        </div>
+        <div class="history-item">
+          <div>
+            <strong>Top Up Dompet Digital</strong>
+            <span>08 Maret 2024 • Kartu Debit BCA</span>
+          </div>
+          <span class="points">+Rp 1.000.000</span>
+        </div>
+        <div class="history-item">
+          <div>
+            <strong>Pembayaran: Signature Hair Spa</strong>
+            <span>27 Februari 2024 • Salon Queen Pondok Indah</span>
+          </div>
+          <span class="points negative">-Rp 650.000</span>
+        </div>
+        <div class="history-item">
+          <div>
+            <strong>Bonus Poin Referral</strong>
+            <span>22 Februari 2024 • Member Baru: Dini R.</span>
+          </div>
+          <span class="points">+200 poin</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    © 2024 Queen Salon Loyalty Club. Semua hak dilindungi.
+  </footer>
+</body>
+</html>
