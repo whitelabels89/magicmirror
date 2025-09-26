@@ -9,6 +9,9 @@
     :root {
       color-scheme: light;
     }
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
     body {
       margin: 0;
       font-family: 'Poppins', sans-serif;
@@ -21,6 +24,7 @@
       padding: 32px 24px 48px;
       position: relative;
       overflow: hidden;
+      max-width: 100vw;
     }
     body::before,
     body::after {
@@ -49,6 +53,7 @@
     }
     .mirror-frame {
       width: min(92vw, 480px);
+      max-width: 100%;
       background: rgba(255, 255, 255, 0.92);
       border-radius: 32px;
       box-shadow: 0 28px 60px rgba(26, 8, 44, 0.35);
