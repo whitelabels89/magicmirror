@@ -139,7 +139,23 @@
 
       const activePointers = new Set();
       const KEYWORD_RE = /(canvas|trace|draw|touch|paint|scribble|write|tulis|warna|gambar)/i;
-      const IGNORE_SELECTOR = '.calistung-navbar, .finish-bar, .hud-bar, .hud-panel, [data-allow-scroll], [data-scrollable]';
+      const IGNORE_SELECTOR = [
+        '.calistung-navbar',
+        '.finish-bar',
+        '.hud-bar',
+        '.hud-panel',
+        '.shell-action-bar',
+        '.shell-button',
+        '.shape-button',
+        '#btnSelesai',
+        '.btn-selesai',
+        'button[data-action="finish"]',
+        'button.hud-btn.finish',
+        'a#btnSelesai',
+        'a.btn-selesai',
+        '[data-allow-scroll]',
+        '[data-scrollable]'
+      ].join(', ');
 
       const style = document.createElement('style');
       const scopedSelectors = IGNORE_SELECTOR
