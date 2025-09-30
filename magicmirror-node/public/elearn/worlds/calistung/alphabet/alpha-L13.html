@@ -1,110 +1,168 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Belajar Suku Kata</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Alpha13 • Menulis Suku Kata</title>
   <link rel="stylesheet" href="theme.css" />
   <script defer src="theme.js"></script>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    margin: 1rem;
-    background: #f9f9f9;
-    color: #333;
-  }
-  h1 {
-    text-align: center;
-    font-weight: 700;
-    margin-bottom: 0.2rem;
-  }
-  h2 {
-    text-align: center;
-    font-weight: 500;
-    margin-top: 0;
-    margin-bottom: 1rem;
-    color: #555;
-  }
-  p.instruction {
-    text-align: center;
-    font-size: 1.1rem;
-    margin-bottom: 2rem;
-  }
-  .worksheet {
-    display: grid;
-    gap: 1.5rem;
-    max-width: 600px;
-    margin: 0 auto;
-  }
-  .row {
-    display: grid;
-    grid-template-columns: 60px 1fr 1fr 1fr;
-    align-items: center;
-    gap: 0.75rem;
-    background: #fff;
-    padding: 0.6rem 1rem;
-    border-radius: 8px;
-    box-shadow: 0 0 5px #ccc;
-  }
-  .row img {
-    width: 50px;
-    height: 50px;
-    object-fit: contain;
-  }
-  .word {
-    font-size: 1.3rem;
-    font-weight: 600;
-  }
-  .options {
-    display: flex;
-    gap: 0.6rem;
-  }
-  button.option {
-    flex: 1;
-    padding: 0.4rem 0.5rem;
-    border: 2px solid #333;
-    border-radius: 15px;
-    font-weight: 700;
-    font-size: 1rem;
-    background: #fff;
-    cursor: pointer;
-    transition: background-color 0.3s ease, color 0.3s ease;
-    user-select: none;
-  }
-  button.option:disabled {
-    cursor: default;
-    opacity: 0.9;
-  }
-  button.option.correct {
-    background-color: #4CAF50;
-    border-color: #4CAF50;
-    color: white;
-  }
-  button.option.wrong {
-    background-color: #F44336;
-    border-color: #F44336;
-    color: white;
-  }
-  @media (max-width: 480px) {
+  <style>
+    :root {
+      --ink: #1f2937;
+      --accent: #fb7185;
+      --bg: #fff8fa;
+      --card: #ffffff;
+      --shadow: 0 18px 40px rgba(251, 113, 133, 0.14);
+      --stroke: #fda4af;
+      --line: #fb7185;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      background: linear-gradient(180deg, rgba(255, 240, 246, 0.85), #fff) no-repeat;
+      color: var(--ink);
+      min-height: 100svh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(16px, 4vw, 36px);
+    }
+    main {
+      width: min(960px, 100%);
+      background: var(--card);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      padding: clamp(20px, 4vw, 34px);
+      display: flex;
+      flex-direction: column;
+      gap: clamp(18px, 3.5vw, 28px);
+    }
+    header { text-align: center; }
+    h1 {
+      margin: 0;
+      font-size: clamp(22px, 4.6vw, 36px);
+      color: var(--accent);
+      font-weight: 800;
+      letter-spacing: .5px;
+    }
+    p.lead {
+      margin: 6px auto 0;
+      max-width: 520px;
+      color: rgba(31, 41, 55, 0.72);
+      font-size: clamp(15px, 2.8vw, 18px);
+      line-height: 1.5;
+    }
+    .worksheet {
+      display: grid;
+      gap: clamp(16px, 3vw, 24px);
+    }
     .row {
-      grid-template-columns: 50px 1fr 1fr 1fr;
-      gap: 0.4rem;
-      padding: 0.5rem 0.7rem;
+      display: grid;
+      grid-template-columns: 72px 1fr min(220px, 30vw);
+      gap: clamp(12px, 3vw, 24px);
+      align-items: center;
+      background: linear-gradient(135deg, #fff, rgba(255, 228, 235, 0.9));
+      border: 1px solid rgba(251, 113, 133, 0.15);
+      border-radius: 20px;
+      padding: clamp(12px, 3vw, 20px);
+      position: relative;
+      overflow: hidden;
     }
-    .row img {
-      width: 40px;
-      height: 40px;
+    .row::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      box-shadow: inset 0 0 0 1px rgba(251, 113, 133, 0.08);
     }
-    .word {
-      font-size: 1.1rem;
+    .row figure {
+      margin: 0;
+      width: clamp(60px, 12vw, 72px);
+      height: clamp(60px, 12vw, 72px);
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      background: #fff0f3;
+      border: 2px solid #ffd6de;
+      overflow: hidden;
     }
-    button.option {
-      font-size: 0.9rem;
-      padding: 0.3rem 0.4rem;
+    .row figure img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
-  }
-</style>
-<style>
+    .prompt {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .prompt .word {
+      font-size: clamp(18px, 3.4vw, 26px);
+      font-weight: 700;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .prompt .word span[data-role="missing"] {
+      min-width: 58px;
+      display: inline-flex;
+      justify-content: center;
+      border-bottom: 4px solid var(--stroke);
+      padding-bottom: 6px;
+    }
+    .prompt small {
+      font-size: clamp(12px, 2.6vw, 15px);
+      color: rgba(31, 41, 55, 0.6);
+      font-weight: 600;
+    }
+    .pad-wrap {
+      display: grid;
+      gap: 10px;
+    }
+    canvas.draw-pad {
+      width: 100%;
+      height: clamp(120px, 24vw, 170px);
+      background: #fff;
+      border-radius: 18px;
+      border: 2px dashed rgba(251, 113, 133, 0.45);
+      box-shadow: inset 0 0 0 1px rgba(251, 113, 133, 0.15);
+      touch-action: none;
+    }
+    .pad-wrap button {
+      justify-self: start;
+      padding: 10px 18px;
+      font-weight: 700;
+      border-radius: 999px;
+      border: none;
+      background: #fef2f2;
+      color: #fb7185;
+      box-shadow: 0 3px 0 rgba(251, 113, 133, 0.25);
+      cursor: pointer;
+      transition: transform .06s ease, filter .2s ease;
+    }
+    .pad-wrap button:hover { transform: translateY(-1px); }
+    .pad-wrap button:active { transform: translateY(1px); }
+
+    @media (max-width: 720px) {
+      .row {
+        grid-template-columns: 64px 1fr;
+      }
+      .pad-wrap { grid-column: 1 / -1; }
+      .prompt .word span[data-role="missing"] { min-width: 46px; }
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 12px; }
+      main { border-radius: 18px; }
+      .row {
+        grid-template-columns: 56px 1fr;
+        padding: 12px;
+      }
+    }
+  </style>
+  <style>
     .finish-bar { position: fixed; right: 16px; bottom: 16px; z-index: 1000; }
     #btnSelesai { background: #22c55e; color: #fff; border: none; cursor: pointer; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4); }
     #btnSelesai:hover { filter: brightness(1.05); }
@@ -113,102 +171,221 @@
       #btnSelesai { padding: 10px 14px; font-size: 15px; }
     }
   </style>
-
   <link rel="stylesheet" href="/elearn/worlds/calistung/buttons.css" />
 </head>
 <body class="alphabet-game">
-<h1>Belajar Suku Kata</h1>
-<h2>ba-bi-bu-be-bo</h2>
-<p class="instruction">Lengkapi suku kata di bawah ini. Warnai kotak dengan jawaban yang tepat!</p>
-<div class="worksheet" id="worksheet">
-  <div class="row" data-answer="bo">
-    <img src="/elearn/img/beach-ball.png" alt="Beach Ball" />
-    <div class="word"><span class="missing">__</span>la</div>
-    <div class="options">
-      <button class="option" type="button">ba</button>
-      <button class="option" type="button">bo</button>
-    </div>
-  </div>
-  <div class="row" data-answer="ba">
-    <img src="/elearn/img/dress.png" alt="Dress" />
-    <div class="word"><span class="missing">__</span>ju</div>
-    <div class="options">
-      <button class="option" type="button">ba</button>
-      <button class="option" type="button">bu</button>
-    </div>
-  </div>
-  <div class="row" data-answer="bu">
-    <img src="/elearn/img/books.png" alt="Books" />
-    <div class="word"><span class="missing">__</span>ku</div>
-    <div class="options">
-      <button class="option" type="button">bu</button>
-      <button class="option" type="button">bi</button>
-    </div>
-  </div>
-  <div class="row" data-answer="be">
-    <img src="/elearn/img/duck.png" alt="Duck" />
-    <div class="word"><span class="missing">__</span>bek</div>
-    <div class="options">
-      <button class="option" type="button">be</button>
-      <button class="option" type="button">bo</button>
-    </div>
-  </div>
-  <div class="row" data-answer="bo">
-    <img src="/elearn/img/bottle.png" alt="Bottle" />
-    <div class="word"><span class="missing">__</span>tol</div>
-    <div class="options">
-      <button class="option" type="button">bo</button>
-      <button class="option" type="button">be</button>
-    </div>
-  </div>
-  <div class="row" data-answer="bi">
-    <img src="/elearn/img/star.png" alt="Star" />
-    <div class="word"><span class="missing">__</span>nta</div>
-    <div class="options">
-      <button class="option" type="button">bi</button>
-      <button class="option" type="button">ba</button>
-    </div>
-  </div>
-</div>
-<script>
-  document.querySelectorAll('.row').forEach(row => {
-    const correct = row.getAttribute('data-answer');
-    const missingSpan = row.querySelector('.missing');
-    const buttons = row.querySelectorAll('button.option');
-    buttons.forEach(button => {
-      button.addEventListener('click', () => {
-        // If already answered, do nothing
-        if (row.classList.contains('answered')) return;
-        const selected = button.textContent.trim();
-        if (selected === correct) {
-          button.classList.add('correct');
-          missingSpan.textContent = selected;
-        } else {
-          button.classList.add('wrong');
-          missingSpan.textContent = selected;
+  <main>
+    <header>
+      <h1>Menulis Suku Kata</h1>
+      <p class="lead">Tulis suku kata yang tepat di dalam kotak kosong. Gunakan jari atau stylus di area gambar untuk menulis hurufnya.</p>
+    </header>
+
+    <section class="worksheet" id="worksheet" aria-live="polite"></section>
+  </main>
+
+  <div class="finish-bar"><button id="btnSelesai" type="button">Selesai</button></div>
+
+  <script>
+    (function(){
+      const data = [
+        {
+          img: '/elearn/img/beach-ball.png',
+          alt: 'Bola pantai',
+          missing: 'bo',
+          rest: 'la',
+          hint: 'Tuliskan suku kata "bo" untuk melengkapi kata bola.'
+        },
+        {
+          img: '/elearn/img/dress.png',
+          alt: 'Baju',
+          missing: 'ba',
+          rest: 'ju',
+          hint: 'Tuliskan suku kata "ba" untuk melengkapi kata baju.'
+        },
+        {
+          img: '/elearn/img/books.png',
+          alt: 'Buku',
+          missing: 'bu',
+          rest: 'ku',
+          hint: 'Tuliskan suku kata "bu" untuk melengkapi kata buku.'
+        },
+        {
+          img: '/elearn/img/duck.png',
+          alt: 'Bebek',
+          missing: 'be',
+          rest: 'bek',
+          hint: 'Tuliskan suku kata "be" untuk melengkapi kata bebek.'
+        },
+        {
+          img: '/elearn/img/star.png',
+          alt: 'Bintang',
+          missing: 'bi',
+          rest: 'nta',
+          hint: 'Tuliskan suku kata "bi" untuk melengkapi kata bintang.'
         }
-        // Disable all buttons after selection
-        buttons.forEach(b => b.disabled = true);
-        row.classList.add('answered');
+      ];
+
+      const worksheet = document.getElementById('worksheet');
+
+      data.forEach((item, index) => {
+        const row = document.createElement('article');
+        row.className = 'row';
+        row.dataset.index = String(index);
+
+        const fig = document.createElement('figure');
+        const img = document.createElement('img');
+        img.src = item.img;
+        img.alt = item.alt;
+        fig.appendChild(img);
+        row.appendChild(fig);
+
+        const prompt = document.createElement('div');
+        prompt.className = 'prompt';
+        const word = document.createElement('div');
+        word.className = 'word';
+        const missingSpan = document.createElement('span');
+        missingSpan.dataset.role = 'missing';
+        missingSpan.textContent = '__';
+        missingSpan.dataset.answer = item.missing;
+        const restSpan = document.createElement('span');
+        restSpan.textContent = item.rest;
+        word.append(missingSpan, restSpan);
+        const hint = document.createElement('small');
+        hint.textContent = item.hint;
+        prompt.append(word, hint);
+        row.appendChild(prompt);
+
+        const padWrap = document.createElement('div');
+        padWrap.className = 'pad-wrap';
+        const canvas = document.createElement('canvas');
+        canvas.className = 'draw-pad';
+        canvas.width = 400;
+        canvas.height = 160;
+        canvas.setAttribute('role', 'img');
+        canvas.setAttribute('aria-label', `Area menulis untuk suku kata ${item.missing}`);
+        const clear = document.createElement('button');
+        clear.type = 'button';
+        clear.textContent = 'Hapus Tulisan';
+        clear.addEventListener('click', () => resetCanvas(canvas));
+        padWrap.append(canvas, clear);
+        row.appendChild(padWrap);
+
+        worksheet.appendChild(row);
+
+        initCanvas(canvas);
       });
+
+      function initCanvas(canvas){
+        const ctx = canvas.getContext('2d');
+        const dpr = window.devicePixelRatio || 1;
+
+        function resize(){
+          const rect = canvas.getBoundingClientRect();
+          const cssW = rect.width;
+          const cssH = rect.height;
+          canvas.width = cssW * dpr;
+          canvas.height = cssH * dpr;
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.scale(dpr, dpr);
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          ctx.lineWidth = 4;
+          ctx.strokeStyle = 'var(--line)';
+          ctx.clearRect(0, 0, cssW, cssH);
+        }
+
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        const start = (evt) => {
+          evt.preventDefault();
+          const { x, y } = pointerPos(evt);
+          isDrawing = true;
+          lastX = x;
+          lastY = y;
+        };
+
+        const move = (evt) => {
+          if(!isDrawing) return;
+          evt.preventDefault();
+          const { x, y } = pointerPos(evt);
+          ctx.beginPath();
+          ctx.moveTo(lastX, lastY);
+          ctx.lineTo(x, y);
+          ctx.stroke();
+          lastX = x;
+          lastY = y;
+        };
+
+        const end = () => {
+          isDrawing = false;
+        };
+
+        function pointerPos(evt){
+          const rect = canvas.getBoundingClientRect();
+          const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+          const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+          return {
+            x: clientX - rect.left,
+            y: clientY - rect.top
+          };
+        }
+
+        canvas.addEventListener('pointerdown', start);
+        canvas.addEventListener('pointermove', move);
+        canvas.addEventListener('pointerup', end);
+        canvas.addEventListener('pointerleave', end);
+        canvas.addEventListener('pointercancel', end);
+
+        canvas.addEventListener('touchstart', start, { passive: false });
+        canvas.addEventListener('touchmove', move, { passive: false });
+        canvas.addEventListener('touchend', end);
+        canvas.addEventListener('touchcancel', end);
+
+        const observer = new ResizeObserver(() => {
+          const old = canvas.toDataURL();
+          resize();
+          restore(old);
+        });
+        observer.observe(canvas);
+
+        resize();
+
+        function restore(dataUrl){
+          if(!dataUrl) return;
+          const img = new Image();
+          img.onload = () => {
+            ctx.drawImage(img, 0, 0, canvas.width / dpr, canvas.height / dpr);
+          };
+          img.src = dataUrl;
+        }
+      }
+
+      function resetCanvas(canvas){
+        const ctx = canvas.getContext('2d');
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
+      }
+    })();
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="/elearn/manifest-lessons.js"></script>
+  <script src="/elearn/userInfo.js"></script>
+  <script src="/elearn/common/worksheet-submit.js"></script>
+  <script>
+    window.WORKSHEET_DEBUG = true;
+    const info = (typeof getUserInfo === "function") ? getUserInfo() : {};
+    initWorksheetSubmit({
+      muridUid: info.uid || "",
+      cid: info.cid || "",
+      namaAnak: info.nama || "",
+      role: (info.role || "").toLowerCase()
     });
-  });
-</script>
-<div class="finish-bar"><button id="btnSelesai" type="button">Selesai</button></div>
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="/elearn/manifest-lessons.js"></script>
-<script src="/elearn/userInfo.js"></script>
-<script src="/elearn/common/worksheet-submit.js"></script>
-<script>
-  window.WORKSHEET_DEBUG = true;
-  const info = (typeof getUserInfo === "function") ? getUserInfo() : {};
-  initWorksheetSubmit({
-    muridUid: info.uid || "",
-    cid: info.cid || "",
-    namaAnak: info.nama || "",
-    role: (info.role || "").toLowerCase()
-  });
-</script>
-<script src="/elearn/common/calistung-navbar.js"></script>
+  </script>
+  <script src="/elearn/common/calistung-navbar.js"></script>
 </body>
 </html>

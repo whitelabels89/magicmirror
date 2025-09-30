@@ -3,109 +3,165 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Alpha15L6 – Menebak Huruf dari Warna</title>
+  <title>Alpha15 • Tebak Huruf dari Warna</title>
   <link rel="stylesheet" href="theme.css" />
   <script defer src="theme.js"></script>
   <style>
-    :root{
-      --bg:#f7f3ff;
-      --ink:#1f2937;
-      --accent:#7c3aed;
-      --good:#16a34a;
-      --bad:#ef4444;
-      --card:#ffffff;
-      --shadow:0 18px 36px rgba(124,58,237,0.18);
+    :root {
+      --bg: #f4f2ff;
+      --card: #ffffff;
+      --accent: #7c3aed;
+      --ink: #1f2937;
+      --muted: #6b7280;
+      --good: #16a34a;
+      --bad: #ef4444;
+      --shadow: 0 26px 60px rgba(124, 58, 237, 0.16);
     }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:'Inter', system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background:var(--bg);
-      color:var(--ink);
-      min-height:100svh;
-      display:flex;
-      justify-content:center;
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      background: radial-gradient(circle at top, rgba(124, 58, 237, 0.12), transparent 60%), var(--bg);
+      color: var(--ink);
+      min-height: 100svh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(16px, 4vw, 40px);
     }
-    main.page{
-      width:min(1000px, 96vw);
-      padding:clamp(18px, 4vw, 28px);
-      display:flex;
-      flex-direction:column;
-      gap:clamp(16px, 3vw, 26px);
+    main {
+      width: min(1024px, 100%);
+      background: var(--card);
+      border-radius: 32px;
+      box-shadow: var(--shadow);
+      padding: clamp(22px, 4vw, 36px);
+      display: grid;
+      gap: clamp(18px, 4vw, 30px);
     }
-    .card{
-      background:var(--card);
-      border-radius:24px;
-      box-shadow:var(--shadow);
-      padding:clamp(18px, 4vw, 28px);
+    header { text-align: center; }
+    h1 {
+      margin: 0;
+      font-size: clamp(24px, 5vw, 38px);
+      font-weight: 800;
+      color: var(--accent);
     }
-    .card header{display:flex; flex-direction:column; gap:6px; align-items:center; text-align:center; margin-bottom:18px}
-    .card header h1{margin:0; font-size:clamp(22px, 4.4vw, 34px); color:var(--accent); font-weight:800; letter-spacing:.4px}
-    .card header p{margin:0; max-width:620px; color:rgba(31,41,55,.75); font-size:clamp(14px, 2.6vw, 17px); line-height:1.5}
-
-    .legend-card{display:flex; flex-direction:column; gap:16px}
-    .legend-title{font-weight:800; font-size:clamp(16px, 2.8vw, 18px); text-transform:uppercase; letter-spacing:.4px; color:var(--accent)}
-    .legend-grid{display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(80px,1fr))}
-    .legend-item{text-align:center; font-weight:700; color:#4b5563}
-    .legend-item .circle{margin:0 auto 6px}
-
-    .circle{
-      width:64px;
-      height:64px;
-      border-radius:50%;
-      border:3px solid rgba(0,0,0,.08);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:24px;
-      font-weight:800;
-      color:#111827;
-      background:#fff;
-      box-shadow:0 6px 16px rgba(0,0,0,.1);
+    p.lead {
+      margin: 10px auto 0;
+      max-width: 600px;
+      color: var(--muted);
+      font-size: clamp(15px, 2.7vw, 18px);
+      line-height: 1.6;
     }
-
-    .questions{display:flex; flex-direction:column; gap:16px}
-    .jawaban-row{
-      display:flex;
-      flex-wrap:wrap;
-      justify-content:center;
-      align-items:center;
-      gap:12px;
-      padding:14px;
-      border-radius:18px;
-      border:1px solid rgba(124,58,237,.12);
-      background:linear-gradient(180deg,#ffffff,#f7f3ff);
-      box-shadow:0 8px 18px rgba(124,58,237,0.08);
+    .legend {
+      display: grid;
+      gap: 12px;
     }
-    .jawaban-row[data-state="correct"]{border-color:rgba(22,163,74,.4);}
-    .jawaban-row[data-state="wrong"]{border-color:rgba(239,68,68,.4);}
-
-    .jawaban-row .circles{display:flex; gap:10px; flex-wrap:wrap; justify-content:center}
-    .jawaban-row input{
-      font-size:clamp(18px, 3.4vw, 20px);
-      font-weight:700;
-      border-radius:12px;
-      border:2px solid rgba(79,70,229,.18);
-      padding:10px 16px;
-      width:min(220px, 60vw);
-      text-transform:lowercase;
-      text-align:center;
-      transition:border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+    .legend-title {
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      color: rgba(124, 58, 237, 0.9);
+      font-size: clamp(14px, 2.4vw, 16px);
     }
-    .jawaban-row input.correct{border-color:var(--good); box-shadow:0 0 0 3px rgba(22,163,74,.18); background:#ecfdf3;}
-    .jawaban-row input.wrong{border-color:var(--bad); box-shadow:0 0 0 3px rgba(239,68,68,.18); background:#fef2f2;}
+    .legend-grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+    }
+    .legend-item {
+      text-align: center;
+      font-weight: 700;
+      color: #4b5563;
+    }
+    .circle {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      font-weight: 800;
+      color: #111827;
+      border: 4px solid rgba(17, 24, 39, 0.08);
+      margin: 0 auto 6px;
+    }
+    .worksheet {
+      display: grid;
+      gap: clamp(16px, 3vw, 22px);
+    }
+    .question {
+      display: grid;
+      gap: 14px;
+      padding: clamp(16px, 3.2vw, 24px);
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(124, 58, 237, 0.06), rgba(124, 58, 237, 0));
+      border: 1px solid rgba(124, 58, 237, 0.12);
+      position: relative;
+      overflow: hidden;
+    }
+    .question::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      border-radius: inherit;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    .chips .circle { width: 58px; height: 58px; font-size: 20px; }
+    .answer-box {
+      display: grid;
+      gap: 8px;
+      justify-items: center;
+    }
+    .answer-box input {
+      width: min(220px, 80%);
+      border-radius: 16px;
+      border: 2px solid rgba(79, 70, 229, 0.16);
+      padding: 12px 16px;
+      font-size: 18px;
+      font-weight: 700;
+      text-align: center;
+      text-transform: lowercase;
+      transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+    }
+    .answer-box input.correct {
+      border-color: var(--good);
+      background: #ecfdf3;
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.18);
+    }
+    .answer-box input.wrong {
+      border-color: var(--bad);
+      background: #fef2f2;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.18);
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      justify-content: center;
+    }
+    .actions button {
+      min-width: clamp(150px, 30vw, 220px);
+    }
+    #status {
+      text-align: center;
+      font-weight: 700;
+      color: var(--accent);
+      min-height: 24px;
+    }
+    #status.ok { color: var(--good); }
+    #status.warn { color: var(--bad); }
 
-    .actions{display:flex; flex-wrap:wrap; gap:14px; justify-content:center; margin-top:12px}
-    .actions button{min-width:clamp(160px, 30vw, 240px);}
-
-    .status{margin-top:8px; text-align:center; font-weight:700; color:var(--accent);}
-    .status[data-state="ok"]{color:var(--good);}
-    .status[data-state="warn"]{color:var(--bad);}
-
-    @media (max-width:520px){
-      .circle{width:56px; height:56px; font-size:20px}
-      .jawaban-row{gap:10px; padding:12px}
-      .jawaban-row input{width:100%;}
+    @media (max-width: 600px) {
+      .circle { width: 56px; height: 56px; }
+      .chips .circle { width: 50px; height: 50px; font-size: 18px; }
+      .question { border-radius: 18px; }
     }
   </style>
   <style>
@@ -120,211 +176,203 @@
   <link rel="stylesheet" href="/elearn/worlds/calistung/buttons.css" />
 </head>
 <body class="alphabet-game">
-  <main class="page">
-    <section class="card" aria-live="polite">
-      <header>
-        <h1>Menebak Huruf dari Warna</h1>
-        <p>Setiap warna mewakili huruf tertentu. Cocokkan warna pada lingkaran dengan hurufnya, lalu tulis kata yang terbentuk.</p>
-      </header>
+  <main aria-live="polite">
+    <header>
+      <h1>Tebak Huruf dari Warna</h1>
+      <p class="lead">Setiap warna mewakili huruf tertentu. Perhatikan daftar warna, lalu tuliskan kata sesuai warna pada barisan lingkaran.</p>
+    </header>
 
-      <section class="legend-card" aria-label="Petunjuk warna">
-        <div class="legend-title">Daftar Warna &amp; Huruf</div>
-        <div id="clue-container" class="legend-grid"></div>
-      </section>
-
-      <section class="questions" id="soal-container" aria-label="Daftar soal"></section>
-
-      <div class="actions">
-        <button type="button" id="btnCheck">Periksa Jawaban</button>
-        <button type="button" id="btnReset">Reset</button>
-        <button type="button" id="btnShuffle">Acak Soal</button>
-      </div>
-      <div id="status" class="status" role="status" aria-live="polite"></div>
+    <section class="legend" aria-label="Daftar warna dan huruf">
+      <div class="legend-title">Petunjuk Warna</div>
+      <div id="legendGrid" class="legend-grid"></div>
     </section>
+
+    <section id="worksheet" class="worksheet" aria-label="Daftar soal"></section>
+
+    <div class="actions">
+      <button type="button" id="btnCheck">Periksa Jawaban</button>
+      <button type="button" id="btnReset">Reset</button>
+      <button type="button" id="btnShuffle">Acak Soal</button>
+    </div>
+    <div id="status" role="status"></div>
   </main>
+
+  <div class="finish-bar"><button id="btnSelesai" type="button">Selesai</button></div>
 
   <script>
     (function(){
-      const warnaPool = ['#fbe36a', '#3a9ff3', '#b6ddb2', '#f58ca7', '#fdb95b'];
+      const PUZZLES = [
+        {
+          mapping: {
+            b: '#f97316',
+            a: '#facc15',
+            l: '#60a5fa',
+            i: '#c084fc',
+            k: '#fda4af',
+            u: '#34d399',
+            s: '#fb7185'
+          },
+          words: ['bali', 'balik', 'buku', 'saku']
+        },
+        {
+          mapping: {
+            p: '#f9a8d4',
+            i: '#38bdf8',
+            s: '#fcd34d',
+            a: '#86efac',
+            n: '#f87171',
+            g: '#c4b5fd'
+          },
+          words: ['pisang', 'singa', 'pagi', 'asin']
+        },
+        {
+          mapping: {
+            k: '#facc15',
+            o: '#38bdf8',
+            p: '#fb7185',
+            i: '#a855f7',
+            t: '#f97316',
+            e: '#34d399',
+            a: '#fde68a'
+          },
+          words: ['kopi', 'topi', 'kota', 'tepi']
+        }
+      ];
 
-      const kataAnakMapping = {
-        'auple': ['apel', 'palu', 'lupa'],
-        'imtpa': ['pita', 'tapi', 'pati'],
-        'bukal': ['baku', 'luka', 'kuba'],
-        'rumah': ['rumah', 'harum', 'murah'],
-        'mejas': ['saja', 'jasa', 'meja'],
-        'kudai': ['kuda', 'aduk', 'dadu'],
-        'sukam': ['suka', 'muka', 'kamu'],
-        'tasum': ['tamu', 'satu', 'mata'],
-        'pudak': ['padu', 'dapu', 'kuda'],
-        'bunga': ['bunga', 'guna', 'naga'],
-        'sinar': ['sari', 'nasi', 'rasi'],
-        'taniga': ['tangga', 'ganti', 'tiga'],
-        'kertas': ['kertas', 'teras'],
-        'kain': ['kain', 'ikan'],
-        'senik': ['seni', 'kini']
-      };
-
-      const clueContainer = document.getElementById('clue-container');
-      const soalContainer = document.getElementById('soal-container');
+      const legendGrid = document.getElementById('legendGrid');
+      const worksheet = document.getElementById('worksheet');
       const statusEl = document.getElementById('status');
       const btnCheck = document.getElementById('btnCheck');
       const btnReset = document.getElementById('btnReset');
       const btnShuffle = document.getElementById('btnShuffle');
 
-      let mapping = {};
-      let kataAnak = [];
+      let currentPuzzle = 0;
 
-      function renderClues(){
-        clueContainer.innerHTML = '';
-        const keys = Object.keys(mapping).sort();
-        keys.forEach(huruf => {
-          const warna = mapping[huruf];
+      function renderPuzzle(index){
+        const puzzle = PUZZLES[index];
+        renderLegend(puzzle.mapping);
+        renderQuestions(puzzle);
+        setStatus('Soal siap! Tulis jawabannya ya 😊', '');
+      }
+
+      function renderLegend(mapping){
+        legendGrid.innerHTML = '';
+        Object.keys(mapping).sort().forEach(letter => {
           const item = document.createElement('div');
           item.className = 'legend-item';
           const circle = document.createElement('div');
           circle.className = 'circle';
-          circle.style.background = warna;
-          circle.textContent = huruf;
-          item.appendChild(circle);
+          circle.style.background = mapping[letter];
+          circle.textContent = letter.toUpperCase();
           const label = document.createElement('div');
-          label.textContent = `= ${huruf.toUpperCase()}`;
-          item.appendChild(label);
-          clueContainer.appendChild(item);
+          label.textContent = `= ${letter}`;
+          item.append(circle, label);
+          legendGrid.appendChild(item);
         });
       }
 
-      function buildQuestions(){
-        soalContainer.innerHTML = '';
-        kataAnak.forEach(word => {
-          const valid = [...word].every(char => mapping[char]);
-          if(!valid) return;
-          if(word.length < 4 || word.length > 5) return;
-
-          const row = document.createElement('div');
-          row.className = 'jawaban-row';
+      function renderQuestions(puzzle){
+        worksheet.innerHTML = '';
+        puzzle.words.forEach(word => {
+          const row = document.createElement('article');
+          row.className = 'question';
           row.dataset.answer = word;
 
-          const circlesWrap = document.createElement('div');
-          circlesWrap.className = 'circles';
-          [...word].forEach(char => {
+          const chips = document.createElement('div');
+          chips.className = 'chips';
+          [...word].forEach(letter => {
             const circle = document.createElement('div');
             circle.className = 'circle';
-            circle.style.background = mapping[char];
-            circle.textContent = '';
-            circle.setAttribute('aria-hidden','true');
-            circlesWrap.appendChild(circle);
+            circle.style.background = puzzle.mapping[letter];
+            circle.title = `Huruf ${letter.toUpperCase()}`;
+            chips.appendChild(circle);
           });
 
-          const equals = document.createElement('span');
-          equals.textContent = '=';
-          equals.style.fontWeight = '700';
-          equals.style.fontSize = '20px';
-
+          const answerBox = document.createElement('div');
+          answerBox.className = 'answer-box';
           const input = document.createElement('input');
           input.type = 'text';
-          input.autocomplete = 'off';
-          input.spellcheck = false;
-          input.setAttribute('aria-label', `Jawaban untuk warna ${word.length} huruf`);
+          input.setAttribute('autocomplete', 'off');
+          input.setAttribute('spellcheck', 'false');
+          input.setAttribute('aria-label', `Jawaban untuk warna kata ${word.length} huruf`);
           input.addEventListener('input', () => {
-            input.value = input.value.replace(/[^a-zA-Z]/g,'').toLowerCase();
-            input.classList.remove('correct','wrong');
+            input.value = input.value.replace(/[^a-zA-Z]/g, '').toLowerCase();
+            input.classList.remove('correct', 'wrong');
             row.removeAttribute('data-state');
+            setStatus('', '');
           });
+          const caption = document.createElement('small');
+          caption.textContent = 'Tulis kata di sini';
+          caption.style.color = 'var(--muted)';
+          caption.style.fontWeight = '600';
+          answerBox.append(input, caption);
 
-          row.appendChild(circlesWrap);
-          row.appendChild(equals);
-          row.appendChild(input);
-
-          soalContainer.appendChild(row);
+          row.append(chips, answerBox);
+          worksheet.appendChild(row);
         });
-      }
-
-      function resetAnswers(showMessage){
-        soalContainer.querySelectorAll('.jawaban-row').forEach(row => {
-          row.removeAttribute('data-state');
-          const input = row.querySelector('input');
-          input.value = '';
-          input.classList.remove('correct','wrong');
-        });
-        statusEl.textContent = showMessage ? 'Jawaban dikosongkan.' : '';
-        statusEl.dataset.state = showMessage ? 'ok' : '';
       }
 
       function checkAnswers(){
-        const rows = soalContainer.querySelectorAll('.jawaban-row');
+        const rows = [...worksheet.querySelectorAll('.question')];
         if(rows.length === 0){
-          statusEl.textContent = 'Tekan "Acak Soal" untuk memulai.';
-          statusEl.dataset.state = 'warn';
+          setStatus('Belum ada soal. Tekan "Acak Soal" dulu ya!', 'warn');
           return;
         }
 
-        let total = 0;
         let correct = 0;
         rows.forEach(row => {
           const input = row.querySelector('input');
-          const expected = row.dataset.answer;
           const answer = (input.value || '').trim().toLowerCase();
-          if(!expected) return;
-          total++;
+          const expected = row.dataset.answer;
+          input.classList.remove('correct', 'wrong');
+          row.dataset.state = '';
           if(answer === expected){
-            correct++;
-            row.dataset.state = 'correct';
-            input.classList.remove('wrong');
             input.classList.add('correct');
+            row.dataset.state = 'correct';
+            correct++;
           } else {
-            row.dataset.state = 'wrong';
-            input.classList.remove('correct');
             input.classList.add('wrong');
+            row.dataset.state = 'wrong';
           }
         });
 
-        if(total === 0){
-          statusEl.textContent = 'Soal tidak ditemukan. Coba acak ulang.';
-          statusEl.dataset.state = 'warn';
-          return;
-        }
-
-        if(correct === total){
-          statusEl.textContent = `Mantap! Semua benar (${correct}/${total}).`;
-          statusEl.dataset.state = 'ok';
+        if(correct === rows.length){
+          setStatus(`Hebat! Semua benar (${correct}/${rows.length}).`, 'ok');
         } else {
-          statusEl.textContent = `Benar ${correct} dari ${total} kata. Coba lagi ya!`;
-          statusEl.dataset.state = 'warn';
+          setStatus(`Benar ${correct} dari ${rows.length} kata. Ayo coba lagi!`, 'warn');
         }
       }
 
-      function acakSoal(showToast = false){
-        const keys = Object.keys(kataAnakMapping);
-        const randomKey = keys[Math.floor(Math.random() * keys.length)];
-        kataAnak = kataAnakMapping[randomKey];
-
-        mapping = {};
-        randomKey.split('').forEach((huruf, idx) => {
-          mapping[huruf] = warnaPool[idx % warnaPool.length];
+      function resetAnswers(){
+        worksheet.querySelectorAll('input').forEach(input => {
+          input.value = '';
+          input.classList.remove('correct', 'wrong');
         });
+        worksheet.querySelectorAll('.question').forEach(row => row.removeAttribute('data-state'));
+        setStatus('Jawaban dikosongkan.', '');
+      }
 
-        renderClues();
-        buildQuestions();
-        resetAnswers(false);
+      function shufflePuzzle(){
+        currentPuzzle = (currentPuzzle + 1) % PUZZLES.length;
+        renderPuzzle(currentPuzzle);
+      }
 
-        if(showToast){
-          statusEl.textContent = 'Soal baru siap!';
-          statusEl.dataset.state = 'ok';
-        } else {
-          statusEl.textContent = '';
-          statusEl.dataset.state = '';
+      function setStatus(text, state){
+        statusEl.textContent = text;
+        statusEl.className = '';
+        if(state){
+          statusEl.classList.add(state);
         }
       }
 
       btnCheck.addEventListener('click', checkAnswers);
-      btnReset.addEventListener('click', () => resetAnswers(true));
-      btnShuffle.addEventListener('click', () => acakSoal(true));
+      btnReset.addEventListener('click', resetAnswers);
+      btnShuffle.addEventListener('click', shufflePuzzle);
 
-      acakSoal(false);
+      renderPuzzle(currentPuzzle);
     })();
   </script>
-  <div class="finish-bar"><button id="btnSelesai" type="button">Selesai</button></div>
+
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="/elearn/manifest-lessons.js"></script>
   <script src="/elearn/userInfo.js"></script>
