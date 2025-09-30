@@ -37,12 +37,12 @@
     .row{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
 
     /* tiles (huruf acak) */
-    .tiles{display:flex; gap:8px; flex-wrap:wrap}
-    .tile{flex:0 0 auto; width:42px; height:42px; display:grid; place-items:center; border-radius:10px; background:#fff; border:2px solid #e7e9fb; box-shadow:0 1px 0 rgba(0,0,0,.04); font-weight:800; font-size:18px; user-select:none; cursor:grab}
+    .tiles{display:flex; gap:8px; flex-wrap:wrap; touch-action:none}
+    .tile{flex:0 0 auto; width:42px; height:42px; display:grid; place-items:center; border-radius:10px; background:#fff; border:2px solid #e7e9fb; box-shadow:0 1px 0 rgba(0,0,0,.04); font-weight:800; font-size:18px; user-select:none; cursor:grab; touch-action:none}
     .tile:active{cursor:grabbing; transform:scale(.98)}
 
     /* slots (jawaban) */
-    .slots{display:flex; gap:8px}
+    .slots{display:flex; gap:8px; touch-action:none}
     .slot{width:46px; height:46px; border-radius:10px; border:2px dashed #cfd3ff; background:#f7f8ff; display:grid; place-items:center}
     .slot.filled{border-style:solid; border-color:#aab1ff; background:#fff}
 
@@ -102,10 +102,13 @@
     {emoji:'⚽', word:'bola'},
     {emoji:'🍞', word:'roti'},
     {emoji:'👕', word:'baju'},
-    // ekstra variasi bila diperlukan selanjutnya
+    {emoji:'🌸', word:'bunga'},
     {emoji:'🦆', word:'bebek'},
     {emoji:'⭐', word:'bintang'},
-    {emoji:'🧸', word:'boneka'}
+    {emoji:'🧸', word:'boneka'},
+    {emoji:'🍽️', word:'piring'},
+    {emoji:'🪑', word:'kursi'},
+    {emoji:'🚗', word:'mobil'}
   ];
 
   const deckEl = document.getElementById('deck');
@@ -154,7 +157,7 @@
       t.textContent = ch.toUpperCase();
       t.setAttribute('draggable','true');
       t.addEventListener('dragstart', onDragStart);
-      t.addEventListener('touchstart', onTouchDragStart, {passive:true});
+      t.addEventListener('touchstart', onTouchDragStart, {passive:false});
       tilesEl.appendChild(t);
     }
 
@@ -178,6 +181,12 @@
     ev.dataTransfer.effectAllowed = 'move';
     // tandai elemen yang diseret
     dragged = ev.target;
+    const originSlot = dragged.parentElement;
+    if(originSlot && originSlot.classList && originSlot.classList.contains('slot')){
+      originSlot.classList.remove('filled');
+      originSlot.style.borderColor = '#cfd3ff';
+      originSlot.style.background = '#f7f8ff';
+    }
   }
   let dragged = null;
   function onDrop(ev, slot){
@@ -202,26 +211,73 @@
 
   // --- TOUCH (sederhana) -----------------------------------------------
   function onTouchDragStart(e){
+    e.preventDefault();
     const tile = e.currentTarget;
+    const origin = tile.parentElement;
+    if(origin && origin.classList && origin.classList.contains('slot')){
+      origin.classList.remove('filled');
+      origin.style.borderColor = '#cfd3ff';
+      origin.style.background = '#f7f8ff';
+    }
     tile.style.outline = '2px solid #aab1ff';
+    let hoverSlot = null;
+
     const move = (ev)=>{
+      ev.preventDefault();
       const t = ev.touches[0];
       const el = document.elementFromPoint(t.clientX, t.clientY);
-      if(el && el.classList.contains('slot')){ el.style.transform='scale(1.05)'; }
-    };
-    const end = (ev)=>{
-      tile.style.outline='';
-      const t = (ev.changedTouches||ev.touches)[0];
-      const el = document.elementFromPoint(t.clientX, t.clientY);
-      if(el && el.classList.contains('slot')){
-        if(el.firstElementChild){ closestTiles(el).appendChild(el.firstElementChild); }
-        el.appendChild(tile); el.classList.add('filled');
+      if(hoverSlot && el !== hoverSlot){
+        hoverSlot.style.transform = '';
+        hoverSlot = null;
       }
-      window.removeEventListener('touchmove', move);
-      window.removeEventListener('touchend', end);
+      if(el && el.classList && el.classList.contains('slot')){
+        hoverSlot = el;
+        hoverSlot.style.transform = 'scale(1.05)';
+      }
     };
-    window.addEventListener('touchmove', move, {passive:true});
-    window.addEventListener('touchend', end, {passive:true});
+
+    const finish = (ev)=>{
+      ev.preventDefault();
+      tile.style.outline='';
+      if(hoverSlot){
+        hoverSlot.style.transform='';
+      }
+      const touch = (ev.changedTouches||ev.touches)[0];
+      const el = document.elementFromPoint(touch.clientX, touch.clientY);
+      if(el && el.classList && el.classList.contains('slot')){
+        if(el.firstElementChild){ closestTiles(el).appendChild(el.firstElementChild); }
+        el.appendChild(tile);
+        el.classList.add('filled');
+      } else if(origin){
+        origin.appendChild(tile);
+        if(origin.classList && origin.classList.contains('slot')){
+          origin.classList.add('filled');
+        }
+      }
+      cleanup();
+    };
+
+    const cancel = ()=>{
+      tile.style.outline='';
+      if(hoverSlot){ hoverSlot.style.transform=''; }
+      if(origin){
+        origin.appendChild(tile);
+        if(origin.classList && origin.classList.contains('slot')){
+          origin.classList.add('filled');
+        }
+      }
+      cleanup();
+    };
+
+    const cleanup = ()=>{
+      window.removeEventListener('touchmove', move);
+      window.removeEventListener('touchend', finish);
+      window.removeEventListener('touchcancel', cancel);
+    };
+
+    window.addEventListener('touchmove', move, {passive:false});
+    window.addEventListener('touchend', finish, {passive:false});
+    window.addEventListener('touchcancel', cancel, {passive:false});
   }
 
   // --- CHECK / RESET ----------------------------------------------------
