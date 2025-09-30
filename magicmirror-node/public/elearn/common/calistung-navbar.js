@@ -138,8 +138,24 @@
       window.__calistungScrollGuardInitialized = true;
 
       const activePointers = new Set();
-      const KEYWORD_RE = /(canvas|board|grid|trace|draw|drag|drop|worksheet|work|play|game|zone|pad|field|workspace|arena|touch|paint|scribble|math|shape|alphabet|number|sorting|matching|connect|line|write|warna|gambar|susun|urut|angk|huruf)/i;
-      const IGNORE_SELECTOR = '.calistung-navbar, .finish-bar, .hud-bar, .hud-panel, [data-allow-scroll], [data-scrollable]';
+      const KEYWORD_RE = /(canvas|trace|draw|touch|paint|scribble|write|tulis|warna|gambar)/i;
+      const IGNORE_SELECTOR = [
+        '.calistung-navbar',
+        '.finish-bar',
+        '.hud-bar',
+        '.hud-panel',
+        '.shell-action-bar',
+        '.shell-button',
+        '.shape-button',
+        '#btnSelesai',
+        '.btn-selesai',
+        'button[data-action="finish"]',
+        'button.hud-btn.finish',
+        'a#btnSelesai',
+        'a.btn-selesai',
+        '[data-allow-scroll]',
+        '[data-scrollable]'
+      ].join(', ');
 
       const style = document.createElement('style');
       const scopedSelectors = IGNORE_SELECTOR
