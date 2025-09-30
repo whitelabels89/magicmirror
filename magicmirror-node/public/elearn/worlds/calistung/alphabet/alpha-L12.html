@@ -86,10 +86,8 @@
     .bankTitle{margin:.25rem 0 .5rem; font-weight:700; text-align:center}
     .bank{display:flex;flex-wrap:wrap; gap:8px; justify-content:center}
 
-    .controls{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:.25rem auto 0}
-    button{padding:.6rem .9rem;border-radius:10px;border:none;background:#111;color:#fff;font-weight:700;cursor:pointer}
-    button.secondary{background:#555}
-    button.ghost{background:#eee;color:#222}
+    .controls{display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin:.25rem auto 0}
+    .controls button{min-width:clamp(140px, 28vw, 220px);}
 
     .toast{min-height:36px;padding:.5rem .8rem;border-radius:10px;background:#111;color:#fff;font-weight:600;display:inline-flex;align-items:center;gap:.5rem}
     .sr{position:absolute !important; clip:rect(1px,1px,1px,1px); padding:0;border:0;height:1px;width:1px; overflow:hidden;}
@@ -127,9 +125,9 @@
     <section class="boardCard">
       <div id="board" class="board" aria-label="Papan huruf"></div>
       <div class="controls">
-        <button id="checkBtn">Periksa Jawaban</button>
-        <button id="resetBtn" class="secondary">Reset</button>
-        <button id="shuffleBtn" class="ghost">Acak Soal</button>
+        <button type="button" id="btnCheck">Periksa Jawaban</button>
+        <button type="button" id="btnReset">Reset</button>
+        <button type="button" id="btnShuffle">Acak Soal</button>
       </div>
     </section>
   </main>
@@ -343,9 +341,9 @@
     buildBoard();
     buildBank();
 
-    document.getElementById('checkBtn').addEventListener('click', check);
-    document.getElementById('resetBtn').addEventListener('click', resetBoard);
-    document.getElementById('shuffleBtn').addEventListener('click', shuffleBank);
+    document.getElementById('btnCheck').addEventListener('click', check);
+    document.getElementById('btnReset').addEventListener('click', resetBoard);
+    document.getElementById('btnShuffle').addEventListener('click', shuffleBank);
   })();
   </script>
 <div class="finish-bar"><button id="btnSelesai" type="button">Selesai</button></div>
