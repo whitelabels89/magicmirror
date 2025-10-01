@@ -184,7 +184,7 @@
 
     <section class="legend" aria-label="Daftar warna dan huruf">
       <div class="legend-title">Petunjuk Warna</div>
-      <div id="legendGrid" class="legend-grid">
+      <div class="legend-grid">
         <div class="legend-item" data-letter="b">
           <div class="circle" style="background:#f97316">B</div>
           <div>= b</div>
@@ -213,16 +213,36 @@
           <div class="circle" style="background:#fb7185">S</div>
           <div>= s</div>
         </div>
+        <div class="legend-item" data-letter="p">
+          <div class="circle" style="background:#f9a8d4">P</div>
+          <div>= p</div>
+        </div>
+        <div class="legend-item" data-letter="n">
+          <div class="circle" style="background:#f87171">N</div>
+          <div>= n</div>
+        </div>
+        <div class="legend-item" data-letter="g">
+          <div class="circle" style="background:#c4b5fd">G</div>
+          <div>= g</div>
+        </div>
+        <div class="legend-item" data-letter="o">
+          <div class="circle" style="background:#38bdf8">O</div>
+          <div>= o</div>
+        </div>
+        <div class="legend-item" data-letter="t">
+          <div class="circle" style="background:#2dd4bf">T</div>
+          <div>= t</div>
+        </div>
       </div>
     </section>
 
     <section id="worksheet" class="worksheet" aria-label="Daftar soal">
       <article class="question" data-answer="bali">
-        <div class="chips">
-          <div class="circle" style="background:#f97316" title="Huruf B"></div>
-          <div class="circle" style="background:#facc15" title="Huruf A"></div>
-          <div class="circle" style="background:#60a5fa" title="Huruf L"></div>
-          <div class="circle" style="background:#c084fc" title="Huruf I"></div>
+        <div class="chips" aria-label="Susunan warna untuk kata pertama">
+          <div class="circle" data-letter="B" style="background:#f97316">B</div>
+          <div class="circle" data-letter="A" style="background:#facc15">A</div>
+          <div class="circle" data-letter="L" style="background:#60a5fa">L</div>
+          <div class="circle" data-letter="I" style="background:#c084fc">I</div>
         </div>
         <div class="answer-box">
           <input type="text" autocomplete="off" spellcheck="false" aria-label="Jawaban untuk warna kata 4 huruf" />
@@ -230,12 +250,12 @@
         </div>
       </article>
       <article class="question" data-answer="balik">
-        <div class="chips">
-          <div class="circle" style="background:#f97316" title="Huruf B"></div>
-          <div class="circle" style="background:#facc15" title="Huruf A"></div>
-          <div class="circle" style="background:#60a5fa" title="Huruf L"></div>
-          <div class="circle" style="background:#c084fc" title="Huruf I"></div>
-          <div class="circle" style="background:#fda4af" title="Huruf K"></div>
+        <div class="chips" aria-label="Susunan warna untuk kata kedua">
+          <div class="circle" data-letter="B" style="background:#f97316">B</div>
+          <div class="circle" data-letter="A" style="background:#facc15">A</div>
+          <div class="circle" data-letter="L" style="background:#60a5fa">L</div>
+          <div class="circle" data-letter="I" style="background:#c084fc">I</div>
+          <div class="circle" data-letter="K" style="background:#fda4af">K</div>
         </div>
         <div class="answer-box">
           <input type="text" autocomplete="off" spellcheck="false" aria-label="Jawaban untuk warna kata 5 huruf" />
@@ -243,11 +263,11 @@
         </div>
       </article>
       <article class="question" data-answer="buku">
-        <div class="chips">
-          <div class="circle" style="background:#f97316" title="Huruf B"></div>
-          <div class="circle" style="background:#34d399" title="Huruf U"></div>
-          <div class="circle" style="background:#f97316" title="Huruf B"></div>
-          <div class="circle" style="background:#34d399" title="Huruf U"></div>
+        <div class="chips" aria-label="Susunan warna untuk kata ketiga">
+          <div class="circle" data-letter="B" style="background:#f97316">B</div>
+          <div class="circle" data-letter="U" style="background:#34d399">U</div>
+          <div class="circle" data-letter="K" style="background:#fda4af">K</div>
+          <div class="circle" data-letter="U" style="background:#34d399">U</div>
         </div>
         <div class="answer-box">
           <input type="text" autocomplete="off" spellcheck="false" aria-label="Jawaban untuk warna kata 4 huruf" />
@@ -255,11 +275,37 @@
         </div>
       </article>
       <article class="question" data-answer="saku">
-        <div class="chips">
-          <div class="circle" style="background:#fb7185" title="Huruf S"></div>
-          <div class="circle" style="background:#f97316" title="Huruf A"></div>
-          <div class="circle" style="background:#fda4af" title="Huruf K"></div>
-          <div class="circle" style="background:#34d399" title="Huruf U"></div>
+        <div class="chips" aria-label="Susunan warna untuk kata keempat">
+          <div class="circle" data-letter="S" style="background:#fb7185">S</div>
+          <div class="circle" data-letter="A" style="background:#facc15">A</div>
+          <div class="circle" data-letter="K" style="background:#fda4af">K</div>
+          <div class="circle" data-letter="U" style="background:#34d399">U</div>
+        </div>
+        <div class="answer-box">
+          <input type="text" autocomplete="off" spellcheck="false" aria-label="Jawaban untuk warna kata 4 huruf" />
+          <small style="color:var(--muted); font-weight:600">Tulis kata di sini</small>
+        </div>
+      </article>
+      <article class="question" data-answer="pisang">
+        <div class="chips" aria-label="Susunan warna untuk kata kelima">
+          <div class="circle" data-letter="P" style="background:#f9a8d4">P</div>
+          <div class="circle" data-letter="I" style="background:#c084fc">I</div>
+          <div class="circle" data-letter="S" style="background:#fb7185">S</div>
+          <div class="circle" data-letter="A" style="background:#facc15">A</div>
+          <div class="circle" data-letter="N" style="background:#f87171">N</div>
+          <div class="circle" data-letter="G" style="background:#c4b5fd">G</div>
+        </div>
+        <div class="answer-box">
+          <input type="text" autocomplete="off" spellcheck="false" aria-label="Jawaban untuk warna kata 6 huruf" />
+          <small style="color:var(--muted); font-weight:600">Tulis kata di sini</small>
+        </div>
+      </article>
+      <article class="question" data-answer="topi">
+        <div class="chips" aria-label="Susunan warna untuk kata keenam">
+          <div class="circle" data-letter="T" style="background:#2dd4bf">T</div>
+          <div class="circle" data-letter="O" style="background:#38bdf8">O</div>
+          <div class="circle" data-letter="P" style="background:#f9a8d4">P</div>
+          <div class="circle" data-letter="I" style="background:#c084fc">I</div>
         </div>
         <div class="answer-box">
           <input type="text" autocomplete="off" spellcheck="false" aria-label="Jawaban untuk warna kata 4 huruf" />
@@ -280,131 +326,31 @@
 
   <script>
     (function(){
-      const PUZZLES = [
-        {
-          mapping: {
-            b: '#f97316',
-            a: '#facc15',
-            l: '#60a5fa',
-            i: '#c084fc',
-            k: '#fda4af',
-            u: '#34d399',
-            s: '#fb7185'
-          },
-          words: ['bali', 'balik', 'buku', 'saku']
-        },
-        {
-          mapping: {
-            p: '#f9a8d4',
-            i: '#38bdf8',
-            s: '#fcd34d',
-            a: '#86efac',
-            n: '#f87171',
-            g: '#c4b5fd'
-          },
-          words: ['pisang', 'singa', 'pagi', 'asin']
-        },
-        {
-          mapping: {
-            k: '#facc15',
-            o: '#38bdf8',
-            p: '#fb7185',
-            i: '#a855f7',
-            t: '#f97316',
-            e: '#34d399',
-            a: '#fde68a'
-          },
-          words: ['kopi', 'topi', 'kota', 'tepi']
-        }
-      ];
-
-      const legendGrid = document.getElementById('legendGrid');
       const worksheet = document.getElementById('worksheet');
       const statusEl = document.getElementById('status');
       const btnCheck = document.getElementById('btnCheck');
       const btnReset = document.getElementById('btnReset');
       const btnShuffle = document.getElementById('btnShuffle');
 
-      let currentPuzzle = 0;
+      const rows = Array.from(worksheet.querySelectorAll('.question'));
 
-      function renderPuzzle(index){
-        const puzzle = PUZZLES[index];
-        renderLegend(puzzle.mapping);
-        renderQuestions(puzzle);
-        setStatus('Soal siap! Tulis jawabannya ya 😊', '');
-      }
-
-      function renderLegend(mapping){
-        legendGrid.innerHTML = '';
-        Object.keys(mapping).sort().forEach(letter => {
-          const item = document.createElement('div');
-          item.className = 'legend-item';
-          const circle = document.createElement('div');
-          circle.className = 'circle';
-          circle.style.background = mapping[letter];
-          circle.textContent = letter.toUpperCase();
-          const label = document.createElement('div');
-          label.textContent = `= ${letter}`;
-          item.append(circle, label);
-          legendGrid.appendChild(item);
+      rows.forEach(row => {
+        const input = row.querySelector('input');
+        input.addEventListener('input', () => {
+          input.value = input.value.replace(/[^a-zA-Z]/g, '').toLowerCase();
+          input.classList.remove('correct', 'wrong');
+          row.removeAttribute('data-state');
+          setStatus('','');
         });
-      }
-
-      function renderQuestions(puzzle){
-        worksheet.innerHTML = '';
-        puzzle.words.forEach(word => {
-          const row = document.createElement('article');
-          row.className = 'question';
-          row.dataset.answer = word;
-
-          const chips = document.createElement('div');
-          chips.className = 'chips';
-          [...word].forEach(letter => {
-            const circle = document.createElement('div');
-            circle.className = 'circle';
-            circle.style.background = puzzle.mapping[letter];
-            circle.title = `Huruf ${letter.toUpperCase()}`;
-            chips.appendChild(circle);
-          });
-
-          const answerBox = document.createElement('div');
-          answerBox.className = 'answer-box';
-          const input = document.createElement('input');
-          input.type = 'text';
-          input.setAttribute('autocomplete', 'off');
-          input.setAttribute('spellcheck', 'false');
-          input.setAttribute('aria-label', `Jawaban untuk warna kata ${word.length} huruf`);
-          input.addEventListener('input', () => {
-            input.value = input.value.replace(/[^a-zA-Z]/g, '').toLowerCase();
-            input.classList.remove('correct', 'wrong');
-            row.removeAttribute('data-state');
-            setStatus('', '');
-          });
-          const caption = document.createElement('small');
-          caption.textContent = 'Tulis kata di sini';
-          caption.style.color = 'var(--muted)';
-          caption.style.fontWeight = '600';
-          answerBox.append(input, caption);
-
-          row.append(chips, answerBox);
-          worksheet.appendChild(row);
-        });
-      }
+      });
 
       function checkAnswers(){
-        const rows = [...worksheet.querySelectorAll('.question')];
-        if(rows.length === 0){
-          setStatus('Belum ada soal. Tekan "Acak Soal" dulu ya!', 'warn');
-          return;
-        }
-
         let correct = 0;
         rows.forEach(row => {
           const input = row.querySelector('input');
           const answer = (input.value || '').trim().toLowerCase();
           const expected = row.dataset.answer;
           input.classList.remove('correct', 'wrong');
-          row.dataset.state = '';
           if(answer === expected){
             input.classList.add('correct');
             row.dataset.state = 'correct';
@@ -418,22 +364,25 @@
         if(correct === rows.length){
           setStatus(`Hebat! Semua benar (${correct}/${rows.length}).`, 'ok');
         } else {
-          setStatus(`Benar ${correct} dari ${rows.length} kata. Ayo coba lagi!`, 'warn');
+          setStatus(`Benar ${correct} dari ${rows.length} kata. Tetap semangat ya!`, 'warn');
         }
       }
 
       function resetAnswers(){
-        worksheet.querySelectorAll('input').forEach(input => {
+        rows.forEach(row => {
+          const input = row.querySelector('input');
           input.value = '';
           input.classList.remove('correct', 'wrong');
+          row.removeAttribute('data-state');
         });
-        worksheet.querySelectorAll('.question').forEach(row => row.removeAttribute('data-state'));
         setStatus('Jawaban dikosongkan.', '');
       }
 
-      function shufflePuzzle(){
-        currentPuzzle = (currentPuzzle + 1) % PUZZLES.length;
-        renderPuzzle(currentPuzzle);
+      function shuffleQuestions(){
+        const shuffled = [...rows].sort(() => Math.random() - 0.5);
+        shuffled.forEach(row => worksheet.appendChild(row));
+        resetAnswers();
+        setStatus('Soal diacak ulang.', '');
       }
 
       function setStatus(text, state){
@@ -446,9 +395,9 @@
 
       btnCheck.addEventListener('click', checkAnswers);
       btnReset.addEventListener('click', resetAnswers);
-      btnShuffle.addEventListener('click', shufflePuzzle);
+      btnShuffle.addEventListener('click', shuffleQuestions);
 
-      renderPuzzle(currentPuzzle);
+      setStatus('Tulis kata sesuai warna di atas ya!', '');
     })();
   </script>
 
