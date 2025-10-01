@@ -184,10 +184,89 @@
 
     <section class="legend" aria-label="Daftar warna dan huruf">
       <div class="legend-title">Petunjuk Warna</div>
-      <div id="legendGrid" class="legend-grid"></div>
+      <div id="legendGrid" class="legend-grid">
+        <div class="legend-item" data-letter="b">
+          <div class="circle" style="background:#f97316">B</div>
+          <div>= b</div>
+        </div>
+        <div class="legend-item" data-letter="a">
+          <div class="circle" style="background:#facc15">A</div>
+          <div>= a</div>
+        </div>
+        <div class="legend-item" data-letter="l">
+          <div class="circle" style="background:#60a5fa">L</div>
+          <div>= l</div>
+        </div>
+        <div class="legend-item" data-letter="i">
+          <div class="circle" style="background:#c084fc">I</div>
+          <div>= i</div>
+        </div>
+        <div class="legend-item" data-letter="k">
+          <div class="circle" style="background:#fda4af">K</div>
+          <div>= k</div>
+        </div>
+        <div class="legend-item" data-letter="u">
+          <div class="circle" style="background:#34d399">U</div>
+          <div>= u</div>
+        </div>
+        <div class="legend-item" data-letter="s">
+          <div class="circle" style="background:#fb7185">S</div>
+          <div>= s</div>
+        </div>
+      </div>
     </section>
 
-    <section id="worksheet" class="worksheet" aria-label="Daftar soal"></section>
+    <section id="worksheet" class="worksheet" aria-label="Daftar soal">
+      <article class="question" data-answer="bali">
+        <div class="chips">
+          <div class="circle" style="background:#f97316" title="Huruf B"></div>
+          <div class="circle" style="background:#facc15" title="Huruf A"></div>
+          <div class="circle" style="background:#60a5fa" title="Huruf L"></div>
+          <div class="circle" style="background:#c084fc" title="Huruf I"></div>
+        </div>
+        <div class="answer-box">
+          <input type="text" autocomplete="off" spellcheck="false" aria-label="Jawaban untuk warna kata 4 huruf" />
+          <small style="color:var(--muted); font-weight:600">Tulis kata di sini</small>
+        </div>
+      </article>
+      <article class="question" data-answer="balik">
+        <div class="chips">
+          <div class="circle" style="background:#f97316" title="Huruf B"></div>
+          <div class="circle" style="background:#facc15" title="Huruf A"></div>
+          <div class="circle" style="background:#60a5fa" title="Huruf L"></div>
+          <div class="circle" style="background:#c084fc" title="Huruf I"></div>
+          <div class="circle" style="background:#fda4af" title="Huruf K"></div>
+        </div>
+        <div class="answer-box">
+          <input type="text" autocomplete="off" spellcheck="false" aria-label="Jawaban untuk warna kata 5 huruf" />
+          <small style="color:var(--muted); font-weight:600">Tulis kata di sini</small>
+        </div>
+      </article>
+      <article class="question" data-answer="buku">
+        <div class="chips">
+          <div class="circle" style="background:#f97316" title="Huruf B"></div>
+          <div class="circle" style="background:#34d399" title="Huruf U"></div>
+          <div class="circle" style="background:#f97316" title="Huruf B"></div>
+          <div class="circle" style="background:#34d399" title="Huruf U"></div>
+        </div>
+        <div class="answer-box">
+          <input type="text" autocomplete="off" spellcheck="false" aria-label="Jawaban untuk warna kata 4 huruf" />
+          <small style="color:var(--muted); font-weight:600">Tulis kata di sini</small>
+        </div>
+      </article>
+      <article class="question" data-answer="saku">
+        <div class="chips">
+          <div class="circle" style="background:#fb7185" title="Huruf S"></div>
+          <div class="circle" style="background:#f97316" title="Huruf A"></div>
+          <div class="circle" style="background:#fda4af" title="Huruf K"></div>
+          <div class="circle" style="background:#34d399" title="Huruf U"></div>
+        </div>
+        <div class="answer-box">
+          <input type="text" autocomplete="off" spellcheck="false" aria-label="Jawaban untuk warna kata 4 huruf" />
+          <small style="color:var(--muted); font-weight:600">Tulis kata di sini</small>
+        </div>
+      </article>
+    </section>
 
     <div class="actions">
       <button type="button" id="btnCheck">Periksa Jawaban</button>
