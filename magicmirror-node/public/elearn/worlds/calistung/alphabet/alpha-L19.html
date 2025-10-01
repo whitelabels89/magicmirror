@@ -96,7 +96,7 @@
 <script>
 (()=>{
   // --- DATA (mengikuti worksheet contoh) --------------------------------
-  const BANK = [
+  const RAW_BANK = [
     {emoji:'🍎', word:'apel'},
     {emoji:'📚', word:'buku'},
     {emoji:'⚽', word:'bola'},
@@ -108,8 +108,12 @@
     {emoji:'🧸', word:'boneka'},
     {emoji:'🍇', word:'anggur'},
     {emoji:'🪑', word:'kursi'},
-    {emoji:'🚗', word:'mobil'}
+    {emoji:'🚗', word:'mobil'},
+    {emoji:'🧃', word:'jus'},
+    {emoji:'🍪', word:'kue'}
   ];
+
+  const BANK = RAW_BANK.filter(item => item.word !== 'ranjang' && item.word !== 'kasur');
 
   const deckEl = document.getElementById('deck');
   const statusEl = document.getElementById('status');
