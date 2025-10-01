@@ -24,8 +24,6 @@
 
     h1{margin:12px 0 18px; text-align:center; font-size:28px}
     .toolbar{display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-bottom:14px}
-    .btn{border:2px solid #00000025; background:#f4f4f4; border-radius:12px; padding:10px 14px; cursor:pointer; font-weight:700}
-    .btn:active{transform:translateY(1px)}
 
     .headers{
       display:grid; grid-template-columns: repeat(5, 1fr); gap:var(--gap); margin:8px 0 18px;
@@ -49,7 +47,8 @@
 
     .legend{margin:10px 0 0; text-align:center; font-size:14px; color:#666}
 
-    .sticky-actions{position:sticky; bottom:8px; display:flex; justify-content:center; gap:10px; margin-top:16px}
+    .sticky-actions{position:sticky; bottom:8px; display:flex; justify-content:center; gap:12px; margin-top:16px; flex-wrap:wrap}
+    .sticky-actions button{min-width:clamp(150px, 30vw, 240px);}
 
     @media (max-width:720px){
       body{padding:14px}
@@ -83,9 +82,9 @@
     <div class="legend">Pilih salah satu suku kata berwarna di atas, lalu ketuk kotak untuk mengisi. Tujuan: setiap kolom diisi sama dengan suku kata header-nya (Shortcut: tekan angka 1–5 di keyboard untuk memilih header cepat).</div>
 
     <div class="sticky-actions">
-      <button class="btn" id="btnCheck">Periksa Jawaban</button>
-      <button class="btn" id="btnReset">Reset</button>
-      <button class="btn" id="btnShuffle">Acak Urutan Kolom</button>
+      <button type="button" id="btnCheck">Periksa Jawaban</button>
+      <button type="button" id="btnReset">Reset</button>
+      <button type="button" id="btnShuffle">Acak Urutan Kolom</button>
     </div>
   </div>
 
