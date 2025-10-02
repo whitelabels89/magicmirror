@@ -938,39 +938,33 @@
     const badgeLabel = document.body.dataset.navBadge || 'Calistung';
     const note = (document.body.dataset.navNote || '').trim();
 
-    const mapBtn = document.createElement('a');
-    mapBtn.className = 'calistung-navbar__btn calistung-navbar__btn--map';
-    mapBtn.href = mapUrl || '#';
-    mapBtn.innerHTML = '🗺️ <span>Map</span>';
+    const escapeHtml = (value) => value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+    const noteMarkup = note ? `<span class="calistung-navbar__note">${escapeHtml(note)}</span>` : '';
+    nav.innerHTML = `
+      <a class="calistung-navbar__btn calistung-navbar__btn--map" href="${mapUrl || '#'}">
+        🗺️ <span>Map</span>
+      </a>
+      <div class="calistung-navbar__info">
+        <span class="calistung-navbar__badge">${badgeLabel}</span>
+        <span class="calistung-navbar__title"></span>
+        ${noteMarkup}
+      </div>
+      <button type="button" class="calistung-navbar__btn calistung-navbar__btn--back" aria-label="Back">
+        <span>Back</span> ⬅️
+      </button>
+    `;
 
-    const info = document.createElement('div');
-    info.className = 'calistung-navbar__info';
-
-    const badgeEl = document.createElement('span');
-    badgeEl.className = 'calistung-navbar__badge';
-    badgeEl.textContent = badgeLabel;
-    info.appendChild(badgeEl);
-
-    const titleEl = document.createElement('span');
-    titleEl.className = 'calistung-navbar__title';
-    info.appendChild(titleEl);
-
-    if (note) {
-      const noteEl = document.createElement('span');
-      noteEl.className = 'calistung-navbar__note';
-      noteEl.textContent = note;
-      info.appendChild(noteEl);
+    const info = nav.querySelector('.calistung-navbar__info');
+    const titleEl = info ? info.querySelector('.calistung-navbar__title') : null;
+    const backBtn = nav.querySelector('.calistung-navbar__btn--back');
+    if (!backBtn) {
+      return nav;
     }
-
-    const backBtn = document.createElement('button');
-    backBtn.type = 'button';
-    backBtn.className = 'calistung-navbar__btn calistung-navbar__btn--back';
-    backBtn.setAttribute('aria-label', 'Back');
-    backBtn.innerHTML = '<span>Back</span> ⬅️';
-
-    nav.appendChild(mapBtn);
-    nav.appendChild(info);
-    nav.appendChild(backBtn);
 
     const prepareThemeTrack = () => {
       if (window.CalistungMusic && typeof window.CalistungMusic.prepareNextTrack === 'function') {
@@ -978,17 +972,23 @@
       }
     };
 
+    const applyTitle = (value) => {
+      if (titleEl) {
+        titleEl.textContent = value;
+      }
+    };
+
     const explicitTitle = document.body.dataset.levelTitle;
     if (explicitTitle) {
-      titleEl.textContent = explicitTitle;
+      applyTitle(explicitTitle);
     } else {
       const firstHeading = document.querySelector('main h1, h1');
       if (firstHeading && firstHeading.textContent.trim()) {
-        titleEl.textContent = firstHeading.textContent.trim();
+        applyTitle(firstHeading.textContent.trim());
       } else if (document.title) {
-        titleEl.textContent = document.title;
+        applyTitle(document.title);
       } else {
-        titleEl.textContent = 'Lesson';
+        applyTitle('Lesson');
       }
     }
 
