@@ -39,7 +39,6 @@
     .row{ 
       display:grid; 
       grid-template-rows:56px 56px; /* baris 1 = soal angka, baris 2 = jawaban */
-      grid-auto-flow: column;
       grid-auto-columns: minmax(48px,1fr);
       gap:8px; 
       align-items:stretch; 
@@ -75,9 +74,6 @@
 
     .credit{opacity:.7; font-size:12px; text-align:center; margin-top:10px}
 
-    @media (max-width:720px){
-      .row{ grid-template-columns:1fr; }
-    }
   </style>
 <style>
     .finish-bar { position: fixed; right: 16px; bottom: 16px; z-index: 1000; }
@@ -200,19 +196,25 @@
       // --- DOM helpers for a single row (numbers + inputs) ---
       function buildRow(word, idx){
         const nums = encode(word);
+        // Set explicit grid columns equal to word length to force 1 row of numbers and 1 row of inputs
+        const colDef = `repeat(${nums.length}, minmax(48px,1fr))`;
         const row = document.createElement('div');
         row.className = 'row';
         row.dataset.word = word;
+        row.style.gridTemplateColumns = colDef;
 
         // Numbers (top)
         nums.forEach(n => {
           const box = document.createElement('div');
           box.className = 'numBox';
           box.textContent = n;
+          const colIndex = row.children.length + 1; // next column index (starting at 1)
+          box.style.gridRow = '1';
+          box.style.gridColumn = String(colIndex);
           row.appendChild(box);
         });
 
-        // Inputs (bottom)
+        // Inputs (bottom), aligned under each number
         nums.forEach((_, i) => {
           const inWrap = document.createElement('div');
           inWrap.className = 'inBox';
@@ -223,12 +225,14 @@
           input.dataset.answer = word[i];
           input.addEventListener('input', (e) => {
             e.target.value = (e.target.value || '').toUpperCase().replace(/[^A-Z]/g,'');
-            // auto advance
-            if(e.target.value && input.nextElementSibling?.querySelector?.('input')){
-              input.nextElementSibling.querySelector('input').focus();
+            if(e.target.value && inWrap.nextElementSibling?.querySelector?.('input')){
+              inWrap.nextElementSibling.querySelector('input').focus();
             }
           });
           inWrap.appendChild(input);
+          // place directly under the corresponding number
+          inWrap.style.gridRow = '2';
+          inWrap.style.gridColumn = String(i+1);
           row.appendChild(inWrap);
         });
 

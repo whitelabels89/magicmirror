@@ -40,10 +40,41 @@
 
     .grid{display:grid; grid-template-columns:repeat(5, 1fr); gap:var(--gap)}
     .cell{
-      display:flex; align-items:center; justify-content:center; height:82px; border-radius:14px; border:3px solid #00000030; background:#fff; font-size:28px; font-weight:800; text-transform:lowercase; cursor:pointer; position:relative;
+      position:relative;
+      display:flex;
+      align-items:stretch;
+      justify-content:center;
+      height:140px;
+      padding:10px;
+      border-radius:14px;
+      border:3px solid #00000025;
+      background:#fff;
+      cursor:crosshair;
+      transition:border-color .2s ease, box-shadow .2s ease;
+      overflow:hidden;
     }
-    .cell[data-correct="true"]{border-color:#21bf73; box-shadow:inset 0 0 0 3px #21bf7360}
-    .cell[data-correct="false"]{border-color:#ff4d4f; box-shadow:inset 0 0 0 3px #ff4d4f60}
+    .cell:focus-within{border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,.2)}
+    .cell canvas{
+      width:100%;
+      height:100%;
+      border-radius:10px;
+      border:1px dashed rgba(30,41,59,.15);
+      background: repeating-linear-gradient(0deg, rgba(148,163,184,.18) 0 2px, transparent 2px 34px), #fff;
+      touch-action:none;
+    }
+    .cell-hint{
+      position:absolute;
+      top:8px;
+      left:12px;
+      font-size:18px;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+      color:rgba(15,23,42,.25);
+      pointer-events:none;
+    }
+    .cell.focus-col{border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,.18)}
+    .cell.focus-col canvas{border-color:rgba(37,99,235,.35)}
 
     .legend{margin:10px 0 0; text-align:center; font-size:14px; color:#666}
 
@@ -53,7 +84,7 @@
     @media (max-width:720px){
       body{padding:14px}
       h1{font-size:22px}
-      .cell{height:66px; font-size:24px}
+      .cell{height:120px; padding:8px}
       .syllable{font-size:24px; padding:10px}
     }
   </style>
@@ -69,7 +100,7 @@
 
   <link rel="stylesheet" href="/elearn/worlds/calistung/buttons.css" />
 </head>
-<body class="alphabet-game">
+<body class="alphabet-game" data-lesson-check="off">
   <div class="sheet" id="app">
     <h1>menulis suku kata</h1>
 
@@ -79,126 +110,231 @@
     <!-- 4 x 5 grid cells -->
     <div class="grid" id="grid"></div>
 
-    <div class="legend">Pilih salah satu suku kata berwarna di atas, lalu ketuk kotak untuk mengisi. Tujuan: setiap kolom diisi sama dengan suku kata header-nya (Shortcut: tekan angka 1–5 di keyboard untuk memilih header cepat).</div>
+    <div class="legend">Gunakan pensil digital atau mouse untuk <strong>menulis sendiri</strong> suku kata pada setiap kotak. Setiap kolom mengikuti suku kata pada header di atasnya (Shortcut: tekan angka 1–5 di keyboard untuk menyorot header).</div>
 
     <div class="sticky-actions">
-      <button type="button" id="btnCheck">Periksa Jawaban</button>
-      <button type="button" id="btnReset">Reset</button>
+      <button type="button" id="btnReset">Reset Tulisan</button>
       <button type="button" id="btnShuffle">Acak Urutan Kolom</button>
     </div>
   </div>
 
   <script>
     ;(() => {
-      const app = document.getElementById('app');
       const headersEl = document.getElementById('headers');
       const gridEl = document.getElementById('grid');
-      const btnCheck = document.getElementById('btnCheck');
       const btnReset = document.getElementById('btnReset');
       const btnShuffle = document.getElementById('btnShuffle');
 
-      // base syllables
-      const base = ['ba','bi','bu','be','bo'];
+      const base = ['ba', 'bi', 'bu', 'be', 'bo'];
       let order = [...base];
-      let active = null; // current brush
+      const pads = [];
 
-      function drawHeaders(){
+      function drawHeaders() {
         headersEl.innerHTML = '';
         order.forEach((syl, idx) => {
           const div = document.createElement('div');
           div.className = `syllable s-${syl}`;
           div.textContent = syl;
-          div.dataset.syl = syl;
-          div.title = 'Klik untuk memilih';
+          div.dataset.index = String(idx);
+          div.tabIndex = 0;
           div.addEventListener('click', () => setActive(div));
+          div.addEventListener('keydown', (evt) => {
+            if (evt.key === 'Enter' || evt.key === ' ') {
+              evt.preventDefault();
+              setActive(div);
+            }
+          });
           headersEl.appendChild(div);
         });
-        // default select first
         setActive(headersEl.firstElementChild);
       }
 
-      function setActive(el){
-        [...headersEl.children].forEach(x => x.classList.remove('active'));
-        el.classList.add('active');
-        active = el.dataset.syl;
+      function setActive(element) {
+        if (!element) {
+          return;
+        }
+        [...headersEl.children].forEach((node) => node.classList.remove('active'));
+        element.classList.add('active');
+        highlightColumn(Number(element.dataset.index || 0));
       }
 
-      function drawGrid(){
+      function highlightColumn(index) {
+        gridEl.querySelectorAll('.cell').forEach((cell) => {
+          const col = Number(cell.dataset.colIndex || 0);
+          if (col === index) {
+            cell.classList.add('focus-col');
+          } else {
+            cell.classList.remove('focus-col');
+          }
+        });
+      }
+
+      function drawGrid() {
         gridEl.innerHTML = '';
-        // 4 rows x 5 columns
-        const rows = 4, cols = 5;
-        for(let r=0;r<rows;r++){
-          for(let c=0;c<cols;c++){
+        pads.length = 0;
+        const rows = 4;
+        const cols = order.length;
+        for (let r = 0; r < rows; r += 1) {
+          for (let c = 0; c < cols; c += 1) {
             const cell = document.createElement('div');
             cell.className = 'cell';
-            cell.contentEditable = false; // we fill by click, not typing (biar konsisten)
-            cell.dataset.col = c;
-            cell.addEventListener('click', () => fillCell(cell));
+            cell.dataset.colIndex = String(c);
+            const hint = document.createElement('span');
+            hint.className = 'cell-hint';
+            hint.textContent = order[c];
+            cell.appendChild(hint);
+
+            const canvas = document.createElement('canvas');
+            canvas.className = 'cell-pad';
+            canvas.setAttribute('aria-label', `Tulisan untuk kolom ${order[c]} baris ${r + 1}`);
+            cell.appendChild(canvas);
+
             gridEl.appendChild(cell);
+            pads.push(initCanvas(canvas));
           }
+        }
+        const activeEl = headersEl.querySelector('.active') || headersEl.firstElementChild;
+        if (activeEl) {
+          highlightColumn(Number(activeEl.dataset.index || 0));
         }
       }
 
-      function fillCell(cell){
-        if(!active) return;
-        cell.textContent = active;
-        cell.removeAttribute('data-correct');
-      }
-
-      function resetAll(){
-        [...gridEl.children].forEach(c => { c.textContent = ''; c.removeAttribute('data-correct'); });
-      }
-
-      function shuffleOrder(){
-        // Fisher-Yates
-        for(let i=order.length-1;i>0;i--){
-          const j = Math.floor(Math.random()*(i+1));
+      function shuffleOrder() {
+        for (let i = order.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(Math.random() * (i + 1));
           [order[i], order[j]] = [order[j], order[i]];
         }
         drawHeaders();
-        resetAll();
+        drawGrid();
+        toast('Urutan kolom diacak ✨');
       }
 
-      function check(){
-        // each column must equal its header syllable
-        let total = 0, correct = 0;
-        const cols = 5, rows = 4;
-        for(let c=0;c<cols;c++){
-          const target = order[c];
-          for(let r=0;r<rows;r++){
-            const idx = r*cols + c;
-            const cell = gridEl.children[idx];
-            const val = (cell.textContent || '').trim().toLowerCase();
-            const ok = val === target;
-            cell.dataset.correct = ok;
-            total++;
-            if(ok) correct++;
+      function resetAll() {
+        pads.forEach((pad) => pad.clear());
+        toast('Semua tulisan dibersihkan ✨');
+      }
+
+      function initCanvas(canvas) {
+        const ctx = canvas.getContext('2d');
+        const dpr = window.devicePixelRatio || 1;
+        let drawing = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        const applyStyles = () => {
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.scale(dpr, dpr);
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          ctx.lineWidth = 4;
+          ctx.strokeStyle = '#1f2937';
+        };
+
+        const resize = (snapshot) => {
+          const rect = canvas.getBoundingClientRect();
+          const width = Math.max(rect.width, 120);
+          const height = Math.max(rect.height, 90);
+          canvas.width = Math.round(width * dpr);
+          canvas.height = Math.round(height * dpr);
+          applyStyles();
+          ctx.clearRect(0, 0, width, height);
+          if (snapshot && snapshot !== 'data:,') {
+            const img = new Image();
+            img.onload = () => ctx.drawImage(img, 0, 0, width, height);
+            img.src = snapshot;
           }
-        }
-        toast(`Skor: ${correct}/${total}. ${(correct===total)?'Mantap! Semua benar 🎉':'Coba rapikan lagi 😺'}`);
+        };
+
+        const pointerPos = (evt) => {
+          const rect = canvas.getBoundingClientRect();
+          const point = evt.touches ? evt.touches[0] : evt;
+          return {
+            x: point.clientX - rect.left,
+            y: point.clientY - rect.top
+          };
+        };
+
+        const start = (evt) => {
+          evt.preventDefault();
+          const { x, y } = pointerPos(evt);
+          drawing = true;
+          lastX = x;
+          lastY = y;
+        };
+
+        const move = (evt) => {
+          if (!drawing) {
+            return;
+          }
+          evt.preventDefault();
+          const { x, y } = pointerPos(evt);
+          ctx.beginPath();
+          ctx.moveTo(lastX, lastY);
+          ctx.lineTo(x, y);
+          ctx.stroke();
+          lastX = x;
+          lastY = y;
+        };
+
+        const end = () => {
+          drawing = false;
+        };
+
+        canvas.addEventListener('pointerdown', start);
+        canvas.addEventListener('pointermove', move);
+        canvas.addEventListener('pointerup', end);
+        canvas.addEventListener('pointerleave', end);
+        canvas.addEventListener('pointercancel', end);
+
+        canvas.addEventListener('touchstart', start, { passive: false });
+        canvas.addEventListener('touchmove', move, { passive: false });
+        canvas.addEventListener('touchend', end);
+        canvas.addEventListener('touchcancel', end);
+        canvas.addEventListener('contextmenu', (evt) => evt.preventDefault());
+
+        resize();
+
+        const observer = new ResizeObserver(() => {
+          const snapshot = canvas.toDataURL();
+          resize(snapshot);
+        });
+        observer.observe(canvas);
+
+        const clear = () => {
+          const width = canvas.width / dpr;
+          const height = canvas.height / dpr;
+          ctx.clearRect(0, 0, width, height);
+        };
+
+        return { clear };
       }
 
-      function toast(msg){
+      function toast(message) {
         const t = document.createElement('div');
-        t.textContent = msg;
+        t.textContent = message;
         t.style.cssText = 'position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#111;color:#fff;padding:10px 14px;border-radius:10px;box-shadow:0 8px 20px #0007;z-index:9999;font-weight:700;';
         document.body.appendChild(t);
-        setTimeout(()=>t.remove(), 2200);
+        setTimeout(() => t.remove(), 2200);
       }
 
-      // init
       drawHeaders();
       drawGrid();
 
-      // events
       btnReset.addEventListener('click', resetAll);
       btnShuffle.addEventListener('click', shuffleOrder);
-      btnCheck.addEventListener('click', check);
 
-      // Quality-of-life: keyboard 1..5 = choose header
-      window.addEventListener('keydown', (e) => {
-        const idx = parseInt(e.key,10) - 1;
-        if(idx>=0 && idx<headersEl.children.length){ setActive(headersEl.children[idx]); }
+      window.addEventListener('keydown', (evt) => {
+        const numeric = parseInt(evt.key, 10);
+        if (!Number.isFinite(numeric)) {
+          return;
+        }
+        const idx = numeric - 1;
+        const target = headersEl.children[idx];
+        if (target) {
+          evt.preventDefault();
+          setActive(target);
+          target.focus();
+        }
       });
     })();
   </script>

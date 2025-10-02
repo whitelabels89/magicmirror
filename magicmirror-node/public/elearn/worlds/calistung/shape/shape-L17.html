@@ -181,9 +181,21 @@
       });
 
       // Generate a neat fixed grid inside the tie (no randomness)
-      const cols=3, rows=10;
-      const x0=90, y0=240, gw=110, gh=42; // grid origin & cell size tuned to silhouette
+      const y0=240, gh=42; // grid origin & cell height tuned to silhouette
       const counts={}; SHAPES.forEach(s=>counts[s.key]=0);
+      const rowCounts={};
+      FIXED_LAYOUT.forEach(cell=>{ rowCounts[cell.r] = (rowCounts[cell.r] || 0) + 1; });
+      const spreadByRow = {
+        0: 0,
+        1: 68,
+        2: 82,
+        3: 84,
+        4: 84,
+        5: 80,
+        6: 78,
+        7: 64,
+        8: 58
+      };
 
       const items = document.createElementNS(svgns,'g');
       items.setAttribute('clip-path','url(#clipTie)');
@@ -194,7 +206,17 @@
         const {r,c,type} = cell;
         // Skip forbidden cells (top corners and bottom center)
         if ((r<1 && c!==1) || (r>7 && c===1)) return;
-        const cx = x0 + c*gw + gw/2;
+        const countInRow = rowCounts[r] || 0;
+        const spread = (spreadByRow[r] != null) ? spreadByRow[r] : 80;
+        const centerX = 180;
+        let cx = centerX;
+        if (countInRow === 2) {
+          cx = centerX + (c <= 0 ? -spread : spread);
+        } else if (countInRow >= 3) {
+          if (c === 0) { cx = centerX - spread; }
+          else if (c === 1) { cx = centerX; }
+          else { cx = centerX + spread; }
+        }
         const cy = y0 + r*gh + gh/2;
         const g = document.createElementNS(svgns,'g');
         g.setAttribute('transform',`translate(${cx},${cy})`);

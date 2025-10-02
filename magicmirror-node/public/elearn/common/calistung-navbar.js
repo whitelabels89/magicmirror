@@ -348,6 +348,7 @@
   const NAV_STYLE_ID = "calistung-navbar-style";
   const PAUSE_MENU_SCRIPT_SRC = "/elearn/worlds/ui/pause-menu.js";
   const MUSIC_SCRIPT_SRC = "/elearn/worlds/calistung/music.js";
+  const LESSON_ACTIONS_SCRIPT_SRC = "/elearn/worlds/calistung/common/lesson-actions.js";
   const BUTTON_SFX_FALLBACK_SRC = 'data:audio/wav;base64,' +
     'UklGRnoKAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YVYKAAAAAHE9lmsjf1xzQEvBEFLST586hKuHsagV32cdTlROdhx7oGE1MBjzVbkhkVGE' +
     '9ZWfwX78CjihZRV6dHAzS5ETTNc5paCJOYuJqQTd7xiKTqpw+nYDYIIx+vbYvumW8ohMmBvBQfnhMtFfDXVvbe5KHBYG3Paq+I7cjpKqNNu6FPpIHWvNcjxe' +
@@ -669,6 +670,20 @@
     (document.head || document.documentElement || document.body).appendChild(script);
   };
 
+  const ensureLessonActionsScript = () => {
+    if (!document || !document.body) {
+      return;
+    }
+    const existing = document.querySelector(`script[src="${LESSON_ACTIONS_SCRIPT_SRC}"]`);
+    if (existing) {
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = LESSON_ACTIONS_SCRIPT_SRC;
+    script.setAttribute('data-lesson-actions', 'true');
+    (document.body || document.documentElement || document.head).appendChild(script);
+  };
+
   const ensureStyles = () => {
     if (document.getElementById(NAV_STYLE_ID)) {
       return;
@@ -762,6 +777,12 @@
         text-overflow: ellipsis;
         max-width: 100%;
       }
+      .calistung-navbar__note {
+        margin-top: 6px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: rgba(15, 23, 42, 0.72);
+      }
       .calistung-navbar--alphabet {
         margin-bottom: clamp(18px, 4vw, 32px);
       }
@@ -777,6 +798,9 @@
         }
         .calistung-navbar__title {
           font-size: 0.95rem;
+        }
+        .calistung-navbar__note {
+          font-size: 0.78rem;
         }
       }
     `;
@@ -867,6 +891,9 @@
       if (!dataset.pauseToggle) {
         dataset.pauseToggle = 'disabled';
       }
+      if (!dataset.navNote) {
+        dataset.navNote = 'Puzzle jawaban tidak bisa di-drag.';
+      }
     }
 
     if (isMathWorld) {
@@ -885,6 +912,7 @@
     }
 
     ensurePauseMenuScript();
+    ensureLessonActionsScript();
     if (!dataset.calistungBgm) {
       dataset.calistungBgm = 'level';
     }
@@ -908,19 +936,41 @@
 
     const mapUrl = document.body.dataset.navHomeUrl || DEFAULT_HOME_URL;
     const badgeLabel = document.body.dataset.navBadge || 'Calistung';
+    const note = (document.body.dataset.navNote || '').trim();
 
-    nav.innerHTML = `
-      <button type="button" class="calistung-navbar__btn calistung-navbar__btn--back" aria-label="BACK">
-        ⬅️ <span>BACK</span>
-      </button>
-      <div class="calistung-navbar__info">
-        <span class="calistung-navbar__badge">${badgeLabel}</span>
-        <span class="calistung-navbar__title"></span>
-      </div>
-      <a class="calistung-navbar__btn" href="${mapUrl}">
-        🗺️ <span>Map</span>
-      </a>
-    `;
+    const mapBtn = document.createElement('a');
+    mapBtn.className = 'calistung-navbar__btn calistung-navbar__btn--map';
+    mapBtn.href = mapUrl || '#';
+    mapBtn.innerHTML = '🗺️ <span>Map</span>';
+
+    const info = document.createElement('div');
+    info.className = 'calistung-navbar__info';
+
+    const badgeEl = document.createElement('span');
+    badgeEl.className = 'calistung-navbar__badge';
+    badgeEl.textContent = badgeLabel;
+    info.appendChild(badgeEl);
+
+    const titleEl = document.createElement('span');
+    titleEl.className = 'calistung-navbar__title';
+    info.appendChild(titleEl);
+
+    if (note) {
+      const noteEl = document.createElement('span');
+      noteEl.className = 'calistung-navbar__note';
+      noteEl.textContent = note;
+      info.appendChild(noteEl);
+    }
+
+    const backBtn = document.createElement('button');
+    backBtn.type = 'button';
+    backBtn.className = 'calistung-navbar__btn calistung-navbar__btn--back';
+    backBtn.setAttribute('aria-label', 'Back');
+    backBtn.innerHTML = '<span>Back</span> ⬅️';
+
+    nav.appendChild(mapBtn);
+    nav.appendChild(info);
+    nav.appendChild(backBtn);
 
     const prepareThemeTrack = () => {
       if (window.CalistungMusic && typeof window.CalistungMusic.prepareNextTrack === 'function') {
@@ -928,7 +978,6 @@
       }
     };
 
-    const titleEl = nav.querySelector('.calistung-navbar__title');
     const explicitTitle = document.body.dataset.levelTitle;
     if (explicitTitle) {
       titleEl.textContent = explicitTitle;
@@ -943,16 +992,13 @@
       }
     }
 
-    const backBtn = nav.querySelector('.calistung-navbar__btn--back');
     const backBehavior = (document.body.dataset.navBackBehavior || '').toLowerCase();
 
     const runDefaultBack = () => {
       prepareThemeTrack();
-      const fallbackUrl = document.body.dataset.navBackUrl || mapUrl;
-      if (window.history.length > 1) {
-        window.history.back();
-      } else {
-        window.location.href = fallbackUrl;
+      const targetUrl = document.body.dataset.navBackUrl || mapUrl || DEFAULT_HOME_URL;
+      if (targetUrl) {
+        window.location.href = targetUrl;
       }
     };
 
@@ -1130,9 +1176,7 @@
       }
       if (!handled) {
         var fallback = document.body.dataset.navBackUrl || document.body.dataset.navHomeUrl || DEFAULT_HOME_URL;
-        if (window.history.length > 1) {
-          window.history.back();
-        } else if (fallback) {
+        if (fallback) {
           window.location.href = fallback;
         }
       }

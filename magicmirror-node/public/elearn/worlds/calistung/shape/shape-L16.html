@@ -35,6 +35,7 @@
 
   .choice{background:#0e1631;border:1px solid #1d2852;border-radius:12px;padding:8px;display:flex;align-items:center;justify-content:center;height:140px;cursor:grab;user-select:none;touch-action:none}
   .choice.dragging{opacity:.6;transform:scale(.98)}
+  .choice-placeholder{visibility:hidden;pointer-events:none}
   .choicesGrid{display:grid;grid-template-columns:repeat(2,minmax(140px,1fr));gap:12px}
   svg{display:block}
 
@@ -109,6 +110,7 @@
   const qCol = document.getElementById('qCol');
   const choices = document.getElementById('choices');
   const toast = document.getElementById('toast');
+  let manualDragState = null;
 
   const shuffle = arr => arr.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
   const pick = a => a[(Math.random()*a.length)|0];
@@ -269,10 +271,147 @@
       e.dataTransfer.setData('text/plain', payload);
     });
     card.addEventListener('dragend', ()=>card.classList.remove('dragging'));
+    enableManualDrag(card);
     return card;
   }
 
   function markSlot(slot, state){ slot.classList.remove('ok','err'); if(state===true) slot.classList.add('ok'); else if(state===false) slot.classList.add('err'); }
+  function enableManualDrag(card){
+    card.addEventListener('pointerdown', (evt)=>{
+      if(manualDragState){ return; }
+      const type = (evt.pointerType || '').toLowerCase();
+      if(type === 'mouse' && evt.button !== 0){ return; }
+      if(type === 'mouse' && card.draggable){ return; }
+      beginManualDrag(card, evt);
+    });
+  }
+  function beginManualDrag(card, evt){
+    if(manualDragState){ return; }
+    if(!card.parentElement){ return; }
+    evt.preventDefault();
+    const rect = card.getBoundingClientRect();
+    const placeholder = document.createElement('div');
+    placeholder.className = 'choice-placeholder';
+    placeholder.style.width = rect.width + 'px';
+    placeholder.style.height = rect.height + 'px';
+    placeholder.style.display = 'block';
+    card.parentElement.insertBefore(placeholder, card);
+    document.body.appendChild(card);
+
+    const offsetX = evt.clientX - rect.left;
+    const offsetY = evt.clientY - rect.top;
+
+    const previousDraggable = card.draggable;
+    card.draggable = false;
+    card.classList.add('dragging');
+    card.style.position = 'fixed';
+    card.style.left = `${evt.clientX - offsetX}px`;
+    card.style.top = `${evt.clientY - offsetY}px`;
+    card.style.width = rect.width + 'px';
+    card.style.height = rect.height + 'px';
+    card.style.zIndex = '4000';
+    card.style.pointerEvents = 'none';
+
+    const move = (moveEvt)=>updateManualDrag(moveEvt);
+    const end = (upEvt)=>finishManualDrag(upEvt, true);
+    const cancel = (cancelEvt)=>finishManualDrag(cancelEvt, false);
+
+    manualDragState = {
+      card,
+      placeholder,
+      originalParent: card.parentElement,
+      offsetX,
+      offsetY,
+      pointerId: evt.pointerId,
+      previousDraggable,
+      move,
+      end,
+      cancel
+    };
+
+    card.addEventListener('pointermove', move);
+    card.addEventListener('pointerup', end);
+    card.addEventListener('pointercancel', cancel);
+
+    if(typeof card.setPointerCapture === 'function'){
+      try{ card.setPointerCapture(evt.pointerId); }catch(_){ /* ignore */ }
+    }
+  }
+  function updateManualDrag(evt){
+    if(!manualDragState){ return; }
+    evt.preventDefault();
+    const { card, offsetX, offsetY } = manualDragState;
+    card.style.left = `${evt.clientX - offsetX}px`;
+    card.style.top = `${evt.clientY - offsetY}px`;
+  }
+  function finishManualDrag(evt, shouldDrop){
+    if(!manualDragState){ return; }
+    const state = manualDragState;
+    manualDragState = null;
+
+    const { card, placeholder, originalParent, pointerId, previousDraggable, move, end, cancel } = state;
+
+    card.removeEventListener('pointermove', move);
+    card.removeEventListener('pointerup', end);
+    card.removeEventListener('pointercancel', cancel);
+
+    if(typeof card.releasePointerCapture === 'function'){
+      try{ card.releasePointerCapture(pointerId); }catch(_){ /* ignore */ }
+    }
+
+    card.draggable = previousDraggable;
+    card.classList.remove('dragging');
+    card.style.position = '';
+    card.style.left = '';
+    card.style.top = '';
+    card.style.width = '';
+    card.style.height = '';
+    card.style.zIndex = '';
+    card.style.pointerEvents = '';
+
+    let targetSlot = null;
+    if(shouldDrop && evt){
+      const el = document.elementFromPoint(evt.clientX, evt.clientY);
+      if(el){ targetSlot = el.closest('.slot'); }
+    }
+
+    let finalParent = null;
+    if(targetSlot){
+      const existing = targetSlot.querySelector('.choice');
+      if(existing && existing !== card){
+        existing.classList.remove('dragging');
+        existing.style.position = '';
+        existing.style.left = '';
+        existing.style.top = '';
+        existing.style.width = '';
+        existing.style.height = '';
+        existing.style.zIndex = '';
+        existing.style.pointerEvents = '';
+        choices.appendChild(existing);
+      }
+      if(placeholder.isConnected){ placeholder.remove(); }
+      targetSlot.classList.add('filled');
+      targetSlot.classList.remove('ok','err');
+      targetSlot.appendChild(card);
+      const correct = (card.dataset.pattern === targetSlot.dataset.answer && card.dataset.orient === targetSlot.dataset.orient);
+      markSlot(targetSlot, correct);
+      finalParent = targetSlot;
+    }else{
+      if(placeholder.isConnected){
+        placeholder.replaceWith(card);
+        finalParent = originalParent;
+      }else if(originalParent){
+        originalParent.appendChild(card);
+        finalParent = originalParent;
+      }
+    }
+
+    if(placeholder.isConnected){ placeholder.remove(); }
+
+    if(originalParent && originalParent.classList && originalParent.classList.contains('slot') && finalParent !== originalParent){
+      originalParent.classList.remove('filled','ok','err');
+    }
+  }
   function showToast(msg){ toast.textContent = msg; toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'),1400); }
 
   function buildGame(){
