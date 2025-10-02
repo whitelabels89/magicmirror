@@ -39,6 +39,8 @@
     .row{ 
       display:grid; 
       grid-template-rows:56px 56px; /* baris 1 = soal angka, baris 2 = jawaban */
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(48px,1fr);
       gap:8px; 
       align-items:stretch; 
       margin:18px 0; 
@@ -138,6 +140,151 @@
     role: (info.role || "").toLowerCase()
   });
 </script>
-<script src="/elearn/common/calistung-navbar.js"></script>
+</script>
+<script>
+    (function(){
+      // --- Utilities & State ---
+      const A_CODE = 'A'.charCodeAt(0);
+      const letters = Array.from({length:26}, (_,i)=>String.fromCharCode(A_CODE+i));
+      const numbers = Array.from({length:26}, (_,i)=>i+1);
+
+      const wordBank = [
+        "KODING","ANAK","BELAJAR","ROBOT","ANGKA","HURUF",
+        "WARNA","BUNGA","PESAWAT","PANTAI","BOLA","SEPEDA"
+      ];
+
+      const el = {
+        keyRowLettersA: document.getElementById('row-letters-a'),
+        keyRowNumbersA: document.getElementById('row-numbers-a'),
+        keyRowLettersN: document.getElementById('row-letters-n'),
+        keyRowNumbersN: document.getElementById('row-numbers-n'),
+        game: document.getElementById('game'),
+        btnShuffle: document.getElementById('btnShuffle'),
+        btnReset: document.getElementById('btnReset'),
+        btnCheck: document.getElementById('btnCheck'),
+        container: document.querySelector('.container'),
+      };
+
+      // create status element (uses .result styles defined above)
+      const statusEl = document.createElement('div');
+      statusEl.id = 'status';
+      statusEl.className = 'result';
+      el.container.querySelector('.controls').after(statusEl);
+
+      // --- Build Key Table (A=1...Z=26) ---
+      function fillKey(){
+        function cells(rangeStart, rangeEnd){
+          const fragLetters = document.createDocumentFragment();
+          const fragNumbers = document.createDocumentFragment();
+          for(let i=rangeStart;i<=rangeEnd;i++){
+            const tdL = document.createElement('td');
+            tdL.textContent = letters[i-1].toLowerCase();
+            fragLetters.appendChild(tdL);
+            const tdN = document.createElement('td');
+            tdN.textContent = i;
+            fragNumbers.appendChild(tdN);
+          }
+          return [fragLetters, fragNumbers];
+        }
+        const [aL,aN] = cells(1,13);
+        const [nL,nN] = cells(14,26);
+        el.keyRowLettersA.innerHTML = ''; el.keyRowLettersA.appendChild(aL);
+        el.keyRowNumbersA.innerHTML = ''; el.keyRowNumbersA.appendChild(aN);
+        el.keyRowLettersN.innerHTML = ''; el.keyRowLettersN.appendChild(nL);
+        el.keyRowNumbersN.innerHTML = ''; el.keyRowNumbersN.appendChild(nN);
+      }
+
+      // --- Encode word to numbers (A=1 ... Z=26) ---
+      const encode = (w) => w.toUpperCase().replace(/[^A-Z]/g,'').split('').map(ch => ch.charCodeAt(0)-A_CODE+1);
+
+      // --- DOM helpers for a single row (numbers + inputs) ---
+      function buildRow(word, idx){
+        const nums = encode(word);
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.dataset.word = word;
+
+        // Numbers (top)
+        nums.forEach(n => {
+          const box = document.createElement('div');
+          box.className = 'numBox';
+          box.textContent = n;
+          row.appendChild(box);
+        });
+
+        // Inputs (bottom)
+        nums.forEach((_, i) => {
+          const inWrap = document.createElement('div');
+          inWrap.className = 'inBox';
+          const input = document.createElement('input');
+          input.setAttribute('maxlength','1');
+          input.setAttribute('autocomplete','off');
+          input.setAttribute('aria-label', `Huruf ke-${i+1} untuk soal ${idx+1}`);
+          input.dataset.answer = word[i];
+          input.addEventListener('input', (e) => {
+            e.target.value = (e.target.value || '').toUpperCase().replace(/[^A-Z]/g,'');
+            // auto advance
+            if(e.target.value && input.nextElementSibling?.querySelector?.('input')){
+              input.nextElementSibling.querySelector('input').focus();
+            }
+          });
+          inWrap.appendChild(input);
+          row.appendChild(inWrap);
+        });
+
+        return row;
+      }
+
+      function pickWords(count=6){
+        const pool = [...wordBank];
+        const out = [];
+        while(out.length < count && pool.length){
+          const i = Math.floor(Math.random()*pool.length);
+          out.push(pool.splice(i,1)[0]);
+        }
+        return out;
+      }
+
+      function renderGame(){
+        el.game.innerHTML = '';
+        const words = pickWords();
+        words.forEach((w, idx) => el.game.appendChild(buildRow(w, idx)));
+        statusEl.textContent = 'Soal siap. Ketik huruf berdasarkan angka pada baris bawah.';
+        // focus first input of first row for convenience
+        el.game.querySelector('input')?.focus();
+      }
+
+      // --- Button handlers ---
+      el.btnShuffle.addEventListener('click', () => { renderGame(); });
+      el.btnReset.addEventListener('click', () => {
+        el.game.querySelectorAll('input').forEach(i => { i.value=''; i.style.borderColor=''; });
+        statusEl.textContent = 'Input dikosongkan.';
+        el.game.querySelector('input')?.focus();
+      });
+      el.btnCheck.addEventListener('click', () => {
+        let total = 0, benar = 0;
+        el.game.querySelectorAll('.row').forEach(row => {
+          const word = row.dataset.word;
+          const inputs = Array.from(row.querySelectorAll('input'));
+          const jawaban = inputs.map(i => (i.value || '').toUpperCase()).join('');
+          total++;
+          if(jawaban === word){
+            benar++;
+            inputs.forEach(i => i.style.borderColor = '#16a34a');
+          }else{
+            inputs.forEach((i,ix) => {
+              const ok = (i.value || '').toUpperCase() === (i.dataset.answer || '');
+              i.style.borderColor = ok ? '#16a34a' : '#dc2626';
+            });
+          }
+        });
+        statusEl.innerHTML = `Skor: ${benar} / ${total} <span class="tag ${benar===total?'ok':'no'}">${benar===total?'Semua benar':'Periksa lagi'}</span>`;
+      });
+
+      // Build key and initial game
+      fillKey();
+      renderGame();
+    })();
+  </script>
 </body>
 </html>
