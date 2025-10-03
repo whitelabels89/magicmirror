@@ -1347,7 +1347,7 @@ h1{
               <button type="button" class="hair-color-swatch" data-hex="#4C2A85" data-label="Dark Violet" aria-label="Dark Violet" style="background:#4C2A85;"></button>
             </div>
             <div class="hair-footer">
-              <button type="button" id="hair-color-custom" class="hair-custom-btn" data-label="Custom color">Custom…</button>
+              <button type="button" id="hair-color-custom" class="hair-custom-btn">Custom…</button>
               <div class="hair-strength">
                 <label for="hair-strength">Strength <span id="hair-strength-value">0.80</span></label>
                 <input type="range" id="hair-strength" min="0" max="1" step="0.05" value="0.8" />
@@ -1655,7 +1655,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
             }
           }
 
-          async function applyHairColor(hex, opts){
+          async function applyHairColor(hex){
             const rawHex = (hex || '').toString().trim();
             if(!rawHex) return;
             if(!baseOriginal){
@@ -1672,8 +1672,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
             const payload = {
               imageBase64: baseOriginal,
               hex: normalized.toUpperCase(),
-              strength: Math.max(0, Math.min(1, parseFloat(strength?.value ?? '0') || 0)),
-              label: opts && typeof opts.label === 'string' && opts.label.trim() ? opts.label.trim() : undefined
+              strength: Math.max(0, Math.min(1, parseFloat(strength?.value ?? '0') || 0))
             };
             setStatus('Applying…', 'busy');
             setBusy(true);
@@ -1716,9 +1715,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
               if(!btn || busy) return;
               const hex = btn.dataset.hex;
               if(!hex) return;
-              const label = btn.dataset.label || '';
               highlightColorButton(btn);
-              applyHairColor(hex, { label });
+              applyHairColor(hex);
             });
           }
 
@@ -1731,8 +1729,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
               const hex = customPicker.value;
               if(!hex) return;
               setCustomActive(hex);
-              const label = customBtn.dataset.label || 'Custom color';
-              applyHairColor(hex, { label });
+              applyHairColor(hex);
             });
             customPicker.addEventListener('input', () => {
               if(document.activeElement === customPicker){
