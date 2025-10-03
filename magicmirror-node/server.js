@@ -77,6 +77,56 @@ app.get('/api/version', (req, res) => {
   });
 });
 
+// === Hair Color API (hair recoloring endpoint bridging UI to Minimax/Replicate) ===
+app.post('/api/hair-color', async (req, res) => {
+  const started = Date.now();
+  const { imageBase64, hex, strength } = req.body || {};
+  const rawImage = typeof imageBase64 === 'string' ? imageBase64 : '';
+  const sanitizedImage = rawImage.replace(/^data:image\/\w+;base64,/, '').replace(/[\r\n\s]+/g, '');
+  let rawHex = typeof hex === 'string' ? hex.trim() : '';
+  if (!rawHex.startsWith('#')) rawHex = `#${rawHex}`;
+  const normalizedHex = rawHex.toUpperCase();
+  const strengthValue = Math.max(0, Math.min(1, Number(strength) || 0));
+
+  if (!sanitizedImage) {
+    return res.status(400).json({ ok: false, error: 'imageBase64 wajib diisi' });
+  }
+  if (!/^#[0-9A-F]{6}$/.test(normalizedHex)) {
+    return res.status(400).json({ ok: false, error: 'Format warna harus #RRGGBB' });
+  }
+
+  const logMeta = { color: normalizedHex, strength: strengthValue };
+  let serviceUsed = 'replicate';
+  const timeoutMs = Number(process.env.HAIR_COLOR_TIMEOUT_MS || 120000);
+
+  try {
+    console.log('[hair-color] start', logMeta);
+    let imageOutBase64;
+    const delegateUrl = process.env.HAIR_COLOR_SERVICE_URL;
+    if (delegateUrl) {
+      serviceUsed = 'delegate';
+      const { data } = await axios.post(delegateUrl, {
+        imageBase64: sanitizedImage,
+        hex: normalizedHex,
+        strength: strengthValue
+      }, { timeout: timeoutMs });
+      const remote = data && (data.imageOutBase64 || data.image_base64 || data.image || data.result);
+      if (!remote) {
+        throw new Error('Layanan hair color tidak mengembalikan field imageOutBase64');
+      }
+      imageOutBase64 = String(remote).replace(/^data:image\/\w+;base64,/, '').replace(/[\r\n\s]+/g, '');
+    } else {
+      imageOutBase64 = await runHairColorViaReplicate(sanitizedImage, normalizedHex, strengthValue);
+    }
+    console.log('[hair-color] success', { ...logMeta, service: serviceUsed, ms: Date.now() - started });
+    res.json({ ok: true, imageOutBase64 });
+  } catch (err) {
+    const message = err && err.message ? err.message : 'Hair color processing failed';
+    console.error('[hair-color] error', { ...logMeta, service: serviceUsed, ms: Date.now() - started, error: message });
+    res.status(500).json({ ok: false, error: message });
+  }
+});
+
 async function postToGAS(tabName, dataArray) {
   const GAS_URL = process.env.WEB_APP_URL || 'https://script.google.com/macros/s/AKfycbynFv8gTnczc7abTL5Olq_sKmf1e0y6w9z_KBTKETK8i6NaGd941Cna4QVnoujoCsMdvA/exec';
   if (!GAS_URL.startsWith('http')) {
@@ -114,6 +164,89 @@ async function postAllToGAS(datasets) {
     console.error('Invalid JSON from GAS:', text);
     throw new Error('GAS did not return valid JSON');
   }
+}
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function runHairColorViaReplicate(imageBase64, targetHex, strength = 1) {
+  const replicateToken = process.env.REPLICATE_API_TOKEN || process.env.REPLICATE_API_KEY;
+  if (!replicateToken) {
+    throw new Error('REPLICATE_API_TOKEN belum dikonfigurasi');
+  }
+
+  const modelSlug = process.env.REPLICATE_HAIR_MODEL || 'minimax/image-01';
+  const modelVersion = process.env.REPLICATE_HAIR_VERSION || null;
+  const normalizedStrength = Math.max(0, Math.min(1, Number(strength) || 0));
+  const guidance = 7.5 + normalizedStrength * 3.5;
+  const steps = Math.max(25, Math.round(35 + normalizedStrength * 15));
+  const prompt = `Edit this photo: change only the hair color of the person. Do not modify the face, skin, eyes, or background. Target hair color: ${targetHex}. Keep hairstyle, face shape, lighting, and hair texture natural. Ensure realistic blending with highlights and shadows.`;
+
+  const inputPayload = {
+    prompt,
+    subject_prompt: 'same person, identical facial features, ultra realistic portrait, same background, full head visible',
+    subject_reference: `data:image/jpeg;base64,${imageBase64}`,
+    negative_prompt: 'different person, changed skin tone, background change, distorted face, text, watermark, artifacts',
+    guidance_scale: Number(guidance.toFixed(2)),
+    num_inference_steps: steps,
+    width: 1024,
+    height: 1024
+  };
+
+  const headers = {
+    Authorization: `Token ${replicateToken}`,
+    'Content-Type': 'application/json'
+  };
+
+  let prediction;
+  if (modelVersion) {
+    const { data } = await axios.post('https://api.replicate.com/v1/predictions', {
+      version: modelVersion,
+      input: inputPayload
+    }, { headers, timeout: 120000 });
+    prediction = data;
+  } else {
+    const { data } = await axios.post(`https://api.replicate.com/v1/models/${modelSlug}/predictions`, {
+      input: inputPayload
+    }, { headers, timeout: 120000 });
+    prediction = data;
+  }
+
+  const pollUrl = (prediction.urls && prediction.urls.get) || (prediction.id ? `https://api.replicate.com/v1/predictions/${prediction.id}` : null);
+
+  async function downloadOutput(outputList) {
+    if (!Array.isArray(outputList) || !outputList.length) {
+      throw new Error('Model tidak mengembalikan gambar.');
+    }
+    const lastUrl = outputList[outputList.length - 1];
+    const imgResp = await axios.get(lastUrl, { responseType: 'arraybuffer', timeout: 60000 });
+    return Buffer.from(imgResp.data).toString('base64');
+  }
+
+  if (prediction.status === 'succeeded') {
+    return downloadOutput(prediction.output);
+  }
+
+  if (!pollUrl) {
+    throw new Error('URL polling Replicate tidak tersedia.');
+  }
+
+  let attempts = 0;
+  const maxAttempts = 30; // ~60s polling (2s interval)
+  while (attempts < maxAttempts) {
+    await sleep(2000);
+    attempts += 1;
+    const { data: pollData } = await axios.get(pollUrl, { headers: { Authorization: `Token ${replicateToken}` }, timeout: 60000 });
+    if (pollData.status === 'succeeded') {
+      return downloadOutput(pollData.output);
+    }
+    if (pollData.status === 'failed' || pollData.status === 'canceled') {
+      throw new Error(pollData.error || `Replicate gagal dengan status ${pollData.status}`);
+    }
+    if (pollData.error) {
+      throw new Error(typeof pollData.error === 'string' ? pollData.error : JSON.stringify(pollData.error));
+    }
+  }
+  throw new Error('Replicate timeout menunggu hasil hair color.');
 }
 
 // POST /api/assign-murid-ke-kelas - assign murid ke kelas/lesson
