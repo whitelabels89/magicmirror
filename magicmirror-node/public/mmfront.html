@@ -390,6 +390,178 @@ body.idle-blackout .caption{ opacity: 0 !important; }
             transition: transform 0.3s ease;
         }
 
+        .gallery-card.is-active {
+            outline: 2px solid var(--accent);
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.12), 0 16px 32px rgba(0, 0, 0, 0.45);
+            transform: translateY(-6px);
+        }
+
+        .gallery-card.is-active img {
+            transform: scale(1.05);
+        }
+
+        /* === Hair Color Panel (UI block for hair recolor controls) === */
+        #hair-color-panel {
+            display: none;
+            margin-top: 16px;
+            padding: 18px;
+            gap: 14px;
+            color: #eafbf6;
+        }
+
+        #hair-color-panel .hair-panel-top {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            gap: 18px;
+        }
+
+        #hair-color-panel .hair-panel-heading {
+            flex: 1 1 220px;
+        }
+
+        #hair-color-panel .hair-title {
+            font-weight: 700;
+            font-size: 1.15rem;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+
+        #hair-color-panel .hair-status {
+            font-size: 0.86rem;
+            opacity: 0.85;
+            color: #cffff0;
+            transition: color 0.2s ease;
+        }
+
+        #hair-color-panel .hair-status[data-state="busy"] {
+            color: #ffdd57;
+        }
+
+        #hair-color-panel .hair-status[data-state="error"] {
+            color: var(--danger);
+        }
+
+        #hair-color-panel .hair-preview-wrap {
+            flex: 0 0 auto;
+        }
+
+        #hair-preview {
+            display: none;
+            width: 180px;
+            max-width: 100%;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        #hair-color-panel .hair-swatches {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .hair-color-swatch {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.16);
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+            background-size: cover;
+        }
+
+        .hair-color-swatch::after {
+            content: attr(data-label);
+            position: absolute;
+            left: 50%;
+            top: calc(100% + 6px);
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            color: #eafbf6;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        .hair-color-swatch.is-active {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25), 0 12px 24px rgba(0, 0, 0, 0.45);
+            transform: translateY(-3px);
+        }
+
+        #hair-color-panel .hair-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: 12px;
+        }
+
+        #hair-color-panel .hair-strength {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        #hair-color-panel .hair-strength label {
+            font-size: 0.9rem;
+            color: #cffff0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #hair-strength {
+            width: 100%;
+            accent-color: var(--accent);
+        }
+
+        #hair-color-panel .hair-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        #hair-color-panel button.hair-custom-btn {
+            padding: 10px 16px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.06));
+            color: #f4fff8;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+
+        #hair-color-panel button.hair-custom-btn:hover {
+            transform: translateY(-1px);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.1));
+        }
+
+        #hair-color-panel button.hair-custom-btn.is-active {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25), 0 12px 24px rgba(0, 0, 0, 0.45);
+        }
+
+        #hair-color-panel.is-busy {
+            opacity: 0.72;
+            pointer-events: none;
+        }
+
+        @media (max-width: 768px) {
+            #hair-color-panel .hair-panel-top {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            #hair-preview {
+                width: 100%;
+            }
+        }
+
         @media (max-width: 480px) {
             body {
                 font-size: 14px;
@@ -1154,11 +1326,41 @@ h1{
             <h2>Rekomendasi Gaya Rambut</h2>
             <p id="rec-content"></p>
         </div>
+        <!-- Hair Color Panel UI — Hair recoloring presets + preview -->
+        <div id="hair-color-panel" class="glass">
+          <div class="hair-panel-top">
+            <div class="hair-panel-heading">
+              <div class="hair-title">Hair Color</div>
+              <div id="hair-color-status" class="hair-status" data-state="ready">Ready</div>
+            </div>
+            <div class="hair-preview-wrap">
+              <img id="hair-preview" alt="Hair color preview" decoding="async" />
+            </div>
+          </div>
+          <div class="hair-controls">
+            <div id="hair-color-swatches" class="hair-swatches" role="group" aria-label="Hair color presets">
+              <button type="button" class="hair-color-swatch" data-hex="#8A7E72" data-label="Ash Brown" aria-label="Ash Brown" style="background:#8A7E72;"></button>
+              <button type="button" class="hair-color-swatch" data-hex="#E6A3A1" data-label="Rose Gold" aria-label="Rose Gold" style="background:#E6A3A1;"></button>
+              <button type="button" class="hair-color-swatch" data-hex="#70193D" data-label="Burgundy" aria-label="Burgundy" style="background:#70193D;"></button>
+              <button type="button" class="hair-color-swatch" data-hex="#2F8F9D" data-label="Blue Teal" aria-label="Blue Teal" style="background:#2F8F9D;"></button>
+              <button type="button" class="hair-color-swatch" data-hex="#EAEAEA" data-label="Platinum" aria-label="Platinum" style="background:#EAEAEA;"></button>
+              <button type="button" class="hair-color-swatch" data-hex="#4C2A85" data-label="Dark Violet" aria-label="Dark Violet" style="background:#4C2A85;"></button>
+            </div>
+            <div class="hair-footer">
+              <button type="button" id="hair-color-custom" class="hair-custom-btn" data-label="Custom color">Custom…</button>
+              <div class="hair-strength">
+                <label for="hair-strength">Strength <span id="hair-strength-value">0.80</span></label>
+                <input type="range" id="hair-strength" min="0" max="1" step="0.05" value="0.8" />
+              </div>
+            </div>
+            <input type="color" id="hair-color-picker" value="#8A7E72" style="display:none;" aria-label="Pick custom hair color" />
+          </div>
+        </div>
         <!-- WhatsApp Share UI -->
         <div id="wa-share" class="glass" style="display:none; margin-top:12px; padding:12px;">
           <div style="font-weight:700; color: var(--accent); margin-bottom:8px;">Kirim hasil ke WhatsApp</div>
           <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-            <input id="wa-phone" type="tel" inputmode="numeric" placeholder="Nomor WhatsApp (contoh: 62812xxxx)" 
+            <input id="wa-phone" type="tel" inputmode="numeric" placeholder="Nomor WhatsApp (contoh: 62812xxxx)"
                    style="flex:1; min-width:220px; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.08); color:#eafffb;"/>
             <button id="wa-send" class="btn" type="button">Kirim WhatsApp</button>
           </div>
@@ -1283,6 +1485,283 @@ window.addEventListener('DOMContentLoaded', ()=>{
   bN && bN.addEventListener('click', ()=> openApp('netflix'));
   bS && bS.addEventListener('click', ()=> openApp('spotify'));
 });
+        </script>
+        <script>
+        // === Hair Color Panel Controller (hair recolor UI + backend integration) ===
+        (function(){
+          const panel = document.getElementById('hair-color-panel');
+          if(!panel) return;
+          const statusEl = document.getElementById('hair-color-status');
+          const preview = document.getElementById('hair-preview');
+          const swatchWrap = document.getElementById('hair-color-swatches');
+          const customBtn = document.getElementById('hair-color-custom');
+          const customPicker = document.getElementById('hair-color-picker');
+          const strength = document.getElementById('hair-strength');
+          const strengthValue = document.getElementById('hair-strength-value');
+          let panelVisible = false;
+          let busy = false;
+          let baseOriginal = null;
+          let allowAutoBase = true;
+          let activeGalleryCard = null;
+
+          function updateStrengthLabel(){
+            if(!strength || !strengthValue) return;
+            const val = parseFloat(strength.value || '0');
+            strengthValue.textContent = val.toFixed(2);
+          }
+
+          function setStatus(text, state, detail){
+            if(!statusEl) return;
+            const st = state || 'ready';
+            statusEl.textContent = text;
+            statusEl.dataset.state = st;
+            if(detail){ statusEl.title = detail; }
+            else { statusEl.removeAttribute('title'); }
+          }
+
+          function setBusy(on){
+            busy = !!on;
+            panel.classList.toggle('is-busy', busy);
+            if(swatchWrap){
+              swatchWrap.querySelectorAll('button').forEach(btn => { btn.disabled = busy; });
+            }
+            if(customBtn) customBtn.disabled = busy;
+            if(strength) strength.disabled = busy;
+          }
+
+          function ensureVisible(){
+            if(panelVisible) return;
+            panel.style.display = 'block';
+            panelVisible = true;
+          }
+
+          function hidePanel(){
+            panel.style.display = 'none';
+            panelVisible = false;
+          }
+
+          function highlightColorButton(btn){
+            if(!swatchWrap) return;
+            swatchWrap.querySelectorAll('.hair-color-swatch').forEach(el => el.classList.remove('is-active'));
+            if(btn){
+              btn.classList.add('is-active');
+              if(customBtn) customBtn.classList.remove('is-active');
+            }
+          }
+
+          function setCustomActive(hex){
+            highlightColorButton(null);
+            if(customBtn){
+              customBtn.classList.add('is-active');
+              if(hex) customBtn.dataset.hex = hex;
+            }
+            if(customPicker && hex && /^#[0-9A-F]{6}$/i.test(hex)){
+              customPicker.value = hex;
+            }
+          }
+
+          function highlightGalleryCard(card){
+            if(activeGalleryCard === card) return;
+            if(activeGalleryCard) activeGalleryCard.classList.remove('is-active');
+            activeGalleryCard = card || null;
+            if(activeGalleryCard) activeGalleryCard.classList.add('is-active');
+          }
+
+          function resetPanel(){
+            baseOriginal = null;
+            allowAutoBase = true;
+            setBusy(false);
+            hidePanel();
+            setStatus('Ready', 'ready');
+            if(preview){
+              preview.removeAttribute('src');
+              preview.style.display = 'none';
+            }
+            highlightColorButton(null);
+            if(customBtn) customBtn.classList.remove('is-active');
+            if(strength){
+              const initial = strength.getAttribute('value');
+              if(initial != null) strength.value = initial;
+              updateStrengthLabel();
+            }
+            highlightGalleryCard(null);
+          }
+
+          async function imageElementToDataUrl(img){
+            return new Promise((resolve, reject) => {
+              if(!img){ reject(new Error('Image element missing')); return; }
+              const finalize = () => {
+                try{
+                  const canvas = document.createElement('canvas');
+                  const w = img.naturalWidth || img.width;
+                  const h = img.naturalHeight || img.height;
+                  if(!w || !h) throw new Error('Empty image dimensions');
+                  canvas.width = w;
+                  canvas.height = h;
+                  const ctx = canvas.getContext('2d');
+                  ctx.drawImage(img, 0, 0, w, h);
+                  resolve(canvas.toDataURL('image/jpeg', 0.98));
+                }catch(err){
+                  const src = img.currentSrc || img.src;
+                  if(!src){ reject(err); return; }
+                  fetch(new URL(src, window.location.href), { cache: 'no-store', mode: 'cors', credentials: 'omit' })
+                    .then(resp => {
+                      if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                      return resp.blob();
+                    })
+                    .then(blob => new Promise((resolveBlob, rejectBlob) => {
+                      const reader = new FileReader();
+                      reader.onloadend = () => resolveBlob(reader.result);
+                      reader.onerror = () => rejectBlob(reader.error || new Error('Failed to read blob'));
+                      reader.readAsDataURL(blob);
+                    }))
+                    .then(resolve)
+                    .catch(reject);
+                }
+              };
+              if(!img.complete || !img.naturalWidth){
+                img.addEventListener('load', () => finalize(), { once:true });
+                img.addEventListener('error', () => reject(new Error('Image failed to load')), { once:true });
+                return;
+              }
+              finalize();
+            });
+          }
+
+          async function setBaseFromImage(img, opts){
+            const options = opts || {};
+            if(options.auto && !allowAutoBase && baseOriginal){
+              return;
+            }
+            try{
+              const dataUrl = await imageElementToDataUrl(img);
+              const base64 = dataUrl.replace(/^data:image\/\w+;base64,/, '');
+              if(!base64) throw new Error('Base64 kosong');
+              baseOriginal = base64;
+              if(preview){
+                preview.src = dataUrl;
+                preview.style.display = 'block';
+                preview.dataset.sourceLabel = options.label || '';
+              }
+              ensureVisible();
+              setStatus('Ready', 'ready');
+              highlightGalleryCard(img && img.closest('.gallery-card'));
+              if(options.auto){ allowAutoBase = false; }
+            }catch(err){
+              console.warn('hair preview error', err);
+              if(!baseOriginal){
+                setStatus('Error', 'error', err.message || 'Gagal menyiapkan foto dasar');
+              }
+            }
+          }
+
+          async function applyHairColor(hex, opts){
+            const rawHex = (hex || '').toString().trim();
+            if(!rawHex) return;
+            if(!baseOriginal){
+              setStatus('Error', 'error', 'Belum ada foto yang siap diwarnai');
+              return;
+            }
+            if(busy) return;
+            const normalized = rawHex.startsWith('#') ? rawHex : `#${rawHex}`;
+            const hexValid = /^#([0-9a-fA-F]{6})$/.test(normalized);
+            if(!hexValid){
+              setStatus('Error', 'error', 'Format warna tidak valid');
+              return;
+            }
+            const payload = {
+              imageBase64: baseOriginal,
+              hex: normalized.toUpperCase(),
+              strength: Math.max(0, Math.min(1, parseFloat(strength?.value ?? '0') || 0)),
+              label: opts && typeof opts.label === 'string' && opts.label.trim() ? opts.label.trim() : undefined
+            };
+            setStatus('Applying…', 'busy');
+            setBusy(true);
+            try{
+              const res = await fetch('/api/hair-color', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+              });
+              const data = await res.json().catch(() => null);
+              if(!res.ok){
+                const message = data && (data.error || data.message) ? (data.error || data.message) : `HTTP ${res.status}`;
+                throw new Error(message);
+              }
+              if(!data || !data.imageOutBase64){
+                throw new Error('Response tidak valid dari server');
+              }
+              const output = `data:image/jpeg;base64,${data.imageOutBase64}`;
+              if(preview){
+                preview.src = output;
+                preview.style.display = 'block';
+              }
+              setStatus('Ready', 'ready');
+            }catch(err){
+              console.error('hair color failed', err);
+              setStatus('Error', 'error', err.message || 'Gagal menerapkan warna');
+            }finally{
+              setBusy(false);
+            }
+          }
+
+          if(strength){
+            strength.addEventListener('input', updateStrengthLabel);
+            updateStrengthLabel();
+          }
+
+          if(swatchWrap){
+            swatchWrap.addEventListener('click', (event) => {
+              const btn = event.target.closest('.hair-color-swatch');
+              if(!btn || busy) return;
+              const hex = btn.dataset.hex;
+              if(!hex) return;
+              const label = btn.dataset.label || '';
+              highlightColorButton(btn);
+              applyHairColor(hex, { label });
+            });
+          }
+
+          if(customBtn && customPicker){
+            customBtn.addEventListener('click', () => {
+              if(busy) return;
+              customPicker.click();
+            });
+            customPicker.addEventListener('change', () => {
+              const hex = customPicker.value;
+              if(!hex) return;
+              setCustomActive(hex);
+              const label = customBtn.dataset.label || 'Custom color';
+              applyHairColor(hex, { label });
+            });
+            customPicker.addEventListener('input', () => {
+              if(document.activeElement === customPicker){
+                const hex = customPicker.value;
+                if(hex) setCustomActive(hex);
+              }
+            });
+          }
+
+          window.__hairPanelController = {
+            reset: resetPanel,
+            prepareForGallery: () => {
+              baseOriginal = null;
+              allowAutoBase = true;
+              setBusy(false);
+              hidePanel();
+              setStatus('Ready', 'ready');
+              if(preview){
+                preview.removeAttribute('src');
+                preview.style.display = 'none';
+              }
+              highlightColorButton(null);
+              if(customBtn) customBtn.classList.remove('is-active');
+              highlightGalleryCard(null);
+            },
+            setBaseFromImage: (img, opts) => setBaseFromImage(img, opts),
+            isVisible: () => panelVisible
+          };
+        })();
         </script>
         <!-- Detailed Analysis (Face Mesh + Skin Tone) -->
         <div id="analysis-detail" class="glass" style="display:none; margin-top:16px; padding:16px;">
@@ -1490,6 +1969,7 @@ document.getElementById('capture-button').addEventListener('click', async () => 
     try{ if(window.__analyzeAbort){ window.__analyzeAbort.abort(); } }catch(_){}
     const __ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
     window.__analyzeAbort = __ctrl;
+    try{ window.__hairPanelController && window.__hairPanelController.reset(); }catch(_){ }
             const video = window.getCaptureVideo ? window.getCaptureVideo() : document.getElementById('camera-preview');
             if(window.ensureVideoReady){ await window.ensureVideoReady(video, 2200); }
             const vw = video && video.videoWidth ? video.videoWidth : 640;
@@ -1573,13 +2053,24 @@ document.getElementById('capture-button').addEventListener('click', async () => 
                     setStatus('✅ Rekomendasi siap!', '#00ff99');
 
                     if (data.faces && data.faces.length > 0) {
+                        try{ window.__hairPanelController && window.__hairPanelController.prepareForGallery(); }catch(_){ }
                         const gallery = document.getElementById('gallery');
                         data.faces.forEach((url, index) => {
                             const card = document.createElement('div');
                             card.className = 'gallery-card fade-in-stagger';
                             card.style.animationDelay = `${index * 0.2}s`;
                             const img = document.createElement('img');
+                            img.crossOrigin = 'anonymous';
+                            img.decoding = 'async';
+                            img.loading = 'lazy';
                             img.src = url.startsWith('http') ? url : `https://qc-magicmirror-api.onrender.com${url}`;
+                            const label = `Face ${index + 1}`;
+                            img.alt = label;
+                            img.dataset.faceLabel = label;
+                            img.addEventListener('load', () => {
+                                try{ window.__hairPanelController && window.__hairPanelController.setBaseFromImage(img, { label, auto: true }); }
+                                catch(_){ }
+                            }, { once: true });
                             card.appendChild(img);
                             gallery.appendChild(card);
                         });
@@ -1707,12 +2198,23 @@ socket.on('generated_faces', (data) => {
         window.__facesShown = true;
         if (window.__genCountdownInterval) { clearInterval(window.__genCountdownInterval); window.__genCountdownInterval = null; }
         gallery.innerHTML = '';
+        try{ window.__hairPanelController && window.__hairPanelController.prepareForGallery(); }catch(_){ }
         validFaces.forEach((url, index) => {
             const card = document.createElement('div');
             card.className = 'gallery-card fade-in-stagger';
             card.style.animationDelay = `${index * 0.2}s`;
             const img = document.createElement('img');
+            img.crossOrigin = 'anonymous';
+            img.decoding = 'async';
+            img.loading = 'lazy';
             img.src = url;
+            const label = `Face ${index + 1}`;
+            img.alt = label;
+            img.dataset.faceLabel = label;
+            img.addEventListener('load', () => {
+                try{ window.__hairPanelController && window.__hairPanelController.setBaseFromImage(img, { label, auto: true }); }
+                catch(_){ }
+            }, { once: true });
             card.appendChild(img);
             gallery.appendChild(card);
         });
@@ -1831,13 +2333,29 @@ function renderAnalysis(analysis){
 }
 
 
-        // Lightbox for gallery images
-        document.getElementById('gallery').addEventListener('click', (e) => {
-            if (e.target.tagName === 'IMG') {
-                document.getElementById('lightbox-img').src = e.target.src;
-                document.getElementById('lightbox').style.display = 'flex';
-            }
-        });
+        // Lightbox for gallery images + bridge to hair color selector
+        (function(){
+            const galleryEl = document.getElementById('gallery');
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+            if(!galleryEl) return;
+            galleryEl.addEventListener('click', (e) => {
+                if (!(e.target && e.target.tagName === 'IMG')) return;
+                const img = e.target;
+                const label = img.dataset.faceLabel || img.alt || '';
+                try{ window.__hairPanelController && window.__hairPanelController.setBaseFromImage(img, { label, auto: false }); }
+                catch(_){ }
+                const hairVisible = !!(window.__hairPanelController && window.__hairPanelController.isVisible && window.__hairPanelController.isVisible());
+                if (hairVisible && e.detail < 2) {
+                    e.preventDefault();
+                    return;
+                }
+                if (lightboxImg && lightbox) {
+                    lightboxImg.src = img.src;
+                    lightbox.style.display = 'flex';
+                }
+            });
+        })();
 
         document.getElementById('lightbox').addEventListener('click', () => {
             document.getElementById('lightbox').style.display = 'none';
