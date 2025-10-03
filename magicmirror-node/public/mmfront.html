@@ -2092,6 +2092,15 @@ document.getElementById('capture-button').addEventListener('click', async () => 
                         setTimeout(() => {
                             gallery.scrollIntoView({ behavior: 'smooth' });
                         }, 300);
+                    } else if (base64Photo) {
+                        try {
+                            if (window.__hairPanelController) {
+                                window.__hairPanelController.prepareForGallery();
+                                if (typeof window.__hairPanelController.setBaseFromBase64 === 'function') {
+                                    window.__hairPanelController.setBaseFromBase64(base64Photo, { label: 'Capture' });
+                                }
+                            }
+                        } catch(_){ }
                     }
                     // ⬇️ Render detailed analysis if provided
                     if (data.analysis) {
