@@ -7,6 +7,7 @@ const http = require('http').createServer(app);
 const io = require('socket.io')(http, { cors: { origin: "*" } });
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const { google } = require('googleapis');
 const uploadModulRouter = require('./uploadModul');
 const admin = require('firebase-admin');
