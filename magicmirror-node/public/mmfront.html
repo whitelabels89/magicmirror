@@ -1147,7 +1147,6 @@ h1{
   let listening = false;
   let armed = false; // after hotword
   let lastHotwordAt = 0;
-  let processedSegments = new Map();
 
   function setArmed(on){
     armed = !!on;
@@ -1164,6 +1163,7 @@ h1{
 
     rec.onstart = ()=>{ processedSegments = new Map(); };
     rec.onresult = (e)=>{
+      let finalTxt = '';
       for(let i = e.resultIndex || 0; i < e.results.length; i++){
         const r = e.results[i];
         let txt = r[0] && r[0].transcript ? r[0].transcript.toLowerCase() : '';
@@ -1177,7 +1177,7 @@ h1{
         }
         const simpleTxt = txt.replace(/[.,!?]/g,' ').replace(/\s+/g,' ').trim();
         // Hotword: "hey mirror" / "hei miror" / common variants
-        if(/\b(hey|hei|hai)\s+mir+r?or\b/.test(simpleTxt)){
+        if(/\b(hey|hei|hai)\s+mir+r?or\b/.test(txt)){
           const now = Date.now();
           if(now - lastHotwordAt < 1200){ continue; }
           lastHotwordAt = now;
