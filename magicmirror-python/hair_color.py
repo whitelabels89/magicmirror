@@ -1,10 +1,9 @@
-"""
-Hair recoloring utilities with MediaPipe driven masking.
+"""Hair recoloring utilities with MediaPipe driven masking.
 
 This module builds a soft hair mask by combining selfie segmentation
 with the face oval landmarks so that skin, eyes, and background stay
-untouched. Colors are blended while preserving highlights to keep
-results natural even on vivid shades.
+untouched. Colors are blended in CIELAB space which preserves existing
+lighting and texture for natural looking highlights and shadows.
 """
 
 from __future__ import annotations
@@ -102,7 +101,7 @@ def _landmark_points(landmarks, width: int, height: int) -> Optional[np.ndarray]
 
 def _compute_face_masks(image_bgr: np.ndarray, rgb_image: np.ndarray):
     height, width = image_bgr.shape[:2]
-    person_prob = None
+    person_mask = None
     face_polygon = None
 
     with _PROCESS_LOCK:
@@ -112,127 +111,85 @@ def _compute_face_masks(image_bgr: np.ndarray, rgb_image: np.ndarray):
     if seg_result.segmentation_mask is None:
         raise HairColorError("Segmentation mask kosong")
 
-    # Keep the segmentation output as a soft probability map (0-1) so
-    # blending remains smooth around wispy strands.
-    person_prob = np.clip(seg_result.segmentation_mask, 0.0, 1.0).astype(np.float32)
-    person_prob = cv2.GaussianBlur(person_prob, (7, 7), 0)
+    # Convert segmentation probability map into a soft mask for the subject.
+    person_mask = np.clip(seg_result.segmentation_mask, 0.0, 1.0)
+    person_mask = cv2.GaussianBlur(person_mask, (9, 9), 0)
+    person_mask = (person_mask > 0.25).astype(np.uint8) * 255
 
     if mesh_result.multi_face_landmarks:
         face_polygon = _landmark_points(mesh_result.multi_face_landmarks[0], width, height)
 
-    return person_prob, face_polygon
+    return person_mask, face_polygon
 
 
-def _build_hair_mask(person_prob: np.ndarray, face_polygon: Optional[np.ndarray], shape: Tuple[int, int]) -> np.ndarray:
+def _build_hair_mask(person_mask: np.ndarray, face_polygon: Optional[np.ndarray], shape: Tuple[int, int]) -> np.ndarray:
     height, width = shape
-    mask = np.zeros((height, width), dtype=np.float32)
+    mask = np.zeros((height, width), dtype=np.uint8)
 
-    if person_prob is None or person_prob.max() <= 0.02:
+    if person_mask is None or not np.any(person_mask):
         return mask
 
-    working = np.copy(person_prob)
-
-    if face_polygon is not None:
-        face_mask = np.zeros((height, width), dtype=np.float32)
-        cv2.fillPoly(face_mask, [face_polygon], 1.0)
-        # Expand the face slightly so the skin stays untouched while
-        # retaining the crown/side strands.
-        face_soft = cv2.GaussianBlur(face_mask, (51, 51), 0)
-        working = np.clip(working - (face_soft * 0.85), 0.0, 1.0)
-
-        # Keep mostly the upper portion around the head.
-        x_min = max(int(face_polygon[:, 0].min() - (np.ptp(face_polygon[:, 0]) * 0.65)), 0)
-        x_max = min(int(face_polygon[:, 0].max() + (np.ptp(face_polygon[:, 0]) * 0.65)), width)
-        y_min = max(int(face_polygon[:, 1].min() - (np.ptp(face_polygon[:, 1]) * 1.1)), 0)
-        y_max = min(int(face_polygon[:, 1].max() + (np.ptp(face_polygon[:, 1]) * 0.4)), height)
-
-        region = np.zeros_like(working)
-        region[y_min:y_max, x_min:x_max] = working[y_min:y_max, x_min:x_max]
-        working = region
+    if face_polygon is None:
+        # Fall back to a centered crop of the person mask.
+        margin_x = int(width * 0.35)
+        margin_y = int(height * 0.25)
+        x0, x1 = margin_x, width - margin_x
+        y0, y1 = max(0, margin_y // 2), min(height, height - margin_y // 3)
+        mask[y0:y1, x0:x1] = person_mask[y0:y1, x0:x1]
     else:
-        # Fall back to the upper central area of the subject mask.
-        margin_x = int(width * 0.28)
-        top = int(height * 0.05)
-        bottom = int(height * 0.75)
-        cropped = np.zeros_like(working)
-        cropped[top:bottom, margin_x:width - margin_x] = working[top:bottom, margin_x:width - margin_x]
-        working = cropped
+        face_mask = np.zeros_like(mask)
+        cv2.fillPoly(face_mask, [face_polygon], 255)
+        dilated_face = cv2.dilate(face_mask, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (35, 35)), iterations=1)
+        dilated_face = cv2.GaussianBlur(dilated_face, (31, 31), 0)
 
-    if working.max() <= 0.01:
+        x_min = np.clip(int(np.min(face_polygon[:, 0]) - (np.ptp(face_polygon[:, 0]) * 0.6)), 0, width)
+        x_max = np.clip(int(np.max(face_polygon[:, 0]) + (np.ptp(face_polygon[:, 0]) * 0.6)), 0, width)
+        y_min = np.clip(int(np.min(face_polygon[:, 1]) - (np.ptp(face_polygon[:, 1]) * 0.9)), 0, height)
+        y_max = np.clip(int(np.max(face_polygon[:, 1]) + (np.ptp(face_polygon[:, 1]) * 1.3)), 0, height)
+
+        cropped = np.zeros_like(mask)
+        cropped[y_min:y_max, x_min:x_max] = person_mask[y_min:y_max, x_min:x_max]
+        mask = cv2.bitwise_and(cropped, cv2.bitwise_not(dilated_face))
+
+    if not np.any(mask):
         return mask
 
-    # Emphasize the crown area by weighting towards the top of the frame.
-    vertical_weight = np.linspace(1.35, 0.7, height, dtype=np.float32).reshape(height, 1)
-    working *= vertical_weight
-    working = np.clip(working, 0.0, 1.0)
-
-    mask = working
-    mask = cv2.GaussianBlur(mask, (31, 31), 0)
-    mask = cv2.normalize(mask, None, 0.0, 1.0, cv2.NORM_MINMAX)
-
-    # Keep a soft interior while sharpening boundaries slightly.
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))
-    refined = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel, iterations=1)
-    return np.clip(refined, 0.0, 1.0)
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (17, 17))
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel, iterations=2)
+    mask = cv2.GaussianBlur(mask, (25, 25), 0)
+    return mask
 
 
-def _apply_color(
-    image_bgr: np.ndarray,
-    hair_mask: np.ndarray,
-    target_bgr: np.ndarray,
-    strength: float,
-) -> Tuple[np.ndarray, float, float]:
+def _apply_color(image_bgr: np.ndarray, hair_mask: np.ndarray, target_bgr: np.ndarray, strength: float) -> Tuple[np.ndarray, float, float]:
     normalized_strength = float(np.clip(strength, 0.0, 1.0))
     if normalized_strength <= 0.01:
         return image_bgr.copy(), 0.0, 0.0
 
-    mask = hair_mask.astype(np.float32)
+    mask = hair_mask.astype(np.float32) / 255.0
     if mask.max() <= 0.01:
         raise HairColorError("Mask rambut tidak ditemukan")
 
-    mask = np.clip(mask * normalized_strength, 0.0, 1.0)
+    mask *= normalized_strength
+    mask = np.clip(mask, 0.0, 1.0)
 
-    hsv_image = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2HSV).astype(np.float32)
-    target_hsv = cv2.cvtColor(target_bgr.reshape(1, 1, 3).astype(np.uint8), cv2.COLOR_BGR2HSV).astype(np.float32)[0, 0]
-
-    hue = hsv_image[:, :, 0]
-    sat = hsv_image[:, :, 1]
-    val = hsv_image[:, :, 2]
-
-    target_hue = target_hsv[0]
-    target_sat = max(target_hsv[1], 45.0)
-    target_val = target_hsv[2]
-
-    mask_hue = mask * (0.75 + 0.25 * normalized_strength)
-    hue_delta = ((target_hue - hue + 90.0) % 180.0) - 90.0
-    hue = (hue + hue_delta * mask_hue) % 180.0
-
-    sat = np.clip(
-        sat + (target_sat - sat) * mask * (0.65 + 0.35 * normalized_strength),
-        0.0,
-        255.0,
-    )
-
-    # Preserve highlights by keeping most of the original value channel while
-    # gently steering toward the target luminosity.
-    val = np.clip(
-        val + (target_val - val) * mask * 0.22,
-        0.0,
-        255.0,
-    )
-
-    hsv_image[:, :, 0] = hue
-    hsv_image[:, :, 1] = sat
-    hsv_image[:, :, 2] = val
-
-    recolored = cv2.cvtColor(hsv_image.astype(np.uint8), cv2.COLOR_HSV2BGR)
+    lab_image = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2LAB).astype(np.float32)
+    target_lab = cv2.cvtColor(target_bgr.reshape(1, 1, 3).astype(np.uint8), cv2.COLOR_BGR2LAB).astype(np.float32)[0, 0]
 
     mask_3 = mask[..., None]
+    a_channel = lab_image[:, :, 1]
+    b_channel = lab_image[:, :, 2]
+    lab_image[:, :, 1] = a_channel + (target_lab[1] - a_channel) * mask_3
+    lab_image[:, :, 2] = b_channel + (target_lab[2] - b_channel) * mask_3
+
+    # Preserve natural lighting by slightly nudging luminance toward the target.
+    lab_image[:, :, 0] = lab_image[:, :, 0] + (target_lab[0] - lab_image[:, :, 0]) * (mask_3 * 0.12)
+
+    recolored = cv2.cvtColor(np.clip(lab_image, 0, 255).astype(np.uint8), cv2.COLOR_LAB2BGR)
     blended = (recolored.astype(np.float32) * mask_3) + (image_bgr.astype(np.float32) * (1.0 - mask_3))
     blended = np.clip(blended, 0, 255).astype(np.uint8)
 
     coverage = float(np.mean(mask))
-    mask_ratio = float((mask > 0.1).sum() / float(mask.size))
+    mask_ratio = float((hair_mask > 16).sum() / float(hair_mask.size))
     return blended, coverage, mask_ratio
 
 

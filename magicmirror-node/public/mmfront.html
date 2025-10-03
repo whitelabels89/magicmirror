@@ -1146,11 +1146,12 @@ h1{
   let rec = null;
   let listening = false;
   let armed = false; // after hotword
+  let lastHotwordAt = 0;
 
   function setArmed(on){
     armed = !!on;
     document.body.classList.toggle('vc-armed', armed);
-    if(armed){ vcToast('🎤 Listening… ucapkan "mulai analisa"', 1600); }
+    if(armed){ vcToast('🎤 Listening… ucapkan "open" atau "mulai analisa"', 1600); }
   }
 
   function ensureRec(){
@@ -1160,73 +1161,88 @@ h1{
     rec.continuous = true; // keep running
     rec.interimResults = true;
 
+    rec.onstart = ()=>{ processedSegments = new Map(); };
     rec.onresult = (e)=>{
       let finalTxt = '';
-      for(let i=0;i<e.results.length;i++){
+      for(let i = e.resultIndex || 0; i < e.results.length; i++){
         const r = e.results[i];
-        const txt = r[0] && r[0].transcript ? r[0].transcript.toLowerCase() : '';
+        let txt = r[0] && r[0].transcript ? r[0].transcript.toLowerCase() : '';
+        txt = txt.trim();
         if(!txt) continue;
+        if(processedSegments.get(i) === txt){ continue; }
+        processedSegments.set(i, txt);
+        if(processedSegments.size > 32){
+          const keys = Array.from(processedSegments.keys());
+          while(keys.length && processedSegments.size > 16){ processedSegments.delete(keys.shift()); }
+        }
+        const simpleTxt = txt.replace(/[.,!?]/g,' ').replace(/\s+/g,' ').trim();
         // Hotword: "hey mirror" / "hei miror" / common variants
         if(/\b(hey|hei|hai)\s+mir+r?or\b/.test(txt)){
+          const now = Date.now();
+          if(now - lastHotwordAt < 1200){ continue; }
+          lastHotwordAt = now;
           // Turn camera ON immediately as requested
           if(!document.body.classList.contains('camera-on')){ camBtn?.click(); }
           setArmed(true);
-          vcToast('✅ Hey Mirror — kamera siap. Ucap: "mulai analisa"', 1800);
+          vcToast('✅ Hey Mirror — kamera siap. Ucap: "open" atau "mulai analisa"', 1800);
           try {
-            window.ttsSpeak && window.ttsSpeak("Hello, I am ready. Please say analyze to begin.", { rate:0.97, pitch:1.08 });
+            window.ttsSpeak && window.ttsSpeak("Hello, I am ready. Say open to turn on the camera or say analyze to begin.", { rate:0.97, pitch:1.08 });
           } catch(_) {}
           try{ window.showAppSuggest && window.showAppSuggest(); }catch(_){ }
           continue;
         }
         // Command: matikan kamera / stop (turn off live cam)
-        if (/\b(matikan\s+kamera|stop)\b/.test(txt)) {
+        if (/\b(matikan\s+kamera|stop)\b/.test(simpleTxt)) {
           if (document.body.classList.contains('camera-on')) {
             if (typeof stopCamera === 'function') stopCamera();
             vcToast('📷 Kamera dimatikan.', 1200);
           }
           continue;
         }
-        // Command: hidupkan kamera / start (turn on live cam)
-        if (/\b(hidupkan\s+kamera|start)\b/.test(txt)) {
+        // Command: hidupkan kamera / open (turn on live cam)
+        const soloOpen = simpleTxt === 'open';
+        const soloStart = simpleTxt === 'start';
+        if (soloOpen || /\b(hidupkan\s+kamera|buka\s+kamera|open\s+(camera|kamera))\b/.test(simpleTxt)) {
           if (!document.body.classList.contains('camera-on')) {
             if (typeof startCamera === 'function') startCamera();
+            else { camBtn?.click(); }
             vcToast('📷 Kamera dinyalakan.', 1200);
           }
           continue;
         }
         // Command: fullscreen
-        if (/\bfullscreen\b/.test(txt)) {
+        if (/\bfullscreen\b/.test(simpleTxt)) {
           (fsBtn || document.getElementById('fullscreen'))?.click();
           vcToast('⛶ Fullscreen toggle', 1000);
           continue;
         }
         // Command: buka/nonton/open/watch Netflix
-        if (armed && (/(buka|nonton|tonton|open|watch)\s+netflix\b/.test(txt) || /\bnetflix\b/.test(txt))) {
+        if (armed && (/(buka|nonton|tonton|open|watch)\s+netflix\b/.test(simpleTxt) || /\bnetflix\b/.test(simpleTxt))) {
           try{ window.openApp && window.openApp('netflix'); }catch(_){ }
           setArmed(false);
           continue;
         }
 
         // Command: buka/dengarkan/putar/open/listen/play Spotify
-        if (armed && (/(buka|dengarkan|dengerin|putar|mainkan|open|listen|play)\s+spotify\b/.test(txt) || /\bspotify\b/.test(txt))) {
+        if (armed && (/(buka|dengarkan|dengerin|putar|mainkan|open|listen|play)\s+spotify\b/.test(simpleTxt) || /\bspotify\b/.test(simpleTxt))) {
           try{ window.openApp && window.openApp('spotify'); }catch(_){ }
           setArmed(false);
           continue;
         }
         // Command: matikan mic (stop voice recognition)
-        if (/\b(matik(?:an)?\s+(mic|mikrofon)|mute(?:\s+mic)?|nonaktifkan\s+mic)\b/.test(txt)) {
+        if (/\b(matik(?:an)?\s+(mic|mikrofon)|mute(?:\s+mic)?|nonaktifkan\s+mic)\b/.test(simpleTxt)) {
           stop();
           vcToast('🎙️ Mic dimatikan.', 1200);
           continue;
         }
         // Command: hidupkan mic (start/restart voice recognition)
-        if (/\b(hidup(?:kan)?\s+(mic|mikrofon)|aktifkan\s+mic|unmute(?:\s+mic)?)\b/.test(txt)) {
+        if (/\b(hidup(?:kan)?\s+(mic|mikrofon)|aktifkan\s+mic|unmute(?:\s+mic)?)\b/.test(simpleTxt)) {
           start();
           vcToast('🎙️ Mic dinyalakan.', 1200);
           continue;
         }
         // Command: mulai analisa / analyze
-        if(armed && (/mulai\s+analisa/.test(txt) || /analy[sz]e/.test(txt))){
+        if((armed && (/mulai\s+analisa/.test(simpleTxt) || /analy[sz]e/.test(simpleTxt) || /\banalisa\b/.test(simpleTxt) || soloStart)) || (!armed && /\bmulai\s+analisa\b/.test(simpleTxt))){
           // Ensure camera on & click Analyze (even if disabled)
           const doClick = ()=>{
             if(window.__pageBusy){ vcToast('⏳ Masih memproses…', 900); return; }
@@ -1262,6 +1278,7 @@ h1{
     if(listening) return;
     try{
       ensureRec();
+      processedSegments = new Map();
       rec.start();
       try{ localStorage.setItem('vcAuto','1'); }catch(_){ }
       listening = true;
@@ -1279,6 +1296,7 @@ h1{
     listening = false;
     setArmed(false);
     try{ rec && rec.stop(); }catch(_){}
+    processedSegments = new Map();
     vcBtn.setAttribute('aria-pressed','false');
     vcBtn.classList.remove('listening');
     toastEl.classList.remove('show');
@@ -1347,7 +1365,7 @@ h1{
               <button type="button" class="hair-color-swatch" data-hex="#4C2A85" data-label="Dark Violet" aria-label="Dark Violet" style="background:#4C2A85;"></button>
             </div>
             <div class="hair-footer">
-              <button type="button" id="hair-color-custom" class="hair-custom-btn" data-label="Custom color">Custom…</button>
+              <button type="button" id="hair-color-custom" class="hair-custom-btn">Custom…</button>
               <div class="hair-strength">
                 <label for="hair-strength">Strength <span id="hair-strength-value">0.80</span></label>
                 <input type="range" id="hair-strength" min="0" max="1" step="0.05" value="0.8" />
@@ -1655,31 +1673,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
             }
           }
 
-          function setBaseFromBase64(base64, opts){
-            const options = opts || {};
-            try{
-              if(!base64 || typeof base64 !== 'string'){ throw new Error('Base64 tidak valid'); }
-              const clean = base64.trim().replace(/^data:image\/\w+;base64,/, '').replace(/[\r\n\s]+/g, '');
-              if(!clean){ throw new Error('Base64 kosong'); }
-              baseOriginal = clean;
-              if(preview){
-                preview.src = `data:image/jpeg;base64,${clean}`;
-                preview.style.display = 'block';
-                preview.dataset.sourceLabel = options.label || '';
-              }
-              highlightGalleryCard(null);
-              ensureVisible();
-              setStatus('Ready', 'ready');
-              if(options.auto){ allowAutoBase = false; }
-            }catch(err){
-              console.warn('hair base64 error', err);
-              if(!baseOriginal){
-                setStatus('Error', 'error', err.message || 'Gagal menyiapkan foto dasar');
-              }
-            }
-          }
-
-          async function applyHairColor(hex, opts){
+          async function applyHairColor(hex){
             const rawHex = (hex || '').toString().trim();
             if(!rawHex) return;
             if(!baseOriginal){
@@ -1696,8 +1690,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
             const payload = {
               imageBase64: baseOriginal,
               hex: normalized.toUpperCase(),
-              strength: Math.max(0, Math.min(1, parseFloat(strength?.value ?? '0') || 0)),
-              label: opts && typeof opts.label === 'string' && opts.label.trim() ? opts.label.trim() : undefined
+              strength: Math.max(0, Math.min(1, parseFloat(strength?.value ?? '0') || 0))
             };
             setStatus('Applying…', 'busy');
             setBusy(true);
@@ -1740,9 +1733,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
               if(!btn || busy) return;
               const hex = btn.dataset.hex;
               if(!hex) return;
-              const label = btn.dataset.label || '';
               highlightColorButton(btn);
-              applyHairColor(hex, { label });
+              applyHairColor(hex);
             });
           }
 
@@ -1755,8 +1747,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
               const hex = customPicker.value;
               if(!hex) return;
               setCustomActive(hex);
-              const label = customBtn.dataset.label || 'Custom color';
-              applyHairColor(hex, { label });
+              applyHairColor(hex);
             });
             customPicker.addEventListener('input', () => {
               if(document.activeElement === customPicker){
@@ -1783,7 +1774,6 @@ window.addEventListener('DOMContentLoaded', ()=>{
               highlightGalleryCard(null);
             },
             setBaseFromImage: (img, opts) => setBaseFromImage(img, opts),
-            setBaseFromBase64: (value, opts) => setBaseFromBase64(value, opts),
             isVisible: () => panelVisible
           };
         })();
