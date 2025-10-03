@@ -81,14 +81,13 @@ app.get('/api/version', (req, res) => {
 // === Hair Color API (hair recoloring endpoint bridging UI to Minimax/Replicate) ===
 app.post('/api/hair-color', async (req, res) => {
   const started = Date.now();
-  const { imageBase64, hex, strength, label } = req.body || {};
+  const { imageBase64, hex, strength } = req.body || {};
   const rawImage = typeof imageBase64 === 'string' ? imageBase64 : '';
   const sanitizedImage = rawImage.replace(/^data:image\/\w+;base64,/, '').replace(/[\r\n\s]+/g, '');
   let rawHex = typeof hex === 'string' ? hex.trim() : '';
   if (!rawHex.startsWith('#')) rawHex = `#${rawHex}`;
   const normalizedHex = rawHex.toUpperCase();
   const strengthValue = Math.max(0, Math.min(1, Number(strength) || 0));
-  const labelNormalized = typeof label === 'string' && label.trim() ? label.trim() : null;
 
   if (!sanitizedImage) {
     return res.status(400).json({ ok: false, error: 'imageBase64 wajib diisi' });
@@ -97,75 +96,34 @@ app.post('/api/hair-color', async (req, res) => {
     return res.status(400).json({ ok: false, error: 'Format warna harus #RRGGBB' });
   }
 
-  const colorDescriptor = describeHairColor(normalizedHex, labelNormalized);
-  const logMeta = { color: normalizedHex, strength: strengthValue, label: colorDescriptor };
+  const logMeta = { color: normalizedHex, strength: strengthValue };
   let serviceUsed = 'replicate';
   const timeoutMs = Number(process.env.HAIR_COLOR_TIMEOUT_MS || 120000);
-  const delegateCandidates = [];
-  const explicitDelegate = process.env.HAIR_COLOR_SERVICE_URL && process.env.HAIR_COLOR_SERVICE_URL.trim();
-  const allowLocal = process.env.HAIR_COLOR_DISABLE_LOCAL !== '1';
-  if (explicitDelegate) {
-    delegateCandidates.push(explicitDelegate);
-  } else if (allowLocal) {
-    delegateCandidates.push('http://127.0.0.1:10000/api/hair-color');
-  }
-  let delegateError = null;
 
   try {
     console.log('[hair-color] start', logMeta);
     let imageOutBase64;
-    if (delegateCandidates.length) {
-      for (const delegateUrl of delegateCandidates) {
-        try {
-          serviceUsed = 'delegate';
-          const { data } = await axios.post(delegateUrl, {
-            imageBase64: sanitizedImage,
-            hex: normalizedHex,
-            strength: strengthValue,
-            label: labelNormalized || colorDescriptor
-          }, { timeout: timeoutMs });
-          if (data && data.ok === false) {
-            throw new Error(data.error || 'Delegate hair color error');
-          }
-          const remote = data && (data.imageOutBase64 || data.image_base64 || data.image || data.result);
-          if (!remote) {
-            throw new Error('Layanan hair color tidak mengembalikan field imageOutBase64');
-          }
-          imageOutBase64 = String(remote).replace(/^data:image\/\w+;base64,/, '').replace(/[\r\n\s]+/g, '');
-          delegateError = null;
-          break;
-        } catch (delegateErr) {
-          delegateError = delegateErr;
-          console.warn('[hair-color] delegate failed, considering fallback', {
-            ...logMeta,
-            service: 'delegate',
-            url: delegateUrl,
-            error: delegateErr.message || delegateErr
-          });
-        }
+    const delegateUrl = process.env.HAIR_COLOR_SERVICE_URL;
+    if (delegateUrl) {
+      serviceUsed = 'delegate';
+      const { data } = await axios.post(delegateUrl, {
+        imageBase64: sanitizedImage,
+        hex: normalizedHex,
+        strength: strengthValue
+      }, { timeout: timeoutMs });
+      const remote = data && (data.imageOutBase64 || data.image_base64 || data.image || data.result);
+      if (!remote) {
+        throw new Error('Layanan hair color tidak mengembalikan field imageOutBase64');
       }
-    }
-    if (!imageOutBase64) {
-      serviceUsed = 'replicate';
-      try {
-        imageOutBase64 = await runHairColorViaReplicate(sanitizedImage, normalizedHex, strengthValue, { colorDescriptor });
-      } catch (replicateErr) {
-        if (delegateError) {
-          throw delegateError;
-        }
-        throw replicateErr;
-      }
+      imageOutBase64 = String(remote).replace(/^data:image\/\w+;base64,/, '').replace(/[\r\n\s]+/g, '');
+    } else {
+      imageOutBase64 = await runHairColorViaReplicate(sanitizedImage, normalizedHex, strengthValue);
     }
     console.log('[hair-color] success', { ...logMeta, service: serviceUsed, ms: Date.now() - started });
     res.json({ ok: true, imageOutBase64 });
   } catch (err) {
-    const responsePayload = err && err.response && err.response.data;
-    const message = (responsePayload && (responsePayload.error || responsePayload.message)) || (err && err.message ? err.message : 'Hair color processing failed');
-    const enriched = { ...logMeta, service: serviceUsed, ms: Date.now() - started, error: message, detail: responsePayload || null };
-    if (delegateError && serviceUsed === 'replicate') {
-      enriched.delegateError = delegateError.message || String(delegateError);
-    }
-    console.error('[hair-color] error', enriched);
+    const message = err && err.message ? err.message : 'Hair color processing failed';
+    console.error('[hair-color] error', { ...logMeta, service: serviceUsed, ms: Date.now() - started, error: message });
     res.status(500).json({ ok: false, error: message });
   }
 });
@@ -211,38 +169,7 @@ async function postAllToGAS(datasets) {
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function ensureReplicateReference(imageBase64, replicateToken) {
-  const buffer = Buffer.from(imageBase64, 'base64');
-  if (!buffer.length) {
-    throw new Error('Gambar dasar kosong.');
-  }
-  const fileLabel = `hair-${Date.now()}-${crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)}.jpg`;
-  const initResp = await axios.post('https://api.replicate.com/v1/files', { filename: fileLabel, name: fileLabel }, {
-    headers: {
-      Authorization: `Token ${replicateToken}`,
-      'Content-Type': 'application/json'
-    },
-    timeout: 15000
-  });
-  const initData = initResp && initResp.data ? initResp.data : null;
-  const uploadUrl = initData && (initData.upload_url || (initData.urls && initData.urls.upload));
-  const downloadUrl = initData && (initData.download_url || (initData.urls && initData.urls.get));
-  if (!uploadUrl || !downloadUrl) {
-    throw new Error('Gagal menyiapkan upload untuk Replicate.');
-  }
-  await axios.put(uploadUrl, buffer, {
-    headers: {
-      'Content-Type': 'application/octet-stream',
-      'Content-Length': buffer.length
-    },
-    maxBodyLength: Infinity,
-    maxContentLength: Infinity,
-    timeout: 60000
-  });
-  return downloadUrl;
-}
-
-async function runHairColorViaReplicate(imageBase64, targetHex, strength = 1, options = {}) {
+async function runHairColorViaReplicate(imageBase64, targetHex, strength = 1) {
   const replicateToken = process.env.REPLICATE_API_TOKEN || process.env.REPLICATE_API_KEY;
   if (!replicateToken) {
     throw new Error('REPLICATE_API_TOKEN belum dikonfigurasi');
@@ -251,22 +178,15 @@ async function runHairColorViaReplicate(imageBase64, targetHex, strength = 1, op
   const modelSlug = process.env.REPLICATE_HAIR_MODEL || 'minimax/image-01';
   const modelVersion = process.env.REPLICATE_HAIR_VERSION || null;
   const normalizedStrength = Math.max(0, Math.min(1, Number(strength) || 0));
-  const guidance = 7.2 + normalizedStrength * 3.8;
-  const steps = Math.max(28, Math.round(34 + normalizedStrength * 14));
-  const imageReference = await ensureReplicateReference(imageBase64, replicateToken);
-  const colorDescriptor = options && options.colorDescriptor ? options.colorDescriptor : `custom shade (${targetHex})`;
-  const prompt = [
-    `Edit this portrait. Focus exclusively on recoloring the person's hair to ${colorDescriptor}.`,
-    'Preserve every other element — identical face, skin tone, eyes, makeup, clothing, and background scene.',
-    'Maintain the existing hairstyle, lighting, hair texture, highlights, flyaways, and shadows.',
-    `Blend the new pigment realistically with an intensity level of ${(normalizedStrength).toFixed(2)} while keeping surroundings untouched.`
-  ].join(' ');
+  const guidance = 7.5 + normalizedStrength * 3.5;
+  const steps = Math.max(25, Math.round(35 + normalizedStrength * 15));
+  const prompt = `Edit this photo: change only the hair color of the person. Do not modify the face, skin, eyes, or background. Target hair color: ${targetHex}. Keep hairstyle, face shape, lighting, and hair texture natural. Ensure realistic blending with highlights and shadows.`;
 
   const inputPayload = {
     prompt,
-    subject_prompt: 'same person, hair detail focus, ultra realistic portrait, crisp strands, background unchanged, professional lighting',
-    subject_reference: imageReference,
-    negative_prompt: 'different person, background color shift, clothing recolor, skin tone change, face alteration, makeup change, added text, watermark, artifacts',
+    subject_prompt: 'same person, identical facial features, ultra realistic portrait, same background, full head visible',
+    subject_reference: `data:image/jpeg;base64,${imageBase64}`,
+    negative_prompt: 'different person, changed skin tone, background change, distorted face, text, watermark, artifacts',
     guidance_scale: Number(guidance.toFixed(2)),
     num_inference_steps: steps,
     width: 1024,
@@ -321,73 +241,13 @@ async function runHairColorViaReplicate(imageBase64, targetHex, strength = 1, op
       return downloadOutput(pollData.output);
     }
     if (pollData.status === 'failed' || pollData.status === 'canceled') {
-      const errDetail = pollData.error || `Replicate gagal dengan status ${pollData.status}`;
-      throw new Error(typeof errDetail === 'string' ? errDetail : JSON.stringify(errDetail));
+      throw new Error(pollData.error || `Replicate gagal dengan status ${pollData.status}`);
     }
     if (pollData.error) {
       throw new Error(typeof pollData.error === 'string' ? pollData.error : JSON.stringify(pollData.error));
     }
   }
   throw new Error('Replicate timeout menunggu hasil hair color.');
-}
-
-const PRESET_COLOR_LABELS = {
-  '#8A7E72': 'Ash Brown',
-  '#E6A3A1': 'Rose Gold',
-  '#70193D': 'Burgundy',
-  '#2F8F9D': 'Blue Teal',
-  '#EAEAEA': 'Platinum',
-  '#4C2A85': 'Dark Violet'
-};
-
-function describeHairColor(hex, providedLabel) {
-  if (providedLabel) {
-    return `${providedLabel} (${hex})`;
-  }
-  const preset = PRESET_COLOR_LABELS[hex];
-  if (preset) return `${preset} (${hex})`;
-  try {
-    const intVal = parseInt(hex.replace('#', ''), 16);
-    if (Number.isNaN(intVal)) return `custom shade (${hex})`;
-    const r = (intVal >> 16) & 255;
-    const g = (intVal >> 8) & 255;
-    const b = intVal & 255;
-    const rn = r / 255;
-    const gn = g / 255;
-    const bn = b / 255;
-    const max = Math.max(rn, gn, bn);
-    const min = Math.min(rn, gn, bn);
-    const delta = max - min;
-    let hue = 0;
-    if (delta !== 0) {
-      if (max === rn) {
-        hue = ((gn - bn) / delta) % 6;
-      } else if (max === gn) {
-        hue = (bn - rn) / delta + 2;
-      } else {
-        hue = (rn - gn) / delta + 4;
-      }
-      hue *= 60;
-      if (hue < 0) hue += 360;
-    }
-    const lightness = (max + min) / 2;
-    const saturation = delta === 0 ? 0 : delta / (1 - Math.abs(2 * lightness - 1));
-
-    let descriptor;
-    if (saturation < 0.12) {
-      descriptor = lightness > 0.7 ? 'soft platinum' : lightness < 0.3 ? 'deep charcoal' : 'neutral ash';
-    } else {
-      if (hue < 25) descriptor = lightness > 0.5 ? 'warm copper' : 'deep auburn';
-      else if (hue < 70) descriptor = lightness > 0.6 ? 'golden blonde' : 'honey brown';
-      else if (hue < 150) descriptor = lightness > 0.5 ? 'emerald teal' : 'deep moss green';
-      else if (hue < 210) descriptor = lightness > 0.5 ? 'cool azure' : 'midnight blue';
-      else if (hue < 280) descriptor = lightness > 0.5 ? 'violet amethyst' : 'deep indigo';
-      else descriptor = lightness > 0.5 ? 'rose quartz' : 'wine burgundy';
-    }
-    return `${descriptor} shade (${hex})`;
-  } catch (err) {
-    return `custom shade (${hex})`;
-  }
 }
 
 // POST /api/assign-murid-ke-kelas - assign murid ke kelas/lesson
