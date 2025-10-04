@@ -20,6 +20,19 @@
     }
   }
 
+  let cachedUserPromise = null;
+
+  function fetchUserOnce(){
+    if (!cachedUserPromise) {
+      cachedUserPromise = fetchUser().catch(()=>null);
+    }
+    return cachedUserPromise;
+  }
+
+  function waitForPaint(){
+    return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  }
+
   function collectAnswers(){
     const els = document.querySelectorAll('[data-answers="true"], textarea, .code-editor');
     const arr = [];
@@ -37,17 +50,51 @@
     return arr.join('\n---\n');
   }
 
+  // Convert canvas capture to base64 JPEG asynchronously to avoid blocking the main thread
+  async function canvasToBase64(canvas){
+    return await new Promise((resolve, reject) => {
+      try {
+        canvas.toBlob(function(blob){
+          if (!blob) {
+            resolve('');
+            return;
+          }
+          const reader = new FileReader();
+          reader.onloadend = function(){
+            try {
+              const result = reader.result || '';
+              resolve(String(result).replace(/^data:[^;]+;base64,/, ''));
+            } catch (err) {
+              reject(err);
+            }
+          };
+          reader.onerror = function(err){ reject(err || new Error('Failed to read canvas blob')); };
+          reader.readAsDataURL(blob);
+        }, 'image/jpeg', 0.82);
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
   async function capture(selector){
     const sel = selector || getRootSelector();
     const el = document.querySelector(sel);
     if(!el) throw new Error('container not found');
     window.scrollTo(0,0);
-    const canvas = await html2canvas(el,{scale:1.5,useCORS:true,backgroundColor:'#fff'});
-    let dataUrl = canvas.toDataURL('image/png');
-    if(dataUrl.length > 2*1024*1024){
-      dataUrl = canvas.toDataURL('image/jpeg',0.92);
+    // Limit render scale so html2canvas does not create overly large bitmaps on high-DPI screens
+    const scale = Math.min(Math.max(window.devicePixelRatio || 1, 1), 1.25);
+    const canvas = await html2canvas(el,{scale,useCORS:true,backgroundColor:'#fff',logging:false});
+    try {
+      return await canvasToBase64(canvas);
+    } catch (err) {
+      // Fallback to sync PNG/JPEG conversion if toBlob is not supported
+      let dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+      if(dataUrl.length > 2*1024*1024){
+        dataUrl = canvas.toDataURL('image/jpeg',0.72);
+      }
+      return dataUrl.replace(/^data:image\/\w+;base64,/,'');
     }
-    return dataUrl.replace(/^data:image\/\w+;base64,/,'');
   }
 
   function slugify(s){ return String(s||'').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,''); }
@@ -395,15 +442,19 @@
         role = role || (info.role && String(info.role).toLowerCase()) || '';
         dlog('role from getUserInfo():', role || '(none)');
       }
-      if (!role) {
-        const apiUser = await fetchUser();
-        role = (apiUser && apiUser.role || '').toLowerCase();
-        dlog('role from /api/auth/me:', role || '(none)');
-      }
+      const apiUserPromise = role ? Promise.resolve(null) : fetchUserOnce();
+
+      await waitForPaint();
+
       if(!['murid','guru','moderator'].includes(role)){
-        btn.title = 'Khusus Murid/Guru/Moderator';
-        dlog('blocked by role check. role =', role || '(none)');
-        return;
+        const apiUser = await apiUserPromise;
+        role = role || (apiUser && apiUser.role || '').toLowerCase();
+        dlog('role from /api/auth/me:', role || '(none)');
+        if(!['murid','guru','moderator'].includes(role)){
+          btn.title = 'Khusus Murid/Guru/Moderator';
+          dlog('blocked by role check. role =', role || '(none)');
+          return;
+        }
       }
 
       const rootSel = getRootSelector();
@@ -420,7 +471,12 @@
 
       try{
         const answers = collectAnswers();
-        const screenshot = await capture(getRootSelector());
+        const capturePromise = capture(rootSel);
+        const [apiUser, screenshot] = await Promise.all([apiUserPromise, capturePromise]);
+        if (!role && apiUser) {
+          role = (apiUser.role || '').toLowerCase();
+          dlog('role from cached /api/auth/me:', role || '(none)');
+        }
         const payload = {
           murid_uid: opts.muridUid || info.uid || '',
           cid: opts.cid || info.cid || '',
