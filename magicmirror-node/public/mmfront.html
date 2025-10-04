@@ -1258,7 +1258,7 @@ h1{
           };
           if(!document.body.classList.contains('camera-on')){
             camBtn?.click();
-            const onReady = ()=> setTimeout(doClick, 150);
+            const onReady = ()=> setTimeout(doClick, 60);
             if(videoEl && videoEl.readyState >= 2){ onReady(); }
             else { videoEl?.addEventListener('loadeddata', onReady, { once:true }); }
           }else{
@@ -1287,7 +1287,14 @@ h1{
       vcToast('🎧 Listening aktif — ucapkan: "Hey Mirror"', 1600);
       // --- TTS greeting on mic/listening start ---
       try{
-        window.ttsSpeak && window.ttsSpeak('Voice command is now active. Say: Hey Mirror.', { rate:0.97, pitch:1.08 });
+        const greetOpts = {
+          rate: 0.97,
+          pitch: 1.08,
+          onstart: ()=> suppressRecognition(900),
+          onend: ()=> suppressRecognition(160)
+        };
+        const greet = window.ttsSpeak ? window.ttsSpeak('Voice command is active. Say hey mirror.', greetOpts) : null;
+        if(!greet){ suppressRecognition(500); }
       }catch(_){ }
       // --- end TTS greeting ---
     }catch(err){ console.error('VC start failed', err); vcToast('Mic ditolak? Klik izinkan.', 1600); }
@@ -2695,6 +2702,12 @@ function renderAnalysis(analysis){
             u.rate   = (opts && opts.rate  != null) ? opts.rate  : 0.97; // natural
             u.pitch  = (opts && opts.pitch != null) ? opts.pitch : 1.10; // female-ish
             u.volume = (opts && opts.volume!= null) ? opts.volume: 1;
+            if(opts){
+              if(typeof opts.onstart === 'function') u.onstart = opts.onstart;
+              if(typeof opts.onend === 'function') u.onend = opts.onend;
+              if(typeof opts.onerror === 'function') u.onerror = opts.onerror;
+              if(typeof opts.onboundary === 'function') u.onboundary = opts.onboundary;
+            }
             try{ synth.cancel(); }catch(_){ }
             try{ synth.resume && synth.resume(); }catch(_){ }
             synth.speak(u);
