@@ -37,17 +37,51 @@
     return arr.join('\n---\n');
   }
 
+  // Convert canvas capture to base64 JPEG asynchronously to avoid blocking the main thread
+  async function canvasToBase64(canvas){
+    return await new Promise((resolve, reject) => {
+      try {
+        canvas.toBlob(function(blob){
+          if (!blob) {
+            resolve('');
+            return;
+          }
+          const reader = new FileReader();
+          reader.onloadend = function(){
+            try {
+              const result = reader.result || '';
+              resolve(String(result).replace(/^data:[^;]+;base64,/, ''));
+            } catch (err) {
+              reject(err);
+            }
+          };
+          reader.onerror = function(err){ reject(err || new Error('Failed to read canvas blob')); };
+          reader.readAsDataURL(blob);
+        }, 'image/jpeg', 0.82);
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
   async function capture(selector){
     const sel = selector || getRootSelector();
     const el = document.querySelector(sel);
     if(!el) throw new Error('container not found');
     window.scrollTo(0,0);
-    const canvas = await html2canvas(el,{scale:1.5,useCORS:true,backgroundColor:'#fff'});
-    let dataUrl = canvas.toDataURL('image/png');
-    if(dataUrl.length > 2*1024*1024){
-      dataUrl = canvas.toDataURL('image/jpeg',0.92);
+    // Limit render scale so html2canvas does not create overly large bitmaps on high-DPI screens
+    const scale = Math.min(Math.max(window.devicePixelRatio || 1, 1), 1.25);
+    const canvas = await html2canvas(el,{scale,useCORS:true,backgroundColor:'#fff',logging:false});
+    try {
+      return await canvasToBase64(canvas);
+    } catch (err) {
+      // Fallback to sync PNG/JPEG conversion if toBlob is not supported
+      let dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+      if(dataUrl.length > 2*1024*1024){
+        dataUrl = canvas.toDataURL('image/jpeg',0.72);
+      }
+      return dataUrl.replace(/^data:image\/\w+;base64,/,'');
     }
-    return dataUrl.replace(/^data:image\/\w+;base64,/,'');
   }
 
   function slugify(s){ return String(s||'').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,''); }
