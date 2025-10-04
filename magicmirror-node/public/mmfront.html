@@ -1147,22 +1147,6 @@ h1{
   let listening = false;
   let armed = false; // after hotword
   let lastHotwordAt = 0;
-  let processedSegments = new Map();
-  let ignoreUntil = 0;
-  let ignoreTimer = null;
-
-  function suppressRecognition(ms){
-    if(!ms || ms <= 0) return;
-    const until = Date.now() + ms;
-    if(until > ignoreUntil){
-      ignoreUntil = until;
-      if(ignoreTimer){ clearTimeout(ignoreTimer); }
-      ignoreTimer = setTimeout(()=>{
-        const now = Date.now();
-        if(now >= ignoreUntil){ ignoreUntil = 0; ignoreTimer = null; }
-      }, ms + 50);
-    }
-  }
 
   function setArmed(on){
     armed = !!on;
@@ -1177,19 +1161,14 @@ h1{
     rec.continuous = true; // keep running
     rec.interimResults = true;
 
-    rec.onstart = ()=>{
-      processedSegments = new Map();
-      ignoreUntil = 0;
-      if(ignoreTimer){ clearTimeout(ignoreTimer); ignoreTimer = null; }
-    };
+    rec.onstart = ()=>{ processedSegments = new Map(); };
     rec.onresult = (e)=>{
+      let finalTxt = '';
       for(let i = e.resultIndex || 0; i < e.results.length; i++){
         const r = e.results[i];
         let txt = r[0] && r[0].transcript ? r[0].transcript.toLowerCase() : '';
         txt = txt.trim();
         if(!txt) continue;
-        if(!r.isFinal){ continue; }
-        if(Date.now() < ignoreUntil){ continue; }
         if(processedSegments.get(i) === txt){ continue; }
         processedSegments.set(i, txt);
         if(processedSegments.size > 32){
@@ -1198,7 +1177,7 @@ h1{
         }
         const simpleTxt = txt.replace(/[.,!?]/g,' ').replace(/\s+/g,' ').trim();
         // Hotword: "hey mirror" / "hei miror" / common variants
-        if(/\b(hey|hei|hai)\s+mir+r?or\b/.test(simpleTxt)){
+        if(/\b(hey|hei|hai)\s+mir+r?or\b/.test(txt)){
           const now = Date.now();
           if(now - lastHotwordAt < 1200){ continue; }
           lastHotwordAt = now;
@@ -1207,14 +1186,7 @@ h1{
           setArmed(true);
           vcToast('✅ Hey Mirror — kamera siap. Ucap: "open" atau "mulai analisa"', 1800);
           try {
-            const speakOpts = {
-              rate: 0.97,
-              pitch: 1.08,
-              onstart: ()=> suppressRecognition(1400),
-              onend: ()=> suppressRecognition(180)
-            };
-            const spoken = window.ttsSpeak ? window.ttsSpeak('Siap, ucapkan open atau mulai analisa.', speakOpts) : null;
-            if(!spoken){ suppressRecognition(700); }
+            window.ttsSpeak && window.ttsSpeak("Hello, I am ready. Say open to turn on the camera or say analyze to begin.", { rate:0.97, pitch:1.08 });
           } catch(_) {}
           try{ window.showAppSuggest && window.showAppSuggest(); }catch(_){ }
           continue;
@@ -2127,6 +2099,15 @@ document.getElementById('capture-button').addEventListener('click', async () => 
                         setTimeout(() => {
                             gallery.scrollIntoView({ behavior: 'smooth' });
                         }, 300);
+                    } else if (base64Photo) {
+                        try {
+                            if (window.__hairPanelController) {
+                                window.__hairPanelController.prepareForGallery();
+                                if (typeof window.__hairPanelController.setBaseFromBase64 === 'function') {
+                                    window.__hairPanelController.setBaseFromBase64(base64Photo, { label: 'Capture' });
+                                }
+                            }
+                        } catch(_){ }
                     }
                     // ⬇️ Render detailed analysis if provided
                     if (data.analysis) {
