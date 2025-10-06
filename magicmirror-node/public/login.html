@@ -177,7 +177,7 @@
       </form>
       <p id="status" style="color:red; font-size:0.85rem; margin-top:0.5rem;"></p>
       <p style="font-size:0.85rem; margin-top:1rem; color:#4b4b4b;">Belum punya akun?</p>
-      <button style="background:#e6f4ff; color:#007acc; border:none; padding:0.4rem 0.8rem; border-radius:10px; font-size:0.8rem;">Buat akun</button>
+      <button onclick="goToSignup()" style="background:#e6f4ff; color:#007acc; border:none; padding:0.4rem 0.8rem; border-radius:10px; font-size:0.8rem;">Buat akun</button>
     </div>
   </div>
 
@@ -367,6 +367,13 @@
     const passwordInput = document.getElementById("password");
     const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
     passwordInput.setAttribute("type", type);
+  }
+</script>
+<script>
+  function goToSignup() {
+    const { pathname, search, hash } = window.location;
+    const nextTarget = encodeURIComponent(`${pathname}${search || ''}${hash || ''}`);
+    window.location.href = `/elearn/daftar.html?next=${nextTarget}`;
   }
 </script>
 </body>
