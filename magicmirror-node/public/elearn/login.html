@@ -649,7 +649,7 @@
             <!-- Login & Daftar Buttons -->
             <div class="button-row">
               <button onclick="login()" id="login-btn" class="login-button">Login</button>
-              <button onclick="window.location.href='/elearn/daftar.html'" class="daftar-akun">Sign Up</button>
+              <button onclick="goToSignup()" class="daftar-akun">Sign Up</button>
             </div>
 
 
@@ -783,6 +783,12 @@ async function login() {
       }
     });
   });
+}
+
+function goToSignup() {
+  const { pathname, search, hash } = window.location;
+  const nextTarget = encodeURIComponent(`${pathname}${search || ''}${hash || ''}`);
+  window.location.href = `/elearn/daftar.html?next=${nextTarget}`;
 }
 
 <!-- (removed duplicate script end tag) -->
