@@ -10,6 +10,26 @@
       href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@400;600&display=swap"
       rel="stylesheet"
     />
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyBVO4ajDwkbcTGL33SVMxIoev4veB8itgI",
+        authDomain: "queens-academy-icoding.firebaseapp.com",
+        projectId: "queens-academy-icoding",
+        storageBucket: "queens-academy-icoding.firebasestorage.app",
+        messagingSenderId: "1048549258959",
+        appId: "1:1048549258959:web:f8dc1c104bb170d7ff69ba",
+        measurementId: "G-RJCXM1YL7E"
+      };
+
+      if (typeof firebase !== "undefined" && (!firebase.apps || !firebase.apps.length)) {
+        firebase.initializeApp(firebaseConfig);
+      }
+
+      const BACKEND_URL = "https://firebase-upload-backend.onrender.com";
+      const START_LOGIN_REDIRECT = "/elearn/worlds/calistung/index.html";
+    </script>
     <style>
       :root {
         --primary: #ff3ff5;
@@ -907,7 +927,7 @@
             <span data-sound-label>Sound Off</span>
           </button>
         </div>
-        <a class="settings-link login-link" href="../elearn/login.html">
+        <a class="settings-link login-link" href="../elearn/login.html" data-open-login="account">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path
               d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 2c-2.67 0-8 1.34-8 4v1.5c0 .28.22.5.5.5h15c.28 0 .5-.22.5-.5V18c0-2.66-5.33-4-8-4Z"
@@ -1432,6 +1452,14 @@
             openSettings(!settingsOpen);
           });
         });
+
+        if (settingsLoginLink) {
+          settingsLoginLink.addEventListener('click', (event) => {
+            event.preventDefault();
+            openSettings(false);
+            openStartModal({ view: 'login' });
+          });
+        }
 
         document.addEventListener('click', (event) => {
           if (!settingsMenu.contains(event.target)) {
