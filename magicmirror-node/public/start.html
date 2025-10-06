@@ -421,6 +421,8 @@
         text-transform: uppercase;
         text-decoration: none;
         box-shadow: var(--glow);
+        cursor: pointer;
+        appearance: none;
         transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
       }
 
@@ -441,6 +443,138 @@
       .cta-button.secondary {
         background: linear-gradient(120deg, rgba(24, 241, 255, 0.9), rgba(76, 106, 255, 0.9));
         box-shadow: 0 0 22px rgba(24, 241, 255, 0.5);
+      }
+
+      .start-modal {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: clamp(1.5rem, 4vw, 3rem);
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 200ms ease, visibility 200ms ease;
+        z-index: 40;
+      }
+
+      .start-modal.is-active {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+      }
+
+      .start-modal__backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(4, 4, 16, 0.86);
+        backdrop-filter: blur(6px);
+      }
+
+      .start-modal__panel {
+        position: relative;
+        width: min(520px, 100%);
+        padding: clamp(1.75rem, 4vw, 2.5rem);
+        border-radius: 28px;
+        background: rgba(10, 10, 32, 0.96);
+        border: 1px solid var(--panel-border);
+        box-shadow: 0 28px 60px rgba(3, 6, 28, 0.55);
+        display: flex;
+        flex-direction: column;
+        gap: 1.35rem;
+      }
+
+      .start-modal__close {
+        position: absolute;
+        top: clamp(0.75rem, 3vw, 1.25rem);
+        right: clamp(0.75rem, 3vw, 1.25rem);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        background: rgba(18, 18, 48, 0.85);
+        color: var(--text-light);
+        cursor: pointer;
+        transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+      }
+
+      .start-modal__close:hover,
+      .start-modal__close:focus-visible {
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 16px 28px rgba(24, 241, 255, 0.35);
+        border-color: rgba(24, 241, 255, 0.45);
+        outline: none;
+      }
+
+      .start-modal__heading {
+        margin: 0;
+        font-family: "Orbitron", sans-serif;
+        font-size: clamp(1.35rem, 4vw, 1.7rem);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        text-align: center;
+      }
+
+      .start-modal__description {
+        margin: 0;
+        font-size: clamp(0.95rem, 2.6vw, 1.1rem);
+        line-height: 1.6;
+        text-align: center;
+        opacity: 0.85;
+      }
+
+      .start-modal__choices {
+        display: grid;
+        gap: 1rem;
+      }
+
+      .start-modal__choice {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        padding: 1.1rem 1.4rem;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        background: linear-gradient(140deg, rgba(24, 241, 255, 0.14), rgba(255, 64, 246, 0.18));
+        color: var(--text-light);
+        text-decoration: none;
+        transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+      }
+
+      .start-modal__choice:hover,
+      .start-modal__choice:focus-visible {
+        transform: translateY(-3px);
+        box-shadow: 0 18px 38px rgba(24, 241, 255, 0.35);
+        border-color: rgba(24, 241, 255, 0.45);
+        outline: none;
+      }
+
+      .start-modal__choice-title {
+        font-family: "Orbitron", sans-serif;
+        font-size: clamp(1.05rem, 3vw, 1.25rem);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .start-modal__choice-desc {
+        font-size: clamp(0.9rem, 2.4vw, 1rem);
+        line-height: 1.5;
+        opacity: 0.8;
+      }
+
+      .start-modal__choice--primary {
+        background: linear-gradient(140deg, rgba(255, 64, 246, 0.32), rgba(24, 241, 255, 0.24));
+        border-color: rgba(255, 255, 255, 0.28);
+        box-shadow: 0 20px 44px rgba(255, 64, 246, 0.25);
+      }
+
+      .start-modal__choice--primary:hover,
+      .start-modal__choice--primary:focus-visible {
+        box-shadow: 0 24px 48px rgba(255, 64, 246, 0.38);
       }
 
       .settings-wrapper {
@@ -802,12 +936,12 @@
         </p>
       </div>
       <div class="actions">
-        <a class="cta-button" href="../elearn/worlds/calistung/index.html">
+        <button class="cta-button" type="button" data-start-trigger>
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path d="m8 5 11 7-11 7V5Z"></path>
           </svg>
           Start Game
-        </a>
+        </button>
         <button class="cta-button secondary" type="button" data-settings-toggle-secondary>
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path
@@ -818,6 +952,35 @@
         </button>
       </div>
     </main>
+
+    <div class="start-modal" data-start-modal aria-hidden="true">
+      <div class="start-modal__backdrop" data-start-modal-backdrop></div>
+      <div
+        class="start-modal__panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="startModalHeading"
+        data-start-modal-panel
+      >
+        <button class="start-modal__close" type="button" data-start-modal-close aria-label="Tutup pilihan">
+          ×
+        </button>
+        <h2 class="start-modal__heading" id="startModalHeading">Pilih Cara Masuk</h2>
+        <p class="start-modal__description">
+          Mulai petualanganmu sebagai tamu atau masuk menggunakan akun yang sudah terdaftar.
+        </p>
+        <div class="start-modal__choices">
+          <a class="start-modal__choice" href="login.html" data-start-choice>
+            <span class="start-modal__choice-title">Masuk sebagai Tamu</span>
+            <span class="start-modal__choice-desc">Jelajahi Queen's Academy tanpa membuat akun baru.</span>
+          </a>
+          <a class="start-modal__choice start-modal__choice--primary" href="elearn/login.html" data-start-choice>
+            <span class="start-modal__choice-title">Masuk dengan Akun Terdaftar</span>
+            <span class="start-modal__choice-desc">Gunakan akun yang telah kamu daftarkan untuk menyimpan progres.</span>
+          </a>
+        </div>
+      </div>
+    </div>
 
     <div class="audio-prompt" id="audioPrompt" role="status">
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -852,6 +1015,15 @@
           orientationActionButton?.querySelector('[data-orientation-action-label]') || null;
         const rewatchIntroButton = document.querySelector('[data-rewatch-intro]');
         const bodyEl = document.body;
+        const startModal = document.querySelector('[data-start-modal]');
+        const startModalTrigger = document.querySelector('[data-start-trigger]');
+        const startModalBackdrop = startModal?.querySelector('[data-start-modal-backdrop]') || null;
+        const startModalCloseButtons = startModal
+          ? startModal.querySelectorAll('[data-start-modal-close]')
+          : [];
+        const startModalPanel = startModal?.querySelector('[data-start-modal-panel]') || null;
+        const startModalChoices = startModal ? startModal.querySelectorAll('[data-start-choice]') : [];
+        let previousFocusBeforeStartModal = null;
         const INTRO_STORAGE_KEY = 'qaStartIntroSeen';
         const orientationDefaultLabel = orientationActionLabel?.textContent?.trim() || 'Rotate & Play';
         const isMobileDevice =
@@ -879,6 +1051,77 @@
         const isLandscapeOrientation = () =>
           window.matchMedia('(orientation: landscape)').matches ||
           window.innerWidth > window.innerHeight;
+
+        const focusFirstStartChoice = () => {
+          if (!startModal) return;
+          const focusTarget = startModalChoices?.[0] || startModalPanel?.querySelector('a, button');
+          if (focusTarget) {
+            window.requestAnimationFrame(() => focusTarget.focus());
+          }
+        };
+
+        const openStartModal = () => {
+          if (!startModal) return;
+          previousFocusBeforeStartModal =
+            document.activeElement instanceof HTMLElement ? document.activeElement : null;
+          startModal.classList.add('is-active');
+          startModal.setAttribute('aria-hidden', 'false');
+          focusFirstStartChoice();
+        };
+
+        const closeStartModal = () => {
+          if (!startModal) return;
+          startModal.classList.remove('is-active');
+          startModal.setAttribute('aria-hidden', 'true');
+          if (previousFocusBeforeStartModal?.focus) {
+            previousFocusBeforeStartModal.focus();
+          }
+        };
+
+        if (startModalTrigger && startModal) {
+          startModalTrigger.addEventListener('click', (event) => {
+            event.preventDefault();
+            openStartModal();
+          });
+        }
+
+        startModalBackdrop?.addEventListener('click', closeStartModal);
+        startModalCloseButtons.forEach((button) => {
+          button.addEventListener('click', closeStartModal);
+        });
+
+        document.addEventListener('keydown', (event) => {
+          if (!startModal?.classList.contains('is-active')) {
+            return;
+          }
+
+          if (event.key === 'Escape') {
+            closeStartModal();
+            return;
+          }
+
+          if (event.key === 'Tab') {
+            const focusableElements = startModal?.querySelectorAll(
+              'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+            );
+
+            if (!focusableElements || !focusableElements.length) {
+              return;
+            }
+
+            const focusable = Array.from(focusableElements);
+            const firstElement = focusable[0];
+            const lastElement = focusable[focusable.length - 1];
+
+            if (event.shiftKey && document.activeElement === firstElement) {
+              event.preventDefault();
+              lastElement.focus();
+            } else if (!event.shiftKey && document.activeElement === lastElement) {
+              event.preventDefault();
+              firstElement.focus();
+            }
+          }
+        });
 
         const setOrientationActionState = (state) => {
           if (!orientationActionButton || !orientationActionLabel) {
