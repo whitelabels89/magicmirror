@@ -411,6 +411,32 @@
     });
     document.getElementById('togglePass').addEventListener('click', ()=>{ const t = pass.getAttribute('type')==='password'?'text':'password'; pass.setAttribute('type', t); });
 
+    const params = new URLSearchParams(window.location.search);
+    const DEFAULT_REDIRECT = '/elearn/login.html';
+    function sanitizeRedirect(target){
+      if (!target) return null;
+      try {
+        const url = new URL(target, window.location.origin);
+        if (url.origin !== window.location.origin) return null;
+        if (url.pathname === window.location.pathname) return null;
+        return `${url.pathname}${url.search || ''}${url.hash || ''}`;
+      } catch (_){
+        return null;
+      }
+    }
+    let redirectPath = sanitizeRedirect(params.get('next'));
+    if (!redirectPath && document.referrer){
+      try {
+        const refUrl = new URL(document.referrer);
+        if (refUrl.origin === window.location.origin && refUrl.pathname !== window.location.pathname){
+          redirectPath = `${refUrl.pathname}${refUrl.search || ''}${refUrl.hash || ''}`;
+        }
+      } catch (_){ /* ignore */ }
+    }
+    redirectPath = redirectPath || DEFAULT_REDIRECT;
+    const signInLink = document.querySelector('.muted .link');
+    if (signInLink){ signInLink.setAttribute('href', redirectPath); }
+
     const statusEl = document.getElementById('status');
     const form = document.getElementById('signupForm');
     const btn = document.getElementById('submitBtn');
@@ -495,7 +521,7 @@
         try{ localStorage.setItem('USER_INFO', JSON.stringify({ uid, cid, nama, email, wa, role:'murid' })); }catch(_){ }
         await registerBackend({ uid, cid, nama, email, wa, password: pwd, role: 'murid' });
         setStatus('✅ Account created. Redirecting to sign in…', true);
-        setTimeout(()=>{ window.location.href = '/elearn/login.html'; }, 1200);
+        setTimeout(()=>{ window.location.href = redirectPath; }, 1200);
       }catch(err){
         console.error(err);
         setStatus('❌ Sign up failed: ' + (err && err.message ? err.message : 'Unknown error'), false);
