@@ -597,6 +597,27 @@
         box-shadow: 0 24px 48px rgba(255, 64, 246, 0.38);
       }
 
+      /* Inline login in modal */
+      .inline-login { display: none; }
+      .inline-login.is-active { display: block; animation: fadeIn 220ms ease; }
+      .inline-login__frame {
+        position: relative;
+        width: 100%;
+        height: min(540px, 70vh);
+        border-radius: 18px;
+        overflow: hidden;
+        border: 1px solid var(--panel-border);
+        background: rgba(4, 4, 16, 0.6);
+        box-shadow: 0 16px 36px rgba(3, 6, 28, 0.45);
+      }
+      .inline-login__frame iframe {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        display: block;
+        background: transparent;
+      }
+
       .settings-wrapper {
         position: absolute;
         top: 1.5rem;
@@ -936,7 +957,7 @@
             ></path>
           </svg>
           Login
-        </button>
+        </a>
         <a class="settings-link signup-link" href="../elearn/daftar.html">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path
@@ -1000,6 +1021,18 @@
             <span class="start-modal__choice-title">Masuk dengan Akun Terdaftar</span>
             <span class="start-modal__choice-desc">Gunakan akun yang telah kamu daftarkan untuk menyimpan progres.</span>
           </a>
+        </div>
+        <!-- Inline registered-login view (hidden by default) -->
+        <div class="inline-login" data-inline-login aria-hidden="true">
+          <h3 class="start-modal__heading" style="margin-top:.25rem">Masuk Akun Terdaftar</h3>
+          <p class="start-modal__description">Gunakan akun Queen's Academy untuk melanjutkan progresmu.</p>
+          <div class="inline-login__frame">
+            <!-- lazy load the iframe when selected -->
+            <iframe title="Login" data-src="/elearn/login.html?embed=1" loading="lazy" referrerpolicy="no-referrer"></iframe>
+          </div>
+          <div style="display:flex;justify-content:center;margin-top:0.75rem">
+            <button type="button" class="settings-link" data-inline-login-back>← Kembali</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1468,8 +1501,76 @@
 
           // Registered login: keep inline, cancel default navigation
           if (START_REGISTERED_HREF_TEST.test(href)) {
-            // Stop navigation completely and keep modal open
-            // Consumers can listen to this custom event to render the inline login form.
+            // Buka modal & tampilkan tampilan login inline
+            openStartModal();
+            const choicesGrid = startModal?.querySelector('.start-modal__choices');
+            const inlineLogin = startModal?.querySelector('[data-inline-login]');
+            if (choicesGrid) choicesGrid.style.display = 'none';
+            if (inlineLogin) {
+              inlineLogin.classList.add('is-active');
+              inlineLogin.setAttribute('aria-hidden', 'false');
+              const iframe = inlineLogin.querySelector('iframe');
+              if (iframe && !iframe.getAttribute('src')) {
+                const src = iframe.getAttribute('data-src') || '/elearn/login.html';
+                iframe.setAttribute('src', src);
+                // When the iframe loads (same-origin), sanitize layout for embed
+                const onFrameLoad = () => {
+                  try {
+                    const doc = iframe.contentDocument || iframe.contentWindow?.document;
+                    if (!doc) return;
+                    doc.documentElement.classList.add('is-embed');
+                    doc.body.classList.add('is-embed');
+                    Object.assign(doc.body.style, {
+                      background: 'transparent',
+                      padding: '12px',
+                      margin: '0',
+                    });
+
+                    // try to locate a login form and its visual container
+                    const form = doc.querySelector('form[action*="login"], form input[type="password"]') || doc.querySelector('form');
+                    let card = null;
+                    if (form) {
+                      card = form.closest('.card, .container, .panel, .box, .section, .content, .login, .wrapper') || form.parentElement;
+                    }
+                    if (card) {
+                      // Hide everything except the card ancestor section to keep page compact
+                      const keep = card;
+                      Array.from(doc.body.children).forEach((el) => {
+                        if (el !== keep) {
+                          el.style.display = 'none';
+                        }
+                      });
+                      // Center & size
+                      Object.assign(keep.style, {
+                        margin: '0 auto',
+                        maxWidth: '520px',
+                        width: '100%',
+                        borderRadius: '18px',
+                        background: 'rgba(8,8,24,0.85)',
+                        border: '1px solid rgba(255,255,255,0.2)',
+                        boxShadow: '0 16px 36px rgba(3,6,28,0.45)',
+                        padding: '16px'
+                      });
+                    } else {
+                      // Fallback: scale down whole page
+                      const root = doc.body;
+                      root.style.transformOrigin = 'top center';
+                      root.style.transform = 'scale(0.9)';
+                      root.style.width = '111%';
+                    }
+
+                    // try to hide common promos/tooltips/banners
+                    doc.querySelectorAll(
+                      '.toast, .tooltip, .promo, .banner, .swiper-hint, [data-tour], [data-promo]'
+                    ).forEach((n) => (n.style.display = 'none'));
+                  } catch (e) {
+                    /* ignore cross-origin or other errors */
+                  }
+                };
+                iframe.addEventListener('load', onFrameLoad, { once: true });
+              }
+            }
+            // (opsional) notifikasi global
             document.dispatchEvent(new CustomEvent('start:registered-login-selected', {
               detail: { from: 'start-modal', href }
             }));
@@ -1504,6 +1605,96 @@
             evt.stopPropagation();
 
             handleStartChoice(a);
+          });
+        }
+
+        // Also respond when some other UI emits the same intent
+        document.addEventListener('start:registered-login-selected', () => {
+          openStartModal();
+          const choicesGrid = startModal?.querySelector('.start-modal__choices');
+          const inlineLogin = startModal?.querySelector('[data-inline-login]');
+          if (choicesGrid) choicesGrid.style.display = 'none';
+          if (inlineLogin) {
+            inlineLogin.classList.add('is-active');
+            inlineLogin.setAttribute('aria-hidden', 'false');
+            const iframe = inlineLogin.querySelector('iframe');
+            if (iframe && !iframe.getAttribute('src')) {
+              const src = iframe.getAttribute('data-src') || '/elearn/login.html';
+              iframe.setAttribute('src', src);
+              // When the iframe loads (same-origin), sanitize layout for embed
+              const onFrameLoad = () => {
+                try {
+                  const doc = iframe.contentDocument || iframe.contentWindow?.document;
+                  if (!doc) return;
+                  doc.documentElement.classList.add('is-embed');
+                  doc.body.classList.add('is-embed');
+                  Object.assign(doc.body.style, {
+                    background: 'transparent',
+                    padding: '12px',
+                    margin: '0',
+                  });
+
+                  // try to locate a login form and its visual container
+                  const form = doc.querySelector('form[action*="login"], form input[type="password"]') || doc.querySelector('form');
+                  let card = null;
+                  if (form) {
+                    card = form.closest('.card, .container, .panel, .box, .section, .content, .login, .wrapper') || form.parentElement;
+                  }
+                  if (card) {
+                    // Hide everything except the card ancestor section to keep page compact
+                    const keep = card;
+                    Array.from(doc.body.children).forEach((el) => {
+                      if (el !== keep) {
+                        el.style.display = 'none';
+                      }
+                    });
+                    // Center & size
+                    Object.assign(keep.style, {
+                      margin: '0 auto',
+                      maxWidth: '520px',
+                      width: '100%',
+                      borderRadius: '18px',
+                      background: 'rgba(8,8,24,0.85)',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      boxShadow: '0 16px 36px rgba(3,6,28,0.45)',
+                      padding: '16px'
+                    });
+                  } else {
+                    // Fallback: scale down whole page
+                    const root = doc.body;
+                    root.style.transformOrigin = 'top center';
+                    root.style.transform = 'scale(0.9)';
+                    root.style.width = '111%';
+                  }
+
+                  // try to hide common promos/tooltips/banners
+                  doc.querySelectorAll(
+                    '.toast, .tooltip, .promo, .banner, .swiper-hint, [data-tour], [data-promo]'
+                  ).forEach((n) => (n.style.display = 'none'));
+                } catch (e) {
+                  /* ignore cross-origin or other errors */
+                }
+              };
+              iframe.addEventListener('load', onFrameLoad, { once: true });
+            }
+          }
+        });
+
+        // Back from inline login to choices
+        const inlineLoginBackBtn = startModal?.querySelector('[data-inline-login-back]') || null;
+        if (inlineLoginBackBtn) {
+          inlineLoginBackBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const choicesGrid = startModal?.querySelector('.start-modal__choices');
+            const inlineLogin = startModal?.querySelector('[data-inline-login]');
+            if (inlineLogin) {
+              inlineLogin.classList.remove('is-active');
+              inlineLogin.setAttribute('aria-hidden', 'true');
+            }
+            if (choicesGrid) {
+              choicesGrid.style.display = '';
+            }
+            focusFirstStartChoice();
           });
         }
 
