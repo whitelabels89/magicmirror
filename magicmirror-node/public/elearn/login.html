@@ -116,6 +116,43 @@
       margin: 0 auto;
     }
 
+    html.login-embed.in-start-modal,
+    html.login-embed.in-start-modal body {
+      height: auto;
+      min-height: 100%;
+      overflow-x: hidden;
+      overflow-y: visible;
+    }
+
+    html.login-embed.in-start-modal body.login-body {
+      justify-content: flex-start;
+      align-items: center;
+      padding: clamp(1.5rem, 4vw, 2.5rem) 0;
+      gap: clamp(1.25rem, 4vw, 2rem);
+    }
+
+    html.login-embed.in-start-modal #main-wrapper {
+      height: auto;
+      overflow: visible;
+    }
+
+    html.login-embed.in-start-modal #main-wrapper > .container,
+    html.login-embed.in-start-modal #main-wrapper > .side-slide {
+      height: auto;
+      min-height: 0;
+    }
+
+    html.login-embed.in-start-modal .embed-login {
+      min-height: auto;
+      height: auto;
+      padding: clamp(1.25rem, 4vw, 2rem) clamp(1rem, 3vw, 2rem);
+    }
+
+    html.login-embed.in-start-modal .embed-login .login-card {
+      width: min(100%, 420px);
+      margin: 0 auto;
+    }
+
     .login-card__header {
       display: flex;
       flex-direction: column;
@@ -1217,12 +1254,75 @@
 <script>
   const BACKEND_URL = "https://firebase-upload-backend.onrender.com";
   const EMBED_MESSAGE_SOURCE = 'elearn-login';
+  let lastSentEmbedHeight = 0;
+  let embedResizeObserver = null;
+
+  function getEmbedDocumentHeight() {
+    const docEl = document.documentElement;
+    const body = document.body;
+    const candidates = [
+      docEl?.scrollHeight,
+      docEl?.offsetHeight,
+      docEl?.clientHeight,
+      body?.scrollHeight,
+      body?.offsetHeight,
+      body?.clientHeight
+    ]
+      .map((value) => (typeof value === 'number' ? value : 0))
+      .filter((value) => value > 0);
+    return candidates.length ? Math.max(...candidates) : 0;
+  }
+
+  function notifyParentAboutSize(force = false) {
+    if (!isEmbedMode) {
+      return;
+    }
+    try {
+      const height = getEmbedDocumentHeight();
+      if (!height) {
+        return;
+      }
+      if (!force && Math.abs(height - lastSentEmbedHeight) < 2) {
+        return;
+      }
+      lastSentEmbedHeight = height;
+      window.parent?.postMessage(
+        {
+          source: EMBED_MESSAGE_SOURCE,
+          type: 'login-resize',
+          height,
+          embed: true
+        },
+        '*'
+      );
+    } catch (error) {
+      console.warn('Tidak dapat mengirim ukuran embed ke parent:', error);
+    }
+  }
+
+  function setupEmbedResizeObserver() {
+    if (!isEmbedMode || typeof ResizeObserver === 'undefined') {
+      return;
+    }
+    if (embedResizeObserver) {
+      return;
+    }
+    embedResizeObserver = new ResizeObserver(() => {
+      notifyParentAboutSize();
+    });
+    try {
+      embedResizeObserver.observe(document.body);
+    } catch (error) {
+      console.warn('ResizeObserver gagal memantau body embed:', error);
+    }
+  }
 
   function setEmbedStatus(message, type = 'info') {
     const statusEl = document.getElementById('embedStatus');
     if (statusEl) {
       statusEl.textContent = message || '';
       statusEl.dataset.state = type;
+      notifyParentAboutSize();
     }
   }
 
@@ -1463,6 +1563,9 @@
       if (embedWrapper) {
         embedWrapper.removeAttribute('aria-hidden');
       }
+      notifyParentAboutSize(true);
+      setTimeout(() => notifyParentAboutSize(), 120);
+      setupEmbedResizeObserver();
     }
 
     const loginForm = document.getElementById('embedLoginForm');
@@ -1503,6 +1606,14 @@
     if (signupBtn) {
       signupBtn.addEventListener('click', embedGoToSignup);
     }
+  });
+
+  window.addEventListener('load', () => {
+    notifyParentAboutSize();
+  });
+
+  window.addEventListener('resize', () => {
+    notifyParentAboutSize();
   });
 </script>
 

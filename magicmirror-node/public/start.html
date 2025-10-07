@@ -1302,6 +1302,67 @@
         const inlineGuestPanel = startModal?.querySelector('[data-inline-guest]') || null;
         const inlineLoginPanel = startModal?.querySelector('[data-inline-login]') || null;
         const inlinePanels = [inlineGuestPanel, inlineLoginPanel].filter(Boolean);
+        const inlineLoginFrameWrapper = inlineLoginPanel?.querySelector('.inline-login__frame') || null;
+        const inlineLoginIframe = inlineLoginFrameWrapper?.querySelector('iframe') || null;
+        const DEFAULT_INLINE_LOGIN_HEIGHT = 420;
+        let currentInlineLoginHeight = 0;
+
+        const setInlineLoginFrameHeight = (nextHeight) => {
+          if (!inlineLoginFrameWrapper || !inlineLoginIframe) {
+            return;
+          }
+          const parsedHeight = typeof nextHeight === 'string' ? parseFloat(nextHeight) : nextHeight;
+          const numericHeight = Number.isFinite(nextHeight)
+            ? nextHeight
+            : Number.isFinite(parsedHeight)
+              ? parsedHeight
+              : 0;
+          const proposed = Math.max(
+            DEFAULT_INLINE_LOGIN_HEIGHT,
+            Number.isFinite(numericHeight) ? Math.ceil(numericHeight) : 0
+          );
+          if (!proposed) {
+            return;
+          }
+          if (Math.abs(proposed - currentInlineLoginHeight) < 2) {
+            return;
+          }
+          currentInlineLoginHeight = proposed;
+          inlineLoginIframe.style.height = `${proposed}px`;
+          inlineLoginFrameWrapper.style.minHeight = `${proposed}px`;
+          inlineLoginFrameWrapper.style.height = `${proposed}px`;
+        };
+
+        const measureInlineLoginFrameHeight = () => {
+          if (!inlineLoginIframe) {
+            return;
+          }
+          try {
+            const doc = inlineLoginIframe.contentDocument || inlineLoginIframe.contentWindow?.document;
+            if (!doc) {
+              return;
+            }
+            const docEl = doc.documentElement;
+            const body = doc.body;
+            const candidates = [
+              docEl?.scrollHeight,
+              docEl?.offsetHeight,
+              docEl?.clientHeight,
+              body?.scrollHeight,
+              body?.offsetHeight,
+              body?.clientHeight
+            ]
+              .map((value) => (typeof value === 'number' ? value : 0))
+              .filter((value) => value > 0);
+            if (candidates.length) {
+              const nextHeight = Math.max(...candidates);
+              setInlineLoginFrameHeight(nextHeight);
+            }
+          } catch (error) {
+            console.warn('[start.html] Tidak dapat mengukur tinggi iframe login:', error);
+          }
+        };
+
         let previousFocusBeforeStartModal = null;
         const INTRO_STORAGE_KEY = 'qaStartIntroSeen';
         const orientationDefaultLabel = orientationActionLabel?.textContent?.trim() || 'Rotate & Play';
@@ -1373,6 +1434,10 @@
           }
           panel.classList.add('is-active');
           panel.setAttribute('aria-hidden', 'false');
+          if (panel === inlineLoginPanel) {
+            measureInlineLoginFrameHeight();
+            setTimeout(() => measureInlineLoginFrameHeight(), 160);
+          }
           focusFirstInlineElement(panel);
         };
 
@@ -1782,12 +1847,15 @@
                 const onFrameLoad = () => {
                   try {
                     const doc = iframe.contentDocument || iframe.contentWindow?.document;
-                    if (!doc) return;
-                    doc.documentElement.classList.add('in-start-modal');
-                    doc.body.classList.add('in-start-modal');
+                    if (doc) {
+                      doc.documentElement.classList.add('in-start-modal');
+                      doc.body.classList.add('in-start-modal');
+                    }
                   } catch (e) {
                     /* ignore */
                   }
+                  measureInlineLoginFrameHeight();
+                  setTimeout(() => measureInlineLoginFrameHeight(), 120);
                 };
                 iframe.addEventListener('load', onFrameLoad, { once: true });
               }
@@ -1847,12 +1915,15 @@
               const onFrameLoad = () => {
                 try {
                   const doc = iframe.contentDocument || iframe.contentWindow?.document;
-                  if (!doc) return;
-                  doc.documentElement.classList.add('in-start-modal');
-                  doc.body.classList.add('in-start-modal');
+                  if (doc) {
+                    doc.documentElement.classList.add('in-start-modal');
+                    doc.body.classList.add('in-start-modal');
+                  }
                 } catch (e) {
                   /* ignore */
                 }
+                measureInlineLoginFrameHeight();
+                setTimeout(() => measureInlineLoginFrameHeight(), 120);
               };
               iframe.addEventListener('load', onFrameLoad, { once: true });
             }
@@ -1936,7 +2007,14 @@
           if (event.origin && event.origin !== window.location.origin) {
             return;
           }
-          const { type, redirect, embed } = event.data;
+          const { type, redirect, embed, source, height } = event.data;
+          if (source && source !== 'elearn-login') {
+            return;
+          }
+          if (type === 'login-resize' && embed && (typeof height === 'number' || typeof height === 'string')) {
+            setInlineLoginFrameHeight(height);
+            return;
+          }
           if (type === 'login-success' && embed) {
             const target = typeof redirect === 'string' && redirect
               ? redirect
