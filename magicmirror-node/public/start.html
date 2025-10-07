@@ -10,6 +10,26 @@
       href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@400;600&display=swap"
       rel="stylesheet"
     />
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyBVO4ajDwkbcTGL33SVMxIoev4veB8itgI",
+        authDomain: "queens-academy-icoding.firebaseapp.com",
+        projectId: "queens-academy-icoding",
+        storageBucket: "queens-academy-icoding.firebasestorage.app",
+        messagingSenderId: "1048549258959",
+        appId: "1:1048549258959:web:f8dc1c104bb170d7ff69ba",
+        measurementId: "G-RJCXM1YL7E"
+      };
+
+      if (typeof firebase !== "undefined" && (!firebase.apps || !firebase.apps.length)) {
+        firebase.initializeApp(firebaseConfig);
+      }
+
+      const BACKEND_URL = "https://firebase-upload-backend.onrender.com";
+      const START_LOGIN_REDIRECT = "/elearn/worlds/calistung/index.html";
+    </script>
     <style>
       :root {
         --primary: #ff3ff5;
@@ -421,6 +441,8 @@
         text-transform: uppercase;
         text-decoration: none;
         box-shadow: var(--glow);
+        cursor: pointer;
+        appearance: none;
         transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
       }
 
@@ -441,6 +463,357 @@
       .cta-button.secondary {
         background: linear-gradient(120deg, rgba(24, 241, 255, 0.9), rgba(76, 106, 255, 0.9));
         box-shadow: 0 0 22px rgba(24, 241, 255, 0.5);
+      }
+
+      .start-modal {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: clamp(1.5rem, 4vw, 3rem);
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 200ms ease, visibility 200ms ease;
+        z-index: 40;
+      }
+
+      .start-modal.is-active {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+      }
+
+      .start-modal__backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(4, 4, 16, 0.86);
+        backdrop-filter: blur(6px);
+      }
+
+      .start-modal__panel {
+        position: relative;
+        width: min(520px, 100%);
+        padding: clamp(1.75rem, 4vw, 2.5rem);
+        border-radius: 28px;
+        background: rgba(10, 10, 32, 0.96);
+        border: 1px solid var(--panel-border);
+        box-shadow: 0 28px 60px rgba(3, 6, 28, 0.55);
+        display: flex;
+        flex-direction: column;
+        gap: 1.35rem;
+      }
+
+      .start-modal__close {
+        position: absolute;
+        top: clamp(0.75rem, 3vw, 1.25rem);
+        right: clamp(0.75rem, 3vw, 1.25rem);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        background: rgba(18, 18, 48, 0.85);
+        color: var(--text-light);
+        cursor: pointer;
+        transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+      }
+
+      .start-modal__close:hover,
+      .start-modal__close:focus-visible {
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 16px 28px rgba(24, 241, 255, 0.35);
+        border-color: rgba(24, 241, 255, 0.45);
+        outline: none;
+      }
+
+      .start-modal__heading {
+        margin: 0;
+        font-family: "Orbitron", sans-serif;
+        font-size: clamp(1.35rem, 4vw, 1.7rem);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        text-align: center;
+      }
+
+      .start-modal__description {
+        margin: 0;
+        font-size: clamp(0.95rem, 2.6vw, 1.1rem);
+        line-height: 1.6;
+        text-align: center;
+        opacity: 0.85;
+      }
+
+      .start-modal__choices {
+        display: grid;
+        gap: 1rem;
+      }
+
+      .start-modal__choices[hidden] {
+        display: none;
+      }
+
+      .start-modal__choice {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        padding: 1.1rem 1.4rem;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        background: linear-gradient(140deg, rgba(24, 241, 255, 0.14), rgba(255, 64, 246, 0.18));
+        color: var(--text-light);
+        text-decoration: none;
+        transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+        cursor: pointer;
+        font: inherit;
+        text-align: left;
+      }
+
+      button.start-modal__choice {
+        background-clip: padding-box;
+        width: 100%;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+      }
+
+      .start-modal__choice:hover,
+      .start-modal__choice:focus-visible {
+        transform: translateY(-3px);
+        box-shadow: 0 18px 38px rgba(24, 241, 255, 0.35);
+        border-color: rgba(24, 241, 255, 0.45);
+        outline: none;
+      }
+
+      .start-modal__choice-title {
+        font-family: "Orbitron", sans-serif;
+        font-size: clamp(1.05rem, 3vw, 1.25rem);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .start-modal__choice-desc {
+        font-size: clamp(0.9rem, 2.4vw, 1rem);
+        line-height: 1.5;
+        opacity: 0.8;
+      }
+
+      .start-modal__choice--primary {
+        background: linear-gradient(140deg, rgba(255, 64, 246, 0.32), rgba(24, 241, 255, 0.24));
+        border-color: rgba(255, 255, 255, 0.28);
+        box-shadow: 0 20px 44px rgba(255, 64, 246, 0.25);
+      }
+
+      .start-modal__choice--primary:hover,
+      .start-modal__choice--primary:focus-visible {
+        box-shadow: 0 24px 48px rgba(255, 64, 246, 0.38);
+      }
+
+      .start-modal__login {
+        display: flex;
+        flex-direction: column;
+        gap: 1.1rem;
+        margin-top: 1.5rem;
+      }
+
+      .start-modal__login[hidden] {
+        display: none;
+      }
+
+      .start-modal__guest {
+        display: flex;
+        flex-direction: column;
+        gap: 1.1rem;
+        margin-top: 1.5rem;
+      }
+
+      .start-modal__guest[hidden] {
+        display: none;
+      }
+
+      .start-modal__guest-copy {
+        font-size: clamp(0.92rem, 2.4vw, 1rem);
+        line-height: 1.55;
+        opacity: 0.85;
+        margin: 0;
+      }
+
+      .start-modal__guest-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+      }
+
+      .start-modal__login-back {
+        align-self: flex-start;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.35rem 0.75rem 0.35rem 0.55rem;
+        border-radius: 999px;
+        border: 1px solid rgba(24, 241, 255, 0.4);
+        background: rgba(8, 12, 32, 0.65);
+        color: var(--secondary);
+        font-family: "Orbitron", sans-serif;
+        font-size: clamp(0.68rem, 2vw, 0.78rem);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+      }
+
+      .start-modal__login-back:hover,
+      .start-modal__login-back:focus-visible {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 30px rgba(24, 241, 255, 0.35);
+        border-color: rgba(24, 241, 255, 0.6);
+        outline: none;
+      }
+
+      .start-modal__form {
+        display: flex;
+        flex-direction: column;
+        gap: 0.85rem;
+      }
+
+      .start-modal__field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+
+      .start-modal__label {
+        font-size: clamp(0.78rem, 2vw, 0.88rem);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        opacity: 0.75;
+      }
+
+      .start-modal__input {
+        padding: 0.75rem 1rem;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.24);
+        background: rgba(12, 12, 36, 0.7);
+        color: var(--text-light);
+        font-family: "Rajdhani", sans-serif;
+        font-size: clamp(0.95rem, 2.4vw, 1.05rem);
+        transition: border-color 160ms ease, box-shadow 160ms ease;
+      }
+
+      .start-modal__input:focus {
+        border-color: rgba(24, 241, 255, 0.7);
+        box-shadow: 0 0 0 2px rgba(24, 241, 255, 0.25);
+        outline: none;
+      }
+
+      .start-modal__password {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+
+      .start-modal__password .start-modal__input {
+        width: 100%;
+        padding-right: 2.75rem;
+      }
+
+      .start-modal__password-toggle {
+        position: absolute;
+        top: 50%;
+        right: 0.8rem;
+        transform: translateY(-50%);
+        border: none;
+        background: none;
+        color: rgba(255, 255, 255, 0.65);
+        cursor: pointer;
+        font-size: 1.1rem;
+        line-height: 1;
+        padding: 0.2rem;
+      }
+
+      .start-modal__password-toggle:hover,
+      .start-modal__password-toggle:focus-visible {
+        color: var(--secondary);
+        outline: none;
+      }
+
+      .start-modal__actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+      }
+
+      .start-modal__submit {
+        padding: 0.85rem 1rem;
+        border-radius: 16px;
+        border: none;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: var(--text-light);
+        font-family: "Orbitron", sans-serif;
+        font-size: clamp(1rem, 3vw, 1.1rem);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: transform 180ms ease, box-shadow 180ms ease, opacity 160ms ease;
+      }
+
+      .start-modal__submit:hover,
+      .start-modal__submit:focus-visible {
+        transform: translateY(-2px);
+        box-shadow: 0 18px 32px rgba(255, 64, 246, 0.4);
+        outline: none;
+      }
+
+      .start-modal__submit:disabled {
+        opacity: 0.7;
+        cursor: progress;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .start-modal__google {
+        padding: 0.75rem 1rem;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.24);
+        background: rgba(12, 12, 36, 0.65);
+        color: var(--text-light);
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.55rem;
+        transition: transform 180ms ease, box-shadow 180ms ease, border-color 160ms ease;
+      }
+
+      .start-modal__google:hover,
+      .start-modal__google:focus-visible {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 28px rgba(24, 241, 255, 0.3);
+        border-color: rgba(24, 241, 255, 0.45);
+        outline: none;
+      }
+
+      .start-modal__google:disabled {
+        opacity: 0.7;
+        cursor: progress;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .start-modal__status {
+        min-height: 1.25em;
+        font-size: clamp(0.8rem, 2.2vw, 0.92rem);
+        letter-spacing: 0.02em;
+      }
+
+      .start-modal__status--error {
+        color: #ff8b8b;
+      }
+
+      .start-modal__status--success {
+        color: #73ffd5;
       }
 
       .settings-wrapper {
@@ -592,6 +965,7 @@
         gap: 0.5rem;
         padding: 0.65rem 0.85rem;
         border-radius: 12px;
+        border: none;
         text-decoration: none;
         color: var(--text-light);
         font-family: "Rajdhani", sans-serif;
@@ -600,6 +974,7 @@
         background: linear-gradient(120deg, rgba(255, 64, 246, 0.85), rgba(116, 29, 255, 0.85));
         box-shadow: 0 0 20px rgba(255, 64, 246, 0.5);
         transition: transform 160ms ease, box-shadow 160ms ease;
+        cursor: pointer;
       }
 
       .settings-link:hover,
@@ -773,14 +1148,14 @@
             <span data-sound-label>Sound Off</span>
           </button>
         </div>
-        <a class="settings-link login-link" href="../elearn/login.html">
+        <button class="settings-link login-link" type="button" data-open-login="account">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path
               d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 2c-2.67 0-8 1.34-8 4v1.5c0 .28.22.5.5.5h15c.28 0 .5-.22.5-.5V18c0-2.66-5.33-4-8-4Z"
             ></path>
           </svg>
           Login
-        </a>
+        </button>
         <a class="settings-link signup-link" href="../elearn/daftar.html">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path
@@ -802,12 +1177,12 @@
         </p>
       </div>
       <div class="actions">
-        <a class="cta-button" href="../elearn/worlds/calistung/index.html">
+        <button class="cta-button" type="button" data-start-trigger>
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path d="m8 5 11 7-11 7V5Z"></path>
           </svg>
           Start Game
-        </a>
+        </button>
         <button class="cta-button secondary" type="button" data-settings-toggle-secondary>
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path
@@ -818,6 +1193,112 @@
         </button>
       </div>
     </main>
+
+    <div class="start-modal" data-start-modal aria-hidden="true">
+      <div class="start-modal__backdrop" data-start-modal-backdrop></div>
+      <div
+        class="start-modal__panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="startModalHeading"
+        data-start-modal-panel
+      >
+        <button class="start-modal__close" type="button" data-start-modal-close aria-label="Tutup pilihan">
+          ×
+        </button>
+        <h2 class="start-modal__heading" id="startModalHeading">Pilih Cara Masuk</h2>
+        <p class="start-modal__description" data-start-description>
+          Mulai petualanganmu sebagai tamu atau masuk menggunakan akun yang sudah terdaftar.
+        </p>
+        <div class="start-modal__choices" data-start-choices>
+          <button class="start-modal__choice" type="button" data-start-choice="guest">
+            <span class="start-modal__choice-title">Masuk sebagai Tamu</span>
+            <span class="start-modal__choice-desc"
+              >Coba petualangan Calistung tanpa akun &mdash; cocok untuk eksplorasi cepat.</span
+            >
+          </button>
+          <button class="start-modal__choice start-modal__choice--primary" type="button" data-start-choice="account">
+            <span class="start-modal__choice-title">Masuk dengan Akun Terdaftar</span>
+            <span class="start-modal__choice-desc"
+              >Gunakan email atau nomor WhatsApp yang sudah terdaftar untuk menyimpan progres.</span
+            >
+          </button>
+        </div>
+        <div class="start-modal__guest" data-start-guest hidden aria-hidden="true">
+          <button class="start-modal__login-back" type="button" data-start-guest-back>
+            ← Kembali
+          </button>
+          <p class="start-modal__guest-copy">
+            Masuk instan sebagai tamu. Progres tidak disimpan, tetapi kamu bisa langsung mencoba
+            permainan Calistung.
+          </p>
+          <form class="start-modal__form" data-start-guest-form novalidate>
+            <div class="start-modal__field">
+              <label class="start-modal__label" for="startGuestName">Nama Panggilan (opsional)</label>
+              <input
+                class="start-modal__input"
+                type="text"
+                id="startGuestName"
+                name="guestName"
+                autocomplete="nickname"
+                placeholder="Contoh: Aira"
+                data-start-guest-name
+              />
+            </div>
+            <div class="start-modal__guest-actions">
+              <button class="start-modal__submit" type="submit" data-start-guest-submit>
+                Mulai sebagai Tamu
+              </button>
+            </div>
+            <p class="start-modal__status" data-start-guest-status aria-live="polite"></p>
+          </form>
+        </div>
+        <div class="start-modal__login" data-start-login hidden aria-hidden="true">
+          <button class="start-modal__login-back" type="button" data-start-login-back>
+            ← Kembali
+          </button>
+          <form class="start-modal__form" data-start-login-form novalidate>
+            <div class="start-modal__field">
+              <label class="start-modal__label" for="startLoginUsername">Email / Nomor WA</label>
+              <input
+                class="start-modal__input"
+                type="text"
+                id="startLoginUsername"
+                name="username"
+                autocomplete="username"
+                data-start-login-username
+                required
+              />
+            </div>
+            <div class="start-modal__field">
+              <label class="start-modal__label" for="startLoginPassword">Password</label>
+              <div class="start-modal__password">
+                <input
+                  class="start-modal__input"
+                  type="password"
+                  id="startLoginPassword"
+                  name="password"
+                  autocomplete="current-password"
+                  data-start-login-password
+                  required
+                />
+                <button class="start-modal__password-toggle" type="button" data-start-password-toggle aria-label="Tampilkan sandi">
+                  👁️
+                </button>
+              </div>
+            </div>
+            <div class="start-modal__actions">
+              <button class="start-modal__submit" type="submit" data-start-login-submit>Masuk</button>
+              <button class="start-modal__google" type="button" data-start-login-google>
+                <span aria-hidden="true">🔐</span>
+                Login dengan Gmail
+              </button>
+            </div>
+            <p class="start-modal__status" data-start-login-status aria-live="polite"></p>
+          </form>
+        </div>
+      </div>
+    </div>
 
     <div class="audio-prompt" id="audioPrompt" role="status">
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -852,6 +1333,35 @@
           orientationActionButton?.querySelector('[data-orientation-action-label]') || null;
         const rewatchIntroButton = document.querySelector('[data-rewatch-intro]');
         const bodyEl = document.body;
+        const startModal = document.querySelector('[data-start-modal]');
+        const startModalTrigger = document.querySelector('[data-start-trigger]');
+        const startModalBackdrop = startModal?.querySelector('[data-start-modal-backdrop]') || null;
+        const startModalCloseButtons = startModal
+          ? startModal.querySelectorAll('[data-start-modal-close]')
+          : [];
+        const startModalPanel = startModal?.querySelector('[data-start-modal-panel]') || null;
+        const startModalHeading = startModal?.querySelector('#startModalHeading') || null;
+        const startModalDescription = startModal?.querySelector('[data-start-description]') || null;
+        const startModalChoicesContainer = startModal?.querySelector('[data-start-choices]') || null;
+        const startModalGuest = startModal?.querySelector('[data-start-guest]') || null;
+        const startModalLogin = startModal?.querySelector('[data-start-login]') || null;
+        const startGuestForm = startModal?.querySelector('[data-start-guest-form]') || null;
+        const startGuestNameInput = startModal?.querySelector('[data-start-guest-name]') || null;
+        const startGuestStatus = startModal?.querySelector('[data-start-guest-status]') || null;
+        const startGuestSubmit = startModal?.querySelector('[data-start-guest-submit]') || null;
+        const startLoginForm = startModal?.querySelector('[data-start-login-form]') || null;
+        const startLoginUsernameInput = startModal?.querySelector('[data-start-login-username]') || null;
+        const startLoginPasswordInput = startModal?.querySelector('[data-start-login-password]') || null;
+        const startLoginStatus = startModal?.querySelector('[data-start-login-status]') || null;
+        const startLoginSubmit = startModal?.querySelector('[data-start-login-submit]') || null;
+        const startLoginGoogle = startModal?.querySelector('[data-start-login-google]') || null;
+        const startLoginBackButton = startModal?.querySelector('[data-start-login-back]') || null;
+        const startPasswordToggle = startModal?.querySelector('[data-start-password-toggle]') || null;
+        const startGuestBackButton = startModal?.querySelector('[data-start-guest-back]') || null;
+        const settingsLoginLink = document.querySelector('[data-open-login="account"]');
+        const defaultStartModalHeading = startModalHeading?.textContent?.trim() || 'Pilih Cara Masuk';
+        const defaultStartModalDescription = startModalDescription?.textContent?.trim() || '';
+        let previousFocusBeforeStartModal = null;
         const INTRO_STORAGE_KEY = 'qaStartIntroSeen';
         const orientationDefaultLabel = orientationActionLabel?.textContent?.trim() || 'Rotate & Play';
         const isMobileDevice =
@@ -879,6 +1389,606 @@
         const isLandscapeOrientation = () =>
           window.matchMedia('(orientation: landscape)').matches ||
           window.innerWidth > window.innerHeight;
+
+        const setStartModalCopy = (headingText, descriptionText) => {
+          if (startModalHeading) {
+            startModalHeading.textContent = headingText;
+          }
+          if (startModalDescription) {
+            startModalDescription.textContent = descriptionText;
+          }
+        };
+
+        const updateStartLoginStatus = (message, variant = 'info') => {
+          if (!startLoginStatus) {
+            return;
+          }
+          startLoginStatus.textContent = message || '';
+          startLoginStatus.classList.remove('start-modal__status--error', 'start-modal__status--success');
+          if (variant === 'error') {
+            startLoginStatus.classList.add('start-modal__status--error');
+          } else if (variant === 'success') {
+            startLoginStatus.classList.add('start-modal__status--success');
+          }
+        };
+
+        const clearStartLoginStatus = () => {
+          updateStartLoginStatus('', 'info');
+        };
+
+        const resetStartLoginForm = () => {
+          if (startLoginForm) {
+            startLoginForm.reset();
+          }
+          if (startLoginPasswordInput) {
+            startLoginPasswordInput.type = 'password';
+          }
+          if (startPasswordToggle) {
+            startPasswordToggle.setAttribute('aria-label', 'Tampilkan sandi');
+            startPasswordToggle.textContent = '👁️';
+          }
+        };
+
+        const setLoginLoading = (isLoading) => {
+          const controls = [
+            startLoginUsernameInput,
+            startLoginPasswordInput,
+            startLoginSubmit,
+            startLoginGoogle,
+            startPasswordToggle
+          ];
+          controls.forEach((control) => {
+            if (!control) {
+              return;
+            }
+            if ('disabled' in control) {
+              control.disabled = isLoading;
+            } else if (control instanceof HTMLElement) {
+              control.setAttribute('aria-disabled', isLoading ? 'true' : 'false');
+            }
+          });
+          if (startLoginSubmit) {
+            startLoginSubmit.textContent = isLoading ? 'Memproses…' : 'Masuk';
+          }
+        };
+
+        const updateStartGuestStatus = (message, variant = 'info') => {
+          if (!startGuestStatus) {
+            return;
+          }
+          startGuestStatus.textContent = message || '';
+          startGuestStatus.classList.remove('start-modal__status--error', 'start-modal__status--success');
+          if (variant === 'error') {
+            startGuestStatus.classList.add('start-modal__status--error');
+          } else if (variant === 'success') {
+            startGuestStatus.classList.add('start-modal__status--success');
+          }
+        };
+
+        const clearStartGuestStatus = () => {
+          updateStartGuestStatus('', 'info');
+        };
+
+        const setGuestLoading = (isLoading) => {
+          if (startGuestSubmit) {
+            startGuestSubmit.disabled = isLoading;
+            startGuestSubmit.textContent = isLoading ? 'Memproses…' : 'Mulai sebagai Tamu';
+          }
+          if (startGuestNameInput) {
+            startGuestNameInput.disabled = isLoading;
+          }
+        };
+
+        const resetStartGuestForm = () => {
+          if (startGuestForm) {
+            startGuestForm.reset();
+          }
+          if (startGuestNameInput) {
+            startGuestNameInput.disabled = false;
+          }
+          setGuestLoading(false);
+          clearStartGuestStatus();
+        };
+
+        const generateGuestSessionId = () => {
+          if (window.crypto?.randomUUID) {
+            return window.crypto.randomUUID();
+          }
+          return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+        };
+
+        const redirectAfterLogin = () => {
+          window.location.href = START_LOGIN_REDIRECT;
+        };
+
+        const showStartChoices = ({ resetForm = false } = {}) => {
+          if (startModalChoicesContainer) {
+            startModalChoicesContainer.hidden = false;
+            startModalChoicesContainer.removeAttribute('aria-hidden');
+          }
+          if (startModalGuest) {
+            startModalGuest.hidden = true;
+            startModalGuest.setAttribute('aria-hidden', 'true');
+          }
+          if (startModalLogin) {
+            startModalLogin.hidden = true;
+            startModalLogin.setAttribute('aria-hidden', 'true');
+          }
+          if (resetForm) {
+            resetStartLoginForm();
+            clearStartLoginStatus();
+            resetStartGuestForm();
+          }
+          setStartModalCopy(defaultStartModalHeading, defaultStartModalDescription);
+        };
+
+        const showStartLogin = () => {
+          if (startModalChoicesContainer) {
+            startModalChoicesContainer.hidden = true;
+            startModalChoicesContainer.setAttribute('aria-hidden', 'true');
+          }
+          if (startModalGuest) {
+            startModalGuest.hidden = true;
+            startModalGuest.setAttribute('aria-hidden', 'true');
+          }
+          if (startModalLogin) {
+            startModalLogin.hidden = false;
+            startModalLogin.setAttribute('aria-hidden', 'false');
+          }
+          setStartModalCopy(
+            'Masuk Akun Terdaftar',
+            'Masukkan detail akun kamu untuk melanjutkan petualangan Calistung.'
+          );
+          clearStartLoginStatus();
+        };
+
+        const showStartGuest = () => {
+          if (startModalChoicesContainer) {
+            startModalChoicesContainer.hidden = true;
+            startModalChoicesContainer.setAttribute('aria-hidden', 'true');
+          }
+          if (startModalLogin) {
+            startModalLogin.hidden = true;
+            startModalLogin.setAttribute('aria-hidden', 'true');
+          }
+          if (startModalGuest) {
+            startModalGuest.hidden = false;
+            startModalGuest.setAttribute('aria-hidden', 'false');
+          }
+          setStartModalCopy(
+            'Masuk sebagai Tamu',
+            'Siap mencoba Calistung secara instan tanpa menyimpan progres akun.'
+          );
+          clearStartGuestStatus();
+          if (startGuestNameInput) {
+            startGuestNameInput.disabled = false;
+            window.requestAnimationFrame(() => startGuestNameInput.focus());
+          }
+        };
+
+        const persistGuestSession = () => {
+          const rawName = startGuestNameInput?.value?.trim() || '';
+          const guestDisplayName = rawName || 'Tamu Calistung';
+          const guestSessionId = generateGuestSessionId();
+          try {
+            localStorage.setItem('cid', 'guest');
+            localStorage.setItem('cid_login', 'guest');
+            localStorage.setItem('firebase_token', 'guest');
+            localStorage.setItem('guest_session_id', guestSessionId);
+            localStorage.setItem('guest_display_name', guestDisplayName);
+            localStorage.setItem('displayName', guestDisplayName);
+          } catch (error) {
+            console.warn('Tidak dapat menyimpan sesi tamu ke localStorage', error);
+          }
+          return guestDisplayName;
+        };
+
+        const handleGuestEntry = (event) => {
+          event?.preventDefault?.();
+          clearStartGuestStatus();
+          setGuestLoading(true);
+          try {
+            const guestName = persistGuestSession();
+            updateStartGuestStatus(`Halo, ${guestName}! Mengarahkan ke Calistung…`, 'success');
+            redirectAfterLogin();
+          } catch (error) {
+            console.error('Guest entry failed:', error);
+            updateStartGuestStatus('Tidak dapat memulai sesi tamu. Coba lagi.', 'error');
+            setGuestLoading(false);
+          }
+        };
+
+        const focusFirstStartElement = () => {
+          if (!startModal) {
+            return;
+          }
+          const activeScope =
+            startModalGuest && !startModalGuest.hidden
+              ? startModalGuest
+              : startModalLogin && !startModalLogin.hidden
+              ? startModalLogin
+              : startModalChoicesContainer;
+          const focusTarget = activeScope?.querySelector(
+            'input:not([disabled]), button:not([disabled]), a[href]:not([tabindex="-1"]), [tabindex]:not([tabindex="-1"])'
+          );
+          const fallbackTarget =
+            focusTarget instanceof HTMLElement
+              ? focusTarget
+              : startModalPanel?.querySelector('button, a[href], input');
+          if (fallbackTarget instanceof HTMLElement) {
+            window.requestAnimationFrame(() => fallbackTarget.focus());
+          }
+        };
+
+        const openStartModal = ({ view = 'choices', reset = true } = {}) => {
+          if (!startModal) return;
+          previousFocusBeforeStartModal =
+            document.activeElement instanceof HTMLElement ? document.activeElement : null;
+          startModal.classList.add('is-active');
+          startModal.setAttribute('aria-hidden', 'false');
+          if (view === 'login') {
+            if (reset) {
+              resetStartLoginForm();
+            }
+            showStartLogin();
+          } else if (view === 'guest') {
+            if (reset) {
+              resetStartGuestForm();
+            }
+            showStartGuest();
+          } else {
+            showStartChoices({ resetForm: reset });
+          }
+          focusFirstStartElement();
+        };
+
+        const closeStartModal = () => {
+          if (!startModal) return;
+          startModal.classList.remove('is-active');
+          startModal.setAttribute('aria-hidden', 'true');
+          showStartChoices({ resetForm: true });
+          if (previousFocusBeforeStartModal?.focus) {
+            previousFocusBeforeStartModal.focus();
+          }
+        };
+
+        if (startModalTrigger && startModal) {
+          startModalTrigger.addEventListener('click', (event) => {
+            event.preventDefault();
+            openStartModal();
+          });
+        }
+
+        startModalBackdrop?.addEventListener('click', closeStartModal);
+        startModalCloseButtons.forEach((button) => {
+          button.addEventListener('click', closeStartModal);
+        });
+
+        document.addEventListener('keydown', (event) => {
+          if (!startModal?.classList.contains('is-active')) {
+            return;
+          }
+
+          if (event.key === 'Escape') {
+            closeStartModal();
+            return;
+          }
+
+          if (event.key === 'Tab') {
+            const focusableElements = startModal?.querySelectorAll(
+              'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+            );
+
+            if (!focusableElements || !focusableElements.length) {
+              return;
+            }
+
+            const focusable = Array.from(focusableElements);
+            const firstElement = focusable[0];
+            const lastElement = focusable[focusable.length - 1];
+
+            if (event.shiftKey && document.activeElement === firstElement) {
+              event.preventDefault();
+              lastElement.focus();
+            } else if (!event.shiftKey && document.activeElement === lastElement) {
+              event.preventDefault();
+              firstElement.focus();
+            }
+          }
+        });
+
+        const handleStartChoiceNavigation = (choice) => {
+          if (choice === 'guest') {
+            resetStartGuestForm();
+            showStartGuest();
+            focusFirstStartElement();
+            return;
+          }
+          if (choice === 'account') {
+            showStartLogin();
+            focusFirstStartElement();
+          }
+        };
+
+        if (startModalChoicesContainer) {
+          const activateStartChoice = (event) => {
+            if (!(event.target instanceof HTMLElement)) {
+              return;
+            }
+            const trigger = event.target.closest('[data-start-choice]');
+            if (!trigger || !startModalChoicesContainer.contains(trigger)) {
+              return;
+            }
+            const choice = trigger.getAttribute('data-start-choice');
+            if (!choice) {
+              return;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            handleStartChoiceNavigation(choice);
+          };
+
+          startModalChoicesContainer.addEventListener('click', activateStartChoice);
+          startModalChoicesContainer.addEventListener('keydown', (event) => {
+            if (event.key !== 'Enter' && event.key !== ' ') {
+              return;
+            }
+            if (!(event.target instanceof HTMLElement)) {
+              return;
+            }
+            const trigger = event.target.closest('[data-start-choice]');
+            if (!trigger || trigger.tagName === 'BUTTON') {
+              return;
+            }
+            activateStartChoice(event);
+          });
+        }
+
+        startGuestBackButton?.addEventListener('click', () => {
+          showStartChoices();
+          focusFirstStartElement();
+        });
+
+        startLoginBackButton?.addEventListener('click', () => {
+          showStartChoices();
+          focusFirstStartElement();
+        });
+
+        startPasswordToggle?.addEventListener('click', () => {
+          if (!startLoginPasswordInput) {
+            return;
+          }
+          const isHidden = startLoginPasswordInput.getAttribute('type') === 'password';
+          startLoginPasswordInput.setAttribute('type', isHidden ? 'text' : 'password');
+          startPasswordToggle.setAttribute('aria-label', isHidden ? 'Sembunyikan sandi' : 'Tampilkan sandi');
+          startPasswordToggle.textContent = isHidden ? '🙈' : '👁️';
+          startLoginPasswordInput.focus();
+        });
+
+        if (startGuestForm) {
+          startGuestForm.addEventListener('submit', handleGuestEntry);
+        }
+
+        if (startLoginForm) {
+          startLoginForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            if (!startLoginUsernameInput || !startLoginPasswordInput) {
+              return;
+            }
+
+            const rawInput = startLoginUsernameInput.value.trim();
+            const password = startLoginPasswordInput.value;
+
+            if (!rawInput || !password) {
+              updateStartLoginStatus('Masukkan nomor WA / email dan password.', 'error');
+              return;
+            }
+
+            clearStartLoginStatus();
+            setLoginLoading(true);
+            const isEmail = rawInput.includes('@');
+
+            try {
+              try {
+                const bodyData = isEmail
+                  ? { email: rawInput, password }
+                  : { whatsapp: rawInput, password };
+
+                const res = await fetch(`${BACKEND_URL}/proxy-login-sheet`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(bodyData)
+                });
+
+                const result = await res.json();
+                if (result.success) {
+                  if (!result.cid && bodyData.whatsapp) {
+                    try {
+                      const getCid = await fetch(
+                        `${BACKEND_URL}/proxy-get-cid-by-wa?wa=${encodeURIComponent(bodyData.whatsapp)}`
+                      );
+                      const getCidResult = await getCid.json();
+                      result.cid = getCidResult.cid || '';
+                    } catch (error) {
+                      result.cid = '';
+                    }
+                  }
+
+                  if (result.cid) {
+                    localStorage.setItem('cid', result.cid);
+                    localStorage.setItem('cid_login', result.cid);
+                    localStorage.setItem('firebase_token', '1');
+                    updateStartLoginStatus('Login berhasil! Mengarahkan…', 'success');
+                    redirectAfterLogin();
+                    return;
+                  }
+
+                  updateStartLoginStatus('CID tidak ditemukan. Hubungi admin.', 'error');
+                  return;
+                }
+
+                if (result.message) {
+                  updateStartLoginStatus(result.message, 'error');
+                }
+              } catch (error) {
+                console.error('Login error:', error);
+                updateStartLoginStatus('Terjadi kesalahan server.', 'error');
+              }
+
+              const emailAlias = /^\d{10,15}$/.test(rawInput)
+                ? `${rawInput}@queensacademy.id`
+                : rawInput;
+
+              if (!emailAlias || !password) {
+                updateStartLoginStatus('Masukkan email / nomor WA dan password.', 'error');
+                return;
+              }
+
+              if (isEmail) {
+                try {
+                  const userCredential = await firebase
+                    .auth()
+                    .signInWithEmailAndPassword(emailAlias, password);
+                  const emailAddress = userCredential.user?.email || emailAlias;
+
+                  const profileRes = await fetch(
+                    `${BACKEND_URL}/proxy-get-cid-by-email?email=${encodeURIComponent(emailAddress)}`
+                  );
+                  if (!profileRes.ok) {
+                    const text = await profileRes.text();
+                    throw new Error(`Gagal ambil CID: ${text}`);
+                  }
+
+                  const profile = await profileRes.json();
+                  if (profile && profile.cid) {
+                    localStorage.setItem('cid', profile.cid);
+                    localStorage.setItem('cid_login', profile.cid);
+                    localStorage.setItem('firebase_token', '1');
+                    updateStartLoginStatus('Login berhasil! Mengarahkan…', 'success');
+                    redirectAfterLogin();
+                    return;
+                  }
+
+                  updateStartLoginStatus('Profil tidak ditemukan. Silakan hubungi admin.', 'error');
+                } catch (error) {
+                  console.error('Firebase login error:', error);
+                  let msg = 'Login gagal. Cek email / nomor dan password kamu.';
+                  if (error.code === 'auth/invalid-email') {
+                    msg = 'Format email tidak valid.';
+                  } else if (error.code === 'auth/user-not-found') {
+                    msg = 'Akun belum terdaftar. Silakan login dengan Gmail terlebih dahulu.';
+                  } else if (error.code === 'auth/wrong-password') {
+                    msg = 'Password salah. Coba lagi.';
+                  } else if (error.code === 'auth/too-many-requests') {
+                    msg = 'Terlalu banyak percobaan login. Silakan coba beberapa saat lagi.';
+                  }
+                  updateStartLoginStatus(msg, 'error');
+                }
+              }
+            } finally {
+              setLoginLoading(false);
+            }
+          });
+        }
+
+        if (startLoginGoogle) {
+          startLoginGoogle.addEventListener('click', async () => {
+            if (typeof firebase === 'undefined' || !firebase?.auth) {
+              updateStartLoginStatus('Fitur login Google tidak tersedia.', 'error');
+              return;
+            }
+
+            clearStartLoginStatus();
+            setLoginLoading(true);
+            const provider = new firebase.auth.GoogleAuthProvider();
+
+            try {
+              const result = await firebase.auth().signInWithPopup(provider);
+              const user = result.user;
+              const email = user?.email || '';
+              const name = user?.displayName || '';
+
+              if (!email) {
+                updateStartLoginStatus('Tidak dapat membaca email dari akun Google.', 'error');
+                return;
+              }
+
+              const res = await fetch(
+                `${BACKEND_URL}/proxy-check-email-sheet?email=${encodeURIComponent(email)}`
+              );
+              if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`HTTP ${res.status} during email check: ${text}`);
+              }
+
+              const data = await res.json();
+              const userCID = data.cid || data.CID;
+
+              if (!userCID) {
+                const getCidByEmail = await fetch(
+                  `${BACKEND_URL}/proxy-get-cid-by-email?email=${encodeURIComponent(email)}`
+                );
+                if (!getCidByEmail.ok) {
+                  const text = await getCidByEmail.text();
+                  throw new Error(`Gagal ambil CID dari email: ${text}`);
+                }
+                const emailData = await getCidByEmail.json();
+                if (emailData && emailData.cid) {
+                  localStorage.setItem('cid_login', emailData.cid);
+                  localStorage.setItem('cid', emailData.cid);
+                  localStorage.setItem('firebase_token', '1');
+                  updateStartLoginStatus('Login berhasil! Mengarahkan…', 'success');
+                  redirectAfterLogin();
+                  return;
+                }
+                updateStartLoginStatus('CID tidak ditemukan. Silakan hubungi admin.', 'error');
+                return;
+              }
+
+              if (data.exists) {
+                if (!data.migrated) {
+                  const oldPassword = window.prompt(
+                    'Akun ini sebelumnya dibuat manual. Masukkan password lama Anda untuk menghubungkan dengan akun Google:'
+                  );
+                  if (!oldPassword) {
+                    updateStartLoginStatus('Password diperlukan untuk migrasi akun.', 'error');
+                    return;
+                  }
+                  try {
+                    const credential = firebase.auth.EmailAuthProvider.credential(email, oldPassword);
+                    await user.linkWithCredential(credential);
+                    await fetch(`${BACKEND_URL}/proxy-update-migrated`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ email, migrated: true })
+                    });
+                    window.alert('✅ Akun berhasil dihubungkan ke Google.');
+                  } catch (err) {
+                    console.error('Gagal menghubungkan akun:', err);
+                    window.alert('Gagal menghubungkan akun. Pastikan password lama benar.');
+                    return;
+                  }
+                }
+
+                localStorage.setItem('cid_login', userCID);
+                localStorage.setItem('cid', userCID);
+                localStorage.setItem('firebase_token', '1');
+                updateStartLoginStatus('Login berhasil! Mengarahkan…', 'success');
+                redirectAfterLogin();
+              } else {
+                localStorage.setItem('temp_email', email);
+                localStorage.setItem('temp_displayName', name);
+                window.location.href = '/dashboard/set-password.html';
+              }
+            } catch (error) {
+              console.error('Login Gmail gagal:', error);
+              const message = error?.message ? `Login Gmail gagal: ${error.message}` : 'Login Gmail gagal.';
+              updateStartLoginStatus(message, 'error');
+            } finally {
+              setLoginLoading(false);
+            }
+          });
+        }
 
         const setOrientationActionState = (state) => {
           if (!orientationActionButton || !orientationActionLabel) {
@@ -1189,6 +2299,14 @@
             openSettings(!settingsOpen);
           });
         });
+
+        if (settingsLoginLink) {
+          settingsLoginLink.addEventListener('click', (event) => {
+            event.preventDefault();
+            openSettings(false);
+            openStartModal({ view: 'login' });
+          });
+        }
 
         document.addEventListener('click', (event) => {
           if (!settingsMenu.contains(event.target)) {
