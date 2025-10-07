@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login E-Learning</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="/elearn/login.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@500;600;700&family=Rajdhani:wght@400;600;700&display=swap"
+    rel="stylesheet"
+  >
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
@@ -22,6 +26,14 @@
       measurementId: "G-RJCXM1YL7E"
     };
     firebase.initializeApp(firebaseConfig);
+  </script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const isEmbedMode = urlParams.get('embed') === '1' || urlParams.get('embed') === 'true';
+    const embedRedirectTarget = urlParams.get('redirect') || '';
+    if (isEmbedMode) {
+      document.documentElement.classList.add('login-embed');
+    }
   </script>
   <style>
     .cta-digital-experience {
@@ -54,6 +66,217 @@
       font-weight: normal;
       margin-top: 4px;
       color: #e0e0e0;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    body.login-body {
+      margin: 0;
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      background: linear-gradient(180deg, #e0f7ff, #f0fbff);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      min-height: 50vh;
+      text-align: center;
+      color: #1a1a1a;
+    }
+
+    .embed-login {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(1.5rem, 5vw, 2.8rem) 1.5rem;
+      box-sizing: border-box;
+      min-height: 100vh;
+      width: 100%;
+    }
+
+    html.login-embed .embed-login {
+      display: flex;
+    }
+
+    html.login-embed [data-main-login] {
+      display: none !important;
+    }
+
+    .embed-login .login-card {
+      width: min(100%, 420px);
+      margin: 0 auto;
+    }
+
+    .login-card__header {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      margin-top: 1rem;
+    }
+
+    .login-card__title {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #1d2a44;
+    }
+
+    .login-card__subtitle {
+      margin: 0;
+      font-size: 0.95rem;
+      color: #4b4b4b;
+      line-height: 1.5;
+    }
+
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-top: 1.2rem;
+    }
+
+    .login-input {
+      padding: 0.75rem 0.85rem;
+      border-radius: 12px;
+      border: 1px solid #cce3f0;
+      background: #f7fcff;
+      font-size: 1rem;
+      color: #1d2a44;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .login-input:focus {
+      border-color: #7ac6ff;
+      box-shadow: 0 0 0 3px rgba(122, 198, 255, 0.25);
+    }
+
+    .login-password-field {
+      position: relative;
+      width: 100%;
+    }
+
+    .login-input--password {
+      padding-right: 3rem;
+    }
+
+    .toggle-password {
+      position: absolute;
+      top: 50%;
+      right: 0.75rem;
+      transform: translateY(-50%);
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 1rem;
+      color: #5a6a85;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.2rem;
+    }
+
+    .toggle-password:focus-visible {
+      outline: 2px solid #7ac6ff;
+      outline-offset: 2px;
+      border-radius: 50%;
+    }
+
+    .login-submit {
+      background-color: #91d2ff;
+      color: #ffffff;
+      border: none;
+      padding: 0.75rem;
+      border-radius: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .login-submit:hover,
+    .login-submit:focus-visible {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 20px rgba(145, 210, 255, 0.35);
+      outline: none;
+    }
+
+    .login-google {
+      margin-top: 0.85rem;
+      background: #ffffff;
+      color: #007acc;
+      border: 2px solid #007acc;
+      padding: 0.7rem 1rem;
+      border-radius: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+    }
+
+    .login-google:hover,
+    .login-google:focus-visible {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 22px rgba(0, 122, 204, 0.25);
+      outline: none;
+    }
+
+    .login-status {
+      margin-top: 0.75rem;
+      color: #d93025;
+      font-size: 0.85rem;
+      min-height: 1.2rem;
+    }
+
+    .login-status[data-state="success"] {
+      color: #1ec995;
+    }
+
+    .login-status[data-state="info"] {
+      color: #4b7fff;
+    }
+
+    .login-card__footer {
+      margin-top: 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .login-card__hint {
+      margin: 0;
+      font-size: 0.85rem;
+      color: #4b4b4b;
+    }
+
+    .login-secondary {
+      background: #e6f4ff;
+      color: #007acc;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .login-secondary:hover,
+    .login-secondary:focus-visible {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 20px rgba(0, 122, 204, 0.25);
+      outline: none;
     }
     /* White background container for all side slides */
     .side-slide .slide-content {
@@ -192,6 +415,176 @@
       .side-slide.custom-slide .slide-banner h1 { font-size: 2.3rem; }
       .cta-digital-experience { z-index: 1 !important; }
     }
+    /* Embed specific styling */
+    html.login-embed, html.login-embed body {
+      overflow: hidden;
+    }
+
+    html.login-embed body.login-body {
+      font-family: 'Rajdhani', 'Inter', sans-serif;
+      background: transparent;
+      min-height: auto;
+      padding: 0;
+      text-align: left;
+    }
+
+    html.login-embed .login-container {
+      width: 100%;
+      max-width: none;
+      padding: clamp(1rem, 4vw, 1.8rem) clamp(1rem, 4vw, 1.8rem) clamp(1.4rem, 5vw, 2rem);
+      box-sizing: border-box;
+      justify-content: center;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    html.login-embed .login-image {
+      display: none !important;
+    }
+
+    html.login-embed .login-card {
+      flex: 0 1 auto;
+      width: min(100%, 420px);
+      margin: 0;
+      padding: clamp(1.8rem, 5vw, 2.6rem);
+      border-radius: 28px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: radial-gradient(circle at 20% 15%, rgba(255, 63, 245, 0.16), transparent 60%),
+        radial-gradient(circle at 82% 80%, rgba(24, 241, 255, 0.14), transparent 50%),
+        rgba(9, 11, 34, 0.92);
+      box-shadow: 0 28px 60px rgba(7, 10, 42, 0.58);
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+      color: #f3f6ff;
+    }
+
+    html.login-embed .icoding-logo {
+      width: 82px;
+      height: auto;
+      margin: 0;
+    }
+
+    html.login-embed .login-card__header {
+      margin-top: 0.25rem;
+      gap: 0.6rem;
+    }
+
+    html.login-embed .login-card__title {
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-size: clamp(1.25rem, 4vw, 1.6rem);
+      color: #f6f7ff;
+    }
+
+    html.login-embed .login-card__subtitle {
+      color: rgba(246, 247, 255, 0.78);
+      font-size: clamp(0.95rem, 2.6vw, 1rem);
+    }
+
+    html.login-embed .login-form {
+      margin-top: 0.25rem;
+      gap: 0.85rem;
+    }
+
+    html.login-embed .login-input {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: #f6f7ff;
+      border-radius: 16px;
+      padding: 0.9rem 1rem;
+    }
+
+    html.login-embed .login-input:focus {
+      border-color: rgba(24, 241, 255, 0.6);
+      box-shadow: 0 0 0 3px rgba(24, 241, 255, 0.18);
+      background: rgba(24, 241, 255, 0.08);
+    }
+
+    html.login-embed .login-input::placeholder {
+      color: rgba(246, 247, 255, 0.55);
+    }
+
+    html.login-embed .toggle-password {
+      color: rgba(246, 247, 255, 0.7);
+    }
+
+    html.login-embed .login-submit {
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, rgba(255, 63, 245, 0.95), rgba(24, 241, 255, 0.9));
+      color: #091025;
+      border-radius: 18px;
+      padding: 0.95rem;
+      box-shadow: 0 22px 48px rgba(24, 241, 255, 0.35);
+    }
+
+    html.login-embed .login-submit:hover,
+    html.login-embed .login-submit:focus-visible {
+      transform: translateY(-2px);
+      box-shadow: 0 28px 56px rgba(255, 63, 245, 0.4);
+    }
+
+    html.login-embed .login-google {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      color: #f3f6ff;
+      border-radius: 18px;
+      padding: 0.85rem 1.1rem;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.95rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      gap: 0.55rem;
+    }
+
+    html.login-embed .login-google:hover,
+    html.login-embed .login-google:focus-visible {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 48px rgba(24, 241, 255, 0.28);
+    }
+
+    html.login-embed .login-status {
+      color: #ff9cf8;
+    }
+
+    html.login-embed .login-card__footer {
+      align-items: flex-start;
+      margin-top: 0.5rem;
+      gap: 0.65rem;
+    }
+
+    html.login-embed .login-card__hint {
+      color: rgba(246, 247, 255, 0.7);
+    }
+
+    html.login-embed .login-secondary {
+      background: none;
+      border: none;
+      color: #18f1ff;
+      padding: 0;
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    html.login-embed .login-secondary:hover,
+    html.login-embed .login-secondary:focus-visible {
+      text-decoration: underline;
+      box-shadow: none;
+    }
+
+    html.login-embed .login-google__icon {
+      font-size: 1rem;
+    }
+
+    html.login-embed .login-card {
+      backdrop-filter: blur(14px);
+    }
+
     .robot-mascot.peek {
       animation: peekMotion 3s ease-in-out forwards;
     }
@@ -650,6 +1043,53 @@
   </style>
 </head>
 <body>
+  <div class="embed-login" data-embed-login aria-hidden="true">
+    <div class="login-card">
+      <img src="/icoding.png" alt="Queen's Academy iCoding" class="icoding-logo" />
+      <div class="login-card__header">
+        <h1 class="login-card__title">Masuk Akun Terdaftar</h1>
+        <p class="login-card__subtitle">Masukkan detail akun kamu untuk melanjutkan petualangan Calistung.</p>
+      </div>
+      <form id="embedLoginForm" class="login-form" novalidate>
+        <label class="sr-only" for="embedUsername">Email atau Nomor WhatsApp</label>
+        <input
+          class="login-input"
+          type="text"
+          id="embedUsername"
+          name="username"
+          placeholder="Email / Nomor WA"
+          autocomplete="username"
+          required
+        />
+        <div class="login-password-field">
+          <label class="sr-only" for="embedPassword">Password</label>
+          <input
+            class="login-input login-input--password"
+            type="password"
+            id="embedPassword"
+            name="password"
+            placeholder="Password"
+            autocomplete="current-password"
+            required
+          />
+          <button type="button" class="toggle-password" data-toggle-password aria-label="Tampilkan password">
+            <span class="toggle-password__icon" data-eye-icon aria-hidden="true">👁️</span>
+          </button>
+        </div>
+        <button type="submit" class="login-submit">Masuk</button>
+      </form>
+      <button type="button" class="login-google" id="embedGoogleLogin">
+        <span class="login-google__icon" aria-hidden="true">🔐</span>
+        Login dengan Gmail
+      </button>
+      <p id="embedStatus" class="login-status" role="alert" aria-live="polite"></p>
+      <div class="login-card__footer">
+        <p class="login-card__hint">Belum punya akun?</p>
+        <button type="button" class="login-secondary" id="embedSignupButton">Buat akun</button>
+      </div>
+    </div>
+  </div>
+  <div data-main-login>
   <div class="main-background"></div>
   <div class="bg-wrapper">
     <div class="bg-galaxy"></div>
@@ -771,7 +1211,300 @@
         <a href="#get-started" class="cta-link">GET STARTED →</a>
       </div>
     </div>
-  </div> <!-- end main-wrapper -->
+    </div> <!-- end main-wrapper -->
+  </div>
+
+<script>
+  const BACKEND_URL = "https://firebase-upload-backend.onrender.com";
+  const EMBED_MESSAGE_SOURCE = 'elearn-login';
+
+  function setEmbedStatus(message, type = 'info') {
+    const statusEl = document.getElementById('embedStatus');
+    if (statusEl) {
+      statusEl.textContent = message || '';
+      statusEl.dataset.state = type;
+    }
+  }
+
+  function completeEmbedLoginSuccess({ cid, defaultUrl, provider = 'manual' }) {
+    const redirectUrl = embedRedirectTarget || defaultUrl || '/';
+    if (cid) {
+      try {
+        localStorage.setItem('cid_login', cid);
+        localStorage.setItem('cid', cid);
+        localStorage.setItem('firebase_token', '1');
+      } catch (error) {
+        console.warn('Tidak dapat menyimpan data login ke localStorage:', error);
+      }
+    }
+    if (isEmbedMode) {
+      try {
+        window.parent?.postMessage(
+          {
+            source: EMBED_MESSAGE_SOURCE,
+            type: 'login-success',
+            redirect: redirectUrl,
+            cid: cid || null,
+            provider,
+            embed: true
+          },
+          '*'
+        );
+      } catch (error) {
+        console.warn('Gagal mengirim pesan login ke parent:', error);
+      }
+      return;
+    }
+    window.location.href = redirectUrl;
+  }
+
+  async function embedAttemptSheetLogin(rawInput, password) {
+    const isEmailInput = rawInput.includes('@');
+    const bodyData = isEmailInput ? { email: rawInput, password } : { whatsapp: rawInput, password };
+    try {
+      const response = await fetch(`${BACKEND_URL}/proxy-login-sheet`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyData)
+      });
+      const result = await response.json();
+      if (result?.success) {
+        let cid = result.cid;
+        if (!cid && bodyData.whatsapp) {
+          try {
+            const cidRes = await fetch(`${BACKEND_URL}/proxy-get-cid-by-wa?wa=${bodyData.whatsapp}`);
+            const cidData = await cidRes.json();
+            cid = cidData.cid || '';
+          } catch (error) {
+            cid = '';
+          }
+        }
+        if (cid) {
+          setEmbedStatus('Login berhasil! Mengalihkan...', 'success');
+          completeEmbedLoginSuccess({ cid, defaultUrl: `/dashboard/dashboard.html?cid=${cid}`, provider: 'sheet' });
+          return true;
+        }
+        setEmbedStatus('CID tidak ditemukan. Hubungi admin.', 'error');
+        return false;
+      }
+      if (result?.message) {
+        setEmbedStatus(result.message, 'error');
+      } else {
+        setEmbedStatus('Login gagal. Cek kembali data kamu.', 'error');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setEmbedStatus('Terjadi kesalahan server.', 'error');
+    }
+    return false;
+  }
+
+  async function embedAttemptFirebaseLogin(email, password) {
+    try {
+      const credential = await firebase.auth().signInWithEmailAndPassword(email, password);
+      const userEmail = credential.user.email;
+      const res = await fetch(`${BACKEND_URL}/proxy-get-cid-by-email?email=${encodeURIComponent(userEmail)}`);
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Gagal ambil CID: ${text}`);
+      }
+      const profile = await res.json();
+      if (profile && profile.cid) {
+        setEmbedStatus('Login berhasil! Mengalihkan...', 'success');
+        completeEmbedLoginSuccess({ cid: profile.cid, defaultUrl: `/dashboard/dashboard.html?cid=${profile.cid}`, provider: 'firebase-email' });
+        return true;
+      }
+      setEmbedStatus('Profil tidak ditemukan. Silakan hubungi admin.', 'error');
+      return false;
+    } catch (error) {
+      console.error('Firebase login error:', error.code || error.message, error);
+      let msg = 'Login gagal. Cek email / nomor dan password kamu.';
+      if (error.code === 'auth/invalid-email') {
+        msg = 'Format email tidak valid.';
+      } else if (error.code === 'auth/user-not-found') {
+        msg = 'Akun belum terdaftar. Silakan login dengan Gmail terlebih dahulu.';
+      } else if (error.code === 'auth/wrong-password') {
+        msg = 'Password salah. Coba lagi.';
+      } else if (error.code === 'auth/too-many-requests') {
+        msg = 'Terlalu banyak percobaan login. Silakan coba beberapa saat lagi.';
+      }
+      setEmbedStatus(msg, 'error');
+      return false;
+    }
+  }
+
+  function embedTogglePassword() {
+    const passwordInput = document.getElementById('embedPassword');
+    if (!passwordInput) return;
+    const newType = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+    passwordInput.setAttribute('type', newType);
+    const toggleBtn = document.querySelector('[data-toggle-password]');
+    if (toggleBtn) {
+      toggleBtn.setAttribute('aria-label', newType === 'password' ? 'Tampilkan password' : 'Sembunyikan password');
+      const icon = toggleBtn.querySelector('[data-eye-icon]');
+      if (icon) {
+        icon.textContent = newType === 'password' ? '👁️' : '🙈';
+      }
+    }
+  }
+
+  function embedGoToSignup() {
+    const { pathname, search, hash } = window.location;
+    const nextTarget = encodeURIComponent(`${pathname}${search || ''}${hash || ''}`);
+    const redirectUrl = `/elearn/daftar.html?next=${nextTarget}`;
+    if (isEmbedMode) {
+      try {
+        window.parent?.postMessage({
+          source: EMBED_MESSAGE_SOURCE,
+          type: 'login-navigate',
+          redirect: redirectUrl,
+          reason: 'signup',
+          embed: true
+        }, '*');
+      } catch (error) {
+        console.warn('Tidak dapat mengirim navigasi signup ke parent:', error);
+      }
+      return;
+    }
+    window.location.href = redirectUrl;
+  }
+
+  function embedLoginWithGoogle() {
+    setEmbedStatus('Mempersiapkan login Google...', 'info');
+    const provider = new firebase.auth.GoogleAuthProvider();
+    firebase.auth().signInWithPopup(provider)
+      .then(async (result) => {
+        const user = result.user;
+        const email = user.email;
+        const name = user.displayName || '';
+        try {
+          const res = await fetch(`${BACKEND_URL}/proxy-check-email-sheet?email=${encodeURIComponent(email)}`);
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+          }
+          const data = await res.json();
+          const userCID = data.cid || data.CID;
+          if (!userCID) {
+            const getCidByEmail = await fetch(`${BACKEND_URL}/proxy-get-cid-by-email?email=${encodeURIComponent(email)}`);
+            if (!getCidByEmail.ok) {
+              const text = await getCidByEmail.text();
+              throw new Error(`Gagal ambil CID dari email: ${text}`);
+            }
+            const emailData = await getCidByEmail.json();
+            if (emailData && emailData.cid) {
+              setEmbedStatus('Login berhasil! Mengalihkan...', 'success');
+              completeEmbedLoginSuccess({ cid: emailData.cid, defaultUrl: `/dashboard/dashboard.html?cid=${emailData.cid}`, provider: 'google' });
+              return;
+            }
+            setEmbedStatus('CID tidak ditemukan. Silakan hubungi admin.', 'error');
+            return;
+          }
+
+          if (data.exists) {
+            if (!data.migrated) {
+              const oldPassword = prompt('Akun ini sebelumnya dibuat manual. Masukkan password lama Anda untuk menghubungkan dengan akun Google:');
+              if (!oldPassword) {
+                setEmbedStatus('Password diperlukan untuk migrasi akun.', 'error');
+                return;
+              }
+              try {
+                const credential = firebase.auth.EmailAuthProvider.credential(email, oldPassword);
+                await user.linkWithCredential(credential);
+                await fetch(`${BACKEND_URL}/proxy-update-migrated`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ email, migrated: true })
+                });
+                alert('✅ Akun berhasil dihubungkan ke Google.');
+              } catch (err) {
+                console.error('Gagal menghubungkan akun:', err);
+                setEmbedStatus('Gagal menghubungkan akun. Pastikan password lama benar.', 'error');
+                return;
+              }
+            }
+            setEmbedStatus('Login berhasil! Mengalihkan...', 'success');
+            completeEmbedLoginSuccess({ cid: userCID, defaultUrl: `/dashboard/dashboard.html?cid=${userCID}`, provider: 'google' });
+          } else {
+            try {
+              localStorage.setItem('temp_email', email);
+              localStorage.setItem('temp_displayName', name);
+            } catch (error) {
+              console.warn('Tidak dapat menyimpan data sementara akun baru:', error);
+            }
+            const target = '/dashboard/set-password.html';
+            if (isEmbedMode) {
+              window.parent?.postMessage({
+                source: EMBED_MESSAGE_SOURCE,
+                type: 'login-navigate',
+                redirect: target,
+                reason: 'google-new-user',
+                embed: true
+              }, '*');
+              setEmbedStatus('Akun baru terdeteksi. Mengalihkan...', 'info');
+            } else {
+              window.location.href = target;
+            }
+          }
+        } catch (error) {
+          console.error('Login Gmail gagal:', error);
+          setEmbedStatus(`Login Gmail gagal: ${error.message || error}`, 'error');
+        }
+      })
+      .catch((error) => {
+        console.error('Login Gmail gagal:', error);
+        setEmbedStatus(`Login Gmail gagal: ${error.message || error}`, 'error');
+      });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    if (isEmbedMode) {
+      document.body.classList.add('login-body');
+      const embedWrapper = document.querySelector('[data-embed-login]');
+      if (embedWrapper) {
+        embedWrapper.removeAttribute('aria-hidden');
+      }
+    }
+
+    const loginForm = document.getElementById('embedLoginForm');
+    if (loginForm) {
+      loginForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const usernameInput = document.getElementById('embedUsername');
+        const passwordInput = document.getElementById('embedPassword');
+        const rawInput = (usernameInput?.value || '').trim();
+        const password = passwordInput?.value || '';
+        if (!rawInput || !password) {
+          setEmbedStatus('Masukkan email / nomor WA dan password.', 'error');
+          return;
+        }
+        setEmbedStatus('Memproses login...', 'info');
+        const sheetSuccess = await embedAttemptSheetLogin(rawInput, password);
+        if (sheetSuccess) {
+          return;
+        }
+        const isEmailInput = rawInput.includes('@');
+        if (isEmailInput) {
+          await embedAttemptFirebaseLogin(rawInput, password);
+        }
+      });
+    }
+
+    const toggleBtn = document.querySelector('[data-toggle-password]');
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', embedTogglePassword);
+    }
+
+    const googleBtn = document.getElementById('embedGoogleLogin');
+    if (googleBtn) {
+      googleBtn.addEventListener('click', embedLoginWithGoogle);
+    }
+
+    const signupBtn = document.getElementById('embedSignupButton');
+    if (signupBtn) {
+      signupBtn.addEventListener('click', embedGoToSignup);
+    }
+  });
+</script>
 
 <script>
 async function login() {
