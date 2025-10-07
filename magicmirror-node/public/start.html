@@ -597,25 +597,201 @@
         box-shadow: 0 24px 48px rgba(255, 64, 246, 0.38);
       }
 
-      /* Inline login in modal */
-      .inline-login { display: none; }
-      .inline-login.is-active { display: block; animation: fadeIn 220ms ease; }
+      /* Inline panels (guest & login) in modal */
+      .inline-panel {
+        display: none;
+        animation: fadeIn 220ms ease;
+      }
+
+      .inline-panel.is-active {
+        display: flex;
+        flex-direction: column;
+        gap: 1.15rem;
+      }
+
+      .inline-panel__card {
+        position: relative;
+        width: min(100%, 480px);
+        margin: 0 auto;
+        padding: clamp(1.5rem, 4vw, 2.4rem);
+        border-radius: 26px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: radial-gradient(circle at 20% 15%, rgba(255, 63, 245, 0.16), transparent 60%),
+          radial-gradient(circle at 80% 85%, rgba(24, 241, 255, 0.12), transparent 55%),
+          rgba(10, 11, 32, 0.92);
+        box-shadow: 0 24px 60px rgba(5, 10, 38, 0.55);
+        backdrop-filter: blur(12px);
+        color: var(--text-light);
+      }
+
+      .inline-panel__close {
+        position: absolute;
+        top: clamp(0.75rem, 3vw, 1.15rem);
+        right: clamp(0.75rem, 3vw, 1.15rem);
+        border: 0;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text-light);
+        font-size: 1.2rem;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        transition: transform 160ms ease, background 160ms ease;
+      }
+
+      .inline-panel__close:hover,
+      .inline-panel__close:focus-visible {
+        transform: scale(1.08);
+        background: rgba(255, 255, 255, 0.14);
+        outline: none;
+      }
+
+      .inline-panel__body {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+      }
+
+      .inline-panel__back {
+        align-self: flex-start;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.4rem 0.85rem 0.4rem 0.65rem;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        background: rgba(6, 7, 22, 0.72);
+        color: var(--text-light);
+        font-family: "Orbitron", sans-serif;
+        font-size: 0.78rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+      }
+
+      .inline-panel__back:hover,
+      .inline-panel__back:focus-visible {
+        transform: translateY(-1px);
+        border-color: rgba(24, 241, 255, 0.6);
+        box-shadow: 0 10px 24px rgba(24, 241, 255, 0.28);
+        outline: none;
+      }
+
+      .inline-panel__title {
+        font-family: "Orbitron", sans-serif;
+        font-size: clamp(1.25rem, 3.6vw, 1.6rem);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        margin: 0;
+      }
+
+      .inline-panel__subtitle {
+        margin: 0;
+        font-size: clamp(0.9rem, 2.6vw, 1rem);
+        line-height: 1.6;
+        opacity: 0.85;
+      }
+
+      .inline-panel__form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-top: 0.5rem;
+      }
+
+      .inline-panel__field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+      }
+
+      .inline-panel__label {
+        font-size: 0.85rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        opacity: 0.75;
+      }
+
+      .inline-panel__input {
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text-light);
+        font-size: 1rem;
+        padding: 0.85rem 1rem;
+        outline: none;
+        transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+      }
+
+      .inline-panel__input::placeholder {
+        color: rgba(255, 255, 255, 0.55);
+      }
+
+      .inline-panel__input:focus {
+        border-color: rgba(24, 241, 255, 0.6);
+        background: rgba(24, 241, 255, 0.08);
+        box-shadow: 0 12px 28px rgba(24, 241, 255, 0.22);
+      }
+
+      .inline-panel__cta {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        border: 0;
+        border-radius: 18px;
+        padding: 0.9rem 1.15rem;
+        font-family: "Orbitron", sans-serif;
+        font-size: 1rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text-light);
+        background: linear-gradient(135deg, rgba(255, 63, 245, 0.95), rgba(24, 241, 255, 0.88));
+        box-shadow: 0 20px 48px rgba(24, 241, 255, 0.35);
+        cursor: pointer;
+        transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+      }
+
+      .inline-panel__cta:hover,
+      .inline-panel__cta:focus-visible {
+        transform: translateY(-2px);
+        box-shadow: 0 26px 56px rgba(255, 63, 245, 0.42);
+        filter: brightness(1.05);
+        outline: none;
+      }
+
       .inline-login__frame {
         position: relative;
         width: 100%;
-        height: min(540px, 70vh);
-        border-radius: 18px;
+        min-height: min(540px, 70vh);
+        border-radius: 22px;
         overflow: hidden;
-        border: 1px solid var(--panel-border);
-        background: rgba(4, 4, 16, 0.6);
-        box-shadow: 0 16px 36px rgba(3, 6, 28, 0.45);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(6, 6, 22, 0.78);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
       }
+
       .inline-login__frame iframe {
+        display: block;
         width: 100%;
         height: 100%;
         border: 0;
-        display: block;
         background: transparent;
+      }
+
+      @media (max-width: 640px) {
+        .inline-panel__card {
+          width: 100%;
+          padding: clamp(1.25rem, 5vw, 1.75rem);
+        }
+
+        .inline-panel__cta {
+          width: 100%;
+        }
       }
 
       .settings-wrapper {
@@ -1022,16 +1198,60 @@
             <span class="start-modal__choice-desc">Gunakan akun yang telah kamu daftarkan untuk menyimpan progres.</span>
           </a>
         </div>
-        <!-- Inline registered-login view (hidden by default) -->
-        <div class="inline-login" data-inline-login aria-hidden="true">
-          <h3 class="start-modal__heading" style="margin-top:.25rem">Masuk Akun Terdaftar</h3>
-          <p class="start-modal__description">Gunakan akun Queen's Academy untuk melanjutkan progresmu.</p>
-          <div class="inline-login__frame">
-            <!-- lazy load the iframe when selected -->
-            <iframe title="Login" data-src="/elearn/login.html?embed=1" loading="lazy" referrerpolicy="no-referrer"></iframe>
+        <!-- Inline guest view -->
+        <div class="inline-panel" data-inline-panel data-inline-guest aria-hidden="true">
+          <div class="inline-panel__card">
+            <button type="button" class="inline-panel__close" data-inline-close aria-label="Tutup">×</button>
+            <div class="inline-panel__body">
+              <button type="button" class="inline-panel__back" data-inline-back>
+                ← Kembali
+              </button>
+              <div>
+                <h3 class="inline-panel__title">Masuk sebagai Tamu</h3>
+                <p class="inline-panel__subtitle">
+                  Siap mencoba Calistung secara instan tanpa menyimpan progres akun. Kamu bisa langsung bermain!
+                </p>
+              </div>
+              <form class="inline-panel__form" data-inline-guest-form>
+                <div class="inline-panel__field">
+                  <label class="inline-panel__label" for="guestNickname">Nama Panggilan (Opsional)</label>
+                  <input
+                    class="inline-panel__input"
+                    type="text"
+                    id="guestNickname"
+                    name="guestNickname"
+                    placeholder="Contoh: Aira"
+                    maxlength="40"
+                    autocomplete="nickname"
+                  />
+                </div>
+                <button type="submit" class="inline-panel__cta" data-inline-guest-submit>
+                  Mulai sebagai Tamu
+                </button>
+              </form>
+            </div>
           </div>
-          <div style="display:flex;justify-content:center;margin-top:0.75rem">
-            <button type="button" class="settings-link" data-inline-login-back>← Kembali</button>
+        </div>
+
+        <!-- Inline registered-login view (hidden by default) -->
+        <div class="inline-panel" data-inline-panel data-inline-login aria-hidden="true">
+          <div class="inline-panel__card">
+            <button type="button" class="inline-panel__close" data-inline-close aria-label="Tutup">×</button>
+            <div class="inline-panel__body">
+              <button type="button" class="inline-panel__back" data-inline-back>
+                ← Kembali
+              </button>
+              <div>
+                <h3 class="inline-panel__title">Masuk Akun Terdaftar</h3>
+                <p class="inline-panel__subtitle">
+                  Masukkan detail akun kamu untuk melanjutkan petualangan Calistung.
+                </p>
+              </div>
+              <div class="inline-login__frame">
+                <!-- lazy load the iframe when selected -->
+                <iframe title="Login" data-src="/elearn/login.html?embed=1" loading="lazy" referrerpolicy="no-referrer"></iframe>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1078,6 +1298,71 @@
           : [];
         const startModalPanel = startModal?.querySelector('[data-start-modal-panel]') || null;
         const startModalChoices = startModal ? startModal.querySelectorAll('[data-start-choice]') : [];
+        const startModalChoicesContainer = startModal?.querySelector('.start-modal__choices') || null;
+        const inlineGuestPanel = startModal?.querySelector('[data-inline-guest]') || null;
+        const inlineLoginPanel = startModal?.querySelector('[data-inline-login]') || null;
+        const inlinePanels = [inlineGuestPanel, inlineLoginPanel].filter(Boolean);
+        const inlineLoginFrameWrapper = inlineLoginPanel?.querySelector('.inline-login__frame') || null;
+        const inlineLoginIframe = inlineLoginFrameWrapper?.querySelector('iframe') || null;
+        const DEFAULT_INLINE_LOGIN_HEIGHT = 420;
+        let currentInlineLoginHeight = 0;
+
+        const setInlineLoginFrameHeight = (nextHeight) => {
+          if (!inlineLoginFrameWrapper || !inlineLoginIframe) {
+            return;
+          }
+          const parsedHeight = typeof nextHeight === 'string' ? parseFloat(nextHeight) : nextHeight;
+          const numericHeight = Number.isFinite(nextHeight)
+            ? nextHeight
+            : Number.isFinite(parsedHeight)
+              ? parsedHeight
+              : 0;
+          const proposed = Math.max(
+            DEFAULT_INLINE_LOGIN_HEIGHT,
+            Number.isFinite(numericHeight) ? Math.ceil(numericHeight) : 0
+          );
+          if (!proposed) {
+            return;
+          }
+          if (Math.abs(proposed - currentInlineLoginHeight) < 2) {
+            return;
+          }
+          currentInlineLoginHeight = proposed;
+          inlineLoginIframe.style.height = `${proposed}px`;
+          inlineLoginFrameWrapper.style.minHeight = `${proposed}px`;
+          inlineLoginFrameWrapper.style.height = `${proposed}px`;
+        };
+
+        const measureInlineLoginFrameHeight = () => {
+          if (!inlineLoginIframe) {
+            return;
+          }
+          try {
+            const doc = inlineLoginIframe.contentDocument || inlineLoginIframe.contentWindow?.document;
+            if (!doc) {
+              return;
+            }
+            const docEl = doc.documentElement;
+            const body = doc.body;
+            const candidates = [
+              docEl?.scrollHeight,
+              docEl?.offsetHeight,
+              docEl?.clientHeight,
+              body?.scrollHeight,
+              body?.offsetHeight,
+              body?.clientHeight
+            ]
+              .map((value) => (typeof value === 'number' ? value : 0))
+              .filter((value) => value > 0);
+            if (candidates.length) {
+              const nextHeight = Math.max(...candidates);
+              setInlineLoginFrameHeight(nextHeight);
+            }
+          } catch (error) {
+            console.warn('[start.html] Tidak dapat mengukur tinggi iframe login:', error);
+          }
+        };
+
         let previousFocusBeforeStartModal = null;
         const INTRO_STORAGE_KEY = 'qaStartIntroSeen';
         const orientationDefaultLabel = orientationActionLabel?.textContent?.trim() || 'Rotate & Play';
@@ -1115,10 +1400,52 @@
           }
         };
 
+        const focusFirstInlineElement = (panel) => {
+          if (!panel) return;
+          const focusable = panel.querySelector(
+            'input, button:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])'
+          );
+          if (focusable instanceof HTMLElement) {
+            window.requestAnimationFrame(() => focusable.focus());
+          }
+        };
+
+        const hideInlinePanels = () => {
+          inlinePanels.forEach((panel) => {
+            panel.classList.remove('is-active');
+            panel.setAttribute('aria-hidden', 'true');
+          });
+          if (startModalChoicesContainer) {
+            startModalChoicesContainer.style.display = '';
+            startModalChoicesContainer.removeAttribute('aria-hidden');
+          }
+        };
+
+        const showInlinePanel = (panel) => {
+          if (!panel) return;
+          inlinePanels.forEach((p) => {
+            if (p === panel) return;
+            p.classList.remove('is-active');
+            p.setAttribute('aria-hidden', 'true');
+          });
+          if (startModalChoicesContainer) {
+            startModalChoicesContainer.style.display = 'none';
+            startModalChoicesContainer.setAttribute('aria-hidden', 'true');
+          }
+          panel.classList.add('is-active');
+          panel.setAttribute('aria-hidden', 'false');
+          if (panel === inlineLoginPanel) {
+            measureInlineLoginFrameHeight();
+            setTimeout(() => measureInlineLoginFrameHeight(), 160);
+          }
+          focusFirstInlineElement(panel);
+        };
+
         const openStartModal = () => {
           if (!startModal) return;
           previousFocusBeforeStartModal =
             document.activeElement instanceof HTMLElement ? document.activeElement : null;
+          hideInlinePanels();
           startModal.classList.add('is-active');
           startModal.setAttribute('aria-hidden', 'false');
           focusFirstStartChoice();
@@ -1128,6 +1455,7 @@
           if (!startModal) return;
           startModal.classList.remove('is-active');
           startModal.setAttribute('aria-hidden', 'true');
+          hideInlinePanels();
           if (previousFocusBeforeStartModal?.focus) {
             previousFocusBeforeStartModal.focus();
           }
@@ -1501,90 +1829,49 @@
 
           // Registered login: keep inline, cancel default navigation
           if (START_REGISTERED_HREF_TEST.test(href)) {
-            // Buka modal & tampilkan tampilan login inline
             openStartModal();
-            const choicesGrid = startModal?.querySelector('.start-modal__choices');
-            const inlineLogin = startModal?.querySelector('[data-inline-login]');
-            if (choicesGrid) choicesGrid.style.display = 'none';
-            if (inlineLogin) {
-              inlineLogin.classList.add('is-active');
-              inlineLogin.setAttribute('aria-hidden', 'false');
-              const iframe = inlineLogin.querySelector('iframe');
+            if (inlineLoginPanel) {
+              showInlinePanel(inlineLoginPanel);
+              const iframe = inlineLoginPanel.querySelector('iframe');
               if (iframe && !iframe.getAttribute('src')) {
-                const src = iframe.getAttribute('data-src') || '/elearn/login.html';
-                iframe.setAttribute('src', src);
-                // When the iframe loads (same-origin), sanitize layout for embed
+                const baseSrc = iframe.getAttribute('data-src') || '/elearn/login.html';
+                const redirectTarget =
+                  typeof START_LOGIN_REDIRECT === 'string' && START_LOGIN_REDIRECT
+                    ? START_LOGIN_REDIRECT
+                    : '/';
+                const encodedRedirect = encodeURIComponent(redirectTarget);
+                const finalSrc = baseSrc.includes('redirect=')
+                  ? baseSrc
+                  : `${baseSrc}${baseSrc.includes('?') ? '&' : '?'}redirect=${encodedRedirect}`;
+                iframe.setAttribute('src', finalSrc);
                 const onFrameLoad = () => {
                   try {
                     const doc = iframe.contentDocument || iframe.contentWindow?.document;
-                    if (!doc) return;
-                    doc.documentElement.classList.add('is-embed');
-                    doc.body.classList.add('is-embed');
-                    Object.assign(doc.body.style, {
-                      background: 'transparent',
-                      padding: '12px',
-                      margin: '0',
-                    });
-
-                    // try to locate a login form and its visual container
-                    const form = doc.querySelector('form[action*="login"], form input[type="password"]') || doc.querySelector('form');
-                    let card = null;
-                    if (form) {
-                      card = form.closest('.card, .container, .panel, .box, .section, .content, .login, .wrapper') || form.parentElement;
+                    if (doc) {
+                      doc.documentElement.classList.add('in-start-modal');
+                      doc.body.classList.add('in-start-modal');
                     }
-                    if (card) {
-                      // Hide everything except the card ancestor section to keep page compact
-                      const keep = card;
-                      Array.from(doc.body.children).forEach((el) => {
-                        if (el !== keep) {
-                          el.style.display = 'none';
-                        }
-                      });
-                      // Center & size
-                      Object.assign(keep.style, {
-                        margin: '0 auto',
-                        maxWidth: '520px',
-                        width: '100%',
-                        borderRadius: '18px',
-                        background: 'rgba(8,8,24,0.85)',
-                        border: '1px solid rgba(255,255,255,0.2)',
-                        boxShadow: '0 16px 36px rgba(3,6,28,0.45)',
-                        padding: '16px'
-                      });
-                    } else {
-                      // Fallback: scale down whole page
-                      const root = doc.body;
-                      root.style.transformOrigin = 'top center';
-                      root.style.transform = 'scale(0.9)';
-                      root.style.width = '111%';
-                    }
-
-                    // try to hide common promos/tooltips/banners
-                    doc.querySelectorAll(
-                      '.toast, .tooltip, .promo, .banner, .swiper-hint, [data-tour], [data-promo]'
-                    ).forEach((n) => (n.style.display = 'none'));
                   } catch (e) {
-                    /* ignore cross-origin or other errors */
+                    /* ignore */
                   }
+                  measureInlineLoginFrameHeight();
+                  setTimeout(() => measureInlineLoginFrameHeight(), 120);
                 };
                 iframe.addEventListener('load', onFrameLoad, { once: true });
               }
             }
-            // (opsional) notifikasi global
             document.dispatchEvent(new CustomEvent('start:registered-login-selected', {
               detail: { from: 'start-modal', href }
             }));
             return;
           }
 
-          // Guest: perform scripted redirect (kept for backward-compat)
+          // Guest: show inline guest panel with nickname form
           if (START_GUEST_HREF_TEST.test(href)) {
-            const target = typeof START_LOGIN_REDIRECT === 'string' && START_LOGIN_REDIRECT
-              ? START_LOGIN_REDIRECT
-              : '/';
-            // Close the modal before leaving for a smoother UX
-            closeStartModal();
-            window.location.assign(target);
+            openStartModal();
+            if (inlineGuestPanel) {
+              showInlinePanel(inlineGuestPanel);
+            }
             return;
           }
 
@@ -1611,90 +1898,81 @@
         // Also respond when some other UI emits the same intent
         document.addEventListener('start:registered-login-selected', () => {
           openStartModal();
-          const choicesGrid = startModal?.querySelector('.start-modal__choices');
-          const inlineLogin = startModal?.querySelector('[data-inline-login]');
-          if (choicesGrid) choicesGrid.style.display = 'none';
-          if (inlineLogin) {
-            inlineLogin.classList.add('is-active');
-            inlineLogin.setAttribute('aria-hidden', 'false');
-            const iframe = inlineLogin.querySelector('iframe');
+          if (inlineLoginPanel) {
+            showInlinePanel(inlineLoginPanel);
+            const iframe = inlineLoginPanel.querySelector('iframe');
             if (iframe && !iframe.getAttribute('src')) {
-              const src = iframe.getAttribute('data-src') || '/elearn/login.html';
-              iframe.setAttribute('src', src);
-              // When the iframe loads (same-origin), sanitize layout for embed
+              const baseSrc = iframe.getAttribute('data-src') || '/elearn/login.html';
+              const redirectTarget =
+                typeof START_LOGIN_REDIRECT === 'string' && START_LOGIN_REDIRECT
+                  ? START_LOGIN_REDIRECT
+                  : '/';
+              const encodedRedirect = encodeURIComponent(redirectTarget);
+              const finalSrc = baseSrc.includes('redirect=')
+                ? baseSrc
+                : `${baseSrc}${baseSrc.includes('?') ? '&' : '?'}redirect=${encodedRedirect}`;
+              iframe.setAttribute('src', finalSrc);
               const onFrameLoad = () => {
                 try {
                   const doc = iframe.contentDocument || iframe.contentWindow?.document;
-                  if (!doc) return;
-                  doc.documentElement.classList.add('is-embed');
-                  doc.body.classList.add('is-embed');
-                  Object.assign(doc.body.style, {
-                    background: 'transparent',
-                    padding: '12px',
-                    margin: '0',
-                  });
-
-                  // try to locate a login form and its visual container
-                  const form = doc.querySelector('form[action*="login"], form input[type="password"]') || doc.querySelector('form');
-                  let card = null;
-                  if (form) {
-                    card = form.closest('.card, .container, .panel, .box, .section, .content, .login, .wrapper') || form.parentElement;
+                  if (doc) {
+                    doc.documentElement.classList.add('in-start-modal');
+                    doc.body.classList.add('in-start-modal');
                   }
-                  if (card) {
-                    // Hide everything except the card ancestor section to keep page compact
-                    const keep = card;
-                    Array.from(doc.body.children).forEach((el) => {
-                      if (el !== keep) {
-                        el.style.display = 'none';
-                      }
-                    });
-                    // Center & size
-                    Object.assign(keep.style, {
-                      margin: '0 auto',
-                      maxWidth: '520px',
-                      width: '100%',
-                      borderRadius: '18px',
-                      background: 'rgba(8,8,24,0.85)',
-                      border: '1px solid rgba(255,255,255,0.2)',
-                      boxShadow: '0 16px 36px rgba(3,6,28,0.45)',
-                      padding: '16px'
-                    });
-                  } else {
-                    // Fallback: scale down whole page
-                    const root = doc.body;
-                    root.style.transformOrigin = 'top center';
-                    root.style.transform = 'scale(0.9)';
-                    root.style.width = '111%';
-                  }
-
-                  // try to hide common promos/tooltips/banners
-                  doc.querySelectorAll(
-                    '.toast, .tooltip, .promo, .banner, .swiper-hint, [data-tour], [data-promo]'
-                  ).forEach((n) => (n.style.display = 'none'));
                 } catch (e) {
-                  /* ignore cross-origin or other errors */
+                  /* ignore */
                 }
+                measureInlineLoginFrameHeight();
+                setTimeout(() => measureInlineLoginFrameHeight(), 120);
               };
               iframe.addEventListener('load', onFrameLoad, { once: true });
             }
           }
         });
 
-        // Back from inline login to choices
-        const inlineLoginBackBtn = startModal?.querySelector('[data-inline-login-back]') || null;
-        if (inlineLoginBackBtn) {
-          inlineLoginBackBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const choicesGrid = startModal?.querySelector('.start-modal__choices');
-            const inlineLogin = startModal?.querySelector('[data-inline-login]');
-            if (inlineLogin) {
-              inlineLogin.classList.remove('is-active');
-              inlineLogin.setAttribute('aria-hidden', 'true');
-            }
-            if (choicesGrid) {
-              choicesGrid.style.display = '';
-            }
+        // Back buttons inside inline panels
+        const inlineBackButtons = startModal
+          ? startModal.querySelectorAll('[data-inline-back]')
+          : [];
+        inlineBackButtons.forEach((button) => {
+          button.addEventListener('click', (event) => {
+            event.preventDefault();
+            hideInlinePanels();
             focusFirstStartChoice();
+          });
+        });
+
+        const inlineCloseButtons = startModal
+          ? startModal.querySelectorAll('[data-inline-close]')
+          : [];
+        inlineCloseButtons.forEach((button) => {
+          button.addEventListener('click', (event) => {
+            event.preventDefault();
+            closeStartModal();
+          });
+        });
+
+        const inlineGuestForm = startModal?.querySelector('[data-inline-guest-form]') || null;
+        if (inlineGuestForm) {
+          inlineGuestForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const formData = new FormData(inlineGuestForm);
+            const nickname = String(formData.get('guestNickname') || '').trim();
+            try {
+              if (nickname) {
+                localStorage.setItem('qa_guest_name', nickname);
+              } else {
+                localStorage.removeItem('qa_guest_name');
+              }
+              localStorage.setItem('qa_guest_mode', '1');
+            } catch (storageError) {
+              console.warn('[start.html] Tidak dapat menyimpan data tamu:', storageError);
+            }
+            const target = typeof START_LOGIN_REDIRECT === 'string' && START_LOGIN_REDIRECT
+              ? START_LOGIN_REDIRECT
+              : '/';
+            closeStartModal();
+            window.location.assign(target);
           });
         }
 
@@ -1721,6 +1999,35 @@
             showIntroOverlay();
           });
         }
+
+        window.addEventListener('message', (event) => {
+          if (!event || typeof event.data !== 'object' || event.data === null) {
+            return;
+          }
+          if (event.origin && event.origin !== window.location.origin) {
+            return;
+          }
+          const { type, redirect, embed, source, height } = event.data;
+          if (source && source !== 'elearn-login') {
+            return;
+          }
+          if (type === 'login-resize' && embed && (typeof height === 'number' || typeof height === 'string')) {
+            setInlineLoginFrameHeight(height);
+            return;
+          }
+          if (type === 'login-success' && embed) {
+            const target = typeof redirect === 'string' && redirect
+              ? redirect
+              : typeof START_LOGIN_REDIRECT === 'string' && START_LOGIN_REDIRECT
+                ? START_LOGIN_REDIRECT
+                : '/';
+            closeStartModal();
+            window.location.assign(target);
+          } else if (type === 'login-navigate' && embed && typeof redirect === 'string' && redirect) {
+            closeStartModal();
+            window.location.assign(redirect);
+          }
+        });
 
         if (orientationActionButton) {
           orientationActionButton.addEventListener('click', async (event) => {
