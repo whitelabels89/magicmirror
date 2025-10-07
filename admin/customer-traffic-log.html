@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Customer Traffic Log</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    body {
+      margin: 0;
+      padding: 24px;
+      background: #f5f7fb;
+      color: #1f2933;
+    }
+    h1 {
+      font-size: 1.75rem;
+      margin-bottom: 0.5rem;
+    }
+    p.description {
+      max-width: 640px;
+      margin-bottom: 1.5rem;
+      color: #4b5563;
+      line-height: 1.5;
+    }
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.24);
+      font-size: 0.95rem;
+    }
+    th {
+      font-weight: 600;
+      color: #0f172a;
+      background: rgba(148, 163, 184, 0.16);
+    }
+    tbody tr:hover {
+      background: rgba(59, 130, 246, 0.08);
+    }
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.875rem;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(59, 130, 246, 0.12);
+      color: #1d4ed8;
+      font-weight: 500;
+    }
+    .status.error {
+      background: rgba(248, 113, 113, 0.15);
+      color: #b91c1c;
+    }
+    .status.warn {
+      background: rgba(251, 191, 36, 0.16);
+      color: #b45309;
+    }
+    .empty-state {
+      margin: 3rem 0 1rem;
+      text-align: center;
+      color: #6b7280;
+      font-size: 1rem;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+    .controls input[type="search"],
+    .controls select {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      font-size: 0.95rem;
+      min-width: 200px;
+    }
+    .badge {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(59, 130, 246, 0.12);
+      color: #1d4ed8;
+      font-weight: 500;
+    }
+    .badge svg {
+      width: 16px;
+      height: 16px;
+    }
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 14px 18px;
+      background: #0f172a;
+      color: white;
+      border-radius: 12px;
+      box-shadow: 0 16px 40px rgba(15, 23, 42, 0.35);
+      display: none;
+    }
+    .toast.show {
+      display: block;
+    }
+  </style>
+  <script defer src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <h1>Customer Traffic Log</h1>
+  <p class="description">
+    Lihat daftar kunjungan pelanggan terbaru beserta perangkat, referer, dan status request untuk memantau kesehatan funnel Magic Mirror.
+  </p>
+  <div class="card">
+    <div class="controls">
+      <span class="badge" id="totalBadge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M5 6h14M7 14h10m-8 4h6"></path>
+        </svg>
+        0 log tampil
+      </span>
+      <label>
+        <span class="sr-only">Filter Status</span>
+        <select id="statusFilter" aria-label="Filter status log">
+          <option value="">Semua status</option>
+          <option value="success">Success</option>
+          <option value="warn">Warning</option>
+          <option value="error">Error</option>
+        </select>
+      </label>
+      <input type="search" id="searchInput" placeholder="Cari email, referer, atau user agent" aria-label="Cari log" />
+    </div>
+    <table aria-describedby="totalBadge">
+      <thead>
+        <tr>
+          <th scope="col">Waktu</th>
+          <th scope="col">Email</th>
+          <th scope="col">Referer</th>
+          <th scope="col">User Agent</th>
+          <th scope="col">Status</th>
+        </tr>
+      </thead>
+      <tbody id="logTableBody">
+        <tr class="empty-state" id="emptyStateRow">
+          <td colspan="5">Belum ada data yang sesuai filter.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="toast" role="alert" id="toast">Gagal memuat log.</div>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBVO4ajDwkbcTGL33SVMxIoev4veB8itgI",
+      authDomain: "queens-academy-icoding.firebaseapp.com",
+      projectId: "queens-academy-icoding",
+    };
+
+    let db;
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 4000);
+    }
+
+    function formatTimestamp(seconds) {
+      if (!seconds) return '-';
+      const date = new Date(seconds * 1000);
+      return date.toLocaleString('id-ID', {
+        day: '2-digit', month: 'short', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+      });
+    }
+
+    function renderStatus(status) {
+      const span = document.createElement('span');
+      span.className = `status ${status ?? ''}`.trim();
+      span.textContent = status ?? 'success';
+      return span;
+    }
+
+    function applyFilters(logs) {
+      const statusFilter = document.getElementById('statusFilter').value;
+      const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
+
+      return logs.filter((log) => {
+        const matchesStatus = !statusFilter || log.status === statusFilter;
+        const matchesKeyword = !keyword || [log.email, log.referer, log.userAgent]
+          .some((field) => (field || '').toLowerCase().includes(keyword));
+        return matchesStatus && matchesKeyword;
+      });
+    }
+
+    function updateTable(logs) {
+      const tbody = document.getElementById('logTableBody');
+      const emptyRow = document.getElementById('emptyStateRow');
+      tbody.replaceChildren(emptyRow);
+
+      const filtered = applyFilters(logs);
+      document.getElementById('totalBadge').innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M5 6h14M7 14h10m-8 4h6"></path>
+        </svg>
+        ${filtered.length} log tampil
+      `;
+
+      if (filtered.length === 0) {
+        emptyRow.style.display = '';
+        return;
+      }
+
+      emptyRow.style.display = 'none';
+
+      const fragment = document.createDocumentFragment();
+      filtered.forEach((log) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${formatTimestamp(log.timestamp?.seconds)}</td>
+          <td>${log.email || '-'}${log.ipAddress ? `<div style="color:#64748b;font-size:0.8rem;">${log.ipAddress}</div>` : ''}</td>
+          <td>${log.referer || '-'}</td>
+          <td>${log.userAgent || '-'}</td>
+          <td></td>
+        `;
+        tr.lastElementChild.appendChild(renderStatus(log.status));
+        fragment.appendChild(tr);
+      });
+      tbody.appendChild(fragment);
+    }
+
+    async function loadTrafficLogs() {
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      db = firebase.firestore();
+
+      const snapshot = await db.collection('customer_traffic_logs')
+        .orderBy('timestamp', 'desc')
+        .limit(200)
+        .get();
+
+      const logs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      updateTable(logs);
+
+      document.getElementById('statusFilter').addEventListener('change', () => updateTable(logs));
+      document.getElementById('searchInput').addEventListener('input', () => updateTable(logs));
+    }
+
+    async function init() {
+      try {
+        await loadTrafficLogs();
+      } catch (error) {
+        console.error('Failed to load traffic logs', error);
+        showToast('Gagal memuat log trafik. Coba lagi nanti.');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
