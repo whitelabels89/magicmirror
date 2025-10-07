@@ -586,6 +586,67 @@
     .login-container::-webkit-scrollbar { width: 8px; }
     .login-container::-webkit-scrollbar-track { background: rgba(255,255,255,0.2); border-radius: 8px; }
     .login-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.45); border-radius: 8px; }
+</style>
+  <script id="embed-mode-boot">
+    (function () {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const inIframe = (function(){ try { return window.self !== window.top; } catch { return true; } })();
+        if (urlParams.get('embed') === '1' || inIframe) {
+          document.documentElement.classList.add('is-embed');
+          document.body.classList.add('is-embed');
+          window.__EMBED__ = true;
+        }
+        // allow parent to force embed after load
+        window.addEventListener('message', (e) => {
+          if (e && e.data && e.data.type === 'enableEmbedMode') {
+            document.documentElement.classList.add('is-embed');
+            document.body.classList.add('is-embed');
+            window.__EMBED__ = true;
+          }
+        });
+      } catch {}
+    })();
+  </script>
+  <style id="embed-mode-css">
+    /* ---- EMBED MODE (for iframe inside start.html modal) ---- */
+    .is-embed body { background: transparent !important; overflow: auto !important; }
+    .is-embed html { overflow: auto !important; height: auto !important; }
+    /* Hide heavy/global backgrounds & slides */
+    .is-embed .main-background,
+    .is-embed .bg-wrapper,
+    .is-embed .background-effects,
+    .is-embed .robot-mascot,
+    .is-embed .left-panel,
+    .is-embed .side-slide,
+    .is-embed #hi-bubble { display: none !important; }
+    /* Unlock wrapper to normal document flow */
+    .is-embed #main-wrapper { height: auto !important; overflow: visible !important; display: block !important; }
+    .is-embed #main-wrapper > .container { height: auto !important; display: block !important; }
+    .is-embed .panel-group { display: flex; justify-content: center; align-items: center; padding: 16px 0; }
+    .is-embed .right-panel { display: flex; justify-content: center; align-items: center; width: 100%; }
+    /* Focus only on the login card */
+    .is-embed .login-container {
+      width: min(520px, 92vw);
+      margin: 16px auto;
+      background: rgba(8,8,24,0.92);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 18px;
+      padding: 20px;
+      color: #e8e8f0;
+      max-height: none !important;
+      overflow: visible !important;
+      box-shadow: 0 16px 36px rgba(3,6,28,0.45);
+    }
+    .is-embed .quote-section,
+    .is-embed .cta-digital-experience,
+    .is-embed .slide-hook,
+    .is-embed .window-outer-space { display: none !important; }
+    .is-embed h2 { color: #e8e8f0; }
+    /* Relax global lock scrolls */
+    @media (min-width: 700px) {
+      .is-embed html, .is-embed body { overflow-y: auto !important; }
+    }
   </style>
 </head>
 <body>
@@ -861,6 +922,20 @@ drawNetwork();
 <script src="script.js"></script>
 <script>
 // Ensure global variables for robot interactivity
+if (document.documentElement.classList.contains('is-embed')) {
+  // Minimal behavior: skip robot/bubble/scroll interactivity in embed
+  try {
+    const bg = document.querySelector('.background-effects'); if (bg) bg.style.display = 'none';
+    const left = document.querySelector('.left-panel'); if (left) left.style.display = 'none';
+    const slides = document.querySelectorAll('.side-slide'); slides.forEach(el => el.style.display = 'none');
+  } catch {}
+  // Define no-op vars so later code doesn't crash if referenced
+  var idleTimer = null, isIdle = true;
+  var robot = document.querySelector('.robot-mascot');
+  var wrapper = document.getElementById('main-wrapper');
+  var hiBubble = document.getElementById('hi-bubble');
+  var loginBtn = document.getElementById('login-btn');
+} else {
 let idleTimer;
 let isIdle = false;
 const robot = document.querySelector('.robot-mascot');
@@ -1063,11 +1138,12 @@ if (window.innerWidth <= 480) {
 
   setInterval(checkGreeting, 300);
 }
+} // end else for embed guard
 </script>
 
 <script>
 // Sync robot Kody to the center of active slide on scroll
-wrapper.addEventListener('scroll', () => {
+if (!document.documentElement.classList.contains('is-embed')) wrapper.addEventListener('scroll', () => {
   // Pause other movements
   isIdle = true;
   clearTimeout(idleTimer);
@@ -1088,7 +1164,9 @@ wrapper.addEventListener('scroll', () => {
   }
 });
 // Trigger initial position on load
-window.addEventListener('load', () => wrapper.dispatchEvent(new Event('scroll')));
+if (!document.documentElement.classList.contains('is-embed')) {
+  window.addEventListener('load', () => wrapper.dispatchEvent(new Event('scroll')));
+}
 </script>
 
 </script>
