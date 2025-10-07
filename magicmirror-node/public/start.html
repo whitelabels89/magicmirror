@@ -1455,11 +1455,66 @@
           });
         });
 
-        if (settingsLoginLink) {
-          settingsLoginLink.addEventListener('click', (event) => {
+
+        // --- Delegated handling: keep inline flow in start.html ---
+        //  - Guest path = scripted redirect (uses START_LOGIN_REDIRECT constant)
+        //  - Registered path (elearn/login.html) = prevent default (stay in modal) and emit event
+        const START_GUEST_HREF_TEST = /(^|\/)login\.html$/i;
+        const START_REGISTERED_HREF_TEST = /(^|\/)elearn\/login\.html$/i;
+
+        const handleStartChoice = (anchor) => {
+          if (!anchor) return;
+          const href = String(anchor.getAttribute('href') || '').trim();
+
+          // Registered login: keep inline, cancel default navigation
+          if (START_REGISTERED_HREF_TEST.test(href)) {
+            // Stop navigation completely and keep modal open
+            // Consumers can listen to this custom event to render the inline login form.
+            document.dispatchEvent(new CustomEvent('start:registered-login-selected', {
+              detail: { from: 'start-modal', href }
+            }));
+            return;
+          }
+
+          // Guest: perform scripted redirect (kept for backward-compat)
+          if (START_GUEST_HREF_TEST.test(href)) {
+            const target = typeof START_LOGIN_REDIRECT === 'string' && START_LOGIN_REDIRECT
+              ? START_LOGIN_REDIRECT
+              : '/';
+            // Close the modal before leaving for a smoother UX
+            closeStartModal();
+            window.location.assign(target);
+            return;
+          }
+
+          // Fallback: if it's some other link, allow navigation
+          window.location.assign(href);
+        };
+
+        // Delegate clicks from the choices grid
+        if (startModal && startModalChoices && startModalChoices.length) {
+          startModal.addEventListener('click', (evt) => {
+            const a = evt.target && typeof evt.target.closest === 'function'
+              ? evt.target.closest('[data-start-choice]')
+              : null;
+            if (!a) return;
+
+            // Always cancel the browser default first to stop unwanted redirects
+            evt.preventDefault();
+            evt.stopPropagation();
+
+            handleStartChoice(a);
+          });
+        }
+
+        // Bind Settings → Login link (keep inline, no page navigation)
+        const settingsLoginAnchor = document.querySelector('.settings-link.login-link');
+        if (settingsLoginAnchor) {
+          settingsLoginAnchor.addEventListener('click', (event) => {
             event.preventDefault();
             openSettings(false);
-            openStartModal({ view: 'login' });
+            // Reuse the same start choice handler to keep behavior consistent
+            handleStartChoice(settingsLoginAnchor);
           });
         }
 
