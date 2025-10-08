@@ -29,10 +29,21 @@
   </script>
   <script>
     const urlParams = new URLSearchParams(window.location.search);
-    const isEmbedMode = urlParams.get('embed') === '1' || urlParams.get('embed') === 'true';
+    const embedParam = urlParams.get('embed');
+    let isEmbedMode = embedParam === '1' || embedParam === 'true';
+    if (!isEmbedMode) {
+      try {
+        if (window.self !== window.top) {
+          isEmbedMode = true;
+        }
+      } catch (error) {
+        isEmbedMode = true;
+      }
+    }
     const embedRedirectTarget = urlParams.get('redirect') || '';
     if (isEmbedMode) {
       document.documentElement.classList.add('login-embed');
+      window.__EMBED__ = true;
     }
   </script>
   <style>
@@ -80,7 +91,8 @@
       border: 0;
     }
 
-    body.login-body {
+    html.login-embed body.login-body,
+    html.is-embed body.login-body {
       margin: 0;
       font-family: 'Inter', 'Segoe UI', sans-serif;
       background: linear-gradient(180deg, #e0f7ff, #f0fbff);
