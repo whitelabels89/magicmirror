@@ -367,7 +367,9 @@ function expandEdges(list){
 }
 
 PATS.forEach(p => {
-  p.solutionKeys = expandEdges(p.edges).map(([ax,ay,bx,by]) => segmentKey(ax,ay,bx,by)).sort();
+  const uniq = new Set();
+  expandEdges(p.edges).forEach(([ax,ay,bx,by]) => uniq.add(segmentKey(ax,ay,bx,by)));
+  p.solutionKeys = Array.from(uniq).sort();
 });
 
 // Build UI
@@ -418,16 +420,42 @@ document.getElementById('btnEraser').addEventListener('click', (e)=>{
 });
 
 function checkAll(){
-  let correct=0;
-  document.querySelectorAll('.pair').forEach(pair=>{
-    const expected = pair.solutionEdges;
-    const userEdges = pair.rightBoard.getExpandedEdgeKeys();
-    const ok = expected.length===userEdges.length && expected.every((k,i)=>k===userEdges[i]);
-    if(ok){ correct++; }
-    pair.style.borderColor = ok? '#14532d' : '#4c1d95';
-  });
-  const total = document.querySelectorAll('.pair').length;
-  document.getElementById('globalResult').textContent = `${correct}/${total} benar`;
+  try {
+    const pairs = document.querySelectorAll('.pair');
+    if (!pairs.length) return;
+    let correct = 0;
+    pairs.forEach((pair, idx) => {
+      const expected = Array.isArray(pair.solutionEdges) ? pair.solutionEdges : [];
+      const userEdges = (pair.rightBoard && typeof pair.rightBoard.getExpandedEdgeKeys === 'function')
+        ? pair.rightBoard.getExpandedEdgeKeys() : [];
+
+      // Bandingkan sebagai SET untuk stabilitas
+      const setA = new Set(expected);
+      const setB = new Set(userEdges);
+      let ok = (setA.size === setB.size);
+      if (ok) {
+        for (const k of setA) { if (!setB.has(k)) { ok = false; break; } }
+      }
+
+      if (!ok && window.WORKSHEET_DEBUG) {
+        const missing = [...setA].filter(k=>!setB.has(k));
+        const extra   = [...setB].filter(k=>!setA.has(k));
+        console.group(`Diff pair #${idx+1} (${pair.querySelector('h3')?.textContent||''})`);
+        console.log('Missing (harusnya ada di jawaban):', missing);
+        console.log('Extra (tidak ada di kunci):', extra);
+        console.groupEnd();
+      }
+
+      if (ok) correct++;
+      pair.style.borderColor = ok ? '#14532d' : '#4c1d95';
+    });
+
+    const total = pairs.length;
+    const res = document.getElementById('globalResult');
+    if (res) res.textContent = `${correct}/${total} benar`;
+  } catch (err) {
+    console.error('checkAll fatal:', err);
+  }
 }
 
 function resetAll(){
