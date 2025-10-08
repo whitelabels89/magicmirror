@@ -933,7 +933,9 @@
                 courseName,
                 lessonName,
                 childName,
-                documentTitle: document.title || ''
+                documentTitle: document.title || '',
+                shortUrl: data.short_url || '',
+                shortPath: data.short_path || ''
               });
             } catch (err) {
               console.warn('[worksheet-submit] kirim whatsapp gagal:', err);

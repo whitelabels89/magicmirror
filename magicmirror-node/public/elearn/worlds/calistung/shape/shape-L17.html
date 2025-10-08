@@ -187,14 +187,14 @@
       FIXED_LAYOUT.forEach(cell=>{ rowCounts[cell.r] = (rowCounts[cell.r] || 0) + 1; });
       const spreadByRow = {
         0: 0,
-        1: 68,
-        2: 82,
-        3: 84,
-        4: 84,
-        5: 80,
-        6: 78,
-        7: 64,
-        8: 58
+        1: 52,
+        2: 68,
+        3: 72,
+        4: 74,
+        5: 70,
+        6: 68,
+        7: 56,
+        8: 50
       };
 
       const items = document.createElementNS(svgns,'g');
@@ -226,7 +226,7 @@
         g.setAttribute('stroke-width','2');
         g.style.cursor='pointer';
         const def = getShapeDef(type);
-        def.draw(g,16); // consistent size
+        def.draw(g,13); // consistent size
         items.appendChild(g);
         counts[type] = (counts[type]||0)+1;
       });

@@ -18,12 +18,19 @@
     .palette{display:flex;gap:14px;flex-wrap:wrap;align-items:center;overflow-x:auto;padding-bottom:6px}
     .chip{width:170px;height:160px;border-radius:16px;border:2px solid #e5e7eb;cursor:pointer;box-shadow:0 4px 16px rgba(2,6,23,.08);background:#fff;display:grid;place-items:center;transition:transform .15s ease, box-shadow .15s ease}
     .chip.active{box-shadow:inset 0 0 0 3px #111827,0 6px 18px rgba(2,6,23,.08);transform:translateY(-2px)}
-    .chipInner{width:160px;height:150px;display:grid;place-items:center}
+    .chipInner{width:160px;height:150px;display:flex;align-items:center;justify-content:center}
+    .chipInner svg{width:100%;height:100%;max-width:120px;max-height:110px}
 
     .triangle-actions{display:flex;gap:12px;flex-wrap:wrap}
 
     .canvasWrap{background:linear-gradient(180deg,#ffffff 0%,#f8fafc 100%);border:1px solid #e5e7eb;border-radius:20px;padding:12px;position:relative}
     svg{width:100%;height:min(72vh,720px);display:block;border-radius:16px;background:#fff}
+
+    .legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
+    .legend .item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:14px;background:rgba(255,255,255,.92);border:1px solid #e2e8f0;box-shadow:0 8px 16px rgba(15,23,42,.08)}
+    .legend .legend-icon{width:82px;height:72px;display:flex;align-items:center;justify-content:center}
+    .legend .legend-icon svg{width:100%;height:100%}
+    .legend .label{font-weight:600;color:var(--muted);line-height:1.3;max-width:200px}
 
     .hud{position:absolute;left:16px;top:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
     .hud .shape-button{box-shadow:none;border:1px solid rgba(15,23,42,.15);background:rgba(255,255,255,.92);color:var(--ink)}
@@ -87,24 +94,26 @@
   const MAX_SIDE = Math.max(...RULES.map(r=>r.size));
 
   function makeMiniTriangle(side, color){
-    const w=160, h=150;
-    const pad = 8;
-    const cx = w/2, cy = h/2 + 2;
-    const s = side;
-    const triH = Math.sqrt(3)/2 * s;
-    const topY  = cy - triH/1.2;
-    const baseY = cy + triH/1.8;
-    const p1 = `${cx},${topY}`;
-    const p2 = `${cx - s/2},${baseY}`;
-    const p3 = `${cx + s/2},${baseY}`;
+    const width = 120;
+    const height = 96;
+    const scale = Math.max(0.4, side / MAX_SIDE);
+    const base = 70 * scale + 26;
+    const triHeight = 60 * scale + 18;
+    const baseY = height - 8;
+    const topY = baseY - triHeight;
+    const cx = width / 2;
 
-    const wrap = document.createElement('div');
-    wrap.className='chipInner';
-    wrap.innerHTML = `
-      <svg viewBox="-${pad} -${pad} ${w + pad*2} ${h + pad*2}" aria-hidden="true">
-        <polygon class="miniTri" points="${p1} ${p2} ${p3}" fill="${color}" />
-      </svg>`;
-    return wrap;
+    const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('viewBox',`0 0 ${width} ${height}`);
+    svg.setAttribute('preserveAspectRatio','xMidYMid meet');
+    svg.setAttribute('aria-hidden','true');
+    const poly = document.createElementNS(svg.namespaceURI,'polygon');
+    poly.setAttribute('points',`${cx},${topY} ${cx - base/2},${baseY} ${cx + base/2},${baseY}`);
+    poly.setAttribute('fill', color);
+    poly.setAttribute('stroke','#1f2937');
+    poly.setAttribute('stroke-width','2');
+    svg.appendChild(poly);
+    return svg;
   }
 
   const stage = document.getElementById('stage');
@@ -123,9 +132,16 @@
     RULES.forEach(r=>{
       const el = document.createElement('div');
       el.className = 'item';
-      el.appendChild(makeMiniTriangle(r.size, r.color));
+      const iconBox = document.createElement('div');
+      iconBox.className = 'legend-icon';
+      iconBox.appendChild(makeMiniTriangle(r.size, r.color));
+      const label = document.createElement('div');
+      label.className = 'label';
+      label.textContent = r.label;
+      el.append(iconBox, label);
       legend.appendChild(el);
     });
+    legend.hidden = false;
   }
 
   function buildPalette(){
@@ -232,7 +248,7 @@
   }
 
   // init
-  // buildLegend(); // legend hidden
+  buildLegend();
   buildPalette();
   buildBoard();
 
