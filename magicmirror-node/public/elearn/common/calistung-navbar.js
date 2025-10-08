@@ -994,13 +994,16 @@
       .replace(/'/g, '&#39;');
     const noteMarkup = note ? `<span class="calistung-navbar__note">${escapeHtml(note)}</span>` : '';
     nav.innerHTML = `
+      <a class="calistung-navbar__btn calistung-navbar__btn--map" href="${mapUrl || '#'}">
+        <span>Map</span>
+      </a>
       <div class="calistung-navbar__info">
         <span class="calistung-navbar__badge">${badgeLabel}</span>
         <span class="calistung-navbar__title"></span>
         ${noteMarkup}
       </div>
       <button type="button" class="calistung-navbar__btn calistung-navbar__btn--back" aria-label="World">
-        ⬅️ <span>World</span>
+        <span>World</span>
       </button>
     `;
 
