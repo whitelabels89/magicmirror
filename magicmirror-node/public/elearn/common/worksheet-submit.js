@@ -279,6 +279,8 @@
       }catch(_){ /* ignore */ }
     }
 
+    const WORKSHEET_WHACENTER_DEVICE_ID = 'f435a4f1b1a5bd29a38f38b408789a27';
+
     async function sendWorksheet(meta = {}){
       const number = getStored();
       if (!number) return;
@@ -310,7 +312,7 @@
         const res = await fetch(sendUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ number: norm, message })
+          body: JSON.stringify({ number: norm, message, deviceId: WORKSHEET_WHACENTER_DEVICE_ID })
         });
         if (!res.ok) {
           const text = await res.text().catch(()=>res.statusText || '');

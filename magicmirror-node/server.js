@@ -1572,7 +1572,7 @@ app.post('/upload_ai_result', (req, res) => {
 app.post('/send-whatsapp', async (req, res) => {
   try {
     const body = req.body || {};
-    let { number, message } = body;
+    let { number, message, deviceId: overrideDeviceId } = body;
     if (!number || !message) {
       return res.status(400).json({ ok: false, error: 'missing number/message' });
     }
@@ -1589,7 +1589,9 @@ app.post('/send-whatsapp', async (req, res) => {
     number = normalize(number);
 
     // Ambil cred dari ENV (dukung dua nama var yang sudah dipakai di proyekmu)
-    const deviceId = process.env.WHACENTER_DEVICE || process.env.WHA_DEVICE_ID;
+    const deviceId = (typeof overrideDeviceId === 'string' && overrideDeviceId.trim())
+      ? overrideDeviceId.trim()
+      : (process.env.WHACENTER_DEVICE || process.env.WHA_DEVICE_ID);
     const apiKey   = process.env.WHACENTER_KEY   || process.env.WHA_API_KEY; // opsional
 
     if (!deviceId) {
