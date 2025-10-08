@@ -367,9 +367,7 @@ function expandEdges(list){
 }
 
 PATS.forEach(p => {
-  const uniq = new Set();
-  expandEdges(p.edges).forEach(([ax,ay,bx,by]) => uniq.add(segmentKey(ax,ay,bx,by)));
-  p.solutionKeys = Array.from(uniq).sort();
+  p.solutionKeys = expandEdges(p.edges).map(([ax,ay,bx,by]) => segmentKey(ax,ay,bx,by)).sort();
 });
 
 // Build UI
@@ -419,48 +417,90 @@ document.getElementById('btnEraser').addEventListener('click', (e)=>{
   e.currentTarget.classList.toggle('active', ERASER_MODE);
 });
 
-function checkAll(){
-  try {
-    const pairs = document.querySelectorAll('.pair');
-    if (!pairs.length) return;
-    let correct = 0;
-    pairs.forEach((pair, idx) => {
-      const expected = Array.isArray(pair.solutionEdges) ? pair.solutionEdges : [];
-      const userEdges = (pair.rightBoard && typeof pair.rightBoard.getExpandedEdgeKeys === 'function')
-        ? pair.rightBoard.getExpandedEdgeKeys() : [];
+const MAX_EXTRA_SEGMENTS = 2;
 
-      // Bandingkan sebagai SET untuk stabilitas
-      const setA = new Set(expected);
-      const setB = new Set(userEdges);
-      let ok = (setA.size === setB.size);
-      if (ok) {
-        for (const k of setA) { if (!setB.has(k)) { ok = false; break; } }
-      }
-
-      if (!ok && window.WORKSHEET_DEBUG) {
-        const missing = [...setA].filter(k=>!setB.has(k));
-        const extra   = [...setB].filter(k=>!setA.has(k));
-        console.group(`Diff pair #${idx+1} (${pair.querySelector('h3')?.textContent||''})`);
-        console.log('Missing (harusnya ada di jawaban):', missing);
-        console.log('Extra (tidak ada di kunci):', extra);
-        console.groupEnd();
-      }
-
-      if (ok) correct++;
-      pair.style.borderColor = ok ? '#14532d' : '#4c1d95';
-    });
-
-    const total = pairs.length;
-    const res = document.getElementById('globalResult');
-    if (res) res.textContent = `${correct}/${total} benar`;
-  } catch (err) {
-    console.error('checkAll fatal:', err);
+function ensurePairMessage(pair){
+  let msg = pair.querySelector('.pair-msg');
+  if(!msg){
+    msg = document.createElement('div');
+    msg.className = 'pair-msg';
+    msg.style.gridColumn = '1/3';
+    msg.style.fontSize = '12px';
+    msg.style.marginTop = '6px';
+    pair.appendChild(msg);
   }
+  return msg;
+}
+
+function checkAll(){
+  let correct=0;
+  document.querySelectorAll('.pair').forEach(pair=>{
+    const expected = pair.solutionEdges;
+    const userEdges = pair.rightBoard.getExpandedEdgeKeys();
+    const expectedSet = new Set(expected);
+    const userSet = new Set(userEdges);
+
+    const missing = [];
+    expectedSet.forEach(key=>{ if(!userSet.has(key)){ missing.push(key); } });
+    const extra = [];
+    userSet.forEach(key=>{ if(!expectedSet.has(key)){ extra.push(key); } });
+
+    let ok = false;
+    let border = '#4c1d95';
+    let msgText = '';
+    let msgColor = '#f87171';
+
+    if(missing.length === 0){
+      if(extra.length <= MAX_EXTRA_SEGMENTS){
+        ok = true;
+        border = '#14532d';
+      } else {
+        border = '#b45309';
+        msgText = `Ada ${extra.length} garis tambahan, hapus yang tidak perlu ya.`;
+        msgColor = '#facc15';
+      }
+    } else {
+      border = '#7f1d1d';
+      msgText = `Masih ada ${missing.length} garis yang belum dibuat.`;
+    }
+
+    if(ok){ correct++; }
+    pair.style.borderColor = border;
+
+    const msgEl = ensurePairMessage(pair);
+    if(msgText){
+      msgEl.textContent = msgText;
+      msgEl.style.display = 'block';
+      msgEl.style.color = msgColor;
+    } else if(ok){
+      msgEl.textContent = 'Benar, mantap!';
+      msgEl.style.display = 'block';
+      msgEl.style.color = '#4ade80';
+    } else {
+      msgEl.textContent = '';
+      msgEl.style.display = 'none';
+    }
+
+    if(window.WORKSHEET_DEBUG && (!ok)){
+      console.debug('Geoboard mismatch', {
+        pattern: pair.dataset.index,
+        missing,
+        extra
+      });
+    }
+  });
+  const total = document.querySelectorAll('.pair').length;
+  document.getElementById('globalResult').textContent = `${correct}/${total} benar`;
 }
 
 function resetAll(){
   document.getElementById('globalResult').textContent='';
-  document.querySelectorAll('.pair').forEach(pair=>{ pair.rightBoard.clear(); pair.style.borderColor='#23304a'; });
+  document.querySelectorAll('.pair').forEach(pair=>{
+    pair.rightBoard.clear();
+    pair.style.borderColor='#23304a';
+    const msg = pair.querySelector('.pair-msg');
+    if(msg){ msg.textContent=''; msg.style.display='none'; }
+  });
   UNDO_STACK.length = 0;
 }
 
