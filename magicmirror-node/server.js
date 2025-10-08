@@ -1594,7 +1594,7 @@ app.post('/upload_ai_result', (req, res) => {
 app.post('/send-whatsapp', async (req, res) => {
   try {
     const body = req.body || {};
-    let { number, message, deviceId: overrideDeviceId } = body;
+    let { number, message, deviceId: overrideDeviceId, channel, context } = body;
     if (!number || !message) {
       return res.status(400).json({ ok: false, error: 'missing number/message' });
     }
@@ -1611,9 +1611,21 @@ app.post('/send-whatsapp', async (req, res) => {
     number = normalize(number);
 
     // Ambil cred dari ENV (dukung dua nama var yang sudah dipakai di proyekmu)
+    const requestedChannel = String(channel || context || '').trim().toLowerCase();
+    const envDeviceByChannel = {
+      aftercare: process.env.WHACENTER_DEVICE_ID_AFC,
+      afc: process.env.WHACENTER_DEVICE_ID_AFC,
+    };
+
+    const channelDevice = envDeviceByChannel[requestedChannel];
+
     const deviceId = (typeof overrideDeviceId === 'string' && overrideDeviceId.trim())
       ? overrideDeviceId.trim()
-      : (process.env.WHACENTER_DEVICE || process.env.WHA_DEVICE_ID);
+      : (channelDevice || process.env.WHACENTER_DEVICE || process.env.WHA_DEVICE_ID);
+
+    if (requestedChannel && !channelDevice) {
+      console.warn(`send-whatsapp: channel "${requestedChannel}" diminta tetapi WHACENTER_DEVICE_ID_${requestedChannel.toUpperCase()} belum dikonfigurasi. Menggunakan device default.`);
+    }
     const apiKey   = process.env.WHACENTER_KEY   || process.env.WHA_API_KEY; // opsional
 
     if (!deviceId) {
