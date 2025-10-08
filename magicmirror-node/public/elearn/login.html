@@ -129,7 +129,7 @@
       overflow-y: visible;
     }
 
-    html.login-embed.in-start-modal body.login-body {
+    html.login-embed.in-start-modal body {
       justify-content: flex-start;
       align-items: center;
       padding: clamp(1.5rem, 4vw, 2.5rem) 0;
@@ -474,16 +474,20 @@
       .cta-digital-experience { z-index: 1 !important; }
     }
     /* Embed specific styling */
-    html.login-embed, html.login-embed body {
-      overflow: hidden;
-    }
-
-    html.login-embed body.login-body {
+    html.login-embed,
+    html.login-embed body {
       font-family: 'Rajdhani', 'Inter', sans-serif;
       background: transparent;
       min-height: auto;
       padding: 0;
       text-align: left;
+      overflow: hidden;
+      color: #f3f6ff;
+      color-scheme: dark;
+    }
+
+    html.login-embed body::before {
+      content: none !important;
     }
 
     html.login-embed .login-container {
@@ -1105,7 +1109,7 @@
     }
   </style>
 </head>
-<body>
+<body class="login-body">
   <div class="embed-login" data-embed-login aria-hidden="true">
     <div class="login-card">
       <img src="/icoding.png" alt="Queen's Academy iCoding" class="icoding-logo" />
@@ -1584,7 +1588,9 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     if (isEmbedMode) {
-      document.body.classList.add('login-body');
+      if (!document.body.classList.contains('login-body')) {
+        document.body.classList.add('login-body');
+      }
       const embedWrapper = document.querySelector('[data-embed-login]');
       if (embedWrapper) {
         embedWrapper.removeAttribute('aria-hidden');
