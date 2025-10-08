@@ -207,73 +207,92 @@ router.post('/submit', rateLimiter, async (req, res) => {
       return res.status(500).json({ ok:false, code:'drive_error', message:e.message || 'Drive error' });
     }
 
-    // --- Stage: Google Sheets ---
+    const spreadsheetId = process.env.SPREADSHEET_ID;
+    if (!spreadsheetId) {
+      const err = new Error('SPREADSHEET_ID env not set');
+      console.error('sheets error', err);
+      return res.status(500).json({ ok: false, code: 'sheets_error', message: err.message });
+    }
+
+    let sheets;
     try {
-      const spreadsheetId = process.env.SPREADSHEET_ID;
-      if (!spreadsheetId) throw new Error('SPREADSHEET_ID env not set');
       const client = await getGoogleClient();
-      const sheets = google.sheets({ version: 'v4', auth: client });
-      const sheetRow = [
-        new Date(ts).toISOString(),
-        murid_uid,
-        cid,
-        nama_anak,
-        course_id,
-        lesson_id,
-        user.uid,
-        role,
-        (answers_text || '').slice(0, 5000),
-        storageUrl,
-        driveUrl
-      ];
-      await sheets.spreadsheets.values.append({
-        spreadsheetId,
-        range: 'EL_WORKSHEET',
-        valueInputOption: 'RAW',
-        requestBody: { values: [sheetRow] }
-      });
+      sheets = google.sheets({ version: 'v4', auth: client });
     } catch (e) {
       console.error('sheets error', e);
-      return res.status(500).json({ ok:false, code:'sheets_error', message:e.message || 'Sheets error' });
+      return res.status(500).json({ ok: false, code: 'sheets_error', message: e.message || 'Sheets error' });
     }
 
-    // --- Stage: Firestore ---
-    try {
-      const db = admin.firestore();
-      const docId = `${murid_uid}_${course_id}_${lesson_id}_${ts}`;
-      await db.collection('worksheets').doc(docId).set({
-        ts,
-        murid_uid,
-        cid,
-        nama_anak,
-        course_id,
-        lesson_id,
-        submitted_by_uid: user.uid,
-        submitted_by_role: role,
-        answers_text: answers_text,
-        storage_url: storageUrl,
-        drive_file_id: driveFileId,
-        drive_url: driveUrl,
-        sheet_row_url_storage: storageUrl,
-        sheet_row_url_drive: driveUrl
-      });
-    } catch (e) {
-      console.error('firestore error', e);
-      return res.status(500).json({ ok:false, code:'firestore_error', message:e.message || 'Firestore error' });
+    const sheetRow = [
+      new Date(ts).toISOString(),
+      murid_uid,
+      cid,
+      nama_anak,
+      course_id,
+      lesson_id,
+      user.uid,
+      role,
+      (answers_text || '').slice(0, 5000),
+      storageUrl,
+      driveUrl
+    ];
+
+    const db = admin.firestore();
+    const docId = `${murid_uid}_${course_id}_${lesson_id}_${ts}`;
+
+    const sheetsPromise = sheets.spreadsheets.values.append({
+      spreadsheetId,
+      range: 'EL_WORKSHEET',
+      valueInputOption: 'RAW',
+      requestBody: { values: [sheetRow] }
+    });
+
+    const firestorePromise = db.collection('worksheets').doc(docId).set({
+      ts,
+      murid_uid,
+      cid,
+      nama_anak,
+      course_id,
+      lesson_id,
+      submitted_by_uid: user.uid,
+      submitted_by_role: role,
+      answers_text: answers_text,
+      storage_url: storageUrl,
+      drive_file_id: driveFileId,
+      drive_url: driveUrl,
+      sheet_row_url_storage: storageUrl,
+      sheet_row_url_drive: driveUrl
+    });
+
+    const pointsPromise = (async () => {
+      try {
+        return await awardPoints({
+          uid: user.uid,
+          courseId: course_id,
+          lessonId: lesson_id,
+          source: 'worksheet_submit'
+        });
+      } catch (e) {
+        console.error('awardPoints failed:', e);
+        return { added: 0, total_points: 0 };
+      }
+    })();
+
+    const [sheetResult, firestoreResult] = await Promise.allSettled([sheetsPromise, firestorePromise]);
+
+    if (sheetResult.status === 'rejected') {
+      const err = sheetResult.reason || new Error('Sheets error');
+      console.error('sheets error', err);
+      return res.status(500).json({ ok: false, code: 'sheets_error', message: err.message || 'Sheets error' });
     }
 
-    // --- Stage: Award Points ---
-    let points = { added: 0, total_points: 0 };
-    try {
-      points = await awardPoints({
-        uid: user.uid,
-        courseId: course_id,
-        lessonId: lesson_id,
-        source: 'worksheet_submit'
-      });
-    } catch (e) {
-      console.error('awardPoints failed:', e);
+    if (firestoreResult.status === 'rejected') {
+      const err = firestoreResult.reason || new Error('Firestore error');
+      console.error('firestore error', err);
+      return res.status(500).json({ ok: false, code: 'firestore_error', message: err.message || 'Firestore error' });
     }
+
+    const points = await pointsPromise;
 
     return res.json({ ok: true, storage_url: storageUrl, drive_url: driveUrl, sheet: { tab: 'EL_WORKSHEET' }, points });
   } catch (err) {
