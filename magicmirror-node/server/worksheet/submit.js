@@ -3,6 +3,7 @@ const router = express.Router();
 const admin = require('firebase-admin');
 const { google } = require('googleapis');
 const stream = require('stream');
+const crypto = require('crypto');
 const { uploadBuffer, ensureFolderWritable, createDrive } = require('../../gdrive');
 const { awardPoints } = require('../../services/pointsService');
 
@@ -128,6 +129,45 @@ router.get('/debug', async (req, res) => {
   }
 });
 
+const WORKSHEET_SHORTLINK_COLLECTION = process.env.WORKSHEET_SHORTLINK_COLLECTION || 'worksheet_shortlinks';
+
+function generateShortCode() {
+  return crypto.randomBytes(4).toString('hex');
+}
+
+async function createWorksheetShortLink(db, data) {
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const code = generateShortCode();
+    const ref = db.collection(WORKSHEET_SHORTLINK_COLLECTION).doc(code);
+    try {
+      await ref.create({
+        ...data,
+        code,
+        target_url: data.storage_url || data.drive_url || '',
+        created_at: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      return code;
+    } catch (err) {
+      const msg = err && err.message ? err.message : '';
+      if (err && (err.code === 6 || err.code === 'already-exists' || /already exists/i.test(msg))) {
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw new Error('SHORTLINK_GENERATION_FAILED');
+}
+
+function resolvePublicBaseUrl(req) {
+  const envUrl = (process.env.WORKSHEET_PUBLIC_BASE_URL || process.env.PUBLIC_BASE_URL || '').trim();
+  if (envUrl) return envUrl;
+  const host = req.get('x-forwarded-host') || req.get('host');
+  if (!host) return '';
+  const protoHeader = req.get('x-forwarded-proto');
+  const proto = (protoHeader ? protoHeader.split(',')[0] : (req.protocol || 'https')).trim() || 'https';
+  return `${proto}://${host}`;
+}
+
 router.post('/submit', rateLimiter, async (req, res) => {
   try {
     dlog('POST /submit hit');
@@ -207,75 +247,142 @@ router.post('/submit', rateLimiter, async (req, res) => {
       return res.status(500).json({ ok:false, code:'drive_error', message:e.message || 'Drive error' });
     }
 
-    // --- Stage: Google Sheets ---
+    const spreadsheetId = process.env.SPREADSHEET_ID;
+    if (!spreadsheetId) {
+      const err = new Error('SPREADSHEET_ID env not set');
+      console.error('sheets error', err);
+      return res.status(500).json({ ok: false, code: 'sheets_error', message: err.message });
+    }
+
+    let sheets;
     try {
-      const spreadsheetId = process.env.SPREADSHEET_ID;
-      if (!spreadsheetId) throw new Error('SPREADSHEET_ID env not set');
       const client = await getGoogleClient();
-      const sheets = google.sheets({ version: 'v4', auth: client });
-      const sheetRow = [
-        new Date(ts).toISOString(),
-        murid_uid,
-        cid,
-        nama_anak,
-        course_id,
-        lesson_id,
-        user.uid,
-        role,
-        (answers_text || '').slice(0, 5000),
-        storageUrl,
-        driveUrl
-      ];
-      await sheets.spreadsheets.values.append({
-        spreadsheetId,
-        range: 'EL_WORKSHEET',
-        valueInputOption: 'RAW',
-        requestBody: { values: [sheetRow] }
-      });
+      sheets = google.sheets({ version: 'v4', auth: client });
     } catch (e) {
       console.error('sheets error', e);
-      return res.status(500).json({ ok:false, code:'sheets_error', message:e.message || 'Sheets error' });
+      return res.status(500).json({ ok: false, code: 'sheets_error', message: e.message || 'Sheets error' });
     }
 
-    // --- Stage: Firestore ---
+    const sheetRow = [
+      new Date(ts).toISOString(),
+      murid_uid,
+      cid,
+      nama_anak,
+      course_id,
+      lesson_id,
+      user.uid,
+      role,
+      (answers_text || '').slice(0, 5000),
+      storageUrl,
+      driveUrl
+    ];
+
+    const db = admin.firestore();
+    const docId = `${murid_uid}_${course_id}_${lesson_id}_${ts}`;
+
+    const sheetsPromise = sheets.spreadsheets.values.append({
+      spreadsheetId,
+      range: 'EL_WORKSHEET',
+      valueInputOption: 'RAW',
+      requestBody: { values: [sheetRow] }
+    });
+
+    const firestorePromise = db.collection('worksheets').doc(docId).set({
+      ts,
+      murid_uid,
+      cid,
+      nama_anak,
+      course_id,
+      lesson_id,
+      submitted_by_uid: user.uid,
+      submitted_by_role: role,
+      answers_text: answers_text,
+      storage_url: storageUrl,
+      drive_file_id: driveFileId,
+      drive_url: driveUrl,
+      sheet_row_url_storage: storageUrl,
+      sheet_row_url_drive: driveUrl
+    });
+
+    const pointsPromise = (async () => {
+      try {
+        return await awardPoints({
+          uid: user.uid,
+          courseId: course_id,
+          lessonId: lesson_id,
+          source: 'worksheet_submit'
+        });
+      } catch (e) {
+        console.error('awardPoints failed:', e);
+        return { added: 0, total_points: 0 };
+      }
+    })();
+
+    const [sheetResult, firestoreResult] = await Promise.allSettled([sheetsPromise, firestorePromise]);
+
+    if (sheetResult.status === 'rejected') {
+      const err = sheetResult.reason || new Error('Sheets error');
+      console.error('sheets error', err);
+      return res.status(500).json({ ok: false, code: 'sheets_error', message: err.message || 'Sheets error' });
+    }
+
+    if (firestoreResult.status === 'rejected') {
+      const err = firestoreResult.reason || new Error('Firestore error');
+      console.error('firestore error', err);
+      return res.status(500).json({ ok: false, code: 'firestore_error', message: err.message || 'Firestore error' });
+    }
+
+    let shortCode = '';
+    let shortPath = '';
+    let shortUrl = '';
     try {
-      const db = admin.firestore();
-      const docId = `${murid_uid}_${course_id}_${lesson_id}_${ts}`;
-      await db.collection('worksheets').doc(docId).set({
-        ts,
+      const code = await createWorksheetShortLink(db, {
+        worksheet_doc_id: docId,
+        storage_url: storageUrl,
+        drive_url: driveUrl,
         murid_uid,
-        cid,
-        nama_anak,
         course_id,
         lesson_id,
-        submitted_by_uid: user.uid,
-        submitted_by_role: role,
-        answers_text: answers_text,
-        storage_url: storageUrl,
-        drive_file_id: driveFileId,
-        drive_url: driveUrl,
-        sheet_row_url_storage: storageUrl,
-        sheet_row_url_drive: driveUrl
+        submitted_by_uid: user.uid || '',
+        submitted_by_role: role || '',
       });
-    } catch (e) {
-      console.error('firestore error', e);
-      return res.status(500).json({ ok:false, code:'firestore_error', message:e.message || 'Firestore error' });
+      if (code) {
+        shortCode = code;
+        shortPath = `/ws/${code}`;
+        const baseUrl = resolvePublicBaseUrl(req);
+        if (baseUrl) {
+          try {
+            shortUrl = new URL(shortPath, baseUrl).toString();
+          } catch (err) {
+            console.warn('failed to build worksheet short url', err);
+          }
+        }
+        try {
+          await db.collection('worksheets').doc(docId).set({
+            short_code: shortCode,
+            short_path: shortPath,
+            short_url: shortUrl,
+          }, { merge: true });
+        } catch (err) {
+          console.warn('failed to attach short link to worksheet doc', err);
+        }
+      }
+    } catch (err) {
+      console.warn('failed to create worksheet short link', err);
     }
 
-    // --- Stage: Award Points ---
-    let points = { added: 0, total_points: 0 };
-    try {
-      points = await awardPoints({
-        uid: user.uid,
-        courseId: course_id,
-        lessonId: lesson_id,
-        source: 'worksheet_submit'
-      });
-    } catch (e) {
-      console.error('awardPoints failed:', e);
-    }
+    const points = await pointsPromise;
 
-    return res.json({ ok: true, storage_url: storageUrl, drive_url: driveUrl, sheet: { tab: 'EL_WORKSHEET' }, points });
+    return res.json({
+      ok: true,
+      storage_url: storageUrl,
+      drive_url: driveUrl,
+      short_code: shortCode,
+      short_path: shortPath,
+      short_url: shortUrl,
+      sheet: { tab: 'EL_WORKSHEET' },
+      points
+    });
   } catch (err) {
     console.error('worksheet submit error:', err && err.stack ? err.stack : err);
     res.status(500).json({ ok: false, code: 'internal', message: err.message || 'Server error' });
