@@ -767,7 +767,10 @@
       .inline-login__frame {
         position: relative;
         width: 100%;
-        min-height: min(540px, 70vh);
+        max-width: 420px;             /* biar proporsional di mobile */
+        /* Lebih pendek secara default, dan tidak memaksa fullscreen */
+        min-height: min(360px, 50vh);
+        max-height: 72dvh;            /* cap supaya frame putih tidak kepanjangan */
         border-radius: 22px;
         overflow: hidden;
         border: 1px solid rgba(255, 255, 255, 0.18);
@@ -1304,7 +1307,7 @@
         const inlinePanels = [inlineGuestPanel, inlineLoginPanel].filter(Boolean);
         const inlineLoginFrameWrapper = inlineLoginPanel?.querySelector('.inline-login__frame') || null;
         const inlineLoginIframe = inlineLoginFrameWrapper?.querySelector('iframe') || null;
-        const DEFAULT_INLINE_LOGIN_HEIGHT = 420;
+        const DEFAULT_INLINE_LOGIN_HEIGHT = 260;
         let currentInlineLoginHeight = 0;
 
         const setInlineLoginFrameHeight = (nextHeight) => {
@@ -1321,16 +1324,22 @@
             DEFAULT_INLINE_LOGIN_HEIGHT,
             Number.isFinite(numericHeight) ? Math.ceil(numericHeight) : 0
           );
-          if (!proposed) {
+          /* Batasi agar tidak melebihi 72% tinggi viewport */
+          const maxFrame = Math.floor(window.innerHeight * 0.72);
+          const clamped = Math.min(proposed, maxFrame);
+          if (!clamped) {
             return;
           }
-          if (Math.abs(proposed - currentInlineLoginHeight) < 2) {
+          if (Math.abs(clamped - currentInlineLoginHeight) < 2) {
             return;
           }
-          currentInlineLoginHeight = proposed;
-          inlineLoginIframe.style.height = `${proposed}px`;
-          inlineLoginFrameWrapper.style.minHeight = `${proposed}px`;
-          inlineLoginFrameWrapper.style.height = `${proposed}px`;
+          currentInlineLoginHeight = clamped;
+          inlineLoginIframe.style.height = `${clamped}px`;
+          inlineLoginFrameWrapper.style.minHeight = `${clamped}px`;
+          inlineLoginFrameWrapper.style.height = `${clamped}px`;
+          inlineLoginIframe.style.maxHeight = `${clamped}px`;
+          inlineLoginFrameWrapper.style.maxHeight = `${Math.floor(window.innerHeight * 0.72)}px`;
+          inlineLoginFrameWrapper.style.overflow = 'hidden';
         };
 
         const measureInlineLoginFrameHeight = () => {
