@@ -70,6 +70,42 @@ const SIZE = 7; // 7x7 grid like worksheet
 const VB = 100; // viewBox size
 function dotPx(i){ const PAD = 8; return PAD + i * ((VB - 2*PAD) / (SIZE - 1)); } // internal for SVG viewBox 0..VB
 
+function shuffleArray(arr){
+  const copy = [...arr];
+  for(let i = copy.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+function expandSegment(ax, ay, bx, by){
+  const dx = Math.sign(bx - ax);
+  const dy = Math.sign(by - ay);
+  if (dx === 0 && dy === 0) {
+    return [];
+  }
+  const segments = [];
+  let x = ax;
+  let y = ay;
+  while (x !== bx || y !== by) {
+    const nx = x + dx;
+    const ny = y + dy;
+    segments.push([x, y, nx, ny]);
+    x = nx;
+    y = ny;
+  }
+  return segments;
+}
+
+function expandEdges(list){
+  const expanded = [];
+  list.forEach(seg => {
+    expanded.push(...expandSegment(...seg));
+  });
+  return expanded;
+}
+
 let ERASER_MODE = false;
 const UNDO_STACK = [];
 
@@ -269,11 +305,16 @@ const PATS=[
   ]}
 ];
 
+PATS.forEach(p => {
+  p.unitEdges = expandEdges(p.edges);
+});
+
 // Build UI
 const pairsEl = document.getElementById('pairs');
 let order = [...PATS.keys()];
 function drawAll(){
   pairsEl.innerHTML='';
+  UNDO_STACK.length = 0;
   order.forEach((idx,i)=>{
     const p = PATS[idx];
     const pair = document.createElement('div'); pair.className='pair';
@@ -287,7 +328,7 @@ function drawAll(){
     legend.innerHTML = `<span class="swatch" style="background:${p.color}"></span><span>Warna Garis</span>`;
     pair.appendChild(legend);
 
-    const leftBoard = makeBoard(left,{interactive:false,color:p.color,preset:p.edges});
+    const leftBoard = makeBoard(left,{interactive:false,color:p.color,preset:p.unitEdges});
     const rightBoard = makeBoard(right,{interactive:true,color:p.color});
     pair.dataset.index = idx;
     pair.rightBoard = rightBoard; pair.leftEdges = leftBoard.getEdges();
@@ -349,10 +390,11 @@ function checkAll(){
 function resetAll(){
   document.getElementById('globalResult').textContent='';
   document.querySelectorAll('.pair').forEach(pair=>{ pair.rightBoard.clear(); pair.style.borderColor='#23304a'; });
+  UNDO_STACK.length = 0;
 }
 
 function shuffle(){
-  order = order.sort(()=>Math.random()-0.5);
+  order = shuffleArray(order);
   drawAll();
 }
 
