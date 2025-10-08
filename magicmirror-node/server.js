@@ -12,6 +12,8 @@ const { google } = require('googleapis');
 const uploadModulRouter = require('./uploadModul');
 const admin = require('firebase-admin');
 
+const WORKSHEET_SHORTLINK_COLLECTION = process.env.WORKSHEET_SHORTLINK_COLLECTION || 'worksheet_shortlinks';
+
 // CORS (allow credentials; restrict origins via FRONTEND_ORIGINS env if provided)
 const allowedOrigins = (process.env.FRONTEND_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
 app.set('trust proxy', 1);
@@ -76,6 +78,26 @@ app.get('/api/version', (req, res) => {
     },
     time: Date.now()
   });
+});
+
+app.get('/ws/:code', async (req, res) => {
+  try {
+    const code = String(req.params.code || '').trim();
+    if (!code) return res.status(404).send('Not found');
+    if (!admin.apps.length) {
+      console.warn('[worksheet shortlink] admin not initialized');
+      return res.status(503).send('Service unavailable');
+    }
+    const snap = await admin.firestore().collection(WORKSHEET_SHORTLINK_COLLECTION).doc(code).get();
+    if (!snap.exists) return res.status(404).send('Not found');
+    const data = snap.data() || {};
+    const target = data.storage_url || data.drive_url || data.target_url || '';
+    if (!target) return res.status(404).send('Not found');
+    return res.redirect(target);
+  } catch (err) {
+    console.error('worksheet shortlink redirect error', err);
+    return res.status(500).send('Internal error');
+  }
 });
 
 // === Hair Color API (hair recoloring endpoint bridging UI to Minimax/Replicate) ===
@@ -1572,7 +1594,7 @@ app.post('/upload_ai_result', (req, res) => {
 app.post('/send-whatsapp', async (req, res) => {
   try {
     const body = req.body || {};
-    let { number, message } = body;
+    let { number, message, deviceId: overrideDeviceId } = body;
     if (!number || !message) {
       return res.status(400).json({ ok: false, error: 'missing number/message' });
     }
@@ -1589,7 +1611,9 @@ app.post('/send-whatsapp', async (req, res) => {
     number = normalize(number);
 
     // Ambil cred dari ENV (dukung dua nama var yang sudah dipakai di proyekmu)
-    const deviceId = process.env.WHACENTER_DEVICE || process.env.WHA_DEVICE_ID;
+    const deviceId = (typeof overrideDeviceId === 'string' && overrideDeviceId.trim())
+      ? overrideDeviceId.trim()
+      : (process.env.WHACENTER_DEVICE || process.env.WHA_DEVICE_ID);
     const apiKey   = process.env.WHACENTER_KEY   || process.env.WHA_API_KEY; // opsional
 
     if (!deviceId) {
