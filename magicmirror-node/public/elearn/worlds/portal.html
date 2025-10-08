@@ -102,11 +102,11 @@
       // Redirect specific worlds that are not ready yet to "coming soon"
       const redirectNames = new Set([
         'Visual Programming','Pythonia','Webtopia',
-        'Applandia','Robonix','Aitheris','Open World'
+        'Applandia','Robonix','Aitheris'
       ]);
       const redirectIds = new Set([
         'visual','pythonia','webtopia',
-        'applandia','robonix','aitheris','openworld'
+        'applandia','robonix','aitheris'
       ]);
       data.worlds = data.worlds.map(w => {
         const name = (w.name || '').trim();
