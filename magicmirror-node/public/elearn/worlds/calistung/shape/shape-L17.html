@@ -138,22 +138,15 @@
       const clip = document.createElementNS(svgns,'clipPath');
       clip.setAttribute('id','clipTie');
 
-      // Heart-shaped knot centered near top
-      const knot = document.createElementNS(svgns,'path');
-      // heart shape around (160,110) with width ~180
-      knot.setAttribute('d', [
+      const knotPath = [
         'M 160 60',
         'C 190 20, 260 35, 260 95', // right lobe
         'C 260 150, 205 170, 160 205',
         'C 115 170, 60 150, 60 95',   // left lobe
         'C 60 35, 130 20, 160 60 Z'
-      ].join(' '));
+      ].join(' ');
 
-      // Narrow neck connectors (visual only handled by the body polygon below)
-
-      // Body of tie (long polygon with narrow shoulders and pointed tip)
-      const body = document.createElementNS(svgns,'path');
-      body.setAttribute('d', [
+      const bodyPath = [
         'M 80 205',    // left neck further left
         'L 130 310',
         'L 40 640',    // left side much wider
@@ -162,22 +155,26 @@
         'L 190 310',
         'L 240 205',   // right neck further right
         'Z'
-      ].join(' '));
+      ].join(' ');
 
-      clip.appendChild(knot);
-      clip.appendChild(body);
+      const knotClip = document.createElementNS(svgns,'path');
+      knotClip.setAttribute('d', knotPath);
+      const bodyClip = document.createElementNS(svgns,'path');
+      bodyClip.setAttribute('d', bodyPath);
+
+      clip.appendChild(knotClip);
+      clip.appendChild(bodyClip);
 
       defs.appendChild(clip);
       svg.appendChild(defs);
 
-      // Visible outlines (stroke only)
-      [knot, body].forEach(src => {
+      const outlines = [knotPath, bodyPath].map(d => {
         const p = document.createElementNS(svgns,'path');
-        p.setAttribute('d', src.getAttribute('d'));
+        p.setAttribute('d', d);
         p.setAttribute('fill','#fff');
         p.setAttribute('stroke','#000');
         p.setAttribute('stroke-width','3');
-        svg.appendChild(p);
+        return p;
       });
 
       // Generate a neat fixed grid inside the tie (no randomness)
@@ -232,6 +229,7 @@
       });
 
       svg.appendChild(items);
+      outlines.forEach(p => svg.appendChild(p));
       stage.appendChild(svg);
       return {svg,counts};
     }

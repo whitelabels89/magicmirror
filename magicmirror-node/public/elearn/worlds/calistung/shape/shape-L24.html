@@ -158,6 +158,10 @@ function makeBoard(container,opts){
     preset.forEach(([ax,ay,bx,by])=>{
       const a = pts.find(p=>p.x===ax&&p.y===ay);
       const b = pts.find(p=>p.x===bx&&p.y===by);
+      if (!a || !b) {
+        console.warn('[shape-l24] preset edge skipped', ax, ay, bx, by);
+        return;
+      }
       addLine(a,b);
     });
   }
@@ -172,6 +176,9 @@ function makeBoard(container,opts){
     let dragging = false;
 
     svg.addEventListener('pointerdown', (e)=>{
+      if (typeof e.button === 'number' && e.button !== 0) {
+        return;
+      }
       // Erase on tap when eraser mode
       if(ERASER_MODE && e.target.tagName==='path'){
         for(const [k,el] of edges){ if(el===e.target){ el.remove(); edges.delete(k); UNDO_STACK.push({type:'del', k, color}); break; } }
@@ -183,7 +190,9 @@ function makeBoard(container,opts){
       picked = near; dragging = true;
       ghost.style.display='block';
       ghost.setAttribute('d',`M ${near.cx} ${near.cy} L ${near.cx} ${near.cy}`);
-      svg.setPointerCapture && svg.setPointerCapture(e.pointerId);
+      if (svg.setPointerCapture) {
+        try { svg.setPointerCapture(e.pointerId); } catch (_) { /* ignore */ }
+      }
     });
 
     svg.addEventListener('pointermove',(e)=>{
@@ -208,7 +217,7 @@ function makeBoard(container,opts){
           const path = document.createElementNS(svg.namespaceURI,'path');
           path.setAttribute('d',`M ${picked.cx} ${picked.cy} L ${near.cx} ${near.cy}`);
           path.setAttribute('stroke',color); path.setAttribute('class','line');
-          svg.querySelector('g:nth-of-type(2)').appendChild(path);
+          gLines.appendChild(path);
           edges.set(k, path);
           UNDO_STACK.push({type:'add', k, color});
         }

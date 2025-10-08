@@ -293,6 +293,10 @@
         try {
           shortLink = new URL(meta.shortPath, window.location.origin).toString();
         } catch (_) { /* ignore */ }
+      } else if (meta.shortCode) {
+        try {
+          shortLink = new URL(`/ws/${meta.shortCode}`, window.location.origin).toString();
+        } catch (_) { /* ignore */ }
       }
       const viewUrl = shortLink || meta.storageUrl || meta.driveUrl || meta.viewUrl || '';
       const childName = meta.childName || '';
@@ -582,7 +586,7 @@
     }
   }
 
-  function showWinPopup({ added = 0, total = 0, storageUrl, driveUrl, courseId, lessonId, shortUrl, shortPath }) {
+  function showWinPopup({ added = 0, total = 0, storageUrl, driveUrl, courseId, lessonId, shortUrl, shortPath, shortCode }) {
     // Prevent duplicate overlay
     if (document.getElementById('wsWinOverlay')) return;
 
@@ -659,6 +663,10 @@
     } else if (shortPath) {
       try {
         resolvedShortUrl = new URL(shortPath, window.location.origin).toString();
+      } catch (_) { /* ignore */ }
+    } else if (shortCode) {
+      try {
+        resolvedShortUrl = new URL(`/ws/${shortCode}`, window.location.origin).toString();
       } catch (_) { /* ignore */ }
     }
 
@@ -918,6 +926,7 @@
             driveUrl: data.drive_url,
             shortUrl: data.short_url || '',
             shortPath: data.short_path || '',
+            shortCode: data.short_code || '',
             courseId,
             lessonId
           });
@@ -935,7 +944,8 @@
                 childName,
                 documentTitle: document.title || '',
                 shortUrl: data.short_url || '',
-                shortPath: data.short_path || ''
+                shortPath: data.short_path || '',
+                shortCode: data.short_code || ''
               });
             } catch (err) {
               console.warn('[worksheet-submit] kirim whatsapp gagal:', err);
