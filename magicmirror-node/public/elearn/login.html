@@ -31,20 +31,34 @@
     const urlParams = new URLSearchParams(window.location.search);
     const embedParam = urlParams.get('embed');
     let isEmbedMode = embedParam === '1' || embedParam === 'true';
-    if (!isEmbedMode) {
-      try {
-        if (window.self !== window.top) {
+    const embedRedirectTarget = urlParams.get('redirect') || '';
+
+    const activateLoginEmbedShell = () => {
+      if (!document.documentElement.classList.contains('login-embed')) {
+        document.documentElement.classList.add('login-embed');
+      }
+      window.__EMBED__ = true;
+    };
+
+    if (isEmbedMode) {
+      activateLoginEmbedShell();
+    }
+
+    window.addEventListener('message', (event) => {
+      if (event && event.data && event.data.type === 'enableEmbedMode') {
+        if (!isEmbedMode) {
           isEmbedMode = true;
         }
-      } catch (error) {
-        isEmbedMode = true;
+        activateLoginEmbedShell();
+        if (document.readyState !== 'loading' && typeof window.__applyLoginEmbed === 'function') {
+          try {
+            window.__applyLoginEmbed(true);
+          } catch (error) {
+            console.warn('Gagal menerapkan mode embed login setelah pesan:', error);
+          }
+        }
       }
-    }
-    const embedRedirectTarget = urlParams.get('redirect') || '';
-    if (isEmbedMode) {
-      document.documentElement.classList.add('login-embed');
-      window.__EMBED__ = true;
-    }
+    });
   </script>
   <style>
     .cta-digital-experience {
@@ -184,6 +198,10 @@
       max-height: 76dvh;           /* lebih pendek supaya pas */
       overflow: auto;
       padding: clamp(1.6rem, 4vw, 2.6rem);
+      background: transparent !important;
+      border: 0 !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
     }
 
     .login-card__header {
@@ -1056,23 +1074,52 @@
 </style>
   <script id="embed-mode-boot">
     (function () {
-      try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const inIframe = (function(){ try { return window.self !== window.top; } catch { return true; } })();
-        if (urlParams.get('embed') === '1' || inIframe) {
-          document.documentElement.classList.add('is-embed');
-          document.body.classList.add('is-embed');
-          window.__EMBED__ = true;
+      const params = new URLSearchParams(window.location.search);
+      let embedApplied = false;
+
+      const ensureBodyEmbedClass = () => {
+        if (!document.body) {
+          document.addEventListener(
+            'DOMContentLoaded',
+            () => {
+              document.body.classList.add('is-embed');
+            },
+            { once: true }
+          );
+          return;
         }
-        // allow parent to force embed after load
-        window.addEventListener('message', (e) => {
-          if (e && e.data && e.data.type === 'enableEmbedMode') {
-            document.documentElement.classList.add('is-embed');
-            document.body.classList.add('is-embed');
-            window.__EMBED__ = true;
+        document.body.classList.add('is-embed');
+      };
+
+      const enableEmbedMode = () => {
+        if (embedApplied) {
+          return;
+        }
+        embedApplied = true;
+        document.documentElement.classList.add('is-embed');
+        ensureBodyEmbedClass();
+        if (typeof isEmbedMode !== 'undefined') {
+          isEmbedMode = true;
+        }
+        window.__EMBED__ = true;
+        if (document.readyState !== 'loading' && typeof window.__applyLoginEmbed === 'function') {
+          try {
+            window.__applyLoginEmbed(true);
+          } catch (error) {
+            console.warn('Gagal menerapkan tata letak embed login:', error);
           }
-        });
-      } catch {}
+        }
+      };
+
+      if (params.get('embed') === '1' || params.get('embed') === 'true') {
+        enableEmbedMode();
+      }
+
+      window.addEventListener('message', (event) => {
+        if (event && event.data && event.data.type === 'enableEmbedMode') {
+          enableEmbedMode();
+        }
+      });
     })();
   </script>
   <style id="embed-mode-css">
@@ -1359,6 +1406,26 @@
     }
   }
 
+  function applyLoginEmbed(initialForce = false) {
+    if (!isEmbedMode) {
+      return;
+    }
+    if (document.body && !document.body.classList.contains('login-body')) {
+      document.body.classList.add('login-body');
+    }
+    const embedWrapper = document.querySelector('[data-embed-login]');
+    if (embedWrapper && embedWrapper.hasAttribute('aria-hidden')) {
+      embedWrapper.removeAttribute('aria-hidden');
+    }
+    notifyParentAboutSize(initialForce);
+    setTimeout(() => notifyParentAboutSize(), 120);
+    setupEmbedResizeObserver();
+  }
+
+  window.__applyLoginEmbed = (initialForce = false) => {
+    applyLoginEmbed(initialForce);
+  };
+
   function setEmbedStatus(message, type = 'info') {
     const statusEl = document.getElementById('embedStatus');
     if (statusEl) {
@@ -1600,16 +1667,7 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     if (isEmbedMode) {
-      if (!document.body.classList.contains('login-body')) {
-        document.body.classList.add('login-body');
-      }
-      const embedWrapper = document.querySelector('[data-embed-login]');
-      if (embedWrapper) {
-        embedWrapper.removeAttribute('aria-hidden');
-      }
-      notifyParentAboutSize(true);
-      setTimeout(() => notifyParentAboutSize(), 120);
-      setupEmbedResizeObserver();
+      applyLoginEmbed(true);
     }
 
     const loginForm = document.getElementById('embedLoginForm');
