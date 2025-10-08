@@ -4,6 +4,13 @@ function getUserInfo() {
     role: localStorage.getItem("role"),
     nama: localStorage.getItem("nama"),
     uid: localStorage.getItem("uid"),
-    cid: localStorage.getItem("cid")
+    cid: localStorage.getItem("cid"),
+    whatsapp: (function(){
+      try {
+        return localStorage.getItem("whatsapp") || localStorage.getItem("qa_whatsapp") || sessionStorage.getItem("whatsapp") || '';
+      } catch (_){
+        return '';
+      }
+    })()
   };
 }
