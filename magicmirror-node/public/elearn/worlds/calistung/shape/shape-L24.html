@@ -116,24 +116,50 @@ function makeBoard(container,opts){
   const gLines = document.createElementNS(svg.namespaceURI,'g');
   svg.appendChild(gLines);
 
+  const api = {};
+  const pointMap = new Map();
+  pts.forEach(p=>{ pointMap.set(`${p.x},${p.y}`, p); });
+
   const edges = new Map();
-  function addLine(a,b,cls=''){
+  function drawPath(a,b,cls=''){
     const path = document.createElementNS(svg.namespaceURI,'path');
     path.setAttribute('d',`M ${a.cx} ${a.cy} L ${b.cx} ${b.cy}`);
-    path.setAttribute('stroke',color); path.setAttribute('class','line '+cls);
+    path.setAttribute('stroke',color);
+    path.setAttribute('class','line'+(cls?` ${cls}`:''));
     gLines.appendChild(path);
-    edges.set(keyEdge(a,b), path);
+    return path;
   }
-  function removeLine(k){ const p = edges.get(k); if(p){ p.remove(); edges.delete(k); } }
+
+  function ensureEdge(ax,ay,bx,by,cls=''){
+    const a = pointMap.get(`${ax},${ay}`);
+    const b = pointMap.get(`${bx},${by}`);
+    if(!a || !b){ return {key:null, created:false}; }
+    const key = keyEdge(a,b);
+    if(edges.has(key)){ return {key, created:false}; }
+    const path = drawPath(a,b,cls);
+    edges.set(key,{path, ax:a.x, ay:a.y, bx:b.x, by:b.y});
+    return {key, created:true};
+  }
+
+  function deleteEdge(key){
+    const rec = edges.get(key);
+    if(rec){ rec.path.remove(); edges.delete(key); }
+  }
+
+  function deleteEdgeByPath(path){
+    for(const [key,rec] of edges){
+      if(rec.path===path){
+        rec.path.remove();
+        edges.delete(key);
+        return {key, ax:rec.ax, ay:rec.ay, bx:rec.bx, by:rec.by};
+      }
+    }
+    return null;
+  }
 
   // preset
   if(preset.length){
-    preset.forEach(([ax,ay,bx,by])=>{
-      const a = pts.find(p=>p.x===ax&&p.y===ay);
-      const b = pts.find(p=>p.x===bx&&p.y===by);
-      if(!a || !b){ return; }
-      addLine(a,b);
-    });
+    preset.forEach(([ax,ay,bx,by])=>{ ensureEdge(ax,ay,bx,by); });
   }
 
   if(interactive){
@@ -143,7 +169,7 @@ function makeBoard(container,opts){
 
     // replaced event listeners for drag/tracing interaction
     let picked = null; // last snapped node while drawing
-    let dragging = false;
+    let pointerDown = false;
 
     svg.addEventListener('pointerdown', (e)=>{
       if (typeof e.button === 'number' && e.button !== 0) {
@@ -151,13 +177,16 @@ function makeBoard(container,opts){
       }
       // Erase on tap when eraser mode
       if(ERASER_MODE && e.target.tagName==='path'){
-        for(const [k,el] of edges){ if(el===e.target){ el.remove(); edges.delete(k); UNDO_STACK.push({type:'del', k, color}); break; } }
+        const removed = deleteEdgeByPath(e.target);
+        if(removed){
+          UNDO_STACK.push({type:'del', board:api, data:removed});
+        }
         return;
       }
       const pos = clientToVB(svg, e.clientX, e.clientY);
       const near = nearestDotVB(pos.x, pos.y);
       if(!near) return;
-      picked = near; dragging = true;
+      picked = near; pointerDown = true;
       ghost.style.display='block';
       ghost.setAttribute('d',`M ${near.cx} ${near.cy} L ${near.cx} ${near.cy}`);
       if (svg.setPointerCapture) {
@@ -166,46 +195,41 @@ function makeBoard(container,opts){
     });
 
     svg.addEventListener('pointermove',(e)=>{
-      // Show ghost and, if dragging, create segments whenever we cross another node
+      // Update ghost preview while moving pointer
       const pos = clientToVB(svg, e.clientX, e.clientY);
       const near = nearestDotVB(pos.x, pos.y);
-      if(!picked){
-        // just hover; update ghost to nearest if any
-        if(near){ ghost.style.display='block'; ghost.setAttribute('d',`M ${near.cx} ${near.cy} L ${pos.x} ${pos.y}`); }
-        else{ ghost.style.display='none'; }
-        return;
-      }
-      // We have a picked node; update ghost
-      const ghostTarget = near ? {cx:near.cx, cy:near.cy} : {cx:pos.x, cy:pos.y};
-      ghost.setAttribute('d',`M ${picked.cx} ${picked.cy} L ${ghostTarget.cx} ${ghostTarget.cy}`);
-
-      if(!dragging) return;
-      // Only add segment when we actually snap to a DIFFERENT node while dragging
-      if(near && (near.x!==picked.x || near.y!==picked.y)){
-        const k = keyEdge(picked, near);
-        if(!edges.has(k)){
-          const path = document.createElementNS(svg.namespaceURI,'path');
-          path.setAttribute('d',`M ${picked.cx} ${picked.cy} L ${near.cx} ${near.cy}`);
-          path.setAttribute('stroke',color); path.setAttribute('class','line');
-          gLines.appendChild(path);
-          edges.set(k, path);
-          UNDO_STACK.push({type:'add', k, color});
+      if(pointerDown && picked){
+        const ghostTarget = near ? {cx:near.cx, cy:near.cy} : {cx:pos.x, cy:pos.y};
+        ghost.setAttribute('d',`M ${picked.cx} ${picked.cy} L ${ghostTarget.cx} ${ghostTarget.cy}`);
+      } else {
+        if(near){
+          ghost.style.display='block';
+          ghost.setAttribute('d',`M ${near.cx} ${near.cy} L ${pos.x} ${pos.y}`);
+        } else {
+          ghost.style.display='none';
         }
-        // advance chain without ending drag
-        picked = near;
-        ghost.setAttribute('d',`M ${picked.cx} ${picked.cy} L ${picked.cx} ${picked.cy}`);
       }
     });
 
     function endDrag(e){
-      dragging = false;
+      if(pointerDown && picked){
+        const pos = clientToVB(svg, e.clientX, e.clientY);
+        const near = nearestDotVB(pos.x, pos.y);
+        if(near && (near.x!==picked.x || near.y!==picked.y)){
+          const {key, created} = ensureEdge(picked.x, picked.y, near.x, near.y);
+          if(created){
+            UNDO_STACK.push({type:'add', board:api, key});
+          }
+        }
+      }
+      pointerDown = false;
       picked = null;
       ghost.style.display='none';
       try{ svg.releasePointerCapture && svg.releasePointerCapture(e.pointerId); }catch{ /* noop */ }
     }
     svg.addEventListener('pointerup', endDrag);
     svg.addEventListener('pointercancel', endDrag);
-    svg.addEventListener('pointerleave', (e)=>{ if(!dragging){ ghost.style.display='none'; } });
+    svg.addEventListener('pointerleave', ()=>{ if(!pointerDown){ ghost.style.display='none'; } });
 
     function nearestDotVB(vbx,vby){
       // SNAP tolerance ~10px -> convert to VB units using current rect
@@ -221,11 +245,29 @@ function makeBoard(container,opts){
   }
 
   container.appendChild(svg);
-  return {
-    getEdges(){ return Array.from(edges.keys()).sort(); },
-    clear(){ for(const [,el] of edges) el.remove(); edges.clear(); },
-    svg,
-  };
+  function clear(){
+    for(const [,rec] of edges){ rec.path.remove(); }
+    edges.clear();
+  }
+
+  function getExpandedEdgeKeys(){
+    const keys = new Set();
+    for(const rec of edges.values()){
+      expandSegment(rec.ax,rec.ay,rec.bx,rec.by).forEach(([ax,ay,bx,by])=>{
+        keys.add(segmentKey(ax,ay,bx,by));
+      });
+    }
+    return Array.from(keys).sort();
+  }
+
+  api.svg = svg;
+  api.ensureEdge = ensureEdge;
+  api.deleteEdge = deleteEdge;
+  api.deleteEdgeByPath = deleteEdgeByPath;
+  api.clear = clear;
+  api.getExpandedEdgeKeys = getExpandedEdgeKeys;
+
+  return api;
 }
 
 // ====== Patterns (7x7). Each item: {name,color,edges}
@@ -361,13 +403,12 @@ function drawAll(){
 drawAll();
 
 document.getElementById('btnUndo').addEventListener('click',()=>{
-  // Simple undo: clear last edited board's last edge by removing the last path element
-  // (practical shortcut) – remove last path from the most recent board interacted via UNDO_STACK
-  const last = UNDO_STACK.pop(); if(!last) return;
-  const boards = Array.from(document.querySelectorAll('.pair')).map(p=>p.rightBoard.svg);
-  for(const svg of boards){
-    const paths = svg.querySelectorAll('path.line:not(.ghost)');
-    if(paths.length){ paths[paths.length-1].remove(); break; }
+  const last = UNDO_STACK.pop();
+  if(!last) return;
+  if(last.type==='add'){
+    last.board.deleteEdge(last.key);
+  } else if(last.type==='del' && last.data){
+    last.board.ensureEdge(last.data.ax,last.data.ay,last.data.bx,last.data.by);
   }
 });
 
@@ -380,7 +421,7 @@ function checkAll(){
   let correct=0;
   document.querySelectorAll('.pair').forEach(pair=>{
     const expected = pair.solutionEdges;
-    const userEdges = pair.rightBoard.getEdges();
+    const userEdges = pair.rightBoard.getExpandedEdgeKeys();
     const ok = expected.length===userEdges.length && expected.every((k,i)=>k===userEdges[i]);
     if(ok){ correct++; }
     pair.style.borderColor = ok? '#14532d' : '#4c1d95';
