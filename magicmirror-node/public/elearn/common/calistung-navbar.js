@@ -855,16 +855,27 @@
     const body = document.body;
     const dataset = body.dataset;
     const classList = body.classList;
+    const portalUrl = '/elearn/worlds/portal.html';
+
+    const pathname = (typeof window !== 'undefined' && window.location && window.location.pathname)
+      ? window.location.pathname.toLowerCase()
+      : '';
 
     const badgeValue = (dataset.navBadge || '').toLowerCase();
     let isShapeWorld = false;
     let isMathWorld = false;
+    let isAlphabetWorld = false;
+    let isNumberWorld = false;
 
     if (classList && typeof classList.contains === 'function') {
       if (classList.contains('shape-shell')) {
         isShapeWorld = true;
       } else if (classList.contains('mathgame-shell')) {
         isMathWorld = true;
+      } else if (classList.contains('alphabet-game')) {
+        isAlphabetWorld = true;
+      } else if (classList.contains('number-game')) {
+        isNumberWorld = true;
       }
     }
 
@@ -874,8 +885,23 @@
           isShapeWorld = true;
         } else if (badgeValue.indexOf('math') !== -1 || badgeValue.indexOf('angka') !== -1) {
           isMathWorld = true;
+        } else if (badgeValue.indexOf('alphabet') !== -1 || badgeValue.indexOf('huruf') !== -1) {
+          isAlphabetWorld = true;
+        } else if (badgeValue.indexOf('number') !== -1) {
+          isNumberWorld = true;
         }
       }
+    }
+
+    if (!isAlphabetWorld && pathname.indexOf('/calistung/alphabet/') !== -1) {
+      isAlphabetWorld = true;
+    }
+    if (!isNumberWorld && pathname.indexOf('/calistung/number/') !== -1) {
+      isNumberWorld = true;
+    }
+
+    if (!dataset.navBackUrl) {
+      dataset.navBackUrl = portalUrl;
     }
 
     if (isShapeWorld) {
@@ -908,6 +934,28 @@
       }
       if (!dataset.pauseToggle) {
         dataset.pauseToggle = 'disabled';
+      }
+    }
+
+    if (isAlphabetWorld) {
+      if (!dataset.navBadge) {
+        dataset.navBadge = 'Calistung Alphabet';
+      }
+      dataset.navHomeUrl = '/elearn/worlds/calistung/alphabet/index.html';
+      dataset.navBackUrl = portalUrl;
+      if ((dataset.navBackBehavior || '').toLowerCase() === 'pause-menu') {
+        dataset.navBackBehavior = 'link';
+      }
+    }
+
+    if (isNumberWorld) {
+      if (!dataset.navBadge) {
+        dataset.navBadge = 'Calistung Number';
+      }
+      dataset.navHomeUrl = '/elearn/worlds/calistung/number/index.html';
+      dataset.navBackUrl = portalUrl;
+      if ((dataset.navBackBehavior || '').toLowerCase() === 'pause-menu') {
+        dataset.navBackBehavior = 'link';
       }
     }
 
