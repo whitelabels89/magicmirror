@@ -70,6 +70,15 @@ const SIZE = 7; // 7x7 grid like worksheet
 const VB = 100; // viewBox size
 function dotPx(i){ const PAD = 8; return PAD + i * ((VB - 2*PAD) / (SIZE - 1)); } // internal for SVG viewBox 0..VB
 
+function shuffleArray(arr){
+  const copy = [...arr];
+  for(let i = copy.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
 let ERASER_MODE = false;
 const UNDO_STACK = [];
 
@@ -122,6 +131,7 @@ function makeBoard(container,opts){
     preset.forEach(([ax,ay,bx,by])=>{
       const a = pts.find(p=>p.x===ax&&p.y===ay);
       const b = pts.find(p=>p.x===bx&&p.y===by);
+      if(!a || !b){ return; }
       addLine(a,b);
     });
   }
@@ -136,6 +146,9 @@ function makeBoard(container,opts){
     let dragging = false;
 
     svg.addEventListener('pointerdown', (e)=>{
+      if (typeof e.button === 'number' && e.button !== 0) {
+        return;
+      }
       // Erase on tap when eraser mode
       if(ERASER_MODE && e.target.tagName==='path'){
         for(const [k,el] of edges){ if(el===e.target){ el.remove(); edges.delete(k); UNDO_STACK.push({type:'del', k, color}); break; } }
@@ -147,7 +160,9 @@ function makeBoard(container,opts){
       picked = near; dragging = true;
       ghost.style.display='block';
       ghost.setAttribute('d',`M ${near.cx} ${near.cy} L ${near.cx} ${near.cy}`);
-      svg.setPointerCapture && svg.setPointerCapture(e.pointerId);
+      if (svg.setPointerCapture) {
+        try { svg.setPointerCapture(e.pointerId); } catch (_) { /* ignore */ }
+      }
     });
 
     svg.addEventListener('pointermove',(e)=>{
@@ -172,7 +187,7 @@ function makeBoard(container,opts){
           const path = document.createElementNS(svg.namespaceURI,'path');
           path.setAttribute('d',`M ${picked.cx} ${picked.cy} L ${near.cx} ${near.cy}`);
           path.setAttribute('stroke',color); path.setAttribute('class','line');
-          svg.querySelector('g:nth-of-type(2)').appendChild(path);
+          gLines.appendChild(path);
           edges.set(k, path);
           UNDO_STACK.push({type:'add', k, color});
         }
@@ -269,11 +284,56 @@ const PATS=[
   ]}
 ];
 
+function segmentKey(ax,ay,bx,by){
+  const a={x:ax,y:ay};
+  const b={x:bx,y:by};
+  return keyEdge(a,b);
+}
+
+function expandSegment(ax,ay,bx,by){
+  const startX = Math.round(ax);
+  const startY = Math.round(ay);
+  const endX = Math.round(bx);
+  const endY = Math.round(by);
+  let x0 = startX;
+  let y0 = startY;
+  const x1 = endX;
+  const y1 = endY;
+  const segments = [];
+  const dx = Math.abs(x1 - x0);
+  const sx = x0 < x1 ? 1 : -1;
+  const dy = Math.abs(y1 - y0);
+  const sy = y0 < y1 ? 1 : -1;
+  let err = dx - dy;
+  while(x0 !== x1 || y0 !== y1){
+    const prevX = x0;
+    const prevY = y0;
+    const e2 = err * 2;
+    if(e2 > -dy){ err -= dy; x0 += sx; }
+    if(e2 < dx){ err += dx; y0 += sy; }
+    segments.push([prevX, prevY, x0, y0]);
+  }
+  return segments;
+}
+
+function expandEdges(list){
+  const expanded=[];
+  list.forEach(seg => {
+    expanded.push(...expandSegment(...seg));
+  });
+  return expanded;
+}
+
+PATS.forEach(p => {
+  p.solutionKeys = expandEdges(p.edges).map(([ax,ay,bx,by]) => segmentKey(ax,ay,bx,by)).sort();
+});
+
 // Build UI
 const pairsEl = document.getElementById('pairs');
-let order = [...PATS.keys()];
+let order = PATS.map((_,idx)=>idx);
 function drawAll(){
   pairsEl.innerHTML='';
+  UNDO_STACK.length = 0;
   order.forEach((idx,i)=>{
     const p = PATS[idx];
     const pair = document.createElement('div'); pair.className='pair';
@@ -287,35 +347,18 @@ function drawAll(){
     legend.innerHTML = `<span class="swatch" style="background:${p.color}"></span><span>Warna Garis</span>`;
     pair.appendChild(legend);
 
-    const leftBoard = makeBoard(left,{interactive:false,color:p.color,preset:p.edges});
+    makeBoard(left,{interactive:false,color:p.color,preset:p.edges});
     const rightBoard = makeBoard(right,{interactive:true,color:p.color});
     pair.dataset.index = idx;
-    pair.rightBoard = rightBoard; pair.leftEdges = leftBoard.getEdges();
+    pair.rightBoard = rightBoard;
+    pair.solutionEdges = p.solutionKeys;
+    pair.style.borderColor = '#23304a';
 
     pairsEl.appendChild(pair);
   });
 }
 
 drawAll();
-
-// Undo last add/del across all boards
-function undo(){
-  const last = UNDO_STACK.pop();
-  if(!last) return;
-  // find matching pair and operate on its rightBoard svg
-  document.querySelectorAll('.pair').forEach(pair=>{
-    const rb = pair.rightBoard; // has getEdges/clear and svg reference
-    const svg = rb.svg;
-    const edgesMap = (function(){
-      // Rebuild a mapping from existing paths using current SVG
-      const map = new Map();
-      svg.querySelectorAll('path.line:not(.ghost)').forEach(p=>{
-        // parse d to get endpoints back is complex; rely on stored key when we added
-      });
-      return map;
-    })();
-  });
-}
 
 document.getElementById('btnUndo').addEventListener('click',()=>{
   // Simple undo: clear last edited board's last edge by removing the last path element
@@ -336,9 +379,9 @@ document.getElementById('btnEraser').addEventListener('click', (e)=>{
 function checkAll(){
   let correct=0;
   document.querySelectorAll('.pair').forEach(pair=>{
-    const leftEdges = pair.leftEdges;
-    const r = pair.rightBoard.getEdges();
-    const ok = leftEdges.length===r.length && leftEdges.every((k,i)=>k===r[i]);
+    const expected = pair.solutionEdges;
+    const userEdges = pair.rightBoard.getEdges();
+    const ok = expected.length===userEdges.length && expected.every((k,i)=>k===userEdges[i]);
     if(ok){ correct++; }
     pair.style.borderColor = ok? '#14532d' : '#4c1d95';
   });
@@ -349,10 +392,11 @@ function checkAll(){
 function resetAll(){
   document.getElementById('globalResult').textContent='';
   document.querySelectorAll('.pair').forEach(pair=>{ pair.rightBoard.clear(); pair.style.borderColor='#23304a'; });
+  UNDO_STACK.length = 0;
 }
 
 function shuffle(){
-  order = order.sort(()=>Math.random()-0.5);
+  order = shuffleArray(order);
   drawAll();
 }
 
