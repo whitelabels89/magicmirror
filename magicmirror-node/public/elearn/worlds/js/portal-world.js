@@ -176,7 +176,7 @@ function setupUI() {
   });
 
   btnHome.addEventListener('click', () => {
-    window.location.href = '/elearn/portal.html';
+    window.location.href = '/elearn/worlds/portal.html';
   });
 
   btnSun.addEventListener('click', () => {

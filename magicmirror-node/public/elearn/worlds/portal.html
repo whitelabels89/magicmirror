@@ -15,9 +15,45 @@
       <button id="btnHome" aria-label="Home">🏠</button>
     </div>
 
-    <div class="hud left" aria-label="Pengaturan pencahayaan">
-      <button id="btnSun" aria-label="Toggle Day/Night">✨</button>
-    </div>
+  <script>
+    async function loadWorlds(){
+      const res = await fetch('/elearn/worlds/worlds.json');
+      const data = await res.json();
+      // Redirect specific worlds that are not ready yet to "coming soon"
+      const redirectNames = new Set([
+        'Visual Programming','Pythonia','Webtopia',
+        'Applandia','Robonix','Aitheris'
+      ]);
+      const redirectIds = new Set([
+        'visual','pythonia','webtopia',
+        'applandia','robonix','aitheris'
+      ]);
+      const openWorldNames = new Set(['Open World']);
+      const openWorldIds = new Set(['openworld']);
+      data.worlds = data.worlds.map(w => {
+        const name = (w.name || '').trim();
+        const id = (w.id || '').toString().toLowerCase();
+        if (openWorldNames.has(name) || openWorldIds.has(id)) {
+          return { ...w, entry: '/elearn/portal.html' };
+        }
+        if (redirectNames.has(name) || redirectIds.has(id)) {
+          return { ...w, entry: '/elearn/worlds/comingsoon.html' };
+        }
+        return w;
+      });
+      const grid = document.getElementById('worldGrid');
+      grid.innerHTML = data.worlds.map(w=>`
+        <article class="portal-card" data-entry="${w.entry}">
+          <div class="portal-cover" style="background-image:url('${w.cover || "/elearn/img/map/worldmap3.webp"}')"></div>
+          <div class="portal-meta">
+            <h3>${w.name}</h3>
+            <div class="portal-progress" data-world="${w.id}">
+              <span class="ring" title="progress"></span>
+              <small>loading...</small>
+            </div>
+          </div>
+        </article>
+      `).join('');
 
     <div class="toolbar bottom" role="toolbar" aria-label="Builder pieces">
       <div class="piece-buttons">
