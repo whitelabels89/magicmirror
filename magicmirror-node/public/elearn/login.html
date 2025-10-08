@@ -97,9 +97,10 @@
       display: none;
       align-items: center;
       justify-content: center;
-      padding: clamp(1.5rem, 5vw, 2.8rem) 1.5rem;
+      padding: clamp(1.25rem, 4vw, 2rem) clamp(1rem, 3vw, 2rem);
       box-sizing: border-box;
-      min-height: 100vh;
+      min-height: auto;   /* jangan paksa full viewport */
+      height: auto;       /* ikut tinggi konten */
       width: 100%;
     }
 
@@ -112,23 +113,29 @@
     }
 
     .embed-login .login-card {
-      width: min(100%, 420px);
+      width: min(100%, 480px);     /* BESARKAN kartu agar fit di frame */
       margin: 0 auto;
+      max-height: 80dvh;           /* batasi tinggi kartu */
+      overflow: auto;              /* biar yang scroll isi kartu, bukan background */
+      padding: clamp(1.5rem, 4vw, 2.4rem);
+      border-radius: 20px;
     }
 
     html.login-embed.in-start-modal,
     html.login-embed.in-start-modal body {
-      height: auto;
-      min-height: 100%;
+      height: auto !important;
+      min-height: auto !important;
       overflow-x: hidden;
       overflow-y: visible;
     }
 
-    html.login-embed.in-start-modal body.login-body {
+    html.login-embed.in-start-modal body {
       justify-content: flex-start;
       align-items: center;
       padding: clamp(1.5rem, 4vw, 2.5rem) 0;
       gap: clamp(1.25rem, 4vw, 2rem);
+      min-height: auto !important;
+      height: auto !important;
     }
 
     html.login-embed.in-start-modal #main-wrapper {
@@ -138,19 +145,33 @@
 
     html.login-embed.in-start-modal #main-wrapper > .container,
     html.login-embed.in-start-modal #main-wrapper > .side-slide {
-      height: auto;
-      min-height: 0;
+      height: auto !important;
+      min-height: 0 !important;
+    }
+
+    html.login-embed.in-start-modal #main-wrapper > .container {
+      width: 100% !important;
+      max-width: 460px;
+      margin: 0 auto;
+      justify-content: center;
+    }
+
+    html.login-embed.in-start-modal #main-wrapper > .side-slide {
+      display: none !important;
     }
 
     html.login-embed.in-start-modal .embed-login {
-      min-height: auto;
-      height: auto;
+      min-height: auto !important;
+      height: auto !important;
       padding: clamp(1.25rem, 4vw, 2rem) clamp(1rem, 3vw, 2rem);
     }
 
     html.login-embed.in-start-modal .embed-login .login-card {
-      width: min(100%, 420px);
+      width: min(100%, 500px);     /* sedikit lebih lebar khusus di start modal */
       margin: 0 auto;
+      max-height: 76dvh;           /* lebih pendek supaya pas */
+      overflow: auto;
+      padding: clamp(1.6rem, 4vw, 2.6rem);
     }
 
     .login-card__header {
@@ -453,16 +474,20 @@
       .cta-digital-experience { z-index: 1 !important; }
     }
     /* Embed specific styling */
-    html.login-embed, html.login-embed body {
-      overflow: hidden;
-    }
-
-    html.login-embed body.login-body {
+    html.login-embed,
+    html.login-embed body {
       font-family: 'Rajdhani', 'Inter', sans-serif;
       background: transparent;
       min-height: auto;
       padding: 0;
       text-align: left;
+      overflow: hidden;
+      color: #f3f6ff;
+      color-scheme: dark;
+    }
+
+    html.login-embed body::before {
+      content: none !important;
     }
 
     html.login-embed .login-container {
@@ -1077,9 +1102,14 @@
     @media (min-width: 700px) {
       .is-embed html, .is-embed body { overflow-y: auto !important; }
     }
+    /* Pastikan background embed tidak memaksa tinggi layar */
+    html.login-embed .embed-login {
+      min-height: auto !important;
+      height: auto !important;
+    }
   </style>
 </head>
-<body>
+<body class="login-body">
   <div class="embed-login" data-embed-login aria-hidden="true">
     <div class="login-card">
       <img src="/icoding.png" alt="Queen's Academy iCoding" class="icoding-logo" />
@@ -1558,7 +1588,9 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     if (isEmbedMode) {
-      document.body.classList.add('login-body');
+      if (!document.body.classList.contains('login-body')) {
+        document.body.classList.add('login-body');
+      }
       const embedWrapper = document.querySelector('[data-embed-login]');
       if (embedWrapper) {
         embedWrapper.removeAttribute('aria-hidden');
@@ -2057,3 +2089,5 @@ if (!document.documentElement.classList.contains('is-embed')) {
 </html>
 
 
+
+    
