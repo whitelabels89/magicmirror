@@ -87,6 +87,185 @@
     (document.head || document.documentElement || document.body).appendChild(style);
   }
 
+  const ACTION_HINTS = {
+    shuffle: {
+      selectors: [
+        '#btnShuffle',
+        '#shuffleBtn',
+        '#shuffle',
+        '#btnAcak',
+        '#btnAcakSoal',
+        '#btnAcakLevel',
+        '#btnShuffleLevel',
+        '#btnNew',
+        '#btnAcak1',
+        '#btnAcak2',
+        '#btnAcak3',
+        '#shuffleLevel',
+        'button[id*="acak" i]',
+        'button[id*="shuffle" i]',
+        'button[name*="acak" i]',
+        'button[name*="shuffle" i]',
+        '[data-lesson-button="shuffle"]',
+        '[data-lesson-action="shuffle"]',
+        '[data-action="shuffle"]'
+      ],
+      keywords: ['shuffle', 'acak']
+    },
+    check: {
+      selectors: [
+        '#btnCheck',
+        '#checkBtn',
+        '#check',
+        '#btnPeriksa',
+        '#btnCek',
+        '#btnPeriksa1',
+        '#btnPeriksa2',
+        '#btnPeriksa3',
+        '#btnCheckJawaban',
+        '#cekJawabanBtn',
+        '#checkButton',
+        '#check-btn',
+        '#btn-check',
+        '#btnPeriksaJawaban',
+        '#check1',
+        '#check2',
+        '#check3',
+        'button[id*="periksa" i]',
+        'button[id*="cek" i]',
+        'button[id*="check" i]',
+        'button[name*="periksa" i]',
+        'button[name*="cek" i]',
+        'button[name*="check" i]',
+        '[data-lesson-button="check"]',
+        '[data-lesson-action="check"]',
+        '[data-action="check"]'
+      ],
+      keywords: ['periksa', 'cek', 'check']
+    },
+    reset: {
+      selectors: [
+        '#btnReset',
+        '#resetBtn',
+        '#reset',
+        '#btnResetAll',
+        '#btn-reset',
+        '#reset-btn',
+        '#resetAns',
+        '#resetJawaban',
+        '#btnResetJawaban',
+        '#resetPilihan',
+        '#zoomReset',
+        '#btnReset1',
+        '#btnReset2',
+        '#btnReset3',
+        'button[id*="reset" i]',
+        'button[id*="ulang" i]',
+        'button[name*="reset" i]',
+        'button[name*="ulang" i]',
+        '[data-lesson-button="reset"]',
+        '[data-lesson-action="reset"]',
+        '[data-action="reset"]'
+      ],
+      keywords: ['reset', 'ulang', 'clear', 'hapus']
+    }
+  };
+
+  const INTERACTIVE_SELECTOR = 'button, a[role="button"], [role="button"]';
+
+  function toSearchableString(value) {
+    if (typeof value === 'string') {
+      return value.toLowerCase();
+    }
+    if (!value) {
+      return '';
+    }
+    if (typeof value === 'object') {
+      if (typeof value.baseVal === 'string') {
+        return value.baseVal.toLowerCase();
+      }
+      if (typeof value.animVal === 'string') {
+        return value.animVal.toLowerCase();
+      }
+    }
+    return String(value || '').toLowerCase();
+  }
+
+  function keywordMatches(value, keywords) {
+    const normalized = toSearchableString(value);
+    if (!normalized) {
+      return false;
+    }
+    for (let i = 0; i < keywords.length; i++) {
+      if (normalized.indexOf(keywords[i]) !== -1) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function findExistingAction(action) {
+    if (typeof document === 'undefined') {
+      return null;
+    }
+    const hints = ACTION_HINTS[action];
+    if (!hints) {
+      return null;
+    }
+
+    const selectors = hints.selectors || [];
+    for (let i = 0; i < selectors.length; i++) {
+      const selector = selectors[i];
+      if (!selector) {
+        continue;
+      }
+      let element = null;
+      try {
+        element = document.querySelector(selector);
+      } catch (err) {
+        element = null;
+      }
+      if (element) {
+        return element;
+      }
+    }
+
+    const keywordList = (hints.keywords || []).map((kw) => kw.toLowerCase());
+    if (!keywordList.length) {
+      return null;
+    }
+
+    let interactive = [];
+    try {
+      interactive = Array.prototype.slice.call(document.querySelectorAll(INTERACTIVE_SELECTOR));
+    } catch (err) {
+      interactive = [];
+    }
+
+    for (let i = 0; i < interactive.length; i++) {
+      const el = interactive[i];
+      if (!el) {
+        continue;
+      }
+      const dataset = el.dataset || {};
+      if (keywordMatches(dataset.lessonButton, keywordList) ||
+        keywordMatches(dataset.lessonAction, keywordList) ||
+        keywordMatches(dataset.action, keywordList)) {
+        return el;
+      }
+      if (keywordMatches(el.id, keywordList) ||
+        keywordMatches(el.getAttribute ? el.getAttribute('name') : '', keywordList) ||
+        keywordMatches(el.className, keywordList) ||
+        keywordMatches(el.getAttribute ? el.getAttribute('title') : '', keywordList) ||
+        keywordMatches(el.getAttribute ? el.getAttribute('aria-label') : '', keywordList) ||
+        keywordMatches(el.textContent, keywordList)) {
+        return el;
+      }
+    }
+
+    return null;
+  }
+
   function trigger(action) {
     const method = 'lesson' + action;
     let handled = false;
@@ -168,20 +347,10 @@
     const disableReset = (body.dataset.lessonReset || '').toLowerCase() === 'off';
 
     const existing = {
-      shuffle: document.getElementById('btnShuffle'),
-      check: document.getElementById('btnCheck'),
-      reset: document.getElementById('btnReset')
+      shuffle: findExistingAction('shuffle'),
+      check: findExistingAction('check'),
+      reset: findExistingAction('reset')
     };
-
-    if (!existing.shuffle) {
-      existing.shuffle = document.querySelector('[data-lesson-button="shuffle"]');
-    }
-    if (!existing.check) {
-      existing.check = document.querySelector('[data-lesson-button="check"]');
-    }
-    if (!existing.reset) {
-      existing.reset = document.querySelector('[data-lesson-button="reset"]');
-    }
 
     const needShuffle = !disableShuffle && !existing.shuffle;
     const needCheck = !disableCheck && !existing.check;

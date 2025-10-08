@@ -3,6 +3,350 @@
   function dlog(){ if (WS_DEBUG) console.log.apply(console, ['[worksheet-submit]'].concat([].slice.call(arguments))); }
   const API_BASE = window.API_BASE || '';
 
+  const PATHNAME = (typeof location === 'object' && location && location.pathname) ? location.pathname : '';
+  const IS_CALISTUNG = /\/elearn\/worlds\/calistung\//.test(PATHNAME);
+
+  const CalistungWhatsApp = (function bootstrapCalistungWhatsApp(){
+    if (window.CalistungWhatsApp && typeof window.CalistungWhatsApp === 'object') {
+      return window.CalistungWhatsApp;
+    }
+
+    const STORAGE_KEYS = ['calistung_whatsapp', 'qa_whatsapp', 'whatsapp'];
+    let lastEnsured = '';
+    let ensurePromise = null;
+    let profileWaCache;
+    let profileFetchPromise = null;
+    let styleInjected = false;
+
+    function normalizeWhatsapp(raw){
+      try{
+        let digits = String(raw || '').trim();
+        if (!digits) return '';
+        digits = digits.replace(/[^0-9+]/g,'');
+        if (!digits) return '';
+        if (digits.startsWith('+')) digits = digits.slice(1);
+        if (digits.startsWith('62')) {
+          digits = '62' + digits.slice(2);
+        } else if (digits.startsWith('0')) {
+          digits = '62' + digits.slice(1);
+        } else if (digits.startsWith('8')) {
+          digits = '62' + digits;
+        }
+        if (digits.length < 10 || digits.length > 15) return '';
+        return digits;
+      }catch(_){
+        return '';
+      }
+    }
+
+    function formatWhatsappForDisplay(normalized){
+      const digits = normalizeWhatsapp(normalized);
+      if (!digits) return '';
+      if (digits.startsWith('62') && digits.length > 2) {
+        return '0' + digits.slice(2);
+      }
+      return digits;
+    }
+
+    function readStorage(){
+      const values = [];
+      STORAGE_KEYS.forEach(key => {
+        try {
+          const val = localStorage.getItem(key);
+          if (val) values.push(val);
+        } catch(_){ /* ignore */ }
+        try {
+          const val = sessionStorage.getItem(key);
+          if (val) values.push(val);
+        } catch(_){ /* ignore */ }
+      });
+      for (const val of values){
+        const norm = normalizeWhatsapp(val);
+        if (norm) return norm;
+      }
+      return '';
+    }
+
+    function writeStorage(normalized){
+      const norm = normalizeWhatsapp(normalized);
+      if (!norm) return '';
+      STORAGE_KEYS.forEach(key => {
+        try { localStorage.setItem(key, norm); } catch(_){ /* ignore */ }
+        try { sessionStorage.setItem(key, norm); } catch(_){ /* ignore */ }
+      });
+      lastEnsured = norm;
+      return norm;
+    }
+
+    function getInfoWhatsapp(){
+      try{
+        if (typeof getUserInfo === 'function') {
+          const info = getUserInfo() || {};
+          const candidates = [info.whatsapp, info.wa, info.phone, info.parent_whatsapp, info.orangTuaWa];
+          for (const cand of candidates){
+            const norm = normalizeWhatsapp(cand);
+            if (norm) return norm;
+          }
+        }
+      }catch(_){ /* ignore */ }
+      return '';
+    }
+
+    async function fetchWhatsappFromProfile(){
+      if (typeof profileWaCache !== 'undefined') {
+        return profileWaCache || '';
+      }
+      if (profileFetchPromise) return profileFetchPromise;
+
+      profileFetchPromise = (async () => {
+        try{
+          if (typeof getUserInfo !== 'function') return '';
+          const info = getUserInfo() || {};
+          const cid = info.cid || info.CID || info.murid_cid || '';
+          if (!cid) return '';
+          const url = `https://firebase-upload-backend.onrender.com/proxy-getprofile?cid=${encodeURIComponent(cid)}`;
+          const res = await fetch(url);
+          if (!res.ok) return '';
+          const data = await res.json().catch(()=>null);
+          if (!data || typeof data !== 'object') return '';
+          const candidates = [
+            data.whatsapp,
+            data.wa,
+            data.no_wa,
+            data.noWa,
+            data.noWhatsapp,
+            data['WhatsApp'],
+            data['Nomor WA'],
+            data.whatsappOrangTua,
+            data.whatsapp_ortu,
+            data.whatsappOrtu,
+            data.orangTuaWhatsapp,
+            data.parent_whatsapp,
+            data.hp,
+            data.hpOrtu,
+            data.no_hp,
+            data.telepon,
+            data.phone
+          ];
+          for (const cand of candidates){
+            const norm = normalizeWhatsapp(cand);
+            if (norm) return norm;
+          }
+          return '';
+        }catch(err){
+          console.warn('[worksheet-submit] gagal ambil whatsapp profile:', err);
+          return '';
+        }
+      })().finally(() => {
+        profileWaCache = undefined;
+      });
+
+      const value = await profileFetchPromise;
+      profileWaCache = value ? value : '';
+      profileFetchPromise = null;
+      return value;
+    }
+
+    function ensureStyle(){
+      if (styleInjected) return;
+      styleInjected = true;
+      const style = document.createElement('style');
+      style.id = 'calistung-wa-style';
+      style.textContent = `
+        .calistung-wa-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.72); z-index: 11000; display: flex; align-items: center; justify-content: center; padding: 16px; }
+        .calistung-wa-modal { background: #ffffff; border-radius: 18px; max-width: min(420px, 92vw); width: 100%; box-shadow: 0 20px 50px rgba(15, 23, 42, 0.35); font-family: 'Baloo 2', 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #0f172a; }
+        .calistung-wa-modal header { padding: 20px 24px 8px; }
+        .calistung-wa-modal header h2 { margin: 0; font-size: 1.45rem; }
+        .calistung-wa-modal header p { margin: 6px 0 0; font-size: 0.95rem; color: #475569; }
+        .calistung-wa-modal form { padding: 0 24px 24px; display: flex; flex-direction: column; gap: 14px; }
+        .calistung-wa-modal input[type="tel"] { padding: 12px 14px; border-radius: 12px; border: 2px solid #cbd5f5; font-size: 1.05rem; font-weight: 600; background: #f8fafc; color: #0f172a; }
+        .calistung-wa-modal input[type="tel"]:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.22); }
+        .calistung-wa-modal button { background: linear-gradient(135deg,#6366f1,#8b5cf6); color: #fff; border: none; border-radius: 999px; padding: 12px 18px; font-weight: 700; cursor: pointer; box-shadow: 0 10px 24px rgba(99,102,241,0.35); transition: transform .08s ease, box-shadow .2s ease; }
+        .calistung-wa-modal button:active { transform: translateY(1px); box-shadow: 0 6px 18px rgba(99,102,241,0.32); }
+        .calistung-wa-error { color: #dc2626; font-size: 0.9rem; min-height: 1.1rem; }
+      `;
+      document.head.appendChild(style);
+    }
+
+    function promptWhatsappNumber({ message } = {}){
+      ensureStyle();
+      const prefill = formatWhatsappForDisplay(lastEnsured || readStorage() || getInfoWhatsapp());
+      return new Promise(resolve => {
+        const overlay = document.createElement('div');
+        overlay.className = 'calistung-wa-overlay';
+        overlay.setAttribute('role', 'dialog');
+        overlay.setAttribute('aria-modal', 'true');
+        overlay.innerHTML = `
+          <div class="calistung-wa-modal">
+            <header>
+              <h2>Nomor WhatsApp diperlukan</h2>
+              <p>${message || 'Masukkan nomor WhatsApp aktif agar hasil worksheet otomatis terkirim ke orang tua / pendamping.'}</p>
+            </header>
+            <form>
+              <div>
+                <label for="calistungWaInput" style="display:block;font-weight:700;margin-bottom:4px;">Nomor WhatsApp</label>
+                <input type="tel" id="calistungWaInput" inputmode="tel" autocomplete="tel" placeholder="Contoh: 081234567890" value="${prefill || ''}" required />
+              </div>
+              <div class="calistung-wa-error" id="calistungWaError" aria-live="assertive"></div>
+              <button type="submit">Simpan &amp; Lanjutkan</button>
+            </form>
+          </div>
+        `;
+
+        const body = document.body;
+        const prevOverflow = body.style.overflow;
+        body.style.overflow = 'hidden';
+        body.appendChild(overlay);
+
+        const form = overlay.querySelector('form');
+        const input = overlay.querySelector('#calistungWaInput');
+        const errorEl = overlay.querySelector('#calistungWaError');
+        if (input) {
+          setTimeout(() => input.focus(), 50);
+        }
+
+        function cleanup(){
+          body.style.overflow = prevOverflow || '';
+          overlay.remove();
+        }
+
+        form.addEventListener('submit', evt => {
+          evt.preventDefault();
+          const raw = input ? input.value : '';
+          const norm = normalizeWhatsapp(raw);
+          if (!norm) {
+            if (errorEl) errorEl.textContent = 'Nomor WhatsApp tidak valid. Gunakan format 08xxx dan minimal 10 digit.';
+            if (input) input.focus();
+            return;
+          }
+          writeStorage(norm);
+          cleanup();
+          resolve(norm);
+        });
+      });
+    }
+
+    function getStored(){
+      return lastEnsured || readStorage();
+    }
+
+    async function ensureWhatsapp(opts = {}){
+      if (ensurePromise) return ensurePromise;
+
+      ensurePromise = (async () => {
+        let number = normalizeWhatsapp(opts.number || getStored() || getInfoWhatsapp());
+        if (!number) {
+          try {
+            const fetched = await fetchWhatsappFromProfile();
+            if (fetched) number = normalizeWhatsapp(fetched);
+          } catch(err) {
+            console.warn('[worksheet-submit] gagal ambil whatsapp dari profile:', err);
+          }
+        }
+        if (!number && opts.prompt !== false) {
+          number = await promptWhatsappNumber(opts.promptOptions || {});
+        }
+        if (number) writeStorage(number);
+        return number;
+      })();
+
+      try {
+        const res = await ensurePromise;
+        return res;
+      } finally {
+        ensurePromise = null;
+      }
+    }
+
+    function toast(text){
+      try{
+        const el = document.createElement('div');
+        el.textContent = text;
+        Object.assign(el.style, {
+          position: 'fixed',
+          bottom: '20px',
+          right: '20px',
+          background: '#111827',
+          color: '#fff',
+          padding: '10px 14px',
+          borderRadius: '12px',
+          fontWeight: '600',
+          zIndex: 12000,
+          boxShadow: '0 10px 28px rgba(15,23,42,0.35)'
+        });
+        document.body.appendChild(el);
+        setTimeout(()=>el.remove(), 3200);
+      }catch(_){ /* ignore */ }
+    }
+
+    async function sendWorksheet(meta = {}){
+      const number = getStored();
+      if (!number) return;
+      const norm = normalizeWhatsapp(number);
+      if (!norm) return;
+      const viewUrl = meta.storageUrl || meta.driveUrl || meta.viewUrl || '';
+      const childName = meta.childName || '';
+      const courseLabel = meta.courseName || meta.courseId || 'Calistung';
+      const lessonLabel = meta.lessonName || meta.lessonId || meta.documentTitle || '';
+      const now = new Date();
+      const timeStr = now.toLocaleString('id-ID', { hour12: false });
+      const lines = [
+        'Halo Ayah/Bunda! 🎉',
+        '',
+        'Worksheet Calistung telah selesai dikerjakan.',
+        childName ? `👧 Nama anak: ${childName}` : '',
+        courseLabel ? `📚 Kursus: ${courseLabel}` : '',
+        lessonLabel ? `🧩 Level: ${lessonLabel}` : '',
+        `🕒 Selesai: ${timeStr}`
+      ];
+      if (viewUrl) {
+        lines.push('', `🔗 Link hasil: ${viewUrl}`);
+      }
+      lines.push('', 'Terima kasih telah mendampingi belajar bersama Queen\'s Academy! 🌟');
+      const message = lines.filter(Boolean).join('\n');
+      try{
+        const base = API_BASE ? API_BASE.replace(/\/+$/, '') : '';
+        const sendUrl = `${base}/send-whatsapp`;
+        const res = await fetch(sendUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ number: norm, message })
+        });
+        if (!res.ok) {
+          const text = await res.text().catch(()=>res.statusText || '');
+          throw new Error(text || `status ${res.status}`);
+        }
+        toast('Worksheet terkirim ke WhatsApp ✔️');
+      }catch(err){
+        console.warn('[worksheet-submit] gagal kirim WhatsApp:', err);
+      }
+    }
+
+    const api = {
+      ensure: ensureWhatsapp,
+      getNumber: () => getStored(),
+      setNumber: writeStorage,
+      formatDisplay: formatWhatsappForDisplay,
+      sendWorksheet,
+    };
+
+    window.CalistungWhatsApp = api;
+    return api;
+  })();
+
+  if (IS_CALISTUNG) {
+    const autoEnsureWa = () => {
+      try {
+        CalistungWhatsApp.ensure({ promptOptions: { message: 'Masukkan nomor WhatsApp aktif agar worksheet dikirim otomatis.' } }).catch(()=>{});
+      } catch (_){ /* ignore */ }
+    };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', autoEnsureWa, { once: true });
+    } else {
+      autoEnsureWa();
+    }
+  }
+
   function getRootSelector(){
     if (window.WORKSHEET_META && window.WORKSHEET_META.captureSelector) return window.WORKSHEET_META.captureSelector;
     if (document.getElementById('worksheet-root')) return '#worksheet-root';
@@ -437,12 +781,29 @@
       // Resolve role (prefer FE userInfo, then opts.role, then /api/auth/me)
       let role = (opts.role || '').toLowerCase();
       let info = {};
+      let childName = opts.namaAnak || '';
       if (typeof getUserInfo === 'function') {
         try { info = getUserInfo() || {}; } catch(e){}
         role = role || (info.role && String(info.role).toLowerCase()) || '';
         dlog('role from getUserInfo():', role || '(none)');
+        if (!childName) childName = info.nama || '';
       }
       const apiUserPromise = role ? Promise.resolve(null) : fetchUserOnce();
+
+      let ensuredWa = '';
+      if (IS_CALISTUNG) {
+        try {
+          ensuredWa = await CalistungWhatsApp.ensure({ promptOptions: { message: 'Nomor WhatsApp diperlukan agar worksheet terkirim otomatis.' } });
+        } catch (err) {
+          console.warn('[worksheet-submit] ensure whatsapp gagal:', err);
+        }
+        if (!ensuredWa) {
+          btn.disabled = false;
+          btn.textContent = original;
+          alert('Nomor WhatsApp diperlukan sebelum menyelesaikan worksheet.');
+          return;
+        }
+      }
 
       await waitForPaint();
 
@@ -509,6 +870,24 @@
             courseId,
             lessonId
           });
+          if (IS_CALISTUNG && CalistungWhatsApp) {
+            try {
+              const courseName = (window.WORKSHEET_META && (window.WORKSHEET_META.course_title || window.WORKSHEET_META.course_name)) || courseId;
+              const lessonName = (window.WORKSHEET_META && (window.WORKSHEET_META.lesson_title || window.WORKSHEET_META.lesson_name)) || lessonId;
+              CalistungWhatsApp.sendWorksheet({
+                storageUrl: data.storage_url,
+                driveUrl: data.drive_url,
+                courseId,
+                lessonId,
+                courseName,
+                lessonName,
+                childName,
+                documentTitle: document.title || ''
+              });
+            } catch (err) {
+              console.warn('[worksheet-submit] kirim whatsapp gagal:', err);
+            }
+          }
           if (data.points) {
             if (data.points.added > 0) {
               const toast = document.createElement('div');
