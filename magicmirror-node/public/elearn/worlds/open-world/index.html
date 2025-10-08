@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>World Builder (Clay)</title>
+  <link rel="stylesheet" href="../styles/portal.css" />
+</head>
+<body>
+  <div id="app">
+    <canvas id="world"></canvas>
+
+    <div class="hud top-right" aria-label="Mode kontrol play">
+      <button id="btnPlay" aria-label="Play">▶️</button>
+      <button id="btnHome" aria-label="Home">🏠</button>
+    </div>
+
+    <div class="hud left" aria-label="Pengaturan pencahayaan">
+      <button id="btnSun" aria-label="Toggle Day/Night">✨</button>
+    </div>
+
+    <div class="toolbar bottom" role="toolbar" aria-label="Builder pieces">
+      <div class="piece-buttons">
+        <button data-piece="straight" aria-label="Rel lurus">┃</button>
+        <button data-piece="curve" aria-label="Rel melengkung">⤴︎</button>
+        <button data-piece="slope" aria-label="Rel tanjakan">⇧</button>
+        <button data-piece="loop" aria-label="Rel loop">◯</button>
+      </div>
+      <div class="actions">
+        <button id="btnUndo" aria-label="Undo">↩︎</button>
+        <button id="btnDelete" aria-label="Hapus rel">🗑️</button>
+      </div>
+      <span class="mode" id="modeLabel">Mode: Build</span>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </div>
+
+  <script type="module" src="../js/portal-world.js"></script>
+</body>
+</html>
