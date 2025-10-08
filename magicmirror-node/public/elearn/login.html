@@ -1098,6 +1098,11 @@
     @media (min-width: 700px) {
       .is-embed html, .is-embed body { overflow-y: auto !important; }
     }
+    /* Pastikan background embed tidak memaksa tinggi layar */
+    html.login-embed .embed-login {
+      min-height: auto !important;
+      height: auto !important;
+    }
   </style>
 </head>
 <body>
@@ -2079,8 +2084,4 @@ if (!document.documentElement.classList.contains('is-embed')) {
 
 
 
-    /* Pastikan background embed tidak memaksa tinggi layar */
-    html.login-embed .embed-login {
-      min-height: auto !important;
-      height: auto !important;
-    }
+    
