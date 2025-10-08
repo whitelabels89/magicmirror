@@ -102,15 +102,20 @@
       // Redirect specific worlds that are not ready yet to "coming soon"
       const redirectNames = new Set([
         'Visual Programming','Pythonia','Webtopia',
-        'Applandia','Robonix','Aitheris','Open World'
+        'Applandia','Robonix','Aitheris'
       ]);
       const redirectIds = new Set([
         'visual','pythonia','webtopia',
-        'applandia','robonix','aitheris','openworld'
+        'applandia','robonix','aitheris'
       ]);
+      const openWorldNames = new Set(['Open World']);
+      const openWorldIds = new Set(['openworld']);
       data.worlds = data.worlds.map(w => {
         const name = (w.name || '').trim();
         const id = (w.id || '').toString().toLowerCase();
+        if (openWorldNames.has(name) || openWorldIds.has(id)) {
+          return { ...w, entry: '/elearn/portal.html' };
+        }
         if (redirectNames.has(name) || redirectIds.has(id)) {
           return { ...w, entry: '/elearn/worlds/comingsoon.html' };
         }
