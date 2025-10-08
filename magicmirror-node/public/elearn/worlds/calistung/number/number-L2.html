@@ -92,6 +92,7 @@
     <div style="background: green;" data-code="4">4</div>
   </div>
   <button id="brushMode">🖌️ Mode Kuas</button>
+  <button id="btnShuffle" class="clay-button ghost">🔀 Acak Soal</button>
   <style>
     #brushMode {
       background: linear-gradient(to bottom, #ffcc70, #f79d65);
@@ -154,64 +155,141 @@ document.querySelectorAll(".color-code div").forEach((el) => {
 });
 
     const container = document.getElementById("mobilContainer");
-
+    const shuffleBtn = document.getElementById("btnShuffle");
+    const checkButton = document.getElementById("checkButton");
+    const resultBox = document.getElementById("result");
     const ids = [1, 2, 3, 4];
-    const shuffled = ids.sort(() => 0.5 - Math.random());
 
-    shuffled.forEach((i) => {
-      const wrapper = document.createElement("div");
-      wrapper.className = "mobil";
+    function shuffle(arr) {
+      const next = [...arr];
+      for (let i = next.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [next[i], next[j]] = [next[j], next[i]];
+      }
+      return next;
+    }
 
-      const img = document.createElement("img");
-      img.id = "mobil-" + i;
-      img.alt = "Mobil";
-      img.src = "/elearn/calistung/assets/shape/mobil.png";
-      img.style.cursor = "pointer";
-      img.setAttribute("data-id", i);
+    function resetFinishButton() {
+      const btn = document.getElementById("btnSelesai") || document.querySelector('.finish-bar button');
+      if (!btn) return;
+      btn.disabled = true;
+      btn.style.opacity = 0.5;
+      btn.style.pointerEvents = 'none';
+      btn.setAttribute('aria-disabled', 'true');
+      btn.title = 'Selesaikan tugas dulu ya 😊';
+    }
 
-      const label = document.createElement("div");
-      label.textContent = i;
-      label.style.position = "absolute";
-      label.style.top = "10px";
-      label.style.left = "10px";
-      label.style.fontSize = "36px";
-      label.style.fontWeight = "bold";
-      label.style.color = "black";
+    function setupCanvas(canvas, wrapper) {
+      const ctx = canvas.getContext("2d");
+      let painting = false;
+
+      const start = (e) => {
+        painting = true;
+        draw(e);
+      };
+
+      const end = () => {
+        painting = false;
+        ctx.beginPath();
+      };
+
+      const draw = (e) => {
+        if (!painting || !selectedColor) return;
+        const rect = canvas.getBoundingClientRect();
+        const point = e.touches ? e.touches[0] : e;
+        const x = point.clientX - rect.left;
+        const y = point.clientY - rect.top;
+        ctx.fillStyle = selectedColor;
+        ctx.beginPath();
+        ctx.arc(x, y, 8, 0, Math.PI * 2);
+        ctx.fill();
+        wrapper.setAttribute('data-color', selectedColor);
+      };
+
+      const startHandler = (e) => { if (brushActive) e.preventDefault(); start(e); };
+      const endHandler = (e) => { if (brushActive) e.preventDefault(); end(); };
+      const moveHandler = (e) => { if (brushActive) e.preventDefault(); draw(e); };
+
+      canvas.addEventListener('mousedown', startHandler);
+      canvas.addEventListener('mouseup', endHandler);
+      canvas.addEventListener('mouseleave', endHandler);
+      canvas.addEventListener('mousemove', draw);
+
+      canvas.addEventListener('touchstart', startHandler, { passive: false });
+      canvas.addEventListener('touchend', endHandler, { passive: false });
+      canvas.addEventListener('touchcancel', endHandler, { passive: false });
+      canvas.addEventListener('touchmove', moveHandler, { passive: false });
+    }
+
+    function createMobil(id) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'mobil';
+      wrapper.dataset.id = String(id);
+      wrapper.removeAttribute('data-color');
+
+      const img = document.createElement('img');
+      img.id = 'mobil-' + id;
+      img.alt = 'Mobil';
+      img.src = '/elearn/calistung/assets/shape/mobil.png';
+      img.style.cursor = 'pointer';
+      img.setAttribute('data-id', id);
+
+      const label = document.createElement('div');
+      label.textContent = id;
+      label.style.position = 'absolute';
+      label.style.top = '10px';
+      label.style.left = '10px';
+      label.style.fontSize = '36px';
+      label.style.fontWeight = 'bold';
+      label.style.color = 'black';
       label.style.zIndex = 20;
       wrapper.appendChild(label);
 
-      img.addEventListener("click", () => {
-        if (selectedColor) {
-          const newSrc = mobilColorImages[selectedColor];
-          if (newSrc) {
-            console.log("Changing image to:", newSrc);
-            img.src = newSrc;
-            wrapper.setAttribute("data-color", selectedColor);
-          } else {
-            console.warn("❌ Gagal menemukan gambar untuk warna:", selectedColor);
-          }
+      img.addEventListener('click', () => {
+        if (!selectedColor) return;
+        const newSrc = mobilColorImages[selectedColor];
+        if (newSrc) {
+          img.src = newSrc;
+          wrapper.setAttribute('data-color', selectedColor);
         }
       });
 
       wrapper.appendChild(img);
 
-      const canvas = document.createElement("canvas");
-      canvas.id = "canvas-" + i;
+      const canvas = document.createElement('canvas');
+      canvas.id = 'canvas-' + id;
       canvas.width = 300;
       canvas.height = 200;
-      canvas.style.position = "absolute";
+      canvas.style.position = 'absolute';
       canvas.style.top = 0;
       canvas.style.left = 0;
       canvas.style.zIndex = 10;
-      canvas.style.pointerEvents = "none";
+      canvas.style.pointerEvents = brushActive ? 'auto' : 'none';
+      setupCanvas(canvas, wrapper);
       wrapper.appendChild(canvas);
 
-      container.appendChild(wrapper);
-    });
+      return wrapper;
+    }
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const checkButton = document.getElementById("checkButton");
-      const resultBox = document.getElementById("result");
+    function renderCars(order) {
+      container.innerHTML = '';
+      order.forEach((id) => {
+        container.appendChild(createMobil(id));
+      });
+      container.querySelectorAll('canvas').forEach((canvas) => {
+        canvas.style.pointerEvents = brushActive ? 'auto' : 'none';
+      });
+      resultBox.textContent = '';
+      resultBox.style.color = '';
+      resetFinishButton();
+    }
+
+    function randomizeCars() {
+      const order = shuffle(ids);
+      renderCars(order);
+    }
+
+    randomizeCars();
 
       checkButton.addEventListener("click", () => {
   let correct = 0;
@@ -252,50 +330,24 @@ document.querySelectorAll(".color-code div").forEach((el) => {
   }
 });
 
-      document.querySelectorAll("canvas").forEach((canvas) => {
-        const ctx = canvas.getContext("2d");
-        let painting = false;
-
-        const startPos = (e) => {
-          painting = true;
-          draw(e);
-        };
-        const endPos = () => {
-          painting = false;
-          ctx.beginPath();
-        };
-        const draw = (e) => {
-  if (!painting || !selectedColor) return;
-  const rect = canvas.getBoundingClientRect();
-  const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-  const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
-  ctx.fillStyle = selectedColor;
-  ctx.beginPath();
-  ctx.arc(x, y, 8, 0, Math.PI * 2);
-  ctx.fill();
-  // Tandai warna yang dipilih pada wrapper saat melukis
-  const wrapper = canvas.closest('.mobil');
-  if (wrapper) wrapper.setAttribute('data-color', selectedColor);
-};
-
-        canvas.addEventListener("mousedown", (e)=>{ if(brushActive){ e.preventDefault(); } startPos(e); });
-        canvas.addEventListener("mouseup", endPos);
-        canvas.addEventListener("mousemove", draw);
-
-        canvas.addEventListener("touchstart", (e)=>{ if(brushActive){ e.preventDefault(); } startPos(e); }, {passive:false});
-        canvas.addEventListener("touchend",   (e)=>{ if(brushActive){ e.preventDefault(); } endPos(e); },   {passive:false});
-        canvas.addEventListener("touchmove",  (e)=>{ if(brushActive){ e.preventDefault(); } draw(e); },     {passive:false});
-      });
-
       document.getElementById("brushMode").addEventListener("click", () => {
         brushActive = !brushActive;
-        document.querySelectorAll("canvas").forEach(c => {
+        container.querySelectorAll('canvas').forEach(c => {
           c.style.pointerEvents = brushActive ? "auto" : "none";
         });
         document.getElementById("brushMode").textContent = brushActive ? "🖌️ Mode Kuas (Aktif)" : "🖌️ Mode Kuas";
         setBrushLock(brushActive);
       });
-    });
+
+    if (shuffleBtn) {
+      shuffleBtn.addEventListener('click', () => {
+        brushActive = false;
+        document.getElementById("brushMode").textContent = "🖌️ Mode Kuas";
+        document.body.classList.remove('brush-lock');
+        selectedColor = null;
+        randomizeCars();
+      });
+    }
   </script>
   <button id="checkButton" class="clay-button">Periksa Jawaban</button>
   <div id="result" style="margin-top: 15px; font-weight: bold;"></div>
