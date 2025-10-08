@@ -279,12 +279,22 @@
       }catch(_){ /* ignore */ }
     }
 
+    const WORKSHEET_WHACENTER_DEVICE_ID = 'f435a4f1b1a5bd29a38f38b408789a27';
+
     async function sendWorksheet(meta = {}){
       const number = getStored();
       if (!number) return;
       const norm = normalizeWhatsapp(number);
       if (!norm) return;
-      const viewUrl = meta.storageUrl || meta.driveUrl || meta.viewUrl || '';
+      let shortLink = '';
+      if (meta.shortUrl && /^https?:/i.test(meta.shortUrl)) {
+        shortLink = meta.shortUrl;
+      } else if (meta.shortPath) {
+        try {
+          shortLink = new URL(meta.shortPath, window.location.origin).toString();
+        } catch (_) { /* ignore */ }
+      }
+      const viewUrl = shortLink || meta.storageUrl || meta.driveUrl || meta.viewUrl || '';
       const childName = meta.childName || '';
       const courseLabel = meta.courseName || meta.courseId || 'Calistung';
       const lessonLabel = meta.lessonName || meta.lessonId || meta.documentTitle || '';
@@ -310,7 +320,7 @@
         const res = await fetch(sendUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ number: norm, message })
+          body: JSON.stringify({ number: norm, message, deviceId: WORKSHEET_WHACENTER_DEVICE_ID })
         });
         if (!res.ok) {
           const text = await res.text().catch(()=>res.statusText || '');
@@ -572,7 +582,7 @@
     }
   }
 
-  function showWinPopup({ added = 0, total = 0, storageUrl, driveUrl, courseId, lessonId }) {
+  function showWinPopup({ added = 0, total = 0, storageUrl, driveUrl, courseId, lessonId, shortUrl, shortPath }) {
     // Prevent duplicate overlay
     if (document.getElementById('wsWinOverlay')) return;
 
@@ -643,6 +653,45 @@
     // Links row (optional)
     const links = document.createElement('div');
     Object.assign(links.style, { display:'flex', gap:'10px', justifyContent:'center', marginTop:'12px' });
+    let resolvedShortUrl = '';
+    if (shortUrl && /^https?:/i.test(shortUrl)) {
+      resolvedShortUrl = shortUrl;
+    } else if (shortPath) {
+      try {
+        resolvedShortUrl = new URL(shortPath, window.location.origin).toString();
+      } catch (_) { /* ignore */ }
+    }
+
+    if (resolvedShortUrl) {
+      const copyBtn = document.createElement('button');
+      copyBtn.type = 'button';
+      copyBtn.textContent = 'Salin Link Hasil';
+      Object.assign(copyBtn.style, { background:'#222', color:'#fff', padding:'8px 12px', borderRadius:'8px', border:'1px solid #333', cursor:'pointer', fontSize:'13px' });
+      copyBtn.addEventListener('click', async () => {
+        const clipboard = navigator.clipboard;
+        if (clipboard && clipboard.writeText) {
+          try {
+            await clipboard.writeText(resolvedShortUrl);
+            copyBtn.textContent = 'Link Disalin ✔️';
+            setTimeout(() => { copyBtn.textContent = 'Salin Link Hasil'; }, 2000);
+          } catch (err) {
+            console.warn('[worksheet-submit] gagal salin link:', err);
+          }
+          return;
+        }
+        try {
+          const manual = window.prompt('Salin link worksheet berikut:', resolvedShortUrl);
+          if (manual !== null) {
+            copyBtn.textContent = 'Link Siap Disalin';
+            setTimeout(() => { copyBtn.textContent = 'Salin Link Hasil'; }, 2000);
+          }
+        } catch (err) {
+          console.warn('[worksheet-submit] gagal salin link (prompt):', err);
+        }
+      });
+      links.appendChild(copyBtn);
+    }
+
     if (storageUrl) {
       const a = document.createElement('a');
       a.href = storageUrl; a.target = '_blank'; a.rel = 'noopener';
@@ -737,8 +786,8 @@
   }
   // Backward-compat alias (keep old call sites working)
   const showSuccessModal = (...args) => {
-    const [storageUrl, driveUrl] = args;
-    showWinPopup({ storageUrl, driveUrl });
+    const [storageUrl, driveUrl, shortUrl, shortPath] = args;
+    showWinPopup({ storageUrl, driveUrl, shortUrl, shortPath });
   };
 
   window.initWorksheetSubmit = async function initWorksheetSubmit(opts = {}){
@@ -867,6 +916,8 @@
             total: data.points ? (data.points.total_points || 0) : 0,
             storageUrl: data.storage_url,
             driveUrl: data.drive_url,
+            shortUrl: data.short_url || '',
+            shortPath: data.short_path || '',
             courseId,
             lessonId
           });
