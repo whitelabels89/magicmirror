@@ -417,14 +417,53 @@ document.getElementById('btnShuffle').addEventListener('click',()=>{ shuffle(); 
 <div class="finish-bar"><button id="btnSelesai" type="button">Selesai</button></div>
 
 <!-- Tambah html2canvas hanya jika belum ada di halaman -->
-<script>if(!window.html2canvas){document.write('<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"><\/script>')}</script>
+<script>
+(function ensureHtml2Canvas(){
+  if(!window.html2canvas){
+    var s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+    s.async=true;
+    document.head.appendChild(s);
+  }
+})();
+</script>
 
 <!-- Tambah manifest & user info hanya jika belum ada -->
-<script>window.__hasManifestLessons||(document.write('<script src="/elearn/manifest-lessons.js"><\/script>'),window.__hasManifestLessons=true);</script>
-<script>window.__hasUserInfo||(document.write('<script src="/elearn/userInfo.js"><\/script>'),window.__hasUserInfo=true);</script>
+<script>
+(function ensureManifest(){
+  if(!window.__hasManifestLessons){
+    window.__hasManifestLessons=true;
+    var s=document.createElement('script');
+    s.src='/elearn/manifest-lessons.js';
+    s.defer=true;
+    document.head.appendChild(s);
+  }
+})();
+</script>
+<script>
+(function ensureUserInfo(){
+  if(!window.__hasUserInfo){
+    window.__hasUserInfo=true;
+    var s=document.createElement('script');
+    s.src='/elearn/userInfo.js';
+    s.defer=true;
+    document.head.appendChild(s);
+  }
+})();
+</script>
 
 <!-- Tambah worksheet-submit hanya jika belum ada -->
-<script>window.__hasWorksheetSubmit||(document.write('<script src="/elearn/common/worksheet-submit.js"><\/script>'),window.__hasWorksheetSubmit=true);</script>
+<script>
+(function ensureWorksheetSubmit(){
+  if(!window.__hasWorksheetSubmit){
+    window.__hasWorksheetSubmit=true;
+    var s=document.createElement('script');
+    s.src='/elearn/common/worksheet-submit.js';
+    s.defer=true;
+    document.head.appendChild(s);
+  }
+})();
+</script>
 
 <script>
   window.WORKSHEET_DEBUG = true;
@@ -444,7 +483,12 @@ document.getElementById('btnShuffle').addEventListener('click',()=>{ shuffle(); 
   })();
 
   // Init submitter
-  ;(function initSubmit(){
+  function initSubmit(){
+    if (typeof initWorksheetSubmit !== "function") {
+      // script belum termuat; coba lagi setelah load
+      window.addEventListener('load', initSubmit, {once:true});
+      return;
+    }
     const info = (typeof getUserInfo === "function") ? getUserInfo() : {};
     if (typeof initWorksheetSubmit === "function") {
       initWorksheetSubmit({
@@ -452,7 +496,6 @@ document.getElementById('btnShuffle').addEventListener('click',()=>{ shuffle(); 
         cid: info.cid || "",
         namaAnak: info.nama || "",
         role: (info.role || "").toLowerCase(),
-
         // Opsi opsional khusus Shape:
         // prioritas canvas screenshot jika ada:
         screenshotSelectorPriority: ['#shapeCanvas', '#gameCanvas', '#canvasRoot', '#shapeBoard', '#gameRoot']
@@ -460,7 +503,10 @@ document.getElementById('btnShuffle').addEventListener('click',()=>{ shuffle(); 
     } else {
       console.warn("initWorksheetSubmit tidak ditemukan. Pastikan /elearn/common/worksheet-submit.js termuat.");
     }
-  })();
+  }
+  // panggil segera jika sudah ada, atau tunda ke load
+  if (document.readyState === 'complete') { try{ initSubmit(); }catch(e){ console.warn(e); } }
+  else { window.addEventListener('load', function(){ try{ initSubmit(); }catch(e){ console.warn(e); } }, {once:true}); }
 </script>
 
 
