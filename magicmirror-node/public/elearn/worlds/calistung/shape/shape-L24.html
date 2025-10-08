@@ -70,6 +70,15 @@ const SIZE = 7; // 7x7 grid like worksheet
 const VB = 100; // viewBox size
 function dotPx(i){ const PAD = 8; return PAD + i * ((VB - 2*PAD) / (SIZE - 1)); } // internal for SVG viewBox 0..VB
 
+function shuffleArray(arr){
+  const copy = [...arr];
+  for(let i = copy.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
 let ERASER_MODE = false;
 const UNDO_STACK = [];
 
@@ -107,23 +116,50 @@ function makeBoard(container,opts){
   const gLines = document.createElementNS(svg.namespaceURI,'g');
   svg.appendChild(gLines);
 
+  const api = {};
+  const pointMap = new Map();
+  pts.forEach(p=>{ pointMap.set(`${p.x},${p.y}`, p); });
+
   const edges = new Map();
-  function addLine(a,b,cls=''){
+  function drawPath(a,b,cls=''){
     const path = document.createElementNS(svg.namespaceURI,'path');
     path.setAttribute('d',`M ${a.cx} ${a.cy} L ${b.cx} ${b.cy}`);
-    path.setAttribute('stroke',color); path.setAttribute('class','line '+cls);
+    path.setAttribute('stroke',color);
+    path.setAttribute('class','line'+(cls?` ${cls}`:''));
     gLines.appendChild(path);
-    edges.set(keyEdge(a,b), path);
+    return path;
   }
-  function removeLine(k){ const p = edges.get(k); if(p){ p.remove(); edges.delete(k); } }
+
+  function ensureEdge(ax,ay,bx,by,cls=''){
+    const a = pointMap.get(`${ax},${ay}`);
+    const b = pointMap.get(`${bx},${by}`);
+    if(!a || !b){ return {key:null, created:false}; }
+    const key = keyEdge(a,b);
+    if(edges.has(key)){ return {key, created:false}; }
+    const path = drawPath(a,b,cls);
+    edges.set(key,{path, ax:a.x, ay:a.y, bx:b.x, by:b.y});
+    return {key, created:true};
+  }
+
+  function deleteEdge(key){
+    const rec = edges.get(key);
+    if(rec){ rec.path.remove(); edges.delete(key); }
+  }
+
+  function deleteEdgeByPath(path){
+    for(const [key,rec] of edges){
+      if(rec.path===path){
+        rec.path.remove();
+        edges.delete(key);
+        return {key, ax:rec.ax, ay:rec.ay, bx:rec.bx, by:rec.by};
+      }
+    }
+    return null;
+  }
 
   // preset
   if(preset.length){
-    preset.forEach(([ax,ay,bx,by])=>{
-      const a = pts.find(p=>p.x===ax&&p.y===ay);
-      const b = pts.find(p=>p.x===bx&&p.y===by);
-      addLine(a,b);
-    });
+    preset.forEach(([ax,ay,bx,by])=>{ ensureEdge(ax,ay,bx,by); });
   }
 
   if(interactive){
@@ -133,64 +169,67 @@ function makeBoard(container,opts){
 
     // replaced event listeners for drag/tracing interaction
     let picked = null; // last snapped node while drawing
-    let dragging = false;
+    let pointerDown = false;
 
     svg.addEventListener('pointerdown', (e)=>{
+      if (typeof e.button === 'number' && e.button !== 0) {
+        return;
+      }
       // Erase on tap when eraser mode
       if(ERASER_MODE && e.target.tagName==='path'){
-        for(const [k,el] of edges){ if(el===e.target){ el.remove(); edges.delete(k); UNDO_STACK.push({type:'del', k, color}); break; } }
+        const removed = deleteEdgeByPath(e.target);
+        if(removed){
+          UNDO_STACK.push({type:'del', board:api, data:removed});
+        }
         return;
       }
       const pos = clientToVB(svg, e.clientX, e.clientY);
       const near = nearestDotVB(pos.x, pos.y);
       if(!near) return;
-      picked = near; dragging = true;
+      picked = near; pointerDown = true;
       ghost.style.display='block';
       ghost.setAttribute('d',`M ${near.cx} ${near.cy} L ${near.cx} ${near.cy}`);
-      svg.setPointerCapture && svg.setPointerCapture(e.pointerId);
+      if (svg.setPointerCapture) {
+        try { svg.setPointerCapture(e.pointerId); } catch (_) { /* ignore */ }
+      }
     });
 
     svg.addEventListener('pointermove',(e)=>{
-      // Show ghost and, if dragging, create segments whenever we cross another node
+      // Update ghost preview while moving pointer
       const pos = clientToVB(svg, e.clientX, e.clientY);
       const near = nearestDotVB(pos.x, pos.y);
-      if(!picked){
-        // just hover; update ghost to nearest if any
-        if(near){ ghost.style.display='block'; ghost.setAttribute('d',`M ${near.cx} ${near.cy} L ${pos.x} ${pos.y}`); }
-        else{ ghost.style.display='none'; }
-        return;
-      }
-      // We have a picked node; update ghost
-      const ghostTarget = near ? {cx:near.cx, cy:near.cy} : {cx:pos.x, cy:pos.y};
-      ghost.setAttribute('d',`M ${picked.cx} ${picked.cy} L ${ghostTarget.cx} ${ghostTarget.cy}`);
-
-      if(!dragging) return;
-      // Only add segment when we actually snap to a DIFFERENT node while dragging
-      if(near && (near.x!==picked.x || near.y!==picked.y)){
-        const k = keyEdge(picked, near);
-        if(!edges.has(k)){
-          const path = document.createElementNS(svg.namespaceURI,'path');
-          path.setAttribute('d',`M ${picked.cx} ${picked.cy} L ${near.cx} ${near.cy}`);
-          path.setAttribute('stroke',color); path.setAttribute('class','line');
-          svg.querySelector('g:nth-of-type(2)').appendChild(path);
-          edges.set(k, path);
-          UNDO_STACK.push({type:'add', k, color});
+      if(pointerDown && picked){
+        const ghostTarget = near ? {cx:near.cx, cy:near.cy} : {cx:pos.x, cy:pos.y};
+        ghost.setAttribute('d',`M ${picked.cx} ${picked.cy} L ${ghostTarget.cx} ${ghostTarget.cy}`);
+      } else {
+        if(near){
+          ghost.style.display='block';
+          ghost.setAttribute('d',`M ${near.cx} ${near.cy} L ${pos.x} ${pos.y}`);
+        } else {
+          ghost.style.display='none';
         }
-        // advance chain without ending drag
-        picked = near;
-        ghost.setAttribute('d',`M ${picked.cx} ${picked.cy} L ${picked.cx} ${picked.cy}`);
       }
     });
 
     function endDrag(e){
-      dragging = false;
+      if(pointerDown && picked){
+        const pos = clientToVB(svg, e.clientX, e.clientY);
+        const near = nearestDotVB(pos.x, pos.y);
+        if(near && (near.x!==picked.x || near.y!==picked.y)){
+          const {key, created} = ensureEdge(picked.x, picked.y, near.x, near.y);
+          if(created){
+            UNDO_STACK.push({type:'add', board:api, key});
+          }
+        }
+      }
+      pointerDown = false;
       picked = null;
       ghost.style.display='none';
       try{ svg.releasePointerCapture && svg.releasePointerCapture(e.pointerId); }catch{ /* noop */ }
     }
     svg.addEventListener('pointerup', endDrag);
     svg.addEventListener('pointercancel', endDrag);
-    svg.addEventListener('pointerleave', (e)=>{ if(!dragging){ ghost.style.display='none'; } });
+    svg.addEventListener('pointerleave', ()=>{ if(!pointerDown){ ghost.style.display='none'; } });
 
     function nearestDotVB(vbx,vby){
       // SNAP tolerance ~10px -> convert to VB units using current rect
@@ -206,11 +245,29 @@ function makeBoard(container,opts){
   }
 
   container.appendChild(svg);
-  return {
-    getEdges(){ return Array.from(edges.keys()).sort(); },
-    clear(){ for(const [,el] of edges) el.remove(); edges.clear(); },
-    svg,
-  };
+  function clear(){
+    for(const [,rec] of edges){ rec.path.remove(); }
+    edges.clear();
+  }
+
+  function getExpandedEdgeKeys(){
+    const keys = new Set();
+    for(const rec of edges.values()){
+      expandSegment(rec.ax,rec.ay,rec.bx,rec.by).forEach(([ax,ay,bx,by])=>{
+        keys.add(segmentKey(ax,ay,bx,by));
+      });
+    }
+    return Array.from(keys).sort();
+  }
+
+  api.svg = svg;
+  api.ensureEdge = ensureEdge;
+  api.deleteEdge = deleteEdge;
+  api.deleteEdgeByPath = deleteEdgeByPath;
+  api.clear = clear;
+  api.getExpandedEdgeKeys = getExpandedEdgeKeys;
+
+  return api;
 }
 
 // ====== Patterns (7x7). Each item: {name,color,edges}
@@ -269,11 +326,56 @@ const PATS=[
   ]}
 ];
 
+function segmentKey(ax,ay,bx,by){
+  const a={x:ax,y:ay};
+  const b={x:bx,y:by};
+  return keyEdge(a,b);
+}
+
+function expandSegment(ax,ay,bx,by){
+  const startX = Math.round(ax);
+  const startY = Math.round(ay);
+  const endX = Math.round(bx);
+  const endY = Math.round(by);
+  let x0 = startX;
+  let y0 = startY;
+  const x1 = endX;
+  const y1 = endY;
+  const segments = [];
+  const dx = Math.abs(x1 - x0);
+  const sx = x0 < x1 ? 1 : -1;
+  const dy = Math.abs(y1 - y0);
+  const sy = y0 < y1 ? 1 : -1;
+  let err = dx - dy;
+  while(x0 !== x1 || y0 !== y1){
+    const prevX = x0;
+    const prevY = y0;
+    const e2 = err * 2;
+    if(e2 > -dy){ err -= dy; x0 += sx; }
+    if(e2 < dx){ err += dx; y0 += sy; }
+    segments.push([prevX, prevY, x0, y0]);
+  }
+  return segments;
+}
+
+function expandEdges(list){
+  const expanded=[];
+  list.forEach(seg => {
+    expanded.push(...expandSegment(...seg));
+  });
+  return expanded;
+}
+
+PATS.forEach(p => {
+  p.solutionKeys = expandEdges(p.edges).map(([ax,ay,bx,by]) => segmentKey(ax,ay,bx,by)).sort();
+});
+
 // Build UI
 const pairsEl = document.getElementById('pairs');
-let order = [...PATS.keys()];
+let order = PATS.map((_,idx)=>idx);
 function drawAll(){
   pairsEl.innerHTML='';
+  UNDO_STACK.length = 0;
   order.forEach((idx,i)=>{
     const p = PATS[idx];
     const pair = document.createElement('div'); pair.className='pair';
@@ -287,10 +389,12 @@ function drawAll(){
     legend.innerHTML = `<span class="swatch" style="background:${p.color}"></span><span>Warna Garis</span>`;
     pair.appendChild(legend);
 
-    const leftBoard = makeBoard(left,{interactive:false,color:p.color,preset:p.edges});
+    makeBoard(left,{interactive:false,color:p.color,preset:p.edges});
     const rightBoard = makeBoard(right,{interactive:true,color:p.color});
     pair.dataset.index = idx;
-    pair.rightBoard = rightBoard; pair.leftEdges = leftBoard.getEdges();
+    pair.rightBoard = rightBoard;
+    pair.solutionEdges = p.solutionKeys;
+    pair.style.borderColor = '#23304a';
 
     pairsEl.appendChild(pair);
   });
@@ -298,33 +402,13 @@ function drawAll(){
 
 drawAll();
 
-// Undo last add/del across all boards
-function undo(){
+document.getElementById('btnUndo').addEventListener('click',()=>{
   const last = UNDO_STACK.pop();
   if(!last) return;
-  // find matching pair and operate on its rightBoard svg
-  document.querySelectorAll('.pair').forEach(pair=>{
-    const rb = pair.rightBoard; // has getEdges/clear and svg reference
-    const svg = rb.svg;
-    const edgesMap = (function(){
-      // Rebuild a mapping from existing paths using current SVG
-      const map = new Map();
-      svg.querySelectorAll('path.line:not(.ghost)').forEach(p=>{
-        // parse d to get endpoints back is complex; rely on stored key when we added
-      });
-      return map;
-    })();
-  });
-}
-
-document.getElementById('btnUndo').addEventListener('click',()=>{
-  // Simple undo: clear last edited board's last edge by removing the last path element
-  // (practical shortcut) – remove last path from the most recent board interacted via UNDO_STACK
-  const last = UNDO_STACK.pop(); if(!last) return;
-  const boards = Array.from(document.querySelectorAll('.pair')).map(p=>p.rightBoard.svg);
-  for(const svg of boards){
-    const paths = svg.querySelectorAll('path.line:not(.ghost)');
-    if(paths.length){ paths[paths.length-1].remove(); break; }
+  if(last.type==='add'){
+    last.board.deleteEdge(last.key);
+  } else if(last.type==='del' && last.data){
+    last.board.ensureEdge(last.data.ax,last.data.ay,last.data.bx,last.data.by);
   }
 });
 
@@ -336,9 +420,9 @@ document.getElementById('btnEraser').addEventListener('click', (e)=>{
 function checkAll(){
   let correct=0;
   document.querySelectorAll('.pair').forEach(pair=>{
-    const leftEdges = pair.leftEdges;
-    const r = pair.rightBoard.getEdges();
-    const ok = leftEdges.length===r.length && leftEdges.every((k,i)=>k===r[i]);
+    const expected = pair.solutionEdges;
+    const userEdges = pair.rightBoard.getExpandedEdgeKeys();
+    const ok = expected.length===userEdges.length && expected.every((k,i)=>k===userEdges[i]);
     if(ok){ correct++; }
     pair.style.borderColor = ok? '#14532d' : '#4c1d95';
   });
@@ -349,10 +433,11 @@ function checkAll(){
 function resetAll(){
   document.getElementById('globalResult').textContent='';
   document.querySelectorAll('.pair').forEach(pair=>{ pair.rightBoard.clear(); pair.style.borderColor='#23304a'; });
+  UNDO_STACK.length = 0;
 }
 
 function shuffle(){
-  order = order.sort(()=>Math.random()-0.5);
+  order = shuffleArray(order);
   drawAll();
 }
 

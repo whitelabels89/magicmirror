@@ -65,6 +65,7 @@
 
     <section class="shape-card shape-card--compact shape-shell__hud hud">
       <span id="status" class="pill">Siap mewarnai ✨</span>
+      <button id="shuffle" class="shape-button secondary">Acak Soal</button>
       <button id="check" class="shape-button primary">Periksa</button>
       <button id="reset" class="shape-button ghost">Reset</button>
     </section>
@@ -76,43 +77,87 @@
   const statusEl = document.getElementById('status');
   const BTN = (id)=>document.getElementById(id);
 
-  // Konfigurasi kolom
-  const lanes = [
-    { key:'heart',   label:'♥', color:getCSS('--heart'),   target:7 },
-    { key:'pentagon',label:'⬟', color:getCSS('--pentagon'),target:5 },
-    { key:'star',    label:'★', color:getCSS('--star'),    target:4 },
-    { key:'circle',  label:'●', color:getCSS('--circle'),  target:7 },
+  const LANE_TEMPLATES = [
+    { key:'heart',    label:'♥', cssVar:'--heart',    min:3, max:7 },
+    { key:'pentagon', label:'⬟', cssVar:'--pentagon', min:2, max:6 },
+    { key:'star',     label:'★', cssVar:'--star',     min:2, max:5 },
+    { key:'circle',   label:'●', cssVar:'--circle',   min:3, max:7 }
   ];
 
-  // Render lanes
-  lanes.forEach((ln)=>{
-    const lane = h('section',{class:'lane', 'data-key':ln.key});
-    // Cap / header
-    const cap = h('div',{class:'cap'},
-      h('div',{class:'icon'},
-        shapeBadge(ln.key, ln.color),
-        h('small',{}, String(ln.target))
-      )
-    );
+  const SLOTS = 7;
+  let lanes = [];
 
-    const stack = h('div',{class:'stack'});
-    const SLOTS = 7; // tampilkan 7 slot pada setiap kolom seperti contoh
-    for(let i=0;i<SLOTS;i++){
-      const slot = h('div',{class:'slot'});
-      const svg = drawShape(ln.key);
-      svg.classList.add('ghost');
-      svg.setAttribute('data-active','0');
-      svg.addEventListener('click',()=>toggle(svg, ln.color));
-      slot.appendChild(svg);
-      stack.appendChild(slot);
+  function randInt(min, max){
+    const lo = Math.min(min, max);
+    const hi = Math.max(min, max);
+    return Math.floor(Math.random() * (hi - lo + 1)) + lo;
+  }
+
+  function shuffle(arr){
+    const copy = [...arr];
+    for(let i = copy.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
     }
+    return copy;
+  }
 
-    lane.append(cap, stack);
-    board.appendChild(lane);
-  });
+  function generateLanes(){
+    return LANE_TEMPLATES.map(t => ({
+      key: t.key,
+      label: t.label,
+      color: getCSS(t.cssVar),
+      target: Math.min(SLOTS, randInt(t.min, t.max))
+    }));
+  }
+
+  function renderBoard(){
+    board.innerHTML = '';
+    const layout = shuffle(lanes);
+    layout.forEach((ln)=>{
+      const lane = h('section',{class:'lane', 'data-key':ln.key, 'data-target':String(ln.target)});
+      const cap = h('div',{class:'cap'},
+        h('div',{class:'icon'},
+          shapeBadge(ln.key, ln.color),
+          h('small',{}, String(ln.target))
+        )
+      );
+
+      const stack = h('div',{class:'stack'});
+      for(let i=0;i<SLOTS;i++){
+        const slot = h('div',{class:'slot'});
+        const svg = drawShape(ln.key);
+        svg.classList.add('ghost');
+        svg.setAttribute('data-active','0');
+        svg.addEventListener('click',()=>toggle(svg, ln.color));
+        slot.appendChild(svg);
+        stack.appendChild(slot);
+      }
+
+      lane.append(cap, stack);
+      board.appendChild(lane);
+    });
+  }
+
+  function rebuildBoard(){
+    lanes = generateLanes();
+    renderBoard();
+    statusEl.textContent = 'Siap mewarnai ✨';
+    statusEl.className = 'pill';
+  }
+
+  rebuildBoard();
 
   BTN('check').addEventListener('click', validate);
   BTN('reset').addEventListener('click', resetAll);
+  const shuffleBtn = BTN('shuffle');
+  if (shuffleBtn) {
+    shuffleBtn.addEventListener('click', () => {
+      rebuildBoard();
+      statusEl.textContent = 'Soal diacak 🎲';
+      statusEl.className = 'pill';
+    });
+  }
 
   function toggle(svg, color){
     const on = svg.getAttribute('data-active') === '1';
@@ -133,10 +178,9 @@
   function validate(){
     let allGood = true;
     document.querySelectorAll('.lane').forEach(lane=>{
-      const key = lane.getAttribute('data-key');
-      const rule = lanes.find(l=>l.key===key);
-      const count = lane.querySelectorAll('svg[data-active="1"]').length;
-      if(count === rule.target){
+      const target = parseInt(lane.dataset.target || '0', 10);
+      const count = lane.querySelectorAll('.slot svg[data-active="1"]').length;
+      if(count === target){
         lane.style.outline = '4px solid rgba(34,197,94,.6)';
         lane.style.outlineOffset = '-4px';
       }else{
@@ -156,7 +200,7 @@
   }
 
   function resetAll(){
-    document.querySelectorAll('svg').forEach(svg=>{
+    board.querySelectorAll('.slot svg').forEach(svg=>{
       svg.setAttribute('data-active','0');
       const node = svg.firstElementChild;
       if(node) node.setAttribute('fill','#ffffff');
