@@ -29,11 +29,36 @@
   </script>
   <script>
     const urlParams = new URLSearchParams(window.location.search);
-    const isEmbedMode = urlParams.get('embed') === '1' || urlParams.get('embed') === 'true';
+    const embedParam = urlParams.get('embed');
+    let isEmbedMode = embedParam === '1' || embedParam === 'true';
     const embedRedirectTarget = urlParams.get('redirect') || '';
+
+    const activateLoginEmbedShell = () => {
+      if (!document.documentElement.classList.contains('login-embed')) {
+        document.documentElement.classList.add('login-embed');
+      }
+      window.__EMBED__ = true;
+    };
+
     if (isEmbedMode) {
-      document.documentElement.classList.add('login-embed');
+      activateLoginEmbedShell();
     }
+
+    window.addEventListener('message', (event) => {
+      if (event && event.data && event.data.type === 'enableEmbedMode') {
+        if (!isEmbedMode) {
+          isEmbedMode = true;
+        }
+        activateLoginEmbedShell();
+        if (document.readyState !== 'loading' && typeof window.__applyLoginEmbed === 'function') {
+          try {
+            window.__applyLoginEmbed(true);
+          } catch (error) {
+            console.warn('Gagal menerapkan mode embed login setelah pesan:', error);
+          }
+        }
+      }
+    });
   </script>
   <style>
     .cta-digital-experience {
@@ -80,7 +105,8 @@
       border: 0;
     }
 
-    body.login-body {
+    html.login-embed body.login-body,
+    html.is-embed body.login-body {
       margin: 0;
       font-family: 'Inter', 'Segoe UI', sans-serif;
       background: linear-gradient(180deg, #e0f7ff, #f0fbff);
@@ -129,7 +155,7 @@
       overflow-y: visible;
     }
 
-    html.login-embed.in-start-modal body.login-body {
+    html.login-embed.in-start-modal body {
       justify-content: flex-start;
       align-items: center;
       padding: clamp(1.5rem, 4vw, 2.5rem) 0;
@@ -172,6 +198,10 @@
       max-height: 76dvh;           /* lebih pendek supaya pas */
       overflow: auto;
       padding: clamp(1.6rem, 4vw, 2.6rem);
+      background: transparent !important;
+      border: 0 !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
     }
 
     .login-card__header {
@@ -474,16 +504,20 @@
       .cta-digital-experience { z-index: 1 !important; }
     }
     /* Embed specific styling */
-    html.login-embed, html.login-embed body {
-      overflow: hidden;
-    }
-
-    html.login-embed body.login-body {
+    html.login-embed,
+    html.login-embed body {
       font-family: 'Rajdhani', 'Inter', sans-serif;
       background: transparent;
       min-height: auto;
       padding: 0;
       text-align: left;
+      overflow: hidden;
+      color: #f3f6ff;
+      color-scheme: dark;
+    }
+
+    html.login-embed body::before {
+      content: none !important;
     }
 
     html.login-embed .login-container {
@@ -1040,23 +1074,52 @@
 </style>
   <script id="embed-mode-boot">
     (function () {
-      try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const inIframe = (function(){ try { return window.self !== window.top; } catch { return true; } })();
-        if (urlParams.get('embed') === '1' || inIframe) {
-          document.documentElement.classList.add('is-embed');
-          document.body.classList.add('is-embed');
-          window.__EMBED__ = true;
+      const params = new URLSearchParams(window.location.search);
+      let embedApplied = false;
+
+      const ensureBodyEmbedClass = () => {
+        if (!document.body) {
+          document.addEventListener(
+            'DOMContentLoaded',
+            () => {
+              document.body.classList.add('is-embed');
+            },
+            { once: true }
+          );
+          return;
         }
-        // allow parent to force embed after load
-        window.addEventListener('message', (e) => {
-          if (e && e.data && e.data.type === 'enableEmbedMode') {
-            document.documentElement.classList.add('is-embed');
-            document.body.classList.add('is-embed');
-            window.__EMBED__ = true;
+        document.body.classList.add('is-embed');
+      };
+
+      const enableEmbedMode = () => {
+        if (embedApplied) {
+          return;
+        }
+        embedApplied = true;
+        document.documentElement.classList.add('is-embed');
+        ensureBodyEmbedClass();
+        if (typeof isEmbedMode !== 'undefined') {
+          isEmbedMode = true;
+        }
+        window.__EMBED__ = true;
+        if (document.readyState !== 'loading' && typeof window.__applyLoginEmbed === 'function') {
+          try {
+            window.__applyLoginEmbed(true);
+          } catch (error) {
+            console.warn('Gagal menerapkan tata letak embed login:', error);
           }
-        });
-      } catch {}
+        }
+      };
+
+      if (params.get('embed') === '1' || params.get('embed') === 'true') {
+        enableEmbedMode();
+      }
+
+      window.addEventListener('message', (event) => {
+        if (event && event.data && event.data.type === 'enableEmbedMode') {
+          enableEmbedMode();
+        }
+      });
     })();
   </script>
   <style id="embed-mode-css">
@@ -1343,6 +1406,26 @@
     }
   }
 
+  function applyLoginEmbed(initialForce = false) {
+    if (!isEmbedMode) {
+      return;
+    }
+    if (document.body && !document.body.classList.contains('login-body')) {
+      document.body.classList.add('login-body');
+    }
+    const embedWrapper = document.querySelector('[data-embed-login]');
+    if (embedWrapper && embedWrapper.hasAttribute('aria-hidden')) {
+      embedWrapper.removeAttribute('aria-hidden');
+    }
+    notifyParentAboutSize(initialForce);
+    setTimeout(() => notifyParentAboutSize(), 120);
+    setupEmbedResizeObserver();
+  }
+
+  window.__applyLoginEmbed = (initialForce = false) => {
+    applyLoginEmbed(initialForce);
+  };
+
   function setEmbedStatus(message, type = 'info') {
     const statusEl = document.getElementById('embedStatus');
     if (statusEl) {
@@ -1584,14 +1667,7 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     if (isEmbedMode) {
-      document.body.classList.add('login-body');
-      const embedWrapper = document.querySelector('[data-embed-login]');
-      if (embedWrapper) {
-        embedWrapper.removeAttribute('aria-hidden');
-      }
-      notifyParentAboutSize(true);
-      setTimeout(() => notifyParentAboutSize(), 120);
-      setupEmbedResizeObserver();
+      applyLoginEmbed(true);
     }
 
     const loginForm = document.getElementById('embedLoginForm');
