@@ -19,7 +19,7 @@
     .chip{width:170px;height:160px;border-radius:16px;border:2px solid #e5e7eb;cursor:pointer;box-shadow:0 4px 16px rgba(2,6,23,.08);background:#fff;display:grid;place-items:center;transition:transform .15s ease, box-shadow .15s ease}
     .chip.active{box-shadow:inset 0 0 0 3px #111827,0 6px 18px rgba(2,6,23,.08);transform:translateY(-2px)}
     .chipInner{width:160px;height:150px;display:flex;align-items:center;justify-content:center}
-    .chipInner svg{width:100%;height:100%;max-width:150px;max-height:130px;overflow:visible}
+    .chipInner svg{width:100%;height:100%;max-width:120px;max-height:110px}
 
     .triangle-actions{display:flex;gap:12px;flex-wrap:wrap}
 
@@ -94,25 +94,21 @@
   const MAX_SIDE = Math.max(...RULES.map(r=>r.size));
 
   function makeMiniTriangle(side, color){
-    // Gunakan formula identik dengan triPoints tanpa scaling tambahan
-    const width = 160;
-    const height = 140;
+    const width = 120;
+    const height = 96;
+    const scale = Math.max(0.25, side / MAX_SIDE);
+    const base = 70 * scale + 26;
+    const triHeight = 60 * scale + 18;
+    const baseY = height - 8;
+    const topY = baseY - triHeight;
+    const cx = width / 2;
+
     const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
     svg.setAttribute('viewBox',`0 0 ${width} ${height}`);
     svg.setAttribute('preserveAspectRatio','xMidYMid meet');
     svg.setAttribute('aria-hidden','true');
-
-    // gunakan langsung side sebagai acuan sama seperti di worksheet
-    const h = Math.sqrt(3)/2 * side;
-    const cx = width / 2;
-    const cy = height / 2 + 8;
-
-    const x1 = cx,           y1 = cy - h/1.2;
-    const x2 = cx - side/2,  y2 = cy + h/1.8;
-    const x3 = cx + side/2,  y3 = cy + h/1.8;
-
     const poly = document.createElementNS(svg.namespaceURI,'polygon');
-    poly.setAttribute('points',`${x1},${y1} ${x2},${y2} ${x3},${y3}`);
+    poly.setAttribute('points',`${cx},${topY} ${cx - base/2},${baseY} ${cx + base/2},${baseY}`);
     poly.setAttribute('fill', color);
     poly.setAttribute('stroke','#1f2937');
     poly.setAttribute('stroke-width','2');

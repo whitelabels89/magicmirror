@@ -79,33 +79,6 @@ function shuffleArray(arr){
   return copy;
 }
 
-function expandSegment(ax, ay, bx, by){
-  const dx = Math.sign(bx - ax);
-  const dy = Math.sign(by - ay);
-  if (dx === 0 && dy === 0) {
-    return [];
-  }
-  const segments = [];
-  let x = ax;
-  let y = ay;
-  while (x !== bx || y !== by) {
-    const nx = x + dx;
-    const ny = y + dy;
-    segments.push([x, y, nx, ny]);
-    x = nx;
-    y = ny;
-  }
-  return segments;
-}
-
-function expandEdges(list){
-  const expanded = [];
-  list.forEach(seg => {
-    expanded.push(...expandSegment(...seg));
-  });
-  return expanded;
-}
-
 let ERASER_MODE = false;
 const UNDO_STACK = [];
 
@@ -158,10 +131,7 @@ function makeBoard(container,opts){
     preset.forEach(([ax,ay,bx,by])=>{
       const a = pts.find(p=>p.x===ax&&p.y===ay);
       const b = pts.find(p=>p.x===bx&&p.y===by);
-      if (!a || !b) {
-        console.warn('[shape-l24] preset edge skipped', ax, ay, bx, by);
-        return;
-      }
+      if(!a || !b){ return; }
       addLine(a,b);
     });
   }
@@ -314,13 +284,53 @@ const PATS=[
   ]}
 ];
 
+function segmentKey(ax,ay,bx,by){
+  const a={x:ax,y:ay};
+  const b={x:bx,y:by};
+  return keyEdge(a,b);
+}
+
+function expandSegment(ax,ay,bx,by){
+  const startX = Math.round(ax);
+  const startY = Math.round(ay);
+  const endX = Math.round(bx);
+  const endY = Math.round(by);
+  let x0 = startX;
+  let y0 = startY;
+  const x1 = endX;
+  const y1 = endY;
+  const segments = [];
+  const dx = Math.abs(x1 - x0);
+  const sx = x0 < x1 ? 1 : -1;
+  const dy = Math.abs(y1 - y0);
+  const sy = y0 < y1 ? 1 : -1;
+  let err = dx - dy;
+  while(x0 !== x1 || y0 !== y1){
+    const prevX = x0;
+    const prevY = y0;
+    const e2 = err * 2;
+    if(e2 > -dy){ err -= dy; x0 += sx; }
+    if(e2 < dx){ err += dx; y0 += sy; }
+    segments.push([prevX, prevY, x0, y0]);
+  }
+  return segments;
+}
+
+function expandEdges(list){
+  const expanded=[];
+  list.forEach(seg => {
+    expanded.push(...expandSegment(...seg));
+  });
+  return expanded;
+}
+
 PATS.forEach(p => {
-  p.unitEdges = expandEdges(p.edges);
+  p.solutionKeys = expandEdges(p.edges).map(([ax,ay,bx,by]) => segmentKey(ax,ay,bx,by)).sort();
 });
 
 // Build UI
 const pairsEl = document.getElementById('pairs');
-let order = [...PATS.keys()];
+let order = PATS.map((_,idx)=>idx);
 function drawAll(){
   pairsEl.innerHTML='';
   UNDO_STACK.length = 0;
@@ -337,35 +347,18 @@ function drawAll(){
     legend.innerHTML = `<span class="swatch" style="background:${p.color}"></span><span>Warna Garis</span>`;
     pair.appendChild(legend);
 
-    const leftBoard = makeBoard(left,{interactive:false,color:p.color,preset:p.unitEdges});
+    makeBoard(left,{interactive:false,color:p.color,preset:p.edges});
     const rightBoard = makeBoard(right,{interactive:true,color:p.color});
     pair.dataset.index = idx;
-    pair.rightBoard = rightBoard; pair.leftEdges = leftBoard.getEdges();
+    pair.rightBoard = rightBoard;
+    pair.solutionEdges = p.solutionKeys;
+    pair.style.borderColor = '#23304a';
 
     pairsEl.appendChild(pair);
   });
 }
 
 drawAll();
-
-// Undo last add/del across all boards
-function undo(){
-  const last = UNDO_STACK.pop();
-  if(!last) return;
-  // find matching pair and operate on its rightBoard svg
-  document.querySelectorAll('.pair').forEach(pair=>{
-    const rb = pair.rightBoard; // has getEdges/clear and svg reference
-    const svg = rb.svg;
-    const edgesMap = (function(){
-      // Rebuild a mapping from existing paths using current SVG
-      const map = new Map();
-      svg.querySelectorAll('path.line:not(.ghost)').forEach(p=>{
-        // parse d to get endpoints back is complex; rely on stored key when we added
-      });
-      return map;
-    })();
-  });
-}
 
 document.getElementById('btnUndo').addEventListener('click',()=>{
   // Simple undo: clear last edited board's last edge by removing the last path element
@@ -384,28 +377,16 @@ document.getElementById('btnEraser').addEventListener('click', (e)=>{
 });
 
 function checkAll(){
-  try {
-    let pairs = document.querySelectorAll('.pair');
-    if (!pairs.length) return console.warn("Belum ada board untuk diperiksa.");
-    
-    let correct = 0;
-    pairs.forEach(pair => {
-      const leftEdges = pair.leftEdges || [];
-      const rightBoard = pair.rightBoard;
-      if (!rightBoard || typeof rightBoard.getEdges !== "function") return;
-      
-      const r = rightBoard.getEdges();
-      const ok = leftEdges.length === r.length && leftEdges.every((k,i)=>k===r[i]);
-      if (ok) correct++;
-      pair.style.borderColor = ok ? '#14532d' : '#4c1d95';
-    });
-
-    const total = pairs.length;
-    const res = document.getElementById('globalResult');
-    if (res) res.textContent = `${correct}/${total} benar`;
-  } catch (err) {
-    console.error("checkAll error:", err);
-  }
+  let correct=0;
+  document.querySelectorAll('.pair').forEach(pair=>{
+    const expected = pair.solutionEdges;
+    const userEdges = pair.rightBoard.getEdges();
+    const ok = expected.length===userEdges.length && expected.every((k,i)=>k===userEdges[i]);
+    if(ok){ correct++; }
+    pair.style.borderColor = ok? '#14532d' : '#4c1d95';
+  });
+  const total = document.querySelectorAll('.pair').length;
+  document.getElementById('globalResult').textContent = `${correct}/${total} benar`;
 }
 
 function resetAll(){
@@ -416,8 +397,7 @@ function resetAll(){
 
 function shuffle(){
   order = shuffleArray(order);
-drawAll();
-setTimeout(()=>console.log("All pairs rendered:", document.querySelectorAll('.pair').length), 500);
+  drawAll();
 }
 
 document.getElementById('btnCheck').addEventListener('click',checkAll);
