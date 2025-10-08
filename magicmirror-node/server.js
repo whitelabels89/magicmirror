@@ -12,6 +12,8 @@ const { google } = require('googleapis');
 const uploadModulRouter = require('./uploadModul');
 const admin = require('firebase-admin');
 
+const WORKSHEET_SHORTLINK_COLLECTION = process.env.WORKSHEET_SHORTLINK_COLLECTION || 'worksheet_shortlinks';
+
 // CORS (allow credentials; restrict origins via FRONTEND_ORIGINS env if provided)
 const allowedOrigins = (process.env.FRONTEND_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
 app.set('trust proxy', 1);
@@ -76,6 +78,26 @@ app.get('/api/version', (req, res) => {
     },
     time: Date.now()
   });
+});
+
+app.get('/ws/:code', async (req, res) => {
+  try {
+    const code = String(req.params.code || '').trim();
+    if (!code) return res.status(404).send('Not found');
+    if (!admin.apps.length) {
+      console.warn('[worksheet shortlink] admin not initialized');
+      return res.status(503).send('Service unavailable');
+    }
+    const snap = await admin.firestore().collection(WORKSHEET_SHORTLINK_COLLECTION).doc(code).get();
+    if (!snap.exists) return res.status(404).send('Not found');
+    const data = snap.data() || {};
+    const target = data.storage_url || data.drive_url || data.target_url || '';
+    if (!target) return res.status(404).send('Not found');
+    return res.redirect(target);
+  } catch (err) {
+    console.error('worksheet shortlink redirect error', err);
+    return res.status(500).send('Internal error');
+  }
 });
 
 // === Hair Color API (hair recoloring endpoint bridging UI to Minimax/Replicate) ===

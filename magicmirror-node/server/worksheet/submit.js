@@ -3,6 +3,7 @@ const router = express.Router();
 const admin = require('firebase-admin');
 const { google } = require('googleapis');
 const stream = require('stream');
+const crypto = require('crypto');
 const { uploadBuffer, ensureFolderWritable, createDrive } = require('../../gdrive');
 const { awardPoints } = require('../../services/pointsService');
 
@@ -127,6 +128,45 @@ router.get('/debug', async (req, res) => {
     return res.status(500).json({ ok:false, message:e.message });
   }
 });
+
+const WORKSHEET_SHORTLINK_COLLECTION = process.env.WORKSHEET_SHORTLINK_COLLECTION || 'worksheet_shortlinks';
+
+function generateShortCode() {
+  return crypto.randomBytes(4).toString('hex');
+}
+
+async function createWorksheetShortLink(db, data) {
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const code = generateShortCode();
+    const ref = db.collection(WORKSHEET_SHORTLINK_COLLECTION).doc(code);
+    try {
+      await ref.create({
+        ...data,
+        code,
+        target_url: data.storage_url || data.drive_url || '',
+        created_at: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      return code;
+    } catch (err) {
+      const msg = err && err.message ? err.message : '';
+      if (err && (err.code === 6 || err.code === 'already-exists' || /already exists/i.test(msg))) {
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw new Error('SHORTLINK_GENERATION_FAILED');
+}
+
+function resolvePublicBaseUrl(req) {
+  const envUrl = (process.env.WORKSHEET_PUBLIC_BASE_URL || process.env.PUBLIC_BASE_URL || '').trim();
+  if (envUrl) return envUrl;
+  const host = req.get('x-forwarded-host') || req.get('host');
+  if (!host) return '';
+  const protoHeader = req.get('x-forwarded-proto');
+  const proto = (protoHeader ? protoHeader.split(',')[0] : (req.protocol || 'https')).trim() || 'https';
+  return `${proto}://${host}`;
+}
 
 router.post('/submit', rateLimiter, async (req, res) => {
   try {
@@ -292,9 +332,57 @@ router.post('/submit', rateLimiter, async (req, res) => {
       return res.status(500).json({ ok: false, code: 'firestore_error', message: err.message || 'Firestore error' });
     }
 
+    let shortCode = '';
+    let shortPath = '';
+    let shortUrl = '';
+    try {
+      const code = await createWorksheetShortLink(db, {
+        worksheet_doc_id: docId,
+        storage_url: storageUrl,
+        drive_url: driveUrl,
+        murid_uid,
+        course_id,
+        lesson_id,
+        submitted_by_uid: user.uid || '',
+        submitted_by_role: role || '',
+      });
+      if (code) {
+        shortCode = code;
+        shortPath = `/ws/${code}`;
+        const baseUrl = resolvePublicBaseUrl(req);
+        if (baseUrl) {
+          try {
+            shortUrl = new URL(shortPath, baseUrl).toString();
+          } catch (err) {
+            console.warn('failed to build worksheet short url', err);
+          }
+        }
+        try {
+          await db.collection('worksheets').doc(docId).set({
+            short_code: shortCode,
+            short_path: shortPath,
+            short_url: shortUrl,
+          }, { merge: true });
+        } catch (err) {
+          console.warn('failed to attach short link to worksheet doc', err);
+        }
+      }
+    } catch (err) {
+      console.warn('failed to create worksheet short link', err);
+    }
+
     const points = await pointsPromise;
 
-    return res.json({ ok: true, storage_url: storageUrl, drive_url: driveUrl, sheet: { tab: 'EL_WORKSHEET' }, points });
+    return res.json({
+      ok: true,
+      storage_url: storageUrl,
+      drive_url: driveUrl,
+      short_code: shortCode,
+      short_path: shortPath,
+      short_url: shortUrl,
+      sheet: { tab: 'EL_WORKSHEET' },
+      points
+    });
   } catch (err) {
     console.error('worksheet submit error:', err && err.stack ? err.stack : err);
     res.status(500).json({ ok: false, code: 'internal', message: err.message || 'Server error' });
