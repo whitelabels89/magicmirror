@@ -8,6 +8,6 @@
     { "id": "mobile",         "name": "Applandia",            "theme": "teal",          "cover": "/elearn/img/map/portal-mobile.jpg",         "entry": "/elearn/worlds/mobile/index.html" },
     { "id": "robotic",        "name": "Robonix",              "theme": "steel",         "cover": "/elearn/img/map/portal-robotic.jpg",        "entry": "/elearn/worlds/robotic/index.html" },
     { "id": "ai",             "name": "Aitheris",             "theme": "purple",        "cover": "/elearn/img/map/portal-ai.jpg",             "entry": "/elearn/worlds/ai/index.html" },
-    { "id": "open-world",     "name": "Open World",           "theme": "open",          "cover": "/elearn/img/map/portal-openworld.jpg",      "entry": "/elearn/worlds/open-world/index.html" }
+    { "id": "open-world",     "name": "Open World",           "theme": "open",          "cover": "/elearn/img/map/portal-openworld.jpg",      "entry": "/elearn/portal.html" }
   ]
 }
