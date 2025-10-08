@@ -44,6 +44,21 @@
       activateLoginEmbedShell();
     }
 
+    if (!isEmbedMode) {
+      document.documentElement.classList.remove('is-embed', 'in-start-modal', 'login-embed');
+      if (document.body) {
+        document.body.classList.remove('is-embed', 'in-start-modal', 'login-body');
+      } else {
+        document.addEventListener(
+          'DOMContentLoaded',
+          () => {
+            document.body.classList.remove('is-embed', 'in-start-modal', 'login-body');
+          },
+          { once: true }
+        );
+      }
+    }
+
     window.addEventListener('message', (event) => {
       if (event && event.data && event.data.type === 'enableEmbedMode') {
         if (!isEmbedMode) {
@@ -1138,19 +1153,32 @@
     .is-embed #main-wrapper { height: auto !important; overflow: visible !important; display: block !important; }
     .is-embed #main-wrapper > .container { height: auto !important; display: block !important; }
     .is-embed .panel-group { display: flex; justify-content: center; align-items: center; padding: 16px 0; }
-    .is-embed .right-panel { display: flex; justify-content: center; align-items: center; width: 100%; }
+    .is-embed .right-panel {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: static !important;
+      width: 100%;
+      max-width: 520px;
+      height: auto !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      transform: none !important;
+      margin: 0 auto;
+    }
+    .is-embed .right-panel::before { content: none !important; }
     /* Focus only on the login card */
     .is-embed .login-container {
-      width: min(520px, 92vw);
-      margin: 16px auto;
-      background: rgba(8,8,24,0.92);
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 18px;
-      padding: 20px;
+      width: 100%;
+      margin: 0;
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      padding: clamp(1.4rem, 4vw, 2rem) clamp(1.1rem, 4vw, 2.4rem);
       color: #e8e8f0;
       max-height: none !important;
       overflow: visible !important;
-      box-shadow: 0 16px 36px rgba(3,6,28,0.45);
+      box-shadow: none;
     }
     .is-embed .quote-section,
     .is-embed .cta-digital-experience,
@@ -1864,6 +1892,7 @@ window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 drawNetwork();
 </script>
+  </div>
 <script src="userInfo.js"></script>
 <script src="script.js"></script>
 <script>
