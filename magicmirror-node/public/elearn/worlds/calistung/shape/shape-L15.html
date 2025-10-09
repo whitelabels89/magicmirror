@@ -65,7 +65,7 @@
   .choice{background:#0e1631;border:1px solid #1d2852;border-radius:12px;padding:8px;display:flex;align-items:center;justify-content:center;height:92px;cursor:grab;user-select:none;touch-action:none}
   .choice.dragging{opacity:.6;transform:scale(.98)}
 
-  .choicesGrid{display:grid;grid-template-columns:repeat(2,minmax(140px,1fr));gap:12px}
+  .choicesGrid{display:grid;grid-template-columns:repeat(2,minmax(140px,1fr));gap:12px; touch-action:none}
 
   svg{display:block}
 
@@ -312,25 +312,97 @@
     return row;
   }
 
+  function placeCardIntoSlot(slot, dragged){
+    if(!slot || !dragged) return;
+    // Jika slot sudah ada isinya → kembalikan dulu ke choices
+    if(slot.firstChild){
+      const old = slot.querySelector('.choice');
+      if(old){ document.getElementById('choices').appendChild(old); }
+    }
+    // reset posisi agar layout rapi di dalam slot
+    dragged.style.position = '';
+    dragged.style.left = '';
+    dragged.style.top = '';
+    slot.appendChild(dragged);
+    slot.classList.add('filled');
+    const isCorrect = (dragged.dataset.pattern===slot.dataset.answer && dragged.dataset.orient===slot.dataset.orient);
+    markSlot(slot, isCorrect);
+  }
+
+  function findSlotAtPoint(clientX, clientY){
+    const el = document.elementFromPoint(clientX, clientY);
+    return el && el.closest ? el.closest('.slot') : null;
+  }
+
   function createChoice(colors, orient){
     const card = document.createElement('div');
     card.className = 'choice';
-    card.draggable = true;
-    // use only first two ring colors to uniquely identify the piece
+    // gunakan dua ring terluar sebagai kunci unik
     card.dataset.pattern = [colors[0], colors[1]].join('|');
     card.dataset.orient = String(orient);
+
     const patch = makeCutPiece(colors);
     const wrap = document.createElement('div');
     wrap.className = 'rot small';
     wrap.style.transform = `rotate(${orient}deg)`;
     wrap.appendChild(patch);
     card.appendChild(wrap);
-    card.addEventListener('dragstart', e=>{
-      card.classList.add('dragging');
-      const payload = JSON.stringify({p: card.dataset.pattern, o: card.dataset.orient});
-      e.dataTransfer.setData('text/plain', payload);
-    });
-    card.addEventListener('dragend', ()=>card.classList.remove('dragging'));
+
+    // Desktop/mouse: pakai native HTML5 DnD
+    const useNativeDnD = (window.matchMedia && matchMedia('(pointer:fine)').matches) && !('ontouchstart' in window);
+    card.draggable = !!useNativeDnD;
+    if(useNativeDnD){
+      card.addEventListener('dragstart', e=>{
+        card.classList.add('dragging');
+        const payload = JSON.stringify({p: card.dataset.pattern, o: card.dataset.orient});
+        e.dataTransfer.setData('text/plain', payload);
+      });
+      card.addEventListener('dragend', ()=>card.classList.remove('dragging'));
+    }
+
+    // Mobile/tablet (pointer coarse): manual drag yang langsung responsif
+    card.addEventListener('pointerdown', (e)=>{
+      const isCoarse = (window.matchMedia && matchMedia('(pointer:coarse)').matches) || ('ontouchstart' in window);
+      if(!isCoarse) return; // biarkan desktop pakai native DnD
+      e.preventDefault(); e.stopPropagation();
+
+      // buat ghost yang mengikuti jari
+      const ghost = card.cloneNode(true);
+      ghost.classList.add('dragging');
+      ghost.style.pointerEvents='none';
+      ghost.style.transform='scale(.98)';
+      const box = document.createElement('div');
+      box.style.position='fixed';
+      box.style.left=(e.clientX-40)+'px';
+      box.style.top=(e.clientY-40)+'px';
+      box.style.width='80px';
+      box.style.height='80px';
+      box.style.zIndex='9999';
+      box.style.touchAction='none';
+      box.appendChild(ghost);
+      document.body.appendChild(box);
+      document.body.style.overflow='hidden';
+
+      const move = (ev)=>{
+        box.style.left=(ev.clientX-40)+'px';
+        box.style.top=(ev.clientY-40)+'px';
+        ev.preventDefault();
+      };
+      const up = (ev)=>{
+        document.removeEventListener('pointermove', move, {passive:false});
+        document.removeEventListener('pointerup', up, {passive:true});
+        document.removeEventListener('pointercancel', up, {passive:true});
+        document.body.style.overflow='';
+        box.remove();
+        // letakkan kartu asli ke slot di titik drop (jika ada)
+        const slot = findSlotAtPoint(ev.clientX, ev.clientY);
+        if(slot){ placeCardIntoSlot(slot, card); }
+      };
+      document.addEventListener('pointermove', move, {passive:false});
+      document.addEventListener('pointerup', up, {passive:true});
+      document.addEventListener('pointercancel', up, {passive:true});
+    }, {passive:false});
+
     return card;
   }
 
@@ -378,20 +450,7 @@
         }
         const dragged = [...document.querySelectorAll('.choice')].find(c=>c.dataset.pattern===key && c.dataset.orient===orientStr && c.parentElement);
         if(!dragged) return;
-        // If slot already has a card, move it back to choices
-        if(slot.firstChild){
-          const old = slot.querySelector('.choice');
-          if(old) choices.appendChild(old);
-        }
-        // place the piece inside the middle slot only (no snap to stage)
-        dragged.style.position = '';
-        dragged.style.left = '';
-        dragged.style.top = '';
-        slot.appendChild(dragged);
-        slot.classList.add('filled');
-        // evaluate immediately
-        const isCorrect = (dragged.dataset.pattern===slot.dataset.answer && dragged.dataset.orient===slot.dataset.orient);
-        markSlot(slot, isCorrect);
+        placeCardIntoSlot(slot, dragged);
       });
     });
   }
