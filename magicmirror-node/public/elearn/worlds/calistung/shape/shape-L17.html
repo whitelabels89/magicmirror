@@ -137,6 +137,7 @@
       const defs = document.createElementNS(svgns,'defs');
       const clip = document.createElementNS(svgns,'clipPath');
       clip.setAttribute('id','clipTie');
+      clip.setAttribute('clipPathUnits','userSpaceOnUse');
 
       const knotPath = [
         'M 160 60',
@@ -162,7 +163,7 @@
       const bodyClip = document.createElementNS(svgns,'path');
       bodyClip.setAttribute('d', bodyPath);
 
-      clip.appendChild(knotClip);
+      // Gunakan hanya body sebagai area clip agar simbol tidak keluar dasi
       clip.appendChild(bodyClip);
 
       defs.appendChild(clip);
@@ -171,7 +172,7 @@
       const outlines = [knotPath, bodyPath].map(d => {
         const p = document.createElementNS(svgns,'path');
         p.setAttribute('d', d);
-        p.setAttribute('fill','#fff');
+        p.setAttribute('fill','none');
         p.setAttribute('stroke','#000');
         p.setAttribute('stroke-width','3');
         return p;
@@ -184,14 +185,14 @@
       FIXED_LAYOUT.forEach(cell=>{ rowCounts[cell.r] = (rowCounts[cell.r] || 0) + 1; });
       const spreadByRow = {
         0: 0,
-        1: 52,
-        2: 68,
-        3: 72,
-        4: 74,
-        5: 70,
-        6: 68,
-        7: 56,
-        8: 50
+        1: 46,
+        2: 60,
+        3: 64,
+        4: 66,
+        5: 62,
+        6: 60,
+        7: 50,
+        8: 46
       };
 
       const items = document.createElementNS(svgns,'g');
@@ -203,17 +204,41 @@
         const {r,c,type} = cell;
         // Skip forbidden cells (top corners and bottom center)
         if ((r<1 && c!==1) || (r>7 && c===1)) return;
+        // Distribusi posisi X secara merata di baris ini
         const countInRow = rowCounts[r] || 0;
-        const spread = (spreadByRow[r] != null) ? spreadByRow[r] : 80;
-        const centerX = 180;
-        let cx = centerX;
-        if (countInRow === 2) {
-          cx = centerX + (c <= 0 ? -spread : spread);
-        } else if (countInRow >= 3) {
-          if (c === 0) { cx = centerX - spread; }
-          else if (c === 1) { cx = centerX; }
-          else { cx = centerX + spread; }
+
+        // Lebar efektif tie pada Y baris ini
+        const leftAtY  = 80 + ( (190-80)   / (310-205) ) * Math.max(0, Math.min( (y0 + r*gh) - 205, (310-205) ));
+        const rightAtY = 240 + ( (190-240) / (310-205) ) * Math.max(0, Math.min( (y0 + r*gh) - 205, (310-205) ));
+        const tailL = 40 + ( (160-40) / (710-640) ) * Math.max(0, (y0 + r*gh) - 640);
+        const tailR = 280 + ( (160-280) / (710-640) ) * Math.max(0, (y0 + r*gh) - 640);
+        const leftBound  = (y0 + r*gh < 640) ? leftAtY  : tailL;
+        const rightBound = (y0 + r*gh < 640) ? rightAtY : tailR;
+
+        const PADDING = 16;
+        let span = Math.max(0, (rightBound - leftBound) - 2*PADDING);
+
+        // Minimum jarak antar simbol agar tidak tumpuk
+        const MIN_GAP = 26;
+        let unit = span / (countInRow + 1);
+        if (unit < MIN_GAP) {
+          // gunakan pembagian tanpa +1 untuk memberi ruang lebih
+          unit = span / Math.max(1, countInRow);
         }
+        // tetap jaga jarak minimum ~22px
+        unit = Math.max(unit, MIN_GAP * 0.85);
+
+        // Indeks kolom terurut 0..(countInRow-1)
+        let idx = 0;
+        if (countInRow === 1) idx = 0;
+        else if (countInRow === 2) idx = (c <= 0 ? 0 : 1);
+        else /* >=3 */ idx = c;
+
+        // Posisi X proporsional + clamp
+        let cx = leftBound + PADDING + (idx + (countInRow === 1 ? 0.5 : 1)) * unit;
+        if (cx > rightBound - PADDING) cx = rightBound - PADDING;
+        if (cx < leftBound + PADDING)  cx = leftBound + PADDING;
+
         const cy = y0 + r*gh + gh/2;
         const g = document.createElementNS(svgns,'g');
         g.setAttribute('transform',`translate(${cx},${cy})`);
@@ -222,8 +247,12 @@
         g.setAttribute('stroke','#000');
         g.setAttribute('stroke-width','2');
         g.style.cursor='pointer';
+
+        // Ukuran adaptif berdasarkan ruang unit (biar tidak saling menutup)
+        const sizeR = Math.min(12, Math.max(8, unit * 0.33));
         const def = getShapeDef(type);
-        def.draw(g,13); // consistent size
+        def.draw(g, sizeR);
+
         items.appendChild(g);
         counts[type] = (counts[type]||0)+1;
       });

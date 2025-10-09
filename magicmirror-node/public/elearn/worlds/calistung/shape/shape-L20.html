@@ -48,6 +48,9 @@
     svg{width:80%; height:80%;}
     .tools .tool svg{width:36px; height:36px;}
     .tools .tool{padding:10px; justify-content: center;}
+    /* Mobile drag responsiveness */
+    .tools .tool, .grid .cell { touch-action: none; }
+    .tools .tool { -webkit-user-select:none; -webkit-touch-callout:none; user-select:none; }
     .tool svg{cursor:grab}
   </style>
 
@@ -259,6 +262,47 @@
         const data = {type, color, rot: curRot};
         e.dataTransfer.setData('text/plain', JSON.stringify(data));
       });
+      // Manual drag untuk perangkat touch (tanpa long-press)
+      tBtn.addEventListener('pointerdown', (e)=>{
+        const isCoarse = (window.matchMedia && matchMedia('(pointer:coarse)').matches) || ('ontouchstart' in window);
+        if(!isCoarse) return; // desktop tetap pakai native DnD
+        const pick = tBtn.querySelector('svg');
+        const curRot = (pick && pick.dataset.rot) ? pick.dataset.rot : defaultRot;
+        const data = {type, color, rot: curRot};
+
+        e.preventDefault(); e.stopPropagation();
+        const ghost = shapeEl(type, color, curRot);
+        ghost.style.pointerEvents='none';
+        const box = document.createElement('div');
+        box.style.position='fixed'; box.style.left=(e.clientX-24)+'px'; box.style.top=(e.clientY-24)+'px';
+        box.style.width='48px'; box.style.height='48px'; box.style.zIndex='9999';
+        box.appendChild(ghost);
+        document.body.appendChild(box);
+        document.body.style.overflow='hidden';
+
+        const move = (ev)=>{
+          box.style.left=(ev.clientX-24)+'px';
+          box.style.top=(ev.clientY-24)+'px';
+          ev.preventDefault();
+        };
+        const up = (ev)=>{
+          document.removeEventListener('pointermove', move, {passive:false});
+          document.removeEventListener('pointerup', up, {passive:true});
+          document.removeEventListener('pointercancel', up, {passive:true});
+          document.body.style.overflow='';
+          box.remove();
+          // drop ke cell terdekat di grid kanan
+          const el = document.elementFromPoint(ev.clientX, ev.clientY);
+          const cell = el && el.closest ? el.closest('.cell') : null;
+          if(cell){
+            cell.innerHTML='';
+            cell.appendChild(shapeEl(data.type, data.color, data.rot));
+          }
+        };
+        document.addEventListener('pointermove', move, {passive:false});
+        document.addEventListener('pointerup', up, {passive:true});
+        document.addEventListener('pointercancel', up, {passive:true});
+      }, {passive:false});
       tools.appendChild(tBtn);
     });
     play.appendChild(tools);

@@ -40,11 +40,17 @@
   .panel h3{margin:0 0 10px 0;font-size:16px}
 
   .dock{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
-  .card{width:64px;height:64px;border-radius:12px;background:#133a66;display:flex;align-items:center;justify-content:center;cursor:grab;user-select:none;box-shadow:inset 0 0 0 2px rgba(255,255,255,.06), 0 4px 12px rgba(0,0,0,.25);position:relative}
+  .card{
+    width:64px;height:64px;border-radius:12px;background:#133a66;display:flex;align-items:center;justify-content:center;cursor:grab;user-select:none;box-shadow:inset 0 0 0 2px rgba(255,255,255,.06), 0 4px 12px rgba(0,0,0,.25);position:relative;
+    touch-action:none;
+    -webkit-user-select:none;
+    -webkit-touch-callout:none;
+  }
   .card:active{cursor:grabbing}
   .card .arrow{font-size:34px;pointer-events:none}
 
   .program{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+  .dock, .program { touch-action:none; }
   .slot{width:64px;height:64px;border-radius:12px;background:#0a2b52;display:flex;align-items:center;justify-content:center;outline:2px dashed #315b87;outline-offset:-6px}
 
   .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
@@ -114,6 +120,7 @@ const program = document.getElementById('program');
 const runBtn = document.getElementById('run');
 const resetBtn = document.getElementById('reset');
 const shuffleBtn = document.getElementById('shuffle');
+if (shuffleBtn) { shuffleBtn.remove(); }
 const statusEl = document.getElementById('status');
 const shuffleLevelBtn = document.getElementById('shuffleLevel');
 
@@ -330,6 +337,7 @@ function renderProgram(){
     active.style.left=ox+'px'; active.style.top=oy+'px';
     document.body.appendChild(active); // move to top layer while dragging
     document.body.style.userSelect='none';
+    document.body.style.overflow='hidden';
     e.preventDefault(); e.stopPropagation();
   }
 
@@ -339,6 +347,7 @@ function renderProgram(){
     if(!active) return;
     try{active.releasePointerCapture(pid);}catch(_){ }
     const a=active; active=null; document.body.style.userSelect='';
+    document.body.style.overflow='';
     // drop to nearest slot (within program area)
     const slots=[...program.querySelectorAll('.slot')];
     let best=null, bestDist=1e9;
@@ -446,10 +455,14 @@ renderProgram();
 
 runBtn.addEventListener('click', runProgram);
 resetBtn.addEventListener('click', ()=>{
-  if(!regenLevelSolvable()){
-    OBSTACLES=[]; regenBabies(); ({path: currentSolution, targetIndex: currentTargetIndex} = solveToAny(START, BABIES));
-  }
-  renderBoard(); renderDock(); renderProgram(); resetFish();
+  // kembalikan semua kartu dari program ke dock (tanpa mengacak ulang)
+  [...program.querySelectorAll('.card')].forEach(c=>{ c.style.position=''; c.style.left=''; c.style.top=''; dock.appendChild(c); });
+  // render ulang slot program kosong sesuai panjang solusi saat ini (minimal 6 slot)
+  renderProgram();
+  // reset posisi ikan & status
+  resetFish();
+  statusEl.textContent='';
+  statusEl.className='status';
 });
 shuffleLevelBtn.addEventListener('click', ()=>{
   if(!regenLevelSolvable()){
@@ -457,7 +470,7 @@ shuffleLevelBtn.addEventListener('click', ()=>{
   }
   renderBoard(); renderDock(); renderProgram(); statusEl.textContent='Soal diacak.'; statusEl.className='status';
 });
-shuffleBtn.addEventListener('click', ()=>{ currentSolution = solveToAny(START, BABIES).path; renderDock(); renderProgram(); statusEl.textContent='Kartu diacak.'; statusEl.className='status'; });
+// (dihapus) tombol acak kartu ditiadakan
 
 </script>
 <style>

@@ -33,7 +33,7 @@
   .slot.ok::after{ content:"✓"; background:#22c55e }
   .slot.err::after{ content:"✕"; background:#ef4444 }
 
-  .choice{background:#0e1631;border:1px solid #1d2852;border-radius:12px;padding:8px;display:flex;align-items:center;justify-content:center;height:140px;cursor:grab;user-select:none;touch-action:none}
+  .choice{background:#0e1631;border:1px solid #1d2852;border-radius:12px;padding:8px;display:flex;align-items:center;justify-content:center;height:140px;cursor:grab;user-select:none;touch-action:none;-webkit-user-select:none;-webkit-touch-callout:none;}
   .choice.dragging{opacity:.6;transform:scale(.98)}
   .choice-placeholder{visibility:hidden;pointer-events:none}
   .choicesGrid{display:grid;grid-template-columns:repeat(2,minmax(140px,1fr));gap:12px}
@@ -260,17 +260,28 @@
   }
 
   function createChoice(colors, orient, sizeSmall){
-    const card = document.createElement('div'); card.className='choice'; card.draggable=true;
+    const card = document.createElement('div');
+    card.className='choice';
     card.style.height = Math.max(90, sizeSmall)+'px';
-    card.dataset.pattern = patternKey(colors); card.dataset.orient = String(orient);
+    card.dataset.pattern = patternKey(colors);
+    card.dataset.orient = String(orient);
+
     const svg = makeWedgePiece(colors, sizeSmall, orient);
     card.appendChild(svg);
-    card.addEventListener('dragstart', e=>{
-      card.classList.add('dragging');
-      const payload = JSON.stringify({p: card.dataset.pattern, o: card.dataset.orient});
-      e.dataTransfer.setData('text/plain', payload);
-    });
-    card.addEventListener('dragend', ()=>card.classList.remove('dragging'));
+
+    // Gunakan native HTML5 DnD hanya untuk pointer "fine" (desktop/mouse)
+    const useNativeDnD = (window.matchMedia && matchMedia('(pointer:fine)').matches) && !('ontouchstart' in window);
+    card.draggable = !!useNativeDnD;
+    if (useNativeDnD) {
+      card.addEventListener('dragstart', e => {
+        card.classList.add('dragging');
+        const payload = JSON.stringify({ p: card.dataset.pattern, o: card.dataset.orient });
+        e.dataTransfer.setData('text/plain', payload);
+      });
+      card.addEventListener('dragend', () => card.classList.remove('dragging'));
+    }
+
+    // Selalu aktifkan manual drag (dipakai untuk touch/pen)
     enableManualDrag(card);
     return card;
   }
@@ -283,7 +294,7 @@
       if(type === 'mouse' && evt.button !== 0){ return; }
       if(type === 'mouse' && card.draggable){ return; }
       beginManualDrag(card, evt);
-    });
+    }, {passive:false});
   }
   function beginManualDrag(card, evt){
     if(manualDragState){ return; }
@@ -446,9 +457,33 @@
   }
 
   function resetSlots(){
-    document.querySelectorAll('.slot').forEach(s=>{ s.classList.remove('filled','ok','err'); s.innerHTML=''; });
     const pool = document.getElementById('choices');
-    document.querySelectorAll('.choice').forEach(c=>{ c.style.position=''; c.style.left=''; c.style.top=''; pool.appendChild(c); });
+
+    // Jika ada drag manual yang masih berlangsung, hentikan tanpa drop
+    if (manualDragState) {
+      try { finishManualDrag({ clientX: 0, clientY: 0 }, false); } catch(_){}
+    }
+
+    // 1) Kembalikan semua kartu dari slot ke pool lebih dulu (sebelum innerHTML='')
+    document.querySelectorAll('.slot').forEach(slot => {
+      const ch = slot.querySelector('.choice');
+      if (ch) {
+        ch.style.position=''; ch.style.left=''; ch.style.top='';
+        ch.style.width=''; ch.style.height=''; ch.style.zIndex=''; ch.style.pointerEvents='';
+        pool.appendChild(ch);
+      }
+      slot.classList.remove('filled','ok','err');
+      slot.innerHTML='';
+    });
+
+    // 2) Pastikan tidak ada kartu yang tercecer di luar pool/slot (misal saat drag manual)
+    document.querySelectorAll('.choice').forEach(c => {
+      if (!c.closest('#choices') && !c.closest('.slot')) {
+        c.style.position=''; c.style.left=''; c.style.top='';
+        c.style.width=''; c.style.height=''; c.style.zIndex=''; c.style.pointerEvents='';
+        pool.appendChild(c);
+      }
+    });
   }
 
   function check(){
