@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Koding Playtime</title>
+  <style>
+    :root {
+      --sky: #b9e9ff;
+      --sun: #ffd66b;
+      --violet: #7c61ff;
+      --mint: #8be7c7;
+      --soft: #fff8f0;
+      --text: #2f2a44;
+      --shadow: 0 18px 45px rgba(90, 63, 255, 0.16);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Baloo 2", "Poppins", Arial, sans-serif;
+      background: linear-gradient(180deg, var(--sky) 0%, #fef6ff 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      color: var(--text);
+    }
+
+    .app {
+      width: 100%;
+      max-width: 420px;
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 28px;
+      padding: 24px 22px 30px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .app::before {
+      content: "";
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      background: radial-gradient(circle, rgba(255, 214, 107, 0.9) 0%, rgba(255, 214, 107, 0) 70%);
+      top: -40px;
+      right: -10px;
+      pointer-events: none;
+    }
+
+    h1 {
+      font-size: 1.9rem;
+      margin: 0;
+      text-align: center;
+      color: var(--violet);
+    }
+
+    .subtitle {
+      text-align: center;
+      margin: 6px 0 18px;
+      font-size: 1rem;
+    }
+
+    .scene {
+      background: linear-gradient(180deg, rgba(124, 97, 255, 0.12), rgba(255, 255, 255, 0.8));
+      border-radius: 24px;
+      padding: 18px;
+      position: relative;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .cell {
+      width: 88px;
+      height: 88px;
+      border-radius: 20px;
+      background: var(--soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      box-shadow: inset 0 0 0 2px rgba(124, 97, 255, 0.12);
+    }
+
+    .cell.goal {
+      background: rgba(255, 214, 107, 0.45);
+      box-shadow: inset 0 0 0 2px rgba(255, 214, 107, 0.8);
+    }
+
+    .robot {
+      font-size: 2.4rem;
+      transition: transform 0.3s ease;
+    }
+
+    .prompt-card {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 20px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1rem;
+    }
+
+    .prompt-card span {
+      font-size: 1.8rem;
+    }
+
+    .options {
+      display: grid;
+      gap: 12px;
+    }
+
+    .option-btn {
+      border: none;
+      border-radius: 18px;
+      padding: 14px 16px;
+      background: rgba(139, 231, 199, 0.35);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text);
+      width: 100%;
+      box-shadow: inset 0 0 0 2px rgba(124, 97, 255, 0);
+      transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+    }
+
+    .option-btn:active {
+      transform: scale(0.97);
+    }
+
+    .option-btn.disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .option-label {
+      background: rgba(124, 97, 255, 0.18);
+      color: var(--violet);
+      border-radius: 12px;
+      padding: 8px 12px;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 60px;
+    }
+
+    .arrows {
+      display: inline-flex;
+      gap: 10px;
+      font-size: 1.6rem;
+    }
+
+    .status {
+      text-align: center;
+      margin-top: 18px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      min-height: 32px;
+    }
+
+    .status.celebrate {
+      color: #119f62;
+    }
+
+    .status.retry {
+      color: #d04c5b;
+    }
+
+    .nav {
+      margin-top: 14px;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .nav button {
+      border: none;
+      padding: 12px 18px;
+      border-radius: 16px;
+      background: var(--violet);
+      color: #fff;
+      font-weight: 600;
+      font-size: 1rem;
+      box-shadow: 0 12px 25px rgba(124, 97, 255, 0.28);
+      display: none;
+    }
+
+    .progress {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 0.95rem;
+      color: rgba(47, 42, 68, 0.75);
+    }
+
+    @media (max-width: 420px) {
+      .cell {
+        width: 76px;
+        height: 76px;
+      }
+
+      .robot {
+        font-size: 2.1rem;
+      }
+
+      .arrows {
+        font-size: 1.4rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>Koding Playtime</h1>
+    <p class="subtitle">Ajakk Robo-Kico jalan sampai bintang ✨</p>
+
+    <section class="scene">
+      <div class="prompt-card" id="storyPrompt">
+        <span>🧭</span>
+        <div>Bantu Robo-Kico berjalan pelan mengikuti urutan panah yang tepat.</div>
+      </div>
+
+      <div class="grid" id="grid"></div>
+
+      <div class="options" id="options"></div>
+
+      <div class="status" id="statusMessage"></div>
+      <div class="nav">
+        <button id="nextButton">Petualangan Berikutnya ➜</button>
+      </div>
+      <div class="progress" id="progressInfo"></div>
+    </section>
+  </main>
+
+  <script>
+    const puzzles = [
+      {
+        id: 1,
+        start: { row: 0, col: 0 },
+        goal: { row: 2, col: 2 },
+        story: "Robo-Kico mau memetik bintang kuning di pojok kanan bawah.",
+        options: [
+          { label: "A", steps: ["➡️", "➡️", "⬇️", "⬇️"], moves: ["right", "right", "down", "down"], correct: true },
+          { label: "B", steps: ["⬇️", "⬇️", "⬅️", "➡️"], moves: ["down", "down", "left", "right"], correct: false },
+          { label: "C", steps: ["➡️", "⬇️", "➡️", "⬇️"], moves: ["right", "down", "right", "down"], correct: true }
+        ],
+        note: "Ada dua jalan benar, pilih salah satu."
+      },
+      {
+        id: 2,
+        start: { row: 2, col: 0 },
+        goal: { row: 0, col: 2 },
+        story: "Robo-Kico mulai dari bawah. Kita harus naik ke pelangi kecil di atas kanan.",
+        options: [
+          { label: "A", steps: ["⬆️", "⬆️", "➡️", "➡️"], moves: ["up", "up", "right", "right"], correct: true },
+          { label: "B", steps: ["➡️", "⬆️", "⬆️", "➡️"], moves: ["right", "up", "up", "right"], correct: true },
+          { label: "C", steps: ["⬆️", "➡️", "⬇️", "➡️"], moves: ["up", "right", "down", "right"], correct: false }
+        ],
+        note: "Jangan turun lagi ya!"
+      },
+      {
+        id: 3,
+        start: { row: 1, col: 1 },
+        goal: { row: 2, col: 0 },
+        story: "Robo-Kico ada di tengah. Ada donat bintang di kiri bawah!",
+        options: [
+          { label: "A", steps: ["⬅️", "⬇️"], moves: ["left", "down"], correct: true },
+          { label: "B", steps: ["⬇️", "⬅️"], moves: ["down", "left"], correct: true },
+          { label: "C", steps: ["➡️", "⬇️"], moves: ["right", "down"], correct: false }
+        ],
+        note: "Hanya dua langkah saja."
+      },
+      {
+        id: 4,
+        start: { row: 0, col: 1 },
+        goal: { row: 2, col: 1 },
+        story: "Turunkan Robo-Kico ke balon bintang di bawah.",
+        options: [
+          { label: "A", steps: ["⬇️", "⬇️"], moves: ["down", "down"], correct: true },
+          { label: "B", steps: ["⬇️", "➡️"], moves: ["down", "right"], correct: false },
+          { label: "C", steps: ["⬇️", "⬇️", "⬇️"], moves: ["down", "down", "down"], correct: false }
+        ],
+        note: "Jangan jatuh melewati bintang ya."
+      }
+    ];
+
+    const gridElement = document.getElementById("grid");
+    const optionsElement = document.getElementById("options");
+    const statusMessage = document.getElementById("statusMessage");
+    const nextButton = document.getElementById("nextButton");
+    const storyPrompt = document.getElementById("storyPrompt");
+    const progressInfo = document.getElementById("progressInfo");
+
+    let currentPuzzleIndex = 0;
+    let currentPuzzle = null;
+    let robotPosition = { row: 0, col: 0 };
+    let animationTimer = null;
+
+    function createGrid() {
+      gridElement.innerHTML = "";
+      for (let row = 0; row < 3; row++) {
+        for (let col = 0; col < 3; col++) {
+          const cell = document.createElement("div");
+          cell.className = "cell";
+          cell.dataset.row = row;
+          cell.dataset.col = col;
+          gridElement.appendChild(cell);
+        }
+      }
+    }
+
+    function placeItems() {
+      const cells = gridElement.querySelectorAll(".cell");
+      cells.forEach(cell => cell.classList.remove("goal"));
+
+      const goalCell = gridElement.querySelector(`.cell[data-row="${currentPuzzle.goal.row}"][data-col="${currentPuzzle.goal.col}"]`);
+      if (goalCell) {
+        goalCell.classList.add("goal");
+        goalCell.textContent = "⭐";
+      }
+    }
+
+    function placeRobot() {
+      const existingRobot = gridElement.querySelector(".robot");
+      if (existingRobot) {
+        existingRobot.remove();
+      }
+
+      const startCell = gridElement.querySelector(`.cell[data-row="${robotPosition.row}"][data-col="${robotPosition.col}"]`);
+      if (startCell) {
+        const robot = document.createElement("div");
+        robot.className = "robot";
+        robot.textContent = "🤖";
+        startCell.appendChild(robot);
+      }
+    }
+
+    function renderOptions() {
+      optionsElement.innerHTML = "";
+      currentPuzzle.options.forEach(option => {
+        const button = document.createElement("button");
+        button.className = "option-btn";
+        button.dataset.correct = option.correct ? "true" : "false";
+        button.dataset.moves = JSON.stringify(option.moves);
+        button.dataset.label = option.label;
+
+        const label = document.createElement("div");
+        label.className = "option-label";
+        label.textContent = `Pilihan ${option.label}`;
+
+        const arrows = document.createElement("div");
+        arrows.className = "arrows";
+        option.steps.forEach(symbol => {
+          const span = document.createElement("span");
+          span.textContent = symbol;
+          arrows.appendChild(span);
+        });
+
+        button.appendChild(label);
+        button.appendChild(arrows);
+
+        button.addEventListener("click", () => handleOptionClick(button, option));
+        optionsElement.appendChild(button);
+      });
+    }
+
+    function handleOptionClick(button, option) {
+      disableOptions(true);
+      statusMessage.textContent = "Lihat! Robo-Kico mengikuti panahmu...";
+      statusMessage.className = "status";
+      animateMoves(option);
+    }
+
+    function moveRobot(direction) {
+      switch (direction) {
+        case "up":
+          robotPosition.row = Math.max(0, robotPosition.row - 1);
+          break;
+        case "down":
+          robotPosition.row = Math.min(2, robotPosition.row + 1);
+          break;
+        case "left":
+          robotPosition.col = Math.max(0, robotPosition.col - 1);
+          break;
+        case "right":
+          robotPosition.col = Math.min(2, robotPosition.col + 1);
+          break;
+      }
+      placeRobot();
+    }
+
+    function animateMoves(option) {
+      const moves = option.moves;
+      let stepIndex = 0;
+
+      const runStep = () => {
+        if (stepIndex >= moves.length) {
+          endAnimation(option);
+          return;
+        }
+        moveRobot(moves[stepIndex]);
+        stepIndex += 1;
+        animationTimer = setTimeout(runStep, 650);
+      };
+
+      runStep();
+    }
+
+    function endAnimation(option) {
+      clearTimeout(animationTimer);
+      const reachedGoal = robotPosition.row === currentPuzzle.goal.row && robotPosition.col === currentPuzzle.goal.col;
+
+      if (option.correct && reachedGoal) {
+        statusMessage.textContent = "Yay! Robo-Kico dapat bintangnya! 🎉";
+        statusMessage.className = "status celebrate";
+        nextButton.style.display = "inline-flex";
+      } else {
+        statusMessage.textContent = "Coba lagi yuk. Perhatikan panahnya ❤️";
+        statusMessage.className = "status retry";
+        disableOptions(false);
+        resetRobotPosition();
+      }
+    }
+
+    function disableOptions(disabled) {
+      const buttons = optionsElement.querySelectorAll(".option-btn");
+      buttons.forEach(btn => {
+        btn.classList.toggle("disabled", disabled);
+      });
+    }
+
+    function resetRobotPosition() {
+      robotPosition = { ...currentPuzzle.start };
+      setTimeout(() => {
+        placeRobot();
+      }, 500);
+    }
+
+    function showPuzzle(index) {
+      if (index >= puzzles.length) {
+        showCompletion();
+        return;
+      }
+      currentPuzzleIndex = index;
+      currentPuzzle = puzzles[index];
+      robotPosition = { ...currentPuzzle.start };
+
+      storyPrompt.querySelector("div").textContent = currentPuzzle.story;
+      statusMessage.textContent = "";
+      statusMessage.className = "status";
+      nextButton.style.display = "none";
+
+      createGrid();
+      placeItems();
+      placeRobot();
+      renderOptions();
+      progressInfo.textContent = `Petualangan ${index + 1} dari ${puzzles.length}. ${currentPuzzle.note}`;
+    }
+
+    function showCompletion() {
+      gridElement.innerHTML = "";
+      optionsElement.innerHTML = "";
+      statusMessage.textContent = "Wow! Semua bintang terkumpul. Robo-Kico senang sekali! 🌈";
+      statusMessage.className = "status celebrate";
+      storyPrompt.querySelector("div").textContent = "Terima kasih sudah membantu Robo-Kico. Mau main lagi?";
+      progressInfo.textContent = "Sentuh tombol di bawah untuk ulang dari awal.";
+      nextButton.textContent = "Main Lagi ⟳";
+      nextButton.style.display = "inline-flex";
+    }
+
+    nextButton.addEventListener("click", () => {
+      if (currentPuzzleIndex >= puzzles.length) {
+        currentPuzzleIndex = 0;
+        nextButton.textContent = "Petualangan Berikutnya ➜";
+      } else {
+        currentPuzzleIndex += 1;
+      }
+      showPuzzle(currentPuzzleIndex);
+    });
+
+    showPuzzle(0);
+  </script>
+</body>
+</html>
