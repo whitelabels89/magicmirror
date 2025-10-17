@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Code Quest Junior</title>
+  <style>
+    :root {
+      --primary: #6f4df6;
+      --primary-dark: #4f2fe0;
+      --accent: #ff9d5c;
+      --success: #4ad66d;
+      --danger: #ff5c66;
+      --surface: rgba(255, 255, 255, 0.92);
+      --shadow: 0 18px 40px rgba(90, 63, 255, 0.18);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Poppins", "Quicksand", Arial, sans-serif;
+      background: linear-gradient(160deg, #ffd7ef, #d6f1ff 45%, #f3ecff 100%);
+      color: #2d2a44;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 420px;
+      background: var(--surface);
+      border-radius: 26px;
+      box-shadow: var(--shadow);
+      padding: 24px 20px 28px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .floating-star {
+      position: absolute;
+      width: 68px;
+      height: 68px;
+      background: rgba(255, 255, 255, 0.35);
+      border-radius: 24px 60px 40px 80px;
+      transform: rotate(18deg);
+      top: -28px;
+      right: -18px;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin: 0 0 6px;
+      color: var(--primary);
+      text-align: center;
+    }
+
+    .tagline {
+      font-size: 0.92rem;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .start-card,
+    .question-card,
+    .result-card {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+    }
+
+    .start-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .mascot {
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(255, 211, 130, 0.95), rgba(111, 77, 246, 0.95));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3.4rem;
+      color: #fff;
+      box-shadow: 0 15px 30px rgba(255, 147, 112, 0.45);
+    }
+
+    .info-pill {
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      color: var(--primary-dark);
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      box-shadow: inset 0 0 0 1px rgba(111, 77, 246, 0.15);
+    }
+
+    button {
+      font-family: inherit;
+      border: none;
+      cursor: pointer;
+    }
+
+    .primary-btn {
+      background: var(--primary);
+      color: #fff;
+      font-weight: 600;
+      width: 100%;
+      padding: 14px 18px;
+      border-radius: 16px;
+      font-size: 1.05rem;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      box-shadow: 0 12px 25px rgba(111, 77, 246, 0.3);
+    }
+
+    .primary-btn:active {
+      transform: scale(0.98);
+      box-shadow: 0 8px 18px rgba(111, 77, 246, 0.25);
+    }
+
+    .status-board {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 22px 0 14px;
+      padding: 12px 18px;
+      border-radius: 16px;
+      background: rgba(111, 77, 246, 0.1);
+      font-size: 0.92rem;
+      font-weight: 600;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 14px;
+      background: rgba(111, 77, 246, 0.14);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, var(--primary), #ff7bd5);
+      border-radius: inherit;
+      transition: width 0.35s ease;
+    }
+
+    .question-card h2 {
+      font-size: 1.1rem;
+      margin: 0 0 16px;
+      line-height: 1.45;
+    }
+
+    .code-snippet {
+      background: rgba(18, 18, 34, 0.9);
+      color: #f5f5f5;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-family: "Fira Code", "Courier New", monospace;
+      font-size: 0.9rem;
+      margin-bottom: 14px;
+      overflow-x: auto;
+    }
+
+    .choices {
+      display: grid;
+      gap: 12px;
+    }
+
+    .choice-btn {
+      border-radius: 14px;
+      padding: 13px 14px;
+      text-align: left;
+      font-size: 0.96rem;
+      font-weight: 600;
+      line-height: 1.4;
+      background: #fff;
+      box-shadow: inset 0 0 0 2px rgba(111, 77, 246, 0.08);
+      transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+    }
+
+    .choice-btn:active {
+      transform: scale(0.99);
+    }
+
+    .choice-btn.correct {
+      background: rgba(74, 214, 109, 0.18);
+      box-shadow: inset 0 0 0 2px var(--success);
+      color: #177334;
+    }
+
+    .choice-btn.wrong {
+      background: rgba(255, 92, 102, 0.18);
+      box-shadow: inset 0 0 0 2px var(--danger);
+      color: #941d2f;
+    }
+
+    .feedback {
+      margin-top: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+    }
+
+    .fun-fact {
+      background: rgba(255, 157, 92, 0.18);
+      padding: 12px 14px;
+      border-radius: 14px;
+      margin-top: 14px;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+
+    .next-btn {
+      margin-top: 18px;
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      background: #ffd781;
+      font-weight: 700;
+      color: #72521d;
+      font-size: 0.98rem;
+      transition: transform 0.12s ease;
+      display: none;
+    }
+
+    .next-btn:active {
+      transform: scale(0.99);
+    }
+
+    .result-card {
+      text-align: center;
+      display: none;
+    }
+
+    .final-score {
+      font-size: 2.4rem;
+      color: var(--primary);
+      margin: 8px 0 14px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 20px;
+      background: rgba(111, 77, 246, 0.12);
+      color: var(--primary-dark);
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+
+    .summary {
+      background: rgba(255, 255, 255, 0.85);
+      padding: 16px;
+      border-radius: 16px;
+      text-align: left;
+      margin-top: 16px;
+      line-height: 1.5;
+    }
+
+    .play-again {
+      margin-top: 20px;
+    }
+
+    @media (max-width: 480px) {
+      .app-shell {
+        padding: 22px 16px 26px;
+      }
+
+      h1 {
+        font-size: 1.6rem;
+      }
+
+      .question-card h2 {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <div class="floating-star"></div>
+    <h1>Code Quest Junior</h1>
+    <p class="tagline">Uji logika & kreativitas coding kamu dalam petualangan ramah anak!</p>
+
+    <div id="start-screen" class="start-card">
+      <div class="mascot">🤖</div>
+      <div class="info-pill">🎯 10 pertanyaan · 3 tingkat kesulitan</div>
+      <p>Bantu Robo-Kody menaklukkan misi coding penuh warna. Siap mulai?</p>
+      <button class="primary-btn" id="start-btn">Mulai Petualangan</button>
+    </div>
+
+    <div id="quiz-screen" style="display:none;">
+      <div class="status-board">
+        <span>⭐ Skor: <span id="score">0</span></span>
+        <span>🔥 Streak: <span id="streak">0</span></span>
+      </div>
+      <div class="progress-track" aria-hidden="true">
+        <div class="progress-bar" id="progress-bar"></div>
+      </div>
+
+      <div class="question-card" id="question-card">
+        <h2 id="question-text"></h2>
+        <pre class="code-snippet" id="code-snippet" style="display:none;"></pre>
+        <div class="choices" id="choices"></div>
+        <div class="feedback" id="feedback" style="display:none;"></div>
+        <div class="fun-fact" id="fun-fact" style="display:none;"></div>
+        <button class="next-btn" id="next-btn">Lanjut ➜</button>
+      </div>
+    </div>
+
+    <div id="result-screen" class="result-card">
+      <div class="badge" id="result-badge">🌈 Penjelajah Cerdas</div>
+      <div class="final-score" id="final-score">0 / 10</div>
+      <p id="result-text">Wow! Kamu siap jadi pahlawan logika di kelas coding 🎉</p>
+      <div class="summary" id="summary"></div>
+      <button class="primary-btn play-again" id="restart-btn">Main Lagi</button>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        id: 1,
+        prompt: "Apa yang terjadi jika kita menulis perintah `repeat 4 [ maju 10 ]` pada robot Turtle?",
+        options: [
+          "Robot maju 4 langkah dan berhenti.",
+          "Robot menggambar persegi karena maju 4 kali dan berbelok.",
+          "Robot melompat ke posisi acak.",
+          "Robot menghapus seluruh gambar."
+        ],
+        answer: 1,
+        fact: "Perintah `repeat` membuat robot mengulang aksi. Jika tiap ulangan disertai belokan 90°, kita mendapat bentuk persegi."
+      },
+      {
+        id: 2,
+        prompt: "Saat membuat game di Scratch, blok mana yang cocok untuk memulai aksi ketika tombol hijau ditekan?",
+        options: [
+          "Setiap 1 detik lakukan ...",
+          "Ketika bendera hijau di-klik",
+          "Jika tombol spasi ditekan",
+          "Selamanya lakukan ..."
+        ],
+        answer: 1,
+        fact: "Blok event berwarna kuning seperti bendera hijau memberi tahu sprite kapan skrip dimulai."
+      },
+      {
+        id: 3,
+        prompt: "Variabel dalam coding dapat diibaratkan seperti apa dalam kehidupan nyata?",
+        options: [
+          "Kotak penyimpanan yang bisa diganti isinya",
+          "Pintu otomatis yang tak bisa ditutup",
+          "Tanda lalu lintas yang tidak bergerak",
+          "Topi ajaib yang selalu hilang"
+        ],
+        answer: 0,
+        fact: "Variabel menyimpan nilai yang bisa berubah sewaktu program berjalan."
+      },
+      {
+        id: 4,
+        prompt: "Perhatikan potongan kode JavaScript berikut. Apa hasil yang dicetak?",
+        code: "let skor = 5;\\nif (skor > 3) {\\n  console.log(\\"Hebat!\\");\\n} else {\\n  console.log(\\"Coba lagi!\\");\\n}",
+        options: [
+          "Tidak mencetak apa-apa",
+          "\"Hebat!\"",
+          "\"Coba lagi!\"",
+          "Error karena skor tidak didefinisikan"
+        ],
+        answer: 1,
+        fact: "Kondisi `skor > 3` bernilai benar sehingga blok `if` dijalankan dan menampilkan 'Hebat!'."
+      },
+      {
+        id: 5,
+        prompt: "Mengapa kita menggunakan komentar (// catatan) di dalam kode?",
+        options: [
+          "Agar kode berjalan lebih cepat.",
+          "Supaya komputer bisa membaca cerita kita.",
+          "Membantu manusia memahami tujuan kode.",
+          "Membuat program berubah warna."
+        ],
+        answer: 2,
+        fact: "Komentar membantu teman satu tim (dan diri kita di masa depan) memahami maksud kode."
+      },
+      {
+        id: 6,
+        prompt: "Jika kita ingin sprite berhenti keluar layar di Scratch, blok mana yang tepat?",
+        options: [
+          "Ketika mulai sebagai clone",
+          "Jika menyentuh tepi, pantul",
+          "Ubah ukuran sebanyak 10",
+          "Buat clone diri sendiri"
+        ],
+        answer: 1,
+        fact: "Blok 'jika menyentuh tepi, pantul' membuat sprite berbalik arah dan tetap terlihat."
+      },
+      {
+        id: 7,
+        prompt: "Kita punya daftar tugas. Perintah JavaScript `tasks.push(\"Belajar coding\")` artinya apa?",
+        options: [
+          "Menghapus tugas pertama.",
+          "Menambahkan tugas baru di akhir daftar.",
+          "Menukar urutan tugas.",
+          "Menyalin seluruh tugas ke daftar lain."
+        ],
+        answer: 1,
+        fact: "`push` selalu menaruh item baru di posisi paling belakang dari sebuah array."
+      },
+      {
+        id: 8,
+        prompt: "Apa fungsi blok 'jika...maka...' (if...then...) dalam algoritma?",
+        options: [
+          "Mengulang tindakan berkali-kali.",
+          "Menyimpan data rahasia.",
+          "Membuat keputusan berdasarkan kondisi.",
+          "Menghentikan seluruh program."
+        ],
+        answer: 2,
+        fact: "Struktur percabangan membantu program memilih aksi yang tepat sesuai situasi."
+      },
+      {
+        id: 9,
+        prompt: "Lihat kode berikut. Mengapa hasilnya 6?\\n\\n`tahun = 2024;\\numur = tahun - 2018;`",
+        options: [
+          "Karena komputer suka angka genap.",
+          "Karena 2024 dikurangi 2018 sama dengan 6.",
+          "Karena variabel `umur` selalu bernilai 6.",
+          "Karena 2024 dibagi 2018."
+        ],
+        answer: 1,
+        fact: "Variabel `umur` menyimpan selisih dua angka, mirip menghitung usia seseorang."
+      },
+      {
+        id: 10,
+        prompt: "Saat debug, langkah pertama yang baik dilakukan apa?",
+        options: [
+          "Menutup laptop dan tidur.",
+          "Menebak-nebak secara acak.",
+          "Membaca ulang pesan error atau output.",
+          "Menghapus seluruh proyek."
+        ],
+        answer: 2,
+        fact: "Pesan error adalah petunjuk terbaik untuk menemukan letak kesalahan di dalam program."
+      }
+    ];
+
+    const celebrations = [
+      "🎉 Hebat! Jawabanmu tepat sasaran.",
+      "🚀 Keren! Kamu memahami logika ini.",
+      "🌟 Mantap! Pemikiran codingmu tajam.",
+      "🧠 Bintang! Kamu detektif algoritma."
+    ];
+
+    const gentleHints = [
+      "Hmm, coba baca lagi petunjuknya ya!",
+      "Tidak apa-apa, semua coder belajar dari percobaan.",
+      "Ayo coba lagi, Robo-Kody butuh bantuannya kamu."
+    ];
+
+    const startBtn = document.getElementById("start-btn");
+    const startScreen = document.getElementById("start-screen");
+    const quizScreen = document.getElementById("quiz-screen");
+    const resultScreen = document.getElementById("result-screen");
+    const scoreEl = document.getElementById("score");
+    const streakEl = document.getElementById("streak");
+    const progressBar = document.getElementById("progress-bar");
+    const questionText = document.getElementById("question-text");
+    const codeSnippet = document.getElementById("code-snippet");
+    const choicesContainer = document.getElementById("choices");
+    const feedbackEl = document.getElementById("feedback");
+    const funFactEl = document.getElementById("fun-fact");
+    const nextBtn = document.getElementById("next-btn");
+    const finalScoreEl = document.getElementById("final-score");
+    const resultTextEl = document.getElementById("result-text");
+    const resultBadgeEl = document.getElementById("result-badge");
+    const summaryEl = document.getElementById("summary");
+    const restartBtn = document.getElementById("restart-btn");
+
+    let shuffledQuestions = [];
+    let currentIndex = 0;
+    let score = 0;
+    let streak = 0;
+    let bestStreak = 0;
+    let answered = false;
+
+    const shuffle = (array) => {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    };
+
+    function startGame() {
+      shuffledQuestions = shuffle(questions);
+      currentIndex = 0;
+      score = 0;
+      streak = 0;
+      bestStreak = 0;
+      answered = false;
+      scoreEl.textContent = score;
+      streakEl.textContent = streak;
+      progressBar.style.width = "0%";
+      feedbackEl.style.display = "none";
+      funFactEl.style.display = "none";
+      resultScreen.style.display = "none";
+      quizScreen.style.display = "block";
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      const question = shuffledQuestions[currentIndex];
+      questionText.textContent = `Soal ${currentIndex + 1}. ${question.prompt}`;
+      if (question.code) {
+        codeSnippet.style.display = "block";
+        codeSnippet.textContent = question.code;
+      } else {
+        codeSnippet.style.display = "none";
+      }
+
+      choicesContainer.innerHTML = "";
+      question.options.forEach((option, index) => {
+        const btn = document.createElement("button");
+        btn.className = "choice-btn";
+        btn.textContent = option;
+        btn.addEventListener("click", () => handleChoice(index));
+        choicesContainer.appendChild(btn);
+      });
+
+      feedbackEl.style.display = "none";
+      funFactEl.style.display = "none";
+      nextBtn.style.display = "none";
+      answered = false;
+      updateProgress();
+    }
+
+    function handleChoice(selectedIndex) {
+      if (answered) return;
+      answered = true;
+
+      const question = shuffledQuestions[currentIndex];
+      const allButtons = choicesContainer.querySelectorAll(".choice-btn");
+
+      allButtons.forEach((button, idx) => {
+        if (idx === question.answer) {
+          button.classList.add("correct");
+        } else if (idx === selectedIndex) {
+          button.classList.add("wrong");
+        }
+        button.disabled = true;
+      });
+
+      if (selectedIndex === question.answer) {
+        const celebration = celebrations[Math.floor(Math.random() * celebrations.length)];
+        feedbackEl.textContent = celebration;
+        feedbackEl.style.color = "#1d8c48";
+        score += 1;
+        streak += 1;
+        bestStreak = Math.max(bestStreak, streak);
+      } else {
+        const hint = gentleHints[Math.floor(Math.random() * gentleHints.length)];
+        feedbackEl.textContent = hint;
+        feedbackEl.style.color = "#c13b4a";
+        streak = 0;
+      }
+
+      scoreEl.textContent = score;
+      streakEl.textContent = streak;
+      feedbackEl.style.display = "flex";
+      funFactEl.textContent = question.fact;
+      funFactEl.style.display = "block";
+      nextBtn.style.display = "block";
+    }
+
+    function updateProgress() {
+      const progress = (currentIndex / shuffledQuestions.length) * 100;
+      progressBar.style.width = `${Math.max(progress, 6)}%`;
+    }
+
+    function goNext() {
+      currentIndex += 1;
+      if (currentIndex >= shuffledQuestions.length) {
+        showResult();
+      } else {
+        renderQuestion();
+      }
+    }
+
+    function showResult() {
+      quizScreen.style.display = "none";
+      resultScreen.style.display = "block";
+      finalScoreEl.textContent = `${score} / ${shuffledQuestions.length}`;
+
+      let badgeLabel = "🌈 Penjelajah Cerdas";
+      let message = "Wow! Kamu siap jadi pahlawan logika di kelas coding 🎉";
+
+      if (score >= 9) {
+        badgeLabel = "🏆 Master Junior Coding";
+        message = "Sempurna! Kamu layak memimpin tim penjelajah kode muda!";
+      } else if (score >= 7) {
+        badgeLabel = "🚀 Bintang Algoritma";
+        message = "Luar biasa! Tinggal sedikit lagi untuk jadi legenda coding.";
+      } else if (score >= 5) {
+        badgeLabel = "🌱 Penjelajah Tangguh";
+        message = "Mantap! Terus berlatih dan kamu akan semakin hebat.";
+      } else {
+        badgeLabel = "🔧 Si Pengulik Setia";
+        message = "Tidak masalah! Coder hebat belajar dari percobaan. Ayo coba lagi!";
+      }
+
+      resultBadgeEl.textContent = badgeLabel;
+      resultTextEl.textContent = message;
+
+      const accuracy = Math.round((score / shuffledQuestions.length) * 100);
+      summaryEl.innerHTML = `
+        <strong>Catatan Petualangan:</strong><br>
+        • Akurasi: ${accuracy}%<br>
+        • Soal terjawab: ${shuffledQuestions.length}<br>
+        • Streak terbaik: ${bestStreak}<br>
+        • Tips: Ceritakan ulang jawabanmu ke teman untuk semakin paham!`;
+    }
+
+    startBtn.addEventListener("click", () => {
+      startScreen.style.display = "none";
+      startGame();
+    });
+
+    nextBtn.addEventListener("click", goNext);
+    restartBtn.addEventListener("click", () => {
+      resultScreen.style.display = "none";
+      startScreen.style.display = "flex";
+    });
+  </script>
+</body>
+</html>
