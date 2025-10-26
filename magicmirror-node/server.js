@@ -27,7 +27,7 @@ const REPLICATE_PROXY_DEFAULT_TOKEN =
   (typeof process.env.REPLICATE_API_TOKEN === 'string' && process.env.REPLICATE_API_TOKEN.trim()) ||
   (typeof process.env.REPLICATE_API_KEY === 'string' && process.env.REPLICATE_API_KEY.trim()) ||
   '';
-const REPLICATE_PROXY_BASE_PATH = '/api/replicate-proxy/';
+const REPLICATE_PROXY_PREFIX = '/api/replicate-proxy';
 
 // CORS (allow credentials; restrict origins via FRONTEND_ORIGINS env if provided)
 const allowedOrigins = (process.env.FRONTEND_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -129,11 +129,18 @@ const extractProxySecret = (req) => {
 
 const resolveProxyTarget = (req) => {
   const original = req.originalUrl || '';
-  const baseIndex = original.indexOf(REPLICATE_PROXY_BASE_PATH);
-  if (baseIndex === -1) {
+  if (!original.startsWith(REPLICATE_PROXY_PREFIX)) {
     return '';
   }
-  return original.slice(baseIndex + REPLICATE_PROXY_BASE_PATH.length);
+  let suffix = original.slice(REPLICATE_PROXY_PREFIX.length);
+  if (!suffix) {
+    return '';
+  }
+  const questionIndex = suffix.indexOf('?');
+  const pathPart = questionIndex === -1 ? suffix : suffix.slice(0, questionIndex);
+  const queryPart = questionIndex === -1 ? '' : suffix.slice(questionIndex);
+  const normalizedPath = pathPart.startsWith('/') ? `/${pathPart.replace(/^\/+/, '')}` : `/${pathPart}`;
+  return `${normalizedPath}${queryPart}`;
 };
 
 const resolveUpstreamToken = (req) => {
@@ -148,7 +155,7 @@ const resolveUpstreamToken = (req) => {
   return REPLICATE_PROXY_DEFAULT_TOKEN;
 };
 
-app.all('/api/replicate-proxy/*', async (req, res) => {
+app.use(REPLICATE_PROXY_PREFIX, async (req, res) => {
   const started = Date.now();
   try {
     if (REPLICATE_PROXY_SECRET) {
