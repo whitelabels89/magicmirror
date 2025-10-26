@@ -13,6 +13,21 @@ const uploadModulRouter = require('./uploadModul');
 const admin = require('firebase-admin');
 
 const WORKSHEET_SHORTLINK_COLLECTION = process.env.WORKSHEET_SHORTLINK_COLLECTION || 'worksheet_shortlinks';
+const REPLICATE_BASE_URL = (process.env.REPLICATE_PROXY_BASE_URL || 'https://api.replicate.com').replace(/\/+$/, '');
+const REPLICATE_PROXY_SECRET =
+  typeof process.env.REPLICATE_PROXY_SHARED_SECRET === 'string'
+    ? process.env.REPLICATE_PROXY_SHARED_SECRET.trim()
+    : '';
+const REPLICATE_PROXY_USER_AGENT =
+  (typeof process.env.REPLICATE_PROXY_USER_AGENT === 'string' && process.env.REPLICATE_PROXY_USER_AGENT.trim()) ||
+  'magicmirror-replicate-proxy/1.0';
+const REPLICATE_PROXY_TIMEOUT_MS = Number(process.env.REPLICATE_PROXY_TIMEOUT_MS || 120000);
+const REPLICATE_PROXY_DEFAULT_TOKEN =
+  (typeof process.env.REPLICATE_PROXY_API_TOKEN === 'string' && process.env.REPLICATE_PROXY_API_TOKEN.trim()) ||
+  (typeof process.env.REPLICATE_API_TOKEN === 'string' && process.env.REPLICATE_API_TOKEN.trim()) ||
+  (typeof process.env.REPLICATE_API_KEY === 'string' && process.env.REPLICATE_API_KEY.trim()) ||
+  '';
+const REPLICATE_PROXY_BASE_PATH = '/api/replicate-proxy/';
 
 // CORS (allow credentials; restrict origins via FRONTEND_ORIGINS env if provided)
 const allowedOrigins = (process.env.FRONTEND_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -97,6 +112,133 @@ app.get('/ws/:code', async (req, res) => {
   } catch (err) {
     console.error('worksheet shortlink redirect error', err);
     return res.status(500).send('Internal error');
+  }
+});
+
+const replicateProxyAllowedMethods = new Set(['GET', 'POST']);
+const hopByHopHeaders = new Set(['transfer-encoding', 'content-length', 'connection', 'keep-alive']);
+const replicateBaseForUrl = `${REPLICATE_BASE_URL}/`;
+
+const extractProxySecret = (req) => {
+  const headerSecret = req.headers['x-proxy-secret'] || req.headers['x-replicate-proxy-secret'];
+  if (headerSecret && typeof headerSecret === 'string') {
+    return headerSecret.trim();
+  }
+  return '';
+};
+
+const resolveProxyTarget = (req) => {
+  const original = req.originalUrl || '';
+  const baseIndex = original.indexOf(REPLICATE_PROXY_BASE_PATH);
+  if (baseIndex === -1) {
+    return '';
+  }
+  return original.slice(baseIndex + REPLICATE_PROXY_BASE_PATH.length);
+};
+
+const resolveUpstreamToken = (req) => {
+  const headerToken = req.headers['x-replicate-token'] || req.headers['x-replicate-api-token'];
+  if (headerToken && typeof headerToken === 'string') {
+    const trimmed = headerToken.trim();
+    if (trimmed.toLowerCase().startsWith('token ')) {
+      return trimmed.slice(6).trim();
+    }
+    return trimmed;
+  }
+  return REPLICATE_PROXY_DEFAULT_TOKEN;
+};
+
+app.all('/api/replicate-proxy/*', async (req, res) => {
+  const started = Date.now();
+  try {
+    if (REPLICATE_PROXY_SECRET) {
+      const providedSecret = extractProxySecret(req);
+      if (!providedSecret || providedSecret !== REPLICATE_PROXY_SECRET) {
+        console.warn('[replicate-proxy] invalid secret', { ip: req.ip });
+        return res.status(403).json({ ok: false, error: 'Replicate proxy forbidden' });
+      }
+    }
+
+    const method = (req.method || 'POST').toUpperCase();
+    if (!replicateProxyAllowedMethods.has(method)) {
+      return res.status(405).json({ ok: false, error: 'Method not allowed' });
+    }
+
+    const suffix = resolveProxyTarget(req);
+    if (!suffix) {
+      return res.status(400).json({ ok: false, error: 'Target path tidak valid' });
+    }
+    if (/^\w+:\/\//.test(suffix)) {
+      return res.status(400).json({ ok: false, error: 'Target URL tidak diizinkan' });
+    }
+
+    let targetUrl;
+    try {
+      targetUrl = new URL(suffix, replicateBaseForUrl);
+    } catch (err) {
+      return res.status(400).json({ ok: false, error: 'Gagal membaca target URL' });
+    }
+
+    if (!targetUrl.pathname.startsWith('/v1/')) {
+      return res.status(400).json({ ok: false, error: 'Path Replicate tidak diizinkan' });
+    }
+
+    const upstreamToken = resolveUpstreamToken(req);
+    if (!upstreamToken) {
+      return res.status(500).json({ ok: false, error: 'Replicate token belum dikonfigurasi di proxy' });
+    }
+
+    const headers = {
+      Authorization: `Token ${upstreamToken}`,
+      Accept: 'application/json',
+      'User-Agent': REPLICATE_PROXY_USER_AGENT
+    };
+    if (method !== 'GET') {
+      headers['Content-Type'] = 'application/json';
+    }
+
+    const axiosConfig = {
+      method,
+      url: targetUrl.toString(),
+      headers,
+      timeout: REPLICATE_PROXY_TIMEOUT_MS,
+      validateStatus: () => true
+    };
+    if (method !== 'GET') {
+      axiosConfig.data = req.body;
+    }
+    const upstreamResponse = await axios(axiosConfig);
+
+    console.log('[replicate-proxy] forward', {
+      path: targetUrl.pathname,
+      method,
+      status: upstreamResponse.status,
+      ms: Date.now() - started
+    });
+
+    Object.entries(upstreamResponse.headers || {}).forEach(([key, value]) => {
+      if (!key) return;
+      if (hopByHopHeaders.has(key.toLowerCase())) return;
+      res.setHeader(key, value);
+    });
+
+    if (typeof upstreamResponse.data === 'object' && upstreamResponse.data !== null) {
+      return res.status(upstreamResponse.status).json(upstreamResponse.data);
+    }
+    return res.status(upstreamResponse.status).send(upstreamResponse.data);
+  } catch (error) {
+    console.error('[replicate-proxy] error', {
+      message: error?.message,
+      ms: Date.now() - started
+    });
+    if (error?.response) {
+      const { status, data } = error.response;
+      if (typeof data === 'object' && data !== null) {
+        return res.status(status).json(data);
+      }
+      return res.status(status).send(data);
+    }
+    return res.status(502).json({ ok: false, error: 'Replicate proxy gagal terhubung' });
   }
 });
 
