@@ -223,6 +223,13 @@ app.use(REPLICATE_PROXY_PREFIX, async (req, res) => {
       ms: Date.now() - started
     });
 
+    if (upstreamResponse.status >= 400) {
+      console.warn('[replicate-proxy] upstream error body', {
+        status: upstreamResponse.status,
+        data: upstreamResponse.data
+      });
+    }
+
     Object.entries(upstreamResponse.headers || {}).forEach(([key, value]) => {
       if (!key) return;
       if (hopByHopHeaders.has(key.toLowerCase())) return;
