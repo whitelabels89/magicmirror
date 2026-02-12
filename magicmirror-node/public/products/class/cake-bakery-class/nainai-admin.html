@@ -114,6 +114,12 @@
       box-shadow: 0 8px 18px rgba(201, 139, 43, 0.34);
     }
 
+    .btn-soft {
+      background: #fff7eb;
+      border-color: rgba(43, 27, 20, 0.2);
+      color: #4b2e21;
+    }
+
     .btn-dark {
       background: rgba(255, 242, 227, 0.1);
       color: var(--cream);
@@ -388,6 +394,48 @@
       color: #8f2330;
     }
 
+    .link-tools {
+      margin-top: 1rem;
+      border: var(--line);
+      border-radius: var(--radius-md);
+      background: #fff9f2;
+      padding: 0.75rem;
+      display: grid;
+      gap: 0.56rem;
+    }
+
+    .link-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .qr-preview-wrap {
+      border: 1px solid rgba(43, 27, 20, 0.14);
+      border-radius: 10px;
+      background: #fff;
+      padding: 0.5rem;
+      width: min(220px, 100%);
+      aspect-ratio: 1 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .qr-preview-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: none;
+    }
+
+    .qr-preview-note {
+      margin: 0;
+      font-size: 0.72rem;
+      color: rgba(43, 27, 20, 0.68);
+      text-align: center;
+    }
+
     @media (max-width: 1020px) {
       .grid { grid-template-columns: 1fr; }
       .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -578,6 +626,41 @@
             <button class="btn btn-main" type="submit">Simpan Konten</button>
           </form>
           <p class="status-line" id="config-status"></p>
+
+          <div class="link-tools">
+            <h3>QR Code & Shortlink</h3>
+            <p class="muted" style="margin-top:0;">Generate shortlink + QR untuk landing page, lalu kirim hasilnya ke WhatsApp admin.</p>
+
+            <div class="field">
+              <label for="qr-target-link">Link Target</label>
+              <input
+                id="qr-target-link"
+                type="url"
+                value="https://queensacademy.id/products/class/cake-bakery-class/nai-nai-lapis.html#cake-bakery-class"
+                placeholder="https://..."
+                required
+              />
+            </div>
+
+            <div class="field">
+              <label for="shortlink-output">Shortlink Hasil</label>
+              <input id="shortlink-output" type="text" placeholder="Belum digenerate" readonly />
+            </div>
+
+            <div class="link-actions">
+              <button class="btn btn-main" id="generate-shortlink-btn" type="button">Generate Shortlink</button>
+              <button class="btn btn-soft" id="generate-qr-btn" type="button">Generate QR</button>
+              <button class="btn btn-soft" id="send-qr-wa-btn" type="button">Kirim ke WhatsApp Admin</button>
+              <a class="btn btn-soft" id="download-qr-btn" href="#" target="_blank" rel="noopener noreferrer">Buka / Download QR</a>
+            </div>
+
+            <div class="qr-preview-wrap">
+              <img id="qr-preview-img" alt="Preview QR Code Nai Nai Lapis" />
+              <p class="qr-preview-note" id="qr-preview-note">Preview QR akan muncul di sini.</p>
+            </div>
+
+            <p class="status-line" id="qr-status"></p>
+          </div>
         </section>
 
         <section class="panel">
@@ -626,6 +709,7 @@
     var API_BASE = "/api/nainai";
     var AUTH_BASE = "/api/nainai/admin/auth";
     var TOKEN_STORAGE_KEY = "nainai_admin_token_v1";
+    var DEFAULT_QR_TARGET = "https://queensacademy.id/products/class/cake-bakery-class/nai-nai-lapis.html#cake-bakery-class";
     var adminToken = localStorage.getItem(TOKEN_STORAGE_KEY) || "";
 
     function setToken(token) {
@@ -659,6 +743,32 @@
       el.classList.remove("error", "success");
       if (type) el.classList.add(type);
       el.textContent = message || "";
+    }
+
+    function normalizeTo62(rawPhone) {
+      var value = String(rawPhone || "").replace(/[^0-9+]/g, "").trim();
+      if (!value) return "";
+      if (value.indexOf("+") === 0) value = value.slice(1);
+      if (value.indexOf("08") === 0) value = "62" + value.slice(1);
+      else if (value.indexOf("8") === 0) value = "62" + value;
+      else if (value.indexOf("62") !== 0) value = "62" + value;
+      return value;
+    }
+
+    function sanitizeHttpUrl(rawValue) {
+      var value = String(rawValue || "").trim();
+      if (!value) return "";
+      try {
+        var parsed = new URL(value);
+        if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return "";
+        return parsed.toString();
+      } catch (_) {
+        return "";
+      }
+    }
+
+    function buildQrImageUrl(targetLink) {
+      return "https://api.qrserver.com/v1/create-qr-code/?size=900x900&margin=12&format=png&data=" + encodeURIComponent(targetLink);
     }
 
     function authFetch(url, options) {
@@ -967,6 +1077,111 @@
         });
     }
 
+    function getQrTargetLink() {
+      var input = document.getElementById("qr-target-link");
+      var parsed = sanitizeHttpUrl(input && input.value ? input.value : "");
+      return parsed;
+    }
+
+    function getGeneratedShortlink() {
+      var input = document.getElementById("shortlink-output");
+      return sanitizeHttpUrl(input && input.value ? input.value : "");
+    }
+
+    function setQrPreview(targetLink) {
+      var img = document.getElementById("qr-preview-img");
+      var note = document.getElementById("qr-preview-note");
+      var downloadBtn = document.getElementById("download-qr-btn");
+      if (!img || !note || !downloadBtn) return;
+
+      if (!targetLink) {
+        img.removeAttribute("src");
+        img.style.display = "none";
+        note.style.display = "block";
+        note.textContent = "Preview QR akan muncul di sini.";
+        downloadBtn.href = "#";
+        downloadBtn.setAttribute("aria-disabled", "true");
+        return;
+      }
+
+      var qrUrl = buildQrImageUrl(targetLink);
+      img.src = qrUrl;
+      img.style.display = "block";
+      note.style.display = "none";
+      downloadBtn.href = qrUrl;
+      downloadBtn.removeAttribute("aria-disabled");
+    }
+
+    function generateShortlink() {
+      var targetLink = getQrTargetLink();
+      if (!targetLink) {
+        setLine("qr-status", "Link target tidak valid. Pastikan formatnya http/https.", "error");
+        return;
+      }
+
+      setLine("qr-status", "Membuat shortlink...");
+      apiJson(API_BASE + "/shortlinks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targetUrl: targetLink })
+      })
+        .then(function (result) {
+          var shortUrl = sanitizeHttpUrl(result && result.shortlink ? result.shortlink.shortUrl : "");
+          if (!shortUrl) {
+            setLine("qr-status", "Shortlink berhasil dibuat, tapi URL hasil tidak valid.", "error");
+            return;
+          }
+          document.getElementById("shortlink-output").value = shortUrl;
+          setQrPreview(shortUrl);
+          setLine("qr-status", "Shortlink + QR berhasil digenerate.", "success");
+        })
+        .catch(function (err) {
+          if (handleUnauthorized(err, "Sesi habis. Login ulang untuk generate shortlink.")) return;
+          setLine("qr-status", "Gagal generate shortlink: " + (err.message || "unknown"), "error");
+        });
+    }
+
+    function generateQrOnly() {
+      var shareLink = getGeneratedShortlink() || getQrTargetLink();
+      if (!shareLink) {
+        setLine("qr-status", "Isi link target dulu sebelum generate QR.", "error");
+        setQrPreview("");
+        return;
+      }
+      setQrPreview(shareLink);
+      setLine("qr-status", "QR berhasil diperbarui.", "success");
+    }
+
+    function sendQrToWhatsAppAdmin() {
+      var targetLink = getQrTargetLink();
+      var shortlink = getGeneratedShortlink();
+      var shareLink = shortlink || targetLink;
+      if (!shareLink) {
+        setLine("qr-status", "Belum ada link valid untuk dikirim ke WhatsApp.", "error");
+        return;
+      }
+
+      var waInput = document.getElementById("cfg-wa");
+      var waNumber = normalizeTo62(waInput && waInput.value ? waInput.value : "") || "6288972861212";
+      var qrLink = buildQrImageUrl(shareLink);
+      var message = [
+        "Halo Admin Nai Nai, ini hasil QR landing page.",
+        "",
+        "Link target:",
+        targetLink || "-",
+        "",
+        "Shortlink:",
+        shortlink || "(belum ada, pakai link target)",
+        "",
+        "Link QR code:",
+        qrLink
+      ].join("\n");
+
+      var waUrl = "https://wa.me/" + encodeURIComponent(waNumber) + "?text=" + encodeURIComponent(message);
+      window.open(waUrl, "_blank", "noopener,noreferrer");
+      setLine("qr-status", "Membuka WhatsApp admin dengan link QR.", "success");
+    }
+
     function renderAssets(assets) {
       var wrap = document.getElementById("asset-grid");
       if (!assets || !assets.length) {
@@ -1134,6 +1349,29 @@
 
     document.getElementById("config-form").addEventListener("submit", saveConfig);
     document.getElementById("upload-form").addEventListener("submit", uploadAsset);
+    document.getElementById("generate-shortlink-btn").addEventListener("click", generateShortlink);
+    document.getElementById("generate-qr-btn").addEventListener("click", generateQrOnly);
+    document.getElementById("send-qr-wa-btn").addEventListener("click", sendQrToWhatsAppAdmin);
+
+    var qrTargetInput = document.getElementById("qr-target-link");
+    if (qrTargetInput) {
+      if (!qrTargetInput.value.trim()) {
+        qrTargetInput.value = DEFAULT_QR_TARGET;
+      }
+      qrTargetInput.addEventListener("input", function () {
+        document.getElementById("shortlink-output").value = "";
+      });
+    }
+
+    document.getElementById("download-qr-btn").addEventListener("click", function (event) {
+      var href = event.currentTarget.getAttribute("href") || "";
+      if (!href || href === "#") {
+        event.preventDefault();
+        setLine("qr-status", "Generate QR dulu sebelum download.", "error");
+      }
+    });
+
+    setQrPreview("");
 
     initAuthFlow();
     setInterval(function () {

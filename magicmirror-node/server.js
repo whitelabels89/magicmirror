@@ -661,6 +661,7 @@ const NAINAI_ADMIN_WA_DEFAULT = '6288972861212';
 const NAINAI_DATA_DIR = path.join(__dirname, 'data');
 const NAINAI_LEADS_FILE = path.join(NAINAI_DATA_DIR, 'nainai-leads.json');
 const NAINAI_CONFIG_FILE = path.join(NAINAI_DATA_DIR, 'nainai-config.json');
+const NAINAI_SHORTLINKS_FILE = path.join(NAINAI_DATA_DIR, 'nainai-shortlinks.json');
 const NAINAI_ASSET_DIR = path.join(__dirname, 'public', 'products', 'class', 'cake-bakery-class');
 const NAINAI_UPLOAD_MAX_BYTES = 8 * 1024 * 1024;
 const NAINAI_ALLOWED_UPLOAD_EXT = new Set(['.png', '.jpg', '.jpeg', '.webp']);
@@ -721,6 +722,18 @@ function sanitizeText(value, maxLen = 240) {
     .slice(0, maxLen);
 }
 
+function sanitizeHttpUrl(value, maxLen = 1200) {
+  const raw = String(value || '').trim().slice(0, maxLen);
+  if (!raw) return '';
+  try {
+    const parsed = new URL(raw);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return '';
+    return parsed.toString();
+  } catch (_) {
+    return '';
+  }
+}
+
 function nowIso() {
   return new Date().toISOString();
 }
@@ -777,6 +790,71 @@ function saveNainaiLeads(rows) {
   const safeRows = Array.isArray(rows) ? rows.slice(-maxRows) : [];
   writeJsonSafely(NAINAI_LEADS_FILE, safeRows);
   return safeRows;
+}
+
+function sanitizeShortCode(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 32);
+}
+
+function loadNainaiShortlinks() {
+  const rows = readJsonSafely(NAINAI_SHORTLINKS_FILE, []);
+  if (!Array.isArray(rows)) return [];
+  return rows
+    .map((row) => {
+      const safeCode = sanitizeShortCode(row && row.code);
+      const safeTarget = sanitizeHttpUrl(row && row.targetUrl);
+      if (!safeCode || !safeTarget) return null;
+      return {
+        code: safeCode,
+        targetUrl: safeTarget,
+        createdAt: row && row.createdAt ? String(row.createdAt) : nowIso(),
+        createdBy: sanitizeText((row && row.createdBy) || 'nainai-admin', 80),
+        updatedAt: row && row.updatedAt ? String(row.updatedAt) : undefined
+      };
+    })
+    .filter(Boolean);
+}
+
+function saveNainaiShortlinks(rows) {
+  const maxRows = 5000;
+  const safeRows = Array.isArray(rows) ? rows.slice(-maxRows) : [];
+  writeJsonSafely(NAINAI_SHORTLINKS_FILE, safeRows);
+  return safeRows;
+}
+
+function pickUniqueNainaiShortCode(existingCodeSet) {
+  for (let i = 0; i < 16; i += 1) {
+    const code = sanitizeShortCode(`nn${crypto.randomBytes(3).toString('hex')}`);
+    if (code && !existingCodeSet.has(code)) return code;
+  }
+  return '';
+}
+
+function buildPublicBaseUrl(req) {
+  const host = (req.get && req.get('host')) || req.headers.host || '';
+  const forwarded = String(req.headers['x-forwarded-proto'] || '').split(',')[0].trim();
+  const proto = forwarded || req.protocol || 'https';
+  if (!host) return '';
+  return `${proto}://${host}`;
+}
+
+function toNainaiShortlinkPayload(entry, req) {
+  const baseUrl = buildPublicBaseUrl(req);
+  const code = sanitizeShortCode(entry && entry.code);
+  return {
+    code,
+    targetUrl: sanitizeHttpUrl(entry && entry.targetUrl),
+    shortUrl: baseUrl ? `${baseUrl}/nl/${encodeURIComponent(code)}` : `/nl/${encodeURIComponent(code)}`,
+    createdAt: entry && entry.createdAt ? String(entry.createdAt) : null,
+    createdBy: sanitizeText((entry && entry.createdBy) || 'nainai-admin', 80),
+    updatedAt: entry && entry.updatedAt ? String(entry.updatedAt) : null
+  };
 }
 
 function toPublicNainaiConfig(config) {
@@ -913,6 +991,9 @@ function bootstrapNainaiStorage() {
   }
   if (!fs.existsSync(NAINAI_LEADS_FILE)) {
     writeJsonSafely(NAINAI_LEADS_FILE, []);
+  }
+  if (!fs.existsSync(NAINAI_SHORTLINKS_FILE)) {
+    writeJsonSafely(NAINAI_SHORTLINKS_FILE, []);
   }
 }
 
@@ -2201,6 +2282,68 @@ app.delete('/api/nainai/assets/:name', requireNainaiAdmin, (req, res) => {
   } catch (err) {
     console.error('❌ /api/nainai/assets/:name delete error:', err);
     return res.status(500).json({ ok: false, error: 'Gagal menghapus file asset' });
+  }
+});
+
+app.post('/api/nainai/shortlinks', requireNainaiAdmin, (req, res) => {
+  try {
+    const body = req.body || {};
+    const targetUrl = sanitizeHttpUrl(body.targetUrl, 1200);
+    let requestedCode = sanitizeShortCode(body.code || '');
+    const createdBy = sanitizeText((req.nainaiAdminSession && req.nainaiAdminSession.uid) || 'nainai-admin', 80);
+
+    if (!targetUrl) {
+      return res.status(400).json({ ok: false, error: 'Target URL harus format http/https yang valid' });
+    }
+    if (requestedCode && (requestedCode.length < 4 || requestedCode.length > 32)) {
+      return res.status(400).json({ ok: false, error: 'Kode shortlink harus 4-32 karakter (a-z, 0-9, -)' });
+    }
+
+    const rows = loadNainaiShortlinks();
+    const codes = new Set(rows.map((row) => row.code));
+
+    if (!requestedCode) {
+      requestedCode = pickUniqueNainaiShortCode(codes);
+      if (!requestedCode) {
+        return res.status(500).json({ ok: false, error: 'Gagal membuat shortlink. Coba ulangi lagi.' });
+      }
+    } else if (codes.has(requestedCode)) {
+      return res.status(409).json({ ok: false, error: 'Kode shortlink sudah dipakai. Gunakan kode lain.' });
+    }
+
+    const entry = {
+      code: requestedCode,
+      targetUrl,
+      createdAt: nowIso(),
+      createdBy
+    };
+
+    rows.push(entry);
+    saveNainaiShortlinks(rows);
+
+    return res.json({
+      ok: true,
+      shortlink: toNainaiShortlinkPayload(entry, req)
+    });
+  } catch (err) {
+    console.error('❌ /api/nainai/shortlinks error:', err);
+    return res.status(500).json({ ok: false, error: 'Gagal membuat shortlink' });
+  }
+});
+
+app.get('/nl/:code', (req, res) => {
+  try {
+    const code = sanitizeShortCode(req.params.code || '');
+    if (!code) return res.status(404).send('Not found');
+
+    const rows = loadNainaiShortlinks();
+    const entry = rows.find((row) => row && row.code === code);
+    if (!entry || !entry.targetUrl) return res.status(404).send('Not found');
+
+    return res.redirect(entry.targetUrl);
+  } catch (err) {
+    console.error('❌ /nl/:code redirect error:', err);
+    return res.status(500).send('Internal error');
   }
 });
 
