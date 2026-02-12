@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nai Nai Lapis | Cake & Bakery Class</title>
+  <meta name="description" content="Landing page Nai Nai Lapis untuk produk kue lapis premium dengan filosofi warisan rasa rumah, dibuat telaten lapis demi lapis." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --espresso-brown: #2b1b14;
+      --caramel-gold: #c98b2b;
+      --warm-cream: #fff2e3;
+      --cinnamon: #9c5a3c;
+      --festive-red: #b3202e;
+      --soft-gold: #d9b76e;
+      --radius-lg: 16px;
+      --radius-md: 14px;
+      --outline: 1px solid rgba(43, 27, 20, 0.16);
+      --section-padding: clamp(2.5rem, 5vw, 5rem);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Inter", sans-serif;
+      background:
+        radial-gradient(circle at 12% 10%, rgba(201, 139, 43, 0.2), transparent 45%),
+        radial-gradient(circle at 85% 18%, rgba(179, 32, 46, 0.14), transparent 42%),
+        linear-gradient(180deg, #fff8ee 0%, #fff1df 100%);
+      color: var(--espresso-brown);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        180deg,
+        rgba(156, 90, 60, 0.08) 0,
+        rgba(156, 90, 60, 0.08) 2px,
+        transparent 2px,
+        transparent 18px
+      );
+      opacity: 0.35;
+      z-index: -2;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .page-wrap {
+      width: min(1120px, calc(100% - 2.2rem));
+      margin: 0 auto;
+      padding-bottom: 1rem;
+    }
+
+    .hero {
+      margin-top: clamp(1.2rem, 2.5vw, 2rem);
+      border-radius: var(--radius-lg);
+      border: var(--outline);
+      background:
+        linear-gradient(145deg, rgba(43, 27, 20, 0.97), rgba(88, 48, 31, 0.95));
+      color: var(--warm-cream);
+      padding: clamp(1.5rem, 4vw, 3.5rem);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 18px 40px rgba(43, 27, 20, 0.28);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -40px -46px auto;
+      width: min(52vw, 520px);
+      height: min(52vw, 520px);
+      background: radial-gradient(circle, rgba(201, 139, 43, 0.38), transparent 66%);
+      transform: rotate(-7deg);
+      pointer-events: none;
+    }
+
+    .breadcrumb {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      align-items: center;
+      font-size: 0.86rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: rgba(255, 242, 227, 0.9);
+      margin-bottom: 1.2rem;
+    }
+
+    .breadcrumb span {
+      opacity: 0.82;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-family: "Noto Serif Display", serif;
+      font-size: clamp(2.2rem, 5vw, 4rem);
+      line-height: 1.1;
+      letter-spacing: 0.01em;
+      max-width: 16ch;
+    }
+
+    .hero-subtitle {
+      margin: 1rem 0 0;
+      font-size: clamp(1rem, 2.1vw, 1.22rem);
+      line-height: 1.65;
+      max-width: 58ch;
+      color: rgba(255, 242, 227, 0.95);
+    }
+
+    .hero-tagline {
+      display: inline-block;
+      margin-top: 1.2rem;
+      padding: 0.45rem 0.8rem;
+      border: 1px solid rgba(255, 242, 227, 0.4);
+      border-radius: 999px;
+      font-size: 0.9rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background: rgba(217, 183, 110, 0.16);
+    }
+
+    .hero-actions {
+      margin-top: 1.45rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.85rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: transform 220ms ease, box-shadow 220ms ease, background 220ms ease;
+      padding: 0.78rem 1.35rem;
+      font-size: 0.96rem;
+      border: 1px solid transparent;
+    }
+
+    .btn-primary {
+      background: var(--caramel-gold);
+      color: #2a170e;
+      box-shadow: 0 10px 24px rgba(201, 139, 43, 0.38);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--warm-cream);
+      border-color: rgba(255, 242, 227, 0.55);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-primary:hover {
+      background: #deb15f;
+      box-shadow: 0 14px 28px rgba(201, 139, 43, 0.44);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 242, 227, 0.12);
+    }
+
+    .section {
+      padding: var(--section-padding) 0 0;
+    }
+
+    .section h2 {
+      margin: 0;
+      font-family: "Noto Serif Display", serif;
+      font-size: clamp(1.7rem, 3.4vw, 2.8rem);
+      line-height: 1.16;
+      color: #331f16;
+      max-width: 22ch;
+    }
+
+    .section-intro {
+      margin: 0.7rem 0 0;
+      font-size: 1.03rem;
+      line-height: 1.7;
+      max-width: 67ch;
+      color: rgba(43, 27, 20, 0.86);
+    }
+
+    .dna-grid {
+      margin-top: 1.4rem;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .dna-card {
+      background: rgba(255, 242, 227, 0.88);
+      border: var(--outline);
+      border-radius: var(--radius-md);
+      padding: 1.1rem 1rem;
+      box-shadow: 0 10px 22px rgba(67, 40, 29, 0.09);
+    }
+
+    .dna-card strong {
+      display: block;
+      font-size: 1.05rem;
+      margin-bottom: 0.32rem;
+      color: var(--cinnamon);
+    }
+
+    .dna-card p {
+      margin: 0;
+      line-height: 1.64;
+      color: rgba(43, 27, 20, 0.85);
+    }
+
+    .palette {
+      margin-top: 1.25rem;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+    }
+
+    .swatch {
+      border-radius: 14px;
+      overflow: hidden;
+      border: var(--outline);
+      background: #fff;
+      box-shadow: 0 8px 20px rgba(67, 40, 29, 0.08);
+    }
+
+    .swatch-color {
+      height: 62px;
+    }
+
+    .swatch-meta {
+      padding: 0.62rem 0.72rem 0.7rem;
+      font-size: 0.84rem;
+      line-height: 1.42;
+    }
+
+    .swatch-name {
+      display: block;
+      font-weight: 600;
+      color: var(--espresso-brown);
+    }
+
+    .varian-layout {
+      margin-top: 1.4rem;
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 1rem;
+    }
+
+    .varian-card {
+      border-radius: var(--radius-lg);
+      border: var(--outline);
+      background: linear-gradient(180deg, rgba(255, 242, 227, 0.88), rgba(255, 245, 233, 0.98));
+      padding: 1.15rem;
+      box-shadow: 0 10px 24px rgba(67, 40, 29, 0.09);
+    }
+
+    .varian-card h3 {
+      margin: 0;
+      font-family: "Noto Serif Display", serif;
+      font-size: 1.45rem;
+      color: #3b241a;
+    }
+
+    .varian-desc {
+      margin: 0.58rem 0 0;
+      line-height: 1.65;
+      color: rgba(43, 27, 20, 0.85);
+    }
+
+    .varian-list {
+      margin: 1rem 0 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 0.78rem;
+    }
+
+    .varian-list li {
+      padding: 0.72rem 0.76rem;
+      border-radius: 12px;
+      border: 1px solid rgba(156, 90, 60, 0.24);
+      background: rgba(255, 242, 227, 0.82);
+    }
+
+    .varian-list strong {
+      display: block;
+      font-size: 1rem;
+      color: #4c2f22;
+      margin-bottom: 0.1rem;
+    }
+
+    .process-card {
+      border-radius: var(--radius-lg);
+      border: var(--outline);
+      background: #fff9f1;
+      padding: 1rem;
+      box-shadow: 0 10px 24px rgba(67, 40, 29, 0.09);
+      display: grid;
+      gap: 0.72rem;
+    }
+
+    .process-step {
+      border-left: 3px solid var(--soft-gold);
+      padding: 0.2rem 0 0.2rem 0.76rem;
+    }
+
+    .process-step strong {
+      color: var(--cinnamon);
+      display: block;
+      margin-bottom: 0.2rem;
+      font-size: 0.96rem;
+    }
+
+    .process-step p {
+      margin: 0;
+      line-height: 1.52;
+      font-size: 0.94rem;
+      color: rgba(43, 27, 20, 0.84);
+    }
+
+    .class-banner {
+      margin-top: 1.4rem;
+      border-radius: var(--radius-lg);
+      border: var(--outline);
+      background:
+        linear-gradient(90deg, rgba(43, 27, 20, 0.95), rgba(83, 45, 30, 0.95)),
+        linear-gradient(180deg, rgba(179, 32, 46, 0.2), transparent);
+      color: var(--warm-cream);
+      padding: 1.4rem;
+      box-shadow: 0 12px 26px rgba(43, 27, 20, 0.24);
+    }
+
+    .class-banner h3 {
+      margin: 0;
+      font-family: "Noto Serif Display", serif;
+      font-size: clamp(1.4rem, 3.3vw, 2rem);
+    }
+
+    .class-banner p {
+      margin: 0.65rem 0 0;
+      max-width: 62ch;
+      line-height: 1.62;
+      color: rgba(255, 242, 227, 0.93);
+    }
+
+    .class-points {
+      margin: 1rem 0 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.65rem;
+    }
+
+    .class-points li {
+      border: 1px solid rgba(255, 242, 227, 0.3);
+      border-radius: 12px;
+      padding: 0.6rem 0.72rem;
+      background: rgba(255, 242, 227, 0.08);
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
+    .quote-panel {
+      margin-top: 1.3rem;
+      border-left: 4px solid var(--festive-red);
+      border-radius: 0 12px 12px 0;
+      padding: 0.9rem 1rem;
+      background: rgba(255, 242, 227, 0.88);
+      border-top: var(--outline);
+      border-right: var(--outline);
+      border-bottom: var(--outline);
+    }
+
+    .quote-panel p {
+      margin: 0;
+      line-height: 1.65;
+      color: rgba(43, 27, 20, 0.88);
+      font-style: italic;
+    }
+
+    .cta-panel {
+      margin-top: 1.45rem;
+      border-radius: var(--radius-lg);
+      border: var(--outline);
+      background: linear-gradient(160deg, #fff4e3, #ffe9cf 62%, #fde6cb);
+      padding: 1.4rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.85rem;
+      box-shadow: 0 10px 24px rgba(67, 40, 29, 0.09);
+    }
+
+    .cta-panel h3 {
+      margin: 0;
+      font-family: "Noto Serif Display", serif;
+      font-size: clamp(1.35rem, 2.8vw, 1.95rem);
+      color: #3d251a;
+    }
+
+    .cta-panel p {
+      margin: 0.45rem 0 0;
+      max-width: 53ch;
+      line-height: 1.6;
+      color: rgba(43, 27, 20, 0.86);
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      animation: riseIn 680ms cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+    }
+
+    .reveal-delay-1 { animation-delay: 120ms; }
+    .reveal-delay-2 { animation-delay: 220ms; }
+    .reveal-delay-3 { animation-delay: 320ms; }
+
+    @keyframes riseIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 900px) {
+      .dna-grid,
+      .palette,
+      .class-points {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .varian-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page-wrap {
+        width: min(1120px, calc(100% - 1.2rem));
+      }
+
+      .hero {
+        padding: 1.25rem;
+      }
+
+      .hero-tagline {
+        font-size: 0.78rem;
+      }
+
+      .dna-grid,
+      .palette,
+      .class-points {
+        grid-template-columns: 1fr;
+      }
+
+      .cta-panel {
+        padding: 1.1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="navbar"></div>
+
+  <main class="page-wrap">
+    <section class="hero reveal">
+      <div class="breadcrumb">
+        <span>Products</span>
+        <span>&gt;</span>
+        <span>Class</span>
+        <span>&gt;</span>
+        <span>Cake &amp; Bakery Class</span>
+        <span>&gt;</span>
+        <span>Nai Nai Lapis</span>
+      </div>
+      <h1>Nai Nai Lapis</h1>
+      <p class="hero-subtitle">
+        Warisan rasa rumah, dibuat telaten lapis demi lapis. Lapis legit premium dengan nuansa
+        homemade heritage, cocok untuk self-reward dan momen gifting yang hangat.
+      </p>
+      <div class="hero-tagline">Rasa rumah dalam setiap lapis.</div>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="https://wa.me/6282125896546?text=Halo%20tim%20Nai%20Nai%20Lapis%2C%20saya%20ingin%20pre-order%20untuk%20besok." target="_blank" rel="noopener noreferrer">Pre-order untuk besok</a>
+        <a class="btn btn-secondary" href="#varian">Cek varian hari ini</a>
+      </div>
+    </section>
+
+    <section class="section reveal reveal-delay-1" id="brand-dna">
+      <h2>Brand DNA yang Hangat dan Jujur</h2>
+      <p class="section-intro">
+        Filosofi Nai Nai Lapis menonjolkan resep warisan, proses telaten, dan kualitas premium yang jujur.
+        Bukan sekadar manis, tapi pengalaman rasa bersih yang bikin nyaman dibagi bersama keluarga.
+      </p>
+      <div class="dna-grid">
+        <article class="dna-card">
+          <strong>Heritage</strong>
+          <p>Resep warisan Nai Nai (nenek) yang dipertahankan untuk menjaga rasa rumah di setiap irisan.</p>
+        </article>
+        <article class="dna-card">
+          <strong>Craft &amp; Patience</strong>
+          <p>Dipanggang pelan, detail, dan konsisten untuk membentuk tekstur layer yang halus dan rapih.</p>
+        </article>
+        <article class="dna-card">
+          <strong>Premium &amp; Honest</strong>
+          <p>Mengutamakan bahan baik, rasa clean, dan komunikasi produk yang apa adanya tanpa klaim berlebihan.</p>
+        </article>
+        <article class="dna-card">
+          <strong>Togetherness</strong>
+          <p>Cocok untuk momen kumpul, oleh-oleh, dan hampers dengan sentuhan personal yang berkesan.</p>
+        </article>
+      </div>
+
+      <div class="palette" aria-label="Brand color palette Nai Nai Lapis">
+        <article class="swatch">
+          <div class="swatch-color" style="background:#2b1b14;"></div>
+          <div class="swatch-meta"><span class="swatch-name">Espresso Brown</span>#2B1B14</div>
+        </article>
+        <article class="swatch">
+          <div class="swatch-color" style="background:#c98b2b;"></div>
+          <div class="swatch-meta"><span class="swatch-name">Caramel Gold</span>#C98B2B</div>
+        </article>
+        <article class="swatch">
+          <div class="swatch-color" style="background:#fff2e3;"></div>
+          <div class="swatch-meta"><span class="swatch-name">Warm Cream</span>#FFF2E3</div>
+        </article>
+        <article class="swatch">
+          <div class="swatch-color" style="background:#9c5a3c;"></div>
+          <div class="swatch-meta"><span class="swatch-name">Cinnamon</span>#9C5A3C</div>
+        </article>
+        <article class="swatch">
+          <div class="swatch-color" style="background:#b3202e;"></div>
+          <div class="swatch-meta"><span class="swatch-name">Festive Red</span>#B3202E</div>
+        </article>
+        <article class="swatch">
+          <div class="swatch-color" style="background:#d9b76e;"></div>
+          <div class="swatch-meta"><span class="swatch-name">Soft Gold</span>#D9B76E</div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section reveal reveal-delay-2" id="varian">
+      <h2>Koleksi Kue Lapis Premium</h2>
+      <p class="section-intro">
+        Setiap varian didesain untuk momen yang berbeda, tetap dengan ciri rasa rumah yang lembut
+        dan layering yang terasa jelas.
+      </p>
+      <div class="varian-layout">
+        <article class="varian-card">
+          <h3>Signature Layers</h3>
+          <p class="varian-desc">
+            Komposisi rempah lembut, aroma butter yang hangat, dan tingkat manis seimbang untuk
+            menemani momen santai maupun jamuan keluarga.
+          </p>
+          <ul class="varian-list">
+            <li>
+              <strong>Original Heritage</strong>
+              Rasa klasik dengan profil rempah lembut dan aftertaste clean.
+            </li>
+            <li>
+              <strong>Prune Caramel</strong>
+              Paduan prune premium dan caramel note untuk karakter rasa lebih dalam.
+            </li>
+            <li>
+              <strong>Cheese Gold Layer</strong>
+              Layer gurih-manis dengan sentuhan keju halus yang tetap elegan.
+            </li>
+          </ul>
+        </article>
+
+        <aside class="process-card" aria-label="Proses pembuatan Nai Nai Lapis">
+          <div class="process-step">
+            <strong>Step 1: Pilih bahan baik</strong>
+            <p>Seleksi bahan premium untuk menjaga rasa clean dan konsistensi kualitas.</p>
+          </div>
+          <div class="process-step">
+            <strong>Step 2: Panggang pelan per lapis</strong>
+            <p>Setiap lapis diproses telaten agar tekstur tetap lembut dan struktur rapat.</p>
+          </div>
+          <div class="process-step">
+            <strong>Step 3: Finishing untuk gifting</strong>
+            <p>Disiapkan rapi untuk self-reward, hampers, atau oleh-oleh hangat.</p>
+          </div>
+        </aside>
+      </div>
+
+      <div class="quote-panel">
+        <p>
+          "Kami percaya rasa yang jujur selalu dimulai dari proses yang sabar. Karena itu setiap lapis dipanggang
+          satu per satu, supaya tiap potongannya punya cerita yang layak dibagi."
+        </p>
+      </div>
+    </section>
+
+    <section class="section reveal reveal-delay-3" id="cake-bakery-class">
+      <h2>Cake &amp; Bakery Class: Nai Nai Lapis Series</h2>
+      <p class="section-intro">
+        Untuk kamu yang ingin belajar langsung dari proses produksi, kelas ini dirancang dengan pendekatan
+        praktik bertahap dan standar kualitas yang sama dengan produk Nai Nai Lapis.
+      </p>
+      <div class="class-banner">
+        <h3>Belajar dari resep warisan hingga plating hampers</h3>
+        <p>
+          Materi difokuskan pada teknik layering, kontrol suhu panggang, konsistensi rasa, dan presentasi produk
+          agar siap dijual atau dijadikan signature gift brand kamu sendiri.
+        </p>
+        <ul class="class-points">
+          <li>Batch kecil agar sesi tetap personal dan detail.</li>
+          <li>Metode 8pt workflow: prep, bake, evaluate, improve.</li>
+          <li>Guideline visual premium namun tetap homey.</li>
+        </ul>
+      </div>
+
+      <div class="cta-panel">
+        <div>
+          <h3>Siap jadi hampers favorit keluarga?</h3>
+          <p>
+            Hubungi tim Nai Nai Lapis untuk pre-order, kolaborasi hampers, atau jadwal Cake &amp; Bakery Class terbaru.
+          </p>
+        </div>
+        <a class="btn btn-primary" href="https://wa.me/6282125896546?text=Halo%20tim%20Nai%20Nai%20Lapis%2C%20saya%20ingin%20info%20Cake%20%26%20Bakery%20Class." target="_blank" rel="noopener noreferrer">Tanya jadwal class</a>
+      </div>
+    </section>
+  </main>
+
+  <div id="footer-placeholder"></div>
+
+  <script>
+    function bindDropdowns() {
+      const toggle = document.getElementById("dropdownToggle");
+      const menu = document.getElementById("dropdownMenu");
+      const toggle2 = document.getElementById("dropdownToggleEcourse");
+      const menu2 = document.getElementById("dropdownMenuEcourse");
+
+      if (toggle && menu && !toggle.dataset.bound) {
+        toggle.dataset.bound = "true";
+        toggle.addEventListener("click", function (event) {
+          event.preventDefault();
+          menu.style.display = menu.style.display === "block" ? "none" : "block";
+        });
+
+        document.addEventListener("click", function (event) {
+          if (!toggle.contains(event.target) && !menu.contains(event.target)) {
+            menu.style.display = "none";
+          }
+        });
+      }
+
+      if (toggle2 && menu2 && !toggle2.dataset.bound) {
+        toggle2.dataset.bound = "true";
+        toggle2.addEventListener("click", function (event) {
+          event.preventDefault();
+          menu2.style.display = menu2.style.display === "block" ? "none" : "block";
+        });
+
+        document.addEventListener("click", function (event) {
+          if (!toggle2.contains(event.target) && !menu2.contains(event.target)) {
+            menu2.style.display = "none";
+          }
+        });
+      }
+    }
+
+    fetch("/navbar.html")
+      .then(function (response) {
+        return response.text();
+      })
+      .then(function (html) {
+        document.getElementById("navbar").innerHTML = html;
+        bindDropdowns();
+      });
+
+    fetch("/footer.html")
+      .then(function (response) {
+        return response.text();
+      })
+      .then(function (html) {
+        document.getElementById("footer-placeholder").innerHTML = html;
+      });
+  </script>
+</body>
+</html>

@@ -28,6 +28,28 @@
   margin: 0.2rem 0 !important;
   font-family: 'Helvetica Neue', sans-serif !important;
 }
+.footer .footer-tree-label {
+  margin-top: 0.45rem !important;
+  color: #f0d9a3 !important;
+  font-weight: 600 !important;
+}
+.footer .footer-tree-item {
+  font-size: 0.86rem !important;
+  color: #bfbfbf !important;
+}
+.footer .footer-tree-item.level-1 {
+  padding-left: 0.55rem;
+}
+.footer .footer-tree-item.level-2 {
+  padding-left: 1.1rem;
+}
+.footer .footer-tree-item.level-3 {
+  padding-left: 1.65rem;
+}
+.footer .footer-tree-item::before {
+  content: '\203A\00A0';
+  color: #d9b76e;
+}
 .footer-columns {
   display: flex !important;
   flex-wrap: wrap;
@@ -92,7 +114,10 @@
       <div class="footer-column">
           <h3>Company</h3>
           <p><a href="/index.html">About Us</a></p>
-          <p>Products</p>
+          <p class="footer-tree-label">Products</p>
+          <p class="footer-tree-item level-1"><a href="/products/class/cake-bakery-class/nai-nai-lapis.html#cake-bakery-class">Class</a></p>
+          <p class="footer-tree-item level-2"><a href="/products/class/cake-bakery-class/nai-nai-lapis.html#cake-bakery-class">Cake &amp; Bakery Class</a></p>
+          <p class="footer-tree-item level-3"><a href="/products/class/cake-bakery-class/nai-nai-lapis.html">Nai Nai Lapis</a></p>
       </div>
       <div class="footer-column">
           <h3>Support</h3>
