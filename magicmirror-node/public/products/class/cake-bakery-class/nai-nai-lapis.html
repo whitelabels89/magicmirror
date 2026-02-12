@@ -3,23 +3,31 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nai Nai Lapis | Cake & Bakery Class</title>
-  <meta name="description" content="Landing page Nai Nai Lapis untuk produk kue lapis premium dengan filosofi warisan rasa rumah, dibuat telaten lapis demi lapis." />
+  <title>Nai Nai Lapis | Lapis Legit Premium</title>
+  <meta name="description" content="Nai Nai Lapis menghadirkan lapis legit premium dengan rasa rumah yang hangat, dipanggang telaten lapis demi lapis." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --espresso-brown: #2b1b14;
-      --caramel-gold: #c98b2b;
-      --warm-cream: #fff2e3;
+      --espresso: #2b1b14;
+      --caramel: #c98b2b;
+      --cream: #fff2e3;
       --cinnamon: #9c5a3c;
-      --festive-red: #b3202e;
-      --soft-gold: #d9b76e;
-      --radius-lg: 16px;
+      --red: #b3202e;
+      --gold: #d9b76e;
+      --paper: #fff8ee;
+      --ink-soft: rgba(43, 27, 20, 0.82);
+      --panel: rgba(255, 242, 227, 0.8);
+      --radius-lg: 18px;
       --radius-md: 14px;
-      --outline: 1px solid rgba(43, 27, 20, 0.16);
-      --section-padding: clamp(2.5rem, 5vw, 5rem);
+      --shadow: 0 14px 36px rgba(55, 31, 20, 0.14);
+      --outline: 1px solid rgba(43, 27, 20, 0.14);
+      --space-1: clamp(0.7rem, 1.4vw, 0.95rem);
+      --space-2: clamp(1rem, 2vw, 1.35rem);
+      --space-3: clamp(1.4rem, 3vw, 2rem);
+      --space-4: clamp(2rem, 5vw, 3.4rem);
+      --max-w: min(1140px, calc(100% - 2rem));
     }
 
     * {
@@ -29,12 +37,11 @@
     body {
       margin: 0;
       font-family: "Inter", sans-serif;
+      color: var(--espresso);
       background:
-        radial-gradient(circle at 12% 10%, rgba(201, 139, 43, 0.2), transparent 45%),
-        radial-gradient(circle at 85% 18%, rgba(179, 32, 46, 0.14), transparent 42%),
-        linear-gradient(180deg, #fff8ee 0%, #fff1df 100%);
-      color: var(--espresso-brown);
-      min-height: 100vh;
+        radial-gradient(circle at 8% 8%, rgba(201, 139, 43, 0.22), transparent 35%),
+        radial-gradient(circle at 88% 18%, rgba(179, 32, 46, 0.12), transparent 34%),
+        linear-gradient(180deg, #fff9f0 0%, #fff2e3 100%);
       overflow-x: hidden;
     }
 
@@ -45,439 +52,644 @@
       pointer-events: none;
       background: repeating-linear-gradient(
         180deg,
-        rgba(156, 90, 60, 0.08) 0,
-        rgba(156, 90, 60, 0.08) 2px,
+        rgba(156, 90, 60, 0.06) 0,
+        rgba(156, 90, 60, 0.06) 2px,
         transparent 2px,
-        transparent 18px
+        transparent 20px
       );
-      opacity: 0.35;
-      z-index: -2;
+      z-index: -1;
+      opacity: 0.4;
     }
 
     a {
       color: inherit;
+      text-decoration: none;
     }
 
-    .page-wrap {
-      width: min(1120px, calc(100% - 2.2rem));
+    .shell {
+      width: var(--max-w);
       margin: 0 auto;
-      padding-bottom: 1rem;
     }
 
     .hero {
-      margin-top: clamp(1.2rem, 2.5vw, 2rem);
+      margin-top: var(--space-3);
       border-radius: var(--radius-lg);
       border: var(--outline);
       background:
-        linear-gradient(145deg, rgba(43, 27, 20, 0.97), rgba(88, 48, 31, 0.95));
-      color: var(--warm-cream);
-      padding: clamp(1.5rem, 4vw, 3.5rem);
+        linear-gradient(150deg, rgba(43, 27, 20, 0.97), rgba(82, 45, 31, 0.96) 64%, rgba(112, 58, 38, 0.9)),
+        linear-gradient(180deg, rgba(179, 32, 46, 0.2), transparent 60%);
+      box-shadow: 0 22px 44px rgba(43, 27, 20, 0.28);
+      color: var(--cream);
+      padding: clamp(1.4rem, 4vw, 3rem);
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: var(--space-3);
       position: relative;
       overflow: hidden;
-      box-shadow: 0 18px 40px rgba(43, 27, 20, 0.28);
     }
 
     .hero::after {
       content: "";
       position: absolute;
-      inset: auto -40px -46px auto;
-      width: min(52vw, 520px);
-      height: min(52vw, 520px);
-      background: radial-gradient(circle, rgba(201, 139, 43, 0.38), transparent 66%);
-      transform: rotate(-7deg);
+      width: clamp(180px, 38vw, 390px);
+      aspect-ratio: 1;
+      right: -15%;
+      top: -20%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(201, 139, 43, 0.42), transparent 70%);
       pointer-events: none;
     }
 
-    .breadcrumb {
-      display: inline-flex;
+    .hero-breadcrumb {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      opacity: 0.88;
+      display: flex;
       flex-wrap: wrap;
       gap: 0.45rem;
-      align-items: center;
-      font-size: 0.86rem;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: rgba(255, 242, 227, 0.9);
-      margin-bottom: 1.2rem;
-    }
-
-    .breadcrumb span {
-      opacity: 0.82;
+      margin-bottom: var(--space-1);
     }
 
     .hero h1 {
       margin: 0;
       font-family: "Noto Serif Display", serif;
-      font-size: clamp(2.2rem, 5vw, 4rem);
-      line-height: 1.1;
-      letter-spacing: 0.01em;
-      max-width: 16ch;
+      font-size: clamp(2.2rem, 5vw, 4.3rem);
+      line-height: 1.05;
+      max-width: 10ch;
+      text-wrap: balance;
     }
 
-    .hero-subtitle {
-      margin: 1rem 0 0;
-      font-size: clamp(1rem, 2.1vw, 1.22rem);
-      line-height: 1.65;
-      max-width: 58ch;
-      color: rgba(255, 242, 227, 0.95);
+    .hero p {
+      margin: var(--space-1) 0 0;
+      max-width: 52ch;
+      line-height: 1.68;
+      color: rgba(255, 242, 227, 0.93);
+      font-size: clamp(0.96rem, 2vw, 1.1rem);
     }
 
-    .hero-tagline {
-      display: inline-block;
-      margin-top: 1.2rem;
-      padding: 0.45rem 0.8rem;
+    .hero-chip-row {
+      margin-top: var(--space-2);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .chip {
       border: 1px solid rgba(255, 242, 227, 0.4);
       border-radius: 999px;
-      font-size: 0.9rem;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      background: rgba(217, 183, 110, 0.16);
+      padding: 0.32rem 0.72rem;
+      font-size: 0.8rem;
+      background: rgba(255, 242, 227, 0.1);
+      white-space: nowrap;
     }
 
     .hero-actions {
-      margin-top: 1.45rem;
+      margin-top: var(--space-2);
       display: flex;
       flex-wrap: wrap;
-      gap: 0.85rem;
-      position: relative;
-      z-index: 1;
+      gap: 0.7rem;
     }
 
     .btn {
+      border-radius: 999px;
+      padding: 0.78rem 1.24rem;
+      font-size: 0.92rem;
+      font-weight: 600;
+      border: 1px solid transparent;
+      transition: transform 220ms ease, box-shadow 220ms ease, background 220ms ease;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      border-radius: 999px;
-      font-weight: 600;
-      text-decoration: none;
-      transition: transform 220ms ease, box-shadow 220ms ease, background 220ms ease;
-      padding: 0.78rem 1.35rem;
-      font-size: 0.96rem;
-      border: 1px solid transparent;
-    }
-
-    .btn-primary {
-      background: var(--caramel-gold);
-      color: #2a170e;
-      box-shadow: 0 10px 24px rgba(201, 139, 43, 0.38);
-    }
-
-    .btn-secondary {
-      background: transparent;
-      color: var(--warm-cream);
-      border-color: rgba(255, 242, 227, 0.55);
     }
 
     .btn:hover {
       transform: translateY(-2px);
     }
 
-    .btn-primary:hover {
-      background: #deb15f;
-      box-shadow: 0 14px 28px rgba(201, 139, 43, 0.44);
+    .btn-main {
+      background: var(--caramel);
+      color: #301a10;
+      box-shadow: 0 10px 24px rgba(201, 139, 43, 0.38);
     }
 
-    .btn-secondary:hover {
-      background: rgba(255, 242, 227, 0.12);
+    .btn-main:hover {
+      background: #e2b35d;
+      box-shadow: 0 14px 26px rgba(201, 139, 43, 0.46);
+    }
+
+    .btn-ghost {
+      border-color: rgba(255, 242, 227, 0.5);
+      color: var(--cream);
+      background: rgba(255, 242, 227, 0.06);
+    }
+
+    .btn-ghost:hover {
+      background: rgba(255, 242, 227, 0.15);
+    }
+
+    .cake-visual {
+      align-self: end;
+      position: relative;
+      min-height: 290px;
+      display: grid;
+      place-items: center;
+    }
+
+    .cake-stack {
+      width: min(280px, 100%);
+      aspect-ratio: 1;
+      position: relative;
+      animation: cakeFloat 6s ease-in-out infinite;
+    }
+
+    .cake-layer {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 86%;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 242, 227, 0.24);
+      box-shadow: inset 0 -8px 16px rgba(0, 0, 0, 0.14);
+    }
+
+    .cake-layer.layer-1 { bottom: 8%; height: 20%; background: linear-gradient(180deg, #cb915a, #9b5d36); }
+    .cake-layer.layer-2 { bottom: 26%; height: 17%; background: linear-gradient(180deg, #dbb47a, #b27241); width: 82%; }
+    .cake-layer.layer-3 { bottom: 42%; height: 16%; background: linear-gradient(180deg, #c9874b, #8a4f2f); width: 78%; }
+    .cake-layer.layer-4 { bottom: 58%; height: 14%; background: linear-gradient(180deg, #d6aa6a, #a76437); width: 74%; }
+    .cake-layer.layer-5 { bottom: 72%; height: 10%; background: linear-gradient(180deg, #f4d7ab, #d5a86e); width: 70%; }
+
+    .cake-glow {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 82%;
+      height: 18%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(201, 139, 43, 0.45), transparent 72%);
+      filter: blur(4px);
+    }
+
+    @keyframes cakeFloat {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+      100% { transform: translateY(0px); }
     }
 
     .section {
-      padding: var(--section-padding) 0 0;
+      margin-top: var(--space-4);
     }
 
     .section h2 {
       margin: 0;
       font-family: "Noto Serif Display", serif;
-      font-size: clamp(1.7rem, 3.4vw, 2.8rem);
-      line-height: 1.16;
-      color: #331f16;
-      max-width: 22ch;
+      font-size: clamp(1.7rem, 3vw, 2.8rem);
+      line-height: 1.2;
+      text-wrap: balance;
     }
 
-    .section-intro {
-      margin: 0.7rem 0 0;
-      font-size: 1.03rem;
-      line-height: 1.7;
-      max-width: 67ch;
-      color: rgba(43, 27, 20, 0.86);
+    .section-sub {
+      margin-top: 0.62rem;
+      max-width: 70ch;
+      line-height: 1.68;
+      color: var(--ink-soft);
+      font-size: 1.02rem;
     }
 
-    .dna-grid {
-      margin-top: 1.4rem;
+    .value-grid {
+      margin-top: var(--space-2);
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 1rem;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.75rem;
     }
 
-    .dna-card {
-      background: rgba(255, 242, 227, 0.88);
+    .value-card {
+      background: var(--panel);
       border: var(--outline);
       border-radius: var(--radius-md);
-      padding: 1.1rem 1rem;
-      box-shadow: 0 10px 22px rgba(67, 40, 29, 0.09);
+      padding: var(--space-2);
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
     }
 
-    .dna-card strong {
-      display: block;
-      font-size: 1.05rem;
-      margin-bottom: 0.32rem;
+    .value-card::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, var(--caramel), var(--gold));
+    }
+
+    .value-card h3 {
+      margin: 0;
+      font-size: 1.02rem;
       color: var(--cinnamon);
     }
 
-    .dna-card p {
-      margin: 0;
-      line-height: 1.64;
-      color: rgba(43, 27, 20, 0.85);
+    .value-card p {
+      margin: 0.44rem 0 0;
+      font-size: 0.93rem;
+      line-height: 1.56;
+      color: var(--ink-soft);
     }
 
-    .palette {
-      margin-top: 1.25rem;
+    .product-grid {
+      margin-top: var(--space-2);
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 0.8rem;
+      gap: 0.95rem;
     }
 
-    .swatch {
-      border-radius: 14px;
-      overflow: hidden;
+    .product-card {
+      border-radius: var(--radius-md);
       border: var(--outline);
-      background: #fff;
-      box-shadow: 0 8px 20px rgba(67, 40, 29, 0.08);
+      background: #fffdf9;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
     }
 
-    .swatch-color {
-      height: 62px;
+    .product-thumb {
+      aspect-ratio: 16/10;
+      background-size: cover;
+      background-position: center;
+      position: relative;
+      isolation: isolate;
     }
 
-    .swatch-meta {
-      padding: 0.62rem 0.72rem 0.7rem;
-      font-size: 0.84rem;
-      line-height: 1.42;
+    .product-thumb::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(43, 27, 20, 0.04), rgba(43, 27, 20, 0.5));
+      z-index: 1;
     }
 
-    .swatch-name {
-      display: block;
+    .product-badge {
+      position: absolute;
+      right: 0.6rem;
+      top: 0.6rem;
+      z-index: 2;
+      background: rgba(255, 242, 227, 0.92);
+      border: 1px solid rgba(43, 27, 20, 0.16);
+      border-radius: 999px;
+      padding: 0.22rem 0.62rem;
+      font-size: 0.74rem;
       font-weight: 600;
-      color: var(--espresso-brown);
+      color: var(--espresso);
     }
 
-    .varian-layout {
-      margin-top: 1.4rem;
+    .product-meta {
+      padding: var(--space-2);
       display: grid;
-      grid-template-columns: 1.3fr 1fr;
+      gap: 0.55rem;
+      flex: 1;
+    }
+
+    .product-meta h3 {
+      margin: 0;
+      font-family: "Noto Serif Display", serif;
+      font-size: 1.35rem;
+      line-height: 1.25;
+      color: #3b2419;
+    }
+
+    .product-meta p {
+      margin: 0;
+      color: var(--ink-soft);
+      line-height: 1.6;
+      font-size: 0.94rem;
+    }
+
+    .product-note {
+      margin-top: auto;
+      font-size: 0.84rem;
+      color: rgba(59, 36, 25, 0.72);
+      border-top: 1px dashed rgba(43, 27, 20, 0.22);
+      padding-top: 0.52rem;
+    }
+
+    .story-layout {
+      margin-top: var(--space-2);
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
       gap: 1rem;
     }
 
-    .varian-card {
-      border-radius: var(--radius-lg);
+    .story-card,
+    .timeline {
+      border-radius: var(--radius-md);
       border: var(--outline);
-      background: linear-gradient(180deg, rgba(255, 242, 227, 0.88), rgba(255, 245, 233, 0.98));
-      padding: 1.15rem;
-      box-shadow: 0 10px 24px rgba(67, 40, 29, 0.09);
+      background: rgba(255, 242, 227, 0.82);
+      box-shadow: var(--shadow);
+      padding: var(--space-2);
     }
 
-    .varian-card h3 {
+    .story-card blockquote {
       margin: 0;
       font-family: "Noto Serif Display", serif;
-      font-size: 1.45rem;
-      color: #3b241a;
+      font-size: clamp(1.18rem, 2.3vw, 1.62rem);
+      line-height: 1.45;
+      color: #43261a;
     }
 
-    .varian-desc {
-      margin: 0.58rem 0 0;
-      line-height: 1.65;
-      color: rgba(43, 27, 20, 0.85);
+    .story-card p {
+      margin: 0.8rem 0 0;
+      color: var(--ink-soft);
+      line-height: 1.66;
+      font-size: 0.97rem;
     }
 
-    .varian-list {
-      margin: 1rem 0 0;
-      padding: 0;
-      list-style: none;
-      display: grid;
-      gap: 0.78rem;
+    .timeline-item {
+      position: relative;
+      padding-left: 1.4rem;
+      margin-bottom: 0.84rem;
     }
 
-    .varian-list li {
-      padding: 0.72rem 0.76rem;
-      border-radius: 12px;
-      border: 1px solid rgba(156, 90, 60, 0.24);
-      background: rgba(255, 242, 227, 0.82);
+    .timeline-item:last-child {
+      margin-bottom: 0;
     }
 
-    .varian-list strong {
-      display: block;
-      font-size: 1rem;
-      color: #4c2f22;
-      margin-bottom: 0.1rem;
+    .timeline-item::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--red);
+      position: absolute;
+      left: 0;
+      top: 0.35rem;
+      box-shadow: 0 0 0 3px rgba(179, 32, 46, 0.14);
     }
 
-    .process-card {
-      border-radius: var(--radius-lg);
-      border: var(--outline);
-      background: #fff9f1;
-      padding: 1rem;
-      box-shadow: 0 10px 24px rgba(67, 40, 29, 0.09);
-      display: grid;
-      gap: 0.72rem;
-    }
-
-    .process-step {
-      border-left: 3px solid var(--soft-gold);
-      padding: 0.2rem 0 0.2rem 0.76rem;
-    }
-
-    .process-step strong {
+    .timeline-item strong {
       color: var(--cinnamon);
+      font-size: 0.96rem;
       display: block;
       margin-bottom: 0.2rem;
-      font-size: 0.96rem;
     }
 
-    .process-step p {
-      margin: 0;
-      line-height: 1.52;
-      font-size: 0.94rem;
-      color: rgba(43, 27, 20, 0.84);
+    .timeline-item span {
+      color: var(--ink-soft);
+      font-size: 0.92rem;
+      line-height: 1.56;
+      display: block;
     }
 
-    .class-banner {
-      margin-top: 1.4rem;
+    .hamper {
+      margin-top: var(--space-4);
       border-radius: var(--radius-lg);
       border: var(--outline);
       background:
-        linear-gradient(90deg, rgba(43, 27, 20, 0.95), rgba(83, 45, 30, 0.95)),
-        linear-gradient(180deg, rgba(179, 32, 46, 0.2), transparent);
-      color: var(--warm-cream);
-      padding: 1.4rem;
-      box-shadow: 0 12px 26px rgba(43, 27, 20, 0.24);
+        linear-gradient(150deg, rgba(255, 242, 227, 0.95), rgba(255, 232, 205, 0.92));
+      box-shadow: var(--shadow);
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: var(--space-2);
+      padding: clamp(1rem, 2.4vw, 1.5rem);
+      align-items: center;
     }
 
-    .class-banner h3 {
+    .hamper h2 {
       margin: 0;
       font-family: "Noto Serif Display", serif;
-      font-size: clamp(1.4rem, 3.3vw, 2rem);
+      font-size: clamp(1.5rem, 3vw, 2.35rem);
+      line-height: 1.2;
+      color: #3a2116;
     }
 
-    .class-banner p {
-      margin: 0.65rem 0 0;
-      max-width: 62ch;
-      line-height: 1.62;
-      color: rgba(255, 242, 227, 0.93);
+    .hamper p {
+      margin: 0.62rem 0 0;
+      max-width: 52ch;
+      line-height: 1.64;
+      color: var(--ink-soft);
     }
 
-    .class-points {
-      margin: 1rem 0 0;
-      padding: 0;
-      list-style: none;
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 0.65rem;
-    }
-
-    .class-points li {
-      border: 1px solid rgba(255, 242, 227, 0.3);
-      border-radius: 12px;
-      padding: 0.6rem 0.72rem;
-      background: rgba(255, 242, 227, 0.08);
-      font-size: 0.92rem;
-      line-height: 1.5;
-    }
-
-    .quote-panel {
-      margin-top: 1.3rem;
-      border-left: 4px solid var(--festive-red);
-      border-radius: 0 12px 12px 0;
-      padding: 0.9rem 1rem;
-      background: rgba(255, 242, 227, 0.88);
-      border-top: var(--outline);
-      border-right: var(--outline);
-      border-bottom: var(--outline);
-    }
-
-    .quote-panel p {
-      margin: 0;
-      line-height: 1.65;
-      color: rgba(43, 27, 20, 0.88);
-      font-style: italic;
-    }
-
-    .cta-panel {
-      margin-top: 1.45rem;
-      border-radius: var(--radius-lg);
-      border: var(--outline);
-      background: linear-gradient(160deg, #fff4e3, #ffe9cf 62%, #fde6cb);
-      padding: 1.4rem;
+    .hamper-tags {
+      margin-top: 0.9rem;
       display: flex;
       flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.85rem;
-      box-shadow: 0 10px 24px rgba(67, 40, 29, 0.09);
+      gap: 0.52rem;
     }
 
-    .cta-panel h3 {
+    .hamper-tags span {
+      background: rgba(255, 255, 255, 0.62);
+      border: var(--outline);
+      border-radius: 999px;
+      padding: 0.26rem 0.64rem;
+      font-size: 0.82rem;
+      color: #3f281d;
+    }
+
+    .mini-form {
+      border-radius: var(--radius-md);
+      background: rgba(43, 27, 20, 0.94);
+      border: 1px solid rgba(255, 242, 227, 0.24);
+      padding: 0.95rem;
+      color: var(--cream);
+      display: grid;
+      gap: 0.6rem;
+    }
+
+    .mini-form h3 {
+      margin: 0;
+      font-size: 1.03rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+
+    .mini-form label {
+      font-size: 0.79rem;
+      color: rgba(255, 242, 227, 0.84);
+      margin-bottom: 0.16rem;
+      display: block;
+    }
+
+    .mini-form input,
+    .mini-form select,
+    .mini-form textarea {
+      width: 100%;
+      border: 1px solid rgba(255, 242, 227, 0.22);
+      border-radius: 10px;
+      background: rgba(255, 242, 227, 0.1);
+      color: #fff;
+      padding: 0.58rem 0.62rem;
+      font-size: 0.86rem;
+      outline: none;
+      font-family: "Inter", sans-serif;
+    }
+
+    .mini-form select option {
+      color: #2b1b14;
+    }
+
+    .mini-form input::placeholder,
+    .mini-form textarea::placeholder {
+      color: rgba(255, 242, 227, 0.72);
+    }
+
+    .mini-form textarea {
+      min-height: 74px;
+      resize: vertical;
+    }
+
+    .mini-form button {
+      margin-top: 0.1rem;
+      border: none;
+      border-radius: 999px;
+      padding: 0.68rem 0.94rem;
+      background: linear-gradient(90deg, var(--caramel), var(--gold));
+      color: #301a10;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: transform 220ms ease, box-shadow 220ms ease;
+    }
+
+    .mini-form button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 9px 22px rgba(201, 139, 43, 0.34);
+    }
+
+    .faq {
+      margin-top: var(--space-4);
+      display: grid;
+      gap: 0.6rem;
+    }
+
+    details {
+      border-radius: 12px;
+      border: var(--outline);
+      background: rgba(255, 242, 227, 0.72);
+      padding: 0.76rem 0.84rem;
+      box-shadow: 0 6px 18px rgba(56, 32, 20, 0.08);
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 600;
+      color: #44281c;
+      list-style: none;
+      position: relative;
+      padding-right: 1.2rem;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    summary::after {
+      content: "+";
+      position: absolute;
+      right: 0;
+      top: 0;
+      font-weight: 700;
+      color: var(--cinnamon);
+    }
+
+    details[open] summary::after {
+      content: "−";
+    }
+
+    details p {
+      margin: 0.58rem 0 0;
+      font-size: 0.93rem;
+      line-height: 1.58;
+      color: var(--ink-soft);
+    }
+
+    .final-cta {
+      margin-top: var(--space-4);
+      margin-bottom: var(--space-4);
+      border-radius: var(--radius-lg);
+      border: var(--outline);
+      background: linear-gradient(120deg, rgba(43, 27, 20, 0.94), rgba(87, 48, 32, 0.94));
+      color: var(--cream);
+      padding: clamp(1.1rem, 2.8vw, 1.6rem);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.7rem;
+      box-shadow: 0 20px 36px rgba(43, 27, 20, 0.25);
+    }
+
+    .final-cta h3 {
       margin: 0;
       font-family: "Noto Serif Display", serif;
-      font-size: clamp(1.35rem, 2.8vw, 1.95rem);
-      color: #3d251a;
+      font-size: clamp(1.28rem, 2.5vw, 1.86rem);
+      line-height: 1.24;
     }
 
-    .cta-panel p {
+    .final-cta p {
       margin: 0.45rem 0 0;
-      max-width: 53ch;
-      line-height: 1.6;
-      color: rgba(43, 27, 20, 0.86);
+      color: rgba(255, 242, 227, 0.9);
+      max-width: 52ch;
+      font-size: 0.95rem;
+      line-height: 1.55;
     }
 
-    .reveal {
+    .fade {
       opacity: 0;
       transform: translateY(24px);
-      animation: riseIn 680ms cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+      transition: opacity 540ms ease, transform 540ms ease;
     }
 
-    .reveal-delay-1 { animation-delay: 120ms; }
-    .reveal-delay-2 { animation-delay: 220ms; }
-    .reveal-delay-3 { animation-delay: 320ms; }
+    .fade.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
 
-    @keyframes riseIn {
-      to {
-        opacity: 1;
-        transform: translateY(0);
+    @media (max-width: 980px) {
+      .hero,
+      .story-layout,
+      .hamper {
+        grid-template-columns: 1fr;
       }
-    }
 
-    @media (max-width: 900px) {
-      .dna-grid,
-      .palette,
-      .class-points {
+      .cake-visual {
+        min-height: 220px;
+      }
+
+      .value-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
-      .varian-layout {
+      .product-grid {
         grid-template-columns: 1fr;
       }
     }
 
-    @media (max-width: 640px) {
-      .page-wrap {
-        width: min(1120px, calc(100% - 1.2rem));
+    @media (max-width: 620px) {
+      .shell {
+        width: min(1140px, calc(100% - 1rem));
       }
 
       .hero {
-        padding: 1.25rem;
+        padding: 1rem;
+        margin-top: 1rem;
       }
 
-      .hero-tagline {
-        font-size: 0.78rem;
+      .hero-breadcrumb {
+        font-size: 0.7rem;
       }
 
-      .dna-grid,
-      .palette,
-      .class-points {
+      .value-grid {
         grid-template-columns: 1fr;
       }
 
-      .cta-panel {
-        padding: 1.1rem;
+      .section-sub {
+        font-size: 0.95rem;
+      }
+
+      .mini-form {
+        padding: 0.82rem;
       }
     }
   </style>
@@ -485,163 +697,216 @@
 <body>
   <div id="navbar"></div>
 
-  <main class="page-wrap">
-    <section class="hero reveal">
-      <div class="breadcrumb">
-        <span>Products</span>
-        <span>&gt;</span>
-        <span>Class</span>
-        <span>&gt;</span>
-        <span>Cake &amp; Bakery Class</span>
-        <span>&gt;</span>
-        <span>Nai Nai Lapis</span>
+  <main class="shell">
+    <section class="hero fade">
+      <div>
+        <div class="hero-breadcrumb">
+          <span>Products</span>
+          <span>&gt;</span>
+          <span>Class</span>
+          <span>&gt;</span>
+          <span>Cake &amp; Bakery Class</span>
+          <span>&gt;</span>
+          <span>Nai Nai Lapis</span>
+        </div>
+        <h1>Rasa rumah, dalam setiap lapis.</h1>
+        <p>
+          Nai Nai Lapis hadir dengan karakter lapis legit premium: tekstur rapih, aroma butter hangat,
+          dan rasa clean yang pas untuk self-reward, momen kumpul, atau hadiah bermakna.
+        </p>
+        <div class="hero-chip-row">
+          <span class="chip">Warisan resep keluarga</span>
+          <span class="chip">Dipanggang pelan</span>
+          <span class="chip">Premium &amp; honest</span>
+        </div>
+        <div class="hero-actions">
+          <a class="btn btn-main" href="https://wa.me/6282125896546?text=Halo%20tim%20Nai%20Nai%20Lapis,%20saya%20ingin%20pre-order%20untuk%20besok." target="_blank" rel="noopener noreferrer">Pre-order untuk besok</a>
+          <a class="btn btn-ghost" href="#varian">Lihat varian hari ini</a>
+        </div>
       </div>
-      <h1>Nai Nai Lapis</h1>
-      <p class="hero-subtitle">
-        Warisan rasa rumah, dibuat telaten lapis demi lapis. Lapis legit premium dengan nuansa
-        homemade heritage, cocok untuk self-reward dan momen gifting yang hangat.
-      </p>
-      <div class="hero-tagline">Rasa rumah dalam setiap lapis.</div>
-      <div class="hero-actions">
-        <a class="btn btn-primary" href="https://wa.me/6282125896546?text=Halo%20tim%20Nai%20Nai%20Lapis%2C%20saya%20ingin%20pre-order%20untuk%20besok." target="_blank" rel="noopener noreferrer">Pre-order untuk besok</a>
-        <a class="btn btn-secondary" href="#varian">Cek varian hari ini</a>
+
+      <div class="cake-visual" aria-hidden="true">
+        <div class="cake-stack">
+          <div class="cake-layer layer-1"></div>
+          <div class="cake-layer layer-2"></div>
+          <div class="cake-layer layer-3"></div>
+          <div class="cake-layer layer-4"></div>
+          <div class="cake-layer layer-5"></div>
+          <div class="cake-glow"></div>
+        </div>
       </div>
     </section>
 
-    <section class="section reveal reveal-delay-1" id="brand-dna">
-      <h2>Brand DNA yang Hangat dan Jujur</h2>
-      <p class="section-intro">
-        Filosofi Nai Nai Lapis menonjolkan resep warisan, proses telaten, dan kualitas premium yang jujur.
-        Bukan sekadar manis, tapi pengalaman rasa bersih yang bikin nyaman dibagi bersama keluarga.
+    <section class="section fade" id="nilai-brand">
+      <h2>Telaten, hangat, dan jujur dari proses sampai rasa.</h2>
+      <p class="section-sub">
+        Kami percaya kue lapis terbaik bukan yang paling ramai klaimnya, tapi yang paling konsisten kualitasnya.
+        Setiap batch dibuat dengan proses sabar agar rasa dan tekstur tetap terjaga.
       </p>
-      <div class="dna-grid">
-        <article class="dna-card">
-          <strong>Heritage</strong>
-          <p>Resep warisan Nai Nai (nenek) yang dipertahankan untuk menjaga rasa rumah di setiap irisan.</p>
+      <div class="value-grid">
+        <article class="value-card">
+          <h3>Heritage</h3>
+          <p>Fondasi resep warisan Nai Nai yang mempertahankan rasa rumah, bukan rasa pabrik.</p>
         </article>
-        <article class="dna-card">
-          <strong>Craft &amp; Patience</strong>
-          <p>Dipanggang pelan, detail, dan konsisten untuk membentuk tekstur layer yang halus dan rapih.</p>
+        <article class="value-card">
+          <h3>Craft &amp; Patience</h3>
+          <p>Setiap lapis dipanggang bertahap untuk hasil yang rapi, lembut, dan tidak bantat.</p>
         </article>
-        <article class="dna-card">
-          <strong>Premium &amp; Honest</strong>
-          <p>Mengutamakan bahan baik, rasa clean, dan komunikasi produk yang apa adanya tanpa klaim berlebihan.</p>
+        <article class="value-card">
+          <h3>Premium &amp; Honest</h3>
+          <p>Bahan baik, rasa clean, dan komunikasi apa adanya. Fokus pada kualitas nyata.</p>
         </article>
-        <article class="dna-card">
-          <strong>Togetherness</strong>
-          <p>Cocok untuk momen kumpul, oleh-oleh, dan hampers dengan sentuhan personal yang berkesan.</p>
-        </article>
-      </div>
-
-      <div class="palette" aria-label="Brand color palette Nai Nai Lapis">
-        <article class="swatch">
-          <div class="swatch-color" style="background:#2b1b14;"></div>
-          <div class="swatch-meta"><span class="swatch-name">Espresso Brown</span>#2B1B14</div>
-        </article>
-        <article class="swatch">
-          <div class="swatch-color" style="background:#c98b2b;"></div>
-          <div class="swatch-meta"><span class="swatch-name">Caramel Gold</span>#C98B2B</div>
-        </article>
-        <article class="swatch">
-          <div class="swatch-color" style="background:#fff2e3;"></div>
-          <div class="swatch-meta"><span class="swatch-name">Warm Cream</span>#FFF2E3</div>
-        </article>
-        <article class="swatch">
-          <div class="swatch-color" style="background:#9c5a3c;"></div>
-          <div class="swatch-meta"><span class="swatch-name">Cinnamon</span>#9C5A3C</div>
-        </article>
-        <article class="swatch">
-          <div class="swatch-color" style="background:#b3202e;"></div>
-          <div class="swatch-meta"><span class="swatch-name">Festive Red</span>#B3202E</div>
-        </article>
-        <article class="swatch">
-          <div class="swatch-color" style="background:#d9b76e;"></div>
-          <div class="swatch-meta"><span class="swatch-name">Soft Gold</span>#D9B76E</div>
+        <article class="value-card">
+          <h3>Togetherness</h3>
+          <p>Cocok untuk oleh-oleh, momen keluarga, hampers kantor, dan hadiah berkesan.</p>
         </article>
       </div>
     </section>
 
-    <section class="section reveal reveal-delay-2" id="varian">
-      <h2>Koleksi Kue Lapis Premium</h2>
-      <p class="section-intro">
-        Setiap varian didesain untuk momen yang berbeda, tetap dengan ciri rasa rumah yang lembut
-        dan layering yang terasa jelas.
+    <section class="section fade" id="varian">
+      <h2>Varian favorit Nai Nai Lapis.</h2>
+      <p class="section-sub">
+        Kamu bisa mulai dari rasa klasik, atau pilih profil rasa yang lebih kaya untuk gifting.
       </p>
-      <div class="varian-layout">
-        <article class="varian-card">
-          <h3>Signature Layers</h3>
-          <p class="varian-desc">
-            Komposisi rempah lembut, aroma butter yang hangat, dan tingkat manis seimbang untuk
-            menemani momen santai maupun jamuan keluarga.
+      <div class="product-grid">
+        <article class="product-card">
+          <div class="product-thumb" style="background-image: linear-gradient(145deg, #7e4a2d, #cc9655);">
+            <span class="product-badge">Best Seller</span>
+          </div>
+          <div class="product-meta">
+            <h3>Original Heritage</h3>
+            <p>Rasa klasik berlapis dengan manis seimbang dan aroma butter lembut.</p>
+            <div class="product-note">Ideal untuk momen keluarga dan self-reward.</div>
+          </div>
+        </article>
+
+        <article class="product-card">
+          <div class="product-thumb" style="background-image: linear-gradient(145deg, #5d3a2d, #a96f4d);">
+            <span class="product-badge">Premium</span>
+          </div>
+          <div class="product-meta">
+            <h3>Prune Caramel</h3>
+            <p>Nuansa caramel dan prune yang lebih dalam, dengan finish rasa tetap clean.</p>
+            <div class="product-note">Cocok untuk hampers personal atau corporate gift.</div>
+          </div>
+        </article>
+
+        <article class="product-card">
+          <div class="product-thumb" style="background-image: linear-gradient(145deg, #93674a, #d2a06e);">
+            <span class="product-badge">Limited Batch</span>
+          </div>
+          <div class="product-meta">
+            <h3>Cheese Gold Layer</h3>
+            <p>Paduan gurih-manis dengan sentuhan keju halus, tetap elegan dan ringan.</p>
+            <div class="product-note">Pas untuk hadiah ulang tahun atau ucapan terima kasih.</div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section fade" id="story">
+      <h2>Layered with love, baked with patience.</h2>
+      <p class="section-sub">
+        Kualitas Nai Nai Lapis dibangun dari detail. Kami jaga tiap tahap supaya rasa akhirnya terasa utuh.
+      </p>
+      <div class="story-layout">
+        <article class="story-card">
+          <blockquote>
+            "Kue lapis yang baik harus bikin orang inget rumah. Bukan cuma enak di gigitan pertama,
+            tapi juga hangat di kenangan setelahnya."
+          </blockquote>
+          <p>
+            Karena itu kami menekan proses yang terlalu cepat. Lapis demi lapis dibangun dengan ritme stabil,
+            supaya karakter teksturnya tetap khas dan konsisten setiap hari.
           </p>
-          <ul class="varian-list">
-            <li>
-              <strong>Original Heritage</strong>
-              Rasa klasik dengan profil rempah lembut dan aftertaste clean.
-            </li>
-            <li>
-              <strong>Prune Caramel</strong>
-              Paduan prune premium dan caramel note untuk karakter rasa lebih dalam.
-            </li>
-            <li>
-              <strong>Cheese Gold Layer</strong>
-              Layer gurih-manis dengan sentuhan keju halus yang tetap elegan.
-            </li>
-          </ul>
         </article>
 
-        <aside class="process-card" aria-label="Proses pembuatan Nai Nai Lapis">
-          <div class="process-step">
-            <strong>Step 1: Pilih bahan baik</strong>
-            <p>Seleksi bahan premium untuk menjaga rasa clean dan konsistensi kualitas.</p>
+        <aside class="timeline" aria-label="Proses pembuatan Nai Nai Lapis">
+          <div class="timeline-item">
+            <strong>Seleksi bahan</strong>
+            <span>Mengutamakan kualitas rasa dan aroma yang bersih.</span>
           </div>
-          <div class="process-step">
-            <strong>Step 2: Panggang pelan per lapis</strong>
-            <p>Setiap lapis diproses telaten agar tekstur tetap lembut dan struktur rapat.</p>
+          <div class="timeline-item">
+            <strong>Pemanggangan bertahap</strong>
+            <span>Satu lapis demi satu lapis, dikontrol agar matang merata.</span>
           </div>
-          <div class="process-step">
-            <strong>Step 3: Finishing untuk gifting</strong>
-            <p>Disiapkan rapi untuk self-reward, hampers, atau oleh-oleh hangat.</p>
+          <div class="timeline-item">
+            <strong>Resting &amp; finishing</strong>
+            <span>Didinginkan dengan tepat sebelum dipotong untuk menjaga struktur.</span>
+          </div>
+          <div class="timeline-item">
+            <strong>Packaging gifting-ready</strong>
+            <span>Siap kirim sebagai hampers yang rapi dan berkesan.</span>
           </div>
         </aside>
       </div>
-
-      <div class="quote-panel">
-        <p>
-          "Kami percaya rasa yang jujur selalu dimulai dari proses yang sabar. Karena itu setiap lapis dipanggang
-          satu per satu, supaya tiap potongannya punya cerita yang layak dibagi."
-        </p>
-      </div>
     </section>
 
-    <section class="section reveal reveal-delay-3" id="cake-bakery-class">
-      <h2>Cake &amp; Bakery Class: Nai Nai Lapis Series</h2>
-      <p class="section-intro">
-        Untuk kamu yang ingin belajar langsung dari proses produksi, kelas ini dirancang dengan pendekatan
-        praktik bertahap dan standar kualitas yang sama dengan produk Nai Nai Lapis.
-      </p>
-      <div class="class-banner">
-        <h3>Belajar dari resep warisan hingga plating hampers</h3>
+    <section class="hamper fade" id="cake-bakery-class">
+      <div>
+        <h2>Cake &amp; Bakery Class by Nai Nai Lapis</h2>
         <p>
-          Materi difokuskan pada teknik layering, kontrol suhu panggang, konsistensi rasa, dan presentasi produk
-          agar siap dijual atau dijadikan signature gift brand kamu sendiri.
+          Belajar langsung teknik layering, kontrol suhu, dan workflow produksi yang relevan untuk
+          home baker maupun bisnis kecil. Format kelas dibuat ringkas tapi detail.
         </p>
-        <ul class="class-points">
-          <li>Batch kecil agar sesi tetap personal dan detail.</li>
-          <li>Metode 8pt workflow: prep, bake, evaluate, improve.</li>
-          <li>Guideline visual premium namun tetap homey.</li>
-        </ul>
+        <div class="hamper-tags">
+          <span>Small batch class</span>
+          <span>Hands-on practice</span>
+          <span>Hampers styling</span>
+          <span>Recipe framework</span>
+        </div>
       </div>
 
-      <div class="cta-panel">
+      <form class="mini-form" id="interest-form">
+        <h3>Minat produk / class</h3>
         <div>
-          <h3>Siap jadi hampers favorit keluarga?</h3>
-          <p>
-            Hubungi tim Nai Nai Lapis untuk pre-order, kolaborasi hampers, atau jadwal Cake &amp; Bakery Class terbaru.
-          </p>
+          <label for="nama">Nama</label>
+          <input id="nama" name="nama" type="text" placeholder="Nama lengkap" required />
         </div>
-        <a class="btn btn-primary" href="https://wa.me/6282125896546?text=Halo%20tim%20Nai%20Nai%20Lapis%2C%20saya%20ingin%20info%20Cake%20%26%20Bakery%20Class." target="_blank" rel="noopener noreferrer">Tanya jadwal class</a>
+        <div>
+          <label for="whatsapp">WhatsApp</label>
+          <input id="whatsapp" name="whatsapp" type="text" placeholder="08xxxxxxxxxx" required />
+        </div>
+        <div>
+          <label for="minat">Minat</label>
+          <select id="minat" name="minat" required>
+            <option value="">Pilih minat</option>
+            <option value="Pre-order produk">Pre-order produk</option>
+            <option value="Hampers / corporate gifting">Hampers / corporate gifting</option>
+            <option value="Cake & Bakery Class">Cake & Bakery Class</option>
+          </select>
+        </div>
+        <div>
+          <label for="pesan">Catatan</label>
+          <textarea id="pesan" name="pesan" placeholder="Contoh: butuh untuk acara Jumat sore"></textarea>
+        </div>
+        <button type="submit">Kirim ke WhatsApp</button>
+      </form>
+    </section>
+
+    <section class="faq fade" id="faq">
+      <details>
+        <summary>Apakah bisa request tanggal kirim untuk hampers?</summary>
+        <p>Bisa. Kamu cukup tulis tanggal dan jam preferensi di catatan, tim kami akan konfirmasi slot pengiriman.</p>
+      </details>
+      <details>
+        <summary>Berapa hari sebelumnya sebaiknya pre-order?</summary>
+        <p>Untuk hasil terbaik, kami sarankan pre-order minimal H-1. Untuk jumlah besar, idealnya H-3 sampai H-5.</p>
+      </details>
+      <details>
+        <summary>Class cocok untuk pemula?</summary>
+        <p>Cocok. Materi disusun bertahap mulai dari dasar, dengan fokus praktik agar mudah diikuti.</p>
+      </details>
+    </section>
+
+    <section class="final-cta fade">
+      <div>
+        <h3>Siap jadi hampers favorit keluarga?</h3>
+        <p>
+          Cek varian hari ini, atur jadwal pre-order, atau diskusikan kebutuhan event kamu bersama tim Nai Nai Lapis.
+        </p>
       </div>
+      <a class="btn btn-main" href="https://wa.me/6282125896546?text=Halo%20tim%20Nai%20Nai%20Lapis,%20saya%20ingin%20konsultasi%20produk%20dan%20hampers." target="_blank" rel="noopener noreferrer">Chat tim Nai Nai Lapis</a>
     </section>
   </main>
 
@@ -649,10 +914,10 @@
 
   <script>
     function bindDropdowns() {
-      const toggle = document.getElementById("dropdownToggle");
-      const menu = document.getElementById("dropdownMenu");
-      const toggle2 = document.getElementById("dropdownToggleEcourse");
-      const menu2 = document.getElementById("dropdownMenuEcourse");
+      var toggle = document.getElementById("dropdownToggle");
+      var menu = document.getElementById("dropdownMenu");
+      var toggle2 = document.getElementById("dropdownToggleEcourse");
+      var menu2 = document.getElementById("dropdownMenuEcourse");
 
       if (toggle && menu && !toggle.dataset.bound) {
         toggle.dataset.bound = "true";
@@ -699,6 +964,49 @@
       .then(function (html) {
         document.getElementById("footer-placeholder").innerHTML = html;
       });
+
+    var interestForm = document.getElementById("interest-form");
+    if (interestForm) {
+      interestForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        var nama = (document.getElementById("nama").value || "-").trim();
+        var whatsapp = (document.getElementById("whatsapp").value || "-").trim();
+        var minat = (document.getElementById("minat").value || "-").trim();
+        var pesan = (document.getElementById("pesan").value || "-").trim();
+
+        var text =
+          "Halo tim Nai Nai Lapis,%0A" +
+          "Saya ingin info lebih lanjut.%0A%0A" +
+          "Nama: " + encodeURIComponent(nama) + "%0A" +
+          "WhatsApp: " + encodeURIComponent(whatsapp) + "%0A" +
+          "Minat: " + encodeURIComponent(minat) + "%0A" +
+          "Catatan: " + encodeURIComponent(pesan);
+
+        var target = "https://wa.me/6282125896546?text=" + text;
+        window.open(target, "_blank", "noopener,noreferrer");
+      });
+    }
+
+    var fadeEls = Array.prototype.slice.call(document.querySelectorAll(".fade"));
+    if ("IntersectionObserver" in window) {
+      var io = new IntersectionObserver(function (entries, observer) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("show");
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.16 });
+
+      fadeEls.forEach(function (el) {
+        io.observe(el);
+      });
+    } else {
+      fadeEls.forEach(function (el) {
+        el.classList.add("show");
+      });
+    }
   </script>
 </body>
 </html>
