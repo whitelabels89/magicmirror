@@ -282,10 +282,11 @@
     }
 
     .product-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: start;
       gap: 0.6rem;
+      min-height: 64px;
     }
 
     .product-head h3 {
