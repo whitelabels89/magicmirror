@@ -888,6 +888,23 @@ function listNainaiAssets() {
     .sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)));
 }
 
+function resolveNainaiAssetPath(rawName) {
+  let decoded = String(rawName || '').trim();
+  try {
+    decoded = decodeURIComponent(decoded);
+  } catch (_) {
+    // keep raw input
+  }
+  const baseName = path.basename(decoded).trim();
+  const ext = path.extname(baseName).toLowerCase();
+  if (!baseName) return null;
+  if (!NAINAI_ALLOWED_UPLOAD_EXT.has(ext)) return null;
+  return {
+    name: baseName,
+    absPath: path.join(NAINAI_ASSET_DIR, baseName)
+  };
+}
+
 function bootstrapNainaiStorage() {
   ensureDirSync(NAINAI_DATA_DIR);
   ensureDirSync(NAINAI_ASSET_DIR);
@@ -915,8 +932,7 @@ const nainaiMulterStorage = multer.diskStorage({
       .replace(/-+/g, '-')
       .replace(/^-|-$/g, '')
       .toLowerCase() || 'asset';
-    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-    cb(null, `${safeBase}-${stamp}${ext}`);
+    cb(null, `${safeBase}${ext}`);
   }
 });
 
@@ -2169,6 +2185,23 @@ app.post('/api/nainai/upload-asset', requireNainaiAdmin, (req, res) => {
       }
     });
   });
+});
+
+app.delete('/api/nainai/assets/:name', requireNainaiAdmin, (req, res) => {
+  try {
+    const resolved = resolveNainaiAssetPath(req.params.name);
+    if (!resolved) {
+      return res.status(400).json({ ok: false, error: 'Nama file tidak valid' });
+    }
+    if (!fs.existsSync(resolved.absPath)) {
+      return res.status(404).json({ ok: false, error: 'File tidak ditemukan' });
+    }
+    fs.unlinkSync(resolved.absPath);
+    return res.json({ ok: true, deleted: resolved.name });
+  } catch (err) {
+    console.error('❌ /api/nainai/assets/:name delete error:', err);
+    return res.status(500).json({ ok: false, error: 'Gagal menghapus file asset' });
+  }
 });
 
 app.get('/api/nainai/orders', requireNainaiAdmin, (req, res) => {

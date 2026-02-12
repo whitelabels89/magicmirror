@@ -375,6 +375,19 @@
       word-break: break-word;
     }
 
+    .asset-actions {
+      margin-top: 0.42rem;
+      display: flex;
+      gap: 0.36rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-danger {
+      background: rgba(179, 32, 46, 0.12);
+      border-color: rgba(179, 32, 46, 0.3);
+      color: #8f2330;
+    }
+
     @media (max-width: 1020px) {
       .grid { grid-template-columns: 1fr; }
       .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -569,7 +582,7 @@
 
         <section class="panel">
           <h2>Upload Asset Gambar</h2>
-          <p class="muted">Upload file PNG/JPG/JPEG/WEBP max 8MB ke folder `cake-bakery-class`.</p>
+          <p class="muted">Upload file PNG/JPG/JPEG/WEBP max 8MB ke folder `cake-bakery-class`. Jika nama file sama, otomatis replace.</p>
 
           <form id="upload-form" class="asset-upload">
             <div class="field">
@@ -961,16 +974,30 @@
         return;
       }
       wrap.innerHTML = assets.map(function (asset) {
+        var safeName = escapeHtml(asset.name);
+        var encodedName = encodeURIComponent(asset.name || "");
         return '' +
           '<article class="asset-card">' +
             '<img src="' + asset.url + '" alt="' + escapeHtml(asset.name) + '" loading="lazy" />' +
             '<div class="asset-meta">' +
-              '<strong>' + escapeHtml(asset.name) + '</strong><br>' +
+              '<strong>' + safeName + '</strong><br>' +
               'Size: ' + escapeHtml(String(asset.size || 0)) + ' bytes<br>' +
               'Update: ' + escapeHtml(formatDate(asset.updatedAt)) +
+              '<div class="asset-actions">' +
+                '<button class="btn btn-danger delete-asset" data-name="' + encodedName + '" type="button">Hapus</button>' +
+              '</div>' +
             '</div>' +
           '</article>';
       }).join("");
+
+      Array.prototype.slice.call(document.querySelectorAll(".delete-asset")).forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var encodedName = btn.getAttribute("data-name") || "";
+          var originalName = "";
+          try { originalName = decodeURIComponent(encodedName); } catch (_) { originalName = encodedName; }
+          deleteAsset(originalName);
+        });
+      });
     }
 
     function refreshAssets() {
@@ -1008,6 +1035,25 @@
         .catch(function (err) {
           if (handleUnauthorized(err, "Sesi habis. Login ulang untuk upload asset.")) return;
           setLine("upload-status", "Error upload: " + (err.message || "unknown"), "error");
+        });
+    }
+
+    function deleteAsset(fileName) {
+      if (!fileName) return;
+      var confirmed = window.confirm("Hapus file ini?\\n" + fileName);
+      if (!confirmed) return;
+
+      setLine("upload-status", "Menghapus file " + fileName + "...");
+      apiJson(API_BASE + "/assets/" + encodeURIComponent(fileName), {
+        method: "DELETE"
+      })
+        .then(function () {
+          setLine("upload-status", "File berhasil dihapus: " + fileName, "success");
+          refreshAssets();
+        })
+        .catch(function (err) {
+          if (handleUnauthorized(err, "Sesi habis. Login ulang untuk hapus asset.")) return;
+          setLine("upload-status", "Error hapus file: " + (err.message || "unknown"), "error");
         });
     }
 
