@@ -60,23 +60,6 @@
       margin: 0 auto;
     }
 
-    .admin-menu {
-      width: var(--maxw);
-      margin: 0.75rem auto 0;
-      display: flex;
-      justify-content: flex-end;
-    }
-
-    .admin-menu a {
-      text-decoration: none;
-      border-radius: 999px;
-      padding: 0.42rem 0.82rem;
-      background: rgba(43, 27, 20, 0.86);
-      color: #fff;
-      font-size: 0.78rem;
-      border: 1px solid rgba(255, 242, 227, 0.3);
-    }
-
     .hero {
       margin-top: 0.8rem;
       border: var(--line);
@@ -115,14 +98,24 @@
       z-index: 1;
     }
 
-    .logo-wrap img {
-      width: 66px;
-      height: 66px;
-      object-fit: contain;
-      border-radius: 14px;
+    .logo-badge {
+      width: 82px;
+      height: 82px;
+      border-radius: 16px;
       border: 1px solid rgba(255, 242, 227, 0.45);
       background: rgba(255, 242, 227, 0.08);
-      padding: 0.35rem;
+      overflow: hidden;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-badge img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scale(1.06);
     }
 
     .logo-wrap span {
@@ -328,14 +321,25 @@
       overflow: hidden;
       border: 1px solid rgba(43, 27, 20, 0.2);
       background: #fff;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .gallery-media {
+      height: clamp(300px, 36vw, 490px);
+      background: linear-gradient(180deg, #f4e7d1, #f7ede0);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.36rem;
     }
 
     .gallery img {
       width: 100%;
-      height: 200px;
-      object-fit: cover;
+      height: 100%;
+      object-fit: contain;
       display: block;
-      background: #f8efe1;
+      background: #f4ead8;
     }
 
     .gallery figcaption {
@@ -379,19 +383,23 @@
     }
 
     .price-figure {
-      margin: 0.8rem 0 0;
+      margin: 0.8rem auto 0;
       border: 1px solid rgba(43, 27, 20, 0.18);
       border-radius: 14px;
       overflow: hidden;
       background: #fff;
+      width: min(100%, 560px);
+      padding: 0.5rem;
     }
 
     .price-figure img {
       display: block;
       width: 100%;
-      max-height: 620px;
+      max-height: none;
+      height: auto;
       object-fit: contain;
       background: #fffdf9;
+      border-radius: 10px;
     }
 
     .price-note {
@@ -554,14 +562,13 @@
         grid-template-columns: 1fr;
       }
 
-      .gallery img {
-        height: 220px;
+      .gallery-media {
+        height: clamp(320px, 60vw, 540px);
       }
     }
 
     @media (max-width: 640px) {
-      .container,
-      .admin-menu {
+      .container {
         width: min(1140px, calc(100% - 1rem));
       }
 
@@ -570,17 +577,17 @@
         padding: 0.9rem;
       }
 
-      .logo-wrap img {
-        width: 56px;
-        height: 56px;
+      .logo-badge {
+        width: 66px;
+        height: 66px;
       }
 
       .gallery {
         grid-template-columns: 1fr;
       }
 
-      .gallery img {
-        height: 210px;
+      .gallery-media {
+        height: clamp(320px, 88vw, 560px);
       }
     }
   </style>
@@ -588,23 +595,21 @@
 <body>
   <div id="navbar"></div>
 
-  <div class="admin-menu">
-    <a href="/products/class/cake-bakery-class/nainai-admin.html">Admin Dashboard</a>
-  </div>
-
   <main class="container">
     <section class="hero fade">
       <div>
         <div class="logo-wrap">
-          <img src="./logonainai.png" alt="Logo Nai Nai Lapis" />
+          <div class="logo-badge">
+            <img src="./logonainai.png" alt="Logo Nai Nai Lapis" />
+          </div>
           <span>Products &gt; Class &gt; Cake &amp; Bakery Class</span>
         </div>
         <h1 id="hero-title">Rasa rumah, dalam setiap lapis.</h1>
         <p id="hero-subtitle">
-          Nai Nai Lapis menghadirkan kue Lapis dan Nastar premium dengan karakter homey,
-          hangat, dan cocok untuk momen berbagi bersama keluarga.
+          Ada Lapis dan Nastar hangat dari dapur Nai Nai, cocok buat momen keluarga,
+          kirim hampers, atau sekadar self reward hari ini.
         </p>
-        <div class="announcement" id="announcement">Pre-order untuk besok sudah dibuka.</div>
+        <div class="announcement" id="announcement">Hari ini open pre-order, bisa request kirim sesuai jadwal.</div>
         <div class="hero-actions">
           <a class="btn btn-main track-click" data-track-label="hero_preorder" href="#order">Pre-order sekarang</a>
           <a class="btn btn-alt track-click" data-track-label="hero_pricelist" href="#pricelist">Lihat pricelist</a>
@@ -613,11 +618,11 @@
 
       <aside class="hero-card">
         <h3>Dua produk utama Nai Nai</h3>
-        <p>Lapis legit premium dan Nastar butter yang dibuat telaten, ready untuk self reward dan gifting.</p>
+        <p>Lapis dan Nastar dibuat telaten, rasanya hangat, tampilannya cantik, dan siap jadi hadiah manis.</p>
         <ul>
-          <li>Lapis: ukuran 10x10, 10x20, 20x20</li>
-          <li>Nastar: tersedia dengan opsi pack toples</li>
-          <li>Seasonal: Lapis Imlek untuk event khusus</li>
+          <li>Lapis: tersedia ukuran 10x10, 10x20, 20x20</li>
+          <li>Nastar: tersedia juga opsi pack toples</li>
+          <li>Lapis Imlek: tersedia saat event seasonal</li>
         </ul>
       </aside>
     </section>
@@ -625,8 +630,8 @@
     <section class="section fade" id="produk">
       <h2>Produk Nai Nai Lapis</h2>
       <p class="lead">
-        Produk aktif hanya 2: <strong>Lapis</strong> dan <strong>Nastar</strong>.
-        Lapis tersedia juga dalam varian seasonal untuk event tertentu.
+        Pilihan utamanya ada dua: <strong>Lapis</strong> dan <strong>Nastar</strong>.
+        Tinggal pilih yang paling pas buat momen kamu.
       </p>
 
       <div class="product-grid">
@@ -637,16 +642,20 @@
           </div>
           <div class="gallery">
             <figure>
-              <img src="./Nai Nai Lapis - Original.png" alt="Nai Nai Lapis Original" />
+              <div class="gallery-media">
+                <img src="./Nai Nai Lapis - Original.png" alt="Nai Nai Lapis Original" />
+              </div>
               <figcaption>Nai Nai Lapis - Original</figcaption>
             </figure>
             <figure>
-              <img src="./Nai Nai Lapis - Imlek.png" alt="Nai Nai Lapis Imlek" />
+              <div class="gallery-media">
+                <img src="./Nai Nai Lapis - Imlek.png" alt="Nai Nai Lapis Imlek" />
+              </div>
               <figcaption>Nai Nai Lapis - Imlek (event/seasonal)</figcaption>
             </figure>
           </div>
           <p class="product-copy">
-            Lapis legit premium dengan tekstur halus dan rasa clean. Seasonal Imlek tersedia untuk kebutuhan event.
+            Lapis legit dengan lapisan rapi, tekstur lembut, dan rasa yang comforting. Cocok untuk keluarga atau kirim hadiah.
           </p>
           <div>
             <strong style="font-size:0.88rem; color:#5a3425;">Ukuran Lapis:</strong>
@@ -665,16 +674,20 @@
           </div>
           <div class="gallery">
             <figure>
-              <img src="./Nastar1.jpeg" alt="Nastar Nai Nai Lapis" />
+              <div class="gallery-media">
+                <img src="./Nastar1.jpeg" alt="Nastar Nai Nai Lapis" />
+              </div>
               <figcaption>Nastar Fresh Batch</figcaption>
             </figure>
             <figure>
-              <img src="./Nastar2.jpeg" alt="Nastar Nai Nai Lapis dengan toples" />
+              <div class="gallery-media">
+                <img src="./Nastar2.jpeg" alt="Nastar Nai Nai Lapis dengan toples" />
+              </div>
               <figcaption>Nastar + Pack Toples</figcaption>
             </figure>
           </div>
           <p class="product-copy">
-            Nastar dengan tekstur lembut dan filling nanas yang seimbang. Cocok untuk hampers dan oleh-oleh premium.
+            Nastar buttery dengan isian nanas yang pas manisnya. Enak buat suguhan rumah, oleh-oleh, atau hampers.
           </p>
           <div class="hero-actions" style="margin-top:0.35rem;">
             <a class="btn btn-main track-click" data-track-label="cta_nastar_order" href="#order">Pesan Nastar</a>
@@ -685,31 +698,31 @@
 
     <section class="section fade" id="pricelist">
       <h2>Pricelist</h2>
-      <p class="lead">Lihat daftar harga terbaru untuk Lapis dan Nastar.</p>
+      <p class="lead">Biar gampang pilih, ini daftar harga Lapis dan Nastar terbaru.</p>
       <article class="price-section">
         <figure class="price-figure">
           <img id="pricelist-image" src="./Pricelist.jpeg" alt="Pricelist Nai Nai Lapis" />
         </figure>
-        <p class="price-note" id="pricelist-note">Jika gambar belum tampil, upload file `Pricelist.jpeg` dari Admin Dashboard.</p>
+        <p class="price-note" id="pricelist-note">Kalau pricelist belum tampil, boleh langsung chat admin untuk info harga terbaru.</p>
       </article>
     </section>
 
     <section class="section fade" id="order">
-      <h2>Order ke Admin</h2>
+      <h2>Yuk Order</h2>
       <p class="lead">
-        Isi form berikut, lalu sistem akan kirim detail order ke WhatsApp admin.
+        Isi singkat form ini, nanti kamu langsung diarahkan ke WhatsApp admin untuk lanjut pesan.
       </p>
 
       <div class="order-wrap">
         <article class="order-info">
-          <h3>Form order terhubung ke WhatsApp admin</h3>
+          <h3>Pesan cepat lewat WhatsApp</h3>
           <p>
-            Setiap klik CTA dan submit form akan tercatat di dashboard admin untuk monitoring lead dan order customer.
+            Cocok untuk pre-order harian, kebutuhan hampers, atau titip kirim ke keluarga dan teman.
           </p>
           <div class="order-tags">
-            <span>Monitoring klik CTA</span>
-            <span>Log order customer</span>
-            <span>Status follow-up</span>
+            <span>Fast response</span>
+            <span>Bisa request jadwal kirim</span>
+            <span>Ramah untuk hampers</span>
           </div>
         </article>
 
@@ -744,7 +757,7 @@
             <label for="order-notes">Catatan</label>
             <textarea id="order-notes" name="notes" placeholder="Contoh: ambil varian Imlek untuk hampers kantor"></textarea>
           </div>
-          <button class="btn btn-main" type="submit">Kirim order ke WhatsApp</button>
+          <button class="btn btn-main" type="submit">Lanjut ke WhatsApp</button>
           <p class="status-message" id="order-status"></p>
         </form>
       </div>
@@ -752,9 +765,9 @@
 
     <section class="final-cta fade">
       <div>
-        <h3>Siap pesan Lapis atau Nastar hari ini?</h3>
+        <h3>Mau dibantu pilih Lapis atau Nastar?</h3>
         <p>
-          Klik tombol order dan tim admin akan follow-up cepat via WhatsApp.
+          Klik tombol order, nanti tim kami bantu dari pilihan produk sampai jadwal kirim.
         </p>
       </div>
       <a class="btn btn-main track-click" data-track-label="footer_order_now" href="#order">Order sekarang</a>
@@ -910,7 +923,7 @@
         priceImage.style.display = "none";
         var note = document.getElementById("pricelist-note");
         if (note) {
-          note.textContent = "Gambar pricelist belum tersedia. Upload `Pricelist.jpeg` melalui Admin Dashboard.";
+          note.textContent = "Pricelist sedang diperbarui. Langsung chat admin untuk harga terbaru, ya.";
         }
       });
     }
@@ -962,15 +975,15 @@
         var notes = (document.getElementById("order-notes").value || "").trim();
 
         if (!name || !customerWa || !product) {
-          if (statusText) statusText.textContent = "Lengkapi data wajib terlebih dulu.";
+          if (statusText) statusText.textContent = "Boleh dilengkapi dulu data wajibnya, ya.";
           return;
         }
         if (product === "Lapis" && !size) {
-          if (statusText) statusText.textContent = "Pilih ukuran Lapis.";
+          if (statusText) statusText.textContent = "Pilih ukuran Lapis dulu, ya.";
           return;
         }
 
-        if (statusText) statusText.textContent = "Menyimpan order...";
+        if (statusText) statusText.textContent = "Sebentar, kami proses dulu...";
 
         var payload = {
           name: name,
@@ -1011,9 +1024,9 @@
 
             if (statusText) {
               if (result && result.ok) {
-                statusText.textContent = "Order berhasil dicatat. WhatsApp admin sedang dibuka...";
+                statusText.textContent = "Siap, WhatsApp admin sedang dibuka.";
               } else {
-                statusText.textContent = "Order tetap dikirim ke WhatsApp admin.";
+                statusText.textContent = "Order tetap lanjut ke WhatsApp admin.";
               }
             }
             form.reset();
@@ -1032,7 +1045,7 @@
               "Catatan: " + (notes || "-")
             ].join("\n");
             window.open("https://wa.me/" + adminWa + "?text=" + encodeURIComponent(backupText), "_blank", "noopener,noreferrer");
-            if (statusText) statusText.textContent = "Koneksi API bermasalah, tapi WhatsApp admin tetap dibuka.";
+            if (statusText) statusText.textContent = "Koneksi lagi kurang stabil, tapi WhatsApp admin tetap kebuka.";
           });
       });
     }

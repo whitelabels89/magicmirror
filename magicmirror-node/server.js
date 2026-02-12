@@ -666,8 +666,8 @@ const NAINAI_UPLOAD_MAX_BYTES = 8 * 1024 * 1024;
 const NAINAI_ALLOWED_UPLOAD_EXT = new Set(['.png', '.jpg', '.jpeg', '.webp']);
 const NAINAI_DEFAULT_CONFIG = {
   heroTitle: 'Rasa rumah, dalam setiap lapis.',
-  heroSubtitle: 'Nai Nai Lapis menghadirkan lapis legit premium dan nastar handmade untuk momen hangat keluarga.',
-  announcement: 'Pre-order untuk besok sudah dibuka.',
+  heroSubtitle: 'Ada Lapis dan Nastar hangat dari dapur Nai Nai, cocok untuk momen keluarga dan hampers.',
+  announcement: 'Hari ini open pre-order, bisa request jadwal kirim.',
   adminWhatsapp: NAINAI_ADMIN_WA_DEFAULT,
   lapisSizes: ['10 x 10', '10 x 20', '20 x 20'],
   seasonalLabel: 'Seasonal / Event',
