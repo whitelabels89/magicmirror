@@ -8,6 +8,7 @@ const io = require('socket.io')(http, { cors: { origin: "*" } });
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const multer = require('multer');
 const { google } = require('googleapis');
 const uploadModulRouter = require('./uploadModul');
 const admin = require('firebase-admin');
@@ -655,6 +656,281 @@ app.get('/api/storage-info', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
+
+const NAINAI_ADMIN_WA_DEFAULT = '6288972861212';
+const NAINAI_DATA_DIR = path.join(__dirname, 'data');
+const NAINAI_LEADS_FILE = path.join(NAINAI_DATA_DIR, 'nainai-leads.json');
+const NAINAI_CONFIG_FILE = path.join(NAINAI_DATA_DIR, 'nainai-config.json');
+const NAINAI_ASSET_DIR = path.join(__dirname, 'public', 'products', 'class', 'cake-bakery-class');
+const NAINAI_UPLOAD_MAX_BYTES = 8 * 1024 * 1024;
+const NAINAI_ALLOWED_UPLOAD_EXT = new Set(['.png', '.jpg', '.jpeg', '.webp']);
+const NAINAI_DEFAULT_CONFIG = {
+  heroTitle: 'Rasa rumah, dalam setiap lapis.',
+  heroSubtitle: 'Nai Nai Lapis menghadirkan lapis legit premium dan nastar handmade untuk momen hangat keluarga.',
+  announcement: 'Pre-order untuk besok sudah dibuka.',
+  adminWhatsapp: NAINAI_ADMIN_WA_DEFAULT,
+  lapisSizes: ['10 x 10', '10 x 20', '20 x 20'],
+  seasonalLabel: 'Seasonal / Event',
+  adminPinHash: '',
+  adminPinSalt: '',
+  adminPinUpdatedAt: null,
+  updatedAt: null
+};
+
+const NAINAI_ADMIN_PIN_MIN = 4;
+const NAINAI_ADMIN_PIN_MAX = 8;
+const NAINAI_ADMIN_SESSION_TTL_MS = 12 * 60 * 60 * 1000;
+const nainaiAdminSessions = new Map();
+
+function ensureDirSync(dirPath) {
+  if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true });
+}
+
+function readJsonSafely(filePath, fallbackValue) {
+  try {
+    if (!fs.existsSync(filePath)) return fallbackValue;
+    const raw = fs.readFileSync(filePath, 'utf8');
+    if (!raw || !raw.trim()) return fallbackValue;
+    const parsed = JSON.parse(raw);
+    return parsed;
+  } catch (err) {
+    console.warn('[nainai] failed reading json', filePath, err.message);
+    return fallbackValue;
+  }
+}
+
+function writeJsonSafely(filePath, value) {
+  ensureDirSync(path.dirname(filePath));
+  fs.writeFileSync(filePath, JSON.stringify(value, null, 2), 'utf8');
+}
+
+function normalizePhone62(rawPhone) {
+  let value = String(rawPhone || '').trim().replace(/[^0-9+]/g, '');
+  if (!value) return '';
+  if (value.startsWith('+')) value = value.slice(1);
+  if (value.startsWith('08')) value = `62${value.slice(1)}`;
+  else if (value.startsWith('8')) value = `62${value}`;
+  else if (!value.startsWith('62')) value = `62${value}`;
+  return value;
+}
+
+function sanitizeText(value, maxLen = 240) {
+  return String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, maxLen);
+}
+
+function nowIso() {
+  return new Date().toISOString();
+}
+
+function generateNainaiId(prefix = 'nn') {
+  return `${prefix}_${Date.now()}_${crypto.randomBytes(3).toString('hex')}`;
+}
+
+function loadNainaiConfig() {
+  const stored = readJsonSafely(NAINAI_CONFIG_FILE, null);
+  if (!stored || typeof stored !== 'object') return { ...NAINAI_DEFAULT_CONFIG };
+  const lapisSizes = Array.isArray(stored.lapisSizes)
+    ? stored.lapisSizes.map((item) => sanitizeText(item, 40)).filter(Boolean)
+    : [...NAINAI_DEFAULT_CONFIG.lapisSizes];
+  return {
+    ...NAINAI_DEFAULT_CONFIG,
+    ...stored,
+    heroTitle: sanitizeText(stored.heroTitle || NAINAI_DEFAULT_CONFIG.heroTitle, 120),
+    heroSubtitle: sanitizeText(stored.heroSubtitle || NAINAI_DEFAULT_CONFIG.heroSubtitle, 420),
+    announcement: sanitizeText(stored.announcement || NAINAI_DEFAULT_CONFIG.announcement, 180),
+    seasonalLabel: sanitizeText(stored.seasonalLabel || NAINAI_DEFAULT_CONFIG.seasonalLabel, 80),
+    adminWhatsapp: normalizePhone62(stored.adminWhatsapp || NAINAI_DEFAULT_CONFIG.adminWhatsapp) || NAINAI_ADMIN_WA_DEFAULT,
+    lapisSizes: lapisSizes.length ? lapisSizes : [...NAINAI_DEFAULT_CONFIG.lapisSizes]
+  };
+}
+
+function saveNainaiConfig(nextConfig) {
+  const merged = {
+    ...loadNainaiConfig(),
+    ...nextConfig,
+    updatedAt: nowIso()
+  };
+  merged.heroTitle = sanitizeText(merged.heroTitle, 120);
+  merged.heroSubtitle = sanitizeText(merged.heroSubtitle, 420);
+  merged.announcement = sanitizeText(merged.announcement, 180);
+  merged.seasonalLabel = sanitizeText(merged.seasonalLabel, 80);
+  merged.adminWhatsapp = normalizePhone62(merged.adminWhatsapp) || NAINAI_ADMIN_WA_DEFAULT;
+  merged.lapisSizes = Array.isArray(merged.lapisSizes)
+    ? merged.lapisSizes.map((item) => sanitizeText(item, 40)).filter(Boolean)
+    : [...NAINAI_DEFAULT_CONFIG.lapisSizes];
+  if (!merged.lapisSizes.length) merged.lapisSizes = [...NAINAI_DEFAULT_CONFIG.lapisSizes];
+  writeJsonSafely(NAINAI_CONFIG_FILE, merged);
+  return merged;
+}
+
+function loadNainaiLeads() {
+  const rows = readJsonSafely(NAINAI_LEADS_FILE, []);
+  if (!Array.isArray(rows)) return [];
+  return rows;
+}
+
+function saveNainaiLeads(rows) {
+  const maxRows = 2000;
+  const safeRows = Array.isArray(rows) ? rows.slice(-maxRows) : [];
+  writeJsonSafely(NAINAI_LEADS_FILE, safeRows);
+  return safeRows;
+}
+
+function toPublicNainaiConfig(config) {
+  const safe = { ...(config || {}) };
+  delete safe.adminPinHash;
+  delete safe.adminPinSalt;
+  return safe;
+}
+
+function isNainaiPinInitialized(config) {
+  const current = config || loadNainaiConfig();
+  return Boolean(current && current.adminPinHash && current.adminPinSalt);
+}
+
+function isValidNainaiPin(pin) {
+  return /^[0-9]+$/.test(String(pin || '')) &&
+    String(pin).length >= NAINAI_ADMIN_PIN_MIN &&
+    String(pin).length <= NAINAI_ADMIN_PIN_MAX;
+}
+
+function hashNainaiPin(pin, salt) {
+  return crypto.pbkdf2Sync(String(pin), String(salt), 120000, 32, 'sha256').toString('hex');
+}
+
+function verifyNainaiPin(pin, config) {
+  const current = config || loadNainaiConfig();
+  if (!isNainaiPinInitialized(current)) return false;
+  const hashed = hashNainaiPin(pin, current.adminPinSalt);
+  return hashed === current.adminPinHash;
+}
+
+function setNainaiPin(nextPin) {
+  const pin = String(nextPin || '').trim();
+  if (!isValidNainaiPin(pin)) {
+    throw new Error(`PIN harus ${NAINAI_ADMIN_PIN_MIN}-${NAINAI_ADMIN_PIN_MAX} digit angka`);
+  }
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = hashNainaiPin(pin, salt);
+  const config = saveNainaiConfig({
+    adminPinHash: hash,
+    adminPinSalt: salt,
+    adminPinUpdatedAt: nowIso()
+  });
+  nainaiAdminSessions.clear();
+  return config;
+}
+
+function cleanupNainaiAdminSessions() {
+  const now = Date.now();
+  for (const [token, value] of nainaiAdminSessions.entries()) {
+    if (!value || !value.expiresAt || value.expiresAt <= now) {
+      nainaiAdminSessions.delete(token);
+    }
+  }
+}
+
+function createNainaiAdminSession(meta = {}) {
+  cleanupNainaiAdminSessions();
+  const now = Date.now();
+  const token = crypto.randomBytes(24).toString('hex');
+  const session = {
+    token,
+    createdAt: now,
+    expiresAt: now + NAINAI_ADMIN_SESSION_TTL_MS,
+    ...meta
+  };
+  nainaiAdminSessions.set(token, session);
+  return session;
+}
+
+function getNainaiAdminTokenFromRequest(req) {
+  const headerToken = req.headers['x-nainai-admin-token'];
+  if (typeof headerToken === 'string' && headerToken.trim()) return headerToken.trim();
+  const authHeader = req.headers.authorization || req.headers.Authorization;
+  if (typeof authHeader === 'string' && authHeader.toLowerCase().startsWith('bearer ')) {
+    return authHeader.slice(7).trim();
+  }
+  return '';
+}
+
+function requireNainaiAdmin(req, res, next) {
+  cleanupNainaiAdminSessions();
+  const token = getNainaiAdminTokenFromRequest(req);
+  if (!token) return res.status(401).json({ ok: false, error: 'PIN admin diperlukan' });
+  const session = nainaiAdminSessions.get(token);
+  if (!session || !session.expiresAt || session.expiresAt <= Date.now()) {
+    if (token) nainaiAdminSessions.delete(token);
+    return res.status(401).json({ ok: false, error: 'Sesi admin tidak valid atau kadaluarsa' });
+  }
+  req.nainaiAdminSession = session;
+  req.nainaiAdminToken = token;
+  return next();
+}
+
+function listNainaiAssets() {
+  ensureDirSync(NAINAI_ASSET_DIR);
+  return fs.readdirSync(NAINAI_ASSET_DIR)
+    .filter((name) => NAINAI_ALLOWED_UPLOAD_EXT.has(path.extname(name).toLowerCase()))
+    .map((name) => {
+      const abs = path.join(NAINAI_ASSET_DIR, name);
+      const stat = fs.statSync(abs);
+      return {
+        name,
+        size: stat.size,
+        updatedAt: stat.mtime.toISOString(),
+        url: `/products/class/cake-bakery-class/${encodeURIComponent(name)}`
+      };
+    })
+    .sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)));
+}
+
+function bootstrapNainaiStorage() {
+  ensureDirSync(NAINAI_DATA_DIR);
+  ensureDirSync(NAINAI_ASSET_DIR);
+  if (!fs.existsSync(NAINAI_CONFIG_FILE)) {
+    writeJsonSafely(NAINAI_CONFIG_FILE, { ...NAINAI_DEFAULT_CONFIG, updatedAt: nowIso() });
+  }
+  if (!fs.existsSync(NAINAI_LEADS_FILE)) {
+    writeJsonSafely(NAINAI_LEADS_FILE, []);
+  }
+}
+
+bootstrapNainaiStorage();
+setInterval(cleanupNainaiAdminSessions, 60 * 1000);
+
+const nainaiMulterStorage = multer.diskStorage({
+  destination(_req, _file, cb) {
+    ensureDirSync(NAINAI_ASSET_DIR);
+    cb(null, NAINAI_ASSET_DIR);
+  },
+  filename(req, file, cb) {
+    const ext = path.extname(file.originalname || '').toLowerCase();
+    const rawBase = path.basename(file.originalname || 'asset', ext);
+    const safeBase = sanitizeText(rawBase.replace(/[^a-zA-Z0-9 _-]/g, ''), 60)
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '')
+      .toLowerCase() || 'asset';
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+    cb(null, `${safeBase}-${stamp}${ext}`);
+  }
+});
+
+const nainaiUpload = multer({
+  storage: nainaiMulterStorage,
+  limits: { fileSize: NAINAI_UPLOAD_MAX_BYTES },
+  fileFilter(_req, file, cb) {
+    const ext = path.extname(file.originalname || '').toLowerCase();
+    if (!NAINAI_ALLOWED_UPLOAD_EXT.has(ext)) {
+      return cb(new Error('Format file tidak didukung. Gunakan PNG/JPG/JPEG/WEBP.'));
+    }
+    return cb(null, true);
+  }
+});
 
 async function getClassList() {
   const snap = await db.collection('kelas').get();
@@ -1698,6 +1974,338 @@ app.get('/api/stats/dau', async (req, res) => {
 app.get('/api/revenue/monthly', async (req, res) => {
   try { res.json([]); }
   catch (err) { console.error('❌ /api/revenue/monthly error:', err); res.status(500).json([]); }
+});
+
+// ===== Nai Nai Lapis: lightweight CMS + leads monitoring =====
+app.get('/api/nainai/admin/auth/state', (req, res) => {
+  try {
+    const config = loadNainaiConfig();
+    return res.json({
+      ok: true,
+      initialized: isNainaiPinInitialized(config),
+      pinMin: NAINAI_ADMIN_PIN_MIN,
+      pinMax: NAINAI_ADMIN_PIN_MAX
+    });
+  } catch (err) {
+    console.error('❌ /api/nainai/admin/auth/state error:', err);
+    return res.status(500).json({ ok: false, error: 'Gagal membaca status PIN admin' });
+  }
+});
+
+app.post('/api/nainai/admin/auth/bootstrap', (req, res) => {
+  try {
+    const body = req.body || {};
+    const pin = String(body.pin || '').trim();
+    const confirmPin = String(body.confirmPin || '').trim();
+    const config = loadNainaiConfig();
+
+    if (isNainaiPinInitialized(config)) {
+      return res.status(409).json({ ok: false, error: 'PIN admin sudah pernah diaktifkan' });
+    }
+    if (!isValidNainaiPin(pin)) {
+      return res.status(400).json({ ok: false, error: `PIN harus ${NAINAI_ADMIN_PIN_MIN}-${NAINAI_ADMIN_PIN_MAX} digit angka` });
+    }
+    if (pin !== confirmPin) {
+      return res.status(400).json({ ok: false, error: 'Konfirmasi PIN tidak cocok' });
+    }
+
+    const nextConfig = setNainaiPin(pin);
+    const session = createNainaiAdminSession({ uid: 'nainai-admin' });
+    return res.json({
+      ok: true,
+      token: session.token,
+      expiresAt: new Date(session.expiresAt).toISOString(),
+      config: toPublicNainaiConfig(nextConfig)
+    });
+  } catch (err) {
+    console.error('❌ /api/nainai/admin/auth/bootstrap error:', err);
+    return res.status(500).json({ ok: false, error: err.message || 'Gagal aktivasi PIN admin' });
+  }
+});
+
+app.post('/api/nainai/admin/auth/login', (req, res) => {
+  try {
+    const body = req.body || {};
+    const pin = String(body.pin || '').trim();
+    const config = loadNainaiConfig();
+
+    if (!isNainaiPinInitialized(config)) {
+      return res.status(409).json({ ok: false, error: 'PIN admin belum diaktifkan. Lakukan aktivasi awal.' });
+    }
+    if (!verifyNainaiPin(pin, config)) {
+      return res.status(401).json({ ok: false, error: 'PIN salah' });
+    }
+
+    const session = createNainaiAdminSession({ uid: 'nainai-admin' });
+    return res.json({
+      ok: true,
+      token: session.token,
+      expiresAt: new Date(session.expiresAt).toISOString()
+    });
+  } catch (err) {
+    console.error('❌ /api/nainai/admin/auth/login error:', err);
+    return res.status(500).json({ ok: false, error: 'Gagal login admin' });
+  }
+});
+
+app.get('/api/nainai/admin/auth/me', requireNainaiAdmin, (req, res) => {
+  const session = req.nainaiAdminSession || {};
+  return res.json({
+    ok: true,
+    uid: session.uid || 'nainai-admin',
+    expiresAt: session.expiresAt ? new Date(session.expiresAt).toISOString() : null
+  });
+});
+
+app.post('/api/nainai/admin/auth/logout', requireNainaiAdmin, (req, res) => {
+  try {
+    if (req.nainaiAdminToken) nainaiAdminSessions.delete(req.nainaiAdminToken);
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error('❌ /api/nainai/admin/auth/logout error:', err);
+    return res.status(500).json({ ok: false, error: 'Gagal logout admin' });
+  }
+});
+
+app.post('/api/nainai/admin/auth/change-pin', requireNainaiAdmin, (req, res) => {
+  try {
+    const body = req.body || {};
+    const oldPin = String(body.oldPin || '').trim();
+    const newPin = String(body.newPin || '').trim();
+    const confirmPin = String(body.confirmPin || '').trim();
+    const config = loadNainaiConfig();
+
+    if (!isNainaiPinInitialized(config)) {
+      return res.status(409).json({ ok: false, error: 'PIN admin belum diaktifkan' });
+    }
+    if (!verifyNainaiPin(oldPin, config)) {
+      return res.status(401).json({ ok: false, error: 'PIN lama tidak sesuai' });
+    }
+    if (!isValidNainaiPin(newPin)) {
+      return res.status(400).json({ ok: false, error: `PIN baru harus ${NAINAI_ADMIN_PIN_MIN}-${NAINAI_ADMIN_PIN_MAX} digit angka` });
+    }
+    if (newPin !== confirmPin) {
+      return res.status(400).json({ ok: false, error: 'Konfirmasi PIN baru tidak cocok' });
+    }
+    if (oldPin === newPin) {
+      return res.status(400).json({ ok: false, error: 'PIN baru harus berbeda dari PIN lama' });
+    }
+
+    setNainaiPin(newPin);
+    const session = createNainaiAdminSession({ uid: 'nainai-admin' });
+    return res.json({
+      ok: true,
+      token: session.token,
+      expiresAt: new Date(session.expiresAt).toISOString()
+    });
+  } catch (err) {
+    console.error('❌ /api/nainai/admin/auth/change-pin error:', err);
+    return res.status(500).json({ ok: false, error: err.message || 'Gagal ganti PIN' });
+  }
+});
+
+app.get('/api/nainai/config', (req, res) => {
+  try {
+    const config = loadNainaiConfig();
+    return res.json({
+      ok: true,
+      config: toPublicNainaiConfig(config),
+      assets: listNainaiAssets()
+    });
+  } catch (err) {
+    console.error('❌ /api/nainai/config error:', err);
+    return res.status(500).json({ ok: false, error: 'Gagal memuat config' });
+  }
+});
+
+app.put('/api/nainai/config', requireNainaiAdmin, (req, res) => {
+  try {
+    const body = req.body || {};
+    const next = {};
+    if ('heroTitle' in body) next.heroTitle = body.heroTitle;
+    if ('heroSubtitle' in body) next.heroSubtitle = body.heroSubtitle;
+    if ('announcement' in body) next.announcement = body.announcement;
+    if ('adminWhatsapp' in body) next.adminWhatsapp = body.adminWhatsapp;
+    if ('seasonalLabel' in body) next.seasonalLabel = body.seasonalLabel;
+    if ('lapisSizes' in body) {
+      if (Array.isArray(body.lapisSizes)) {
+        next.lapisSizes = body.lapisSizes;
+      } else if (typeof body.lapisSizes === 'string') {
+        next.lapisSizes = body.lapisSizes.split(',').map((item) => item.trim());
+      }
+    }
+
+    const config = saveNainaiConfig(next);
+    return res.json({ ok: true, config });
+  } catch (err) {
+    console.error('❌ /api/nainai/config update error:', err);
+    return res.status(500).json({ ok: false, error: 'Gagal menyimpan config' });
+  }
+});
+
+app.get('/api/nainai/assets', requireNainaiAdmin, (req, res) => {
+  try {
+    return res.json({ ok: true, assets: listNainaiAssets() });
+  } catch (err) {
+    console.error('❌ /api/nainai/assets error:', err);
+    return res.status(500).json({ ok: false, error: 'Gagal membaca assets' });
+  }
+});
+
+app.post('/api/nainai/upload-asset', requireNainaiAdmin, (req, res) => {
+  nainaiUpload.single('asset')(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({ ok: false, error: err.message || 'Upload gagal' });
+    }
+    if (!req.file) {
+      return res.status(400).json({ ok: false, error: 'File belum dipilih' });
+    }
+    return res.json({
+      ok: true,
+      file: {
+        name: req.file.filename,
+        size: req.file.size,
+        url: `/products/class/cake-bakery-class/${encodeURIComponent(req.file.filename)}`
+      }
+    });
+  });
+});
+
+app.get('/api/nainai/orders', requireNainaiAdmin, (req, res) => {
+  try {
+    const limit = Math.max(1, Math.min(1000, toNumber(req.query.limit, 200)));
+    const kind = sanitizeText(req.query.kind || '', 20).toLowerCase();
+    const status = sanitizeText(req.query.status || '', 20).toLowerCase();
+    const q = sanitizeText(req.query.q || '', 80).toLowerCase();
+
+    let rows = loadNainaiLeads();
+    rows = rows.slice().sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+
+    if (kind) rows = rows.filter((row) => String(row.kind || '').toLowerCase() === kind);
+    if (status) rows = rows.filter((row) => String(row.status || '').toLowerCase() === status);
+    if (q) {
+      rows = rows.filter((row) => JSON.stringify(row).toLowerCase().includes(q));
+    }
+
+    return res.json({
+      ok: true,
+      total: rows.length,
+      data: rows.slice(0, limit)
+    });
+  } catch (err) {
+    console.error('❌ /api/nainai/orders error:', err);
+    return res.status(500).json({ ok: false, error: 'Gagal mengambil data order/event' });
+  }
+});
+
+app.post('/api/nainai/events', (req, res) => {
+  try {
+    const body = req.body || {};
+    const eventType = sanitizeText(body.eventType, 40) || 'click';
+    const label = sanitizeText(body.label, 120);
+    const sourcePage = sanitizeText(body.sourcePage, 200);
+    const product = sanitizeText(body.product, 80);
+    const size = sanitizeText(body.size, 40);
+    const meta = body.meta && typeof body.meta === 'object' ? body.meta : {};
+
+    const entry = {
+      id: generateNainaiId('evt'),
+      kind: 'event',
+      status: 'new',
+      eventType,
+      label,
+      sourcePage,
+      product,
+      size,
+      meta,
+      createdAt: nowIso()
+    };
+    const rows = loadNainaiLeads();
+    rows.push(entry);
+    saveNainaiLeads(rows);
+    return res.json({ ok: true, entry });
+  } catch (err) {
+    console.error('❌ /api/nainai/events error:', err);
+    return res.status(500).json({ ok: false, error: 'Gagal mencatat event' });
+  }
+});
+
+app.post('/api/nainai/order', (req, res) => {
+  try {
+    const body = req.body || {};
+    const name = sanitizeText(body.name, 100);
+    const whatsappRaw = sanitizeText(body.whatsapp, 40);
+    const whatsapp = normalizePhone62(whatsappRaw);
+    const product = sanitizeText(body.product, 80);
+    const size = sanitizeText(body.size, 40);
+    const notes = sanitizeText(body.notes, 600);
+    const sourcePage = sanitizeText(body.sourcePage, 200);
+
+    if (!name || !whatsapp || !product) {
+      return res.status(400).json({ ok: false, error: 'Nama, WhatsApp, dan produk wajib diisi' });
+    }
+
+    const entry = {
+      id: generateNainaiId('ord'),
+      kind: 'order',
+      status: 'new',
+      name,
+      whatsapp,
+      product,
+      size,
+      notes,
+      sourcePage,
+      createdAt: nowIso()
+    };
+
+    const rows = loadNainaiLeads();
+    rows.push(entry);
+    saveNainaiLeads(rows);
+
+    const config = loadNainaiConfig();
+    return res.json({
+      ok: true,
+      order: entry,
+      adminWhatsapp: config.adminWhatsapp || NAINAI_ADMIN_WA_DEFAULT
+    });
+  } catch (err) {
+    console.error('❌ /api/nainai/order error:', err);
+    return res.status(500).json({ ok: false, error: 'Gagal menyimpan order' });
+  }
+});
+
+app.patch('/api/nainai/orders/:id', requireNainaiAdmin, (req, res) => {
+  try {
+    const id = sanitizeText(req.params.id, 80);
+    const body = req.body || {};
+    const status = sanitizeText(body.status, 24).toLowerCase();
+    const adminNote = sanitizeText(body.adminNote, 400);
+    const validStatuses = new Set(['new', 'in_progress', 'done', 'cancelled']);
+
+    if (!id) return res.status(400).json({ ok: false, error: 'ID tidak valid' });
+    if (status && !validStatuses.has(status)) {
+      return res.status(400).json({ ok: false, error: 'Status tidak valid' });
+    }
+
+    const rows = loadNainaiLeads();
+    const idx = rows.findIndex((row) => row && row.id === id);
+    if (idx < 0) return res.status(404).json({ ok: false, error: 'Data tidak ditemukan' });
+
+    const current = rows[idx] || {};
+    const next = {
+      ...current,
+      updatedAt: nowIso()
+    };
+    if (status) next.status = status;
+    if ('adminNote' in body) next.adminNote = adminNote;
+
+    rows[idx] = next;
+    saveNainaiLeads(rows);
+    return res.json({ ok: true, entry: next });
+  } catch (err) {
+    console.error('❌ /api/nainai/orders/:id error:', err);
+    return res.status(500).json({ ok: false, error: 'Gagal update status order/event' });
+  }
 });
 
 // Serve static files from /public

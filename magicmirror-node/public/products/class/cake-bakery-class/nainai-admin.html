@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nai Nai Admin Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --espresso: #2b1b14;
+      --caramel: #c98b2b;
+      --cream: #fff2e3;
+      --cinnamon: #9c5a3c;
+      --red: #b3202e;
+      --line: 1px solid rgba(43, 27, 20, 0.14);
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --shadow: 0 12px 28px rgba(43, 27, 20, 0.12);
+      --maxw: min(1200px, calc(100% - 2rem));
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Inter", sans-serif;
+      color: var(--espresso);
+      background:
+        radial-gradient(circle at 8% 8%, rgba(201, 139, 43, 0.18), transparent 35%),
+        radial-gradient(circle at 90% 12%, rgba(179, 32, 46, 0.12), transparent 40%),
+        linear-gradient(180deg, #fff9f1, #fff2e3);
+      min-height: 100vh;
+    }
+
+    .container {
+      width: var(--maxw);
+      margin: 0 auto;
+      padding: 1rem 0 2rem;
+    }
+
+    .topbar {
+      border: var(--line);
+      border-radius: var(--radius-lg);
+      background: linear-gradient(145deg, rgba(43, 27, 20, 0.96), rgba(84, 45, 31, 0.95));
+      box-shadow: 0 18px 38px rgba(43, 27, 20, 0.22);
+      color: var(--cream);
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .brand img {
+      width: 58px;
+      height: 58px;
+      object-fit: contain;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 242, 227, 0.35);
+      background: rgba(255, 242, 227, 0.08);
+      padding: 0.3rem;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-family: "Noto Serif Display", serif;
+      font-size: clamp(1.45rem, 2.4vw, 2rem);
+      line-height: 1.2;
+    }
+
+    .brand p {
+      margin: 0.22rem 0 0;
+      font-size: 0.86rem;
+      color: rgba(255, 242, 227, 0.86);
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 0.55rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: 1px solid transparent;
+      text-decoration: none;
+      cursor: pointer;
+      font-size: 0.84rem;
+      font-weight: 600;
+      padding: 0.55rem 0.95rem;
+      transition: transform 220ms ease, box-shadow 220ms ease, background 220ms ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Inter", sans-serif;
+    }
+
+    .btn:hover { transform: translateY(-2px); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .btn-main {
+      background: var(--caramel);
+      color: #2f1b10;
+      box-shadow: 0 8px 18px rgba(201, 139, 43, 0.34);
+    }
+
+    .btn-dark {
+      background: rgba(255, 242, 227, 0.1);
+      color: var(--cream);
+      border-color: rgba(255, 242, 227, 0.35);
+    }
+
+    .panel {
+      border: var(--line);
+      border-radius: var(--radius-lg);
+      background: rgba(255, 242, 227, 0.82);
+      box-shadow: var(--shadow);
+      padding: 0.95rem;
+    }
+
+    .panel h2 {
+      margin: 0;
+      font-family: "Noto Serif Display", serif;
+      font-size: 1.38rem;
+      line-height: 1.2;
+      color: #3a2217;
+    }
+
+    .panel h3 {
+      margin: 0;
+      font-size: 1.03rem;
+      color: #4a2b1f;
+    }
+
+    .panel p.muted {
+      margin: 0.45rem 0 0;
+      color: rgba(43, 27, 20, 0.76);
+      font-size: 0.89rem;
+      line-height: 1.56;
+    }
+
+    #auth-panel {
+      margin-top: 1rem;
+      max-width: 680px;
+    }
+
+    .auth-layout {
+      margin-top: 0.75rem;
+      display: grid;
+      gap: 0.85rem;
+    }
+
+    .auth-box {
+      border: var(--line);
+      border-radius: var(--radius-md);
+      background: #fff9f2;
+      padding: 0.8rem;
+      display: none;
+    }
+
+    .auth-box.show { display: block; }
+
+    .field label {
+      display: block;
+      margin-bottom: 0.18rem;
+      font-size: 0.76rem;
+      color: rgba(43, 27, 20, 0.76);
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      border: 1px solid rgba(43, 27, 20, 0.18);
+      border-radius: 9px;
+      background: #fffdf9;
+      color: #2b1b14;
+      padding: 0.5rem 0.56rem;
+      font-size: 0.84rem;
+      font-family: "Inter", sans-serif;
+      outline: none;
+    }
+
+    .field textarea {
+      min-height: 84px;
+      resize: vertical;
+    }
+
+    .auth-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.55rem;
+      margin-top: 0.6rem;
+    }
+
+    .status-line {
+      margin-top: 0.52rem;
+      font-size: 0.8rem;
+      min-height: 1em;
+      color: rgba(43, 27, 20, 0.8);
+    }
+
+    .status-line.error { color: #9f2430; }
+    .status-line.success { color: #1e6f36; }
+
+    #dashboard-root {
+      display: none;
+      margin-top: 1rem;
+    }
+
+    .stats {
+      margin-top: 0.8rem;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.56rem;
+    }
+
+    .stat {
+      border: 1px solid rgba(43, 27, 20, 0.16);
+      border-radius: 12px;
+      background: #fff9f1;
+      padding: 0.58rem;
+    }
+
+    .stat-label {
+      font-size: 0.76rem;
+      color: rgba(43, 27, 20, 0.72);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin: 0;
+    }
+
+    .stat-value {
+      margin: 0.22rem 0 0;
+      font-size: 1.22rem;
+      font-weight: 700;
+      color: #3c2418;
+    }
+
+    .filters {
+      margin-top: 0.8rem;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 0.5rem;
+      align-items: end;
+    }
+
+    .table-wrap {
+      margin-top: 0.8rem;
+      border: var(--line);
+      border-radius: 12px;
+      overflow: auto;
+      background: #fffdf9;
+      max-height: 480px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 920px;
+    }
+
+    th,
+    td {
+      padding: 0.5rem 0.56rem;
+      border-bottom: 1px solid rgba(43, 27, 20, 0.08);
+      text-align: left;
+      vertical-align: top;
+      font-size: 0.8rem;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #f9efe1;
+      color: #3e2519;
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid rgba(43, 27, 20, 0.16);
+      border-radius: 999px;
+      padding: 0.14rem 0.44rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      background: #fff;
+      color: #4a2b1f;
+    }
+
+    .chip.order { background: rgba(201, 139, 43, 0.2); }
+    .chip.event { background: rgba(179, 32, 46, 0.14); }
+
+    .status-new { color: #8b4d2d; }
+    .status-in_progress { color: #805f00; }
+    .status-done { color: #1d6a2f; }
+    .status-cancelled { color: #8f2b34; }
+
+    .inline-actions {
+      display: grid;
+      gap: 0.3rem;
+      min-width: 190px;
+    }
+
+    .inline-actions .btn {
+      font-size: 0.74rem;
+      padding: 0.34rem 0.54rem;
+      border-radius: 8px;
+    }
+
+    .grid {
+      margin-top: 1rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .config-form,
+    .pin-form {
+      margin-top: 0.82rem;
+      display: grid;
+      gap: 0.55rem;
+    }
+
+    .asset-upload {
+      margin-top: 0.8rem;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.56rem;
+      align-items: end;
+    }
+
+    .asset-grid {
+      margin-top: 0.86rem;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.56rem;
+    }
+
+    .asset-card {
+      border: 1px solid rgba(43, 27, 20, 0.15);
+      border-radius: 10px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .asset-card img {
+      width: 100%;
+      height: 94px;
+      object-fit: cover;
+      display: block;
+      background: #f4ead8;
+    }
+
+    .asset-meta {
+      padding: 0.36rem 0.46rem 0.48rem;
+      font-size: 0.71rem;
+      color: rgba(43, 27, 20, 0.72);
+      line-height: 1.45;
+      word-break: break-word;
+    }
+
+    @media (max-width: 1020px) {
+      .grid { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .asset-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .auth-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      .container { width: min(1200px, calc(100% - 1rem)); }
+      .topbar { padding: 0.8rem; }
+      .asset-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .asset-upload { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <header class="topbar">
+      <div class="brand">
+        <img src="./logonainai.png" alt="Logo Nai Nai Lapis" />
+        <div>
+          <h1>Nai Nai Admin Dashboard</h1>
+          <p>Edit konten landing page, upload asset, monitor order + klik customer.</p>
+        </div>
+      </div>
+      <div class="top-actions">
+        <a class="btn btn-dark" href="/products/class/cake-bakery-class/nai-nai-lapis.html" target="_blank" rel="noopener noreferrer">Buka Landing Page</a>
+        <button class="btn btn-main" id="refresh-all" type="button" disabled>Refresh Data</button>
+        <button class="btn btn-dark" id="logout-btn" type="button" style="display:none;">Logout</button>
+      </div>
+    </header>
+
+    <section class="panel" id="auth-panel">
+      <h2 id="auth-title">Autentikasi Admin PIN</h2>
+      <p class="muted" id="auth-desc">Sistem mengecek apakah PIN admin sudah pernah diaktifkan.</p>
+
+      <div class="auth-layout">
+        <div class="auth-box" id="setup-box">
+          <h3>Aktivasi PIN Pertama Kali</h3>
+          <p class="muted" style="margin-top:0.35rem;">Buat PIN 4-8 digit angka. Simpan baik-baik karena PIN ini dipakai untuk login dashboard.</p>
+          <form id="setup-form" class="auth-grid">
+            <div class="field">
+              <label for="setup-pin">PIN Baru</label>
+              <input id="setup-pin" type="password" inputmode="numeric" placeholder="Contoh: 1234" required />
+            </div>
+            <div class="field">
+              <label for="setup-pin-confirm">Konfirmasi PIN</label>
+              <input id="setup-pin-confirm" type="password" inputmode="numeric" placeholder="Ulangi PIN" required />
+            </div>
+            <div style="grid-column:1 / -1; display:flex; gap:0.55rem; flex-wrap:wrap;">
+              <button class="btn btn-main" type="submit">Aktifkan PIN</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="auth-box" id="login-box">
+          <h3>Login Admin</h3>
+          <p class="muted" style="margin-top:0.35rem;">Masukkan PIN admin untuk membuka dashboard.</p>
+          <form id="login-form" class="auth-grid">
+            <div class="field" style="grid-column:1 / -1; max-width:320px;">
+              <label for="login-pin">PIN</label>
+              <input id="login-pin" type="password" inputmode="numeric" placeholder="Masukkan PIN" required />
+            </div>
+            <div style="grid-column:1 / -1; display:flex; gap:0.55rem; flex-wrap:wrap;">
+              <button class="btn btn-main" type="submit">Login</button>
+            </div>
+          </form>
+        </div>
+
+        <p class="status-line" id="auth-status"></p>
+      </div>
+    </section>
+
+    <section id="dashboard-root">
+      <section class="panel">
+        <h2>Monitoring Lead & Order</h2>
+        <p class="muted">Data memuat event klik CTA dan submit form order dari customer.</p>
+
+        <div class="stats">
+          <article class="stat">
+            <p class="stat-label">Total Data</p>
+            <p class="stat-value" id="stat-total">0</p>
+          </article>
+          <article class="stat">
+            <p class="stat-label">Order</p>
+            <p class="stat-value" id="stat-order">0</p>
+          </article>
+          <article class="stat">
+            <p class="stat-label">Event Click</p>
+            <p class="stat-value" id="stat-event">0</p>
+          </article>
+          <article class="stat">
+            <p class="stat-label">Status New</p>
+            <p class="stat-value" id="stat-new">0</p>
+          </article>
+        </div>
+
+        <div class="filters">
+          <div class="field">
+            <label for="filter-kind">Jenis</label>
+            <select id="filter-kind">
+              <option value="">Semua</option>
+              <option value="order">Order</option>
+              <option value="event">Event Click</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="filter-status">Status</label>
+            <select id="filter-status">
+              <option value="">Semua</option>
+              <option value="new">new</option>
+              <option value="in_progress">in_progress</option>
+              <option value="done">done</option>
+              <option value="cancelled">cancelled</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="filter-limit">Limit</label>
+            <select id="filter-limit">
+              <option value="100">100</option>
+              <option value="200" selected>200</option>
+              <option value="500">500</option>
+              <option value="1000">1000</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="filter-q">Cari</label>
+            <input id="filter-q" type="text" placeholder="Nama / produk / label" />
+          </div>
+          <div class="field">
+            <button class="btn btn-main" id="apply-filter" type="button" style="width:100%;">Terapkan Filter</button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Waktu</th>
+                <th>Jenis</th>
+                <th>Nama / Label</th>
+                <th>Produk</th>
+                <th>WA</th>
+                <th>Catatan</th>
+                <th>Status</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="orders-body">
+              <tr><td colspan="8">Loading data...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="status-line" id="orders-status"></p>
+      </section>
+
+      <div class="grid">
+        <section class="panel">
+          <h2>Kontrol Konten Landing Page</h2>
+          <p class="muted">Perubahan di sini otomatis dipakai di `nai-nai-lapis.html`.</p>
+
+          <form class="config-form" id="config-form">
+            <div class="field">
+              <label for="cfg-title">Hero Title</label>
+              <input id="cfg-title" name="heroTitle" type="text" required />
+            </div>
+            <div class="field">
+              <label for="cfg-subtitle">Hero Subtitle</label>
+              <textarea id="cfg-subtitle" name="heroSubtitle" required></textarea>
+            </div>
+            <div class="field">
+              <label for="cfg-announcement">Announcement</label>
+              <input id="cfg-announcement" name="announcement" type="text" />
+            </div>
+            <div class="field">
+              <label for="cfg-wa">WhatsApp Admin (08.. / 62..)</label>
+              <input id="cfg-wa" name="adminWhatsapp" type="text" />
+            </div>
+            <div class="field">
+              <label for="cfg-sizes">Ukuran Lapis (pisahkan koma)</label>
+              <input id="cfg-sizes" name="lapisSizes" type="text" placeholder="10 x 10, 10 x 20, 20 x 20" />
+            </div>
+            <div class="field">
+              <label for="cfg-seasonal">Label Seasonal</label>
+              <input id="cfg-seasonal" name="seasonalLabel" type="text" />
+            </div>
+            <button class="btn btn-main" type="submit">Simpan Konten</button>
+          </form>
+          <p class="status-line" id="config-status"></p>
+        </section>
+
+        <section class="panel">
+          <h2>Upload Asset Gambar</h2>
+          <p class="muted">Upload file PNG/JPG/JPEG/WEBP max 8MB ke folder `cake-bakery-class`.</p>
+
+          <form id="upload-form" class="asset-upload">
+            <div class="field">
+              <label for="asset-file">Pilih file</label>
+              <input id="asset-file" name="asset" type="file" accept=".png,.jpg,.jpeg,.webp" required />
+            </div>
+            <button class="btn btn-main" type="submit">Upload</button>
+          </form>
+          <p class="status-line" id="upload-status"></p>
+
+          <h3 style="margin-top:0.95rem;">Daftar Asset</h3>
+          <div class="asset-grid" id="asset-grid"></div>
+        </section>
+      </div>
+
+      <section class="panel" style="margin-top:1rem;">
+        <h2>Keamanan PIN Admin</h2>
+        <p class="muted">Gunakan form ini untuk mengganti PIN. Setelah ganti PIN, sesi lama otomatis diganti dengan sesi baru.</p>
+
+        <form class="pin-form" id="change-pin-form">
+          <div class="field">
+            <label for="old-pin">PIN Lama</label>
+            <input id="old-pin" type="password" inputmode="numeric" placeholder="PIN saat ini" required />
+          </div>
+          <div class="field">
+            <label for="new-pin">PIN Baru</label>
+            <input id="new-pin" type="password" inputmode="numeric" placeholder="PIN baru (4-8 digit)" required />
+          </div>
+          <div class="field">
+            <label for="new-pin-confirm">Konfirmasi PIN Baru</label>
+            <input id="new-pin-confirm" type="password" inputmode="numeric" placeholder="Ulangi PIN baru" required />
+          </div>
+          <button class="btn btn-main" type="submit">Ganti PIN</button>
+        </form>
+        <p class="status-line" id="pin-status"></p>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    var API_BASE = "/api/nainai";
+    var AUTH_BASE = "/api/nainai/admin/auth";
+    var TOKEN_STORAGE_KEY = "nainai_admin_token_v1";
+    var adminToken = localStorage.getItem(TOKEN_STORAGE_KEY) || "";
+
+    function setToken(token) {
+      adminToken = String(token || "").trim();
+      if (adminToken) {
+        localStorage.setItem(TOKEN_STORAGE_KEY, adminToken);
+      } else {
+        localStorage.removeItem(TOKEN_STORAGE_KEY);
+      }
+    }
+
+    function escapeHtml(text) {
+      return String(text || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function formatDate(iso) {
+      if (!iso) return "-";
+      var d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return "-";
+      return d.toLocaleString("id-ID");
+    }
+
+    function setLine(id, message, type) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.classList.remove("error", "success");
+      if (type) el.classList.add(type);
+      el.textContent = message || "";
+    }
+
+    function authFetch(url, options) {
+      var opts = options || {};
+      var headers = Object.assign({}, opts.headers || {});
+      if (adminToken) headers["x-nainai-admin-token"] = adminToken;
+      opts.headers = headers;
+      return fetch(url, opts);
+    }
+
+    function apiJson(url, options) {
+      return authFetch(url, options).then(function (res) {
+        return res.json().catch(function () { return {}; }).then(function (payload) {
+          if (!res.ok) {
+            var err = new Error(payload && payload.error ? payload.error : ("HTTP " + res.status));
+            err.status = res.status;
+            err.payload = payload;
+            throw err;
+          }
+          return payload;
+        });
+      });
+    }
+
+    function handleUnauthorized(error, message) {
+      if (error && error.status === 401) {
+        setToken("");
+        showAuthMode("login", message || "Sesi habis. Silakan login ulang.");
+        return true;
+      }
+      return false;
+    }
+
+    function showAuthMode(mode, message) {
+      var setupBox = document.getElementById("setup-box");
+      var loginBox = document.getElementById("login-box");
+      var authPanel = document.getElementById("auth-panel");
+      var dashboard = document.getElementById("dashboard-root");
+      var refreshBtn = document.getElementById("refresh-all");
+      var logoutBtn = document.getElementById("logout-btn");
+      var authTitle = document.getElementById("auth-title");
+      var authDesc = document.getElementById("auth-desc");
+
+      authPanel.style.display = "block";
+      dashboard.style.display = "none";
+      refreshBtn.disabled = true;
+      logoutBtn.style.display = "none";
+
+      setupBox.classList.remove("show");
+      loginBox.classList.remove("show");
+
+      if (mode === "setup") {
+        authTitle.textContent = "Aktivasi PIN Admin";
+        authDesc.textContent = "Belum ada PIN admin. Lakukan aktivasi PIN pertama kali.";
+        setupBox.classList.add("show");
+      } else {
+        authTitle.textContent = "Login Admin PIN";
+        authDesc.textContent = "PIN sudah aktif. Silakan login untuk mengakses dashboard.";
+        loginBox.classList.add("show");
+      }
+
+      setLine("auth-status", message || "", message ? "success" : "");
+    }
+
+    function openDashboard(message) {
+      document.getElementById("auth-panel").style.display = "none";
+      document.getElementById("dashboard-root").style.display = "block";
+      document.getElementById("refresh-all").disabled = false;
+      document.getElementById("logout-btn").style.display = "inline-flex";
+      if (message) setLine("orders-status", message, "success");
+      loadAll();
+    }
+
+    function getAuthState() {
+      return fetch(AUTH_BASE + "/state")
+        .then(function (res) { return res.json(); })
+        .then(function (payload) {
+          if (!payload || !payload.ok) throw new Error("Gagal cek status auth");
+          return payload;
+        });
+    }
+
+    function verifyExistingSession() {
+      if (!adminToken) return Promise.resolve(false);
+      return apiJson(AUTH_BASE + "/me")
+        .then(function () { return true; })
+        .catch(function () {
+          setToken("");
+          return false;
+        });
+    }
+
+    function initAuthFlow() {
+      getAuthState()
+        .then(function (state) {
+          return verifyExistingSession().then(function (validSession) {
+            if (validSession && state.initialized) {
+              openDashboard();
+              return;
+            }
+            if (!state.initialized) {
+              showAuthMode("setup");
+            } else {
+              showAuthMode("login");
+            }
+          });
+        })
+        .catch(function (err) {
+          showAuthMode("login", "Gagal memuat status autentikasi: " + (err.message || "unknown"));
+        });
+    }
+
+    function doBootstrap(pin, confirmPin) {
+      return apiJson(AUTH_BASE + "/bootstrap", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin: pin, confirmPin: confirmPin })
+      });
+    }
+
+    function doLogin(pin) {
+      return apiJson(AUTH_BASE + "/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin: pin })
+      });
+    }
+
+    function doLogout() {
+      return apiJson(AUTH_BASE + "/logout", { method: "POST" });
+    }
+
+    function doChangePin(oldPin, newPin, confirmPin) {
+      return apiJson(AUTH_BASE + "/change-pin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ oldPin: oldPin, newPin: newPin, confirmPin: confirmPin })
+      });
+    }
+
+    function statusClass(status) {
+      var normalized = String(status || "").toLowerCase();
+      if (normalized === "in_progress") return "status-in_progress";
+      if (normalized === "done") return "status-done";
+      if (normalized === "cancelled") return "status-cancelled";
+      return "status-new";
+    }
+
+    function renderStats(rows) {
+      var total = rows.length;
+      var order = rows.filter(function (row) { return row.kind === "order"; }).length;
+      var eventCount = rows.filter(function (row) { return row.kind === "event"; }).length;
+      var statusNew = rows.filter(function (row) { return String(row.status || "new") === "new"; }).length;
+
+      document.getElementById("stat-total").textContent = String(total);
+      document.getElementById("stat-order").textContent = String(order);
+      document.getElementById("stat-event").textContent = String(eventCount);
+      document.getElementById("stat-new").textContent = String(statusNew);
+    }
+
+    function buildStatusOptions(selected) {
+      var options = ["new", "in_progress", "done", "cancelled"];
+      return options.map(function (opt) {
+        var sel = opt === selected ? " selected" : "";
+        return '<option value="' + opt + '"' + sel + '>' + opt + '</option>';
+      }).join("");
+    }
+
+    function renderRows(rows) {
+      var tbody = document.getElementById("orders-body");
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="8">Belum ada data.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = rows.map(function (row) {
+        var id = escapeHtml(row.id || "");
+        var kind = escapeHtml(row.kind || "event");
+        var nameOrLabel = row.kind === "order" ? (row.name || "-") : (row.label || row.eventType || "-");
+        var notes = row.kind === "order" ? (row.notes || "-") : (row.sourcePage || "-");
+
+        return '' +
+          '<tr>' +
+            '<td>' + escapeHtml(formatDate(row.createdAt)) + '</td>' +
+            '<td><span class="chip ' + kind + '">' + kind + '</span></td>' +
+            '<td>' + escapeHtml(nameOrLabel) + '</td>' +
+            '<td>' + escapeHtml(row.product || "-") + (row.size ? ('<br><small>' + escapeHtml(row.size) + '</small>') : '') + '</td>' +
+            '<td>' + escapeHtml(row.whatsapp || "-") + '</td>' +
+            '<td>' + escapeHtml(notes) + '</td>' +
+            '<td class="' + statusClass(row.status) + '">' + escapeHtml(row.status || "new") + '</td>' +
+            '<td>' +
+              '<div class="inline-actions">' +
+                '<select id="status-' + id + '">' + buildStatusOptions(row.status || "new") + '</select>' +
+                '<input id="note-' + id + '" type="text" placeholder="catatan admin" value="' + escapeHtml(row.adminNote || "") + '" />' +
+                '<button class="btn btn-main save-row" data-id="' + id + '">Simpan</button>' +
+              '</div>' +
+            '</td>' +
+          '</tr>';
+      }).join("");
+
+      Array.prototype.slice.call(document.querySelectorAll(".save-row")).forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var id = btn.getAttribute("data-id");
+          var status = document.getElementById("status-" + id).value;
+          var note = document.getElementById("note-" + id).value;
+          updateRow(id, status, note);
+        });
+      });
+    }
+
+    function getFilters() {
+      return {
+        kind: document.getElementById("filter-kind").value,
+        status: document.getElementById("filter-status").value,
+        limit: document.getElementById("filter-limit").value,
+        q: document.getElementById("filter-q").value.trim()
+      };
+    }
+
+    function buildQuery(params) {
+      var pairs = [];
+      Object.keys(params).forEach(function (key) {
+        if (params[key]) pairs.push(encodeURIComponent(key) + "=" + encodeURIComponent(params[key]));
+      });
+      return pairs.length ? ("?" + pairs.join("&")) : "";
+    }
+
+    function loadOrders() {
+      setLine("orders-status", "Memuat data...");
+      return apiJson(API_BASE + "/orders" + buildQuery(getFilters()))
+        .then(function (payload) {
+          var rows = payload.data || [];
+          renderStats(rows);
+          renderRows(rows);
+          setLine("orders-status", "Data ter-update: " + formatDate(new Date().toISOString()), "success");
+        })
+        .catch(function (err) {
+          if (handleUnauthorized(err, "Sesi habis. Login ulang untuk melihat data order.")) return;
+          setLine("orders-status", "Error: " + (err.message || "gagal load"), "error");
+        });
+    }
+
+    function updateRow(id, status, adminNote) {
+      setLine("orders-status", "Menyimpan status...");
+      apiJson(API_BASE + "/orders/" + encodeURIComponent(id), {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: status, adminNote: adminNote })
+      })
+        .then(function () {
+          setLine("orders-status", "Status berhasil disimpan.", "success");
+          loadOrders();
+        })
+        .catch(function (err) {
+          if (handleUnauthorized(err, "Sesi habis. Login ulang untuk update data.")) return;
+          setLine("orders-status", "Error simpan status: " + (err.message || "unknown"), "error");
+        });
+    }
+
+    function fillConfig(config) {
+      document.getElementById("cfg-title").value = config.heroTitle || "";
+      document.getElementById("cfg-subtitle").value = config.heroSubtitle || "";
+      document.getElementById("cfg-announcement").value = config.announcement || "";
+      document.getElementById("cfg-wa").value = config.adminWhatsapp || "";
+      document.getElementById("cfg-sizes").value = Array.isArray(config.lapisSizes) ? config.lapisSizes.join(", ") : "";
+      document.getElementById("cfg-seasonal").value = config.seasonalLabel || "";
+    }
+
+    function loadConfig() {
+      return apiJson(API_BASE + "/config")
+        .then(function (payload) {
+          if (payload && payload.config) fillConfig(payload.config);
+        })
+        .catch(function (err) {
+          if (!handleUnauthorized(err, "Sesi habis. Login ulang.")) {
+            setLine("config-status", "Gagal memuat config: " + (err.message || "unknown"), "error");
+          }
+        });
+    }
+
+    function saveConfig(event) {
+      event.preventDefault();
+      setLine("config-status", "Menyimpan config...");
+
+      var payload = {
+        heroTitle: document.getElementById("cfg-title").value,
+        heroSubtitle: document.getElementById("cfg-subtitle").value,
+        announcement: document.getElementById("cfg-announcement").value,
+        adminWhatsapp: document.getElementById("cfg-wa").value,
+        lapisSizes: document.getElementById("cfg-sizes").value,
+        seasonalLabel: document.getElementById("cfg-seasonal").value
+      };
+
+      apiJson(API_BASE + "/config", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+        .then(function (result) {
+          fillConfig(result.config || {});
+          setLine("config-status", "Config landing page berhasil disimpan.", "success");
+        })
+        .catch(function (err) {
+          if (handleUnauthorized(err, "Sesi habis. Login ulang untuk simpan config.")) return;
+          setLine("config-status", "Error simpan config: " + (err.message || "unknown"), "error");
+        });
+    }
+
+    function renderAssets(assets) {
+      var wrap = document.getElementById("asset-grid");
+      if (!assets || !assets.length) {
+        wrap.innerHTML = "<p>Belum ada asset.</p>";
+        return;
+      }
+      wrap.innerHTML = assets.map(function (asset) {
+        return '' +
+          '<article class="asset-card">' +
+            '<img src="' + asset.url + '" alt="' + escapeHtml(asset.name) + '" loading="lazy" />' +
+            '<div class="asset-meta">' +
+              '<strong>' + escapeHtml(asset.name) + '</strong><br>' +
+              'Size: ' + escapeHtml(String(asset.size || 0)) + ' bytes<br>' +
+              'Update: ' + escapeHtml(formatDate(asset.updatedAt)) +
+            '</div>' +
+          '</article>';
+      }).join("");
+    }
+
+    function refreshAssets() {
+      return apiJson(API_BASE + "/assets")
+        .then(function (payload) {
+          renderAssets(payload.assets || []);
+        })
+        .catch(function (err) {
+          if (handleUnauthorized(err, "Sesi habis. Login ulang untuk lihat asset.")) return;
+          setLine("upload-status", "Gagal memuat asset: " + (err.message || "unknown"), "error");
+        });
+    }
+
+    function uploadAsset(event) {
+      event.preventDefault();
+      var fileInput = document.getElementById("asset-file");
+      if (!fileInput.files || !fileInput.files.length) {
+        setLine("upload-status", "Pilih file dulu.", "error");
+        return;
+      }
+      setLine("upload-status", "Uploading...");
+
+      var formData = new FormData();
+      formData.append("asset", fileInput.files[0]);
+
+      apiJson(API_BASE + "/upload-asset", {
+        method: "POST",
+        body: formData
+      })
+        .then(function (result) {
+          fileInput.value = "";
+          setLine("upload-status", "Upload berhasil: " + (result.file && result.file.name ? result.file.name : "ok"), "success");
+          refreshAssets();
+        })
+        .catch(function (err) {
+          if (handleUnauthorized(err, "Sesi habis. Login ulang untuk upload asset.")) return;
+          setLine("upload-status", "Error upload: " + (err.message || "unknown"), "error");
+        });
+    }
+
+    function loadAll() {
+      loadConfig();
+      refreshAssets();
+      loadOrders();
+    }
+
+    document.getElementById("setup-form").addEventListener("submit", function (event) {
+      event.preventDefault();
+      var pin = document.getElementById("setup-pin").value.trim();
+      var confirmPin = document.getElementById("setup-pin-confirm").value.trim();
+      setLine("auth-status", "Mengaktifkan PIN...");
+
+      doBootstrap(pin, confirmPin)
+        .then(function (result) {
+          setToken(result.token || "");
+          document.getElementById("setup-form").reset();
+          openDashboard("PIN berhasil diaktifkan. Dashboard siap dipakai.");
+        })
+        .catch(function (err) {
+          setLine("auth-status", "Gagal aktivasi PIN: " + (err.message || "unknown"), "error");
+        });
+    });
+
+    document.getElementById("login-form").addEventListener("submit", function (event) {
+      event.preventDefault();
+      var pin = document.getElementById("login-pin").value.trim();
+      setLine("auth-status", "Login...");
+
+      doLogin(pin)
+        .then(function (result) {
+          setToken(result.token || "");
+          document.getElementById("login-form").reset();
+          openDashboard("Login berhasil.");
+        })
+        .catch(function (err) {
+          setLine("auth-status", "Gagal login: " + (err.message || "unknown"), "error");
+        });
+    });
+
+    document.getElementById("logout-btn").addEventListener("click", function () {
+      doLogout()
+        .catch(function () { return null; })
+        .then(function () {
+          setToken("");
+          showAuthMode("login", "Logout berhasil.");
+        });
+    });
+
+    document.getElementById("change-pin-form").addEventListener("submit", function (event) {
+      event.preventDefault();
+      var oldPin = document.getElementById("old-pin").value.trim();
+      var newPin = document.getElementById("new-pin").value.trim();
+      var confirmPin = document.getElementById("new-pin-confirm").value.trim();
+      setLine("pin-status", "Mengganti PIN...");
+
+      doChangePin(oldPin, newPin, confirmPin)
+        .then(function (result) {
+          setToken(result.token || "");
+          document.getElementById("change-pin-form").reset();
+          setLine("pin-status", "PIN berhasil diganti.", "success");
+        })
+        .catch(function (err) {
+          if (handleUnauthorized(err, "Sesi habis. Login ulang untuk ganti PIN.")) return;
+          setLine("pin-status", "Gagal ganti PIN: " + (err.message || "unknown"), "error");
+        });
+    });
+
+    document.getElementById("apply-filter").addEventListener("click", function () {
+      loadOrders();
+    });
+
+    document.getElementById("refresh-all").addEventListener("click", function () {
+      loadAll();
+    });
+
+    document.getElementById("config-form").addEventListener("submit", saveConfig);
+    document.getElementById("upload-form").addEventListener("submit", uploadAsset);
+
+    initAuthFlow();
+    setInterval(function () {
+      if (document.getElementById("dashboard-root").style.display === "block") {
+        loadOrders();
+      }
+    }, 30000);
+  </script>
+</body>
+</html>
