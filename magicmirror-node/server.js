@@ -657,7 +657,7 @@ app.get('/api/storage-info', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
-const NAINAI_ADMIN_WA_DEFAULT = '6288972861212';
+const NAINAI_ADMIN_WA_DEFAULT = '6288972681212';
 const NAINAI_DATA_DIR = path.join(__dirname, 'data');
 const NAINAI_LEADS_FILE = path.join(NAINAI_DATA_DIR, 'nainai-leads.json');
 const NAINAI_CONFIG_FILE = path.join(NAINAI_DATA_DIR, 'nainai-config.json');

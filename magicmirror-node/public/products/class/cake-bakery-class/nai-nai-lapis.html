@@ -783,7 +783,7 @@
   <div id="footer-placeholder"></div>
 
   <script>
-    var ADMIN_WA = "6288972861212";
+    var ADMIN_WA = "6288972681212";
     var PAGE_PATH = window.location.pathname;
 
     function normalizeTo62(rawPhone) {
@@ -1011,8 +1011,8 @@
             });
           })
           .then(function (result) {
-            var adminWa = normalizeTo62((result && result.adminWhatsapp) || ADMIN_WA || "6288972861212");
-            if (!adminWa) adminWa = "6288972861212";
+            var adminWa = normalizeTo62((result && result.adminWhatsapp) || ADMIN_WA || "6288972681212");
+            if (!adminWa) adminWa = "6288972681212";
 
             var textLines = [
               "Halo Admin Nai Nai Lapis, saya ingin order:",
@@ -1039,8 +1039,8 @@
             toggleSizeField();
           })
           .catch(function () {
-            var adminWa = normalizeTo62(ADMIN_WA || "6288972861212");
-            if (!adminWa) adminWa = "6288972861212";
+            var adminWa = normalizeTo62(ADMIN_WA || "6288972681212");
+            if (!adminWa) adminWa = "6288972681212";
             var backupText = [
               "Halo Admin Nai Nai Lapis, saya ingin order:",
               "",

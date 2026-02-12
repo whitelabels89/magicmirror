@@ -643,6 +643,12 @@
             </div>
 
             <div class="field">
+              <label for="shortlink-code">Custom Buntut Shortlink (opsional)</label>
+              <input id="shortlink-code" type="text" placeholder="contoh: nainai-lapis" maxlength="32" />
+              <p class="muted" style="margin-top:0.25rem;">Format: 4-32 karakter, pakai huruf kecil/angka/tanda minus.</p>
+            </div>
+
+            <div class="field">
               <label for="shortlink-output">Shortlink Hasil</label>
               <input id="shortlink-output" type="text" placeholder="Belum digenerate" readonly />
             </div>
@@ -1083,6 +1089,21 @@
       return parsed;
     }
 
+    function getRequestedShortCode() {
+      var input = document.getElementById("shortlink-code");
+      var raw = String(input && input.value ? input.value : "").trim().toLowerCase();
+      if (!raw) return "";
+
+      var cleaned = raw
+        .replace(/[^a-z0-9-]/g, "")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "")
+        .slice(0, 32);
+
+      if (input && input.value !== cleaned) input.value = cleaned;
+      return cleaned;
+    }
+
     function getGeneratedShortlink() {
       var input = document.getElementById("shortlink-output");
       return sanitizeHttpUrl(input && input.value ? input.value : "");
@@ -1119,19 +1140,33 @@
         return;
       }
 
+      var requestedCode = getRequestedShortCode();
+      if (requestedCode && requestedCode.length < 4) {
+        setLine("qr-status", "Custom buntut minimal 4 karakter.", "error");
+        return;
+      }
+
       setLine("qr-status", "Membuat shortlink...");
+      var payload = { targetUrl: targetLink };
+      if (requestedCode) payload.code = requestedCode;
+
       apiJson(API_BASE + "/shortlinks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ targetUrl: targetLink })
+        body: JSON.stringify(payload)
       })
         .then(function (result) {
           var shortUrl = sanitizeHttpUrl(result && result.shortlink ? result.shortlink.shortUrl : "");
+          var generatedCode = result && result.shortlink ? String(result.shortlink.code || "") : "";
           if (!shortUrl) {
             setLine("qr-status", "Shortlink berhasil dibuat, tapi URL hasil tidak valid.", "error");
             return;
           }
           document.getElementById("shortlink-output").value = shortUrl;
+          if (generatedCode) {
+            var codeInput = document.getElementById("shortlink-code");
+            if (codeInput) codeInput.value = generatedCode;
+          }
           setQrPreview(shortUrl);
           setLine("qr-status", "Shortlink + QR berhasil digenerate.", "success");
         })
@@ -1162,7 +1197,7 @@
       }
 
       var waInput = document.getElementById("cfg-wa");
-      var waNumber = normalizeTo62(waInput && waInput.value ? waInput.value : "") || "6288972861212";
+      var waNumber = normalizeTo62(waInput && waInput.value ? waInput.value : "") || "6288972681212";
       var qrLink = buildQrImageUrl(shareLink);
       var message = [
         "Halo Admin Nai Nai, ini hasil QR landing page.",
