@@ -926,6 +926,29 @@ function formatRupiah(value) {
   return `Rp ${sanitizeMoney(value).toLocaleString('id-ID')}`;
 }
 
+function buildNainaiAdminInvoiceWhatsappUrl(adminWhatsapp, invoice) {
+  const waAdmin = normalizePhone62(adminWhatsapp || '') || NAINAI_ADMIN_WA_DEFAULT;
+  const safeInvoice = invoice && typeof invoice === 'object' ? invoice : {};
+  const message = [
+    'Halo Admin Nai Nai Lapis,',
+    'mohon bantu forward invoice ini ke customer:',
+    '',
+    `Nama Customer: ${sanitizeText(safeInvoice.customerName, 120) || '-'}`,
+    `WA Customer: ${normalizePhone62(safeInvoice.customerWhatsapp || '') || '-'}`,
+    `No Invoice: ${sanitizeText(safeInvoice.invoiceNumber, 60) || '-'}`,
+    `Total: ${formatRupiah(safeInvoice.total || 0)}`,
+    '',
+    'Pembayaran Transfer:',
+    NAINAI_PAYMENT_TRANSFER_BANK,
+    `${NAINAI_PAYMENT_TRANSFER_ACCOUNT} (${NAINAI_PAYMENT_TRANSFER_NAME})`,
+    `Shopee: ${NAINAI_PAYMENT_SHOPEE_LINK}`,
+    '',
+    'Preview Invoice: (akan ditambahkan dari dashboard admin)',
+    'Terima kasih.'
+  ].join('\n');
+  return `https://wa.me/${encodeURIComponent(waAdmin)}?text=${encodeURIComponent(message)}`;
+}
+
 function sanitizeIsoDate(rawValue) {
   const raw = String(rawValue || '').trim();
   if (!raw) return '';
@@ -945,6 +968,10 @@ function loadNainaiInvoices() {
       const invoiceNumber = sanitizeText(row.invoiceNumber, 60);
       const customerName = sanitizeText(row.customerName, 120);
       const customerWhatsapp = normalizePhone62(row.customerWhatsapp || '');
+      const customerAddress = sanitizeText(row.customerAddress, 220);
+      const orderDate = sanitizeIsoDate(row.orderDate || '');
+      const notes = sanitizeText(row.notes, 500);
+      const items = normalizeInvoiceItems(row.items);
       const pdfUrl = sanitizeHttpUrl(row.pdfUrl, 1200) || sanitizeText(row.pdfPath, 240);
       if (!id || !invoiceNumber || !customerName || !customerWhatsapp || !pdfUrl) return null;
       return {
@@ -953,13 +980,18 @@ function loadNainaiInvoices() {
         invoiceNumber,
         customerName,
         customerWhatsapp,
+        customerAddress,
+        orderDate,
         dueDate: sanitizeIsoDate(row.dueDate || ''),
+        notes,
+        items,
         pdfUrl,
         subtotal: sanitizeMoney(row.subtotal),
         discount: sanitizeMoney(row.discount),
         shipping: sanitizeMoney(row.shipping),
         total: sanitizeMoney(row.total),
-        createdAt: row.createdAt ? String(row.createdAt) : nowIso()
+        createdAt: row.createdAt ? String(row.createdAt) : nowIso(),
+        updatedAt: row.updatedAt ? String(row.updatedAt) : null
       };
     })
     .filter(Boolean);
@@ -1442,6 +1474,43 @@ function resolveNainaiAssetPath(rawName) {
   return {
     name: baseName,
     absPath: path.join(NAINAI_ASSET_DIR, baseName)
+  };
+}
+
+function resolveNainaiInvoicePdfPath(rawPathOrUrl, fallbackInvoiceNumber = 'invoice') {
+  let raw = String(rawPathOrUrl || '').trim();
+  if (raw) {
+    try {
+      const parsed = new URL(raw);
+      raw = parsed.pathname || '';
+    } catch (_) {
+      // keep original input
+    }
+    try {
+      raw = decodeURIComponent(raw);
+    } catch (_) {
+      // keep raw input
+    }
+    const baseName = path.basename(raw).trim();
+    if (baseName && path.extname(baseName).toLowerCase() === '.pdf') {
+      return {
+        name: baseName,
+        absPath: path.join(NAINAI_INVOICE_DIR, baseName),
+        urlPath: `/products/class/cake-bakery-class/invoices/${encodeURIComponent(baseName)}`
+      };
+    }
+  }
+
+  const slug = sanitizeText(fallbackInvoiceNumber, 60)
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '') || 'invoice';
+  const fallbackName = `${slug}.pdf`;
+  return {
+    name: fallbackName,
+    absPath: path.join(NAINAI_INVOICE_DIR, fallbackName),
+    urlPath: `/products/class/cake-bakery-class/invoices/${encodeURIComponent(fallbackName)}`
   };
 }
 
@@ -2900,25 +2969,7 @@ app.post('/api/nainai/invoices', requireNainaiAdmin, async (req, res) => {
     saveNainaiInvoices(rows);
     const config = loadNainaiConfig();
     const adminWhatsapp = config.adminWhatsapp || NAINAI_ADMIN_WA_DEFAULT;
-
-    const waMessage = [
-      'Halo Admin Nai Nai Lapis,',
-      'mohon bantu forward invoice ini ke customer:',
-      '',
-      `Nama Customer: ${customerName}`,
-      `WA Customer: ${customerWhatsapp}`,
-      `No Invoice: ${invoiceNumber}`,
-      `Total: ${formatRupiah(total)}`,
-      '',
-      'Pembayaran Transfer:',
-      NAINAI_PAYMENT_TRANSFER_BANK,
-      `${NAINAI_PAYMENT_TRANSFER_ACCOUNT} (${NAINAI_PAYMENT_TRANSFER_NAME})`,
-      `Shopee: ${NAINAI_PAYMENT_SHOPEE_LINK}`,
-      '',
-      'Preview Invoice: (akan ditambahkan dari dashboard admin)',
-      'Terima kasih.'
-    ].join('\n');
-    const whatsappUrl = `https://wa.me/${encodeURIComponent(adminWhatsapp)}?text=${encodeURIComponent(waMessage)}`;
+    const whatsappUrl = buildNainaiAdminInvoiceWhatsappUrl(adminWhatsapp, invoicePayload);
 
     return res.json({
       ok: true,
@@ -2928,6 +2979,126 @@ app.post('/api/nainai/invoices', requireNainaiAdmin, async (req, res) => {
   } catch (err) {
     console.error('❌ /api/nainai/invoices create error:', err);
     return res.status(500).json({ ok: false, error: err.message || 'Gagal membuat invoice PDF' });
+  }
+});
+
+app.patch('/api/nainai/invoices/:id', requireNainaiAdmin, async (req, res) => {
+  try {
+    if (!PDFDocument) {
+      return res.status(500).json({ ok: false, error: 'Fitur PDF belum aktif. Jalankan npm install agar pdfkit terpasang.' });
+    }
+
+    const id = sanitizeText(req.params.id, 80);
+    if (!id) return res.status(400).json({ ok: false, error: 'ID invoice tidak valid' });
+
+    const rows = loadNainaiInvoices();
+    const index = rows.findIndex((row) => row && row.id === id);
+    if (index < 0) return res.status(404).json({ ok: false, error: 'Invoice tidak ditemukan' });
+
+    const existing = rows[index] || {};
+    const body = req.body || {};
+    const customerName = sanitizeText(body.customerName, 120);
+    const customerWhatsapp = normalizePhone62(body.customerWhatsapp || '');
+    const customerAddress = sanitizeText(body.customerAddress, 220);
+    const orderDate = sanitizeIsoDate(body.orderDate) || new Date().toISOString().slice(0, 10);
+    const dueDate = sanitizeIsoDate(body.dueDate);
+    const notes = sanitizeText(body.notes, 500);
+    const items = normalizeInvoiceItems(body.items);
+    const shipping = sanitizeMoney(body.shipping);
+    const discountRaw = sanitizeMoney(body.discount);
+
+    if (!customerName || !customerWhatsapp) {
+      return res.status(400).json({ ok: false, error: 'Nama customer dan WhatsApp customer wajib diisi' });
+    }
+    if (!items.length) {
+      return res.status(400).json({ ok: false, error: 'Minimal isi 1 item invoice' });
+    }
+
+    const subtotal = sanitizeMoney(items.reduce((sum, item) => sum + sanitizeMoney(item.lineTotal), 0));
+    const discount = Math.min(discountRaw, subtotal);
+    const total = sanitizeMoney(subtotal - discount + shipping);
+    const invoiceNumber = sanitizeText(existing.invoiceNumber, 60) || buildNainaiInvoiceNumber(rows);
+    const resolvedPdf = resolveNainaiInvoicePdfPath(existing.pdfPath || existing.pdfUrl, invoiceNumber);
+    const filePath = resolvedPdf.absPath;
+    const fileUrlPath = resolvedPdf.urlPath;
+    const baseUrl = buildPublicBaseUrl(req);
+    const fileUrl = baseUrl ? `${baseUrl}${fileUrlPath}` : fileUrlPath;
+    const updatedAt = nowIso();
+
+    const invoicePayload = {
+      ...existing,
+      id,
+      invoiceNumber,
+      customerName,
+      customerWhatsapp,
+      customerAddress,
+      orderDate,
+      dueDate: dueDate || '',
+      notes,
+      items,
+      subtotal,
+      discount,
+      shipping,
+      total,
+      createdAt: existing.createdAt || updatedAt,
+      createdBy: sanitizeText(existing.createdBy || (req.nainaiAdminSession && req.nainaiAdminSession.uid) || 'nainai-admin', 80),
+      updatedAt,
+      updatedBy: sanitizeText((req.nainaiAdminSession && req.nainaiAdminSession.uid) || 'nainai-admin', 80),
+      pdfPath: fileUrlPath,
+      pdfUrl: fileUrl
+    };
+
+    await createNainaiInvoicePdf(invoicePayload, filePath);
+    rows[index] = invoicePayload;
+    saveNainaiInvoices(rows);
+
+    const config = loadNainaiConfig();
+    const adminWhatsapp = config.adminWhatsapp || NAINAI_ADMIN_WA_DEFAULT;
+    const whatsappUrl = buildNainaiAdminInvoiceWhatsappUrl(adminWhatsapp, invoicePayload);
+
+    return res.json({
+      ok: true,
+      invoice: invoicePayload,
+      whatsappUrl
+    });
+  } catch (err) {
+    console.error('❌ /api/nainai/invoices/:id update error:', err);
+    return res.status(500).json({ ok: false, error: err.message || 'Gagal update invoice PDF' });
+  }
+});
+
+app.delete('/api/nainai/invoices/:id', requireNainaiAdmin, (req, res) => {
+  try {
+    const id = sanitizeText(req.params.id, 80);
+    if (!id) return res.status(400).json({ ok: false, error: 'ID invoice tidak valid' });
+
+    const rows = loadNainaiInvoices();
+    const index = rows.findIndex((row) => row && row.id === id);
+    if (index < 0) return res.status(404).json({ ok: false, error: 'Invoice tidak ditemukan' });
+
+    const removed = rows[index] || {};
+    rows.splice(index, 1);
+    saveNainaiInvoices(rows);
+
+    const resolvedPdf = resolveNainaiInvoicePdfPath(removed.pdfPath || removed.pdfUrl, removed.invoiceNumber || id);
+    if (resolvedPdf && fs.existsSync(resolvedPdf.absPath)) {
+      try {
+        fs.unlinkSync(resolvedPdf.absPath);
+      } catch (err) {
+        console.warn('[nainai] gagal menghapus file invoice', resolvedPdf.absPath, err.message);
+      }
+    }
+
+    return res.json({
+      ok: true,
+      deleted: {
+        id,
+        invoiceNumber: sanitizeText(removed.invoiceNumber, 60) || '-'
+      }
+    });
+  } catch (err) {
+    console.error('❌ /api/nainai/invoices/:id delete error:', err);
+    return res.status(500).json({ ok: false, error: 'Gagal menghapus invoice' });
   }
 });
 

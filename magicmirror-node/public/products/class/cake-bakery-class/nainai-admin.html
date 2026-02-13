@@ -521,6 +521,12 @@
       min-width: 760px;
     }
 
+    .invoice-history-actions {
+      display: flex;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+    }
+
     @media (max-width: 1020px) {
       .grid { grid-template-columns: 1fr; }
       .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -778,6 +784,7 @@
       <section class="panel" style="margin-top:1rem;">
         <h2>Generate Invoice Digital</h2>
         <p class="muted">Buat invoice PDF yang siap dikirim ke customer lewat WhatsApp, lengkap dengan ucapan terima kasih.</p>
+        <p class="muted" id="invoice-form-mode">Mode: Buat invoice baru.</p>
 
         <form id="invoice-form" class="invoice-layout">
           <div class="invoice-grid">
@@ -835,7 +842,8 @@
           <p class="muted" id="invoice-total-preview">Estimasi Total: Rp 0</p>
 
           <div class="invoice-actions">
-            <button class="btn btn-main" type="submit">Generate Invoice PDF + Kirim WhatsApp</button>
+            <button class="btn btn-main" id="invoice-submit-btn" type="submit">Generate Invoice PDF + Kirim WhatsApp</button>
+            <button class="btn btn-soft" id="invoice-cancel-edit-btn" type="button" style="display:none;">Batal Edit</button>
           </div>
         </form>
         <p class="status-line" id="invoice-status"></p>
@@ -851,7 +859,7 @@
                 <th>Customer</th>
                 <th>WA</th>
                 <th>Total</th>
-                <th>PDF</th>
+                <th>Aksi</th>
               </tr>
             </thead>
             <tbody id="invoice-history-body">
@@ -1440,6 +1448,8 @@
       transferName: "William Susanto",
       shopeeLink: "https://id.shp.ee/JzFf5AA"
     };
+    var invoiceHistoryRows = [];
+    var activeEditInvoiceId = "";
 
     function getInvoiceVariantOptions(product) {
       return product === "Nastar" ? INVOICE_VARIANT_OPTIONS.Nastar : INVOICE_VARIANT_OPTIONS.Lapis;
@@ -1672,22 +1682,25 @@
       drawRoundedRectCanvas(ctx, 44, paymentY, 992, 120, 14, "#fffef9", "#e6d2ae");
       ctx.fillStyle = "#5a3425";
       ctx.font = "700 20px Arial, sans-serif";
-      ctx.fillText("Pembayaran", 64, paymentY + 36);
+      ctx.fillText("Pembayaran", 64, paymentY + 32);
       ctx.fillStyle = "#2b1b14";
       ctx.font = "700 18px Arial, sans-serif";
-      ctx.fillText("Transfer Bank", 64, paymentY + 64);
+      ctx.fillText("Transfer Bank", 64, paymentY + 56);
       ctx.fillStyle = "#4a3125";
       ctx.font = "500 18px Arial, sans-serif";
-      ctx.fillText("Bank: " + INVOICE_PAYMENT_INFO.transferBank, 64, paymentY + 88);
-      ctx.fillText("No. Rekening: " + INVOICE_PAYMENT_INFO.transferAccount, 64, paymentY + 110);
-      ctx.fillText("Atas Nama: " + INVOICE_PAYMENT_INFO.transferName, 64, paymentY + 132);
+      ctx.fillText("Bank: " + INVOICE_PAYMENT_INFO.transferBank, 64, paymentY + 78);
+      ctx.fillText("No. Rekening: " + INVOICE_PAYMENT_INFO.transferAccount, 64, paymentY + 98);
+      ctx.fillText("Atas Nama: " + INVOICE_PAYMENT_INFO.transferName, 64, paymentY + 116);
 
       ctx.fillStyle = "#2b1b14";
       ctx.font = "700 18px Arial, sans-serif";
-      ctx.fillText("Shopee", 560, paymentY + 64);
+      ctx.fillText("Shopee", 560, paymentY + 56);
       ctx.fillStyle = "#8b4f31";
       ctx.font = "500 18px Arial, sans-serif";
-      ctx.fillText(INVOICE_PAYMENT_INFO.shopeeLink, 560, paymentY + 90);
+      var shopeeLines = wrapCanvasLines(ctx, INVOICE_PAYMENT_INFO.shopeeLink, 430).slice(0, 2);
+      shopeeLines.forEach(function (line, idx) {
+        ctx.fillText(line, 560, paymentY + 80 + (idx * 22));
+      });
 
       if (invoice.notes) {
         var notesY = paymentY + 136;
@@ -1971,6 +1984,107 @@
         ", Ongkir " + formatRupiah(shipping) + ")";
     }
 
+    function findInvoiceHistoryById(invoiceId) {
+      var id = String(invoiceId || "");
+      if (!id) return null;
+      for (var i = 0; i < invoiceHistoryRows.length; i += 1) {
+        var row = invoiceHistoryRows[i];
+        if (row && String(row.id || "") === id) return row;
+      }
+      return null;
+    }
+
+    function setInvoiceFormMode(invoiceRow) {
+      var modeText = document.getElementById("invoice-form-mode");
+      var submitBtn = document.getElementById("invoice-submit-btn");
+      var cancelBtn = document.getElementById("invoice-cancel-edit-btn");
+
+      if (invoiceRow && invoiceRow.id) {
+        activeEditInvoiceId = String(invoiceRow.id);
+        if (modeText) modeText.textContent = "Mode: Edit invoice " + String(invoiceRow.invoiceNumber || "-") + ".";
+        if (submitBtn) submitBtn.textContent = "Simpan Perubahan Invoice + Kirim WhatsApp";
+        if (cancelBtn) cancelBtn.style.display = "inline-flex";
+      } else {
+        activeEditInvoiceId = "";
+        if (modeText) modeText.textContent = "Mode: Buat invoice baru.";
+        if (submitBtn) submitBtn.textContent = "Generate Invoice PDF + Kirim WhatsApp";
+        if (cancelBtn) cancelBtn.style.display = "none";
+      }
+    }
+
+    function resetInvoiceFormToCreate(clearResult) {
+      var form = document.getElementById("invoice-form");
+      if (form) form.reset();
+
+      var orderDateInput = document.getElementById("inv-order-date");
+      if (orderDateInput) orderDateInput.value = todayYmd();
+
+      var itemsWrap = document.getElementById("invoice-items");
+      if (itemsWrap) {
+        itemsWrap.innerHTML = "";
+        addInvoiceItem({ product: "Lapis", qty: 1, unitPrice: 0 });
+      }
+
+      setInvoiceFormMode(null);
+      if (clearResult) renderInvoiceResult(null);
+      updateInvoiceTotalPreview();
+    }
+
+    function loadInvoiceIntoForm(invoiceRow) {
+      if (!invoiceRow || !invoiceRow.id) return;
+
+      document.getElementById("inv-customer-name").value = String(invoiceRow.customerName || "");
+      document.getElementById("inv-customer-wa").value = String(invoiceRow.customerWhatsapp || "");
+      document.getElementById("inv-customer-address").value = String(invoiceRow.customerAddress || "");
+      document.getElementById("inv-order-date").value = String(invoiceRow.orderDate || todayYmd());
+      document.getElementById("inv-due-date").value = String(invoiceRow.dueDate || "");
+      document.getElementById("inv-discount").value = String(parseMoney(invoiceRow.discount || 0));
+      document.getElementById("inv-shipping").value = String(parseMoney(invoiceRow.shipping || 0));
+      document.getElementById("inv-notes").value = String(invoiceRow.notes || "");
+
+      var itemsWrap = document.getElementById("invoice-items");
+      if (itemsWrap) {
+        itemsWrap.innerHTML = "";
+        var items = Array.isArray(invoiceRow.items) && invoiceRow.items.length
+          ? invoiceRow.items
+          : [{ product: "Lapis", qty: 1, unitPrice: 0 }];
+        items.forEach(function (item) {
+          addInvoiceItem({
+            product: item.product,
+            size: item.size,
+            qty: item.qty,
+            unitPrice: item.unitPrice,
+            notes: item.notes
+          });
+        });
+      }
+
+      setInvoiceFormMode(invoiceRow);
+      updateInvoiceTotalPreview();
+      setLine("invoice-status", "Mode edit aktif. Ubah data lalu klik simpan.", "success");
+
+      var invoicePanel = document.getElementById("invoice-form");
+      if (invoicePanel && invoicePanel.scrollIntoView) {
+        invoicePanel.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+
+    function enrichInvoiceResultWithPreview(result) {
+      var payload = result || {};
+      var invoice = payload.invoice || {};
+      return uploadInvoicePreviewImage(invoice)
+        .then(function (previewImageUrl) {
+          payload.previewImageUrl = previewImageUrl;
+          payload.whatsappUrl = buildAdminInvoiceWhatsappUrl(invoice, previewImageUrl, payload.whatsappUrl);
+          return payload;
+        })
+        .catch(function () {
+          payload.previewImageUrl = "";
+          payload.whatsappUrl = buildAdminInvoiceWhatsappUrl(invoice, "", payload.whatsappUrl);
+          return payload;
+        });
+    }
+
     function renderInvoiceResult(payload) {
       var wrap = document.getElementById("invoice-result");
       if (!wrap) return;
@@ -1982,10 +2096,11 @@
       var invoice = payload.invoice || {};
       var whatsappUrl = sanitizeHttpUrl(payload.whatsappUrl || "");
       var previewImageUrl = sanitizeHttpUrl(payload.previewImageUrl || "");
+      var title = String(payload.title || "Invoice Berhasil Dibuat");
 
       wrap.innerHTML = '' +
         '<article class="invoice-result-card">' +
-          '<h3>Invoice Berhasil Dibuat</h3>' +
+          '<h3>' + escapeHtml(title) + '</h3>' +
           '<p><strong>No Invoice:</strong> ' + escapeHtml(invoice.invoiceNumber || "-") + '</p>' +
           '<p><strong>Customer:</strong> ' + escapeHtml(invoice.customerName || "-") + ' (' + escapeHtml(invoice.customerWhatsapp || "-") + ')</p>' +
           '<p><strong>Total:</strong> ' + escapeHtml(formatRupiah(invoice.total || 0)) + '</p>' +
@@ -2005,6 +2120,56 @@
       }
     }
 
+    function resendInvoiceFromHistory(invoiceId) {
+      var row = findInvoiceHistoryById(invoiceId);
+      if (!row) {
+        setLine("invoice-status", "Invoice tidak ditemukan di history.", "error");
+        return;
+      }
+
+      setLine("invoice-status", "Menyiapkan kirim ulang invoice ke WhatsApp admin...");
+      enrichInvoiceResultWithPreview({ invoice: row, whatsappUrl: "" })
+        .then(function (result) {
+          result.title = "Invoice Siap Dikirim Ulang";
+          renderInvoiceResult(result);
+          if (result.whatsappUrl) {
+            window.open(result.whatsappUrl, "_blank", "noopener,noreferrer");
+          }
+          setLine("invoice-status", "Kirim ulang invoice berhasil disiapkan. Chat WhatsApp admin sudah dibuka.", "success");
+        })
+        .catch(function (err) {
+          setLine("invoice-status", "Gagal kirim ulang invoice: " + (err && err.message ? err.message : "unknown"), "error");
+        });
+    }
+
+    function deleteInvoiceFromHistory(invoiceId) {
+      var row = findInvoiceHistoryById(invoiceId);
+      if (!row) {
+        setLine("invoice-status", "Invoice tidak ditemukan di history.", "error");
+        return;
+      }
+
+      var confirmed = window.confirm("Hapus invoice ini?\n" + String(row.invoiceNumber || "-") + " - " + String(row.customerName || "-"));
+      if (!confirmed) return;
+
+      setLine("invoice-status", "Menghapus invoice...");
+      apiJson(API_BASE + "/invoices/" + encodeURIComponent(String(row.id || "")), {
+        method: "DELETE"
+      })
+        .then(function () {
+          if (activeEditInvoiceId && activeEditInvoiceId === String(row.id || "")) {
+            resetInvoiceFormToCreate(false);
+          }
+          renderInvoiceResult(null);
+          setLine("invoice-status", "Invoice berhasil dihapus.", "success");
+          loadInvoices();
+        })
+        .catch(function (err) {
+          if (handleUnauthorized(err, "Sesi habis. Login ulang untuk hapus invoice.")) return;
+          setLine("invoice-status", "Gagal hapus invoice: " + (err.message || "unknown"), "error");
+        });
+    }
+
     function renderInvoiceHistory(rows) {
       var tbody = document.getElementById("invoice-history-body");
       if (!tbody) return;
@@ -2015,6 +2180,7 @@
 
       tbody.innerHTML = rows.map(function (row) {
         var pdfUrl = sanitizeHttpUrl(toAbsoluteHttpUrl(row.pdfUrl || row.pdfPath || ""));
+        var encodedId = encodeURIComponent(String(row.id || ""));
         return '' +
           '<tr>' +
             '<td>' + escapeHtml(formatDate(row.createdAt)) + '</td>' +
@@ -2022,15 +2188,52 @@
             '<td>' + escapeHtml(row.customerName || "-") + '</td>' +
             '<td>' + escapeHtml(row.customerWhatsapp || "-") + '</td>' +
             '<td>' + escapeHtml(formatRupiah(row.total || 0)) + '</td>' +
-            '<td><a class="btn btn-soft" href="' + escapeHtml(pdfUrl || "#") + '" target="_blank" rel="noopener noreferrer">PDF</a></td>' +
+            '<td>' +
+              '<div class="invoice-history-actions">' +
+                '<button class="btn btn-soft history-edit-invoice" data-id="' + encodedId + '" type="button">Edit</button>' +
+                '<button class="btn btn-soft history-resend-invoice" data-id="' + encodedId + '" type="button">Kirim Ulang</button>' +
+                '<button class="btn btn-danger history-delete-invoice" data-id="' + encodedId + '" type="button">Hapus</button>' +
+                (pdfUrl ? ('<a class="btn btn-soft" href="' + escapeHtml(pdfUrl) + '" target="_blank" rel="noopener noreferrer">PDF</a>') : "") +
+              '</div>' +
+            '</td>' +
           '</tr>';
       }).join("");
+
+      Array.prototype.slice.call(document.querySelectorAll(".history-edit-invoice")).forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var encoded = String(btn.getAttribute("data-id") || "");
+          var decoded = "";
+          try { decoded = decodeURIComponent(encoded); } catch (_) { decoded = encoded; }
+          var row = findInvoiceHistoryById(decoded);
+          if (!row) return;
+          loadInvoiceIntoForm(row);
+        });
+      });
+
+      Array.prototype.slice.call(document.querySelectorAll(".history-resend-invoice")).forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var encoded = String(btn.getAttribute("data-id") || "");
+          var decoded = "";
+          try { decoded = decodeURIComponent(encoded); } catch (_) { decoded = encoded; }
+          resendInvoiceFromHistory(decoded);
+        });
+      });
+
+      Array.prototype.slice.call(document.querySelectorAll(".history-delete-invoice")).forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var encoded = String(btn.getAttribute("data-id") || "");
+          var decoded = "";
+          try { decoded = decodeURIComponent(encoded); } catch (_) { decoded = encoded; }
+          deleteInvoiceFromHistory(decoded);
+        });
+      });
     }
 
     function loadInvoices() {
       return apiJson(API_BASE + "/invoices?limit=120")
         .then(function (payload) {
-          renderInvoiceHistory(payload.data || []);
+          invoiceHistoryRows = Array.isArray(payload.data) ? payload.data : [];
+          renderInvoiceHistory(invoiceHistoryRows);
         })
         .catch(function (err) {
           if (handleUnauthorized(err, "Sesi habis. Login ulang untuk akses invoice.")) return;
@@ -2049,6 +2252,8 @@
       var shipping = parseMoney((document.getElementById("inv-shipping") || {}).value || 0);
       var notes = String((document.getElementById("inv-notes") || {}).value || "").trim();
       var read = readInvoiceItemsForSubmit();
+      var targetInvoiceId = activeEditInvoiceId;
+      var isEditMode = Boolean(targetInvoiceId);
 
       if (!name || !customerWa) {
         setLine("invoice-status", "Nama dan WhatsApp customer wajib diisi.", "error");
@@ -2075,38 +2280,43 @@
         items: read.items
       };
 
-      setLine("invoice-status", "Membuat invoice PDF...");
-      apiJson(API_BASE + "/invoices", {
-        method: "POST",
+      var endpoint = isEditMode
+        ? (API_BASE + "/invoices/" + encodeURIComponent(targetInvoiceId))
+        : (API_BASE + "/invoices");
+      var method = isEditMode ? "PATCH" : "POST";
+      var actionText = isEditMode ? "Menyimpan perubahan invoice PDF..." : "Membuat invoice PDF...";
+
+      setLine("invoice-status", actionText);
+      apiJson(endpoint, {
+        method: method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       })
         .then(function (result) {
-          var invoice = result && result.invoice ? result.invoice : {};
           setLine("invoice-status", "Invoice PDF berhasil. Menyiapkan preview image...");
-          return uploadInvoicePreviewImage(invoice)
-            .then(function (previewImageUrl) {
-              result.previewImageUrl = previewImageUrl;
-              result.whatsappUrl = buildAdminInvoiceWhatsappUrl(invoice, previewImageUrl, result.whatsappUrl);
-              return result;
-            })
-            .catch(function () {
-              result.previewImageUrl = "";
-              result.whatsappUrl = buildAdminInvoiceWhatsappUrl(invoice, "", result.whatsappUrl);
-              return result;
-            });
+          return enrichInvoiceResultWithPreview(result);
         })
         .then(function (result) {
+          result.title = isEditMode ? "Invoice Berhasil Diperbarui" : "Invoice Berhasil Dibuat";
           renderInvoiceResult(result);
           if (result && result.whatsappUrl) {
             window.open(result.whatsappUrl, "_blank", "noopener,noreferrer");
           }
-          setLine("invoice-status", "Invoice berhasil dibuat. Chat WhatsApp admin sudah dibuka dengan link Preview Invoice.", "success");
+          setLine(
+            "invoice-status",
+            isEditMode
+              ? "Invoice berhasil diperbarui. Chat WhatsApp admin sudah dibuka dengan link Preview Invoice."
+              : "Invoice berhasil dibuat. Chat WhatsApp admin sudah dibuka dengan link Preview Invoice.",
+            "success"
+          );
+          if (isEditMode && activeEditInvoiceId === targetInvoiceId) {
+            setInvoiceFormMode(null);
+          }
           loadInvoices();
         })
         .catch(function (err) {
-          if (handleUnauthorized(err, "Sesi habis. Login ulang untuk generate invoice.")) return;
-          setLine("invoice-status", "Gagal generate invoice: " + (err.message || "unknown"), "error");
+          if (handleUnauthorized(err, isEditMode ? "Sesi habis. Login ulang untuk edit invoice." : "Sesi habis. Login ulang untuk generate invoice.")) return;
+          setLine("invoice-status", "Gagal proses invoice: " + (err.message || "unknown"), "error");
         });
     }
 
@@ -2137,6 +2347,7 @@
         shippingInput.addEventListener("input", updateInvoiceTotalPreview);
       }
 
+      setInvoiceFormMode(null);
       updateInvoiceTotalPreview();
     }
 
@@ -2310,6 +2521,10 @@
     document.getElementById("config-form").addEventListener("submit", saveConfig);
     document.getElementById("upload-form").addEventListener("submit", uploadAsset);
     document.getElementById("invoice-form").addEventListener("submit", submitInvoice);
+    document.getElementById("invoice-cancel-edit-btn").addEventListener("click", function () {
+      resetInvoiceFormToCreate(true);
+      setLine("invoice-status", "Mode edit dibatalkan. Kembali ke mode invoice baru.", "success");
+    });
     document.getElementById("generate-shortlink-btn").addEventListener("click", generateShortlink);
     document.getElementById("generate-qr-btn").addEventListener("click", generateQrOnly);
     document.getElementById("send-qr-wa-btn").addEventListener("click", sendQrToWhatsAppAdmin);
