@@ -672,6 +672,10 @@ const NAINAI_SHORTLINKS_FILE = path.join(NAINAI_DATA_DIR, 'nainai-shortlinks.jso
 const NAINAI_ASSET_DIR = path.join(__dirname, 'public', 'products', 'class', 'cake-bakery-class');
 const NAINAI_INVOICE_DIR = path.join(NAINAI_ASSET_DIR, 'invoices');
 const NAINAI_LOGO_FILE = path.join(NAINAI_ASSET_DIR, 'logonainai.png');
+const NAINAI_PAYMENT_TRANSFER_BANK = 'BCA';
+const NAINAI_PAYMENT_TRANSFER_ACCOUNT = '6600419186';
+const NAINAI_PAYMENT_TRANSFER_NAME = 'William Susanto';
+const NAINAI_PAYMENT_SHOPEE_LINK = 'https://id.shp.ee/JzFf5AA';
 const NAINAI_UPLOAD_MAX_BYTES = 8 * 1024 * 1024;
 const NAINAI_ALLOWED_UPLOAD_EXT = new Set(['.png', '.jpg', '.jpeg', '.webp']);
 const NAINAI_DEFAULT_CONFIG = {
@@ -1092,12 +1096,35 @@ function createNainaiInvoicePdf(invoice, absPath) {
     doc.fillColor('#2b1b14').font('Helvetica-Bold').fontSize(12).text('Total', summaryLabelX, y + 94);
     doc.text(formatRupiah(invoice.total), summaryLabelX, y + 94, { width: summaryValueW, align: 'right' });
 
+    const paymentBoxH = 118;
+    let sectionY = y + summaryH + 16;
+    if (sectionY + paymentBoxH > pageHeight - 120) {
+      drawFooter();
+      doc.addPage();
+      drawPageBackground();
+      sectionY = 56;
+    }
+
+    doc.roundedRect(40, sectionY, tableW, paymentBoxH, 10).fill('#fffef9');
+    doc.strokeColor('#e6d2ae').lineWidth(1).roundedRect(40, sectionY, tableW, paymentBoxH, 10).stroke();
+    doc.fillColor('#5a3425').font('Helvetica-Bold').fontSize(10).text('Pembayaran', 52, sectionY + 12);
+    doc.fillColor('#2b1b14').font('Helvetica-Bold').fontSize(10).text('Transfer Bank', 52, sectionY + 30);
+    doc.fillColor('#4a3125').font('Helvetica').fontSize(9).text(`Bank: ${NAINAI_PAYMENT_TRANSFER_BANK}`, 52, sectionY + 46);
+    doc.text(`No. Rekening: ${NAINAI_PAYMENT_TRANSFER_ACCOUNT}`, 52, sectionY + 61);
+    doc.text(`Atas Nama: ${NAINAI_PAYMENT_TRANSFER_NAME}`, 52, sectionY + 76);
+    doc.fillColor('#2b1b14').font('Helvetica-Bold').text('Shopee', 330, sectionY + 30);
+    doc.fillColor('#8b4f31').font('Helvetica').text(NAINAI_PAYMENT_SHOPEE_LINK, 330, sectionY + 46, {
+      width: 240,
+      underline: true,
+      link: NAINAI_PAYMENT_SHOPEE_LINK
+    });
+
     if (invoice.notes) {
       const notesWidth = tableW - 24;
       doc.font('Helvetica').fontSize(9);
       const notesBodyH = doc.heightOfString(invoice.notes, { width: notesWidth, lineGap: 2 });
       const notesBoxH = Math.min(160, Math.max(76, notesBodyH + 36));
-      let notesY = y + summaryH + 16;
+      let notesY = sectionY + paymentBoxH + 16;
       if (notesY + notesBoxH > pageHeight - 120) {
         drawFooter();
         doc.addPage();
@@ -2771,6 +2798,11 @@ app.post('/api/nainai/invoices', requireNainaiAdmin, async (req, res) => {
       `WA Customer: ${customerWhatsapp}`,
       `No Invoice: ${invoiceNumber}`,
       `Total: ${formatRupiah(total)}`,
+      '',
+      'Pembayaran Transfer:',
+      NAINAI_PAYMENT_TRANSFER_BANK,
+      `${NAINAI_PAYMENT_TRANSFER_ACCOUNT} (${NAINAI_PAYMENT_TRANSFER_NAME})`,
+      `Shopee: ${NAINAI_PAYMENT_SHOPEE_LINK}`,
       '',
       'Preview Invoice: (akan ditambahkan dari dashboard admin)',
       'Terima kasih.'

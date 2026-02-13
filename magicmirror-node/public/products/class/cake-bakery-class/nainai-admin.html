@@ -1428,6 +1428,13 @@
       ]
     };
 
+    var INVOICE_PAYMENT_INFO = {
+      transferBank: "BCA",
+      transferAccount: "6600419186",
+      transferName: "William Susanto",
+      shopeeLink: "https://id.shp.ee/JzFf5AA"
+    };
+
     function getInvoiceVariantOptions(product) {
       return product === "Nastar" ? INVOICE_VARIANT_OPTIONS.Nastar : INVOICE_VARIANT_OPTIONS.Lapis;
     }
@@ -1585,7 +1592,7 @@
       ctx.textAlign = "left";
 
       var rowY = tableY + 64;
-      var items = Array.isArray(invoice.items) ? invoice.items.slice(0, 8) : [];
+      var items = Array.isArray(invoice.items) ? invoice.items.slice(0, 6) : [];
       items.forEach(function (item, index) {
         var rowH = 56;
         var bg = index % 2 === 0 ? "#fffef9" : "#fff8ec";
@@ -1655,8 +1662,29 @@
       ctx.fillText(formatRupiah(invoice.total || 0), summaryX + 316, summaryY + 168);
       ctx.textAlign = "left";
 
+      var paymentY = summaryY + 206;
+      drawRoundedRectCanvas(ctx, 44, paymentY, 992, 120, 14, "#fffef9", "#e6d2ae");
+      ctx.fillStyle = "#5a3425";
+      ctx.font = "700 20px Arial, sans-serif";
+      ctx.fillText("Pembayaran", 64, paymentY + 36);
+      ctx.fillStyle = "#2b1b14";
+      ctx.font = "700 18px Arial, sans-serif";
+      ctx.fillText("Transfer Bank", 64, paymentY + 64);
+      ctx.fillStyle = "#4a3125";
+      ctx.font = "500 18px Arial, sans-serif";
+      ctx.fillText("Bank: " + INVOICE_PAYMENT_INFO.transferBank, 64, paymentY + 88);
+      ctx.fillText("No. Rekening: " + INVOICE_PAYMENT_INFO.transferAccount, 64, paymentY + 110);
+      ctx.fillText("Atas Nama: " + INVOICE_PAYMENT_INFO.transferName, 64, paymentY + 132);
+
+      ctx.fillStyle = "#2b1b14";
+      ctx.font = "700 18px Arial, sans-serif";
+      ctx.fillText("Shopee", 560, paymentY + 64);
+      ctx.fillStyle = "#8b4f31";
+      ctx.font = "500 18px Arial, sans-serif";
+      ctx.fillText(INVOICE_PAYMENT_INFO.shopeeLink, 560, paymentY + 90);
+
       if (invoice.notes) {
-        var notesY = summaryY + 216;
+        var notesY = paymentY + 136;
         drawRoundedRectCanvas(ctx, 44, notesY, 992, 124, 14, "#fffef9", "#e6d2ae");
         ctx.fillStyle = "#5a3425";
         ctx.font = "700 20px Arial, sans-serif";
@@ -1723,7 +1751,12 @@
         "Nama Customer: " + String(invoice.customerName || "-"),
         "WA Customer: " + (customerWa || String(invoice.customerWhatsapp || "-")),
         "No Invoice: " + String(invoice.invoiceNumber || "-"),
-        "Total: " + formatRupiah(invoice.total || 0)
+        "Total: " + formatRupiah(invoice.total || 0),
+        "",
+        "Pembayaran Transfer:",
+        INVOICE_PAYMENT_INFO.transferBank,
+        INVOICE_PAYMENT_INFO.transferAccount + " (" + INVOICE_PAYMENT_INFO.transferName + ")",
+        "Shopee: " + INVOICE_PAYMENT_INFO.shopeeLink
       ];
 
       if (previewImageUrl) {
