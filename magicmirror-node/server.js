@@ -970,7 +970,22 @@ function createNainaiInvoicePdf(invoice, absPath) {
 
     if (fs.existsSync(NAINAI_LOGO_FILE)) {
       try {
-        doc.image(NAINAI_LOGO_FILE, 36, 24, { fit: [98, 98], align: 'left', valign: 'top' });
+        const logoBox = { x: 36, y: 24, w: 98, h: 98 };
+        const openedLogo = doc.openImage(NAINAI_LOGO_FILE);
+        if (openedLogo && openedLogo.width && openedLogo.height) {
+          const ratio = openedLogo.width / openedLogo.height;
+          let drawW = logoBox.w;
+          let drawH = drawW / ratio;
+          if (drawH > logoBox.h) {
+            drawH = logoBox.h;
+            drawW = drawH * ratio;
+          }
+          const drawX = logoBox.x + ((logoBox.w - drawW) / 2);
+          const drawY = logoBox.y + ((logoBox.h - drawH) / 2);
+          doc.image(NAINAI_LOGO_FILE, drawX, drawY, { width: drawW, height: drawH });
+        } else {
+          doc.image(NAINAI_LOGO_FILE, logoBox.x, logoBox.y, { fit: [logoBox.w, logoBox.h], align: 'center', valign: 'center' });
+        }
       } catch (_) {
         // ignore logo draw errors
       }
@@ -2749,17 +2764,18 @@ app.post('/api/nainai/invoices', requireNainaiAdmin, async (req, res) => {
     const adminWhatsapp = config.adminWhatsapp || NAINAI_ADMIN_WA_DEFAULT;
 
     const waMessage = [
-      `Halo ${customerName}, terima kasih sudah order di Nai Nai Lapis.`,
+      'Halo Admin Nai Nai Lapis,',
+      'mohon bantu forward invoice ini ke customer:',
       '',
-      'Invoice digital kamu sudah siap:',
+      `Nama Customer: ${customerName}`,
+      `WA Customer: ${customerWhatsapp}`,
       `No Invoice: ${invoiceNumber}`,
       `Total: ${formatRupiah(total)}`,
-      `Link PDF: ${fileUrl}`,
       '',
-      `Admin Nai Nai Lapis: ${adminWhatsapp}`,
-      'Kalau ada yang ingin ditanyakan, bisa langsung balas chat ini ya.'
+      'Preview Invoice: (akan ditambahkan dari dashboard admin)',
+      'Terima kasih.'
     ].join('\n');
-    const whatsappUrl = `https://wa.me/${encodeURIComponent(customerWhatsapp)}?text=${encodeURIComponent(waMessage)}`;
+    const whatsappUrl = `https://wa.me/${encodeURIComponent(adminWhatsapp)}?text=${encodeURIComponent(waMessage)}`;
 
     return res.json({
       ok: true,

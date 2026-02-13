@@ -1512,7 +1512,17 @@
 
       var logo = await loadImageForCanvas("/products/class/cake-bakery-class/logonainai.png");
       if (logo) {
-        ctx.drawImage(logo, 44, 36, 132, 132);
+        var logoBox = { x: 44, y: 36, w: 132, h: 132 };
+        var logoRatio = logo.width / logo.height;
+        var drawW = logoBox.w;
+        var drawH = drawW / logoRatio;
+        if (drawH > logoBox.h) {
+          drawH = logoBox.h;
+          drawW = drawH * logoRatio;
+        }
+        var drawX = logoBox.x + ((logoBox.w - drawW) / 2);
+        var drawY = logoBox.y + ((logoBox.h - drawH) / 2);
+        ctx.drawImage(logo, drawX, drawY, drawW, drawH);
       }
 
       ctx.fillStyle = "#fff3e6";
@@ -1700,33 +1710,32 @@
       return sanitizeHttpUrl(toAbsoluteHttpUrl(uploadedUrl));
     }
 
-    function buildCustomerInvoiceWhatsappUrl(invoice, previewImageUrl, fallbackUrl) {
-      if (!invoice) return sanitizeHttpUrl(fallbackUrl || "");
-      var customerWa = normalizeTo62(invoice.customerWhatsapp || "");
-      if (!customerWa) return sanitizeHttpUrl(fallbackUrl || "");
-
+    function buildAdminInvoiceWhatsappUrl(invoice, previewImageUrl, fallbackUrl) {
       var adminWaInput = document.getElementById("cfg-wa");
       var adminWa = normalizeTo62(adminWaInput && adminWaInput.value ? adminWaInput.value : "") || "6288972681212";
-      var pdfUrl = toAbsoluteHttpUrl(invoice.pdfUrl || invoice.pdfPath || "");
+      if (!invoice) return sanitizeHttpUrl(fallbackUrl || ("https://wa.me/" + encodeURIComponent(adminWa)));
+      var customerWa = normalizeTo62(invoice.customerWhatsapp || "");
 
       var lines = [
-        "Halo " + String(invoice.customerName || "Customer") + ", terima kasih sudah order di Nai Nai Lapis.",
+        "Halo Admin Nai Nai Lapis,",
+        "mohon bantu forward invoice ini ke customer:",
         "",
-        "Invoice digital kamu sudah siap:",
+        "Nama Customer: " + String(invoice.customerName || "-"),
+        "WA Customer: " + (customerWa || String(invoice.customerWhatsapp || "-")),
         "No Invoice: " + String(invoice.invoiceNumber || "-"),
-        "Total: " + formatRupiah(invoice.total || 0),
-        "Link PDF: " + (pdfUrl || "-")
+        "Total: " + formatRupiah(invoice.total || 0)
       ];
 
       if (previewImageUrl) {
-        lines.push("Preview image: " + previewImageUrl);
+        lines.push("Preview Invoice: " + previewImageUrl);
+      } else {
+        lines.push("Preview Invoice: -");
       }
 
       lines.push("");
-      lines.push("Admin Nai Nai Lapis: " + adminWa);
-      lines.push("Kalau ada yang ingin ditanyakan, bisa langsung balas chat ini ya.");
+      lines.push("Terima kasih.");
 
-      return "https://wa.me/" + encodeURIComponent(customerWa) + "?text=" + encodeURIComponent(lines.join("\n"));
+      return "https://wa.me/" + encodeURIComponent(adminWa) + "?text=" + encodeURIComponent(lines.join("\n"));
     }
 
     function createInvoiceItemRow(data) {
@@ -1915,7 +1924,6 @@
 
       var invoice = payload.invoice || {};
       var whatsappUrl = sanitizeHttpUrl(payload.whatsappUrl || "");
-      var pdfUrl = sanitizeHttpUrl(toAbsoluteHttpUrl(invoice.pdfUrl || invoice.pdfPath || ""));
       var previewImageUrl = sanitizeHttpUrl(payload.previewImageUrl || "");
 
       wrap.innerHTML = '' +
@@ -1924,10 +1932,9 @@
           '<p><strong>No Invoice:</strong> ' + escapeHtml(invoice.invoiceNumber || "-") + '</p>' +
           '<p><strong>Customer:</strong> ' + escapeHtml(invoice.customerName || "-") + ' (' + escapeHtml(invoice.customerWhatsapp || "-") + ')</p>' +
           '<p><strong>Total:</strong> ' + escapeHtml(formatRupiah(invoice.total || 0)) + '</p>' +
-          (previewImageUrl ? ('<p><strong>Preview Image:</strong> <a href="' + escapeHtml(previewImageUrl) + '" target="_blank" rel="noopener noreferrer">Buka preview image</a></p>') : "") +
+          (previewImageUrl ? ('<p><strong>Preview Invoice:</strong> <a href="' + escapeHtml(previewImageUrl) + '" target="_blank" rel="noopener noreferrer">Buka Preview Invoice</a></p>') : "") +
           '<div class="invoice-actions">' +
-            '<a class="btn btn-soft" href="' + escapeHtml(pdfUrl || "#") + '" target="_blank" rel="noopener noreferrer">Buka PDF Invoice</a>' +
-            '<button class="btn btn-main" id="send-invoice-wa-btn" type="button">Kirim ke WhatsApp Customer</button>' +
+            '<button class="btn btn-main" id="send-invoice-wa-btn" type="button">Kirim ke WhatsApp Admin</button>' +
           '</div>' +
         '</article>';
 
@@ -2023,12 +2030,12 @@
           return uploadInvoicePreviewImage(invoice)
             .then(function (previewImageUrl) {
               result.previewImageUrl = previewImageUrl;
-              result.whatsappUrl = buildCustomerInvoiceWhatsappUrl(invoice, previewImageUrl, result.whatsappUrl);
+              result.whatsappUrl = buildAdminInvoiceWhatsappUrl(invoice, previewImageUrl, result.whatsappUrl);
               return result;
             })
             .catch(function () {
               result.previewImageUrl = "";
-              result.whatsappUrl = buildCustomerInvoiceWhatsappUrl(invoice, "", result.whatsappUrl);
+              result.whatsappUrl = buildAdminInvoiceWhatsappUrl(invoice, "", result.whatsappUrl);
               return result;
             });
         })
@@ -2037,7 +2044,7 @@
           if (result && result.whatsappUrl) {
             window.open(result.whatsappUrl, "_blank", "noopener,noreferrer");
           }
-          setLine("invoice-status", "Invoice berhasil dibuat. Chat WhatsApp customer sudah dibuka dengan link PDF + preview image.", "success");
+          setLine("invoice-status", "Invoice berhasil dibuat. Chat WhatsApp admin sudah dibuka dengan link Preview Invoice.", "success");
           loadInvoices();
         })
         .catch(function (err) {
