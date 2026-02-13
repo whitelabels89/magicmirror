@@ -471,9 +471,15 @@
 
     .invoice-item-grid {
       display: grid;
-      grid-template-columns: 1.1fr 0.8fr 0.4fr 0.7fr auto;
+      grid-template-columns: 1.1fr 0.85fr 0.4fr 0.7fr 0.8fr auto;
       gap: 0.4rem;
       align-items: end;
+    }
+
+    .inv-item-subtotal[readonly] {
+      background: #f7eee3;
+      font-weight: 700;
+      color: #2f1f17;
     }
 
     .invoice-item-note {
@@ -1771,6 +1777,19 @@
       return "https://wa.me/" + encodeURIComponent(adminWa) + "?text=" + encodeURIComponent(lines.join("\n"));
     }
 
+    function updateInvoiceItemLineSubtotal(row) {
+      if (!row) return 0;
+      var qty = Math.round(Number((row.querySelector(".inv-item-qty") || {}).value || 0));
+      if (!Number.isFinite(qty) || qty <= 0) qty = 0;
+      var unitPrice = parseMoney((row.querySelector(".inv-item-price") || {}).value || 0);
+      var lineTotal = qty * unitPrice;
+      var subtotalField = row.querySelector(".inv-item-subtotal");
+      if (subtotalField) {
+        subtotalField.value = formatRupiah(lineTotal);
+      }
+      return lineTotal;
+    }
+
     function createInvoiceItemRow(data) {
       var preset = data || {};
       var selectedProduct = String(preset.product || "Lapis");
@@ -1807,8 +1826,12 @@
             '<input class="inv-item-qty" type="number" min="1" step="1" value="' + String(qty) + '" required />' +
           '</div>' +
           '<div class="field">' +
-            '<label>Harga (Rp)</label>' +
+            '<label>Harga Satuan (Rp)</label>' +
             '<input class="inv-item-price" type="number" min="0" step="1000" value="' + String(unitPrice) + '" required />' +
+          '</div>' +
+          '<div class="field">' +
+            '<label>Subtotal</label>' +
+            '<input class="inv-item-subtotal" type="text" value="' + formatRupiah(qty * unitPrice) + '" readonly />' +
           '</div>' +
           '<div class="field">' +
             '<label>&nbsp;</label>' +
@@ -1886,6 +1909,7 @@
       });
 
       syncVariantOptions(false);
+      updateInvoiceItemLineSubtotal(row);
 
       return row;
     }
@@ -1930,9 +1954,9 @@
     }
 
     function updateInvoiceTotalPreview() {
-      var read = readInvoiceItemsForSubmit();
-      var subtotal = (read.items || []).reduce(function (sum, item) {
-        return sum + (Number(item.qty) * Number(item.unitPrice));
+      var rows = Array.prototype.slice.call(document.querySelectorAll(".invoice-item-row"));
+      var subtotal = rows.reduce(function (sum, row) {
+        return sum + updateInvoiceItemLineSubtotal(row);
       }, 0);
       var discountRaw = parseMoney((document.getElementById("inv-discount") || {}).value || 0);
       var shipping = parseMoney((document.getElementById("inv-shipping") || {}).value || 0);

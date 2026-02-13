@@ -664,9 +664,12 @@ app.get('/api/storage-info', async (req, res) => {
 const PORT = process.env.PORT || 3000;
 
 const NAINAI_ADMIN_WA_DEFAULT = '6288972681212';
-const NAINAI_DATA_DIR = path.join(__dirname, 'data');
+const NAINAI_DATA_DIR = process.env.NAINAI_DATA_DIR
+  ? path.resolve(process.env.NAINAI_DATA_DIR)
+  : path.join(__dirname, 'data');
 const NAINAI_LEADS_FILE = path.join(NAINAI_DATA_DIR, 'nainai-leads.json');
 const NAINAI_CONFIG_FILE = path.join(NAINAI_DATA_DIR, 'nainai-config.json');
+const NAINAI_AUTH_FILE = path.join(NAINAI_DATA_DIR, 'nainai-auth.json');
 const NAINAI_INVOICES_FILE = path.join(NAINAI_DATA_DIR, 'nainai-invoices.json');
 const NAINAI_SHORTLINKS_FILE = path.join(NAINAI_DATA_DIR, 'nainai-shortlinks.json');
 const NAINAI_ASSET_DIR = path.join(__dirname, 'public', 'products', 'class', 'cake-bakery-class');
@@ -685,6 +688,9 @@ const NAINAI_DEFAULT_CONFIG = {
   adminWhatsapp: NAINAI_ADMIN_WA_DEFAULT,
   lapisSizes: ['10 x 10', '10 x 20', '20 x 20'],
   seasonalLabel: 'Seasonal / Event',
+  updatedAt: null
+};
+const NAINAI_DEFAULT_AUTH = {
   adminPinHash: '',
   adminPinSalt: '',
   adminPinUpdatedAt: null,
@@ -700,22 +706,59 @@ function ensureDirSync(dirPath) {
   if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true });
 }
 
-function readJsonSafely(filePath, fallbackValue) {
+function readJsonFileIfValid(filePath, quietMissing = false) {
   try {
-    if (!fs.existsSync(filePath)) return fallbackValue;
+    if (!fs.existsSync(filePath)) return { ok: false, reason: 'missing' };
     const raw = fs.readFileSync(filePath, 'utf8');
-    if (!raw || !raw.trim()) return fallbackValue;
+    if (!raw || !raw.trim()) return { ok: false, reason: 'empty' };
     const parsed = JSON.parse(raw);
-    return parsed;
+    return { ok: true, value: parsed };
   } catch (err) {
-    console.warn('[nainai] failed reading json', filePath, err.message);
-    return fallbackValue;
+    if (!(quietMissing && err && err.code === 'ENOENT')) {
+      console.warn('[nainai] failed reading json', filePath, err.message);
+    }
+    return { ok: false, reason: 'invalid' };
   }
+}
+
+function readJsonSafely(filePath, fallbackValue) {
+  const primary = readJsonFileIfValid(filePath);
+  if (primary.ok) return primary.value;
+
+  const backupPath = `${filePath}.bak`;
+  const backup = readJsonFileIfValid(backupPath, true);
+  if (backup.ok) {
+    console.warn('[nainai] using backup json file', backupPath);
+    return backup.value;
+  }
+  return fallbackValue;
 }
 
 function writeJsonSafely(filePath, value) {
   ensureDirSync(path.dirname(filePath));
-  fs.writeFileSync(filePath, JSON.stringify(value, null, 2), 'utf8');
+  const content = JSON.stringify(value, null, 2);
+  const tempPath = `${filePath}.tmp-${process.pid}-${Date.now()}`;
+  fs.writeFileSync(tempPath, content, 'utf8');
+  fs.renameSync(tempPath, filePath);
+  try {
+    fs.writeFileSync(`${filePath}.bak`, content, 'utf8');
+  } catch (err) {
+    console.warn('[nainai] failed writing backup json', filePath, err.message);
+  }
+}
+
+function ensureJsonFile(filePath, defaultValue) {
+  if (fs.existsSync(filePath)) return;
+  const backupPath = `${filePath}.bak`;
+  if (fs.existsSync(backupPath)) {
+    try {
+      fs.copyFileSync(backupPath, filePath);
+      return;
+    } catch (err) {
+      console.warn('[nainai] failed restoring from backup', backupPath, err.message);
+    }
+  }
+  writeJsonSafely(filePath, defaultValue);
 }
 
 function normalizePhone62(rawPhone) {
@@ -733,6 +776,12 @@ function sanitizeText(value, maxLen = 240) {
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, maxLen);
+}
+
+function sanitizeHex(value, maxLen = 128) {
+  const text = String(value || '').trim().toLowerCase();
+  if (!/^[a-f0-9]+$/.test(text)) return '';
+  return text.slice(0, maxLen);
 }
 
 function sanitizeHttpUrl(value, maxLen = 1200) {
@@ -758,17 +807,21 @@ function generateNainaiId(prefix = 'nn') {
 function loadNainaiConfig() {
   const stored = readJsonSafely(NAINAI_CONFIG_FILE, null);
   if (!stored || typeof stored !== 'object') return { ...NAINAI_DEFAULT_CONFIG };
-  const lapisSizes = Array.isArray(stored.lapisSizes)
-    ? stored.lapisSizes.map((item) => sanitizeText(item, 40)).filter(Boolean)
+  const cleanStored = { ...stored };
+  delete cleanStored.adminPinHash;
+  delete cleanStored.adminPinSalt;
+  delete cleanStored.adminPinUpdatedAt;
+  const lapisSizes = Array.isArray(cleanStored.lapisSizes)
+    ? cleanStored.lapisSizes.map((item) => sanitizeText(item, 40)).filter(Boolean)
     : [...NAINAI_DEFAULT_CONFIG.lapisSizes];
   return {
     ...NAINAI_DEFAULT_CONFIG,
-    ...stored,
-    heroTitle: sanitizeText(stored.heroTitle || NAINAI_DEFAULT_CONFIG.heroTitle, 120),
-    heroSubtitle: sanitizeText(stored.heroSubtitle || NAINAI_DEFAULT_CONFIG.heroSubtitle, 420),
-    announcement: sanitizeText(stored.announcement || NAINAI_DEFAULT_CONFIG.announcement, 180),
-    seasonalLabel: sanitizeText(stored.seasonalLabel || NAINAI_DEFAULT_CONFIG.seasonalLabel, 80),
-    adminWhatsapp: normalizePhone62(stored.adminWhatsapp || NAINAI_DEFAULT_CONFIG.adminWhatsapp) || NAINAI_ADMIN_WA_DEFAULT,
+    ...cleanStored,
+    heroTitle: sanitizeText(cleanStored.heroTitle || NAINAI_DEFAULT_CONFIG.heroTitle, 120),
+    heroSubtitle: sanitizeText(cleanStored.heroSubtitle || NAINAI_DEFAULT_CONFIG.heroSubtitle, 420),
+    announcement: sanitizeText(cleanStored.announcement || NAINAI_DEFAULT_CONFIG.announcement, 180),
+    seasonalLabel: sanitizeText(cleanStored.seasonalLabel || NAINAI_DEFAULT_CONFIG.seasonalLabel, 80),
+    adminWhatsapp: normalizePhone62(cleanStored.adminWhatsapp || NAINAI_DEFAULT_CONFIG.adminWhatsapp) || NAINAI_ADMIN_WA_DEFAULT,
     lapisSizes: lapisSizes.length ? lapisSizes : [...NAINAI_DEFAULT_CONFIG.lapisSizes]
   };
 }
@@ -788,8 +841,66 @@ function saveNainaiConfig(nextConfig) {
     ? merged.lapisSizes.map((item) => sanitizeText(item, 40)).filter(Boolean)
     : [...NAINAI_DEFAULT_CONFIG.lapisSizes];
   if (!merged.lapisSizes.length) merged.lapisSizes = [...NAINAI_DEFAULT_CONFIG.lapisSizes];
+  delete merged.adminPinHash;
+  delete merged.adminPinSalt;
+  delete merged.adminPinUpdatedAt;
   writeJsonSafely(NAINAI_CONFIG_FILE, merged);
   return merged;
+}
+
+function normalizeNainaiAuth(rawAuth) {
+  const source = rawAuth && typeof rawAuth === 'object' ? rawAuth : {};
+  return {
+    ...NAINAI_DEFAULT_AUTH,
+    adminPinHash: sanitizeHex(source.adminPinHash, 128),
+    adminPinSalt: sanitizeHex(source.adminPinSalt, 128),
+    adminPinUpdatedAt: source.adminPinUpdatedAt ? String(source.adminPinUpdatedAt).slice(0, 80) : null,
+    updatedAt: source.updatedAt ? String(source.updatedAt).slice(0, 80) : null
+  };
+}
+
+function migrateLegacyNainaiPinFromConfig() {
+  const configRaw = readJsonSafely(NAINAI_CONFIG_FILE, null);
+  if (!configRaw || typeof configRaw !== 'object') return null;
+
+  const legacyHash = sanitizeHex(configRaw.adminPinHash, 128);
+  const legacySalt = sanitizeHex(configRaw.adminPinSalt, 128);
+  if (!legacyHash || !legacySalt) return null;
+
+  const migrated = normalizeNainaiAuth({
+    adminPinHash: legacyHash,
+    adminPinSalt: legacySalt,
+    adminPinUpdatedAt: configRaw.adminPinUpdatedAt || nowIso(),
+    updatedAt: nowIso()
+  });
+  writeJsonSafely(NAINAI_AUTH_FILE, migrated);
+
+  const cleanedConfig = { ...configRaw };
+  delete cleanedConfig.adminPinHash;
+  delete cleanedConfig.adminPinSalt;
+  delete cleanedConfig.adminPinUpdatedAt;
+  writeJsonSafely(NAINAI_CONFIG_FILE, cleanedConfig);
+  return migrated;
+}
+
+function loadNainaiAuth() {
+  const stored = readJsonSafely(NAINAI_AUTH_FILE, null);
+  if (stored && typeof stored === 'object') return normalizeNainaiAuth(stored);
+  const migrated = migrateLegacyNainaiPinFromConfig();
+  if (migrated) return migrated;
+  return { ...NAINAI_DEFAULT_AUTH };
+}
+
+function saveNainaiAuth(nextAuth) {
+  const merged = {
+    ...loadNainaiAuth(),
+    ...(nextAuth && typeof nextAuth === 'object' ? nextAuth : {}),
+    updatedAt: nowIso()
+  };
+  const safe = normalizeNainaiAuth(merged);
+  safe.updatedAt = merged.updatedAt;
+  writeJsonSafely(NAINAI_AUTH_FILE, safe);
+  return safe;
 }
 
 function loadNainaiLeads() {
@@ -1216,7 +1327,7 @@ function toPublicNainaiConfig(config) {
 }
 
 function isNainaiPinInitialized(config) {
-  const current = config || loadNainaiConfig();
+  const current = config || loadNainaiAuth();
   return Boolean(current && current.adminPinHash && current.adminPinSalt);
 }
 
@@ -1231,7 +1342,7 @@ function hashNainaiPin(pin, salt) {
 }
 
 function verifyNainaiPin(pin, config) {
-  const current = config || loadNainaiConfig();
+  const current = config || loadNainaiAuth();
   if (!isNainaiPinInitialized(current)) return false;
   const hashed = hashNainaiPin(pin, current.adminPinSalt);
   return hashed === current.adminPinHash;
@@ -1244,13 +1355,13 @@ function setNainaiPin(nextPin) {
   }
   const salt = crypto.randomBytes(16).toString('hex');
   const hash = hashNainaiPin(pin, salt);
-  const config = saveNainaiConfig({
+  const auth = saveNainaiAuth({
     adminPinHash: hash,
     adminPinSalt: salt,
     adminPinUpdatedAt: nowIso()
   });
   nainaiAdminSessions.clear();
-  return config;
+  return auth;
 }
 
 function cleanupNainaiAdminSessions() {
@@ -1338,17 +1449,16 @@ function bootstrapNainaiStorage() {
   ensureDirSync(NAINAI_DATA_DIR);
   ensureDirSync(NAINAI_ASSET_DIR);
   ensureDirSync(NAINAI_INVOICE_DIR);
-  if (!fs.existsSync(NAINAI_CONFIG_FILE)) {
-    writeJsonSafely(NAINAI_CONFIG_FILE, { ...NAINAI_DEFAULT_CONFIG, updatedAt: nowIso() });
-  }
-  if (!fs.existsSync(NAINAI_LEADS_FILE)) {
-    writeJsonSafely(NAINAI_LEADS_FILE, []);
-  }
-  if (!fs.existsSync(NAINAI_INVOICES_FILE)) {
-    writeJsonSafely(NAINAI_INVOICES_FILE, []);
-  }
-  if (!fs.existsSync(NAINAI_SHORTLINKS_FILE)) {
-    writeJsonSafely(NAINAI_SHORTLINKS_FILE, []);
+  ensureJsonFile(NAINAI_CONFIG_FILE, { ...NAINAI_DEFAULT_CONFIG, updatedAt: nowIso() });
+  ensureJsonFile(NAINAI_LEADS_FILE, []);
+  ensureJsonFile(NAINAI_INVOICES_FILE, []);
+  ensureJsonFile(NAINAI_SHORTLINKS_FILE, []);
+
+  if (!fs.existsSync(NAINAI_AUTH_FILE)) {
+    const migratedAuth = migrateLegacyNainaiPinFromConfig();
+    if (!migratedAuth) {
+      ensureJsonFile(NAINAI_AUTH_FILE, { ...NAINAI_DEFAULT_AUTH, updatedAt: nowIso() });
+    }
   }
 }
 
@@ -2431,10 +2541,10 @@ app.get('/api/revenue/monthly', async (req, res) => {
 // ===== Nai Nai Lapis: lightweight CMS + leads monitoring =====
 app.get('/api/nainai/admin/auth/state', (req, res) => {
   try {
-    const config = loadNainaiConfig();
+    const auth = loadNainaiAuth();
     return res.json({
       ok: true,
-      initialized: isNainaiPinInitialized(config),
+      initialized: isNainaiPinInitialized(auth),
       pinMin: NAINAI_ADMIN_PIN_MIN,
       pinMax: NAINAI_ADMIN_PIN_MAX
     });
@@ -2449,9 +2559,9 @@ app.post('/api/nainai/admin/auth/bootstrap', (req, res) => {
     const body = req.body || {};
     const pin = String(body.pin || '').trim();
     const confirmPin = String(body.confirmPin || '').trim();
-    const config = loadNainaiConfig();
+    const auth = loadNainaiAuth();
 
-    if (isNainaiPinInitialized(config)) {
+    if (isNainaiPinInitialized(auth)) {
       return res.status(409).json({ ok: false, error: 'PIN admin sudah pernah diaktifkan' });
     }
     if (!isValidNainaiPin(pin)) {
@@ -2461,7 +2571,8 @@ app.post('/api/nainai/admin/auth/bootstrap', (req, res) => {
       return res.status(400).json({ ok: false, error: 'Konfirmasi PIN tidak cocok' });
     }
 
-    const nextConfig = setNainaiPin(pin);
+    setNainaiPin(pin);
+    const nextConfig = loadNainaiConfig();
     const session = createNainaiAdminSession({ uid: 'nainai-admin' });
     return res.json({
       ok: true,
@@ -2479,12 +2590,12 @@ app.post('/api/nainai/admin/auth/login', (req, res) => {
   try {
     const body = req.body || {};
     const pin = String(body.pin || '').trim();
-    const config = loadNainaiConfig();
+    const auth = loadNainaiAuth();
 
-    if (!isNainaiPinInitialized(config)) {
+    if (!isNainaiPinInitialized(auth)) {
       return res.status(409).json({ ok: false, error: 'PIN admin belum diaktifkan. Lakukan aktivasi awal.' });
     }
-    if (!verifyNainaiPin(pin, config)) {
+    if (!verifyNainaiPin(pin, auth)) {
       return res.status(401).json({ ok: false, error: 'PIN salah' });
     }
 
@@ -2525,12 +2636,12 @@ app.post('/api/nainai/admin/auth/change-pin', requireNainaiAdmin, (req, res) => 
     const oldPin = String(body.oldPin || '').trim();
     const newPin = String(body.newPin || '').trim();
     const confirmPin = String(body.confirmPin || '').trim();
-    const config = loadNainaiConfig();
+    const auth = loadNainaiAuth();
 
-    if (!isNainaiPinInitialized(config)) {
+    if (!isNainaiPinInitialized(auth)) {
       return res.status(409).json({ ok: false, error: 'PIN admin belum diaktifkan' });
     }
-    if (!verifyNainaiPin(oldPin, config)) {
+    if (!verifyNainaiPin(oldPin, auth)) {
       return res.status(401).json({ ok: false, error: 'PIN lama tidak sesuai' });
     }
     if (!isValidNainaiPin(newPin)) {
