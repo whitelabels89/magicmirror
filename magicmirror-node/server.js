@@ -838,6 +838,7 @@ function loadNainaiInvoices() {
         invoiceNumber,
         customerName,
         customerWhatsapp,
+        dueDate: sanitizeIsoDate(row.dueDate || ''),
         pdfUrl,
         subtotal: sanitizeMoney(row.subtotal),
         discount: sanitizeMoney(row.discount),
@@ -930,118 +931,171 @@ function createNainaiInvoicePdf(invoice, absPath) {
     const pageHeight = doc.page.height;
     const tableX = 40;
     const tableW = pageWidth - 80;
+    const dueDate = sanitizeIsoDate(invoice.dueDate || '');
 
-    // Background + header band
-    doc.save();
-    doc.rect(0, 0, pageWidth, pageHeight).fill('#fff9f2');
-    doc.restore();
-    doc.rect(0, 0, pageWidth, 148).fill('#2b1b14');
-    doc.rect(0, 142, pageWidth, 6).fill('#c98b2b');
-    doc.rect(0, 148, pageWidth, 8).fill('#f0ddbf');
+    const cols = {
+      item: { x: tableX + 12, w: 220 },
+      qty: { x: tableX + 240, w: 52 },
+      price: { x: tableX + 298, w: 98 },
+      subtotal: { x: tableX + 402, w: 142 }
+    };
+
+    const drawPageBackground = () => {
+      doc.save();
+      doc.rect(0, 0, pageWidth, pageHeight).fill('#fff9f2');
+      doc.restore();
+    };
+
+    const drawFooter = () => {
+      doc.fillColor('#5a3425').font('Helvetica-Oblique').fontSize(10).text(
+        'Terima kasih sudah order di Nai Nai Lapis. Semoga setiap lapisan membawa cerita manis untuk harimu.',
+        40,
+        pageHeight - 66,
+        { width: tableW, align: 'center' }
+      );
+    };
+
+    const drawTableHeader = (yPos) => {
+      doc.roundedRect(tableX, yPos, tableW, 30, 10).fill('#f2ddbb');
+      doc.fillColor('#4b2e21').font('Helvetica-Bold').fontSize(10).text('Item', cols.item.x, yPos + 10, { width: cols.item.w });
+      doc.text('Qty', cols.qty.x, yPos + 10, { width: cols.qty.w, align: 'center' });
+      doc.text('Harga', cols.price.x, yPos + 10, { width: cols.price.w, align: 'right' });
+      doc.text('Subtotal', cols.subtotal.x, yPos + 10, { width: cols.subtotal.w, align: 'right' });
+      return yPos + 38;
+    };
+
+    drawPageBackground();
+    doc.rect(0, 0, pageWidth, 164).fill('#2b1b14');
+    doc.rect(0, 156, pageWidth, 8).fill('#c98b2b');
 
     if (fs.existsSync(NAINAI_LOGO_FILE)) {
       try {
-        doc.image(NAINAI_LOGO_FILE, 40, 26, { fit: [72, 72], align: 'left', valign: 'top' });
+        doc.image(NAINAI_LOGO_FILE, 36, 24, { fit: [98, 98], align: 'left', valign: 'top' });
       } catch (_) {
         // ignore logo draw errors
       }
     }
 
-    doc.fillColor('#fff3e6').font('Helvetica-Bold').fontSize(30).text('INVOICE', 126, 35);
-    doc.font('Helvetica').fontSize(11).text('Nai Nai Lapis', 126, 74);
-    doc.fontSize(10).text('Lapis & Nastar Premium', 126, 90);
+    doc.fillColor('#fff3e6').font('Helvetica-Bold').fontSize(31).text('INVOICE', 150, 36);
+    doc.font('Helvetica').fontSize(11).text('Nai Nai Lapis', 150, 76);
+    doc.fontSize(10).text('Lapis & Nastar Premium', 150, 92);
 
-    doc.fillColor('#fff3e6').font('Helvetica-Bold').fontSize(10).text(`No Invoice: ${invoice.invoiceNumber}`, 320, 38, { width: 236, align: 'right' });
-    doc.font('Helvetica').fontSize(10).text(`Tanggal: ${invoice.orderDate || '-'}`, 320, 56, { width: 236, align: 'right' });
-    doc.text(`Jatuh Tempo: ${invoice.dueDate || '-'}`, 320, 72, { width: 236, align: 'right' });
-    doc.text(`WhatsApp: ${invoice.customerWhatsapp}`, 320, 88, { width: 236, align: 'right' });
+    let metaY = 38;
+    doc.fillColor('#fff3e6').font('Helvetica-Bold').fontSize(10).text(`No Invoice: ${invoice.invoiceNumber}`, 320, metaY, { width: 236, align: 'right' });
+    metaY += 18;
+    doc.font('Helvetica').text(`Tanggal: ${invoice.orderDate || '-'}`, 320, metaY, { width: 236, align: 'right' });
+    metaY += 18;
+    if (dueDate) {
+      doc.text(`Jatuh Tempo: ${dueDate}`, 320, metaY, { width: 236, align: 'right' });
+      metaY += 18;
+    }
+    doc.text(`WhatsApp: ${invoice.customerWhatsapp}`, 320, metaY, { width: 236, align: 'right' });
 
     // Customer card
-    doc.roundedRect(40, 174, 250, 122, 12).fill('#fff3df');
-    doc.strokeColor('#d8b98a').lineWidth(1).roundedRect(40, 174, 250, 122, 12).stroke();
-    doc.fillColor('#5a3425').font('Helvetica-Bold').fontSize(11).text('Invoice Untuk', 56, 190);
-    doc.fillColor('#2b1b14').font('Helvetica-Bold').fontSize(15).text(invoice.customerName, 56, 208, { width: 220 });
-    doc.font('Helvetica').fontSize(10).fillColor('#3d2a1f').text(invoice.customerWhatsapp, 56, 232, { width: 220 });
-    doc.text(invoice.customerAddress || '-', 56, 248, { width: 220, lineGap: 2 });
+    doc.roundedRect(40, 184, 250, 128, 12).fill('#fff3df');
+    doc.strokeColor('#d8b98a').lineWidth(1).roundedRect(40, 184, 250, 128, 12).stroke();
+    doc.fillColor('#5a3425').font('Helvetica-Bold').fontSize(11).text('Invoice Untuk', 56, 200);
+    doc.fillColor('#2b1b14').font('Helvetica-Bold').fontSize(15).text(invoice.customerName, 56, 218, { width: 220 });
+    doc.font('Helvetica').fontSize(10).fillColor('#3d2a1f').text(invoice.customerWhatsapp, 56, 242, { width: 220 });
+    doc.text(invoice.customerAddress || '-', 56, 258, { width: 220, lineGap: 2, height: 50 });
 
     // Merchant card
-    doc.roundedRect(305, 174, 250, 122, 12).fill('#fffef9');
-    doc.strokeColor('#d8b98a').lineWidth(1).roundedRect(305, 174, 250, 122, 12).stroke();
-    doc.fillColor('#5a3425').font('Helvetica-Bold').fontSize(11).text('Dari', 321, 190);
-    doc.fillColor('#2b1b14').font('Helvetica-Bold').fontSize(14).text('Nai Nai Lapis', 321, 208);
-    doc.font('Helvetica').fontSize(10).fillColor('#3d2a1f').text('Kue Lapis & Nastar', 321, 228);
-    doc.text('Terima kasih sudah mempercayakan momen manismu kepada kami.', 321, 244, { width: 220, lineGap: 2 });
+    doc.roundedRect(305, 184, 250, 128, 12).fill('#fffef9');
+    doc.strokeColor('#d8b98a').lineWidth(1).roundedRect(305, 184, 250, 128, 12).stroke();
+    doc.fillColor('#5a3425').font('Helvetica-Bold').fontSize(11).text('Dari', 321, 200);
+    doc.fillColor('#2b1b14').font('Helvetica-Bold').fontSize(14).text('Nai Nai Lapis', 321, 218);
+    doc.font('Helvetica').fontSize(10).fillColor('#3d2a1f').text('Kue Lapis & Nastar', 321, 238);
+    doc.text('Terima kasih sudah mempercayakan momen manismu kepada kami.', 321, 254, { width: 220, lineGap: 2 });
 
-    // Table header
-    let y = 322;
-    const cols = {
-      item: { x: tableX + 12, w: 250 },
-      qty: { x: tableX + 278, w: 55 },
-      price: { x: tableX + 342, w: 85 },
-      subtotal: { x: tableX + 432, w: 112 }
-    };
-
-    doc.roundedRect(tableX, y, tableW, 30, 10).fill('#f2ddbb');
-    doc.fillColor('#4b2e21').font('Helvetica-Bold').fontSize(10).text('Item', cols.item.x, y + 10, { width: cols.item.w });
-    doc.text('Qty', cols.qty.x, y + 10, { width: cols.qty.w, align: 'center' });
-    doc.text('Harga', cols.price.x, y + 10, { width: cols.price.w, align: 'right' });
-    doc.text('Subtotal', cols.subtotal.x, y + 10, { width: cols.subtotal.w, align: 'right' });
-
-    y += 38;
+    let y = drawTableHeader(332);
     doc.strokeColor('#e1caa2').lineWidth(1);
+
+    const ensureSpace = (neededHeight) => {
+      if (y + neededHeight <= pageHeight - 180) return;
+      drawFooter();
+      doc.addPage();
+      drawPageBackground();
+      doc.fillColor('#2b1b14').font('Helvetica-Bold').fontSize(14).text(`Invoice ${invoice.invoiceNumber} (Lanjutan)`, tableX, 28);
+      y = drawTableHeader(56);
+    };
 
     (invoice.items || []).forEach((item, idx) => {
       const title = item.size ? `${item.product} (${item.size})` : item.product;
       const notes = item.notes ? `Catatan: ${item.notes}` : '';
-      let rowHeight = 26;
-      if (notes) rowHeight += 12;
+
+      doc.font('Helvetica-Bold').fontSize(9);
+      const titleHeight = doc.heightOfString(title, { width: cols.item.w, align: 'left' });
+      let notesHeight = 0;
+      if (notes) {
+        doc.font('Helvetica').fontSize(8);
+        notesHeight = doc.heightOfString(notes, { width: cols.item.w, align: 'left' });
+      }
+
+      const rowHeight = Math.max(30, Math.ceil(8 + titleHeight + (notes ? notesHeight + 4 : 0) + 8));
+      ensureSpace(rowHeight + 8);
+
       const bg = idx % 2 === 0 ? '#fffef9' : '#fff8ec';
       doc.rect(tableX, y, tableW, rowHeight).fill(bg);
       doc.strokeColor('#efddc0').rect(tableX, y, tableW, rowHeight).stroke();
 
-      doc.fillColor('#2f1f17').font('Helvetica-Bold').fontSize(10).text(title, cols.item.x, y + 7, { width: cols.item.w });
+      doc.fillColor('#2f1f17').font('Helvetica-Bold').fontSize(9).text(title, cols.item.x, y + 7, { width: cols.item.w, lineGap: 1 });
       if (notes) {
-        doc.font('Helvetica').fontSize(8).fillColor('#6a4b3a').text(notes, cols.item.x, y + 19, { width: cols.item.w });
+        doc.font('Helvetica').fontSize(8).fillColor('#6a4b3a').text(notes, cols.item.x, y + 10 + titleHeight, { width: cols.item.w, lineGap: 1 });
       }
-      doc.fillColor('#2f1f17').font('Helvetica').fontSize(10).text(String(item.qty), cols.qty.x, y + 8, { width: cols.qty.w, align: 'center' });
-      doc.text(formatRupiah(item.unitPrice), cols.price.x, y + 8, { width: cols.price.w, align: 'right' });
-      doc.font('Helvetica-Bold').text(formatRupiah(item.lineTotal), cols.subtotal.x, y + 8, { width: cols.subtotal.w, align: 'right' });
+
+      const centerY = y + Math.max(8, (rowHeight - 12) / 2);
+      doc.fillColor('#2f1f17').font('Helvetica').fontSize(9).text(String(item.qty), cols.qty.x, centerY, { width: cols.qty.w, align: 'center' });
+      doc.text(formatRupiah(item.unitPrice), cols.price.x, centerY, { width: cols.price.w, align: 'right' });
+      doc.font('Helvetica-Bold').text(formatRupiah(item.lineTotal), cols.subtotal.x, centerY, { width: cols.subtotal.w, align: 'right' });
+
       y += rowHeight;
     });
 
     y += 18;
-    const summaryX = 328;
-    const summaryW = 227;
-    const summaryH = 122;
+    const summaryW = 240;
+    const summaryH = 124;
+    const summaryX = tableX + tableW - summaryW;
+    if (y + summaryH > pageHeight - 170) {
+      drawFooter();
+      doc.addPage();
+      drawPageBackground();
+      y = 56;
+    }
+
     doc.roundedRect(summaryX, y, summaryW, summaryH, 12).fill('#fff3df');
     doc.strokeColor('#d8b98a').lineWidth(1).roundedRect(summaryX, y, summaryW, summaryH, 12).stroke();
 
-    const lineX = summaryX + 14;
-    const valX = summaryX + summaryW - 14;
-    doc.fillColor('#5a3425').font('Helvetica').fontSize(10).text('Subtotal', lineX, y + 18);
-    doc.text(formatRupiah(invoice.subtotal), lineX, y + 18, { width: summaryW - 28, align: 'right' });
-    doc.text('Diskon', lineX, y + 38);
-    doc.text(`- ${formatRupiah(invoice.discount)}`, lineX, y + 38, { width: summaryW - 28, align: 'right' });
-    doc.text('Ongkir', lineX, y + 58);
-    doc.text(formatRupiah(invoice.shipping), lineX, y + 58, { width: summaryW - 28, align: 'right' });
-    doc.moveTo(lineX, y + 82).lineTo(valX, y + 82).strokeColor('#c89b54').lineWidth(1).stroke();
-    doc.fillColor('#2b1b14').font('Helvetica-Bold').fontSize(12).text('Total', lineX, y + 90);
-    doc.text(formatRupiah(invoice.total), lineX, y + 90, { width: summaryW - 28, align: 'right' });
+    const summaryLabelX = summaryX + 14;
+    const summaryValueW = summaryW - 28;
+    doc.fillColor('#5a3425').font('Helvetica').fontSize(10).text('Subtotal', summaryLabelX, y + 18);
+    doc.text(formatRupiah(invoice.subtotal), summaryLabelX, y + 18, { width: summaryValueW, align: 'right' });
+    doc.text('Diskon', summaryLabelX, y + 40);
+    doc.text(`- ${formatRupiah(invoice.discount)}`, summaryLabelX, y + 40, { width: summaryValueW, align: 'right' });
+    doc.text('Ongkir', summaryLabelX, y + 62);
+    doc.text(formatRupiah(invoice.shipping), summaryLabelX, y + 62, { width: summaryValueW, align: 'right' });
+    doc.moveTo(summaryLabelX, y + 86).lineTo(summaryX + summaryW - 14, y + 86).strokeColor('#c89b54').lineWidth(1).stroke();
+    doc.fillColor('#2b1b14').font('Helvetica-Bold').fontSize(12).text('Total', summaryLabelX, y + 94);
+    doc.text(formatRupiah(invoice.total), summaryLabelX, y + 94, { width: summaryValueW, align: 'right' });
 
     if (invoice.notes) {
-      const notesY = y + summaryH + 18;
-      doc.roundedRect(40, notesY, tableW, 72, 10).fill('#fffef9');
-      doc.strokeColor('#e6d2ae').lineWidth(1).roundedRect(40, notesY, tableW, 72, 10).stroke();
+      const notesWidth = tableW - 24;
+      doc.font('Helvetica').fontSize(9);
+      const notesBodyH = doc.heightOfString(invoice.notes, { width: notesWidth, lineGap: 2 });
+      const notesBoxH = Math.min(160, Math.max(76, notesBodyH + 36));
+      let notesY = y + summaryH + 16;
+      if (notesY + notesBoxH > pageHeight - 120) {
+        drawFooter();
+        doc.addPage();
+        drawPageBackground();
+        notesY = 56;
+      }
+      doc.roundedRect(40, notesY, tableW, notesBoxH, 10).fill('#fffef9');
+      doc.strokeColor('#e6d2ae').lineWidth(1).roundedRect(40, notesY, tableW, notesBoxH, 10).stroke();
       doc.fillColor('#5a3425').font('Helvetica-Bold').fontSize(10).text('Catatan Order', 52, notesY + 12);
-      doc.font('Helvetica').fontSize(9).fillColor('#4a3125').text(invoice.notes, 52, notesY + 28, { width: tableW - 24, lineGap: 2 });
+      doc.font('Helvetica').fontSize(9).fillColor('#4a3125').text(invoice.notes, 52, notesY + 28, { width: notesWidth, lineGap: 2 });
     }
 
-    doc.fillColor('#5a3425').font('Helvetica-Oblique').fontSize(10).text(
-      'Terima kasih sudah order di Nai Nai Lapis. Semoga setiap lapisan membawa cerita manis untuk harimu.',
-      40,
-      pageHeight - 66,
-      { width: tableW, align: 'center' }
-    );
+    drawFooter();
 
     doc.end();
   });
@@ -2674,7 +2728,7 @@ app.post('/api/nainai/invoices', requireNainaiAdmin, async (req, res) => {
       customerWhatsapp,
       customerAddress,
       orderDate,
-      dueDate: dueDate || '-',
+      dueDate: dueDate || '',
       notes,
       items,
       subtotal,
@@ -2691,6 +2745,8 @@ app.post('/api/nainai/invoices', requireNainaiAdmin, async (req, res) => {
 
     rows.push(invoicePayload);
     saveNainaiInvoices(rows);
+    const config = loadNainaiConfig();
+    const adminWhatsapp = config.adminWhatsapp || NAINAI_ADMIN_WA_DEFAULT;
 
     const waMessage = [
       `Halo ${customerName}, terima kasih sudah order di Nai Nai Lapis.`,
@@ -2700,6 +2756,7 @@ app.post('/api/nainai/invoices', requireNainaiAdmin, async (req, res) => {
       `Total: ${formatRupiah(total)}`,
       `Link PDF: ${fileUrl}`,
       '',
+      `Admin Nai Nai Lapis: ${adminWhatsapp}`,
       'Kalau ada yang ingin ditanyakan, bisa langsung balas chat ini ya.'
     ].join('\n');
     const whatsappUrl = `https://wa.me/${encodeURIComponent(customerWhatsapp)}?text=${encodeURIComponent(waMessage)}`;

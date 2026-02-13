@@ -957,6 +957,16 @@
       return Math.round(numeric);
     }
 
+    function toAbsoluteHttpUrl(rawValue) {
+      var value = String(rawValue || "").trim();
+      if (!value) return "";
+      try {
+        return new URL(value, window.location.origin).toString();
+      } catch (_) {
+        return "";
+      }
+    }
+
     function authFetch(url, options) {
       var opts = options || {};
       var headers = Object.assign({}, opts.headers || {});
@@ -1403,13 +1413,337 @@
       return new Date(now.getTime() - tzOffset).toISOString().slice(0, 10);
     }
 
+    var INVOICE_VARIANT_OPTIONS = {
+      Lapis: [
+        { value: "Original - 10 x 10", price: 125000 },
+        { value: "Original - 10 x 20", price: 250000 },
+        { value: "Original - 20 x 20", price: 450000 },
+        { value: "Seasonal - 10 x 20", price: 300000 },
+        { value: "Seasonal - 20 x 20", price: 550000 }
+      ],
+      Nastar: [
+        { value: "1 toples", price: 110000 },
+        { value: "2 toples", price: 200000 },
+        { value: "4 toples", price: 425000 }
+      ]
+    };
+
+    function getInvoiceVariantOptions(product) {
+      return product === "Nastar" ? INVOICE_VARIANT_OPTIONS.Nastar : INVOICE_VARIANT_OPTIONS.Lapis;
+    }
+
+    function buildInvoiceVariantOptionHtml(product, selected) {
+      var options = getInvoiceVariantOptions(product);
+      return options.map(function (opt) {
+        var isSelected = String(opt.value) === String(selected || "");
+        return '<option value="' + escapeHtml(opt.value) + '"' + (isSelected ? " selected" : "") + '>' + escapeHtml(opt.value) + "</option>";
+      }).join("");
+    }
+
+    function getInvoiceVariantPrice(product, variant) {
+      var options = getInvoiceVariantOptions(product);
+      for (var i = 0; i < options.length; i += 1) {
+        if (String(options[i].value) === String(variant)) return Number(options[i].price) || 0;
+      }
+      return 0;
+    }
+
+    function loadImageForCanvas(src) {
+      return new Promise(function (resolve) {
+        var img = new Image();
+        img.onload = function () { resolve(img); };
+        img.onerror = function () { resolve(null); };
+        img.src = src;
+      });
+    }
+
+    function wrapCanvasLines(ctx, text, maxWidth) {
+      var value = String(text || "").replace(/\s+/g, " ").trim();
+      if (!value) return [""];
+      var words = value.split(" ");
+      var lines = [];
+      var current = words.shift() || "";
+      words.forEach(function (word) {
+        var test = current ? (current + " " + word) : word;
+        if (ctx.measureText(test).width <= maxWidth) {
+          current = test;
+        } else {
+          lines.push(current);
+          current = word;
+        }
+      });
+      lines.push(current);
+      return lines;
+    }
+
+    function drawRoundedRectCanvas(ctx, x, y, w, h, r, fillColor, strokeColor) {
+      var radius = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.arcTo(x + w, y, x + w, y + h, radius);
+      ctx.arcTo(x + w, y + h, x, y + h, radius);
+      ctx.arcTo(x, y + h, x, y, radius);
+      ctx.arcTo(x, y, x + w, y, radius);
+      ctx.closePath();
+      if (fillColor) {
+        ctx.fillStyle = fillColor;
+        ctx.fill();
+      }
+      if (strokeColor) {
+        ctx.strokeStyle = strokeColor;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    }
+
+    async function createInvoicePreviewBlob(invoice) {
+      var canvas = document.createElement("canvas");
+      canvas.width = 1080;
+      canvas.height = 1480;
+      var ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Canvas context tidak tersedia");
+
+      ctx.fillStyle = "#fff9f2";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#2b1b14";
+      ctx.fillRect(0, 0, canvas.width, 240);
+      ctx.fillStyle = "#c98b2b";
+      ctx.fillRect(0, 232, canvas.width, 8);
+
+      var logo = await loadImageForCanvas("/products/class/cake-bakery-class/logonainai.png");
+      if (logo) {
+        ctx.drawImage(logo, 44, 36, 132, 132);
+      }
+
+      ctx.fillStyle = "#fff3e6";
+      ctx.font = "700 56px Georgia, serif";
+      ctx.fillText("INVOICE", 208, 108);
+      ctx.font = "600 28px Georgia, serif";
+      ctx.fillText("Nai Nai Lapis", 208, 154);
+      ctx.font = "500 20px Arial, sans-serif";
+      ctx.fillText("Lapis & Nastar Premium", 208, 188);
+
+      ctx.font = "600 22px Arial, sans-serif";
+      ctx.textAlign = "right";
+      ctx.fillText("No Invoice: " + String(invoice.invoiceNumber || "-"), 1032, 86);
+      ctx.font = "500 20px Arial, sans-serif";
+      ctx.fillText("Tanggal: " + String(invoice.orderDate || "-"), 1032, 122);
+      if (invoice.dueDate) {
+        ctx.fillText("Jatuh Tempo: " + String(invoice.dueDate || "-"), 1032, 156);
+      }
+      ctx.fillText("WhatsApp: " + String(invoice.customerWhatsapp || "-"), 1032, invoice.dueDate ? 190 : 156);
+      ctx.textAlign = "left";
+
+      drawRoundedRectCanvas(ctx, 44, 280, 482, 196, 22, "#fff3df", "#d8b98a");
+      drawRoundedRectCanvas(ctx, 554, 280, 482, 196, 22, "#fffef9", "#d8b98a");
+
+      ctx.fillStyle = "#5a3425";
+      ctx.font = "700 24px Georgia, serif";
+      ctx.fillText("Invoice Untuk", 72, 324);
+      ctx.fillStyle = "#2b1b14";
+      ctx.font = "700 34px Georgia, serif";
+      var customerNameLines = wrapCanvasLines(ctx, invoice.customerName || "-", 430).slice(0, 2);
+      customerNameLines.forEach(function (line, idx) {
+        ctx.fillText(line, 72, 366 + (idx * 38));
+      });
+      ctx.fillStyle = "#3d2a1f";
+      ctx.font = "500 20px Arial, sans-serif";
+      ctx.fillText(String(invoice.customerWhatsapp || "-"), 72, 436);
+
+      ctx.fillStyle = "#5a3425";
+      ctx.font = "700 24px Georgia, serif";
+      ctx.fillText("Dari", 582, 324);
+      ctx.fillStyle = "#2b1b14";
+      ctx.font = "700 33px Georgia, serif";
+      ctx.fillText("Nai Nai Lapis", 582, 366);
+      ctx.fillStyle = "#3d2a1f";
+      ctx.font = "500 20px Arial, sans-serif";
+      ctx.fillText("Kue Lapis & Nastar", 582, 402);
+
+      var tableX = 44;
+      var tableY = 516;
+      var tableW = 992;
+      drawRoundedRectCanvas(ctx, tableX, tableY, tableW, 56, 14, "#f2ddbb", null);
+      ctx.fillStyle = "#4b2e21";
+      ctx.font = "700 20px Arial, sans-serif";
+      ctx.fillText("Item", tableX + 20, tableY + 36);
+      ctx.textAlign = "center";
+      ctx.fillText("Qty", tableX + 486, tableY + 36);
+      ctx.textAlign = "right";
+      ctx.fillText("Harga", tableX + 688, tableY + 36);
+      ctx.fillText("Subtotal", tableX + 958, tableY + 36);
+      ctx.textAlign = "left";
+
+      var rowY = tableY + 64;
+      var items = Array.isArray(invoice.items) ? invoice.items.slice(0, 8) : [];
+      items.forEach(function (item, index) {
+        var rowH = 56;
+        var bg = index % 2 === 0 ? "#fffef9" : "#fff8ec";
+        ctx.fillStyle = bg;
+        ctx.fillRect(tableX, rowY, tableW, rowH);
+        ctx.strokeStyle = "#efddc0";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(tableX, rowY, tableW, rowH);
+
+        ctx.fillStyle = "#2f1f17";
+        ctx.font = "600 18px Arial, sans-serif";
+        var label = item && item.size ? (item.product + " (" + item.size + ")") : String((item && item.product) || "-");
+        var clipped = label.length > 44 ? (label.slice(0, 44) + "...") : label;
+        ctx.fillText(clipped, tableX + 20, rowY + 34);
+
+        ctx.textAlign = "center";
+        ctx.font = "500 18px Arial, sans-serif";
+        ctx.fillText(String((item && item.qty) || "-"), tableX + 486, rowY + 34);
+
+        ctx.textAlign = "right";
+        ctx.fillText(formatRupiah((item && item.unitPrice) || 0), tableX + 688, rowY + 34);
+        ctx.font = "700 18px Arial, sans-serif";
+        ctx.fillText(formatRupiah((item && item.lineTotal) || 0), tableX + 958, rowY + 34);
+        ctx.textAlign = "left";
+
+        rowY += rowH;
+      });
+
+      if (!items.length) {
+        ctx.fillStyle = "#fffef9";
+        ctx.fillRect(tableX, rowY, tableW, 56);
+        ctx.strokeStyle = "#efddc0";
+        ctx.strokeRect(tableX, rowY, tableW, 56);
+        ctx.fillStyle = "#6a4b3a";
+        ctx.font = "500 18px Arial, sans-serif";
+        ctx.fillText("Belum ada item invoice.", tableX + 20, rowY + 34);
+        rowY += 56;
+      }
+
+      var summaryX = 700;
+      var summaryY = rowY + 24;
+      drawRoundedRectCanvas(ctx, summaryX, summaryY, 336, 188, 18, "#fff3df", "#d8b98a");
+      ctx.fillStyle = "#5a3425";
+      ctx.font = "600 20px Arial, sans-serif";
+      ctx.fillText("Subtotal", summaryX + 20, summaryY + 46);
+      ctx.textAlign = "right";
+      ctx.fillText(formatRupiah(invoice.subtotal || 0), summaryX + 316, summaryY + 46);
+      ctx.textAlign = "left";
+      ctx.fillText("Diskon", summaryX + 20, summaryY + 80);
+      ctx.textAlign = "right";
+      ctx.fillText("- " + formatRupiah(invoice.discount || 0), summaryX + 316, summaryY + 80);
+      ctx.textAlign = "left";
+      ctx.fillText("Ongkir", summaryX + 20, summaryY + 114);
+      ctx.textAlign = "right";
+      ctx.fillText(formatRupiah(invoice.shipping || 0), summaryX + 316, summaryY + 114);
+      ctx.strokeStyle = "#c89b54";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(summaryX + 20, summaryY + 132);
+      ctx.lineTo(summaryX + 316, summaryY + 132);
+      ctx.stroke();
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#2b1b14";
+      ctx.font = "700 25px Arial, sans-serif";
+      ctx.fillText("Total", summaryX + 20, summaryY + 168);
+      ctx.textAlign = "right";
+      ctx.fillText(formatRupiah(invoice.total || 0), summaryX + 316, summaryY + 168);
+      ctx.textAlign = "left";
+
+      if (invoice.notes) {
+        var notesY = summaryY + 216;
+        drawRoundedRectCanvas(ctx, 44, notesY, 992, 124, 14, "#fffef9", "#e6d2ae");
+        ctx.fillStyle = "#5a3425";
+        ctx.font = "700 20px Arial, sans-serif";
+        ctx.fillText("Catatan Order", 64, notesY + 36);
+        ctx.fillStyle = "#4a3125";
+        ctx.font = "500 18px Arial, sans-serif";
+        var noteLines = wrapCanvasLines(ctx, invoice.notes, 948).slice(0, 3);
+        noteLines.forEach(function (line, idx) {
+          ctx.fillText(line, 64, notesY + 66 + (idx * 26));
+        });
+      }
+
+      ctx.fillStyle = "#5a3425";
+      ctx.font = "italic 500 20px Georgia, serif";
+      ctx.textAlign = "center";
+      ctx.fillText("Terima kasih sudah order di Nai Nai Lapis.", canvas.width / 2, canvas.height - 54);
+      ctx.textAlign = "left";
+
+      var blob = await new Promise(function (resolve, reject) {
+        canvas.toBlob(function (fileBlob) {
+          if (!fileBlob) {
+            reject(new Error("Gagal generate image preview invoice"));
+            return;
+          }
+          resolve(fileBlob);
+        }, "image/png", 0.96);
+      });
+      return blob;
+    }
+
+    function sanitizeFileName(rawName) {
+      return String(rawName || "invoice")
+        .toLowerCase()
+        .replace(/[^a-z0-9-]+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "") || "invoice";
+    }
+
+    async function uploadInvoicePreviewImage(invoice) {
+      if (!invoice || !invoice.invoiceNumber) return "";
+      var blob = await createInvoicePreviewBlob(invoice);
+      var formData = new FormData();
+      var fileName = sanitizeFileName(invoice.invoiceNumber) + "-preview.png";
+      formData.append("asset", blob, fileName);
+
+      var uploadResult = await apiJson(API_BASE + "/upload-asset", {
+        method: "POST",
+        body: formData
+      });
+      var uploadedUrl = uploadResult && uploadResult.file ? uploadResult.file.url : "";
+      return sanitizeHttpUrl(toAbsoluteHttpUrl(uploadedUrl));
+    }
+
+    function buildCustomerInvoiceWhatsappUrl(invoice, previewImageUrl, fallbackUrl) {
+      if (!invoice) return sanitizeHttpUrl(fallbackUrl || "");
+      var customerWa = normalizeTo62(invoice.customerWhatsapp || "");
+      if (!customerWa) return sanitizeHttpUrl(fallbackUrl || "");
+
+      var adminWaInput = document.getElementById("cfg-wa");
+      var adminWa = normalizeTo62(adminWaInput && adminWaInput.value ? adminWaInput.value : "") || "6288972681212";
+      var pdfUrl = toAbsoluteHttpUrl(invoice.pdfUrl || invoice.pdfPath || "");
+
+      var lines = [
+        "Halo " + String(invoice.customerName || "Customer") + ", terima kasih sudah order di Nai Nai Lapis.",
+        "",
+        "Invoice digital kamu sudah siap:",
+        "No Invoice: " + String(invoice.invoiceNumber || "-"),
+        "Total: " + formatRupiah(invoice.total || 0),
+        "Link PDF: " + (pdfUrl || "-")
+      ];
+
+      if (previewImageUrl) {
+        lines.push("Preview image: " + previewImageUrl);
+      }
+
+      lines.push("");
+      lines.push("Admin Nai Nai Lapis: " + adminWa);
+      lines.push("Kalau ada yang ingin ditanyakan, bisa langsung balas chat ini ya.");
+
+      return "https://wa.me/" + encodeURIComponent(customerWa) + "?text=" + encodeURIComponent(lines.join("\n"));
+    }
+
     function createInvoiceItemRow(data) {
       var preset = data || {};
       var selectedProduct = String(preset.product || "Lapis");
-      var selectedSize = String(preset.size || "");
+      if (selectedProduct !== "Nastar") selectedProduct = "Lapis";
+      var selectedSize = String(preset.size || preset.variant || "");
       var qty = Number.isFinite(Number(preset.qty)) ? Math.max(1, Math.round(Number(preset.qty))) : 1;
       var unitPrice = Number.isFinite(Number(preset.unitPrice)) ? Math.max(0, Math.round(Number(preset.unitPrice))) : 0;
       var notes = String(preset.notes || "");
+      if (!selectedSize) {
+        var fallbackOptions = getInvoiceVariantOptions(selectedProduct);
+        selectedSize = fallbackOptions.length ? fallbackOptions[0].value : "";
+      }
+      if (!unitPrice) {
+        unitPrice = getInvoiceVariantPrice(selectedProduct, selectedSize);
+      }
 
       var row = document.createElement("div");
       row.className = "invoice-item-row";
@@ -1420,12 +1754,11 @@
             '<select class="inv-item-product">' +
               '<option value="Lapis"' + (selectedProduct === "Lapis" ? " selected" : "") + '>Lapis</option>' +
               '<option value="Nastar"' + (selectedProduct === "Nastar" ? " selected" : "") + '>Nastar</option>' +
-              '<option value="Custom"' + (selectedProduct === "Custom" ? " selected" : "") + '>Custom</option>' +
             '</select>' +
           '</div>' +
           '<div class="field">' +
-            '<label>Ukuran / Varian</label>' +
-            '<input class="inv-item-size" type="text" placeholder="Contoh: 10 x 20 / 2 toples" value="' + escapeHtml(selectedSize) + '" />' +
+            '<label>Varian & Ukuran</label>' +
+            '<select class="inv-item-size">' + buildInvoiceVariantOptionHtml(selectedProduct, selectedSize) + '</select>' +
           '</div>' +
           '<div class="field">' +
             '<label>Qty</label>' +
@@ -1445,19 +1778,40 @@
           '<input class="inv-item-note" type="text" placeholder="Contoh: varian Imlek, toples gold, dll" value="' + escapeHtml(notes) + '" />' +
         '</div>';
 
+      var productField = row.querySelector(".inv-item-product");
+      var sizeField = row.querySelector(".inv-item-size");
+      var qtyField = row.querySelector(".inv-item-qty");
+      var priceField = row.querySelector(".inv-item-price");
+      var noteField = row.querySelector(".inv-item-note");
+
+      function syncVariantOptions(setDefaultPrice) {
+        var product = String(productField && productField.value ? productField.value : "Lapis");
+        var current = String(sizeField && sizeField.value ? sizeField.value : "");
+        if (sizeField) {
+          sizeField.innerHTML = buildInvoiceVariantOptionHtml(product, current);
+          if (!sizeField.value) {
+            var opts = getInvoiceVariantOptions(product);
+            sizeField.value = opts.length ? opts[0].value : "";
+          }
+        }
+        if (setDefaultPrice && priceField) {
+          var suggested = getInvoiceVariantPrice(product, sizeField ? sizeField.value : "");
+          if (suggested > 0) {
+            priceField.value = String(suggested);
+          }
+        }
+      }
+
       row.querySelector(".inv-item-remove").addEventListener("click", function () {
         var wrap = document.getElementById("invoice-items");
         if (!wrap) return;
         if (wrap.children.length <= 1) {
-          var productField = row.querySelector(".inv-item-product");
-          var sizeField = row.querySelector(".inv-item-size");
-          var qtyField = row.querySelector(".inv-item-qty");
-          var priceField = row.querySelector(".inv-item-price");
-          var noteField = row.querySelector(".inv-item-note");
           if (productField) productField.value = "Lapis";
-          if (sizeField) sizeField.value = "";
+          syncVariantOptions(true);
           if (qtyField) qtyField.value = "1";
-          if (priceField) priceField.value = "0";
+          if (priceField && !Number(priceField.value)) {
+            priceField.value = String(getInvoiceVariantPrice("Lapis", sizeField ? sizeField.value : ""));
+          }
           if (noteField) noteField.value = "";
         } else {
           row.remove();
@@ -1465,10 +1819,31 @@
         updateInvoiceTotalPreview();
       });
 
+      if (productField) {
+        productField.addEventListener("change", function () {
+          syncVariantOptions(true);
+          updateInvoiceTotalPreview();
+        });
+      }
+      if (sizeField) {
+        sizeField.addEventListener("change", function () {
+          var suggested = getInvoiceVariantPrice(
+            productField ? productField.value : "Lapis",
+            sizeField.value
+          );
+          if (suggested > 0 && priceField) {
+            priceField.value = String(suggested);
+          }
+          updateInvoiceTotalPreview();
+        });
+      }
+
       Array.prototype.slice.call(row.querySelectorAll("input, select")).forEach(function (field) {
         field.addEventListener("input", updateInvoiceTotalPreview);
         field.addEventListener("change", updateInvoiceTotalPreview);
       });
+
+      syncVariantOptions(false);
 
       return row;
     }
@@ -1492,7 +1867,7 @@
         var unitPrice = parseMoney((row.querySelector(".inv-item-price") || {}).value || 0);
         var notes = String((row.querySelector(".inv-item-note") || {}).value || "").trim();
 
-        if (!product || !Number.isFinite(qty) || qty <= 0 || !Number.isFinite(unitPrice) || unitPrice <= 0) {
+        if (!product || !size || !Number.isFinite(qty) || qty <= 0 || !Number.isFinite(unitPrice) || unitPrice <= 0) {
           invalidRows.push(index + 1);
           return;
         }
@@ -1540,7 +1915,8 @@
 
       var invoice = payload.invoice || {};
       var whatsappUrl = sanitizeHttpUrl(payload.whatsappUrl || "");
-      var pdfUrl = sanitizeHttpUrl(invoice.pdfUrl || "") || String(invoice.pdfPath || "");
+      var pdfUrl = sanitizeHttpUrl(toAbsoluteHttpUrl(invoice.pdfUrl || invoice.pdfPath || ""));
+      var previewImageUrl = sanitizeHttpUrl(payload.previewImageUrl || "");
 
       wrap.innerHTML = '' +
         '<article class="invoice-result-card">' +
@@ -1548,6 +1924,7 @@
           '<p><strong>No Invoice:</strong> ' + escapeHtml(invoice.invoiceNumber || "-") + '</p>' +
           '<p><strong>Customer:</strong> ' + escapeHtml(invoice.customerName || "-") + ' (' + escapeHtml(invoice.customerWhatsapp || "-") + ')</p>' +
           '<p><strong>Total:</strong> ' + escapeHtml(formatRupiah(invoice.total || 0)) + '</p>' +
+          (previewImageUrl ? ('<p><strong>Preview Image:</strong> <a href="' + escapeHtml(previewImageUrl) + '" target="_blank" rel="noopener noreferrer">Buka preview image</a></p>') : "") +
           '<div class="invoice-actions">' +
             '<a class="btn btn-soft" href="' + escapeHtml(pdfUrl || "#") + '" target="_blank" rel="noopener noreferrer">Buka PDF Invoice</a>' +
             '<button class="btn btn-main" id="send-invoice-wa-btn" type="button">Kirim ke WhatsApp Customer</button>' +
@@ -1562,10 +1939,6 @@
           window.open(whatsappUrl, "_blank", "noopener,noreferrer");
         });
       }
-
-      if (whatsappUrl) {
-        window.open(whatsappUrl, "_blank", "noopener,noreferrer");
-      }
     }
 
     function renderInvoiceHistory(rows) {
@@ -1577,7 +1950,7 @@
       }
 
       tbody.innerHTML = rows.map(function (row) {
-        var pdfUrl = sanitizeHttpUrl(row.pdfUrl || "") || String(row.pdfPath || "");
+        var pdfUrl = sanitizeHttpUrl(toAbsoluteHttpUrl(row.pdfUrl || row.pdfPath || ""));
         return '' +
           '<tr>' +
             '<td>' + escapeHtml(formatDate(row.createdAt)) + '</td>' +
@@ -1622,7 +1995,7 @@
         return;
       }
       if (read.invalidRows && read.invalidRows.length) {
-        setLine("invoice-status", "Cek item baris: " + read.invalidRows.join(", ") + ". Pastikan qty dan harga valid.", "error");
+        setLine("invoice-status", "Cek item baris: " + read.invalidRows.join(", ") + ". Pastikan varian, qty, dan harga sudah valid.", "error");
         return;
       }
 
@@ -1645,8 +2018,26 @@
         body: JSON.stringify(payload)
       })
         .then(function (result) {
+          var invoice = result && result.invoice ? result.invoice : {};
+          setLine("invoice-status", "Invoice PDF berhasil. Menyiapkan preview image...");
+          return uploadInvoicePreviewImage(invoice)
+            .then(function (previewImageUrl) {
+              result.previewImageUrl = previewImageUrl;
+              result.whatsappUrl = buildCustomerInvoiceWhatsappUrl(invoice, previewImageUrl, result.whatsappUrl);
+              return result;
+            })
+            .catch(function () {
+              result.previewImageUrl = "";
+              result.whatsappUrl = buildCustomerInvoiceWhatsappUrl(invoice, "", result.whatsappUrl);
+              return result;
+            });
+        })
+        .then(function (result) {
           renderInvoiceResult(result);
-          setLine("invoice-status", "Invoice berhasil dibuat dan chat WhatsApp customer sudah dibuka.", "success");
+          if (result && result.whatsappUrl) {
+            window.open(result.whatsappUrl, "_blank", "noopener,noreferrer");
+          }
+          setLine("invoice-status", "Invoice berhasil dibuat. Chat WhatsApp customer sudah dibuka dengan link PDF + preview image.", "success");
           loadInvoices();
         })
         .catch(function (err) {
