@@ -1764,9 +1764,6 @@
       var customerWa = normalizeTo62(invoice.customerWhatsapp || "");
 
       var lines = [
-        "Halo Admin Nai Nai Lapis,",
-        "mohon bantu forward invoice ini ke customer:",
-        "",
         "Nama Customer: " + String(invoice.customerName || "-"),
         "WA Customer: " + (customerWa || String(invoice.customerWhatsapp || "-")),
         "No Invoice: " + String(invoice.invoiceNumber || "-"),

@@ -930,9 +930,6 @@ function buildNainaiAdminInvoiceWhatsappUrl(adminWhatsapp, invoice) {
   const waAdmin = normalizePhone62(adminWhatsapp || '') || NAINAI_ADMIN_WA_DEFAULT;
   const safeInvoice = invoice && typeof invoice === 'object' ? invoice : {};
   const message = [
-    'Halo Admin Nai Nai Lapis,',
-    'mohon bantu forward invoice ini ke customer:',
-    '',
     `Nama Customer: ${sanitizeText(safeInvoice.customerName, 120) || '-'}`,
     `WA Customer: ${normalizePhone62(safeInvoice.customerWhatsapp || '') || '-'}`,
     `No Invoice: ${sanitizeText(safeInvoice.invoiceNumber, 60) || '-'}`,
