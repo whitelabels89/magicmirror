@@ -12,6 +12,12 @@ const multer = require('multer');
 const { google } = require('googleapis');
 const uploadModulRouter = require('./uploadModul');
 const admin = require('firebase-admin');
+let PDFDocument = null;
+try {
+  PDFDocument = require('pdfkit');
+} catch (err) {
+  console.warn('[nainai] pdfkit belum terpasang. Fitur invoice PDF tidak aktif.');
+}
 
 const WORKSHEET_SHORTLINK_COLLECTION = process.env.WORKSHEET_SHORTLINK_COLLECTION || 'worksheet_shortlinks';
 const REPLICATE_BASE_URL = (process.env.REPLICATE_PROXY_BASE_URL || 'https://api.replicate.com').replace(/\/+$/, '');
@@ -661,8 +667,11 @@ const NAINAI_ADMIN_WA_DEFAULT = '6288972681212';
 const NAINAI_DATA_DIR = path.join(__dirname, 'data');
 const NAINAI_LEADS_FILE = path.join(NAINAI_DATA_DIR, 'nainai-leads.json');
 const NAINAI_CONFIG_FILE = path.join(NAINAI_DATA_DIR, 'nainai-config.json');
+const NAINAI_INVOICES_FILE = path.join(NAINAI_DATA_DIR, 'nainai-invoices.json');
 const NAINAI_SHORTLINKS_FILE = path.join(NAINAI_DATA_DIR, 'nainai-shortlinks.json');
 const NAINAI_ASSET_DIR = path.join(__dirname, 'public', 'products', 'class', 'cake-bakery-class');
+const NAINAI_INVOICE_DIR = path.join(NAINAI_ASSET_DIR, 'invoices');
+const NAINAI_LOGO_FILE = path.join(NAINAI_ASSET_DIR, 'logonainai.png');
 const NAINAI_UPLOAD_MAX_BYTES = 8 * 1024 * 1024;
 const NAINAI_ALLOWED_UPLOAD_EXT = new Set(['.png', '.jpg', '.jpeg', '.webp']);
 const NAINAI_DEFAULT_CONFIG = {
@@ -790,6 +799,252 @@ function saveNainaiLeads(rows) {
   const safeRows = Array.isArray(rows) ? rows.slice(-maxRows) : [];
   writeJsonSafely(NAINAI_LEADS_FILE, safeRows);
   return safeRows;
+}
+
+function sanitizeMoney(value, max = 1000000000) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return 0;
+  return Math.max(0, Math.min(max, Math.round(parsed)));
+}
+
+function formatRupiah(value) {
+  return `Rp ${sanitizeMoney(value).toLocaleString('id-ID')}`;
+}
+
+function sanitizeIsoDate(rawValue) {
+  const raw = String(rawValue || '').trim();
+  if (!raw) return '';
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(raw)) return '';
+  const time = Date.parse(`${raw}T00:00:00Z`);
+  if (Number.isNaN(time)) return '';
+  return raw;
+}
+
+function loadNainaiInvoices() {
+  const rows = readJsonSafely(NAINAI_INVOICES_FILE, []);
+  if (!Array.isArray(rows)) return [];
+  return rows
+    .map((row) => {
+      if (!row || typeof row !== 'object') return null;
+      const id = sanitizeText(row.id, 80);
+      const invoiceNumber = sanitizeText(row.invoiceNumber, 60);
+      const customerName = sanitizeText(row.customerName, 120);
+      const customerWhatsapp = normalizePhone62(row.customerWhatsapp || '');
+      const pdfUrl = sanitizeHttpUrl(row.pdfUrl, 1200) || sanitizeText(row.pdfPath, 240);
+      if (!id || !invoiceNumber || !customerName || !customerWhatsapp || !pdfUrl) return null;
+      return {
+        ...row,
+        id,
+        invoiceNumber,
+        customerName,
+        customerWhatsapp,
+        pdfUrl,
+        subtotal: sanitizeMoney(row.subtotal),
+        discount: sanitizeMoney(row.discount),
+        shipping: sanitizeMoney(row.shipping),
+        total: sanitizeMoney(row.total),
+        createdAt: row.createdAt ? String(row.createdAt) : nowIso()
+      };
+    })
+    .filter(Boolean);
+}
+
+function saveNainaiInvoices(rows) {
+  const maxRows = 5000;
+  const safeRows = Array.isArray(rows) ? rows.slice(-maxRows) : [];
+  writeJsonSafely(NAINAI_INVOICES_FILE, safeRows);
+  return safeRows;
+}
+
+function buildNainaiInvoiceNumber(existingRows, date = new Date()) {
+  const year = String(date.getFullYear());
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const prefix = `NNL-${year}${month}${day}-`;
+  let maxSeq = 0;
+
+  (existingRows || []).forEach((row) => {
+    const value = String((row && row.invoiceNumber) || '');
+    if (!value.startsWith(prefix)) return;
+    const seq = Number(value.slice(prefix.length));
+    if (Number.isFinite(seq) && seq > maxSeq) maxSeq = seq;
+  });
+
+  return `${prefix}${String(maxSeq + 1).padStart(3, '0')}`;
+}
+
+function normalizeInvoiceItems(rawItems) {
+  if (!Array.isArray(rawItems)) return [];
+  return rawItems
+    .map((raw) => {
+      const product = sanitizeText(raw && raw.product, 60);
+      const size = sanitizeText(raw && raw.size, 40);
+      const notes = sanitizeText(raw && raw.notes, 140);
+      const qtyRaw = Math.round(toNumber(raw && raw.qty, 0));
+      const qty = Math.max(1, Math.min(999, qtyRaw));
+      const unitPrice = sanitizeMoney(raw && raw.unitPrice);
+      if (!product) return null;
+      if (!Number.isFinite(qty) || qty <= 0) return null;
+      if (!Number.isFinite(unitPrice) || unitPrice < 0) return null;
+      return {
+        product,
+        size,
+        notes,
+        qty,
+        unitPrice,
+        lineTotal: sanitizeMoney(qty * unitPrice)
+      };
+    })
+    .filter(Boolean)
+    .slice(0, 40);
+}
+
+function createNainaiInvoicePdf(invoice, absPath) {
+  return new Promise((resolve, reject) => {
+    if (!PDFDocument) {
+      reject(new Error('Dependency pdfkit belum terpasang di server.'));
+      return;
+    }
+
+    ensureDirSync(path.dirname(absPath));
+    const doc = new PDFDocument({ size: 'A4', margin: 40 });
+    const out = fs.createWriteStream(absPath);
+    let finished = false;
+
+    const fail = (err) => {
+      if (finished) return;
+      finished = true;
+      reject(err);
+    };
+
+    out.on('finish', () => {
+      if (finished) return;
+      finished = true;
+      resolve();
+    });
+    out.on('error', fail);
+    doc.on('error', fail);
+    doc.pipe(out);
+
+    const pageWidth = doc.page.width;
+    const pageHeight = doc.page.height;
+    const tableX = 40;
+    const tableW = pageWidth - 80;
+
+    // Background + header band
+    doc.save();
+    doc.rect(0, 0, pageWidth, pageHeight).fill('#fff9f2');
+    doc.restore();
+    doc.rect(0, 0, pageWidth, 148).fill('#2b1b14');
+    doc.rect(0, 142, pageWidth, 6).fill('#c98b2b');
+    doc.rect(0, 148, pageWidth, 8).fill('#f0ddbf');
+
+    if (fs.existsSync(NAINAI_LOGO_FILE)) {
+      try {
+        doc.image(NAINAI_LOGO_FILE, 40, 26, { fit: [72, 72], align: 'left', valign: 'top' });
+      } catch (_) {
+        // ignore logo draw errors
+      }
+    }
+
+    doc.fillColor('#fff3e6').font('Helvetica-Bold').fontSize(30).text('INVOICE', 126, 35);
+    doc.font('Helvetica').fontSize(11).text('Nai Nai Lapis', 126, 74);
+    doc.fontSize(10).text('Lapis & Nastar Premium', 126, 90);
+
+    doc.fillColor('#fff3e6').font('Helvetica-Bold').fontSize(10).text(`No Invoice: ${invoice.invoiceNumber}`, 320, 38, { width: 236, align: 'right' });
+    doc.font('Helvetica').fontSize(10).text(`Tanggal: ${invoice.orderDate || '-'}`, 320, 56, { width: 236, align: 'right' });
+    doc.text(`Jatuh Tempo: ${invoice.dueDate || '-'}`, 320, 72, { width: 236, align: 'right' });
+    doc.text(`WhatsApp: ${invoice.customerWhatsapp}`, 320, 88, { width: 236, align: 'right' });
+
+    // Customer card
+    doc.roundedRect(40, 174, 250, 122, 12).fill('#fff3df');
+    doc.strokeColor('#d8b98a').lineWidth(1).roundedRect(40, 174, 250, 122, 12).stroke();
+    doc.fillColor('#5a3425').font('Helvetica-Bold').fontSize(11).text('Invoice Untuk', 56, 190);
+    doc.fillColor('#2b1b14').font('Helvetica-Bold').fontSize(15).text(invoice.customerName, 56, 208, { width: 220 });
+    doc.font('Helvetica').fontSize(10).fillColor('#3d2a1f').text(invoice.customerWhatsapp, 56, 232, { width: 220 });
+    doc.text(invoice.customerAddress || '-', 56, 248, { width: 220, lineGap: 2 });
+
+    // Merchant card
+    doc.roundedRect(305, 174, 250, 122, 12).fill('#fffef9');
+    doc.strokeColor('#d8b98a').lineWidth(1).roundedRect(305, 174, 250, 122, 12).stroke();
+    doc.fillColor('#5a3425').font('Helvetica-Bold').fontSize(11).text('Dari', 321, 190);
+    doc.fillColor('#2b1b14').font('Helvetica-Bold').fontSize(14).text('Nai Nai Lapis', 321, 208);
+    doc.font('Helvetica').fontSize(10).fillColor('#3d2a1f').text('Kue Lapis & Nastar', 321, 228);
+    doc.text('Terima kasih sudah mempercayakan momen manismu kepada kami.', 321, 244, { width: 220, lineGap: 2 });
+
+    // Table header
+    let y = 322;
+    const cols = {
+      item: { x: tableX + 12, w: 250 },
+      qty: { x: tableX + 278, w: 55 },
+      price: { x: tableX + 342, w: 85 },
+      subtotal: { x: tableX + 432, w: 112 }
+    };
+
+    doc.roundedRect(tableX, y, tableW, 30, 10).fill('#f2ddbb');
+    doc.fillColor('#4b2e21').font('Helvetica-Bold').fontSize(10).text('Item', cols.item.x, y + 10, { width: cols.item.w });
+    doc.text('Qty', cols.qty.x, y + 10, { width: cols.qty.w, align: 'center' });
+    doc.text('Harga', cols.price.x, y + 10, { width: cols.price.w, align: 'right' });
+    doc.text('Subtotal', cols.subtotal.x, y + 10, { width: cols.subtotal.w, align: 'right' });
+
+    y += 38;
+    doc.strokeColor('#e1caa2').lineWidth(1);
+
+    (invoice.items || []).forEach((item, idx) => {
+      const title = item.size ? `${item.product} (${item.size})` : item.product;
+      const notes = item.notes ? `Catatan: ${item.notes}` : '';
+      let rowHeight = 26;
+      if (notes) rowHeight += 12;
+      const bg = idx % 2 === 0 ? '#fffef9' : '#fff8ec';
+      doc.rect(tableX, y, tableW, rowHeight).fill(bg);
+      doc.strokeColor('#efddc0').rect(tableX, y, tableW, rowHeight).stroke();
+
+      doc.fillColor('#2f1f17').font('Helvetica-Bold').fontSize(10).text(title, cols.item.x, y + 7, { width: cols.item.w });
+      if (notes) {
+        doc.font('Helvetica').fontSize(8).fillColor('#6a4b3a').text(notes, cols.item.x, y + 19, { width: cols.item.w });
+      }
+      doc.fillColor('#2f1f17').font('Helvetica').fontSize(10).text(String(item.qty), cols.qty.x, y + 8, { width: cols.qty.w, align: 'center' });
+      doc.text(formatRupiah(item.unitPrice), cols.price.x, y + 8, { width: cols.price.w, align: 'right' });
+      doc.font('Helvetica-Bold').text(formatRupiah(item.lineTotal), cols.subtotal.x, y + 8, { width: cols.subtotal.w, align: 'right' });
+      y += rowHeight;
+    });
+
+    y += 18;
+    const summaryX = 328;
+    const summaryW = 227;
+    const summaryH = 122;
+    doc.roundedRect(summaryX, y, summaryW, summaryH, 12).fill('#fff3df');
+    doc.strokeColor('#d8b98a').lineWidth(1).roundedRect(summaryX, y, summaryW, summaryH, 12).stroke();
+
+    const lineX = summaryX + 14;
+    const valX = summaryX + summaryW - 14;
+    doc.fillColor('#5a3425').font('Helvetica').fontSize(10).text('Subtotal', lineX, y + 18);
+    doc.text(formatRupiah(invoice.subtotal), lineX, y + 18, { width: summaryW - 28, align: 'right' });
+    doc.text('Diskon', lineX, y + 38);
+    doc.text(`- ${formatRupiah(invoice.discount)}`, lineX, y + 38, { width: summaryW - 28, align: 'right' });
+    doc.text('Ongkir', lineX, y + 58);
+    doc.text(formatRupiah(invoice.shipping), lineX, y + 58, { width: summaryW - 28, align: 'right' });
+    doc.moveTo(lineX, y + 82).lineTo(valX, y + 82).strokeColor('#c89b54').lineWidth(1).stroke();
+    doc.fillColor('#2b1b14').font('Helvetica-Bold').fontSize(12).text('Total', lineX, y + 90);
+    doc.text(formatRupiah(invoice.total), lineX, y + 90, { width: summaryW - 28, align: 'right' });
+
+    if (invoice.notes) {
+      const notesY = y + summaryH + 18;
+      doc.roundedRect(40, notesY, tableW, 72, 10).fill('#fffef9');
+      doc.strokeColor('#e6d2ae').lineWidth(1).roundedRect(40, notesY, tableW, 72, 10).stroke();
+      doc.fillColor('#5a3425').font('Helvetica-Bold').fontSize(10).text('Catatan Order', 52, notesY + 12);
+      doc.font('Helvetica').fontSize(9).fillColor('#4a3125').text(invoice.notes, 52, notesY + 28, { width: tableW - 24, lineGap: 2 });
+    }
+
+    doc.fillColor('#5a3425').font('Helvetica-Oblique').fontSize(10).text(
+      'Terima kasih sudah order di Nai Nai Lapis. Semoga setiap lapisan membawa cerita manis untuk harimu.',
+      40,
+      pageHeight - 66,
+      { width: tableW, align: 'center' }
+    );
+
+    doc.end();
+  });
 }
 
 function sanitizeShortCode(value) {
@@ -986,11 +1241,15 @@ function resolveNainaiAssetPath(rawName) {
 function bootstrapNainaiStorage() {
   ensureDirSync(NAINAI_DATA_DIR);
   ensureDirSync(NAINAI_ASSET_DIR);
+  ensureDirSync(NAINAI_INVOICE_DIR);
   if (!fs.existsSync(NAINAI_CONFIG_FILE)) {
     writeJsonSafely(NAINAI_CONFIG_FILE, { ...NAINAI_DEFAULT_CONFIG, updatedAt: nowIso() });
   }
   if (!fs.existsSync(NAINAI_LEADS_FILE)) {
     writeJsonSafely(NAINAI_LEADS_FILE, []);
+  }
+  if (!fs.existsSync(NAINAI_INVOICES_FILE)) {
+    writeJsonSafely(NAINAI_INVOICES_FILE, []);
   }
   if (!fs.existsSync(NAINAI_SHORTLINKS_FILE)) {
     writeJsonSafely(NAINAI_SHORTLINKS_FILE, []);
@@ -2344,6 +2603,115 @@ app.get('/nl/:code', (req, res) => {
   } catch (err) {
     console.error('❌ /nl/:code redirect error:', err);
     return res.status(500).send('Internal error');
+  }
+});
+
+app.get('/api/nainai/invoices', requireNainaiAdmin, (req, res) => {
+  try {
+    const limit = Math.max(1, Math.min(500, toNumber(req.query.limit, 100)));
+    const q = sanitizeText(req.query.q || '', 120).toLowerCase();
+    let rows = loadNainaiInvoices()
+      .slice()
+      .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+
+    if (q) {
+      rows = rows.filter((row) => JSON.stringify(row).toLowerCase().includes(q));
+    }
+
+    return res.json({
+      ok: true,
+      total: rows.length,
+      data: rows.slice(0, limit)
+    });
+  } catch (err) {
+    console.error('❌ /api/nainai/invoices error:', err);
+    return res.status(500).json({ ok: false, error: 'Gagal memuat data invoice' });
+  }
+});
+
+app.post('/api/nainai/invoices', requireNainaiAdmin, async (req, res) => {
+  try {
+    if (!PDFDocument) {
+      return res.status(500).json({ ok: false, error: 'Fitur PDF belum aktif. Jalankan npm install agar pdfkit terpasang.' });
+    }
+
+    const body = req.body || {};
+    const customerName = sanitizeText(body.customerName, 120);
+    const customerWhatsapp = normalizePhone62(body.customerWhatsapp || '');
+    const customerAddress = sanitizeText(body.customerAddress, 220);
+    const orderDate = sanitizeIsoDate(body.orderDate) || new Date().toISOString().slice(0, 10);
+    const dueDate = sanitizeIsoDate(body.dueDate);
+    const notes = sanitizeText(body.notes, 500);
+    const items = normalizeInvoiceItems(body.items);
+    const shipping = sanitizeMoney(body.shipping);
+    const discountRaw = sanitizeMoney(body.discount);
+
+    if (!customerName || !customerWhatsapp) {
+      return res.status(400).json({ ok: false, error: 'Nama customer dan WhatsApp customer wajib diisi' });
+    }
+    if (!items.length) {
+      return res.status(400).json({ ok: false, error: 'Minimal isi 1 item invoice' });
+    }
+
+    const subtotal = sanitizeMoney(items.reduce((sum, item) => sum + sanitizeMoney(item.lineTotal), 0));
+    const discount = Math.min(discountRaw, subtotal);
+    const total = sanitizeMoney(subtotal - discount + shipping);
+
+    const rows = loadNainaiInvoices();
+    const invoiceNumber = buildNainaiInvoiceNumber(rows);
+    const id = generateNainaiId('inv');
+    const fileName = `${invoiceNumber.toLowerCase()}.pdf`;
+    const filePath = path.join(NAINAI_INVOICE_DIR, fileName);
+    const fileUrlPath = `/products/class/cake-bakery-class/invoices/${encodeURIComponent(fileName)}`;
+    const baseUrl = buildPublicBaseUrl(req);
+    const fileUrl = baseUrl ? `${baseUrl}${fileUrlPath}` : fileUrlPath;
+    const createdAt = nowIso();
+
+    const invoicePayload = {
+      id,
+      invoiceNumber,
+      customerName,
+      customerWhatsapp,
+      customerAddress,
+      orderDate,
+      dueDate: dueDate || '-',
+      notes,
+      items,
+      subtotal,
+      discount,
+      shipping,
+      total,
+      createdAt,
+      createdBy: sanitizeText((req.nainaiAdminSession && req.nainaiAdminSession.uid) || 'nainai-admin', 80),
+      pdfPath: fileUrlPath,
+      pdfUrl: fileUrl
+    };
+
+    await createNainaiInvoicePdf(invoicePayload, filePath);
+
+    rows.push(invoicePayload);
+    saveNainaiInvoices(rows);
+
+    const waMessage = [
+      `Halo ${customerName}, terima kasih sudah order di Nai Nai Lapis.`,
+      '',
+      'Invoice digital kamu sudah siap:',
+      `No Invoice: ${invoiceNumber}`,
+      `Total: ${formatRupiah(total)}`,
+      `Link PDF: ${fileUrl}`,
+      '',
+      'Kalau ada yang ingin ditanyakan, bisa langsung balas chat ini ya.'
+    ].join('\n');
+    const whatsappUrl = `https://wa.me/${encodeURIComponent(customerWhatsapp)}?text=${encodeURIComponent(waMessage)}`;
+
+    return res.json({
+      ok: true,
+      invoice: invoicePayload,
+      whatsappUrl
+    });
+  } catch (err) {
+    console.error('❌ /api/nainai/invoices create error:', err);
+    return res.status(500).json({ ok: false, error: err.message || 'Gagal membuat invoice PDF' });
   }
 });
 

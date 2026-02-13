@@ -436,12 +436,93 @@
       text-align: center;
     }
 
+    .invoice-layout {
+      margin-top: 0.85rem;
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .invoice-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.55rem;
+    }
+
+    .invoice-items-wrap {
+      border: 1px solid rgba(43, 27, 20, 0.16);
+      border-radius: 10px;
+      background: #fffdf9;
+      padding: 0.6rem;
+    }
+
+    .invoice-items {
+      display: grid;
+      gap: 0.5rem;
+    }
+
+    .invoice-item-row {
+      border: 1px solid rgba(43, 27, 20, 0.14);
+      border-radius: 10px;
+      background: #fff7ea;
+      padding: 0.5rem;
+      display: grid;
+      gap: 0.45rem;
+    }
+
+    .invoice-item-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.8fr 0.4fr 0.7fr auto;
+      gap: 0.4rem;
+      align-items: end;
+    }
+
+    .invoice-item-note {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+
+    .invoice-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .invoice-result-card {
+      border: 1px solid rgba(43, 27, 20, 0.16);
+      border-radius: 12px;
+      background: linear-gradient(145deg, #fff9f0, #fff2e3);
+      padding: 0.7rem;
+      display: grid;
+      gap: 0.45rem;
+    }
+
+    .invoice-result-card p {
+      margin: 0;
+      font-size: 0.82rem;
+      color: rgba(43, 27, 20, 0.84);
+      line-height: 1.5;
+    }
+
+    .invoice-history-wrap {
+      margin-top: 0.65rem;
+      border: 1px solid rgba(43, 27, 20, 0.16);
+      border-radius: 10px;
+      overflow: auto;
+      background: #fffdf9;
+    }
+
+    .invoice-history-wrap table {
+      min-width: 760px;
+    }
+
     @media (max-width: 1020px) {
       .grid { grid-template-columns: 1fr; }
       .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .asset-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .auth-grid { grid-template-columns: 1fr; }
+      .invoice-grid { grid-template-columns: 1fr; }
+      .invoice-item-grid { grid-template-columns: 1fr 1fr; }
     }
 
     @media (max-width: 640px) {
@@ -449,6 +530,7 @@
       .topbar { padding: 0.8rem; }
       .asset-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .asset-upload { grid-template-columns: 1fr; }
+      .invoice-item-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -688,6 +770,92 @@
       </div>
 
       <section class="panel" style="margin-top:1rem;">
+        <h2>Generate Invoice Digital</h2>
+        <p class="muted">Buat invoice PDF yang siap dikirim ke customer lewat WhatsApp, lengkap dengan ucapan terima kasih.</p>
+
+        <form id="invoice-form" class="invoice-layout">
+          <div class="invoice-grid">
+            <div class="field">
+              <label for="inv-customer-name">Nama Customer</label>
+              <input id="inv-customer-name" type="text" placeholder="Nama customer" required />
+            </div>
+            <div class="field">
+              <label for="inv-customer-wa">WhatsApp Customer</label>
+              <input id="inv-customer-wa" type="text" placeholder="08xxxxxxxxxx / 62xxxxxxxxxx" required />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="inv-customer-address">Alamat / Keterangan Customer</label>
+            <textarea id="inv-customer-address" placeholder="Alamat kirim, nama kantor, atau detail customer lainnya"></textarea>
+          </div>
+
+          <div class="invoice-grid">
+            <div class="field">
+              <label for="inv-order-date">Tanggal Invoice</label>
+              <input id="inv-order-date" type="date" required />
+            </div>
+            <div class="field">
+              <label for="inv-due-date">Jatuh Tempo (opsional)</label>
+              <input id="inv-due-date" type="date" />
+            </div>
+          </div>
+
+          <div class="invoice-items-wrap">
+            <h3>Item Produk</h3>
+            <p class="muted" style="margin-top:0.3rem;">Isi item order customer. Kamu bisa tambahkan lebih dari satu item.</p>
+            <div id="invoice-items" class="invoice-items"></div>
+            <div class="invoice-actions" style="margin-top:0.55rem;">
+              <button class="btn btn-soft" id="add-invoice-item" type="button">Tambah Item</button>
+            </div>
+          </div>
+
+          <div class="invoice-grid">
+            <div class="field">
+              <label for="inv-discount">Diskon (Rp)</label>
+              <input id="inv-discount" type="number" min="0" step="1000" value="0" />
+            </div>
+            <div class="field">
+              <label for="inv-shipping">Ongkir / Biaya Tambahan (Rp)</label>
+              <input id="inv-shipping" type="number" min="0" step="1000" value="0" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="inv-notes">Catatan Invoice (opsional)</label>
+            <textarea id="inv-notes" placeholder="Contoh: Delivery tanggal 18.00, mohon konfirmasi sebelum kirim"></textarea>
+          </div>
+
+          <p class="muted" id="invoice-total-preview">Estimasi Total: Rp 0</p>
+
+          <div class="invoice-actions">
+            <button class="btn btn-main" type="submit">Generate Invoice PDF + Kirim WhatsApp</button>
+          </div>
+        </form>
+        <p class="status-line" id="invoice-status"></p>
+        <div id="invoice-result"></div>
+
+        <h3 style="margin-top:1rem;">Riwayat Invoice</h3>
+        <div class="invoice-history-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Tanggal</th>
+                <th>No Invoice</th>
+                <th>Customer</th>
+                <th>WA</th>
+                <th>Total</th>
+                <th>PDF</th>
+              </tr>
+            </thead>
+            <tbody id="invoice-history-body">
+              <tr><td colspan="6">Belum ada invoice.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel" style="margin-top:1rem;">
         <h2>Keamanan PIN Admin</h2>
         <p class="muted">Gunakan form ini untuk mengganti PIN. Setelah ganti PIN, sesi lama otomatis diganti dengan sesi baru.</p>
 
@@ -775,6 +943,18 @@
 
     function buildQrImageUrl(targetLink) {
       return "https://api.qrserver.com/v1/create-qr-code/?size=900x900&margin=12&format=png&data=" + encodeURIComponent(targetLink);
+    }
+
+    function formatRupiah(value) {
+      var numeric = Number(value);
+      if (!Number.isFinite(numeric) || numeric < 0) numeric = 0;
+      return "Rp " + Math.round(numeric).toLocaleString("id-ID");
+    }
+
+    function parseMoney(value) {
+      var numeric = Number(value);
+      if (!Number.isFinite(numeric) || numeric < 0) return 0;
+      return Math.round(numeric);
     }
 
     function authFetch(url, options) {
@@ -1217,6 +1397,294 @@
       setLine("qr-status", "Membuka WhatsApp admin dengan link QR.", "success");
     }
 
+    function todayYmd() {
+      var now = new Date();
+      var tzOffset = now.getTimezoneOffset() * 60000;
+      return new Date(now.getTime() - tzOffset).toISOString().slice(0, 10);
+    }
+
+    function createInvoiceItemRow(data) {
+      var preset = data || {};
+      var selectedProduct = String(preset.product || "Lapis");
+      var selectedSize = String(preset.size || "");
+      var qty = Number.isFinite(Number(preset.qty)) ? Math.max(1, Math.round(Number(preset.qty))) : 1;
+      var unitPrice = Number.isFinite(Number(preset.unitPrice)) ? Math.max(0, Math.round(Number(preset.unitPrice))) : 0;
+      var notes = String(preset.notes || "");
+
+      var row = document.createElement("div");
+      row.className = "invoice-item-row";
+      row.innerHTML = '' +
+        '<div class="invoice-item-grid">' +
+          '<div class="field">' +
+            '<label>Produk</label>' +
+            '<select class="inv-item-product">' +
+              '<option value="Lapis"' + (selectedProduct === "Lapis" ? " selected" : "") + '>Lapis</option>' +
+              '<option value="Nastar"' + (selectedProduct === "Nastar" ? " selected" : "") + '>Nastar</option>' +
+              '<option value="Custom"' + (selectedProduct === "Custom" ? " selected" : "") + '>Custom</option>' +
+            '</select>' +
+          '</div>' +
+          '<div class="field">' +
+            '<label>Ukuran / Varian</label>' +
+            '<input class="inv-item-size" type="text" placeholder="Contoh: 10 x 20 / 2 toples" value="' + escapeHtml(selectedSize) + '" />' +
+          '</div>' +
+          '<div class="field">' +
+            '<label>Qty</label>' +
+            '<input class="inv-item-qty" type="number" min="1" step="1" value="' + String(qty) + '" required />' +
+          '</div>' +
+          '<div class="field">' +
+            '<label>Harga (Rp)</label>' +
+            '<input class="inv-item-price" type="number" min="0" step="1000" value="' + String(unitPrice) + '" required />' +
+          '</div>' +
+          '<div class="field">' +
+            '<label>&nbsp;</label>' +
+            '<button type="button" class="btn btn-danger inv-item-remove">Hapus</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="invoice-item-note field">' +
+          '<label>Catatan item (opsional)</label>' +
+          '<input class="inv-item-note" type="text" placeholder="Contoh: varian Imlek, toples gold, dll" value="' + escapeHtml(notes) + '" />' +
+        '</div>';
+
+      row.querySelector(".inv-item-remove").addEventListener("click", function () {
+        var wrap = document.getElementById("invoice-items");
+        if (!wrap) return;
+        if (wrap.children.length <= 1) {
+          var productField = row.querySelector(".inv-item-product");
+          var sizeField = row.querySelector(".inv-item-size");
+          var qtyField = row.querySelector(".inv-item-qty");
+          var priceField = row.querySelector(".inv-item-price");
+          var noteField = row.querySelector(".inv-item-note");
+          if (productField) productField.value = "Lapis";
+          if (sizeField) sizeField.value = "";
+          if (qtyField) qtyField.value = "1";
+          if (priceField) priceField.value = "0";
+          if (noteField) noteField.value = "";
+        } else {
+          row.remove();
+        }
+        updateInvoiceTotalPreview();
+      });
+
+      Array.prototype.slice.call(row.querySelectorAll("input, select")).forEach(function (field) {
+        field.addEventListener("input", updateInvoiceTotalPreview);
+        field.addEventListener("change", updateInvoiceTotalPreview);
+      });
+
+      return row;
+    }
+
+    function addInvoiceItem(data) {
+      var wrap = document.getElementById("invoice-items");
+      if (!wrap) return;
+      wrap.appendChild(createInvoiceItemRow(data));
+      updateInvoiceTotalPreview();
+    }
+
+    function readInvoiceItemsForSubmit() {
+      var rows = Array.prototype.slice.call(document.querySelectorAll(".invoice-item-row"));
+      var items = [];
+      var invalidRows = [];
+
+      rows.forEach(function (row, index) {
+        var product = String((row.querySelector(".inv-item-product") || {}).value || "").trim();
+        var size = String((row.querySelector(".inv-item-size") || {}).value || "").trim();
+        var qty = Math.round(Number((row.querySelector(".inv-item-qty") || {}).value || 0));
+        var unitPrice = parseMoney((row.querySelector(".inv-item-price") || {}).value || 0);
+        var notes = String((row.querySelector(".inv-item-note") || {}).value || "").trim();
+
+        if (!product || !Number.isFinite(qty) || qty <= 0 || !Number.isFinite(unitPrice) || unitPrice <= 0) {
+          invalidRows.push(index + 1);
+          return;
+        }
+
+        items.push({
+          product: product,
+          size: size,
+          qty: qty,
+          unitPrice: unitPrice,
+          notes: notes
+        });
+      });
+
+      return {
+        items: items,
+        invalidRows: invalidRows
+      };
+    }
+
+    function updateInvoiceTotalPreview() {
+      var read = readInvoiceItemsForSubmit();
+      var subtotal = (read.items || []).reduce(function (sum, item) {
+        return sum + (Number(item.qty) * Number(item.unitPrice));
+      }, 0);
+      var discountRaw = parseMoney((document.getElementById("inv-discount") || {}).value || 0);
+      var shipping = parseMoney((document.getElementById("inv-shipping") || {}).value || 0);
+      var discount = Math.min(discountRaw, subtotal);
+      var total = Math.max(0, subtotal - discount + shipping);
+
+      var preview = document.getElementById("invoice-total-preview");
+      if (!preview) return;
+      preview.textContent = "Estimasi Total: " + formatRupiah(total) +
+        " (Subtotal " + formatRupiah(subtotal) +
+        ", Diskon " + formatRupiah(discount) +
+        ", Ongkir " + formatRupiah(shipping) + ")";
+    }
+
+    function renderInvoiceResult(payload) {
+      var wrap = document.getElementById("invoice-result");
+      if (!wrap) return;
+      if (!payload || !payload.invoice) {
+        wrap.innerHTML = "";
+        return;
+      }
+
+      var invoice = payload.invoice || {};
+      var whatsappUrl = sanitizeHttpUrl(payload.whatsappUrl || "");
+      var pdfUrl = sanitizeHttpUrl(invoice.pdfUrl || "") || String(invoice.pdfPath || "");
+
+      wrap.innerHTML = '' +
+        '<article class="invoice-result-card">' +
+          '<h3>Invoice Berhasil Dibuat</h3>' +
+          '<p><strong>No Invoice:</strong> ' + escapeHtml(invoice.invoiceNumber || "-") + '</p>' +
+          '<p><strong>Customer:</strong> ' + escapeHtml(invoice.customerName || "-") + ' (' + escapeHtml(invoice.customerWhatsapp || "-") + ')</p>' +
+          '<p><strong>Total:</strong> ' + escapeHtml(formatRupiah(invoice.total || 0)) + '</p>' +
+          '<div class="invoice-actions">' +
+            '<a class="btn btn-soft" href="' + escapeHtml(pdfUrl || "#") + '" target="_blank" rel="noopener noreferrer">Buka PDF Invoice</a>' +
+            '<button class="btn btn-main" id="send-invoice-wa-btn" type="button">Kirim ke WhatsApp Customer</button>' +
+          '</div>' +
+        '</article>';
+
+      var sendBtn = document.getElementById("send-invoice-wa-btn");
+      if (sendBtn) {
+        sendBtn.disabled = !whatsappUrl;
+        sendBtn.addEventListener("click", function () {
+          if (!whatsappUrl) return;
+          window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+        });
+      }
+
+      if (whatsappUrl) {
+        window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+      }
+    }
+
+    function renderInvoiceHistory(rows) {
+      var tbody = document.getElementById("invoice-history-body");
+      if (!tbody) return;
+      if (!rows || !rows.length) {
+        tbody.innerHTML = '<tr><td colspan="6">Belum ada invoice.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = rows.map(function (row) {
+        var pdfUrl = sanitizeHttpUrl(row.pdfUrl || "") || String(row.pdfPath || "");
+        return '' +
+          '<tr>' +
+            '<td>' + escapeHtml(formatDate(row.createdAt)) + '</td>' +
+            '<td>' + escapeHtml(row.invoiceNumber || "-") + '</td>' +
+            '<td>' + escapeHtml(row.customerName || "-") + '</td>' +
+            '<td>' + escapeHtml(row.customerWhatsapp || "-") + '</td>' +
+            '<td>' + escapeHtml(formatRupiah(row.total || 0)) + '</td>' +
+            '<td><a class="btn btn-soft" href="' + escapeHtml(pdfUrl || "#") + '" target="_blank" rel="noopener noreferrer">PDF</a></td>' +
+          '</tr>';
+      }).join("");
+    }
+
+    function loadInvoices() {
+      return apiJson(API_BASE + "/invoices?limit=120")
+        .then(function (payload) {
+          renderInvoiceHistory(payload.data || []);
+        })
+        .catch(function (err) {
+          if (handleUnauthorized(err, "Sesi habis. Login ulang untuk akses invoice.")) return;
+          setLine("invoice-status", "Gagal memuat invoice: " + (err.message || "unknown"), "error");
+        });
+    }
+
+    function submitInvoice(event) {
+      event.preventDefault();
+      var name = String((document.getElementById("inv-customer-name") || {}).value || "").trim();
+      var customerWa = String((document.getElementById("inv-customer-wa") || {}).value || "").trim();
+      var customerAddress = String((document.getElementById("inv-customer-address") || {}).value || "").trim();
+      var orderDate = String((document.getElementById("inv-order-date") || {}).value || "").trim();
+      var dueDate = String((document.getElementById("inv-due-date") || {}).value || "").trim();
+      var discount = parseMoney((document.getElementById("inv-discount") || {}).value || 0);
+      var shipping = parseMoney((document.getElementById("inv-shipping") || {}).value || 0);
+      var notes = String((document.getElementById("inv-notes") || {}).value || "").trim();
+      var read = readInvoiceItemsForSubmit();
+
+      if (!name || !customerWa) {
+        setLine("invoice-status", "Nama dan WhatsApp customer wajib diisi.", "error");
+        return;
+      }
+      if (!read.items.length) {
+        setLine("invoice-status", "Isi minimal 1 item produk dengan qty dan harga.", "error");
+        return;
+      }
+      if (read.invalidRows && read.invalidRows.length) {
+        setLine("invoice-status", "Cek item baris: " + read.invalidRows.join(", ") + ". Pastikan qty dan harga valid.", "error");
+        return;
+      }
+
+      var payload = {
+        customerName: name,
+        customerWhatsapp: customerWa,
+        customerAddress: customerAddress,
+        orderDate: orderDate || todayYmd(),
+        dueDate: dueDate,
+        discount: discount,
+        shipping: shipping,
+        notes: notes,
+        items: read.items
+      };
+
+      setLine("invoice-status", "Membuat invoice PDF...");
+      apiJson(API_BASE + "/invoices", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+        .then(function (result) {
+          renderInvoiceResult(result);
+          setLine("invoice-status", "Invoice berhasil dibuat dan chat WhatsApp customer sudah dibuka.", "success");
+          loadInvoices();
+        })
+        .catch(function (err) {
+          if (handleUnauthorized(err, "Sesi habis. Login ulang untuk generate invoice.")) return;
+          setLine("invoice-status", "Gagal generate invoice: " + (err.message || "unknown"), "error");
+        });
+    }
+
+    function initInvoiceForm() {
+      var itemsWrap = document.getElementById("invoice-items");
+      if (!itemsWrap) return;
+      if (!itemsWrap.children.length) addInvoiceItem({ product: "Lapis", qty: 1, unitPrice: 0 });
+
+      var orderDateInput = document.getElementById("inv-order-date");
+      if (orderDateInput && !orderDateInput.value) orderDateInput.value = todayYmd();
+
+      var addBtn = document.getElementById("add-invoice-item");
+      if (addBtn && !addBtn.dataset.bound) {
+        addBtn.dataset.bound = "true";
+        addBtn.addEventListener("click", function () {
+          addInvoiceItem({ product: "Lapis", qty: 1, unitPrice: 0 });
+        });
+      }
+
+      var discountInput = document.getElementById("inv-discount");
+      if (discountInput && !discountInput.dataset.bound) {
+        discountInput.dataset.bound = "true";
+        discountInput.addEventListener("input", updateInvoiceTotalPreview);
+      }
+      var shippingInput = document.getElementById("inv-shipping");
+      if (shippingInput && !shippingInput.dataset.bound) {
+        shippingInput.dataset.bound = "true";
+        shippingInput.addEventListener("input", updateInvoiceTotalPreview);
+      }
+
+      updateInvoiceTotalPreview();
+    }
+
     function renderAssets(assets) {
       var wrap = document.getElementById("asset-grid");
       if (!assets || !assets.length) {
@@ -1311,6 +1779,8 @@
       loadConfig();
       refreshAssets();
       loadOrders();
+      loadInvoices();
+      initInvoiceForm();
     }
 
     document.getElementById("setup-form").addEventListener("submit", function (event) {
@@ -1384,6 +1854,7 @@
 
     document.getElementById("config-form").addEventListener("submit", saveConfig);
     document.getElementById("upload-form").addEventListener("submit", uploadAsset);
+    document.getElementById("invoice-form").addEventListener("submit", submitInvoice);
     document.getElementById("generate-shortlink-btn").addEventListener("click", generateShortlink);
     document.getElementById("generate-qr-btn").addEventListener("click", generateQrOnly);
     document.getElementById("send-qr-wa-btn").addEventListener("click", sendQrToWhatsAppAdmin);
@@ -1407,6 +1878,7 @@
     });
 
     setQrPreview("");
+    initInvoiceForm();
 
     initAuthFlow();
     setInterval(function () {
